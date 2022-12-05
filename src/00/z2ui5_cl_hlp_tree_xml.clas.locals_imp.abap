@@ -1,0 +1,2 @@
+    CLASS _ DEFINITION INHERITING FROM zcl_2ui5_hlp_utility.
+    ENDCLASS.

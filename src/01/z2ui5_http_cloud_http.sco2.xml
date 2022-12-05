@@ -1,0 +1,17 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_SCO2" serializer_version="v1.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <SCO2>
+    <IBS_ID>Z2UI5_HTTP_CLOUD_HTTP</IBS_ID>
+    <IBS_TYPE>HTTP</IBS_TYPE>
+    <HTTP_SERVICE_ID>Z2UI5_HTTP_CLOUD</HTTP_SERVICE_ID>
+    <REL_FOR_CUST_CSCN>X</REL_FOR_CUST_CSCN>
+    <ABAP_LANGUAGE_VERSION>5</ABAP_LANGUAGE_VERSION>
+    <NAME>Z2UI5_HTTP_CLOUD_HTTP</NAME>
+    <DESCRIPTION> HTTP Service Z2UI5_HTTP_CLOUD</DESCRIPTION>
+    <ABAP_LANGU_VERSION>5</ABAP_LANGU_VERSION>
+   </SCO2>
+  </asx:values>
+ </asx:abap>
+</abapGit>
