@@ -1,6 +1,6 @@
 
 CLASS lcl_2ui5_server DEFINITION DEFERRED.
-CLASS zzcl_app_system DEFINITION DEFERRED.
+CLASS lcl_2ui5_app_system DEFINITION DEFERRED.
 
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
@@ -28,8 +28,8 @@ INTERFACE zif_2ui5_client_event.
     END OF cs_event_type.
 
   METHODS get_id
-    RETURNING VALUE(r_result) TYPE string.
-
+    RETURNING
+      VALUE(r_result) TYPE string.
 
 ENDINTERFACE.
 
@@ -74,7 +74,7 @@ INTERFACE zif_2ui5_client.
 
 ENDINTERFACE.
 
-CLASS lcl_2ui5_client DEFINITION.
+CLASS lcl_2ui5_user_client DEFINITION.
 
   PUBLIC SECTION.
     INTERFACES zif_2ui5_client.
@@ -83,6 +83,7 @@ CLASS lcl_2ui5_client DEFINITION.
     INTERFACES zif_2ui5_client_popup.
 
     DATA mo_server TYPE REF TO lcl_2ui5_server.
+
     METHODS constructor
       IMPORTING
         i_server TYPE REF TO lcl_2ui5_server.
@@ -124,7 +125,7 @@ INTERFACE zif_2ui5_selscreen_group.
           selected TYPE abap_bool,
           text     TYPE string,
         END OF s_prop,
-        t_prop TYPE STANDARD TABLE OF ty-radiobutton_group-s_prop WITH EMPTY KEY,
+        t_prop TYPE string_table, "STANDARD TABLE OF ty-radiobutton_group-s_prop WITH EMPTY KEY,
       END OF radiobutton_group,
       BEGIN OF segemented_button,
         t_button TYPE STANDARD TABLE OF ty_-s_seg_btn WITH EMPTY KEY,
@@ -151,22 +152,25 @@ INTERFACE zif_2ui5_selscreen_group.
 
   METHODS date_picker
     IMPORTING
-      value           TYPE d OPTIONAL
+      value           TYPE string OPTIONAL
       placeholder     TYPE string OPTIONAL
+        PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
 
   METHODS time_picker
     IMPORTING
-      value           TYPE t OPTIONAL
+      value           TYPE string OPTIONAL
       placeholder     TYPE string OPTIONAL
+        PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
 
   METHODS date_time_picker
     IMPORTING
-      value           TYPE timestamp OPTIONAL
+      value           TYPE string OPTIONAL
       placeholder     TYPE string OPTIONAL
+        PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
 
@@ -361,14 +365,14 @@ INTERFACE zif_2ui5_view.
     IMPORTING
       name            TYPE string OPTIONAL
       title           TYPE string DEFAULT 'screen_title'
-        PREFERRED PARAMETER name
+      PREFERRED PARAMETER name
     RETURNING
       VALUE(r_result) TYPE REF TO zif_2ui5_selscreen.
 
 
 ENDINTERFACE.
 
-CLASS lcl_2ui5_view DEFINITION.
+CLASS lcl_2ui5_user_view DEFINITION.
 
   PUBLIC SECTION.
 
@@ -378,11 +382,11 @@ CLASS lcl_2ui5_view DEFINITION.
     INTERFACES zif_2ui5_selscreen_group.
     INTERFACES zif_2ui5_selscreen_footer.
 
+    DATA mo_server TYPE REF TO lcl_2ui5_server.
+
     METHODS constructor
       IMPORTING
         server TYPE REF TO lcl_2ui5_server.
-
-    DATA mo_server TYPE REF TO lcl_2ui5_server.
 
 ENDCLASS.
 
@@ -399,9 +403,6 @@ INTERFACE zif_2ui5_config.
 
 ENDINTERFACE.
 
-
-"! Starten der App ueber und Eingabe der Klasse
-"!
 INTERFACE zif_2ui5_app.
   INTERFACES if_serializable_object.
 
@@ -427,8 +428,6 @@ CLASS lcl_2ui5_server DEFINITION.
         t_controls    TYPE STANDARD TABLE OF _=>ty-s-control WITH EMPTY KEY,
       END OF s_screen.
 
-    DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
-
     DATA:
       BEGIN OF ms_db,
         id      TYPE string,
@@ -439,18 +438,13 @@ CLASS lcl_2ui5_server DEFINITION.
         o_app   TYPE REF TO object,
       END OF ms_db.
 
-
     DATA ms_client TYPE z2ui5_cl_http_handler=>ty_S_client.
-
+    DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
-
     DATA mo_leave_to_app TYPE REF TO zif_2ui5_app.
-
     DATA mo_view_model TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
     DATA mo_ui5_model  TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
-
-
 
     METHODS constructor.
 
@@ -468,28 +462,39 @@ CLASS lcl_2ui5_server DEFINITION.
       RETURNING
         VALUE(r_result) TYPE string.
 
-
     METHODS execute_init
       RETURNING
         VALUE(ro_model) TYPE REF TO lcl_2ui5_server.
+
     METHODS execute_finish
       RETURNING
         VALUE(r_result) TYPE string.
+
     METHODS init_prev.
+
     METHODS init_app.
+
+    METHODS init_new_server_error
+      IMPORTING
+        kind            TYPE string
+        ix              TYPE REF TO cx_root
+      RETURNING
+        VALUE(r_result) TYPE REF TO lcl_2ui5_server.
+
     METHODS init_new_server
       IMPORTING
         i_app           TYPE REF TO zif_2ui5_app
       RETURNING
         VALUE(r_result) TYPE REF TO lcl_2ui5_server.
 
+    DATA x TYPE REF TO cx_root.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA x TYPE REF TO cx_root.
 
 ENDCLASS.
 
-CLASS zzcl_app_system DEFINITION.
+CLASS lcl_2ui5_app_system DEFINITION.
 
   PUBLIC SECTION.
 
@@ -502,7 +507,7 @@ CLASS zzcl_app_system DEFINITION.
         kind            TYPE string OPTIONAL
         server          TYPE REF TO lcl_2ui5_server
       RETURNING
-        VALUE(r_result) TYPE REF TO zzcl_app_system.
+        VALUE(r_result) TYPE REF TO lcl_2ui5_app_system.
 
     DATA:
       BEGIN OF ms_error,
@@ -708,7 +713,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g'.
+        WHEN 'g' OR 'D' OR 'P' OR 'T'.
           lo_update->add_attribute(
             n = lr_attri->name
             v = CONV string( ms_db-o_app->(lr_attri->name) )
@@ -755,7 +760,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
 
   METHOD init_prev.
 
-    ms_db = CORRESPONDING #( db_load( ms_db-id_prev ) EXCEPT id id_prev ).
+    ms_db = CORRESPONDING #( BASE ( ms_db ) db_load( ms_db-id_prev ) EXCEPT id id_prev ).
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE check_used = abap_true.
@@ -764,7 +769,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'I'.
+        WHEN 'g' OR 'I'. " or 'D' or 'T'.
           DATA(lv_value) = ms_client-o_body->get_attribute( lr_attri->name )->get_val( ).
           DATA(lr_val) = REF #( ms_db-o_app->(lr_attri->name) ).
           lr_val->* = lv_value.
@@ -794,7 +799,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
           TRY.
               ms_db-app = ms_client-t_param[ name = 'APP' ]-value.
             CATCH cx_root.
-              CREATE OBJECT ms_db-o_app TYPE zzcl_app_system.
+              CREATE OBJECT ms_db-o_app TYPE lcl_2ui5_app_system.
               EXIT.
           ENDTRY.
 
@@ -802,7 +807,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
           EXIT.
 
         CATCH cx_root.
-          DATA(lo_error) = NEW zzcl_app_system( ).
+          DATA(lo_error) = NEW lcl_2ui5_app_system( ).
           lo_error->ms_error-x_error = NEW _( val = `Class with name ` && ms_db-app && ` not found. Please check your repository.` ).
           ms_db-o_app = CAST #( lo_error ).
           EXIT.
@@ -842,6 +847,13 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
     CLEAR r_result->ms_Client-o_body.
     r_result->mt_after = mt_after.
     r_result->ms_db-t_attri = _=>hlp_get_t_attri( r_result->ms_db-o_app ).
+
+  ENDMETHOD.
+
+  METHOD init_new_server_error.
+
+    r_result = init_new_server(
+             lcl_2ui5_app_system=>factory_error( server = me error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
   ENDMETHOD.
 
@@ -907,56 +919,6 @@ CLASS zzcl_app_demo1 IMPLEMENTATION.
                 )->button( text = 'Post' on_press_id = 'BTN_POST'
    ).
 
-
-    RETURN.
-
-    DATA(lo_screen) = view->factory_selscreen( name = 'VIEW_01' title = 'My Application' ).
-
-    DATA(lo_group) = lo_screen->begin_of_block( 'Selection Screen' )->begin_of_group( 'Product Information' ).
-
-    lo_group->label( 'Plant' ).
-    lo_group->combobox(
-        selectedkey = ms_view_01-plant_key
-        t_item      = VALUE #(
-                          (  key = '01' text = 'Hamburg'   )
-                          (  key = '02' text = 'Barcelona' )
-                          (  key = '03' text = 'Peking'    ) ) ).
-
-    lo_group->label( 'Product' ).
-    lo_group->input( ms_view_01-product ).
-
-    lo_group->label( 'Quantity' ).
-    lo_group->input(
-        value       = ms_view_01-quantity
-        description = 'ST'
-        type        = view->cs-input-type-number ).
-
-    DATA(lo_block) = lo_group->end_of_group( ).
-
-    lo_block->begin_of_group( 'Process' ).
-
-    lo_group->label( 'In/Out' ).
-    lo_group->segmented_button(
-        selected_key = ms_view_01-post_key
-        t_button     = VALUE #(
-                                ( key = '01' text = 'Wareneingang' )
-                                ( key = '02' text = 'Warenausgang' ) ) ).
-
-    lo_group->label( 'Option' ).
-    lo_group->checkbox( text = 'ignore errors' selected = ms_view_01-check_ignore_errors ).
-    lo_group->label( 'Posting' ).
-    lo_group->radiobutton_group( selected_index = '1' t_prop = VALUE #(
-        ( text = 'Hell' )
-        ( text = 'Dunkel' )
-        ) ).
-
-    lo_group->end_of_group( )->end_of_block( )->begin_of_footer(
-     )->spacer(
-     )->button( text = 'Clear' on_press_id = 'BUTTON_CLEAR'
-     )->button( text = 'Post'  on_press_id = 'BUTTON_OK'     type = view->cs-button-type-emphasized
-   )->end_of_footer(
-  )->end_of_screen( ).
-
   ENDMETHOD.
 
 ENDCLASS.
@@ -967,7 +929,19 @@ CLASS zzcl_app_demo2 DEFINITION.
 
     INTERFACES zif_2ui5_app.
 
-    DATA mv_checkbox TYPE abap_bool.
+    DATA:
+      BEGIN OF ms_screen,
+        check_initialized TYPE abap_bool,
+        check_is_active   TYPE abap_bool,
+        plant             TYPE string,
+        combo_key         TYPE string,
+        segment_key       TYPE string,
+        radio_index       TYPE i,
+        date              TYPE string,
+        date_time         TYPE string,
+        time_start        TYPE string,
+        time_end          TYPE string,
+      END OF ms_screen.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -978,16 +952,24 @@ CLASS zzcl_app_demo2 IMPLEMENTATION.
 
   METHOD zif_2ui5_app~on_event.
 
+    IF ms_screen-check_initialized = abap_false.
+      ms_screen-check_initialized = abap_true.
+
+      ms_screen-combo_key = 'AB'.
+
+    ENDIF.
+
+
     CASE client->event( )->get_id( ).
 
       WHEN 'BUTTON_HOME'.
-        client->controller( )->exit_to_home( ).
+        " client->controller( )->exit_to_home( ).
 
       WHEN 'BUTTON_RESTART'.
-        client->controller( )->nav_to_app( NEW zzcl_app_demo1( ) ).
+        " client->controller( )->nav_to_app( NEW zzcl_app_demo1( ) ).
 
       WHEN 'BUTTON_ERROR'.
-        RAISE EXCEPTION NEW _( 'Anwender fehler' ).
+        DATA(dummy) = 1 / 0.
 
     ENDCASE.
 
@@ -996,39 +978,94 @@ CLASS zzcl_app_demo2 IMPLEMENTATION.
 
   METHOD zif_2ui5_app~set_view.
 
-    DATA(lo_screen) = view->factory_selscreen( name = 'FIRST_SCREEN' title = 'Demo 02 - controls u app features' ).
+    DATA(lo_screen) = view->factory_selscreen( title = 'App Title - Demo UI5 Controls' ).
+    DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
 
-    DATA(lo_group) = lo_screen->begin_of_block( )->begin_of_group( ).
 
-    lo_group->label( 'line' ).
+
+    DATA(lo_group) = lo_block->begin_of_group( 'Input' ).
+
+    lo_group->label( 'Input with value help' ).
+    lo_group->input(
+        value       = ms_screen-plant
+        placeholder = 'fill in plant'
+        suggestion_items = VALUE #(
+            ( descr = 'Bitburg' value = '030' )
+            ( descr = 'Hamburg' value = '050' )
+          ) ).
+
+
+
+    lo_group = lo_block->begin_of_group( 'Eingabe mit Auswahl' ).
+
+    lo_group->label( 'Checkbox' ).
     lo_group->checkbox(
         text     = 'das ist eine checkbox'
-        selected = mv_checkbox
-*      RECEIVING
-*        r_result =
+        selected = ms_screen-check_is_active
     ).
-    lo_group->button( text = 'Home'    on_press_id = 'BUTTON_HOME'    type = 'Reject' ).
-    lo_group->button( text = 'Restart' on_press_id = 'BUTTON_RESTART' type = 'Reject' ).
-    lo_group->button( text = 'Error'   on_press_id = 'BUTTON_ERROR'   type = 'Reject' ).
 
-    lo_group->end_of_group( )->end_of_block( ).
+    lo_group->label( 'Combobox' ).
+    lo_group->combobox(
+        selectedkey = ms_screen-combo_key
+        t_item      = VALUE #(
+                ( key = 'AH' text = 'green' )
+                ( key = 'AB' text = 'blue' )
+                ( key = 'LL' text = 'red' )
+                ( key = 'TT' text = 'gray' )
+          ) ).
+
+    lo_group->label( 'Segmented Button' ).
+    lo_group->segmented_button(
+        selected_key = ms_screen-segment_key
+        t_button     = VALUE #(
+            ( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue' )
+            ( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green' )
+            ( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black' )
+        ) ).
+
+    lo_group->label( 'Radiobutton' ).
+    lo_group->radiobutton_group(
+        selected_index = ms_screen-radio_index
+        t_prop         = VALUE #( ( `AAAAAAA` ) ( `BBBBBBBB` ) )
+    ).
 
 
 
-*    )->end_of_group(
-*   )->end_of_block(
-*   )->begin_of_footer(
-*     )->spacer(
-*     )->button( text = 'OK' on_press_id = 'BUTTON_OK' type = 'Reject'
-*     )->button( text = 'CANCEL' on_press_id = 'BUTTON_CANCEL' type = 'Reject'
-*   )->end_of_footer(
-* )->end_of_screen( ).
+    lo_group = lo_block->begin_of_group( 'Zeitangaben' ).
+
+    lo_group->label( 'Datum' ).
+    lo_group->date_picker( ms_screen-date ).
+
+    lo_group->label( 'Datum u Zeit' ).
+    lo_group->date_time_picker( ms_screen-date_time ).
+
+    lo_group->label( 'Zeit von/bis' ).
+    lo_group->time_picker( ms_screen-time_start ).
+    lo_group->time_picker( ms_screen-time_end ).
+
+
+
+    lo_group = lo_block->begin_of_group( 'Interaktion' ).
+
+    lo_group->label( 'Popups' ).
+    lo_group->button( text = 'Message Box Anzeigen'   on_press_id = 'BUTTON_HOME'   ).
+    lo_group->button( text = 'Message Toast Anzeigen' on_press_id = 'BUTTON_RESTART' ).
+
+    lo_group->label( 'System' ).
+    lo_group->button( text = 'Exit'     on_press_id = 'BUTTON_HOME'   ).
+    lo_group->button( text = 'Neustart' on_press_id = 'BUTTON_HOME'   ).
+    lo_group->button( text = 'Fehler'   on_press_id = 'BUTTON_ERROR'   ).
+
+    lo_group->label( 'Neue App Aufrufen' ).
+    lo_group->button( text = 'App & Screen wechseln' on_press_id = 'BUTTON_NEW'   ).
+
+
 
   ENDMETHOD.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_client IMPLEMENTATION.
+CLASS lcl_2ui5_user_client IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -1102,14 +1139,14 @@ CLASS lcl_2ui5_client IMPLEMENTATION.
 
   METHOD zif_2ui5_client_controller~exit_to_home.
 
-    zif_2ui5_client_controller~nav_to_app( NEW zzcl_app_system(  ) ).
+    zif_2ui5_client_controller~nav_to_app( NEW lcl_2ui5_app_system(  ) ).
 
   ENDMETHOD.
 
 ENDCLASS.
 
 
-CLASS zzcl_app_system IMPLEMENTATION.
+CLASS lcl_2ui5_app_system IMPLEMENTATION.
 
   METHOD factory_error.
 
@@ -1140,52 +1177,21 @@ CLASS zzcl_app_system IMPLEMENTATION.
       DATA(view2) = view->factory_selscreen( name = 'START' title = 'Home'
             )->begin_of_block( 'Welcome to abap2ui5!'
           )->begin_of_group( 'This is an easy way to create ui5 applications with abap only:'
-         "    )->end_of_group(
-       "       )->begin_of_group( 'Start'
-               "  )->label( 'anz langer textganz langer text ganz langer text'
                  )->label( 'Step 1'
-            "     )->radiobutton_group(
-                   "  description = 'das ist eine beschreibung'
-            ""         selected_index = mv_sel_index
-                "     t_prop = VALUE #(
-               "                  ( text = 'erste zeile'  selected = abap_true )
-               "                  ( text = 'zweite zeile' selected = abap_false )
-                "                     )
                  )->text( 'Create a new global class in the abap system'
                  )->label( 'Step 2'
-              "   )->segmented_button(
-               "          selected_key = mv_sel_key
-               "          t_button     = VALUE #(
-               ""              (  key = 'AA'  icon = 'sap-icon://taxi' )
-                "             (  key = 'BB'  icon = 'sap-icon://taxi' )
-               "              (  key = 'CC'  icon = 'sap-icon://taxi' )
-               "           )
                  )->text( 'Implement the interface zif_2ui5_selection_screen'
                  )->label( 'Step 3'
                  )->text( 'Define the views in the method set_screen and the behaviour in the method on_event '
-                " )->combobox(
-              "     selectedkey = mv_combo_key
-                "   t_item = VALUE #(
-              "        ( key = 'AA' text = 'American Airlines' )
-             "         ( key = 'LH' text = 'Lufthansa' )
-             "         ( key = 'TT' text = 'tttt' )
-              "       )
                  )->label( 'Step 4' ).
 
       IF ms_home-class_editable = abap_true.
         view2->input(
                        value          = ms_home-classname
                        placeholder    = 'fill in the classname and press check'
-                     "  type             = view->cs-input-type-password
                        value_state      = ms_home-class_value_state
                        value_state_text = ms_home-class_value_state_text
                        editable         = ms_home-class_editable
-               "       suggestion_items = VALUE #(
-               "            ( value = `eins` descr = 'Das ist der erst eintrag' )
-               "            ( value = `einsen` descr = 'Das ist der eintrag so ähnlich' )
-               "            ( value = `einsdddd` descr = 'Dnochmal' )
-               "            ( value = `zwei` descr = 'Dnochmal' )
-                   "    )
                   ).
       ELSE.
         view2->text( ms_home-classname ).
@@ -1206,13 +1212,6 @@ CLASS zzcl_app_system IMPLEMENTATION.
         )->link( text = 'Link to multiple Views and a lot of controls' href = get_app_url( i_view = view app = 'zzcl_app_demo2' )
     )->end_of_group(
   )->end_of_block(
-  "    )->begin_of_footer(
-  "     )->button( text = 'Clear' on_press_id = 'BUTTON_CLEAR' icon = 'sap-icon://sys-cancel'
-  "     )->spacer(
-  "     )->button( text = 'Start' on_press_id = 'BUTTON_GO' icon = 'sap-icon://begin'
-  "        enabled = ms_home-btn_go_enabled type = view->cs-button-type-emphasized
-  " )->button( text = 'CANCEL' ucomm = 'CANCEL'
-  "   )->end_of_footer(
   )->end_of_screen( ).
 
 
@@ -1226,23 +1225,12 @@ CLASS zzcl_app_system IMPLEMENTATION.
              )->begin_of_group( ms_error-x_error->get_text( )
              )->label( 'Classname'
              )->text( ms_error-classname
-             "   )->label( 'Step 1'
-             "   )->text( 'Create a new global class in the abap system'
-             "   )->label( 'Step 2'
-             "   )->text( 'Implement the interface zif_2_ui5_selection_screen'
-             "   )->label( 'Step 3'
-             "   )->text( 'Define the views in the method set_screen and the behaviour in the method on_event '
-             "   )->label( 'Step 4'
-              "  )->input( val = mv_value placeholder = 'enter the classname here and start the application'
-               " )->button( text = 'Start' ucomm = 'POST'
             )->end_of_group(
            )->end_of_block(
            )->begin_of_footer(
-           "  )->button( text = 'Logoff'  ucomm = 'LOGOFF'   type = 'Reject'
              )->button( text = 'Home'    on_press_id = 'BUTTON_HOME'     type = 'Reject'
              )->spacer(
              )->button( text = 'Neustart' on_press_id = 'BUTTON_RESTART' type = 'Accept'
-            " )->button( text = 'CANCEL' ucomm = 'CANCEL'
            )->end_of_footer(
          )->end_of_screen( ).
 
@@ -1331,14 +1319,14 @@ CLASS zzcl_app_system IMPLEMENTATION.
     DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
     DATA(lv_tenant) = sy-mandt.
 
-    DATA(lo_server) = CAST lcl_2ui5_view( i_view )->mo_server.
+    DATA(lo_server) = CAST lcl_2ui5_user_view( i_view )->mo_server.
     rv_link  = 'https://' && lv_url && lo_server->ms_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&amp;app=' && app .
 
   ENDMETHOD.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_view IMPLEMENTATION.
+CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -1362,8 +1350,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       name  = 'HEADER'
       t_property = VALUE #(
         ( n = 'TITLE' v = title )
-        )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1378,8 +1365,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
             ( n = 'text'  v = text )
             ( n = 'icon' v = icon )
             ( COND #( WHEN type IS NOT INITIAL THEN VALUE #( n = 'type'  v = type ) ) )
-            )
-         ).
+       ) ).
 
     IF enabled IS SUPPLIED.
       INSERT VALUE #(
@@ -1424,14 +1410,19 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
     IF suggestion_items IS NOT INITIAL.
 
       DATA(lv_id) = _=>get_uuid_session( ).
-      INSERT VALUE #( n = 'suggestionItems' v = '{/' && lv_id && '}' )  INTO TABLE ls_control-t_property.
-      INSERT VALUE #( n = 'showSuggestion' v = _=>get_abap_2_json( showsuggestion ) )  INTO TABLE ls_control-t_property.
+      ls_control-t_property = value #( base ls_control-t_property
+        ( n = 'suggestionItems' v = '{/' && lv_id && '}' )
+        ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
+        ).
+
+*      INSERT lines of VALUE #( ( n = 'suggestionItems' v = '{/' && lv_id && '}' ) )  INTO TABLE ls_control-t_property.
+*      INSERT VALUE #( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )  INTO TABLE ls_control-t_property.
 
       mo_server->mo_view_model->add_attribute(
-       n           = lv_id
-       v           = _=>trans_any_2_json( suggestion_items  )
+           n = lv_id
+           v = _=>trans_any_2_json( suggestion_items  )
         apos_active = abap_false
-   ).
+      ).
 
       APPEND INITIAL LINE TO ls_control-t_child REFERENCE INTO DATA(lr_data).
       CREATE DATA lr_data->* TYPE _=>ty-s-control.
@@ -1458,7 +1449,8 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
     IF editable IS SUPPLIED AND editable = abap_false.
       ls_property-v = value.
     ELSE.
-      ls_property-name = '{' && mo_server->_get_name_by_ref( value ) && '}'.
+      "ls_property-name = '{' && mo_server->_get_name_by_ref( value ) && '}'.
+      ls_property-v = '{' && mo_server->_get_name_by_ref( value ) && '}'.
     ENDIF.
     INSERT ls_property INTO TABLE ls_control-t_property.
 
@@ -1473,7 +1465,8 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
     zif_2ui5_selscreen_group~custom_control(  VALUE #(
       name  = 'Title'
       ns = 'core'
-      t_property = VALUE #( ( n = 'text' v = title ) )
+      t_property = VALUE #(
+          ( n = 'text' v = title ) )
      ) ).
 
   ENDMETHOD.
@@ -1483,13 +1476,12 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
 
     r_result = me.
 
-    zif_2ui5_selscreen_group~custom_control(  VALUE #(
+    zif_2ui5_selscreen_group~custom_control( VALUE #(
            name  = 'CheckBox'
-            t_property = VALUE #(
+           t_property = VALUE #(
               ( n = 'text'  v = text )
               ( n = 'selected' v = '{' && mo_server->_get_name_by_ref( selected ) && '}' )
-               )
-          ) ).
+      ) ) ).
 
   ENDMETHOD.
 
@@ -1518,7 +1510,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       lr_cont->name = 'RadioButton'.
       lr_cont->parent = lr_parent.
       lr_cont->t_property = VALUE #(
-              ( n = 'text' v = lr_prop->text )
+                ( n = 'text' v = lr_prop->* )
        ).
 
     ENDLOOP.
@@ -1534,8 +1526,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       name  = 'Label'
        t_property = VALUE #(
           ( n = 'text' v = text )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1548,8 +1539,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       name  = 'BEGIN_OF_BLOCK'
        t_property = VALUE #(
           ( n = 'TITLE' v = title )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1558,12 +1548,11 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
     r_result = me.
 
     INSERT VALUE #(
-      name  = 'DatePicker'
-     t_property = VALUE #(
-          ( n = 'value' v = value )
+      name       = 'DatePicker'
+      t_property = VALUE #(
+          ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
           ( n = 'placeholder' v = placeholder )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1577,8 +1566,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
          ( n = 'text'   v = text )
          ( n = 'target' v = '_blank' )
          ( n = 'href'   v = href )
-         )
-    )  ).
+       ) ) ).
 
   ENDMETHOD.
 
@@ -1593,8 +1581,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       name  = 'SegmentedButton'
       t_property = VALUE #(
        (  n = 'selectedKey' v =  '{' && mo_server->_get_name_by_ref( selected_key ) && '}' )
-       )
-     ).
+     ) ).
 
     DATA(ls_Parent) = REF #( ls_control ).
 
@@ -1631,10 +1618,9 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
     INSERT VALUE #(
       name  = 'TimePicker'
           t_property = VALUE #(
-          ( n = 'value' v = value  )
+          ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}'  )
           ( n = 'placeholder'  v = placeholder  )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+      ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1645,10 +1631,9 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
     INSERT VALUE #(
       name  = 'DateTimePicker'
       t_property = VALUE #(
-          ( n = 'value' v = value )
+          ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
           ( n = 'placeholder'  v = placeholder  )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1665,8 +1650,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
        (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
        (  n = 'selectedKey'   v =  '{' && mo_server->_get_name_by_ref( selectedkey ) && '}' )
        (  n = 'items' v = '{/' && lv_id && '}' )
-       )
-     ).
+      ) ).
 
     APPEND INITIAL LINE TO ls_control-t_child REFERENCE INTO DATA(lr_data).
     CREATE DATA lr_data->* TYPE _=>ty-s-control.
@@ -1684,7 +1668,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       n           = lv_id
       v           = _=>trans_any_2_json( t_item )
       apos_active = abap_false
-  ).
+     ).
 
     zif_2ui5_selscreen_group~custom_control( ls_control ).
 
@@ -1709,8 +1693,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
       t_property = VALUE #(
           ( n = 'text' v = text )
           ( n = 'type' v = type )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+     ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1723,8 +1706,7 @@ CLASS lcl_2ui5_view IMPLEMENTATION.
         t_property = VALUE #(
           ( n = 'value' v = value )
           ( n = 'rows' v = rows )
-          )
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+      ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 

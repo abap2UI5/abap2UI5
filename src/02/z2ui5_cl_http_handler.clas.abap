@@ -5,20 +5,20 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
-      types:
+    TYPES:
       BEGIN OF ty_s_client,
         o_body   TYPE REF TO z2ui5_cl_hlp_tree_json,
         t_header TYPE if_web_http_request=>name_value_pairs,
         t_param  TYPE if_web_http_request=>name_value_pairs,
       END OF ty_s_client.
 
-      CLASS-METHODS main_index_html
+    CLASS-METHODS main_index_html
       RETURNING
         VALUE(r_result) TYPE string.
 
     CLASS-METHODS main_roundtrip
       IMPORTING
-        client        type ty_S_client
+        client         TYPE ty_S_client
       RETURNING
         VALUE(rv_resp) TYPE string.
 
@@ -30,7 +30,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
-METHOD main_roundtrip.
+  METHOD main_roundtrip.
 
     DATA(lo_server) = NEW lcl_2ui5_server(  ).
     lo_server->ms_client = client.
@@ -40,13 +40,11 @@ METHOD main_roundtrip.
 
       TRY.
           ROLLBACK WORK.
-          cast zif_2ui5_app( lo_server->ms_db-o_app )->on_event( NEW lcl_2ui5_client( lo_server )  ) .
+          CAST zif_2ui5_app( lo_server->ms_db-o_app )->on_event( NEW lcl_2ui5_user_client( lo_server )  ) .
           ROLLBACK WORK.
 
         CATCH cx_root INTO DATA(cx).
-          lo_server = lo_server->init_new_server(
-            zzcl_app_system=>factory_error(  server = lo_server error = cx app = cast #( lo_server->ms_db-o_app ) kind = 'ON_EVENT' ) ).
-
+          lo_server = lo_server->init_new_server_error( kind = 'ON_EVENT' ix = cx ).
           CONTINUE.
       ENDTRY.
 
@@ -56,18 +54,15 @@ METHOD main_roundtrip.
       ENDIF.
 
       TRY.
-
           lo_server->mo_ui5_model = z2ui5_cl_hlp_tree_json=>factory( ).
           lo_server->mo_view_model = lo_server->mo_ui5_model->add_attribute_object( 'oViewModel' ).
 
           ROLLBACK WORK.
-          cast zif_2ui5_app( lo_server->ms_db-O_app )->set_view( NEW lcl_2ui5_view( lo_server ) ).
+          CAST zif_2ui5_app( lo_server->ms_db-O_app )->set_view( NEW lcl_2ui5_user_view( lo_server ) ).
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.
-          lo_server = lo_server->init_new_server(
-            zzcl_app_system=>factory_error( server = lo_server error = cx app = cast #( lo_server->ms_db-o_app ) kind = 'SET_SCREEN' )
-             ).
+          lo_server = lo_server->init_new_server_error( kind = 'ON_SCREEN' ix = cx ).
           CONTINUE.
       ENDTRY.
 

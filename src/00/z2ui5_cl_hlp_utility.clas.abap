@@ -21,7 +21,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
           BEGIN OF property,
             n    TYPE string,
             v    TYPE string,
-            name TYPE string,
+          "  name TYPE string,
           END OF property,
           BEGIN OF control,
             name       TYPE string,
@@ -1349,9 +1349,12 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
     r_result = |{ r_result } <{ COND #( WHEN ms_control-ns <> '' THEN |{ ms_control-ns }:| ) }{ ms_control-name } \n {
                          REDUCE #( INIT val = `` FOR row IN ms_control-t_property
                           NEXT val = |{ val } { row-n }="{
-                                COND #( WHEN row-name IS NOT INITIAL " IS BOUND
-                                             THEN row-name "`{/oUpdate/` && row-name && `}`
-                                             ELSE row-v ) }" \n | ) }|.
+                             escape( val = row-v  format = cl_abap_format=>e_xml_attr )
+                            }" \n | ) }|.
+
+                           "     COND #( WHEN row-name IS NOT INITIAL " IS BOUND
+                          "                  THEN row-name "`{/oUpdate/` && row-name && `}`
+                             "                ELSE row-v ) }" \n | ) }|.
     IF ms_control-t_child IS INITIAL.
       r_result &&= '/>'.
       RETURN.

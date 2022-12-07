@@ -276,6 +276,7 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
 
         r_result &&= COND #( WHEN lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL THEN |"| )
          && lo_attri->mv_value
+      "   && escape( val = lo_attri->mv_value format = cl_abap_format=>e_json_string )
          && COND #( WHEN lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL THEN |"| ).
 
       ENDIF.
