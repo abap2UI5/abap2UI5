@@ -152,7 +152,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
       IMPORTING
         iv_guid         TYPE string
       RETURNING
-        VALUE(r_result) TYPE ty-o-me. "REF TO zstc77_cx.
+        VALUE(r_result) TYPE ty-o-me. "REF TO zzzyyy77_cx.
 
     CLASS-METHODS db_save_root
       IMPORTING
@@ -401,7 +401,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     "" ct_attri TYPE abap_attrdescr_tab
     " ct_tmp   TYPE abap_attrdescr_tab.
 *      IMPORTING
-*        is_db TYPE zstc77_t_001.
+*        is_db TYPE zzzyyy77_t_001.
   PRIVATE SECTION.
     CLASS-DATA mv_counter TYPE int4.
 
@@ -484,7 +484,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 *    ls_db-uname = hlp=>get( VALUE #( username = 'X' ) )-val.
 *    " ls_db-
 *
-*    MODIFY zstc77_t_001 FROM @ls_db.
+*    MODIFY zzzyyy77_t_001 FROM @ls_db.
 
   ENDMETHOD.
 
@@ -492,7 +492,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
   METHOD mime_db_save.
 
 
-*    MODIFY zstc87_t_001 FROM @( VALUE #(
+*    MODIFY zzzyyy87_t_001 FROM @( VALUE #(
 *            id = hlp=>get( VALUE #( uuid = abap_true ) )-val
 *            name1 = iv_name1
 *            name2 = iv_name2
@@ -509,7 +509,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
   METHOD mime_db_read.
 
-*    SELECT SINGLE FROM zstc87_t_001
+*    SELECT SINGLE FROM zzzyyy87_t_001
 *        FIELDS data
 *        WHERE id = @( CONV #( iv_id ) )
 *       INTO @r_result.
@@ -521,7 +521,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
 *    DATA(lv_user) = COND string( WHEN user IS NOT SUPPLIED THEN hlp=>get( VALUE #( user_tech = 'X' ) )-val ELSE user ).
 *
-*    SELECT SINGLE FROM zstc88_t_002
+*    SELECT SINGLE FROM zzzyyy88_t_002
 *    FIELDS
 *        value
 *    WHERE uname = @lv_user AND
@@ -536,7 +536,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
 *    DATA(lv_user) = COND string( WHEN user IS NOT SUPPLIED THEN hlp=>get( VALUE #( user_tech = 'X' ) )-val ELSE user ).
 *
-*    SELECT SINGLE FROM zstc88_t_003
+*    SELECT SINGLE FROM zzzyyy88_t_003
 *    FIELDS
 *        value
 *    WHERE uname = @lv_user AND
@@ -550,7 +550,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
 *    DATA(lv_user) = COND string( WHEN user IS NOT SUPPLIED THEN hlp=>get( VALUE #( user_tech = 'X' ) )-val ELSE user ).
 *
-*    MODIFY zstc88_t_003 FROM @( VALUE #(  id = id uname = lv_user value = val ) ).
+*    MODIFY zzzyyy88_t_003 FROM @( VALUE #(  id = id uname = lv_user value = val ) ).
 *    COMMIT WORK AND WAIT.
   ENDMETHOD.
 

@@ -124,7 +124,7 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
   METHOD factory.
 
 
-    " DATA(x) = COND i( WHEN iv_json IS INITIAL THEN THROW zstc77_cx( `ZCX_TREE_JSON_READER-FACTORY-JSON_INPUT_IS_EMPTY`) ).
+    " DATA(x) = COND i( WHEN iv_json IS INITIAL THEN THROW zzzyyy77_cx( `ZCX_TREE_JSON_READER-FACTORY-JSON_INPUT_IS_EMPTY`) ).
 
 
     r_result = NEW #(  ).
@@ -140,7 +140,7 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
        ).
     ENDIF.
 
-    " x = COND i( WHEN r_result->mr_actual IS NOT BOUND THEN THROW zstc77_cx( `ZCX_TREE_JSON_READER-FACTORY-JSON_NOT_VALID`) ).
+    " x = COND i( WHEN r_result->mr_actual IS NOT BOUND THEN THROW zzzyyy77_cx( `ZCX_TREE_JSON_READER-FACTORY-JSON_NOT_VALID`) ).
 
 
   ENDMETHOD.
@@ -348,7 +348,7 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
 *      DATA(lt_comp) = o_struct_desc->get_components( ).
 *
 *      LOOP AT lt_comp INTO DATA(ls_comp).
-*        DATA(lo_attri) = NEW zstc77_cl_hlp_tree_json(  ).
+*        DATA(lo_attri) = NEW zzzyyy77_cl_hlp_tree_json(  ).
 *        lo_attri->mo_root = mo_root.
 *        lo_attri->mv_name = ls_comp-name.
 *        lo_attri->mr_actual = mr_actual->(lo_attri->mv_name).
