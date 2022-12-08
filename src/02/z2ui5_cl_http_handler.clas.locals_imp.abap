@@ -6,81 +6,13 @@ CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
 
 
-INTERFACE zif_2ui5_client_popup.
-
-  METHODS display_message_toast
-    IMPORTING
-      text TYPE string.
-
-  METHODS display_message_box
-    IMPORTING
-      text TYPE string
-      type TYPE string.
-
-ENDINTERFACE.
-
-
-INTERFACE zif_2ui5_client_event.
-
-  CONSTANTS:
-    BEGIN OF cs_event_type,
-      button TYPE string VALUE 'BUTTON',
-    END OF cs_event_type.
-
-  METHODS get_id
-    RETURNING
-      VALUE(r_result) TYPE string.
-
-ENDINTERFACE.
-
-INTERFACE zif_2ui5_app DEFERRED.
-
-INTERFACE zif_2ui5_client_controller.
-
-  METHODS nav_to_screen
-    IMPORTING
-      name TYPE string.
-
-  METHODS nav_to_app
-    IMPORTING
-      app TYPE REF TO zif_2ui5_app.
-
-  METHODS exit_to_home.
-
-  METHODS exit_w_logoff.
-
-  METHODS get_active_screen
-    RETURNING
-      VALUE(r_result) TYPE string.
-
-ENDINTERFACE.
-
-
-INTERFACE zif_2ui5_view DEFERRED.
-
-INTERFACE zif_2ui5_client.
-
-  METHODS popup
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_client_popup.
-
-  METHODS event
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_client_event.
-
-  METHODS controller
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_client_controller.
-
-ENDINTERFACE.
-
 CLASS lcl_2ui5_user_client DEFINITION.
 
   PUBLIC SECTION.
-    INTERFACES zif_2ui5_client.
-    INTERFACES zif_2ui5_client_controller.
-    INTERFACES zif_2ui5_client_event.
-    INTERFACES zif_2ui5_client_popup.
+    INTERFACES z2ui5_if_client.
+    INTERFACES z2ui5_if_client_controller.
+    INTERFACES z2ui5_if_client_event.
+    INTERFACES z2ui5_if_client_popup.
 
     DATA mo_server TYPE REF TO lcl_2ui5_server.
 
@@ -90,297 +22,15 @@ CLASS lcl_2ui5_user_client DEFINITION.
 
 ENDCLASS.
 
-INTERFACE zif_2ui5_selscreen_block DEFERRED.
-INTERFACE zif_2ui5_selscreen_group DEFERRED.
-
-INTERFACE zif_2ui5_selscreen_group.
-
-  TYPES:
-    BEGIN OF ty_,
-      BEGIN OF s_suggestion_items,
-        value TYPE string,
-        descr TYPE string,
-      END OF s_suggestion_items,
-      BEGIN OF s_combobox,
-        key  TYPE string,
-        text TYPE string,
-      END OF s_combobox,
-      BEGIN OF s_seg_btn,
-        key  TYPE string,
-        icon TYPE string,
-        text TYPE string,
-      END OF s_seg_btn,
-    END OF ty_.
-
-  TYPES:
-    BEGIN OF ty,
-      BEGIN OF input,
-        t_suggestions TYPE STANDARD TABLE OF ty_-s_suggestion_items WITH EMPTY KEY,
-      END OF input,
-      BEGIN OF combobox,
-        t_item TYPE STANDARD TABLE OF ty_-s_combobox WITH EMPTY KEY,
-      END OF combobox,
-      BEGIN OF radiobutton_group,
-        BEGIN OF s_prop,
-          selected TYPE abap_bool,
-          text     TYPE string,
-        END OF s_prop,
-        t_prop TYPE string_table, "STANDARD TABLE OF ty-radiobutton_group-s_prop WITH EMPTY KEY,
-      END OF radiobutton_group,
-      BEGIN OF segemented_button,
-        t_button TYPE STANDARD TABLE OF ty_-s_seg_btn WITH EMPTY KEY,
-        BEGIN OF s_tab,
-          text     TYPE string,
-          icon     TYPE string,
-          selected TYPE abap_bool,
-        END OF s_tab,
-        tr_btn   TYPE STANDARD TABLE OF ty-segemented_button-s_tab WITH EMPTY KEY,
-      END OF segemented_button,
-      test    TYPE string,
-      t_radio TYPE STANDARD TABLE OF ty-test WITH EMPTY KEY,
-    END OF ty.
-
-  METHODS custom_control
-    IMPORTING
-      VALUE(val) TYPE  _=>ty-s-control.
-
-  METHODS label
-    IMPORTING
-      text            TYPE string DEFAULT 'line_label'
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS date_picker
-    IMPORTING
-      value           TYPE string OPTIONAL
-      placeholder     TYPE string OPTIONAL
-        PREFERRED PARAMETER value
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS time_picker
-    IMPORTING
-      value           TYPE string OPTIONAL
-      placeholder     TYPE string OPTIONAL
-        PREFERRED PARAMETER value
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS date_time_picker
-    IMPORTING
-      value           TYPE string OPTIONAL
-      placeholder     TYPE string OPTIONAL
-        PREFERRED PARAMETER value
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS link
-    IMPORTING
-      text            TYPE string DEFAULT 'line_label'
-      href            TYPE string OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS combobox
-    IMPORTING
-      selectedKey     TYPE data
-      show_clear_icon TYPE abap_bool DEFAULT abap_false
-      label           TYPE string DEFAULT 'line_label'
-      t_item          TYPE ty-combobox-t_item
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS text_area
-    IMPORTING
-      value           TYPE string DEFAULT 'line_label'
-      rows            TYPE i DEFAULT 8
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS segmented_button
-    IMPORTING
-      selected_key    TYPE data OPTIONAL
-      t_button        TYPE ty-segemented_button-t_button
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS button
-    IMPORTING
-      text            TYPE clike OPTIONAL
-      icon            TYPE clike OPTIONAL
-      on_press_id     TYPE clike
-      type            TYPE clike OPTIONAL
-      enabled         TYPE abap_bool OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS checkbox
-    IMPORTING
-      text            TYPE string OPTIONAL
-      selected        TYPE abap_bool
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS radiobutton_group
-    IMPORTING
-      "    description     TYPE string OPTIONAL
-      selected_index  TYPE i OPTIONAL
-      t_prop          TYPE ty-radiobutton_group-t_prop
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS input
-    IMPORTING
-      value            TYPE clike OPTIONAL
-      placeholder      TYPE clike OPTIONAL
-      type             TYPE clike OPTIONAL
-      show_clear_icon  TYPE abap_bool DEFAULT abap_false
-      value_state      TYPE clike OPTIONAL
-      value_state_text TYPE clike OPTIONAL
-      description      TYPE clike OPTIONAL
-      editable         TYPE abap_bool DEFAULT abap_true
-      suggestion_items TYPE ty-input-t_suggestions OPTIONAL
-      showSuggestion   TYPE abap_bool DEFAULT abap_true
-        PREFERRED PARAMETER value
-    RETURNING
-      VALUE(r_result)  TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS text
-    IMPORTING
-      text            TYPE string OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS end_of_group
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_block.
-
-ENDINTERFACE.
-
-
-INTERFACE zif_2ui5_selscreen DEFERRED.
-
-INTERFACE zif_2ui5_selscreen_block.
-
-  METHODS begin_of_group
-    IMPORTING
-      title           TYPE string DEFAULT 'block_title'
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_group.
-
-  METHODS end_of_block
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen.
-
-
-ENDINTERFACE.
-
-INTERFACE zif_2ui5_selscreen_footer.
-
-  METHODS spacer
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_footer.
-
-  METHODS button
-    IMPORTING
-      text            TYPE string
-      on_press_id     TYPE string DEFAULT 'block_title'
-      type            TYPE clike OPTIONAL
-      enabled         TYPE abap_bool OPTIONAL
-      icon            TYPE clike OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_footer.
-
-  METHODS end_of_footer
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen.
-
-
-ENDINTERFACE.
-
-
-INTERFACE zif_2ui5_selscreen.
-
-  METHODS begin_of_block
-    IMPORTING
-      title           TYPE string DEFAULT 'block_title'
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_block.
-
-  METHODS begin_of_footer
-    IMPORTING
-      label           TYPE string DEFAULT 'line_label'
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen_footer.
-
-  METHODS message_strip
-    IMPORTING
-      text            TYPE string DEFAULT 'line_label'
-      type            TYPE string OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen.
-
-  METHODS end_of_screen
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_view.
-
-ENDINTERFACE.
-
-
-INTERFACE zif_2ui5_view.
-
-  CONSTANTS:
-    BEGIN OF cs,
-      BEGIN OF input,
-        BEGIN OF type,
-          password TYPE string VALUE 'Password',
-          email    TYPE string VALUE 'Email',
-          telefon  TYPE string VALUE 'Tel',
-          number   TYPE string VALUE 'Number',
-          url      TYPE string VALUE 'Url',
-        END OF type,
-        BEGIN OF value_state,
-          warning     TYPE string VALUE 'Warning',
-          success     TYPE string VALUE 'Success',
-          error       TYPE string VALUE 'Error',
-          information TYPE string VALUE 'Information',
-        END OF value_state,
-      END OF input,
-      BEGIN OF button,
-        BEGIN OF type,
-          reject     TYPE string VALUE 'Reject',
-          success    TYPE string VALUE 'Success',
-          emphasized TYPE string VALUE 'Emphasized',
-        END OF type,
-      END OF button,
-      BEGIN OF message_box,
-        BEGIN OF type,
-          error TYPE string VALUE 'error',
-          show  TYPE string VALUE 'show',
-        END OF type,
-      END OF message_box,
-    END OF cs.
-
-  METHODS factory_selscreen
-    IMPORTING
-      name            TYPE string OPTIONAL
-      title           TYPE string DEFAULT 'screen_title'
-      PREFERRED PARAMETER name
-    RETURNING
-      VALUE(r_result) TYPE REF TO zif_2ui5_selscreen.
-
-
-ENDINTERFACE.
-
 CLASS lcl_2ui5_user_view DEFINITION.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_2ui5_view.
-    INTERFACES zif_2ui5_selscreen.
-    INTERFACES zif_2ui5_selscreen_block.
-    INTERFACES zif_2ui5_selscreen_group.
-    INTERFACES zif_2ui5_selscreen_footer.
+    INTERFACES z2ui5_if_view.
+    INTERFACES z2ui5_if_selscreen.
+    INTERFACES z2ui5_if_selscreen_block.
+    INTERFACES z2ui5_if_selscreen_group.
+    INTERFACES z2ui5_if_selscreen_footer.
 
     DATA mo_server TYPE REF TO lcl_2ui5_server.
 
@@ -403,18 +53,6 @@ INTERFACE zif_2ui5_config.
 
 ENDINTERFACE.
 
-INTERFACE zif_2ui5_app.
-  INTERFACES if_serializable_object.
-
-  METHODS set_view
-    IMPORTING
-      view TYPE REF TO zif_2ui5_view.
-
-  METHODS on_event DEFAULT IGNORE
-    IMPORTING
-      client TYPE REF TO zif_2ui5_client.
-
-ENDINTERFACE.
 
 
 CLASS lcl_2ui5_server DEFINITION.
@@ -442,7 +80,7 @@ CLASS lcl_2ui5_server DEFINITION.
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
-    DATA mo_leave_to_app TYPE REF TO zif_2ui5_app.
+    DATA mo_leave_to_app TYPE REF TO z2ui5_if_app.
     DATA mo_view_model TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
     DATA mo_ui5_model  TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
 
@@ -483,7 +121,7 @@ CLASS lcl_2ui5_server DEFINITION.
 
     METHODS init_new_server
       IMPORTING
-        i_app           TYPE REF TO zif_2ui5_app
+        i_app           TYPE REF TO z2ui5_if_app
       RETURNING
         VALUE(r_result) TYPE REF TO lcl_2ui5_server.
 
@@ -498,12 +136,12 @@ CLASS lcl_2ui5_app_system DEFINITION.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_2ui5_app.
+    INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory_error
       IMPORTING
         error           TYPE REF TO cx_root
-        app             TYPE REF TO zif_2ui5_app OPTIONAL
+        app             TYPE REF TO z2ui5_if_app OPTIONAL
         kind            TYPE string OPTIONAL
         server          TYPE REF TO lcl_2ui5_server
       RETURNING
@@ -512,7 +150,7 @@ CLASS lcl_2ui5_app_system DEFINITION.
     DATA:
       BEGIN OF ms_error,
         x_error   TYPE REF TO cx_root,
-        app       TYPE REF TO zif_2ui5_app,
+        app       TYPE REF TO z2ui5_if_app,
         classname TYPE string,
         kind      TYPE string,
       END OF ms_error.
@@ -533,15 +171,15 @@ CLASS lcl_2ui5_app_system DEFINITION.
 
     METHODS on_event_error
       IMPORTING
-        client TYPE REF TO zif_2ui5_client.
+        client TYPE REF TO z2ui5_if_client.
 
     METHODS on_event_home
       IMPORTING
-        client TYPE REF TO zif_2ui5_client.
+        client TYPE REF TO z2ui5_if_client.
 
     METHODS get_app_url
       IMPORTING
-        i_view         TYPE REF TO zif_2ui5_view
+        i_view         TYPE REF TO z2ui5_if_view
         app            TYPE string
       RETURNING
         VALUE(rv_link) TYPE string
@@ -865,7 +503,7 @@ CLASS zzcl_app_demo1 DEFINITION.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_2ui5_app.
+    INTERFACES z2ui5_if_app.
 
     DATA product TYPE string.
     DATA check_initialized TYPE abap_bool.
@@ -883,7 +521,7 @@ ENDCLASS.
 
 CLASS zzcl_app_demo1 IMPLEMENTATION.
 
-  METHOD zif_2ui5_app~on_event.
+  METHOD z2ui5_if_app~on_event.
 
     IF check_initialized = abaP_false.
       check_initialized = abaP_true.
@@ -901,7 +539,7 @@ CLASS zzcl_app_demo1 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_app~set_view.
+  METHOD z2ui5_if_app~set_view.
 
     view->factory_selscreen( title = 'My ABAP Application'
         )->begin_of_block( 'Selection Screen'
@@ -927,7 +565,7 @@ CLASS zzcl_app_demo2 DEFINITION.
 
   PUBLIC SECTION.
 
-    INTERFACES zif_2ui5_app.
+    INTERFACES z2ui5_if_app.
 
     DATA:
       BEGIN OF ms_screen,
@@ -950,7 +588,7 @@ ENDCLASS.
 
 CLASS zzcl_app_demo2 IMPLEMENTATION.
 
-  METHOD zif_2ui5_app~on_event.
+  METHOD z2ui5_if_app~on_event.
 
     IF ms_screen-check_initialized = abap_false.
       ms_screen-check_initialized = abap_true.
@@ -976,7 +614,7 @@ CLASS zzcl_app_demo2 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_app~set_view.
+  METHOD z2ui5_if_app~set_view.
 
     DATA(lo_screen) = view->factory_selscreen( title = 'App Title - Demo UI5 Controls' ).
     DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
@@ -1073,61 +711,61 @@ CLASS lcl_2ui5_user_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_popup~display_message_box.
+  METHOD z2ui5_if_client_popup~display_message_box.
 
     INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) )
       INTO TABLE mo_server->mt_after.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_popup~display_message_toast.
+  METHOD z2ui5_if_client_popup~display_message_toast.
 
     INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) )
          INTO TABLE mo_server->mt_after.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client~event.
+  METHOD z2ui5_if_client~event.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client~popup.
+  METHOD z2ui5_if_client~popup.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client~controller.
+  METHOD z2ui5_if_client~controller.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_controller~get_active_screen.
+  METHOD z2ui5_if_client_controller~get_active_screen.
 
     r_result = mo_server->ms_db-screen.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_controller~nav_to_screen.
+  METHOD z2ui5_if_client_controller~nav_to_screen.
 
     mo_server->ms_db-screen = name.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_controller~exit_w_logoff.
+  METHOD z2ui5_if_client_controller~exit_w_logoff.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_controller~nav_to_app.
+  METHOD z2ui5_if_client_controller~nav_to_app.
 
     mo_server->mo_leave_to_app = app.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_client_event~get_id.
+  METHOD z2ui5_if_client_event~get_id.
     TRY.
 
         r_result = mo_server->ms_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
@@ -1137,9 +775,9 @@ CLASS lcl_2ui5_user_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_client_controller~exit_to_home.
+  METHOD z2ui5_if_client_controller~exit_to_home.
 
-    zif_2ui5_client_controller~nav_to_app( NEW lcl_2ui5_app_system(  ) ).
+    z2ui5_if_client_controller~nav_to_app( NEW lcl_2ui5_app_system(  ) ).
 
   ENDMETHOD.
 
@@ -1159,7 +797,7 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_app~on_event.
+  METHOD z2ui5_if_app~on_event.
 
     IF ms_error-x_error IS BOUND.
       on_event_error( client ).
@@ -1170,7 +808,7 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_app~set_view.
+  METHOD z2ui5_if_app~set_view.
 
     IF ms_error-x_error IS NOT BOUND.
 
@@ -1246,7 +884,7 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
     CASE client->event( )->get_id( ).
 
       WHEN 'BUTTON_RESTART'.
-        DATA li_app TYPE REF TO zif_2ui5_app.
+        DATA li_app TYPE REF TO z2ui5_if_app.
         CREATE OBJECT li_app TYPE (ms_error-classname).
         client->controller( )->nav_to_app( li_app  ).
 
@@ -1260,7 +898,7 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
 
   METHOD on_event_home.
 
-    DATA li_app TYPE REF TO zif_2ui5_app.
+    DATA li_app TYPE REF TO z2ui5_if_app.
 
     IF ms_home-is_initialized = abap_false.
       ms_home-is_initialized = abaP_true.
@@ -1290,7 +928,7 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
       WHEN 'BUTTON_CHECK'.
 
         TRY.
-            DATA li_app_test TYPE REF TO zif_2ui5_app.
+            DATA li_app_test TYPE REF TO z2ui5_if_app.
             ms_home-classname = to_upper( ms_home-classname ).
             CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
@@ -1298,15 +936,15 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
             ms_home-btn_text = 'edit'.
             ms_home-btn_event_id = 'BUTTON_CHANGE'.
             ms_home-btn_icon = 'sap-icon://edit'.
-            ms_home-class_value_state = zif_2ui5_view=>cs-input-value_state-success.
+            ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-success.
             ms_home-class_editable = abap_false.
 
           CATCH cx_root INTO DATA(lx).
             ms_home-class_value_state_text = lx->get_text( ).
-            ms_home-class_value_state = zif_2ui5_view=>cs-input-value_state-warning.
+            ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-warning.
             client->popup( )->display_message_box(
                 text = ms_home-class_value_state_text
-                type = zif_2ui5_view=>cs-message_box-type-error
+                type = z2ui5_if_view=>cs-message_box-type-error
                  ).
         ENDTRY.
     ENDCASE.
@@ -1334,7 +972,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD  zif_2ui5_view~factory_selscreen.
+  METHOD  z2ui5_if_view~factory_selscreen.
 
     r_result = me.
 
@@ -1354,7 +992,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~button.
+  METHOD z2ui5_if_selscreen_group~button.
 
     r_result = me.
 
@@ -1373,22 +1011,22 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
       ) INTO TABLE ls_control-t_property.
     ENDIF.
 
-    zif_2ui5_selscreen_group~custom_control( ls_control ).
+    z2ui5_if_selscreen_group~custom_control( ls_control ).
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~text.
+  METHOD z2ui5_if_selscreen_group~text.
 
     r_result = me.
 
-    zif_2ui5_selscreen_group~custom_control(  VALUE #(
+    z2ui5_if_selscreen_group~custom_control(  VALUE #(
       name  = 'Text'
       t_property = VALUE #( ( n = 'text' v = text ) )
      ) ).
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~input.
+  METHOD z2ui5_if_selscreen_group~input.
 
     r_result = me.
 
@@ -1454,15 +1092,15 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
     ENDIF.
     INSERT ls_property INTO TABLE ls_control-t_property.
 
-    zif_2ui5_selscreen_group~custom_control( ls_control ).
+    z2ui5_if_selscreen_group~custom_control( ls_control ).
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_block~begin_of_group.
+  METHOD z2ui5_if_selscreen_block~begin_of_group.
 
     r_result = me.
 
-    zif_2ui5_selscreen_group~custom_control(  VALUE #(
+    z2ui5_if_selscreen_group~custom_control(  VALUE #(
       name  = 'Title'
       ns = 'core'
       t_property = VALUE #(
@@ -1472,11 +1110,11 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_selscreen_group~checkbox.
+  METHOD z2ui5_if_selscreen_group~checkbox.
 
     r_result = me.
 
-    zif_2ui5_selscreen_group~custom_control( VALUE #(
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
            name  = 'CheckBox'
            t_property = VALUE #(
               ( n = 'text'  v = text )
@@ -1485,7 +1123,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~radiobutton_group.
+  METHOD z2ui5_if_selscreen_group~radiobutton_group.
 
     r_result = me.
 
@@ -1518,7 +1156,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_selscreen_group~label.
+  METHOD z2ui5_if_selscreen_group~label.
 
     r_result = me.
 
@@ -1531,7 +1169,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zif_2ui5_selscreen~begin_of_block.
+  METHOD z2ui5_if_selscreen~begin_of_block.
 
     r_result = me.
 
@@ -1543,7 +1181,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~date_picker.
+  METHOD z2ui5_if_selscreen_group~date_picker.
 
     r_result = me.
 
@@ -1556,11 +1194,11 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~link.
+  METHOD z2ui5_if_selscreen_group~link.
 
     r_result = me.
 
-    zif_2ui5_selscreen_group~custom_control( VALUE #(
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
      name  = 'Link'
        t_property = VALUE #(
          ( n = 'text'   v = text )
@@ -1570,7 +1208,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~segmented_button.
+  METHOD z2ui5_if_selscreen_group~segmented_button.
 
     r_result = me.
 
@@ -1607,11 +1245,11 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
     ENDLOOP.
 
-    zif_2ui5_selscreen_group~custom_control( ls_parent->* ).
+    z2ui5_if_selscreen_group~custom_control( ls_parent->* ).
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~time_picker.
+  METHOD z2ui5_if_selscreen_group~time_picker.
 
     r_result = me.
 
@@ -1624,7 +1262,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~date_time_picker.
+  METHOD z2ui5_if_selscreen_group~date_time_picker.
 
     r_result = me.
 
@@ -1637,7 +1275,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~combobox.
+  METHOD z2ui5_if_selscreen_group~combobox.
 
     r_result = me.
 
@@ -1670,11 +1308,11 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
       apos_active = abap_false
      ).
 
-    zif_2ui5_selscreen_group~custom_control( ls_control ).
+    z2ui5_if_selscreen_group~custom_control( ls_control ).
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen~begin_of_footer.
+  METHOD z2ui5_if_selscreen~begin_of_footer.
 
     r_result = me.
 
@@ -1684,7 +1322,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen~message_strip.
+  METHOD z2ui5_if_selscreen~message_strip.
 
     r_result = me.
 
@@ -1697,7 +1335,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~text_area.
+  METHOD z2ui5_if_selscreen_group~text_area.
 
     r_result = me.
 
@@ -1710,29 +1348,29 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_block~end_of_block.
+  METHOD z2ui5_if_selscreen_block~end_of_block.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~end_of_group.
+  METHOD z2ui5_if_selscreen_group~end_of_group.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen~end_of_screen.
+  METHOD z2ui5_if_selscreen~end_of_screen.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_footer~button.
+  METHOD z2ui5_if_selscreen_footer~button.
 
     IF enabled IS SUPPLIED.
 
-      r_result = CAST #( zif_2ui5_selscreen_group~button(
+      r_result = CAST #( z2ui5_if_selscreen_group~button(
            text        = text
            on_press_id = on_press_id
            type        = type
@@ -1742,7 +1380,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
     ELSE.
 
-      r_result = CAST #( zif_2ui5_selscreen_group~button(
+      r_result = CAST #( z2ui5_if_selscreen_group~button(
       text        = text
       on_press_id = on_press_id
       type        = type
@@ -1754,13 +1392,13 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_footer~end_of_footer.
+  METHOD z2ui5_if_selscreen_footer~end_of_footer.
 
     r_result = me.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_footer~spacer.
+  METHOD z2ui5_if_selscreen_footer~spacer.
 
     r_result = me.
 
@@ -1770,7 +1408,7 @@ CLASS lcl_2ui5_user_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zif_2ui5_selscreen_group~custom_control.
+  METHOD z2ui5_if_selscreen_group~custom_control.
 
     DELETE val-t_property WHERE n IS INITIAL.
     INSERT val INTO TABLE mo_server->mr_screen_actual->t_controls.

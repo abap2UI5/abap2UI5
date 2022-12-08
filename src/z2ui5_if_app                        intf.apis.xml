@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<abapGit version="v1.0.0" serializer="LCL_OBJECT_APIS" serializer_version="v2.0.0">
+ <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
+  <asx:values>
+   <APIS>
+    <OBJECT_ID>Z2UI5_IF_APP</OBJECT_ID>
+    <OBJECT_TYPE>INTF</OBJECT_TYPE>
+    <OBJECT_NAME>Z2UI5_IF_APP</OBJECT_NAME>
+    <API_STATES>
+     <ARS_S_API_STATE_ABAPGIT>
+      <SUB_OBJECT_TYPE>INTF</SUB_OBJECT_TYPE>
+      <SUB_OBJECT_NAME>Z2UI5_IF_APP</SUB_OBJECT_NAME>
+      <COMPATIBILITY_CONTRACT>C1</COMPATIBILITY_CONTRACT>
+      <RELEASE_STATE>RELEASED</RELEASE_STATE>
+      <USE_IN_SAP_CLOUD_PLATFORM>X</USE_IN_SAP_CLOUD_PLATFORM>
+     </ARS_S_API_STATE_ABAPGIT>
+    </API_STATES>
+   </APIS>
+  </asx:values>
+ </asx:abap>
+</abapGit>

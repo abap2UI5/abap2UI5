@@ -40,7 +40,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
       TRY.
           ROLLBACK WORK.
-          CAST zif_2ui5_app( lo_server->ms_db-o_app )->on_event( NEW lcl_2ui5_user_client( lo_server )  ) .
+          CAST z2ui5_if_app( lo_server->ms_db-o_app )->on_event( NEW lcl_2ui5_user_client( lo_server )  ) .
           ROLLBACK WORK.
 
         CATCH cx_root INTO DATA(cx).
@@ -58,7 +58,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           lo_server->mo_view_model = lo_server->mo_ui5_model->add_attribute_object( 'oViewModel' ).
 
           ROLLBACK WORK.
-          CAST zif_2ui5_app( lo_server->ms_db-O_app )->set_view( NEW lcl_2ui5_user_view( lo_server ) ).
+          CAST z2ui5_if_app( lo_server->ms_db-O_app )->set_view( NEW lcl_2ui5_user_view( lo_server ) ).
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.
