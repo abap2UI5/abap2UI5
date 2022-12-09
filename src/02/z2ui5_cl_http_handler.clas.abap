@@ -41,7 +41,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-    DATA(lo_runtime) = NEW lcl_2ui5_runtime(  ).
+    DATA(lo_runtime) = NEW z2ui5_lcl_runtime(  ).
     lo_runtime->ms_client = client.
     lo_runtime->execute_init(  ).
 
@@ -49,7 +49,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
       TRY.
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->on_event( NEW lcl_2ui5_user_client( lo_runtime )  ) .
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->on_event( NEW z2ui5_lcl_app_client( lo_runtime )  ) .
           ROLLBACK WORK.
 
         CATCH cx_root INTO DATA(cx).
@@ -67,7 +67,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
 
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-O_app )->set_view( NEW lcl_2ui5_user_view( lo_runtime ) ).
+          CAST z2ui5_if_app( lo_runtime->ms_db-O_app )->set_view( NEW z2ui5_lcl_app_view( lo_runtime ) ).
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.

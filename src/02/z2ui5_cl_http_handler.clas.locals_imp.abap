@@ -1,12 +1,12 @@
 
-CLASS lcl_2ui5_runtime DEFINITION DEFERRED.
-CLASS lcl_2ui5_app_system DEFINITION DEFERRED.
+CLASS z2ui5_lcl_runtime DEFINITION DEFERRED.
+CLASS z2ui5_lcl_system_app DEFINITION DEFERRED.
 
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
 
 
-CLASS lcl_2ui5_user_client DEFINITION.
+CLASS z2ui5_lcl_app_client DEFINITION.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_client.
@@ -14,15 +14,15 @@ CLASS lcl_2ui5_user_client DEFINITION.
     INTERFACES z2ui5_if_client_event.
     INTERFACES z2ui5_if_client_popup.
 
-    DATA mo_server TYPE REF TO lcl_2ui5_runtime.
+    DATA mo_server TYPE REF TO z2ui5_lcl_runtime.
 
     METHODS constructor
       IMPORTING
-        i_server TYPE REF TO lcl_2ui5_runtime.
+        i_server TYPE REF TO z2ui5_lcl_runtime.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_user_view DEFINITION.
+CLASS z2ui5_lcl_app_view DEFINITION.
 
   PUBLIC SECTION.
 
@@ -32,15 +32,15 @@ CLASS lcl_2ui5_user_view DEFINITION.
     INTERFACES z2ui5_if_selscreen_group.
     INTERFACES z2ui5_if_selscreen_footer.
 
-    DATA mo_server TYPE REF TO lcl_2ui5_runtime.
+    DATA mo_server TYPE REF TO z2ui5_lcl_runtime.
 
     METHODS constructor
       IMPORTING
-        server TYPE REF TO lcl_2ui5_runtime.
+        server TYPE REF TO z2ui5_lcl_runtime.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_runtime DEFINITION.
+CLASS z2ui5_lcl_runtime DEFINITION.
 
   PUBLIC SECTION.
 
@@ -87,7 +87,7 @@ CLASS lcl_2ui5_runtime DEFINITION.
 
     METHODS execute_init
       RETURNING
-        VALUE(ro_model) TYPE REF TO lcl_2ui5_runtime.
+        VALUE(ro_model) TYPE REF TO z2ui5_lcl_runtime.
 
     METHODS execute_finish
       RETURNING
@@ -102,13 +102,13 @@ CLASS lcl_2ui5_runtime DEFINITION.
         kind            TYPE string
         ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO lcl_2ui5_runtime.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
 
     METHODS factory_new
       IMPORTING
         i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO lcl_2ui5_runtime.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
 
     DATA x TYPE REF TO cx_root.
 
@@ -117,7 +117,7 @@ CLASS lcl_2ui5_runtime DEFINITION.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_app_system DEFINITION.
+CLASS z2ui5_lcl_system_app DEFINITION.
 
   PUBLIC SECTION.
 
@@ -128,9 +128,9 @@ CLASS lcl_2ui5_app_system DEFINITION.
         error           TYPE REF TO cx_root
         app             TYPE REF TO z2ui5_if_app OPTIONAL
         kind            TYPE string OPTIONAL
-        server          TYPE REF TO lcl_2ui5_runtime
+        server          TYPE REF TO z2ui5_lcl_runtime
       RETURNING
-        VALUE(r_result) TYPE REF TO lcl_2ui5_app_system.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_app.
 
     DATA:
       BEGIN OF ms_error,
@@ -176,7 +176,7 @@ CLASS lcl_2ui5_app_system DEFINITION.
 ENDCLASS.
 
 
-CLASS lcl_2ui5_runtime IMPLEMENTATION.
+CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -424,7 +424,7 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
           TRY.
               ms_db-app = ms_client-t_param[ name = 'APP' ]-value.
             CATCH cx_root.
-              CREATE OBJECT ms_db-o_app TYPE lcl_2ui5_app_system.
+              CREATE OBJECT ms_db-o_app TYPE z2ui5_lcl_system_app.
               EXIT.
           ENDTRY.
 
@@ -432,7 +432,7 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
           EXIT.
 
         CATCH cx_root.
-          DATA(lo_error) = NEW lcl_2ui5_app_system( ).
+          DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW _( val = `Class with name ` && ms_db-app && ` not found. Please check your repository.` ).
           ms_db-o_app = CAST #( lo_error ).
           EXIT.
@@ -465,7 +465,7 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
 
   METHOD factory_new.
 
-    r_result = NEW lcl_2ui5_runtime( ).
+    r_result = NEW z2ui5_lcl_runtime( ).
     r_result->ms_db-o_app = i_app.
     r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
     r_result->ms_Client = ms_client.
@@ -478,13 +478,13 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
   METHOD factory_new_error.
 
     r_result = factory_new(
-             lcl_2ui5_app_system=>factory_error( server = me error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
+             z2ui5_lcl_system_app=>factory_error( server = me error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
   ENDMETHOD.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_user_client IMPLEMENTATION.
+CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -558,14 +558,14 @@ CLASS lcl_2ui5_user_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client_controller~exit_to_home.
 
-    z2ui5_if_client_controller~nav_to_app( NEW lcl_2ui5_app_system(  ) ).
+    z2ui5_if_client_controller~nav_to_app( NEW z2ui5_lcl_system_app(  ) ).
 
   ENDMETHOD.
 
 ENDCLASS.
 
 
-CLASS lcl_2ui5_app_system IMPLEMENTATION.
+CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
   METHOD factory_error.
 
@@ -738,14 +738,14 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
     DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
     DATA(lv_tenant) = sy-mandt.
 
-    DATA(lo_server) = CAST lcl_2ui5_user_view( i_view )->mo_server.
+    DATA(lo_server) = CAST z2ui5_lcl_app_view( i_view )->mo_server.
     rv_link  = 'https://' && lv_url && lo_server->ms_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
 
   ENDMETHOD.
 
 ENDCLASS.
 
-CLASS lcl_2ui5_user_view IMPLEMENTATION.
+CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   METHOD constructor.
 
