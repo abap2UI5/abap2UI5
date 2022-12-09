@@ -93,18 +93,18 @@ CLASS lcl_2ui5_runtime DEFINITION.
       RETURNING
         VALUE(r_result) TYPE string.
 
-    METHODS init_prev.
+    METHODS init_app_prev.
 
-    METHODS init_app.
+    METHODS init_app_new.
 
-    METHODS init_new_runtime_error
+    METHODS factory_new_error
       IMPORTING
         kind            TYPE string
         ix              TYPE REF TO cx_root
       RETURNING
         VALUE(r_result) TYPE REF TO lcl_2ui5_runtime.
 
-    METHODS init_new_runtime
+    METHODS factory_new
       IMPORTING
         i_app           TYPE REF TO z2ui5_if_app
       RETURNING
@@ -224,9 +224,9 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
     ENDTRY.
 
     IF ms_db-id_prev IS INITIAL.
-      init_app( ).
+      init_app_new( ).
     ELSE.
-      init_prev( ).
+      init_app_prev( ).
     ENDIF.
 
   ENDMETHOD.
@@ -383,7 +383,7 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init_prev.
+  METHOD init_app_prev.
 
     ms_db = CORRESPONDING #( BASE ( ms_db ) db_load( ms_db-id_prev ) EXCEPT id id_prev ).
 
@@ -414,7 +414,7 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init_app.
+  METHOD init_app_new.
     DO.
       TRY.
 
@@ -463,7 +463,7 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init_new_runtime.
+  METHOD factory_new.
 
     r_result = NEW lcl_2ui5_runtime( ).
     r_result->ms_db-o_app = i_app.
@@ -475,9 +475,9 @@ CLASS lcl_2ui5_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD init_new_runtime_error.
+  METHOD factory_new_error.
 
-    r_result = init_new_runtime(
+    r_result = factory_new(
              lcl_2ui5_app_system=>factory_error( server = me error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
   ENDMETHOD.

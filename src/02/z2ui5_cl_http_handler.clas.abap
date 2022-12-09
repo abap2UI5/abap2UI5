@@ -53,12 +53,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           ROLLBACK WORK.
 
         CATCH cx_root INTO DATA(cx).
-          lo_runtime = lo_runtime->init_new_runtime_error( kind = 'ON_EVENT' ix = cx ).
+          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
           CONTINUE.
       ENDTRY.
 
       IF lo_runtime->mo_leave_to_app IS BOUND.
-        lo_runtime = lo_runtime->init_new_runtime( lo_runtime->mo_leave_to_app ).
+        lo_runtime = lo_runtime->factory_new( lo_runtime->mo_leave_to_app ).
         CONTINUE.
       ENDIF.
 
@@ -71,7 +71,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.
-          lo_runtime = lo_runtime->init_new_runtime_error( kind = 'ON_SCREEN' ix = cx ).
+          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_SCREEN' ix = cx ).
           CONTINUE.
       ENDTRY.
 

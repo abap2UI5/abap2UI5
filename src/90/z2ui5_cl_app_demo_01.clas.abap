@@ -15,16 +15,22 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~on_event.
 
-    IF check_initialized = abaP_false.
-      check_initialized = abaP_true.
-      product = 'H-0001'.
+    "set initial values
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+      product = 'tomato'.
+      quantity = '500'.
     ENDIF.
 
+    "user event handling
     CASE client->event( )->get_id( ).
 
       WHEN 'BTN_POST'.
         "do something
-        client->popup( )->display_message_toast( 'Post sucessful' ).
+        "...
+        "..
+        ".
+        client->popup( )->display_message_toast( |Product { product } Quantity { quantity } GR successful| ).
 
     ENDCASE.
 
@@ -34,7 +40,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
     view->factory_selscreen( title = 'My ABAP Application'
         )->begin_of_block( 'Selection Screen'
-            )->begin_of_group( 'Information'
+            )->begin_of_group( 'Stock Information'
 
                 )->label( 'Product'
                 )->input( product
@@ -42,10 +48,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                 )->label( 'Quantity'
                 )->input( quantity
 
-                )->label( 'Test'
-                )->input( quantity
-
-                )->button( text = 'Post' on_press_id = 'BTN_POST'
+                )->button( text = 'Post Goods Receipt' on_press_id = 'BTN_POST'
    ).
 
   ENDMETHOD.
