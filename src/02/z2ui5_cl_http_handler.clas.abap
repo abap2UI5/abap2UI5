@@ -5,6 +5,15 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+    CONSTANTS:
+      BEGIN OF cs_config,
+        theme         TYPE string    VALUE 'sap_horizon',
+        browser_title TYPE string    VALUE 'abap2ui5',
+        repository    TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
+        letterboxing  TYPE abap_bool VALUE abap_true,
+        debug_mode_on TYPE abap_bool VALUE abap_true,
+      END OF cs_config.
+
     TYPES:
       BEGIN OF ty_s_client,
         o_body   TYPE REF TO z2ui5_cl_hlp_tree_json,
@@ -32,44 +41,44 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-    DATA(lo_server) = NEW lcl_2ui5_server(  ).
-    lo_server->ms_client = client.
-    lo_server->execute_init(  ).
+    DATA(lo_runtime) = NEW lcl_2ui5_runtime(  ).
+    lo_runtime->ms_client = client.
+    lo_runtime->execute_init(  ).
 
     DO.
 
       TRY.
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_server->ms_db-o_app )->on_event( NEW lcl_2ui5_user_client( lo_server )  ) .
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->on_event( NEW lcl_2ui5_user_client( lo_runtime )  ) .
           ROLLBACK WORK.
 
         CATCH cx_root INTO DATA(cx).
-          lo_server = lo_server->init_new_server_error( kind = 'ON_EVENT' ix = cx ).
+          lo_runtime = lo_runtime->init_new_runtime_error( kind = 'ON_EVENT' ix = cx ).
           CONTINUE.
       ENDTRY.
 
-      IF lo_server->mo_leave_to_app IS BOUND.
-        lo_server = lo_server->init_new_server( lo_server->mo_leave_to_app ).
+      IF lo_runtime->mo_leave_to_app IS BOUND.
+        lo_runtime = lo_runtime->init_new_runtime( lo_runtime->mo_leave_to_app ).
         CONTINUE.
       ENDIF.
 
       TRY.
-          lo_server->mo_ui5_model = z2ui5_cl_hlp_tree_json=>factory( ).
-          lo_server->mo_view_model = lo_server->mo_ui5_model->add_attribute_object( 'oViewModel' ).
+          lo_runtime->mo_ui5_model = z2ui5_cl_hlp_tree_json=>factory( ).
+          lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
 
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_server->ms_db-O_app )->set_view( NEW lcl_2ui5_user_view( lo_server ) ).
+          CAST z2ui5_if_app( lo_runtime->ms_db-O_app )->set_view( NEW lcl_2ui5_user_view( lo_runtime ) ).
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.
-          lo_server = lo_server->init_new_server_error( kind = 'ON_SCREEN' ix = cx ).
+          lo_runtime = lo_runtime->init_new_runtime_error( kind = 'ON_SCREEN' ix = cx ).
           CONTINUE.
       ENDTRY.
 
       EXIT.
     ENDDO.
 
-    rv_resp = lo_server->execute_finish( ).
+    rv_resp = lo_runtime->execute_finish( ).
 
   ENDMETHOD.
 
@@ -78,9 +87,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     r_result = `<html>` && |\n|  &&
                `<head>` && |\n|  &&
                `    <meta charset="utf-8">` && |\n|  &&
-               `    <title>` && zif_2ui5_config=>s_config-browser_title && `</title>` && |\n|  &&
-               `    <script src="` && zif_2ui5_config=>s_config-repository && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && zif_2ui5_config=>s_config-theme && `"` && |\n|  &&
+               `    <title>` && cs_config-browser_title && `</title>` && |\n|  &&
+               `    <script src="` && cs_config-repository && `" ` &&
+               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n|  &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n|  &&
                `        data-sap-ui-preload="async">` && |\n|  &&
                `     </script>` && |\n|  &&

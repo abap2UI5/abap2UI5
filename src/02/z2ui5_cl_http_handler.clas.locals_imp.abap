@@ -1,5 +1,5 @@
 
-CLASS lcl_2ui5_server DEFINITION DEFERRED.
+CLASS lcl_2ui5_runtime DEFINITION DEFERRED.
 CLASS lcl_2ui5_app_system DEFINITION DEFERRED.
 
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
@@ -14,11 +14,11 @@ CLASS lcl_2ui5_user_client DEFINITION.
     INTERFACES z2ui5_if_client_event.
     INTERFACES z2ui5_if_client_popup.
 
-    DATA mo_server TYPE REF TO lcl_2ui5_server.
+    DATA mo_server TYPE REF TO lcl_2ui5_runtime.
 
     METHODS constructor
       IMPORTING
-        i_server TYPE REF TO lcl_2ui5_server.
+        i_server TYPE REF TO lcl_2ui5_runtime.
 
 ENDCLASS.
 
@@ -32,30 +32,15 @@ CLASS lcl_2ui5_user_view DEFINITION.
     INTERFACES z2ui5_if_selscreen_group.
     INTERFACES z2ui5_if_selscreen_footer.
 
-    DATA mo_server TYPE REF TO lcl_2ui5_server.
+    DATA mo_server TYPE REF TO lcl_2ui5_runtime.
 
     METHODS constructor
       IMPORTING
-        server TYPE REF TO lcl_2ui5_server.
+        server TYPE REF TO lcl_2ui5_runtime.
 
 ENDCLASS.
 
-INTERFACE zif_2ui5_config.
-
-  CONSTANTS:
-    BEGIN OF s_config,
-      theme         TYPE string    VALUE 'sap_horizon',
-      browser_title TYPE string    VALUE 'abap2ui5',
-      repository    TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
-      letterboxing  TYPE abap_bool VALUE abap_true,
-      debug_mode_on TYPE abap_bool VALUE abap_true,
-    END OF s_config.
-
-ENDINTERFACE.
-
-
-
-CLASS lcl_2ui5_server DEFINITION.
+CLASS lcl_2ui5_runtime DEFINITION.
 
   PUBLIC SECTION.
 
@@ -102,7 +87,7 @@ CLASS lcl_2ui5_server DEFINITION.
 
     METHODS execute_init
       RETURNING
-        VALUE(ro_model) TYPE REF TO lcl_2ui5_server.
+        VALUE(ro_model) TYPE REF TO lcl_2ui5_runtime.
 
     METHODS execute_finish
       RETURNING
@@ -112,18 +97,18 @@ CLASS lcl_2ui5_server DEFINITION.
 
     METHODS init_app.
 
-    METHODS init_new_server_error
+    METHODS init_new_runtime_error
       IMPORTING
         kind            TYPE string
         ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO lcl_2ui5_server.
+        VALUE(r_result) TYPE REF TO lcl_2ui5_runtime.
 
-    METHODS init_new_server
+    METHODS init_new_runtime
       IMPORTING
         i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO lcl_2ui5_server.
+        VALUE(r_result) TYPE REF TO lcl_2ui5_runtime.
 
     DATA x TYPE REF TO cx_root.
 
@@ -143,7 +128,7 @@ CLASS lcl_2ui5_app_system DEFINITION.
         error           TYPE REF TO cx_root
         app             TYPE REF TO z2ui5_if_app OPTIONAL
         kind            TYPE string OPTIONAL
-        server          TYPE REF TO lcl_2ui5_server
+        server          TYPE REF TO lcl_2ui5_runtime
       RETURNING
         VALUE(r_result) TYPE REF TO lcl_2ui5_app_system.
 
@@ -191,7 +176,7 @@ CLASS lcl_2ui5_app_system DEFINITION.
 ENDCLASS.
 
 
-CLASS lcl_2ui5_server IMPLEMENTATION.
+CLASS lcl_2ui5_runtime IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -219,8 +204,10 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
   METHOD db_save.
 
     MODIFY z2ui5_t_001 FROM @( VALUE #(
-      uuid = ms_db-id
-      data = _=>trans_object_2_xml( REF #( ms_db ) )
+      uuid  = ms_db-id
+      uname = _=>get_user_tech( ) "cl_abap_context_info=>get_user_technical_name( )
+      timestampl = _=>get_timestampl( )
+      data  = _=>trans_object_2_xml( REF #( ms_db ) )
       ) ).
 
     COMMIT WORK.
@@ -261,7 +248,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
     r_result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
                `    xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
                          `    xmlns="sap.m"> ` &&
-                    COND #( WHEN zif_2ui5_config=>s_config-letterboxing = abap_true THEN  `  <Shell> ` ) &&
+                    COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  <Shell> ` ) &&
                        `  <Page id="page" title="` &&
                        lr_screen->t_controls[ name = 'HEADER' ]-t_property[ n = 'TITLE' ]-v
                        && `" class="sapUiResponsivePadding--header sapUiResponsivePadding--footer sapUiResponsivePadding--floatingFooter">`.
@@ -335,7 +322,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
                  `            </VBox> </content>`.
     ENDIF.
     r_result &&=      `    </Page> ` &&
-                 COND #( WHEN zif_2ui5_config=>s_config-letterboxing = abap_true THEN  `  </Shell> ` )
+                 COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  </Shell> ` )
                     && |\n|  &&
                    `</mvc:View>`.
 
@@ -378,7 +365,7 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
 
     mo_ui5_model = mo_ui5_model->get_root( ).
 
-    mo_view_model->add_attribute( n = 'debug' v = _=>get_abap_2_json( zif_2ui5_config=>s_config-debug_mode_on )  apos_active = abap_false ).
+    mo_view_model->add_attribute( n = 'debug' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-debug_mode_on )  apos_active = abap_false ).
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = mo_ui5_model->add_attribute_list( 'oAfter' ).
@@ -476,9 +463,9 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init_new_server.
+  METHOD init_new_runtime.
 
-    r_result = NEW lcl_2ui5_server( ).
+    r_result = NEW lcl_2ui5_runtime( ).
     r_result->ms_db-o_app = i_app.
     r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
     r_result->ms_Client = ms_client.
@@ -488,9 +475,9 @@ CLASS lcl_2ui5_server IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD init_new_server_error.
+  METHOD init_new_runtime_error.
 
-    r_result = init_new_server(
+    r_result = init_new_runtime(
              lcl_2ui5_app_system=>factory_error( server = me error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
   ENDMETHOD.
@@ -639,9 +626,9 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
       view2->end_of_group(
      )->begin_of_group( 'Demo'
         )->label( 'Example 1'
-        )->link( text = 'Link to simple application' href = get_app_url( i_view = view app = 'zzcl_app_demo1' )
+        )->link( text = 'Link to simple application' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_01' )
         )->label( 'Example 2'
-        )->link( text = 'Link to multiple Views and a lot of controls' href = get_app_url( i_view = view app = 'zzcl_app_demo2' )
+        )->link( text = 'Link to multiple Views and a lot of controls' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_02' )
     )->end_of_group(
   )->end_of_block(
   )->end_of_screen( ).
@@ -752,7 +739,7 @@ CLASS lcl_2ui5_app_system IMPLEMENTATION.
     DATA(lv_tenant) = sy-mandt.
 
     DATA(lo_server) = CAST lcl_2ui5_user_view( i_view )->mo_server.
-    rv_link  = 'https://' && lv_url && lo_server->ms_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&amp;app=' && app .
+    rv_link  = 'https://' && lv_url && lo_server->ms_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
 
   ENDMETHOD.
 

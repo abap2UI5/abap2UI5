@@ -19,9 +19,9 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
       BEGIN OF ty,
         BEGIN OF s,
           BEGIN OF property,
-            n    TYPE string,
-            v    TYPE string,
-          "  name TYPE string,
+            n TYPE string,
+            v TYPE string,
+            "  name TYPE string,
           END OF property,
           BEGIN OF control,
             name       TYPE string,
@@ -195,6 +195,10 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     CLASS-METHODS get_user_tech
       RETURNING
         VALUE(r_result) TYPE string.
+
+    CLASS-METHODS get_timestampl
+      RETURNING
+        VALUE(r_result) TYPE timestampl.
 
     CLASS-METHODS get_user_name
       RETURNING
@@ -410,6 +414,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
+
 
   METHOD trans_ref_tab_2_tab.
 
@@ -947,9 +952,12 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_text.
 
-    IF ms_error-x_root IS NOT INITIAL.
+
+
+  method IF_MESSAGE~GET_TEXT.
+
+      IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text(  ).
       result = COND #( WHEN result IS INITIAL THEN 'Es ist ein unbekannter Fehler aufgetreten' ELSE result ).
       RETURN.
@@ -969,8 +977,12 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+*CALL METHOD SUPER->IF_MESSAGE~GET_TEXT
+*  RECEIVING
+*    RESULT =
+*    .
+  endmethod.
 
-  ENDMETHOD.
 
 
   METHOD db_save_root.
@@ -1246,7 +1258,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
   METHOD get_user_tech.
 
-
+    r_result = cl_abap_context_info=>get_user_technical_name( ).
 
   ENDMETHOD.
 
@@ -1344,6 +1356,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_xml_by_control.
 
     r_result = |{ r_result } <{ COND #( WHEN ms_control-ns <> '' THEN |{ ms_control-ns }:| ) }{ ms_control-name } \n {
@@ -1352,9 +1365,9 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
                              escape( val = row-v  format = cl_abap_format=>e_xml_attr )
                             }" \n | ) }|.
 
-                           "     COND #( WHEN row-name IS NOT INITIAL " IS BOUND
-                          "                  THEN row-name "`{/oUpdate/` && row-name && `}`
-                             "                ELSE row-v ) }" \n | ) }|.
+    "     COND #( WHEN row-name IS NOT INITIAL " IS BOUND
+    "                  THEN row-name "`{/oUpdate/` && row-name && `}`
+    "                ELSE row-v ) }" \n | ) }|.
     IF ms_control-t_child IS INITIAL.
       r_result &&= '/>'.
       RETURN.
@@ -1389,9 +1402,9 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
       TRY.
           lo_struct = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( lr_value->* ) ).
-          data(lt_comp3) = lo_struct->get_components( ).
+          DATA(lt_comp3) = lo_struct->get_components( ).
 
-          LOOP AT lt_comp3 REFERENCE INTO data(lr_comp2).
+          LOOP AT lt_comp3 REFERENCE INTO DATA(lr_comp2).
 
             DATA(lt_tmp) =  _get_t_attri(
                   io_app   = io_app
@@ -1408,6 +1421,15 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
       ENDTRY.
 
     ENDLOOP.
+  ENDMETHOD.
+
+
+
+
+  METHOD get_timestampl.
+
+    GET TIME STAMP FIELD r_result.
+
   ENDMETHOD.
 
 ENDCLASS.
