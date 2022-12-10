@@ -42,7 +42,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD main_roundtrip.
 
     DATA(lo_runtime) = NEW z2ui5_lcl_runtime(  ).
-    lo_runtime->ms_client = client.
+    lo_runtime->ss_client = client.
     lo_runtime->execute_init(  ).
 
     DO.

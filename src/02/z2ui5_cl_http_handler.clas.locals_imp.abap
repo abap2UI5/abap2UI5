@@ -61,7 +61,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
         o_app   TYPE REF TO object,
       END OF ms_db.
 
-    DATA ms_client TYPE z2ui5_cl_http_handler=>ty_S_client.
+    class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
@@ -152,6 +152,7 @@ CLASS z2ui5_lcl_system_app DEFINITION.
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
 
+
   PROTECTED SECTION.
 
     METHODS on_event_error
@@ -170,6 +171,8 @@ CLASS z2ui5_lcl_system_app DEFINITION.
         VALUE(rv_link) TYPE string
       RAISING
         cx_abap_context_info_error.
+
+
 
   PRIVATE SECTION.
 
@@ -218,7 +221,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
   METHOD execute_init.
 
     TRY.
-        ms_db-id_prev = ms_client-o_body->get_attribute( 'ID' )->get_val( ).
+        ms_db-id_prev = ss_client-o_body->get_attribute( 'ID' )->get_val( ).
 
       CATCH cx_root.
     ENDTRY.
@@ -344,6 +347,16 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
             v = CONV string( ms_db-o_app->(lr_attri->name) )
           ).
 
+        when 'C'.
+
+          data(lv_bool) = switch string( ms_db-o_app->(lr_attri->name) when 'X' then 'true' else 'false' ).
+
+          lo_update->add_attribute(
+            n = lr_attri->name
+            v = lv_bool
+            apos_active = abap_false
+          ).
+
         WHEN 'I'.
           lo_update->add_attribute(
              n = lr_attri->name
@@ -394,15 +407,20 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'I'. " or 'D' or 'T'.
-          DATA(lv_value) = ms_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+        WHEN 'g' OR 'I' or 'C'. " or 'D' or 'T'.
+          DATA(lv_value) = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
           DATA(lr_val) = REF #( ms_db-o_app->(lr_attri->name) ).
           lr_val->* = lv_value.
+
+      "  when 'C'.
+      ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+      "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
+       "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
 
         WHEN 'h'.
 
           _=>trans_ref_tab_2_tab(
-            ir_tab_from = ms_client-o_body->get_attribute( lr_attri->name )->mr_actual
+            ir_tab_from = ss_client-o_body->get_attribute( lr_attri->name )->mr_actual
             ir_tab_to   = REF #( ms_db-o_app->(lr_attri->name) )
           ).
 
@@ -418,13 +436,13 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     DO.
       TRY.
 
-          ms_client-t_param = VALUE #( LET tab = ms_client-t_param IN FOR row IN tab
+          ss_client-t_param = VALUE #( LET tab = ss_client-t_param IN FOR row IN tab
             ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
 
           TRY.
-              ms_db-app = ms_client-t_param[ name = 'APP' ]-value.
+              ms_db-app = ss_client-t_param[ name = 'APP' ]-value.
             CATCH cx_root.
-              CREATE OBJECT ms_db-o_app TYPE z2ui5_lcl_system_app.
+              ms_db-o_app = NEW z2ui5_lcl_system_app( ).
               EXIT.
           ENDTRY.
 
@@ -468,8 +486,8 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     r_result = NEW z2ui5_lcl_runtime( ).
     r_result->ms_db-o_app = i_app.
     r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
-    r_result->ms_Client = ms_client.
-    CLEAR r_result->ms_Client-o_body.
+    r_result->ss_client = ss_client.
+    CLEAR r_result->ss_client-o_body.
     r_result->mt_after = mt_after.
     r_result->ms_db-t_attri = _=>hlp_get_t_attri( r_result->ms_db-o_app ).
 
@@ -549,7 +567,7 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
   METHOD z2ui5_if_client_event~get_id.
     TRY.
 
-        r_result = mo_server->ms_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
+        r_result = mo_server->ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
 
       CATCH cx_root.
     ENDTRY.
@@ -566,6 +584,8 @@ ENDCLASS.
 
 
 CLASS z2ui5_lcl_system_app IMPLEMENTATION.
+
+
 
   METHOD factory_error.
 
@@ -599,9 +619,9 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
                  )->label( 'Step 1'
                  )->text( 'Create a new global class in the abap system'
                  )->label( 'Step 2'
-                 )->text( 'Implement the interface zif_2ui5_selection_screen'
+                 )->text( 'Implement the interface z2ui5_if_app'
                  )->label( 'Step 3'
-                 )->text( 'Define the views in the method set_screen and the behaviour in the method on_event '
+                 )->text( 'Define the views in the method set_view and the behaviour in the method on_event '
                  )->label( 'Step 4' ).
 
       IF ms_home-class_editable = abap_true.
@@ -734,13 +754,18 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
 
   METHOD get_app_url.
+  "  try.
+  "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
+  "  catch cx_root.
+       data(lt_head) = z2ui5_lcl_runtime=>ss_client-t_header.
+  "  endtry.
+    data(lv_url) = lt_head[ name = 'referer' ]-value.
 
-    DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
     DATA(lv_tenant) = sy-mandt.
 
     DATA(lo_server) = CAST z2ui5_lcl_app_view( i_view )->mo_server.
-    rv_link  = 'https://' && lv_url && lo_server->ms_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
-
+  "  rv_link  = 'https://' && lv_url && lo_server->ss_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
+    rv_link = lv_url && '?sap-client=' && lv_tenant && '&app=' && app .
   ENDMETHOD.
 
 ENDCLASS.
@@ -829,7 +854,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     IF suggestion_items IS NOT INITIAL.
 
       DATA(lv_id) = _=>get_uuid_session( ).
-      ls_control-t_property = value #( base ls_control-t_property
+      ls_control-t_property = VALUE #( BASE ls_control-t_property
         ( n = 'suggestionItems' v = '{/' && lv_id && '}' )
         ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
         ).

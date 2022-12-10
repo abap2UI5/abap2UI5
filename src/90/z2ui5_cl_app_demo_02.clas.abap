@@ -26,6 +26,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
       ms_screen-check_initialized = abap_true.
 
       ms_screen-combo_key = 'AB'.
+      ms_screen-check_is_active = abap_true.
 
     ENDIF.
 
@@ -45,6 +46,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
   ENDMETHOD.
+
   METHOD z2ui5_if_app~set_view.
 
 
@@ -70,8 +72,8 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     lo_group->label( 'Checkbox' ).
     lo_group->checkbox(
-        text     = 'das ist eine checkbox'
         selected = ms_screen-check_is_active
+        text     = 'das ist eine checkbox'
     ).
 
     lo_group->label( 'Combobox' ).

@@ -18,19 +18,18 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
     "set initial values
     IF check_initialized = abap_false.
       check_initialized = abap_true.
+
       product = 'tomato'.
       quantity = '500'.
     ENDIF.
 
+
     "user event handling
     CASE client->event( )->get_id( ).
 
-      WHEN 'BTN_POST'.
+      WHEN 'BUTTON_POST'.
         "do something
-        "...
-        "..
-        ".
-        client->popup( )->display_message_toast( |Product { product } Quantity { quantity } GR successful| ).
+        client->popup( )->display_message_toast( |{ product } { quantity } ST - GR successful| ).
 
     ENDCASE.
 
@@ -38,8 +37,9 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~set_view.
 
+    "define selection screen
     view->factory_selscreen( title = 'My ABAP Application'
-        )->begin_of_block( 'Selection Screen'
+        )->begin_of_block( 'Selection Screen Title'
             )->begin_of_group( 'Stock Information'
 
                 )->label( 'Product'
@@ -48,8 +48,8 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                 )->label( 'Quantity'
                 )->input( quantity
 
-                )->button( text = 'Post Goods Receipt' on_press_id = 'BTN_POST'
-   ).
+                )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+       ).
 
   ENDMETHOD.
 
