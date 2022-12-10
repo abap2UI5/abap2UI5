@@ -4,7 +4,7 @@
 
 ## Installation
 
-## First Start & Basic Example
+## Basic Example
 
 ## Control Library
 
