@@ -1,6 +1,6 @@
 # abap2ui5
 
-## Project Information
+## Information
 
 ## Installation
 
