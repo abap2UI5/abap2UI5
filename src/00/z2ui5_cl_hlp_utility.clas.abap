@@ -297,7 +297,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
       RETURNING
         VALUE(r_result) TYPE xstring.
 
-    CLASS-METHODS hlp_get_abap_as_json
+    CLASS-METHODS get_abap_as_json
       IMPORTING
         i_mo_app_row2_abap TYPE any
       RETURNING
@@ -732,7 +732,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD hlp_get_abap_as_json.
+  METHOD get_abap_as_json.
 
 
 
@@ -1333,12 +1333,12 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
   METHOD get_abap_2_json.
 
-    r_result = val.
-
     DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
     IF lo_ele->get_relative_name( ) = 'ABAP_BOOL'.
       r_result = COND #(  WHEN val = abap_true THEN 'true' ELSE 'false' ).
-    ENDIF.
+    ELSE.
+        r_result = |"{ conv string( val ) }"|.
+    endif.
 
   ENDMETHOD.
 

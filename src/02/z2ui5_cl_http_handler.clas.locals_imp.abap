@@ -341,19 +341,11 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'D' OR 'P' OR 'T'.
-          lo_update->add_attribute(
-            n = lr_attri->name
-            v = CONV string( ms_db-o_app->(lr_attri->name) )
-          ).
-
-        when 'C'.
-
-          data(lv_bool) = switch string( ms_db-o_app->(lr_attri->name) when 'X' then 'true' else 'false' ).
+        WHEN 'g' OR 'D' OR 'P' OR 'T' or 'C'.
 
           lo_update->add_attribute(
             n = lr_attri->name
-            v = lv_bool
+            v = _=>get_abap_2_json( ms_db-o_app->(lr_attri->name) )
             apos_active = abap_false
           ).
 
@@ -510,14 +502,14 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client_popup~display_message_box.
+  METHOD z2ui5_if_client_popup~message_box.
 
     INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) )
       INTO TABLE mo_server->mt_after.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client_popup~display_message_toast.
+  METHOD z2ui5_if_client_popup~message_toast.
 
     INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) )
          INTO TABLE mo_server->mt_after.
@@ -716,7 +708,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
       WHEN 'BUTTON_GO'.
         li_app = NEW z2ui5_cl_app_demo_01( ).
-        client->popup( )->display_message_box( type = 'warning' text = 'App wird gestartet' ).
+        client->popup( )->message_box( type = 'warning' text = 'App wird gestartet' ).
         client->controller( )->nav_to_app( li_app  ).
 
 
@@ -733,7 +725,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
             ms_home-classname = to_upper( ms_home-classname ).
             CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
-            client->popup( )->display_message_toast( 'App is ready to start!' ).
+            client->popup( )->message_toast( 'App is ready to start!' ).
             ms_home-btn_text = 'edit'.
             ms_home-btn_event_id = 'BUTTON_CHANGE'.
             ms_home-btn_icon = 'sap-icon://edit'.
@@ -743,7 +735,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
           CATCH cx_root INTO DATA(lx).
             ms_home-class_value_state_text = lx->get_text( ).
             ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-warning.
-            client->popup( )->display_message_box(
+            client->popup( )->message_box(
                 text = ms_home-class_value_state_text
                 type = z2ui5_if_view=>cs-message_box-type-error
                  ).

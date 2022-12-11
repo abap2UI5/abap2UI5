@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
       WHEN 'BUTTON_POST'.
         "do something
-        client->popup( )->display_message_toast( |{ product } { quantity } ST - GR successful| ).
+        client->popup( )->message_toast( |{ product } { quantity } ST - GR successful| ).
 
     ENDCASE.
 

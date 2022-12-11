@@ -5,7 +5,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
       BEGIN OF ms_screen,
         check_initialized TYPE abap_bool,
         check_is_active   TYPE abap_bool,
-        plant             TYPE string,
+        plant             TYPE c length 30,
         combo_key         TYPE string,
         segment_key       TYPE string,
         radio_index       TYPE i,
