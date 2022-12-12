@@ -1,4 +1,5 @@
 INTERFACE z2ui5_if_view PUBLIC.
+
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF input,
@@ -25,16 +26,21 @@ INTERFACE z2ui5_if_view PUBLIC.
       END OF button,
       BEGIN OF message_box,
         BEGIN OF type,
-          error TYPE string VALUE 'error',
-          show  TYPE string VALUE 'show',
+          error    TYPE string VALUE 'error',
+          alert    TYPE string VALUE 'alert',
+          info     TYPE string VALUE 'information',
+          warning  TYPE string VALUE 'warning',
+          success  TYPE string VALUE 'success',
         END OF type,
       END OF message_box,
     END OF cs.
-  METHODS factory_selscreen
+
+  METHODS factory_selscreen_page
     IMPORTING
       name            TYPE string OPTIONAL
       title           TYPE string DEFAULT 'screen_title'
         PREFERRED PARAMETER name
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen.
+
 ENDINTERFACE.

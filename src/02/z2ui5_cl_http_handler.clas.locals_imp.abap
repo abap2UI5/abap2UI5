@@ -534,13 +534,13 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client_controller~get_active_screen.
+  METHOD z2ui5_if_client_controller~get_active_page.
 
     r_result = mo_server->ms_db-screen.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client_controller~nav_to_screen.
+  METHOD z2ui5_if_client_controller~nav_to_page.
 
     mo_server->ms_db-screen = name.
 
@@ -605,7 +605,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     IF ms_error-x_error IS NOT BOUND.
 
-      DATA(view2) = view->factory_selscreen( name = 'START' title = 'Home'
+      DATA(view2) = view->factory_selscreen_page( name = 'START' title = 'Home'
             )->begin_of_block( 'Welcome to abap2ui5!'
           )->begin_of_group( 'This is an easy way to create ui5 applications with abap only:'
                  )->label( 'Step 1'
@@ -640,7 +640,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         )->label( 'Example 1'
         )->link( text = 'Link to simple application' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_01' )
         )->label( 'Example 2'
-        )->link( text = 'Link to multiple Views and a lot of controls' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_02' )
+        )->link( text = 'Link to application with more controls' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_02' )
     )->end_of_group(
   )->end_of_block(
   )->end_of_screen( ).
@@ -648,7 +648,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     ELSE.
 
-      view->factory_selscreen( name = 'ERROR' title = 'abap2ui5 - error'
+      view->factory_selscreen_page( name = 'ERROR' title = 'abap2ui5 - error'
           )->begin_of_block( SWITCH #(  ms_error-kind
                   WHEN 'USER' THEN 'Application Error - check your code'
                   WHEN 'CUSTOMIZING' THEN 'Customizing Error - check your code in method set_screen'
@@ -770,7 +770,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD  z2ui5_if_view~factory_selscreen.
+  METHOD  z2ui5_if_view~factory_selscreen_page.
 
     r_result = me.
 
