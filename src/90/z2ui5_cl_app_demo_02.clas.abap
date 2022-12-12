@@ -73,7 +73,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_if_app~set_view.
 
 
-    DATA(lo_screen) = view->factory_selscreen( title = 'App Title - abap2ui5 demo' ).
+    DATA(lo_screen) = view->factory_selscreen_page( title = 'abap2ui5 demo - App Title' ).
     DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
 
 
