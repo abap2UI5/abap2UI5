@@ -7,7 +7,7 @@ Please read the [wiki](https://duckduckgo.com "The best search engine for privac
 
 ## Information
 Project features:
-* lightweight – 100& source code based, just implement one abap interface for a standalone ui5 app
+* lightweight – 100% source code based, just implement one abap interface for a standalone ui5 app
 * easy to use - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
 * abapgit project – easy installation, no additional app deployment or javascript needed
 
