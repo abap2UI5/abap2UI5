@@ -19,4 +19,8 @@ Compatible with all availible abap stacks:
 * R/3 NW 7.5 and downport to very old releases possible (Abap standard)
 
 ## Example
+Define the view:
 <img width="1225" alt="image" src="https://user-images.githubusercontent.com/102328295/207331664-00c45fc0-3938-44b0-b241-20ff8d9fc4fe.png">
+
+Define the behaviour:
+<img width="649" alt="image" src="https://user-images.githubusercontent.com/102328295/207332821-0fe03401-aaaa-4ac6-b8c3-3c13ef8c0632.png">
