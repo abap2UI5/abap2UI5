@@ -19,8 +19,4 @@ Compatible with all availible abap stacks:
 * R/3 NW 7.5 and downport to very old releases possible (Abap standard)
 
 ## Example
-Picture / Code / Code 
-
-
-<img width="606" alt="image" src="https://user-images.githubusercontent.com/102328295/207329889-e62b4e79-7eb7-4568-8277-94182abd5f60.png">
-
+<img width="1225" alt="image" src="https://user-images.githubusercontent.com/102328295/207331664-00c45fc0-3938-44b0-b241-20ff8d9fc4fe.png">
