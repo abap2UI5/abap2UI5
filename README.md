@@ -21,7 +21,7 @@ Compatible with all abap stacks:
 ## Installation
 Please read the [wiki](https://duckduckgo.com "The best search engine for privacy") to get further information.
 
-## Basic Example
+## Example
 
 Picture / Code / Code 
 
