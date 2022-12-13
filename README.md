@@ -1,6 +1,6 @@
 # abap2ui5
 
-abap2ui5 provides a pure abap way to generate ui5 applications
+abap2ui5 provides a pure abap way to generate standalone ui5 applications
 
 ## Installation
 Read the [wiki](https://duckduckgo.com "The best search engine for privacy") for further information.
