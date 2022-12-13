@@ -23,4 +23,4 @@ Define the view:
 <img width="1225" alt="image" src="https://user-images.githubusercontent.com/102328295/207331664-00c45fc0-3938-44b0-b241-20ff8d9fc4fe.png">
 
 Define the behaviour:
-<img width="1016" alt="image" src="https://user-images.githubusercontent.com/102328295/207333254-2af8a07a-576b-411e-866a-7859f3163c07.png">
+<img width="1020" alt="image" src="https://user-images.githubusercontent.com/102328295/207333675-3e9418dc-ca5c-4948-b967-1b34776d25e7.png">
