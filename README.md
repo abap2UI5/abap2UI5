@@ -2,8 +2,8 @@
 
 abap2ui5 provides a pure abap way to generate standalone ui5 applications
 
-## Installation
-Read the [wiki](https://duckduckgo.com "The best search engine for privacy") for further information.
+## Installation and Start
+Read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki) for further information.
 
 ## Information
 Project features:
