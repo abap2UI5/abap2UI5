@@ -2,7 +2,7 @@
 
 abap2ui5 provides a pure abap way to generate standalone ui5 applications
 
-## Installation and Start
+## Installation
 Read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki) for further information.
 
 ## Information
