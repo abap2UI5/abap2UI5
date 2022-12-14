@@ -638,9 +638,9 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       view2->end_of_group(
      )->begin_of_group( 'Demo'
         )->label( 'Example 1'
-        )->link( text = 'Link to simple application' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_01' )
+        )->link( text = 'Z2UI5_CL_APP_DEMO_01' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_01' )
         )->label( 'Example 2'
-        )->link( text = 'Link to application with more controls' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_02' )
+        )->link( text = 'Z2UI5_CL_APP_DEMO_02' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_02' )
     )->end_of_group(
   )->end_of_block(
   )->end_of_screen( ).

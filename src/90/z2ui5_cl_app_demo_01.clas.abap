@@ -38,7 +38,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
   METHOD z2ui5_if_app~set_view.
 
     "define selection screen
-    view->factory_selscreen_page( title = 'My ABAP Application'
+    view->factory_selscreen_page( title = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
         )->begin_of_block( 'Selection Screen Title'
             )->begin_of_group( 'Stock Information'
 

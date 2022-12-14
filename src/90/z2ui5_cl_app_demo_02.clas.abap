@@ -19,8 +19,8 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
 ENDCLASS.
 
 CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
-  METHOD z2ui5_if_app~on_event.
 
+  METHOD z2ui5_if_app~on_event.
 
     IF ms_screen-check_initialized = abap_false.
 
@@ -28,7 +28,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
       ms_screen = VALUE #(
         check_initialized = abap_true
         check_is_active   = abap_true
-        colour             = 'BLUE'
+        colour            = 'BLUE'
         combo_key         = 'GRAY'
         segment_key       = 'GREEN'
         radio_index       = '1'
@@ -67,13 +67,12 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     ENDCASE.
 
-
   ENDMETHOD.
 
   METHOD z2ui5_if_app~set_view.
 
 
-    DATA(lo_screen) = view->factory_selscreen_page( title = 'abap2ui5 demo - App Title' ).
+    DATA(lo_screen) = view->factory_selscreen_page( title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
     DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
 
 
