@@ -20,7 +20,7 @@ Compatible with all availible abap stacks and language versions:
 
 ## Example
 View Definition:
-<img width="1225" alt="image" src="https://user-images.githubusercontent.com/102328295/207331664-00c45fc0-3938-44b0-b241-20ff8d9fc4fe.png">
+<img width="1343" alt="image" src="https://user-images.githubusercontent.com/102328295/207578802-c15add24-5ee9-4eb9-8373-49ecff6cb2a3.png">
 
 Behaviour Definition:
 <img width="1020" alt="image" src="https://user-images.githubusercontent.com/102328295/207333675-3e9418dc-ca5c-4948-b967-1b34776d25e7.png">
