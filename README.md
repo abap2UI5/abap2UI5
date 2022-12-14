@@ -24,3 +24,6 @@ View Definition:
 
 Controller Definition: <br>
 <img width="700" alt="image" src="https://user-images.githubusercontent.com/102328295/207333675-3e9418dc-ca5c-4948-b967-1b34776d25e7.png">
+<br>
+After installing the abap2ui5 project into your system, to create a new standalone ui5 app, you only have to create a new abap class and implement the interface z2ui5_if_app. It has two methods to define the view and the behaviour of the app:<br>
+[Sample Code](https://github.com/oblomov-dev/abap2ui5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap)
