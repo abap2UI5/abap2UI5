@@ -19,7 +19,7 @@ Compatible with all availible abap stacks and language versions:
 * R/3 NW 7.5 and downport to very old releases possible (Abap Standard)
 
 ## Example
-After installing the abap2ui5 project into your system, to develope a new standalone ui5 app, you only have to create a new abap class and implement the interface z2ui5_if_app. It has two methods to define the view and the behaviour of the app. [Sample Code](https://github.com/oblomov-dev/abap2ui5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap)<br>
+After installing the abap2ui5 project into your system, you only have to create a new abap class and implement the interface z2ui5_if_app. It has two methods to define the view and the behaviour of the app, to create a new standalone ui5 app. [Sample Code](https://github.com/oblomov-dev/abap2ui5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap)<br>
 View Definition:<br>
 <img width="900" alt="image" src="https://user-images.githubusercontent.com/102328295/207578802-c15add24-5ee9-4eb9-8373-49ecff6cb2a3.png">
 <br>
