@@ -76,7 +76,6 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
 
 
-
     DATA(lo_group) = lo_block->begin_of_group( 'Input' ).
 
     lo_group->label( 'Input with value help' ).
