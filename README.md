@@ -7,8 +7,8 @@ Read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki) for further inform
 
 ## Information
 Project features:
-* lightweight – 100% source code based, just implement one abap interface for a standalone ui5 app
-* easy to use - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
+* easy to use – 100% source code based, just implement one abap interface for a standalone ui5 app
+* lightweight - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
 * easy installation - abapgit project, no additional app deployment or javascript needed
 
 ## Requirements
