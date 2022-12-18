@@ -2,7 +2,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
     DATA:
-      BEGIN OF ms_screen,
+      BEGIN OF screen,
         check_initialized TYPE abap_bool,
         check_is_active   TYPE abap_bool,
         colour            TYPE string,
@@ -13,7 +13,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         date_time         TYPE string,
         time_start        TYPE string,
         time_end          TYPE string,
-      END OF ms_screen.
+      END OF screen.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -22,10 +22,10 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~on_event.
 
-    IF ms_screen-check_initialized = abap_false.
+    IF screen-check_initialized = abap_false.
 
       "set initial values
-      ms_screen = VALUE #(
+      screen = VALUE #(
         check_initialized = abap_true
         check_is_active   = abap_true
         colour            = 'BLUE'
@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     lo_group->label( 'Input with value help' ).
     lo_group->input(
-        value       = ms_screen-colour
+        value       = screen-colour
         placeholder = 'fill in your favorite colour'
         suggestion_items = VALUE #(
             ( descr = 'Green'  value = 'GREEN' )
@@ -97,13 +97,13 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     lo_group->label( 'Checkbox' ).
     lo_group->checkbox(
-        selected = ms_screen-check_is_active
+        selected = screen-check_is_active
         text     = 'this is a checkbox'
     ).
 
     lo_group->label( 'Combobox' ).
     lo_group->combobox(
-        selectedkey = ms_screen-combo_key
+        selectedkey = screen-combo_key
         t_item      = VALUE #(
                 ( key = 'BLUE'  text = 'green' )
                 ( key = 'GREEN' text = 'blue' )
@@ -113,7 +113,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     lo_group->label( 'Segmented Button' ).
     lo_group->segmented_button(
-        selected_key = ms_screen-segment_key
+        selected_key = screen-segment_key
         t_button     = VALUE #(
             ( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue' )
             ( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green' )
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     lo_group->label( 'Radiobutton' ).
     lo_group->radiobutton_group(
-        selected_index = ms_screen-radio_index
+        selected_index = screen-radio_index
         t_prop         = VALUE #( ( `Option A` ) ( `Option B` ) )
     ).
 
@@ -131,14 +131,14 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     lo_group = lo_block->begin_of_group( 'Time Inputs' ).
 
     lo_group->label( 'Date' ).
-    lo_group->date_picker( ms_screen-date ).
+    lo_group->date_picker( screen-date ).
 
     lo_group->label( 'Date and Time' ).
-    lo_group->date_time_picker( ms_screen-date_time ).
+    lo_group->date_time_picker( screen-date_time ).
 
     lo_group->label( 'Time Begin/End' ).
-    lo_group->time_picker( ms_screen-time_start ).
-    lo_group->time_picker( ms_screen-time_end ).
+    lo_group->time_picker( screen-time_start ).
+    lo_group->time_picker( screen-time_end ).
 
 
 
