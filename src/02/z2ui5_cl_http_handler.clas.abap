@@ -14,20 +14,18 @@ CLASS z2ui5_cl_http_handler DEFINITION
         debug_mode_on TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
-    TYPES:
-      BEGIN OF ty_s_client,
+    CLASS-DATA:
+      BEGIN OF client,
         o_body   TYPE REF TO z2ui5_cl_hlp_tree_json,
         t_header TYPE if_web_http_request=>name_value_pairs,
         t_param  TYPE if_web_http_request=>name_value_pairs,
-      END OF ty_s_client.
+      END OF client.
 
     CLASS-METHODS main_index_html
       RETURNING
         VALUE(r_result) TYPE string.
 
     CLASS-METHODS main_roundtrip
-      IMPORTING
-        client         TYPE ty_S_client
       RETURNING
         VALUE(rv_resp) TYPE string.
 
@@ -42,7 +40,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD main_roundtrip.
 
     DATA(lo_runtime) = NEW z2ui5_lcl_runtime(  ).
-    lo_runtime->ss_client = client.
     lo_runtime->execute_init(  ).
 
     DO.
@@ -84,6 +81,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
+
+    DATA(lv_url) = client-t_header[ name = '~path' ]-value.
+    TRY.
+        DATA(lv_app) = client-t_param[ name = 'app' ]-value.
+        lv_url &&= `?app=` && lv_app.
+      CATCH cx_sy_itab_line_not_found.
+    ENDTRY.
+
     r_result = `<html>` && |\n|  &&
                `<head>` && |\n|  &&
                `    <meta charset="utf-8">` && |\n|  &&
@@ -109,7 +114,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `                        this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                `                        this.oBody.oEvent = oEvent;` && |\n|  &&
                `                   if ( this.oView.getModel().oData.debug ) {` && |\n|  &&
-               `                       console.log(oEvent);` && |\n|  &&
+               `                       console.log(this.oBody);` && |\n|  &&
                   `                            } ` && |\n|  &&
                `                        this.Roundtrip();` && |\n|  &&
                `                    },` && |\n|  &&
@@ -117,7 +122,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `                        sap.ui.core.BusyIndicator.show();` && |\n|  &&
                `                        this.oView.destroy();` && |\n|  &&
                `                        var xhr = new XMLHttpRequest();` && |\n|  &&
-               `                        var url = window.location.pathname + window.location.search;` && |\n|  &&
+               `              //          var url = window.location.pathname + window.location.search;` && |\n|  &&
+               `                        var url = '` && lv_url && `'; // + window.location.search;` && |\n|  &&
                `                        xhr.open("POST", url, true);` && |\n|  &&
                `                        xhr.onload = function (that) {` && |\n|  &&
                `                        if ( that.target.status == 500 ) {` && |\n|  &&

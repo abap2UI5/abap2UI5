@@ -1,38 +1,34 @@
-class Z2UI5_CL_HTTP_CLOUD definition
-  public
-  create public .
+CLASS z2ui5_cl_http_cloud DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces IF_HTTP_SERVICE_EXTENSION .
-protected section.
-private section.
+    INTERFACES if_http_service_extension .
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_CLOUD IMPLEMENTATION.
+CLASS z2ui5_cl_http_cloud IMPLEMENTATION.
 
 
-  method IF_HTTP_SERVICE_EXTENSION~HANDLE_REQUEST.
+  METHOD if_http_service_extension~handle_request.
 
-      data(lt_header) = request->get_header_fields( ).
-    data(lt_param)  = request->get_form_fields( ).
-    data(lv_method) = request->get_method( ).
-    DATA(lv_body)   = request->get_text( ).
+    z2ui5_cl_http_handler=>client = VALUE #(
+        t_header = request->get_header_fields( )
+        t_param  = request->get_form_fields( )
+        o_body   = z2ui5_cl_hlp_tree_json=>factory( request->get_text( ) )
+     ).
 
-
-    DATA(lv_resp) = SWITCH #( lv_method
+    DATA(lv_resp) = SWITCH #( request->get_method( )
         WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
-        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( value #(
-                t_header = lt_header
-                t_param  = lt_param
-                o_body   = z2ui5_cl_hlp_tree_json=>factory( lv_body )
-         ) )
+        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( )
       ).
 
     response->set_status( 200 ).
     response->set_text( lv_resp ).
 
-  endmethod.
+  ENDMETHOD.
 ENDCLASS.

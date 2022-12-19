@@ -61,7 +61,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
         o_app   TYPE REF TO object,
       END OF ms_db.
 
-    class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
+   " class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
@@ -221,7 +221,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
   METHOD execute_init.
 
     TRY.
-        ms_db-id_prev = ss_client-o_body->get_attribute( 'ID' )->get_val( ).
+        ms_db-id_prev = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'ID' )->get_val( ).
 
       CATCH cx_root.
     ENDTRY.
@@ -400,7 +400,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
       CASE lr_attri->kind.
 
         WHEN 'g' OR 'I' or 'C'. " or 'D' or 'T'.
-          DATA(lv_value) = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+          DATA(lv_value) = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->get_val( ).
           DATA(lr_val) = REF #( ms_db-o_app->(lr_attri->name) ).
           lr_val->* = lv_value.
 
@@ -412,7 +412,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
         WHEN 'h'.
 
           _=>trans_ref_tab_2_tab(
-            ir_tab_from = ss_client-o_body->get_attribute( lr_attri->name )->mr_actual
+            ir_tab_from = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->mr_actual
             ir_tab_to   = REF #( ms_db-o_app->(lr_attri->name) )
           ).
 
@@ -428,11 +428,11 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     DO.
       TRY.
 
-          ss_client-t_param = VALUE #( LET tab = ss_client-t_param IN FOR row IN tab
+          z2ui5_cl_http_handler=>client-t_param = VALUE #( LET tab = z2ui5_cl_http_handler=>client-t_param IN FOR row IN tab
             ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
 
           TRY.
-              ms_db-app = ss_client-t_param[ name = 'APP' ]-value.
+              ms_db-app = z2ui5_cl_http_handler=>client-t_param[ name = 'APP' ]-value.
             CATCH cx_root.
               ms_db-o_app = NEW z2ui5_lcl_system_app( ).
               EXIT.
@@ -478,8 +478,8 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     r_result = NEW z2ui5_lcl_runtime( ).
     r_result->ms_db-o_app = i_app.
     r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
-    r_result->ss_client = ss_client.
-    CLEAR r_result->ss_client-o_body.
+    "r_result->ss_client = ss_client.
+    CLEAR z2ui5_cl_http_handler=>client-o_body.
     r_result->mt_after = mt_after.
     r_result->ms_db-t_attri = _=>hlp_get_t_attri( r_result->ms_db-o_app ).
 
@@ -559,7 +559,7 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
   METHOD z2ui5_if_client_event~get_id.
     TRY.
 
-        r_result = mo_server->ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
+        r_result = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
 
       CATCH cx_root.
     ENDTRY.
@@ -607,11 +607,11 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
       DATA(view2) = view->factory_selscreen_page( name = 'START' title = 'Home'
             )->begin_of_block( 'Welcome to abap2ui5!'
-          )->begin_of_group( 'This is an easy way to create ui5 applications with abap only:'
+          )->begin_of_group( 'This is an easy way to create ui5 applications in pure abap:'
                  )->label( 'Step 1'
                  )->text( 'Create a new global class in the abap system'
                  )->label( 'Step 2'
-                 )->text( 'Implement the interface z2ui5_if_app'
+                 )->text( 'Implement the interface Z2UI5_IF_APP'
                  )->label( 'Step 3'
                  )->text( 'Define the views in the method set_view and the behaviour in the method on_event '
                  )->label( 'Step 4' ).
@@ -749,7 +749,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   "  try.
   "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
   "  catch cx_root.
-       data(lt_head) = z2ui5_lcl_runtime=>ss_client-t_header.
+       data(lt_head) = z2ui5_cl_http_handler=>client-t_header.
   "  endtry.
     data(lv_url) = lt_head[ name = 'referer' ]-value.
 
