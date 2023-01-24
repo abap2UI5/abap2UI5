@@ -7,13 +7,13 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     INTERFACES if_t100_dyn_msg.
     INTERFACES if_oo_adt_classrun.
 
-    CONSTANTS:
-      BEGIN OF cs,
-        BEGIN OF s,
-          sign LIKE cl_abap_range=>sign VALUE cl_abap_range=>sign,
-          optn LIKE cl_abap_range=>option VALUE cl_abap_range=>option,
-        END OF s,
-      END OF cs.
+ "   CONSTANTS:
+  "    BEGIN OF cs,
+  "      BEGIN OF s,
+  "        sign LIKE cl_abap_range=>sign VALUE cl_abap_range=>sign,
+  "        optn LIKE cl_abap_range=>option VALUE cl_abap_range=>option,
+  "      END OF s,
+  "    END OF cs.
 
     TYPES:
       BEGIN OF ty,
