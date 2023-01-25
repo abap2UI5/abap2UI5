@@ -7,13 +7,24 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     INTERFACES if_t100_dyn_msg.
     INTERFACES if_oo_adt_classrun.
 
- "   CONSTANTS:
-  "    BEGIN OF cs,
-  "      BEGIN OF s,
-  "        sign LIKE cl_abap_range=>sign VALUE cl_abap_range=>sign,
-  "        optn LIKE cl_abap_range=>option VALUE cl_abap_range=>option,
-  "      END OF s,
-  "    END OF cs.
+*    CONSTANTS:
+*      BEGIN OF cs,
+*        BEGIN OF s,
+*          sign LIKE cl_abap_range=>sign VALUE cl_abap_range=>sign,
+*          optn LIKE cl_abap_range=>option VALUE cl_abap_range=>option,
+*        END OF s,
+*      END OF cs.
+
+*    TYPES:
+*      BEGIN OF ty_range_field,
+*        fieldname TYPE string,
+*        selopt_t  TYPE range of string, "ty-t-range,
+*      END OF ty_range_field,
+*      BEGIN OF ty_range_tab,
+*        tablename TYPE string,
+*        frange_t  TYPE STANDARD TABLE OF ty_range_field WITH DEFAULT KEY,
+*      END OF ty_range_tab.
+
 
     TYPES:
       BEGIN OF ty,
@@ -70,14 +81,16 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
         END OF s,
         BEGIN OF t,
           property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY,
-          range    TYPE cl_abap_range=>ds_trange,
-          selopt   TYPE cl_abap_range=>ds_selopt_t,
+       "   selopt   TYPE RANGE OF string,
+        "  range    TYPE STANDARD TABLE OF ty_range_tab with DEFAULT KEY, "cl_abap_range=>ds_trange,
+          "cl_abap_range=>ds_selopt_t,
           attri    TYPE STANDARD TABLE OF ty-s-attri WITH EMPTY KEY,
         END OF t,
         BEGIN OF o,
           me TYPE REF TO z2ui5_cl_hlp_utility,
         END OF o,
       END OF ty.
+
 
     DATA:
       BEGIN OF ms_log,
@@ -955,9 +968,9 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
 
 
-  method IF_MESSAGE~GET_TEXT.
+  METHOD if_message~get_text.
 
-      IF ms_error-x_root IS NOT INITIAL.
+    IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text(  ).
       result = COND #( WHEN result IS INITIAL THEN 'Es ist ein unbekannter Fehler aufgetreten' ELSE result ).
       RETURN.
@@ -981,7 +994,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 *  RECEIVING
 *    RESULT =
 *    .
-  endmethod.
+  ENDMETHOD.
 
 
 
@@ -1337,8 +1350,8 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
     IF lo_ele->get_relative_name( ) = 'ABAP_BOOL'.
       r_result = COND #(  WHEN val = abap_true THEN 'true' ELSE 'false' ).
     ELSE.
-        r_result = |"{ conv string( val ) }"|.
-    endif.
+      r_result = |"{ CONV string( val ) }"|.
+    ENDIF.
 
   ENDMETHOD.
 

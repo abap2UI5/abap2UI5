@@ -4,6 +4,7 @@
   <asx:values>
    <DEVC>
     <CTEXT>core</CTEXT>
+    <TPCLASS>X</TPCLASS>
    </DEVC>
   </asx:values>
  </asx:abap>
