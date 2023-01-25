@@ -4,7 +4,6 @@
   <asx:values>
    <DEVC>
     <CTEXT>http onprem</CTEXT>
-    <TPCLASS>X</TPCLASS>
    </DEVC>
   </asx:values>
  </asx:abap>
