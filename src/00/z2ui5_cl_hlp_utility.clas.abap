@@ -400,6 +400,10 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
         val             TYPE REF TO cx_root
       RETURNING
         VALUE(r_result) TYPE REF TO cx_root.
+        class-methods get_ref_data
+            importing n type clike
+            o type ref to object
+         RETURNING VALUE(result) type ref to data.
     CLASS-METHODS get_abap_2_json
       IMPORTING
         val             TYPE any
@@ -1442,6 +1446,13 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
   METHOD get_timestampl.
 
     GET TIME STAMP FIELD r_result.
+
+  ENDMETHOD.
+
+  METHOD get_ref_data.
+
+          ASSIGN o->(n) TO FIELD-SYMBOL(<field>). "<fs>.
+          GET REFERENCE OF <field> INTO result.
 
   ENDMETHOD.
 
