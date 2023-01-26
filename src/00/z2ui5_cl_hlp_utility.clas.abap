@@ -148,7 +148,8 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
       RETURNING VALUE(r_result) TYPE ty-s-get_result.
 
     CLASS-METHODS get_uuid
-      RETURNING VALUE(r_result) TYPE string.
+      RETURNING VALUE(r_result) TYPE string
+      RAISING cx_uuid_error.
 
     CLASS-METHODS get_uuid_session
       RETURNING VALUE(r_result) TYPE string.
@@ -371,7 +372,6 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     " ct_tmp   TYPE abap_attrdescr_tab.
 *      IMPORTING
 *        is_db TYPE zzzyyy77_t_001.
-
   PRIVATE SECTION.
     CLASS-DATA mv_counter TYPE int4.
 
@@ -380,51 +380,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
-
-
-  METHOD trans_ref_tab_2_tab.
-
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <tab_ui5> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <comp> TYPE data.
-    FIELD-SYMBOLS <comp_ui5> TYPE data.
-
-    DATA lr_tab_back TYPE REF TO data.
-    DATA lr_tab_ui5_row TYPE REF TO data.
-    FIELD-SYMBOLS <back> TYPE data.
-    FIELD-SYMBOLS <ui5_row> TYPE data.
-
-    "  DATA(lr_tab) = REF #( io_obj->(ir_attri->name) ).
-    ASSIGN ir_tab_to->* TO <tab>.
-    " DATA(lv_name) = ir_attri->name.
-    "lr_tab_ui5 = mo_body->get_attribute( lv_name )->mr_actual.
-    ASSIGN ir_tab_from->* TO <tab_ui5>.
-    " <tab>.
-
-    "  DATA(lv_test) = mo_body->get_attribute( lv_name )->write_result( ). "write( ).
-
-    LOOP AT <tab> REFERENCE INTO lr_tab_back.
-      ASSIGN lr_tab_back->* TO <back>.
-
-      DATA(lv_tabix) = sy-tabix.
-
-      lr_tab_ui5_row = <tab_ui5>[ lv_tabix ].
-      ASSIGN lr_tab_ui5_row->* TO <ui5_row>.
-
-      DATA(lv_int) = 0.
-      DO.
-        lv_int += 1.
-        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
-        IF sy-subrc NE 0.
-          EXIT.
-        ENDIF.
-        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
-        <comp> = <comp_ui5>.
-      ENDDO.
-
-    ENDLOOP.
-
-  ENDMETHOD.
 
 
   METHOD action_parallel.
@@ -742,19 +697,20 @@ RETURN.
   ENDMETHOD.
 
 
-  METHOD get_timestampl.
-
-    GET TIME STAMP FIELD r_result.
-
-  ENDMETHOD.
-
-
   METHOD get_ref_data.
 
     ASSIGN o->(n) TO FIELD-SYMBOL(<field>).
     GET REFERENCE OF <field> INTO result.
 
   ENDMETHOD.
+
+
+  METHOD get_timestampl.
+
+    GET TIME STAMP FIELD r_result.
+
+  ENDMETHOD.
+
 
   METHOD get_timestamp_utcl.
 
@@ -1296,6 +1252,49 @@ RETURN.
   ENDMETHOD.
 
 
+  METHOD trans_ref_tab_2_tab.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab_ui5> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <comp> TYPE data.
+    FIELD-SYMBOLS <comp_ui5> TYPE data.
+
+    DATA lr_tab_back TYPE REF TO data.
+    DATA lr_tab_ui5_row TYPE REF TO data.
+    FIELD-SYMBOLS <back> TYPE data.
+    FIELD-SYMBOLS <ui5_row> TYPE data.
+
+    "  DATA(lr_tab) = REF #( io_obj->(ir_attri->name) ).
+    ASSIGN ir_tab_to->* TO <tab>.
+    " DATA(lv_name) = ir_attri->name.
+    "lr_tab_ui5 = mo_body->get_attribute( lv_name )->mr_actual.
+    ASSIGN ir_tab_from->* TO <tab_ui5>.
+    " <tab>.
+
+    "  DATA(lv_test) = mo_body->get_attribute( lv_name )->write_result( ). "write( ).
+
+    LOOP AT <tab> REFERENCE INTO lr_tab_back.
+      ASSIGN lr_tab_back->* TO <back>.
+
+      DATA(lv_tabix) = sy-tabix.
+
+      lr_tab_ui5_row = <tab_ui5>[ lv_tabix ].
+      ASSIGN lr_tab_ui5_row->* TO <ui5_row>.
+
+      DATA(lv_int) = 0.
+      DO.
+        lv_int += 1.
+        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
+        IF sy-subrc NE 0.
+          EXIT.
+        ENDIF.
+        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
+        <comp> = <comp_ui5>.
+      ENDDO.
+
+    ENDLOOP.
+
+  ENDMETHOD.
 
 
   METHOD trans_xml_2_any_multi.

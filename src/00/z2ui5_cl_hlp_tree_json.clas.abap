@@ -228,7 +228,7 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
   METHOD add_list_val.
 
     DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
-    lo_attri->mv_name =  CONV string( lines( mt_values ) ).
+    lo_attri->mv_name = lines( mt_values ).
     lo_attri->mv_value = v.
 
     lo_attri->mv_apost_active = abap_true.

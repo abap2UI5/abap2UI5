@@ -35,49 +35,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
-  METHOD main_roundtrip.
-
-    DATA(lo_runtime) = NEW z2ui5_lcl_runtime(  ).
-    lo_runtime->execute_init(  ).
-
-    DO.
-
-      TRY.
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->on_event( NEW z2ui5_lcl_app_client( lo_runtime )  ) .
-          ROLLBACK WORK.
-
-        CATCH cx_root INTO DATA(cx).
-          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
-          CONTINUE.
-      ENDTRY.
-
-      IF lo_runtime->mo_leave_to_app IS BOUND.
-        lo_runtime = lo_runtime->factory_new( lo_runtime->mo_leave_to_app ).
-        CONTINUE.
-      ENDIF.
-
-      TRY.
-          lo_runtime->mo_ui5_model = z2ui5_cl_hlp_tree_json=>factory( ).
-          lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
-
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-O_app )->set_view( NEW z2ui5_lcl_app_view( lo_runtime ) ).
-          ROLLBACK WORK.
-
-        CATCH cx_root INTO cx.
-          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_SCREEN' ix = cx ).
-          CONTINUE.
-      ENDTRY.
-
-      EXIT.
-    ENDDO.
-
-    rv_resp = lo_runtime->execute_finish( ).
-
-  ENDMETHOD.
 
   METHOD main_index_html.
 
@@ -167,4 +126,52 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD main_roundtrip.
+    TRY.
+
+        DATA(lo_runtime) = NEW z2ui5_lcl_runtime(  ).
+        lo_runtime->execute_init(  ).
+
+        DO.
+
+          TRY.
+              ROLLBACK WORK.
+              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->on_event( NEW z2ui5_lcl_app_client( lo_runtime )  ) .
+              ROLLBACK WORK.
+
+            CATCH cx_root INTO DATA(cx).
+              lo_runtime = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
+              CONTINUE.
+          ENDTRY.
+
+          IF lo_runtime->mo_leave_to_app IS BOUND.
+            lo_runtime = lo_runtime->factory_new( lo_runtime->mo_leave_to_app ).
+            CONTINUE.
+          ENDIF.
+
+          TRY.
+              lo_runtime->mo_ui5_model = z2ui5_cl_hlp_tree_json=>factory( ).
+              lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
+
+              ROLLBACK WORK.
+              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->set_view( NEW z2ui5_lcl_app_view( lo_runtime ) ).
+              ROLLBACK WORK.
+
+            CATCH cx_root INTO cx.
+              lo_runtime = lo_runtime->factory_new_error( kind = 'ON_SCREEN' ix = cx ).
+              CONTINUE.
+          ENDTRY.
+
+          EXIT.
+        ENDDO.
+
+        rv_resp = lo_runtime->execute_finish( ).
+
+      CATCH cx_uuid_error INTO cx.
+        rv_resp = cx->get_text( ).
+    ENDTRY.
+
+
+  ENDMETHOD.
 ENDCLASS.

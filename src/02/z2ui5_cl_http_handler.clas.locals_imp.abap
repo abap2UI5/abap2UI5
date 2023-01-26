@@ -69,7 +69,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
     DATA mo_view_model TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
     DATA mo_ui5_model  TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
 
-    METHODS constructor.
+    METHODS constructor RAISING cx_uuid_error.
 
     METHODS db_save.
 
@@ -102,17 +102,18 @@ CLASS z2ui5_lcl_runtime DEFINITION.
         kind            TYPE string
         ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING cx_uuid_error.
 
     METHODS factory_new
       IMPORTING
         i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING cx_uuid_error.
 
     DATA x TYPE REF TO cx_root.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 
 ENDCLASS.
