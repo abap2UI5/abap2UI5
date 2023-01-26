@@ -61,7 +61,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
         o_app   TYPE REF TO object,
       END OF ms_db.
 
-    " class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
+   " class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
@@ -69,7 +69,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
     DATA mo_view_model TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
     DATA mo_ui5_model  TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
 
-    METHODS constructor.
+    METHODS constructor RAISING cx_uuid_error.
 
     METHODS db_save.
 
@@ -102,17 +102,18 @@ CLASS z2ui5_lcl_runtime DEFINITION.
         kind            TYPE string
         ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING cx_uuid_error.
 
     METHODS factory_new
       IMPORTING
         i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING cx_uuid_error.
 
     DATA x TYPE REF TO cx_root.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -337,31 +338,29 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE check_used = abap_true.
+      WHERE check_used = abap_true.
+
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
+      ASSIGN (lv_name) TO <attribute>.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'D' OR 'P' OR 'T' OR 'C'.
+        WHEN 'g' OR 'D' OR 'P' OR 'T' or 'C'.
 
-          lo_update->add_attribute(
-            n = lr_attri->name
-            v = _=>get_abap_2_json( ms_db-o_app->(lr_attri->name) )
-            apos_active = abap_false
-          ).
+          lo_update->add_attribute( n = lr_attri->name
+                                    v = _=>get_abap_2_json( <attribute> )
+                                    apos_active = abap_false ).
 
         WHEN 'I'.
-          lo_update->add_attribute(
-             n = lr_attri->name
-             v = CONV string( ms_db-o_app->(lr_attri->name) )
-             apos_active = abap_false
-           ).
+          lo_update->add_attribute( n = lr_attri->name
+                                    v = CONV string( <attribute> )
+                                    apos_active = abap_false ).
 
         WHEN 'h'.
-          lo_update->add_attribute(
-             n = lr_attri->name
-             v = _=>trans_any_2_json( ms_db-o_app->(lr_attri->name) )
-             apos_active = abap_false
-           ).
+          lo_update->add_attribute( n = lr_attri->name
+                                    v = _=>trans_any_2_json( <attribute> )
+                                    apos_active = abap_false ).
 
       ENDCASE.
 
@@ -397,37 +396,26 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       lr_attri->check_used = abap_false.
 
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
+      ASSIGN (lv_name) TO <attribute>.
+
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'I' OR 'C'. " or 'D' or 'T'.
+        WHEN 'g' OR 'I' or 'C'. " or 'D' or 'T'.
           DATA(lv_value) = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->get_val( ).
-          "   DATA(lr_val) = REF #( ms_db-o_app->(lr_attri->name) ).
-          "  lr_val->* = lv_value.
+          <attribute> = lv_value.
 
-          "   ASSIGN ms_db-o_app->(lr_attri->name) TO FIELD-SYMBOL(<field>). "<fs>.
-          "  GET REFERENCE OF <field> INTO data(lr_data).
-          "  lr_data->* = lv_value.
-
-          DATA(lr_data) = _=>get_ref_data( n = lr_attri->name o = ms_db-o_app ).
-          lr_data->* = lv_value.
-
-          "  when 'C'.
-          ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
-          "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
-          "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
+      "  when 'C'.
+      ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+      "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
+       "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
 
         WHEN 'h'.
 
-         " ASSIGN ms_db-o_app->(lr_attri->name) TO <field>. "<fs>.
-         " GET REFERENCE OF <field> INTO lr_data.
-
-
           _=>trans_ref_tab_2_tab(
-            ir_tab_from = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->mr_actual
-          "  ir_tab_to   = REF #( ms_db-o_app->(lr_attri->name) )
-          "ir_tab_to = lr_data
-          ir_tab_to = _=>get_ref_data( n = lr_attri->name o = ms_db-o_app )
-          ).
+                     ir_tab_from = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->mr_actual
+                     ir_tab_to   = REF #( <attribute> )          ).
 
       ENDCASE.
 
@@ -474,7 +462,10 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri).
 
       "DATA(lr_ref) = REF #( ms_db-o_app->(lr_attri->name) ).
-      DATA(lr_ref) = _=>get_ref_data( n = lr_attri->name o = ms_db-o_app ).
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
+      ASSIGN (lv_name) TO <attribute>.
+      DATA(lr_ref) = REF #( <attribute> ).
 
       IF lr_in = lr_ref.
         r_result = '/oUpdate/' && lr_attri->name.
@@ -760,17 +751,17 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
 
   METHOD get_app_url.
-    "  try.
-    "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
-    "  catch cx_root.
-    DATA(lt_head) = z2ui5_cl_http_handler=>client-t_header.
-    "  endtry.
-    DATA(lv_url) = lt_head[ name = 'referer' ]-value.
+  "  try.
+  "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
+  "  catch cx_root.
+       data(lt_head) = z2ui5_cl_http_handler=>client-t_header.
+  "  endtry.
+    data(lv_url) = lt_head[ name = 'referer' ]-value.
 
     DATA(lv_tenant) = sy-mandt.
 
     DATA(lo_server) = CAST z2ui5_lcl_app_view( i_view )->mo_server.
-    "  rv_link  = 'https://' && lv_url && lo_server->ss_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
+  "  rv_link  = 'https://' && lv_url && lo_server->ss_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
     rv_link = lv_url && '?sap-client=' && lv_tenant && '&app=' && app .
   ENDMETHOD.
 
