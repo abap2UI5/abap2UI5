@@ -336,7 +336,8 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     lo_update->add_attribute( n = 'id' v = ms_db-id ).
 
 
-    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_used = abap_true.
+    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+      WHERE check_used = abap_true.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.

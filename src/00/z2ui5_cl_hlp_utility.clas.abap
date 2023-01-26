@@ -6,54 +6,6 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     INTERFACES if_t100_dyn_msg.
     INTERFACES if_oo_adt_classrun.
 
-
-    TYPES range_sign TYPE ddsign.
-    TYPES range_option TYPE ddoption.
-
-    CONSTANTS:
-      BEGIN OF cs_sign,
-        including TYPE range_sign VALUE 'I',
-        excluding TYPE range_sign VALUE 'E',
-      END OF cs_sign .
-    CONSTANTS:
-      BEGIN OF cs_option,
-        equal             TYPE range_option VALUE 'EQ',
-        not_equal         TYPE range_option VALUE 'NE',
-        greater           TYPE range_option VALUE 'GT',
-        greater_equal     TYPE range_option VALUE 'GE',
-        less              TYPE range_option VALUE 'LT',
-        less_equal        TYPE range_option VALUE 'LE',
-        between           TYPE range_option VALUE 'BT',
-        not_between       TYPE range_option VALUE 'NB',
-        cover_pattern     TYPE range_option VALUE 'CP',
-        not_cover_pattern TYPE range_option VALUE 'NP',
-      END   OF cs_option.
-
-    types dsselopt type rsdsselopt.
-    types: ds_selopt_t type standard table of dsselopt with default key.
-
-    types: begin of ds_frange,
-             fieldname type rsdstabs-prim_fname,
-             selopt_t  type ds_selopt_t,
-           end of ds_frange.
-
-    types: ds_frange_t type standard table of ds_frange with default key.
-
-    TYPES: BEGIN OF ds_range,
-             tablename TYPE rsdstabs-prim_tab,
-             frange_t  TYPE ds_frange_t,
-           END OF ds_range.
-
-    TYPES: ds_trange TYPE STANDARD TABLE OF ds_range WITH DEFAULT KEY.
-
-    CONSTANTS:
-      BEGIN OF cs,
-        BEGIN OF s,
-          sign LIKE cs_sign VALUE cs_sign,
-          optn LIKE cs_option VALUE cs_option,
-        END OF s,
-      END OF cs.
-
     TYPES:
       BEGIN OF ty,
         BEGIN OF s,
@@ -109,8 +61,6 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
         END OF s,
         BEGIN OF t,
           property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY,
-          range    TYPE ds_trange,
-          selopt   TYPE ds_selopt_t,
           attri    TYPE STANDARD TABLE OF ty-s-attri WITH EMPTY KEY,
         END OF t,
         BEGIN OF o,
@@ -396,6 +346,12 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
         val             TYPE REF TO cx_root
       RETURNING
         VALUE(r_result) TYPE REF TO cx_root.
+
+    class-methods get_ref_data
+      importing n type clike
+                o type ref to object
+      RETURNING VALUE(result) type ref to data.
+
     CLASS-METHODS get_abap_2_json
       IMPORTING
         val             TYPE any
@@ -415,7 +371,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     " ct_tmp   TYPE abap_attrdescr_tab.
 *      IMPORTING
 *        is_db TYPE zzzyyy77_t_001.
-protected section.
+
   PRIVATE SECTION.
     CLASS-DATA mv_counter TYPE int4.
 
@@ -424,6 +380,51 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
+
+
+  METHOD trans_ref_tab_2_tab.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab_ui5> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <comp> TYPE data.
+    FIELD-SYMBOLS <comp_ui5> TYPE data.
+
+    DATA lr_tab_back TYPE REF TO data.
+    DATA lr_tab_ui5_row TYPE REF TO data.
+    FIELD-SYMBOLS <back> TYPE data.
+    FIELD-SYMBOLS <ui5_row> TYPE data.
+
+    "  DATA(lr_tab) = REF #( io_obj->(ir_attri->name) ).
+    ASSIGN ir_tab_to->* TO <tab>.
+    " DATA(lv_name) = ir_attri->name.
+    "lr_tab_ui5 = mo_body->get_attribute( lv_name )->mr_actual.
+    ASSIGN ir_tab_from->* TO <tab_ui5>.
+    " <tab>.
+
+    "  DATA(lv_test) = mo_body->get_attribute( lv_name )->write_result( ). "write( ).
+
+    LOOP AT <tab> REFERENCE INTO lr_tab_back.
+      ASSIGN lr_tab_back->* TO <back>.
+
+      DATA(lv_tabix) = sy-tabix.
+
+      lr_tab_ui5_row = <tab_ui5>[ lv_tabix ].
+      ASSIGN lr_tab_ui5_row->* TO <ui5_row>.
+
+      DATA(lv_int) = 0.
+      DO.
+        lv_int += 1.
+        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
+        IF sy-subrc NE 0.
+          EXIT.
+        ENDIF.
+        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
+        <comp> = <comp_ui5>.
+      ENDDO.
+
+    ENDLOOP.
+
+  ENDMETHOD.
 
 
   METHOD action_parallel.
@@ -747,6 +748,13 @@ RETURN.
 
   ENDMETHOD.
 
+
+  METHOD get_ref_data.
+
+    ASSIGN o->(n) TO FIELD-SYMBOL(<field>).
+    GET REFERENCE OF <field> INTO result.
+
+  ENDMETHOD.
 
   METHOD get_timestamp_utcl.
 
@@ -1288,49 +1296,6 @@ RETURN.
   ENDMETHOD.
 
 
-  METHOD trans_ref_tab_2_tab.
-
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <tab_ui5> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <comp> TYPE data.
-    FIELD-SYMBOLS <comp_ui5> TYPE data.
-    " DATA lr_tab_ui5 TYPE REF TO data.
-    DATA lr_tab_back TYPE REF TO data.
-    DATA lr_tab_ui5_row TYPE REF TO data.
-    FIELD-SYMBOLS <back> TYPE data.
-    FIELD-SYMBOLS <ui5_row> TYPE data.
-
-    "  DATA(lr_tab) = REF #( io_obj->(ir_attri->name) ).
-    ASSIGN ir_tab_to->* TO <tab>.
-    " DATA(lv_name) = ir_attri->name.
-    "lr_tab_ui5 = mo_body->get_attribute( lv_name )->mr_actual.
-    ASSIGN ir_tab_from->* TO <tab_ui5>.
-    " <tab>.
-
-    "  DATA(lv_test) = mo_body->get_attribute( lv_name )->write_result( ). "write( ).
-
-    LOOP AT <tab> REFERENCE INTO lr_tab_back.
-      ASSIGN lr_tab_back->* TO <back>.
-
-      DATA(lv_tabix) = sy-tabix.
-
-      lr_tab_ui5_row = <tab_ui5>[ lv_tabix ].
-      ASSIGN lr_tab_ui5_row->* TO <ui5_row>.
-
-      DATA(lv_int) = 0.
-      DO.
-        lv_int += 1.
-        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
-        IF sy-subrc NE 0.
-          EXIT.
-        ENDIF.
-        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
-        <comp> = <comp_ui5>.
-      ENDDO.
-
-    ENDLOOP.
-
-  ENDMETHOD.
 
 
   METHOD trans_xml_2_any_multi.
