@@ -12,7 +12,7 @@ Project features:
 * easy installation - abapgit project, no additional app deployment or javascript needed
 
 ## Requirements
-Compatible with all availible abap stacks and language versions:
+Compatible to all availible abap stacks and language versions:
 * BTP ABAP Environment (Abap Cloud)
 * S/4 Public Cloud (Abap Cloud)
 * S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
