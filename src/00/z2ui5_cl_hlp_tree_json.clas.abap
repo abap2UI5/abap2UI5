@@ -112,6 +112,7 @@ CLASS z2ui5_cl_hlp_tree_json DEFINITION
     DATA mo_value TYPE ty_o_me.
     DATA mr_actual TYPE REF TO data.
     DATA mv_apost_active TYPE abap_bool.
+protected section.
   PRIVATE SECTION.
     DATA mv_check_attr_all_read TYPE abap_bool.
 ENDCLASS.
@@ -119,6 +120,138 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
+
+
+  METHOD add_attribute.
+
+
+    DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
+    lo_attri->mo_root = mo_root.
+    lo_attri->mv_name = n.
+
+    IF apos_active = abap_false.
+      lo_attri->mv_value = v.
+    ELSE.
+      lo_attri->mv_value = escape( val    = v
+             format = cl_abap_format=>e_json_string ) .
+    ENDIF.
+    lo_attri->mv_apost_active = apos_active.
+    lo_attri->mo_parent = me.
+
+    INSERT lo_attri INTO TABLE mt_values.
+
+    r_result = me.
+
+
+  ENDMETHOD.
+
+
+  METHOD add_attributes_name_value_tab.
+
+
+    LOOP AT it_name_value INTO DATA(ls_value).
+
+      add_attribute(
+           n              = ls_value-n
+           v             = ls_value-v
+           apos_active = xsdbool( ls_value-apostrophe_deactived = abap_false )
+       ).
+
+    ENDLOOP.
+
+    r_result = me.
+
+  ENDMETHOD.
+
+
+  METHOD add_attribute_instance.
+
+
+    val->mo_root = mo_root.
+    val->mo_parent = me.
+
+    INSERT val INTO TABLE mt_values.
+
+    r_result = val.
+
+
+  ENDMETHOD.
+
+
+  METHOD add_attribute_list.
+
+
+    r_result = add_attribute_object( name = name ).
+    r_result->mv_check_list = abap_true.
+
+
+  ENDMETHOD.
+
+
+  METHOD add_attribute_object.
+
+
+    DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
+    lo_attri->mv_name = name.
+    " lo_attri->mv_apost_active = apostrophe_active.
+
+    mt_values = VALUE #( BASE mt_values  ( lo_attri ) ).
+    " INSERT lo_attri INTO TABLE mt_values.
+
+    lo_attri->mo_root = mo_root.
+    lo_attri->mo_parent = me.
+
+    r_result = lo_attri.
+
+
+  ENDMETHOD.
+
+
+  METHOD add_list_list.
+
+
+    r_result = add_attribute_list( name =  CONV string( lines( mt_values ) ) ).
+
+
+  ENDMETHOD.
+
+
+  METHOD add_list_object.
+
+
+    r_result = add_attribute_object( name =  CONV string( lines( mt_values ) ) ).
+
+
+  ENDMETHOD.
+
+
+  METHOD add_list_val.
+
+    DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
+    lo_attri->mv_name =  CONV string( lines( mt_values ) ).
+    lo_attri->mv_value = v.
+
+    lo_attri->mv_apost_active = abap_true.
+    "apostrophe_active.
+
+    mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
+    " INSERT lo_attri INTO TABLE mt_values.
+
+    lo_attri->mo_root = mo_root.
+    lo_attri->mo_parent = me.
+
+    r_result = lo_attri.
+
+    r_result = me.
+
+  ENDMETHOD.
+
+
+  METHOD constructor.
+
+    mo_root = me.
+
+  ENDMETHOD.
 
 
   METHOD factory.
@@ -159,7 +292,12 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
    " DATA(lv_test) = name.
     data(lv_test) = replace( val = name sub = '-' with = '_' occ = 0 ).
    " REPLACE all OCCURRENCES OF '-' IN lv_test WITH '_'.
-    lo_attri->mr_actual = mr_actual->(lv_test).
+
+    "lo_attri->mr_actual = mr_actual->(lv_test).
+    FIELD-SYMBOLS <attribute> TYPE any.
+    DATA(lv_name) = 'MR_ACTUAL->' && lv_test.
+    ASSIGN (lv_name) TO <attribute>.
+    lo_attri->mr_actual = <attribute>.
 
 *    TRY.
 *        lo_attri->mr_actual = mr_actual->(name).
@@ -191,9 +329,43 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_data.
+  METHOD get_attribute_all.
 
-    r_result = mr_actual->*.
+    IF mv_check_attr_all_read = abap_false.
+*      mv_check_attr_all_read = abap_true.
+*
+*      DATA(o_struct_desc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data_ref( mr_actual ) ).
+*      DATA(lt_comp) = o_struct_desc->get_components( ).
+*
+*      LOOP AT lt_comp INTO DATA(ls_comp).
+*        DATA(lo_attri) = NEW zzzyyy77_cl_hlp_tree_json(  ).
+*        lo_attri->mo_root = mo_root.
+*        lo_attri->mv_name = ls_comp-name.
+*        lo_attri->mr_actual = mr_actual->(lo_attri->mv_name).
+*        lo_attri->mo_parent = me.
+*        INSERT lo_attri INTO TABLE mt_values.
+*      ENDLOOP.
+    ENDIF.
+    r_result = mt_values.
+
+  ENDMETHOD.
+
+
+  METHOD get_data.
+    "r_result = mr_actual->*.
+
+    FIELD-SYMBOLS <attribute> TYPE any.
+    ASSIGN mr_actual->* TO <attribute>.
+    r_result = <attribute>.
+
+  ENDMETHOD.
+
+
+  METHOD get_name.
+
+
+    r_result = mv_name.
+
 
   ENDMETHOD.
 
@@ -207,47 +379,35 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_list_val.
+  METHOD get_root.
 
-    DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
-    lo_attri->mv_name =  CONV string( lines( mt_values ) ).
-    lo_attri->mv_value = v.
-
-    lo_attri->mv_apost_active = abap_true.
-    "apostrophe_active.
-
-    mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
-    " INSERT lo_attri INTO TABLE mt_values.
-
-    lo_attri->mo_root = mo_root.
-    lo_attri->mo_parent = me.
-
-    r_result = lo_attri.
-
-    r_result = me.
+    r_result = mo_root.
 
   ENDMETHOD.
 
 
-  METHOD add_attribute.
+  METHOD get_val.
+    "r_result = mr_actual->*. "v_value.
+    FIELD-SYMBOLS <attribute> TYPE any.
+    ASSIGN mr_actual->* TO <attribute>.
+    r_result = <attribute>.
+
+  ENDMETHOD.
 
 
-    DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
-    lo_attri->mo_root = mo_root.
-    lo_attri->mv_name = n.
+  METHOD hlp_replace_apostr.
 
-    IF apos_active = abap_false.
-      lo_attri->mv_value = v.
-    ELSE.
-      lo_attri->mv_value = escape( val    = v
-             format = cl_abap_format=>e_json_string ) .
-    ENDIF.
-    lo_attri->mv_apost_active = apos_active.
-    lo_attri->mo_parent = me.
 
-    INSERT lo_attri INTO TABLE mt_values.
 
-    r_result = me.
+  ENDMETHOD.
+
+
+  METHOD hlp_shrink.
+
+
+    "leerzeichen weg
+    "zeilenumbrüche
+
 
 
   ENDMETHOD.
@@ -289,152 +449,5 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
 
 
 
-  ENDMETHOD.
-
-
-  METHOD add_attribute_list.
-
-
-    r_result = add_attribute_object( name = name ).
-    r_result->mv_check_list = abap_true.
-
-
-  ENDMETHOD.
-
-
-  METHOD add_list_object.
-
-
-    r_result = add_attribute_object( name =  CONV string( lines( mt_values ) ) ).
-
-
-  ENDMETHOD.
-
-
-  METHOD add_list_list.
-
-
-    r_result = add_attribute_list( name =  CONV string( lines( mt_values ) ) ).
-
-
-  ENDMETHOD.
-
-
-  METHOD add_attribute_object.
-
-
-    DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
-    lo_attri->mv_name = name.
-    " lo_attri->mv_apost_active = apostrophe_active.
-
-    mt_values = VALUE #( BASE mt_values  ( lo_attri ) ).
-    " INSERT lo_attri INTO TABLE mt_values.
-
-    lo_attri->mo_root = mo_root.
-    lo_attri->mo_parent = me.
-
-    r_result = lo_attri.
-
-
-  ENDMETHOD.
-
-
-  METHOD get_attribute_all.
-
-    IF mv_check_attr_all_read = abap_false.
-*      mv_check_attr_all_read = abap_true.
-*
-*      DATA(o_struct_desc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data_ref( mr_actual ) ).
-*      DATA(lt_comp) = o_struct_desc->get_components( ).
-*
-*      LOOP AT lt_comp INTO DATA(ls_comp).
-*        DATA(lo_attri) = NEW zzzyyy77_cl_hlp_tree_json(  ).
-*        lo_attri->mo_root = mo_root.
-*        lo_attri->mv_name = ls_comp-name.
-*        lo_attri->mr_actual = mr_actual->(lo_attri->mv_name).
-*        lo_attri->mo_parent = me.
-*        INSERT lo_attri INTO TABLE mt_values.
-*      ENDLOOP.
-    ENDIF.
-    r_result = mt_values.
-
-  ENDMETHOD.
-
-
-  METHOD get_name.
-
-
-    r_result = mv_name.
-
-
-  ENDMETHOD.
-
-
-  METHOD add_attributes_name_value_tab.
-
-
-    LOOP AT it_name_value INTO DATA(ls_value).
-
-      add_attribute(
-           n              = ls_value-n
-           v             = ls_value-v
-           apos_active = xsdbool( ls_value-apostrophe_deactived = abap_false )
-       ).
-
-    ENDLOOP.
-
-    r_result = me.
-
-  ENDMETHOD.
-
-
-  METHOD get_root.
-
-    r_result = mo_root.
-
-  ENDMETHOD.
-
-
-  METHOD constructor.
-
-    mo_root = me.
-
-  ENDMETHOD.
-
-
-  METHOD hlp_shrink.
-
-
-    "leerzeichen weg
-    "zeilenumbrüche
-
-
-
-  ENDMETHOD.
-
-
-  METHOD hlp_replace_apostr.
-
-
-
-  ENDMETHOD.
-
-
-  METHOD add_attribute_instance.
-
-
-    val->mo_root = mo_root.
-    val->mo_parent = me.
-
-    INSERT val INTO TABLE mt_values.
-
-    r_result = val.
-
-
-  ENDMETHOD.
-
-
-  METHOD get_val.
-    r_result = mr_actual->*. "v_value.
   ENDMETHOD.
 ENDCLASS.
