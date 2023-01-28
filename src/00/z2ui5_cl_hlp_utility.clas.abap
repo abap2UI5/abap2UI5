@@ -20,6 +20,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
             t_property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY, "if_web_http_request=>name_value_pairs,
             t_child    TYPE STANDARD TABLE OF REF TO data WITH EMPTY KEY,
             parent     TYPE REF TO data,
+            plain      type string,
           END OF control,
           BEGIN OF attri,
             name       TYPE string,

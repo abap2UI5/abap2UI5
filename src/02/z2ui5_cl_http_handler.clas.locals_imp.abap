@@ -1,4 +1,33 @@
 
+
+
+CLASS lcl_test_write DEFINITION.
+
+  PUBLIC SECTION.
+
+    INTERFACES z2ui5_if_app.
+
+    DATA html TYPE string.
+
+ENDCLASS.
+
+CLASS lcl_test_write IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~on_event.
+
+    html =  `<html:h1>My First Heading</html:h1>` && |\n|  &&
+            `<html:p>My first paragraph.</html:p>` && |\n|.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_app~set_view.
+
+    view->factory_html_page( html ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS z2ui5_lcl_runtime DEFINITION DEFERRED.
 CLASS z2ui5_lcl_system_app DEFINITION DEFERRED.
 
@@ -61,7 +90,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
         o_app   TYPE REF TO object,
       END OF ms_db.
 
-   " class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
+    " class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
@@ -99,18 +128,18 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
     METHODS factory_new_error
       IMPORTING
-        kind            TYPE string
-        ix              TYPE REF TO cx_root
+                kind            TYPE string
+                ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
-      RAISING cx_uuid_error.
+                VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING   cx_uuid_error.
 
     METHODS factory_new
       IMPORTING
-        i_app           TYPE REF TO z2ui5_if_app
+                i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
-      RAISING cx_uuid_error.
+                VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING   cx_uuid_error.
 
     DATA x TYPE REF TO cx_root.
 
@@ -250,7 +279,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
 
     r_result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
-               `    xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+               `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
                          `    xmlns="sap.m"> ` &&
                     COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  <Shell> ` ) &&
                        `  <Page id="page" title="` &&
@@ -311,6 +340,10 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
             'RadioButtonGroup' OR 'ComboBox' OR 'SegmentedButton' OR 'Link'.
           r_result &&= _=>get_xml_by_control( lr_element->* ).
 
+        WHEN ''.
+          r_result &&= lr_element->plain.
+
+
       ENDCASE.
 
     ENDLOOP.
@@ -346,7 +379,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'D' OR 'P' OR 'T' or 'C'.
+        WHEN 'g' OR 'D' OR 'P' OR 'T' OR 'C'.
 
           lo_update->add_attribute( n = lr_attri->name
                                     v = _=>get_abap_2_json( <attribute> )
@@ -402,14 +435,14 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'I' or 'C'. " or 'D' or 'T'.
+        WHEN 'g' OR 'I' OR 'C'. " or 'D' or 'T'.
           DATA(lv_value) = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->get_val( ).
           <attribute> = lv_value.
 
-      "  when 'C'.
-      ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
-      "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
-       "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
+          "  when 'C'.
+          ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+          "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
+          "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
 
         WHEN 'h'.
 
@@ -751,17 +784,17 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
 
   METHOD get_app_url.
-  "  try.
-  "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
-  "  catch cx_root.
-       data(lt_head) = z2ui5_cl_http_handler=>client-t_header.
-  "  endtry.
-    data(lv_url) = lt_head[ name = 'referer' ]-value.
+    "  try.
+    "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
+    "  catch cx_root.
+    DATA(lt_head) = z2ui5_cl_http_handler=>client-t_header.
+    "  endtry.
+    DATA(lv_url) = lt_head[ name = 'referer' ]-value.
 
     DATA(lv_tenant) = sy-mandt.
 
     DATA(lo_server) = CAST z2ui5_lcl_app_view( i_view )->mo_server.
-  "  rv_link  = 'https://' && lv_url && lo_server->ss_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
+    "  rv_link  = 'https://' && lv_url && lo_server->ss_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
     rv_link = lv_url && '?sap-client=' && lv_tenant && '&app=' && app .
   ENDMETHOD.
 
@@ -1215,6 +1248,38 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     DELETE val-t_property WHERE n IS INITIAL.
     INSERT val INTO TABLE mo_server->mr_screen_actual->t_controls.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~factory_html_page.
+
+    DATA(lo_group) = me->z2ui5_if_view~factory_selscreen_page(
+       name     = name
+       title    = title
+    )->begin_of_block( )->begin_of_group( )->button(
+        text        = 'Back'
+        on_press_id = back_event_id
+    ).
+
+    "correct html
+    DATA(lv_html) = html.
+    "replace '<' in lv_html with '<html:'.
+    " </ html:
+
+*    AT '<' INTO TABLE DATA(lt_html).
+*    LOOP AT lt_html REFERENCE INTO DATA(lr_ref).
+*
+*      SPLIT lr_ref->* AT ` ` INTO DATA(lv_name) DATA(lv_plain).
+*    ENDLOOP.
+
+    "add it to the view
+    DATA(ls_Control) = VALUE z2ui5_cl_hlp_utility=>ty-s-control(
+    "    ns = 'html'
+      "  name = lv_name
+        plain = lv_html
+     ).
+    lo_group->custom_control( ls_control ).
+
 
   ENDMETHOD.
 
