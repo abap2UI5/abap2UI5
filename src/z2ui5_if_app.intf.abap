@@ -7,6 +7,7 @@ INTERFACE z2ui5_if_app PUBLIC.
 
   METHODS set_view
     IMPORTING
-      view TYPE REF TO z2ui5_if_view.
+      view TYPE REF TO z2ui5_if_view
+    RAISING cx_abap_context_info_error.
 
 ENDINTERFACE.

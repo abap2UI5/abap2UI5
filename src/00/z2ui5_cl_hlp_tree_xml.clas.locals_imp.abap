@@ -1,2 +1,2 @@
-    CLASS _ DEFINITION INHERITING FROM zcl_2ui5_hlp_utility.
+    CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
     ENDCLASS.

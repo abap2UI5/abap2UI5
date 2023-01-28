@@ -4,7 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>http onprem</CTEXT>
-    <TPCLASS>X</TPCLASS>
+    <COMP_POSID>CA</COMP_POSID>
+    <COMPONENT>HLB0009110</COMPONENT>
    </DEVC>
   </asx:values>
  </asx:abap>
