@@ -63,6 +63,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
         BEGIN OF t,
           property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY,
           attri    TYPE STANDARD TABLE OF ty-s-attri WITH EMPTY KEY,
+          control  type STANDARD TABLE OF ty-s-control with empty key,
         END OF t,
         BEGIN OF o,
           me TYPE REF TO z2ui5_cl_hlp_utility,

@@ -281,18 +281,21 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     r_result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
                `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
                          `    xmlns="sap.m"> ` &&
-                    COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  <Shell> ` ) &&
-                       `  <Page id="page" title="` &&
-                       lr_screen->t_controls[ name = 'HEADER' ]-t_property[ n = 'TITLE' ]-v
-                       && `" class="sapUiResponsivePadding--header sapUiResponsivePadding--footer sapUiResponsivePadding--floatingFooter">`.
+                    COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  <Shell> ` ).
 
-    IF ms_db-app = 'ZZCL_APP_SYSTEM'.
-      r_result &&= `          <headerContent>` && |\n|  &&
-       `<Text text="abap2ui5  |  version 2212    |" /><Link target = "_blank" href="https://github.com/oblomov-dev/abap2ui5.git" text="GIT" />`   && |\n|  &&
-       `      </headerContent>  `.
-    ENDIF.
-    r_result &&=  `    <content>  ` &&
-     `       <VBox class="sapUiSmallMargin">` .
+
+*        r_result &&=   `  <Page id="page" showNavButton="true"` && |\n|  &&
+*                       `    navButtonTap="onEventBackend({ 'ID' : 'DUMMY' })" title="` &&
+*                       lr_screen->t_controls[ name = 'HEADER' ]-t_property[ n = 'TITLE' ]-v
+*                       && `" class="sapUiResponsivePadding--header sapUiResponsivePadding--footer sapUiResponsivePadding--floatingFooter">`.
+
+*    IF ms_db-app = 'ZZCL_APP_SYSTEM'.
+*      r_result &&= `          <headerContent>` && |\n|  &&
+*       `<Text text="abap2ui5  |  version 2212    |" /><Link target = "_blank" href="https://github.com/oblomov-dev/abap2ui5.git" text="GIT" />`   && |\n|  &&
+*       `      </headerContent>  `.
+*    ENDIF.
+*    r_result &&=  `    <content>  ` &&
+*     `       <VBox class="sapUiSmallMargin">` .
 
     DATA(LV_is_block_active) = abap_false.
 
@@ -337,7 +340,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
         WHEN 'Input' OR 'Label' OR 'Title' OR 'Text'
             OR 'TextArea' OR 'Label' OR 'Button' OR 'CheckBox' OR 'DateTimePicker'
             OR 'TimePicker' OR 'DatePicker' OR 'ToolbarSpacer' OR 'MessageStripe' OR
-            'RadioButtonGroup' OR 'ComboBox' OR 'SegmentedButton' OR 'Link'.
+            'RadioButtonGroup' OR 'ComboBox' OR 'SegmentedButton' OR 'Link' OR 'Page' OR 'content' OR 'VBox'.
           r_result &&= _=>get_xml_by_control( lr_element->* ).
 
         WHEN ''.
@@ -355,11 +358,11 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
                                `        </footer>`.
     ELSE.
       r_result &&=       `          </f:content>` && |\n|  &&
-                        `     </f:SimpleForm> ` && |\n|  &&
-                 `            </VBox> </content>`.
+                        `     </f:SimpleForm> ` && |\n|. " &&
+    "          `            </VBox> </content>`.
     ENDIF.
-    r_result &&=      `    </Page> ` &&
-                 COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  </Shell> ` )
+  "  r_result &&=      `    </Page> `.
+      r_result &&=            COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  </Shell> ` )
                     && |\n|  &&
                    `</mvc:View>`.
 
@@ -820,11 +823,38 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'HEADER'
-      t_property = VALUE #(
-        ( n = 'TITLE' v = title )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    "showNavButton="true"
+    " navButtonTap="onEventBackend({ 'ID' : 'DUMMY' })"
+
+*    INSERT VALUE #(
+*      name  = 'HEADER'
+*      t_property = VALUE #(
+*        ( n = 'TITLE' v = title )
+*       " ( n = 'TITLE' v = title )
+*       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+
+
+    APPEND INITIAL LINE TO mo_server->mr_screen_actual->t_controls REFERENCE INTO DATA(lr_control).
+    lr_control->name = 'Page'.
+    lr_control->t_property = VALUE #(
+     ( n = 'title' v = title )
+     ).
+
+    APPEND INITIAL LINE TO lr_control->t_child REFERENCE INTO DATA(lr_data).
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    DATA(lr_cont) = CAST _=>ty-s-control( lr_data->* ).
+    lr_cont->name = 'content'.
+    lr_cont->parent = REF #( lr_control->* ).
+
+    "<VBox class="sapUiSmallMargin">` .
+    APPEND INITIAL LINE TO lr_cont->t_child REFERENCE INTO DATA(lr_data2).
+    CREATE DATA lr_data2->* TYPE _=>ty-s-control.
+    DATA(lr_cont2) = CAST _=>ty-s-control( lr_data2->* ).
+    lr_cont2->name = 'VBox'.
+    lr_cont2->t_property = VALUE #( ( n = 'class' v = 'sapUiSmallMargin' ) ).
+    lr_cont2->parent = REF #( lr_cont->* ).
+
+
 
   ENDMETHOD.
 
@@ -936,7 +966,14 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    z2ui5_if_selscreen_group~custom_control(  VALUE #(
+*    z2ui5_if_selscreen_group~custom_control( VALUE #(
+*      name  = 'Title'
+*      ns = 'core'
+*      t_property = VALUE #(
+*          ( n = 'text' v = title ) )
+*     ) ).
+
+ z2ui5_if_selscreen_group~custom_control( VALUE #(
       name  = 'Title'
       ns = 'core'
       t_property = VALUE #(
@@ -1009,11 +1046,12 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
+     z2ui5_if_selscreen_group~custom_control( value #(
       name  = 'BEGIN_OF_BLOCK'
        t_property = VALUE #(
           ( n = 'TITLE' v = title )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) ).
+       " INTO TABLE mo_server->mr_screen_actual->t_controls.
 
   ENDMETHOD.
 
@@ -1247,7 +1285,52 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
   METHOD z2ui5_if_selscreen_group~custom_control.
 
     DELETE val-t_property WHERE n IS INITIAL.
-    INSERT val INTO TABLE mo_server->mr_screen_actual->t_controls.
+
+    DATA(lr_page) = REF #( mo_server->mr_screen_actual->t_controls[ name = 'Page' ] ).
+
+    DATA lr_page_child2 TYPE STANDARD TABLE OF REF TO data.
+    " data lr_page_child type ref to data.
+    "lr_page_child = ref #(  ).
+    "  lr_page_child2 = ref #( lr_page->t_child->* ).
+    DATA lr_child_type TYPE REF TO z2ui5_cl_hlp_utility=>ty-s-control.
+
+    LOOP AT lr_page->t_child INTO DATA(lr_child).
+      lr_child_type = CAST #( lr_child ).
+      IF lr_child_type->name = 'content'.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+    LOOP AT lr_child_type->t_child INTO DATA(lr_child2).
+      lr_child_type = CAST #( lr_child2 ).
+      IF lr_child_type->name = 'VBox'.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+
+
+*    DATA(lr_content) = REF #( lr_page_child2[ name = 'content' ] ).
+*
+*    DATA lr_content_child2 TYPE REF TO z2ui5_cl_hlp_utility=>ty-t-control.
+*    DATA lr_content_child TYPE REF TO data.
+*    lr_content_child = REF #( lr_content->t_child ).
+*    lr_content_child2 ?= lr_content_child.
+*
+*    DATA(lr_vbox) = REF #( lr_content_child2->*[ name = 'VBox' ] ).
+*
+*    DATA lr_vbox_child2 TYPE REF TO z2ui5_cl_hlp_utility=>ty-t-control.
+*    DATA lr_vbox_child TYPE REF TO data.
+*    lr_vbox_child = REF #( lr_vbox->t_child ).
+*    lr_vbox_child2 ?= lr_vbox_child.
+
+    "  INSERT val INTO TABLE mo_server->mr_screen_actual->t_controls[ name = 'Page' ].
+
+    append INITIAL LINE TO lr_child_type->t_child ASSIGNING FIELD-SYMBOL(<field>).
+    create data <field> type z2ui5_cl_hlp_utility=>ty-s-control.
+  "  assign lr_row->*->* to FIELD-SYMBOL(<row>).
+    <field>->* = val.
+
+    "INSERT val INTO TABLE lr_child_type->t_child.
 
   ENDMETHOD.
 
