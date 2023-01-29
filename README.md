@@ -26,4 +26,4 @@ View Definition:<br>
 Controller Definition: <br>
 <img width="700" alt="image" src="https://user-images.githubusercontent.com/102328295/207333675-3e9418dc-ca5c-4948-b967-1b34776d25e7.png">
 <br>
-To start the new ui5 app, you only have to call the delivered http endpoint and use the url parameter "app" with the name of your new abap class. [Detailed explanation](https://github.com/oblomov-dev/abap2ui5/wiki)
+To start the new ui5 app, you only have to call the delivered http endpoint and use the url parameter "app" with the name of your new abap class.
