@@ -44,6 +44,9 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     "user handling
     CASE client->event( )->get_id( ).
 
+      WHEN 'BTN_BACK'.
+        client->controller( )->nav_to_app_called( ).
+
       WHEN 'BUTTON_ROUNDTRIP'.
         DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
 
@@ -72,7 +75,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_if_app~set_view.
 
 
-    DATA(lo_screen) = view->factory_selscreen_page( title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
+    DATA(lo_screen) = view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
     DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
 
 

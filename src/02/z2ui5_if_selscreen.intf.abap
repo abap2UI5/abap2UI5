@@ -1,4 +1,5 @@
 INTERFACE Z2UI5_IF_SELSCREEN PUBLIC.
+
 METHODS begin_of_block
     IMPORTING
       title           TYPE string DEFAULT 'block_title'
@@ -15,6 +16,12 @@ METHODS message_strip
     IMPORTING
       text            TYPE string DEFAULT 'line_label'
       type            TYPE string OPTIONAL
+    RETURNING
+      VALUE(r_result) TYPE REF TO Z2UI5_IF_SELSCREEN.
+
+methods html
+    IMPORTING
+        html type string
     RETURNING
       VALUE(r_result) TYPE REF TO Z2UI5_IF_SELSCREEN.
 

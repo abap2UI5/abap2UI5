@@ -8,7 +8,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CONSTANTS:
       BEGIN OF cs_config,
         theme         TYPE string    VALUE 'sap_horizon',
-        browser_title TYPE string    VALUE 'abap2ui5',
+        browser_title TYPE string    VALUE 'ABAP2UI5',
         repository    TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
         letterboxing  TYPE abap_bool VALUE abap_true,
         debug_mode_on TYPE abap_bool VALUE abap_true,
@@ -56,8 +56,36 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n|  &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n|  &&
                `        data-sap-ui-preload="async">` && |\n|  &&
-               `     </script>` && |\n|  &&
-               `  </head><body class="sapUiBody">  <div id="content"></div></body></html>` && |\n|  &&
+               `     </script>` && |\n|.
+
+
+*    r_result &&= `<style>` && |\n|  &&
+*                 `#customers {` && |\n|  &&
+*                 `  font-family: Arial, Helvetica, sans-serif;` && |\n|  &&
+*                 `  border-collapse: collapse;` && |\n|  &&
+*                 `  width: 100%;` && |\n|  &&
+*                 `}` && |\n|  &&
+*                 |\n|  &&
+*                 `#customers td, #customers th {` && |\n|  &&
+*                 `  border: 1px solid #ddd;` && |\n|  &&
+*                 `  padding: 8px;` && |\n|  &&
+*                 `}` && |\n|  &&
+*                 |\n|  &&
+*                 `#customers tr:nth-child(even){background-color: #f2f2f2;}` && |\n|  &&
+*                 |\n|  &&
+*                 `#customers tr:hover {background-color: #ddd;}` && |\n|  &&
+*                 |\n|  &&
+*                 `#customers th {` && |\n|  &&
+*                 `  padding-top: 12px;` && |\n|  &&
+*                 `  padding-bottom: 12px;` && |\n|  &&
+*                 `  text-align: left;` && |\n|  &&
+*                 `  background-color: #04AA6D;` && |\n|  &&
+*                 `  color: white;` && |\n|  &&
+*                 `}` && |\n|  &&
+*                 `</style>`     .
+
+
+     r_result &&=          `  </head><body class="sapUiBody">  <div id="content"></div></body></html>` && |\n|  &&
                `    <script>` && |\n|  &&
                `        sap.ui.getCore().attachInit(function () {` && |\n|  &&
                `            "use strict";` && |\n|  &&
@@ -145,8 +173,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
               CONTINUE.
           ENDTRY.
 
-          IF lo_runtime->mo_leave_to_app IS BOUND.
-            lo_runtime = lo_runtime->factory_new( lo_runtime->mo_leave_to_app ).
+          IF lo_runtime->ms_leave_to_app IS not INITIAL.
+            lo_runtime->db_save( ).
+            data(lo_runtime_new) = lo_runtime->factory_new( cast #( lo_runtime->ms_leave_to_app-o_app ) ).
+            lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
+            lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
+            lo_runtime = lo_runtime_new.
             CONTINUE.
           ENDIF.
 

@@ -46,6 +46,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
   METHODS custom_control
     IMPORTING
       VALUE(val) TYPE  z2ui5_cl_hlp_utility=>ty-s-control.
+
   METHODS label
     IMPORTING
       text            TYPE string DEFAULT 'line_label'
@@ -58,6 +59,21 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+
+    METHODS html
+    IMPORTING
+      val             TYPE string OPTIONAL
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+        METHODS code_editor
+    IMPORTING
+      value TYPE string OPTIONAL
+      type  type string
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS time_picker
     IMPORTING
       value           TYPE string OPTIONAL
@@ -74,8 +90,9 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
   METHODS link
     IMPORTING
-      text            TYPE string DEFAULT 'line_label'
-      href            TYPE string OPTIONAL
+      text            TYPE string    DEFAULT 'line_label'
+      href            TYPE string    OPTIONAL
+      enabled         type abap_bool DEFAULT abap_true
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
   METHODS combobox
@@ -86,12 +103,18 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       t_item          TYPE ty-combobox-t_item
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS text_area
-    IMPORTING
-      value           TYPE string DEFAULT 'line_label'
-      rows            TYPE i DEFAULT 8
+    importing
+         value type string optional
+         rows  type i default 8
+         height type string optional
+         width  type string default '100%'
+          PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+
   METHODS segmented_button
     IMPORTING
       selected_key    TYPE data OPTIONAL
