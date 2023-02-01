@@ -1,6 +1,6 @@
 # ABAP2UI5 Project
 
-ABAP2UI5 provides a pure abap way to generate standalone ui5 applications [(Blog Post)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/).
+Development of UI5 Apps in pure ABAP [(Blog Post)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/).
 
 ## Installation
 Read the [WIKI](https://github.com/oblomov-dev/abap2ui5/wiki).
