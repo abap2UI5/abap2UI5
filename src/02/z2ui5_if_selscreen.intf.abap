@@ -19,12 +19,6 @@ METHODS message_strip
     RETURNING
       VALUE(r_result) TYPE REF TO Z2UI5_IF_SELSCREEN.
 
-methods html
-    IMPORTING
-        html type string
-    RETURNING
-      VALUE(r_result) TYPE REF TO Z2UI5_IF_SELSCREEN.
-
 METHODS end_of_screen
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_view.

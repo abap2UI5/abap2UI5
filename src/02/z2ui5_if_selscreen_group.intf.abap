@@ -52,25 +52,12 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       text            TYPE string DEFAULT 'line_label'
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS date_picker
     IMPORTING
       value           TYPE string OPTIONAL
       placeholder     TYPE string OPTIONAL
         PREFERRED PARAMETER value
-    RETURNING
-      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
-
-
-    METHODS html
-    IMPORTING
-      val             TYPE string OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
-
-        METHODS code_editor
-    IMPORTING
-      value TYPE string OPTIONAL
-      type  type string
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
 
@@ -81,6 +68,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS date_time_picker
     IMPORTING
       value           TYPE string OPTIONAL

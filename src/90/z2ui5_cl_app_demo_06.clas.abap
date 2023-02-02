@@ -19,7 +19,6 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
       check_initialized = abap_true.
         filename = 'example.txt'.
         path = '.../test/test/'.
-        input = 'your file input here'.
     ENDIF.
 
     CASE client->event( )->get_id( ).
@@ -32,9 +31,11 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
 
       WHEN 'BUTTON_DOWNLOAD'.
       "read data from database and fill the variable input
+       input = 'your file input here'.
 
     ENDCASE.
 
+    input = escape( format = cl_abap_format=>e_json_string val = input ).
   ENDMETHOD.
 
   METHOD z2ui5_if_app~set_view.

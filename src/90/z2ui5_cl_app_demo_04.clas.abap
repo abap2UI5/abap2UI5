@@ -39,9 +39,6 @@ CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
       WHEN 'BTN_BACK'.
         client->controller( )->nav_to_app_called( ).
 
-      WHEN 'BUTTON_POST'.
-        "roundtrip
-
     ENDCASE.
 
   ENDMETHOD.
@@ -49,13 +46,6 @@ CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
   METHOD z2ui5_if_app~set_view.
 
     view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'ABAP2UI5 Demo - Browser'
-         ")->begin_of_block( 'Selection Screen'
-          "  )->begin_of_group( 'Browser'
-          "      )->label( 'URL'
-          "      )->input( value = url_input editable = editable
-          "      )->button( text = 'go' on_press_id = 'BUTTON_POST'
-          " )->end_of_group(
-         "  )->end_of_block(
          )->begin_of_block( 'Browser'
             )->html( `<iframe height="900" width="100%" src="` && url_input && `"></iframe>`
        ).

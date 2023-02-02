@@ -1,5 +1,6 @@
 CLASS z2ui5_cl_app_system DEFINITION PUBLIC.
   PUBLIC SECTION.
+
     INTERFACES z2ui5_if_app.
 
     CLASS-METHODS factory_error
@@ -170,19 +171,19 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
 *                 )->link( text = 'Code Snippet' href = 'https://twitter.com/OblomovDev'
 *                )->end_of_group(
                     )->begin_of_group( 'Tools'
+*                 )->label( 'Demo 01'
+*                 )->button( text = 'Browser (iframe)' on_press_id = 'BTN_TOOLS_BROWSER'
+*                          )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_BROWSER_CODE'
+*                 )->link( text = 'ADT' href = '' enabled = abap_false
                  )->label( 'Demo 01'
-                 )->button( text = 'Browser (iframe)' on_press_id = 'BTN_TOOLS_BROWSER'
-                          )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_BROWSER_CODE'
-                 )->link( text = 'ADT' href = '' enabled = abap_false
-                 )->label( 'Demo 02'
-                 )->button( text = ' Upload/Download Editor (xml,json,abap...)' on_press_id = 'BTN_TOOLS_EDITOR'
+                 )->button( text = 'Code Editor (XML,JSON,ABAP...)' on_press_id = 'BTN_TOOLS_EDITOR'
                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_EDITOR_CODE'
                   )->link( text = 'ADT' href = '' enabled = abap_false
-                    )->label( 'Demo 03'
-                 )->button( text = 'Upload/Download Text' on_press_id = 'BTN_TOOLS_TEXT'
+                    )->label( 'Demo 02'
+                 )->button( text = 'Text (Upload,Download)' on_press_id = 'BTN_TOOLS_TEXT'
                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_TEXT_CODE'
                   )->link( text = 'ADT' href = '' enabled = abap_false
-                    )->label( 'Demo 04'
+                    )->label( 'Demo 03'
                  )->button( text = 'Table Maintenance' on_press_id = 'BTN_TOOLS_TABLE_EDIT'
                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_TABLE_EDIT_CODE'
                   )->link( text = 'ADT' href = '' enabled = abap_false
@@ -349,6 +350,16 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
         client->controller( )->nav_to_app(
             z2ui5_cl_app_demo_04=>create(
               url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_06' )-url_abap
+              editable = abap_false
+            ) ).
+
+      WHEN 'BTN_TOOLS_TABLE_EDIT'.
+        client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_08( ) ).
+
+      WHEN 'BTN_TOOLS_TABLE_EDIT_CODE'.
+        client->controller( )->nav_to_app(
+            z2ui5_cl_app_demo_04=>create(
+              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_08' )-url_abap
               editable = abap_false
             ) ).
 
