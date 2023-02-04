@@ -3,9 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>view parser</CTEXT>
-    <COMP_POSID>CA</COMP_POSID>
-    <COMPONENT>HLB0009110</COMPONENT>
+    <CTEXT>selection screen</CTEXT>
     <TPCLASS>X</TPCLASS>
    </DEVC>
   </asx:values>
