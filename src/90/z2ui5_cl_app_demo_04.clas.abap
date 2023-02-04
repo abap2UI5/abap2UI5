@@ -3,16 +3,15 @@ CLASS z2ui5_cl_app_demo_04 DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
+
     CLASS-METHODS create
       IMPORTING
         url      TYPE string
-        editable TYPE abap_bool
       RETURNING
         value(r_result) TYPE REF TO z2ui5_cl_app_demo_04.
 
     DATA url_input TYPE string.
     DATA check_initialized TYPE abap_bool.
-    data editable type abap_bool.
 
 ENDCLASS.
 
@@ -21,9 +20,7 @@ CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
   METHOD create.
 
     r_result = NEW #( ).
-
     r_result->url_input = url.
-    r_result->editable = editable.
 
   ENDMETHOD.
 
@@ -45,7 +42,7 @@ CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~set_view.
 
-    view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'ABAP2UI5 Demo - Browser'
+    view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'ABAP2UI5 - Demo Browser'
          )->begin_of_block( 'Browser'
             )->html( `<iframe height="900" width="100%" src="` && url_input && `"></iframe>`
        ).

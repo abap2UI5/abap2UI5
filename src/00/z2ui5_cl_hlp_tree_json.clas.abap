@@ -112,14 +112,14 @@ CLASS z2ui5_cl_hlp_tree_json DEFINITION
     DATA mo_value TYPE ty_o_me.
     DATA mr_actual TYPE REF TO data.
     DATA mv_apost_active TYPE abap_bool.
-protected section.
+  PROTECTED SECTION.
   PRIVATE SECTION.
     DATA mv_check_attr_all_read TYPE abap_bool.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
+CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
 
 
   METHOD add_attribute.
@@ -256,25 +256,15 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
 
   METHOD factory.
 
-
-    " DATA(x) = COND i( WHEN iv_json IS INITIAL THEN THROW zzzyyy77_cx( `ZCX_TREE_JSON_READER-FACTORY-JSON_INPUT_IS_EMPTY`) ).
-
-
     r_result = NEW #(  ).
     r_result->mo_root = r_result.
 
-    IF iv_json IS NOT INITIAL.
-      /ui2/cl_json=>deserialize(
-        EXPORTING
-          json         = CONV string( iv_json )
-          assoc_arrays = abap_true
-        CHANGING
-          data         = r_result->mr_actual
-       ).
-    ENDIF.
-
-    " x = COND i( WHEN r_result->mr_actual IS NOT BOUND THEN THROW zzzyyy77_cx( `ZCX_TREE_JSON_READER-FACTORY-JSON_NOT_VALID`) ).
-
+      _=>trans_json_2_data(
+        exporting
+            iv_json   = iv_json
+         importing
+            ev_result = r_result->mr_actual
+      ).
 
   ENDMETHOD.
 
@@ -289,9 +279,9 @@ CLASS Z2UI5_CL_HLP_TREE_JSON IMPLEMENTATION.
     lo_attri->mo_root = mo_root.
     lo_attri->mv_name = name.
 
-   " DATA(lv_test) = name.
-    data(lv_test) = replace( val = name sub = '-' with = '_' occ = 0 ).
-   " REPLACE all OCCURRENCES OF '-' IN lv_test WITH '_'.
+    " DATA(lv_test) = name.
+    DATA(lv_test) = replace( val = name sub = '-' with = '_' occ = 0 ).
+    " REPLACE all OCCURRENCES OF '-' IN lv_test WITH '_'.
 
     "lo_attri->mr_actual = mr_actual->(lv_test).
     FIELD-SYMBOLS <attribute> TYPE any.

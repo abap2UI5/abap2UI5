@@ -45,7 +45,9 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
 
   METHODS custom_control
     IMPORTING
-      VALUE(val) TYPE  z2ui5_cl_hlp_utility=>ty-s-control.
+      VALUE(val) TYPE  z2ui5_cl_hlp_utility=>ty-s-control
+   RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
 
   METHODS label
     IMPORTING
@@ -102,6 +104,33 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
 
+  METHODS switch
+    importing
+         state type abap_bool default abap_true
+         customTextOn type string optional
+         customTextOff type string optional
+         enabled type abap_bool default abap_true
+         type type string DEFAULT z2ui5_if_view=>cs-switch-type-default
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+  METHODS step_input
+    importing
+      value type string
+      min type string
+      max type string
+      step type string
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+   methods progress_indicator
+        importing
+            percent_value type string
+            display_value type string optional
+            show_value type string
+            state type string default z2ui5_if_view=>cs-progress_indicator-state-none
+        RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
 
   METHODS segmented_button
     IMPORTING

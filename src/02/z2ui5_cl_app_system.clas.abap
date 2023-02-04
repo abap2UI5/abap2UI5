@@ -81,7 +81,7 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
     IF ms_error-x_error IS NOT BOUND.
 
       DATA(view2) = view->factory_selscreen_page( name = 'START' title = 'ABAP2UI5 - Home'
-            )->begin_of_block( 'Welcome to the ABAP2UI5 Project!'
+            )->begin_of_block( 'Welcome to ABAP2UI5!'
           )->begin_of_group( 'Quick Start:'
                  )->label( 'Step 1'
                  )->text( 'Create a new global class in the abap system'
@@ -151,45 +151,48 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
                  )->button( text = 'CL_DEMO_OUTPUT (OnPrem)' on_press_id = 'BTN_HTML_DEMO_OUTPUT' enabled = abap_false
                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DEMO_OUTPUT_CODE' enabled = abap_true
                  )->link( text = 'ADT' href = '' enabled = abap_false
-                )->end_of_group(
-                   )->begin_of_group( 'ALV'
-                 )->label( 'Demo 01'
-                 )->button( text = 'Basic Example' on_press_id = 'BTN_SELSCREEN_COMPLEX' enabled = abap_false
-                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DETAILED_CODE' enabled = abap_false
-                 )->link( text = 'ADT' href = '' enabled = abap_false
-                  )->label( 'Demo 02'
-                 )->button( text = 'Toolbar & Editable' on_press_id = 'BTN_HTML_BASIC' enabled = abap_false
-                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DETAILED_CODE' enabled = abap_false
-                 )->link( text = 'ADT' href = '' enabled = abap_false
-                )->end_of_group(
-*                    )->begin_of_group( 'Event Handling'
+                )->end_of_group( ).
+
+           return.
+
+*                   )->begin_of_group( 'ALV'
 *                 )->label( 'Demo 01'
-*                 )->button( text = 'Switch between Views & Apps' on_press_id = 'BTN_SELSCREEN_COMPLEX'
-*                 )->link( text = 'Code Snippet' href = 'https://twitter.com/OblomovDev'
-*                  )->label( 'Demo 02'
-*                 )->button( text = 'Popups' on_press_id = 'BTN_HTML_BASIC'
-*                 )->link( text = 'Code Snippet' href = 'https://twitter.com/OblomovDev'
-*                )->end_of_group(
-                    )->begin_of_group( 'Tools'
-*                 )->label( 'Demo 01'
-*                 )->button( text = 'Browser (iframe)' on_press_id = 'BTN_TOOLS_BROWSER'
-*                          )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_BROWSER_CODE'
+*                 )->button( text = 'Basic Example' on_press_id = 'BTN_SELSCREEN_COMPLEX' enabled = abap_false
+*                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DETAILED_CODE' enabled = abap_false
 *                 )->link( text = 'ADT' href = '' enabled = abap_false
-                 )->label( 'Demo 01'
-                 )->button( text = 'Code Editor (XML,JSON,ABAP...)' on_press_id = 'BTN_TOOLS_EDITOR'
-                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_EDITOR_CODE'
-                  )->link( text = 'ADT' href = '' enabled = abap_false
-                    )->label( 'Demo 02'
-                 )->button( text = 'Text (Upload,Download)' on_press_id = 'BTN_TOOLS_TEXT'
-                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_TEXT_CODE'
-                  )->link( text = 'ADT' href = '' enabled = abap_false
-                    )->label( 'Demo 03'
-                 )->button( text = 'Table Maintenance' on_press_id = 'BTN_TOOLS_TABLE_EDIT'
-                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_TABLE_EDIT_CODE'
-                  )->link( text = 'ADT' href = '' enabled = abap_false
-                )->end_of_group(
-        )->end_of_block(
-        )->end_of_screen( ).
+*                  )->label( 'Demo 02'
+*                 )->button( text = 'Toolbar & Editable' on_press_id = 'BTN_HTML_BASIC' enabled = abap_false
+*                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DETAILED_CODE' enabled = abap_false
+*                 )->link( text = 'ADT' href = '' enabled = abap_false
+*                )->end_of_group(
+**                    )->begin_of_group( 'Event Handling'
+**                 )->label( 'Demo 01'
+**                 )->button( text = 'Switch between Views & Apps' on_press_id = 'BTN_SELSCREEN_COMPLEX'
+**                 )->link( text = 'Code Snippet' href = 'https://twitter.com/OblomovDev'
+**                  )->label( 'Demo 02'
+**                 )->button( text = 'Popups' on_press_id = 'BTN_HTML_BASIC'
+**                 )->link( text = 'Code Snippet' href = 'https://twitter.com/OblomovDev'
+**                )->end_of_group(
+*                    )->begin_of_group( 'Tools'
+**                 )->label( 'Demo 01'
+**                 )->button( text = 'Browser (iframe)' on_press_id = 'BTN_TOOLS_BROWSER'
+**                          )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_BROWSER_CODE'
+**                 )->link( text = 'ADT' href = '' enabled = abap_false
+*                 )->label( 'Demo 01'
+*                 )->button( text = 'Code Editor (XML,JSON,ABAP...)' on_press_id = 'BTN_TOOLS_EDITOR'
+*                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_EDITOR_CODE'
+*                  )->link( text = 'ADT' href = '' enabled = abap_false
+*                    )->label( 'Demo 02'
+*                 )->button( text = 'Text (Upload,Download)' on_press_id = 'BTN_TOOLS_TEXT'
+*                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_TEXT_CODE'
+*                  )->link( text = 'ADT' href = '' enabled = abap_false
+*                    )->label( 'Demo 03'
+*                 )->button( text = 'Table Maintenance' on_press_id = 'BTN_TOOLS_TABLE_EDIT'
+*                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_TOOLS_TABLE_EDIT_CODE'
+*                  )->link( text = 'ADT' href = '' enabled = abap_false
+*                )->end_of_group(
+*        )->end_of_block(
+*        )->end_of_screen( ).
 
     ELSE.
 
@@ -204,11 +207,13 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
             )->end_of_group(
            )->end_of_block(
            )->begin_of_footer(
+             )->Begin_of_overflow_toolbar(
              )->button( text = 'Home'    on_press_id = 'BUTTON_HOME'     type = 'Reject'
-             )->spacer(
+             )->Toolbar_spacer(
              )->button( text = 'Neustart' on_press_id = 'BUTTON_RESTART' type = 'Accept'
            )->end_of_footer(
          )->end_of_screen( ).
+
 
     ENDIF.
 
@@ -308,87 +313,61 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
 
       WHEN 'BTN_SELSCREEN_BASIC_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_01' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_01' )-url_abap ) ).
 
       WHEN 'BTN_SELSCREEN_COMPLEX'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
 
       WHEN 'BTN_SELSCREEN_COMPLEX_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_02' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_02' )-url_abap ) ).
 
       WHEN 'BTN_TOOLS_BROWSER'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
 
       WHEN 'BTN_TOOLS_BROWSER_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_04' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_04' )-url_abap ) ).
 
       WHEN 'BTN_TOOLS_EDITOR'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_05( ) ).
 
       WHEN 'BTN_TOOLS_EDITOR_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_05' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_05' )-url_abap  ) ).
 
       WHEN 'BTN_TOOLS_TEXT'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_06( ) ).
 
       WHEN 'BTN_TOOLS_TEXT_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_06' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_06' )-url_abap ) ).
 
       WHEN 'BTN_TOOLS_TABLE_EDIT'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_08( ) ).
 
       WHEN 'BTN_TOOLS_TABLE_EDIT_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_08' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_08' )-url_abap ) ).
 
       WHEN 'BTN_HTML_DEMO_OUTPUT'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_07( ) ).
 
       WHEN 'BTN_HTML_DEMO_OUTPUT_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_07' )-url_abap
-              editable = abap_false
-            ) ).
-
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_07' )-url_abap ) ).
 
       WHEN 'BTN_HTML_BASIC'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_03( ) ).
 
       WHEN 'BTN_HTML_BASIC_CODE'.
         client->controller( )->nav_to_app(
-            z2ui5_cl_app_demo_04=>create(
-              url      = _=>get_server_info( 'Z2UI5_CL_APP_DEMO_03' )-url_abap
-              editable = abap_false
-            ) ).
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_03' )-url_abap ) ).
 
       WHEN OTHERS.
         client->controller( )->nav_to_page( 'DEMOS' ).
 
     ENDCASE.
-
 
   ENDMETHOD.
 ENDCLASS.

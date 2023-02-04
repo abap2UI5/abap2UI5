@@ -65,7 +65,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~set_view.
 
-    view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'ABAP2UI5 Demo - Write Output in HTML'
+    view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'ABAP2UI5 - Write Output in HTML (CL_DEMO_OUTPUT)'
          )->begin_of_block( 'Selection Screen'
             )->begin_of_group( 'Write Output'
                 )->label( 'Text'
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
                 )->button( text = 'write' on_press_id = 'BUTTON_POST'
            )->end_of_group(
            )->end_of_block(
-         )->begin_of_block( 'HTML Output'
+         )->begin_of_block( 'HTML'
             )->html( html
        ).
 

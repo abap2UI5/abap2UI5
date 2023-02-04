@@ -58,12 +58,12 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
             val         TYPE string,
             o           TYPE REF TO z2ui5_cl_hlp_utility,
           END OF get_result,
-          begin of get_server_info,
-            url_app  type string,
-            url_abap type string,
-            origin   type string,
-            tenant   type string,
-          end of get_server_info,
+          BEGIN OF get_server_info,
+            url_app  TYPE string,
+            url_abap TYPE string,
+            origin   TYPE string,
+            tenant   TYPE string,
+          END OF get_server_info,
         END OF s,
         BEGIN OF t,
           property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY,
@@ -121,9 +121,9 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
       RETURNING VALUE(result) TYPE ty-o-me.
 
 
-    class-METHODS get_server_info
+    CLASS-METHODS get_server_info
       IMPORTING
-        app            TYPE string optional
+        app           TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE ty-s-get_server_info.
 
@@ -188,7 +188,8 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     CLASS-METHODS trans_json_2_data
       IMPORTING
         iv_json   TYPE clike
-        iv_result TYPE REF TO data.
+       exporting
+        ev_result TYPE REF TO data.
 
     CLASS-METHODS trans_data_2_json
       IMPORTING
@@ -1240,12 +1241,15 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
 
   METHOD trans_data_2_json.
-   " RETURN.
-    " Convert input post to JSON
-    DATA(json_post) = xco_cp_json=>data->from_abap( data )->apply(
-      VALUE #( ( xco_cp_json=>transformation->underscore_to_camel_case ) ) )->to_string(  ).
 
-    r_result = json_post.
+    r_result = /ui2/cl_json=>serialize( data ).
+
+    " RETURN.
+    " Convert input post to JSON
+    "  DATA(json_post) = xco_cp_json=>data->from_abap( data )->apply(
+    "    VALUE #( ( xco_cp_json=>transformation->underscore_to_camel_case ) ) )->to_string(  ).
+
+    "  r_result = json_post.
 
   ENDMETHOD.
 
@@ -1253,11 +1257,23 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
   METHOD trans_json_2_data.
 
     CHECK iv_json IS NOT INITIAL.
+
+    DATA lr_data TYPE REF TO data.
+
+    /ui2/cl_json=>deserialize(
+        EXPORTING
+            json         = CONV string( iv_json )
+            assoc_arrays = abap_true
+        CHANGING
+         data            = ev_result
+        ).
+
+
 *    RETURN.
     " Convert JSON to post structure
-    xco_cp_json=>data->from_string( iv_json )->apply(
-      VALUE #( ( xco_cp_json=>transformation->camel_case_to_underscore ) )
-      )->write_to( iv_result ).
+*    xco_cp_json=>data->from_string( iv_json )->apply(
+*      VALUE #( ( xco_cp_json=>transformation->camel_case_to_underscore ) )
+*      )->write_to( iv_result ).
 
   ENDMETHOD.
 

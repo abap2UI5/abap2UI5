@@ -63,8 +63,8 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
-    DATA mr_control_actual TYPE REF TO data. "_=>ty-t-control. "data. " table. "_=>ty-t-control.
-    DATA mr_control_parent_actual TYPE REF TO data. "_=>ty-t-control. "data. " table. "_=>ty-t-control.
+    DATA mr_control_actual TYPE REF TO data.
+    DATA mr_control_actual_parent TYPE REF TO data.
     DATA ms_leave_to_app LIKE ms_db.
     DATA mo_view_model TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
     DATA mo_ui5_model  TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
@@ -99,17 +99,17 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
     METHODS factory_new_error
       IMPORTING
-          kind            TYPE string
-          ix              TYPE REF TO cx_root
+                kind            TYPE string
+                ix              TYPE REF TO cx_root
       RETURNING
-          VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+                VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
       RAISING   cx_uuid_error.
 
     METHODS factory_new
       IMPORTING
-         i_app           TYPE REF TO z2ui5_if_app
+                i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-          VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+                VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
       RAISING   cx_uuid_error.
 
     DATA x TYPE REF TO cx_root.
@@ -434,7 +434,7 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client_event~get_id.
     TRY.
-       r_result = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
+        r_result = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
   ENDMETHOD.
@@ -490,7 +490,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     lr_cont->parent = REF #( lr_control->* ).
 
     mo_server->mr_control_actual = REF #( lr_cont->t_child ).
-    mo_server->mr_control_parent_actual = REF #( lr_cont->* ).
+    mo_server->mr_control_actual_parent = REF #( lr_cont->* ).
 
   ENDMETHOD.
 
@@ -677,7 +677,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    data lr_cont2 type ref to _=>ty-s-control. " get_new_control( ).
+    DATA lr_cont2 TYPE REF TO _=>ty-s-control. " get_new_control( ).
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mo_server->mr_control_actual->* TO <tab>.
@@ -696,7 +696,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     DATA(lr_control) = CAST _=>ty-s-control( lr_data2->* ).
     lr_control->name = 'SimpleForm'.
     lr_control->ns = 'f'.
-    lr_control->parent = REF #( mo_server->mr_control_parent_actual->* ).
+    lr_control->parent = REF #( mo_server->mr_control_actual_parent->* ).
     lr_control->t_property = VALUE #(
           ( n = 'title' v = title )
         ( n = 'editable' v = 'true' )
@@ -863,9 +863,18 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'FOOTER'
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    DATA lr_cont TYPE REF TO _=>ty-s-control.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+
+    DATA lr_data TYPE REF TO data.
+    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    lr_cont  = CAST _=>ty-s-control( lr_data->* ).
+    lr_cont->name = 'footer'.
+
+    mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
 
   ENDMETHOD.
 
@@ -901,9 +910,9 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    data(lr_control) = cast _=>ty-s-control( mo_server->mr_control_parent_actual ).
+    DATA(lr_control) = CAST _=>ty-s-control( mo_server->mr_control_actual_parent ).
     lr_control = REF #( lr_control->parent->* ).
-    mo_server->mr_control_parent_actual = REF #( lr_control->* ).
+    mo_server->mr_control_actual_parent = REF #( lr_control->* ).
     mo_server->mr_control_actual = REF #( lr_control->t_child ).
 
   ENDMETHOD.
@@ -951,17 +960,19 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_selscreen_footer~spacer.
+  METHOD z2ui5_if_selscreen_footer~Toolbar_spacer.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'ToolbarSpacer'
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'ToolbarSpacer'
+          ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_selscreen_group~custom_control.
+
+    r_result = me.
 
     DELETE val-t_property WHERE n IS INITIAL.
 
@@ -975,9 +986,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   METHOD z2ui5_if_selscreen_block~code_editor.
 
-    r_result = me.
-
-    z2ui5_if_selscreen_group~custom_control( VALUE #(
+    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
         name  = 'CodeEditor'
         ns = 'editor'
         t_property = VALUE #(
@@ -990,8 +999,6 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   METHOD z2ui5_if_selscreen_block~html.
 
-    r_result = me.
-
     "todo
     DATA(lv_html) = replace( val = val sub = '</' with = '#+´"?' occ   =   0 ).
     lv_html = replace( val = lv_html sub = '<' with = '<html:' occ   =   0 ).
@@ -999,10 +1006,81 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     lv_html = '<VBox>' && lv_html && '</VBox>'.
 
-    z2ui5_if_selscreen_group~custom_control(  VALUE #(
+    r_result ?= z2ui5_if_selscreen_group~custom_control(  VALUE #(
         name  = 'ZZHTML'
         t_property = VALUE #( ( n = 'VALUE' v = lv_html ) )
     ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_footer~Begin_of_overflow_toolbar.
+
+
+    r_result = me.
+
+    DATA lr_cont TYPE REF TO _=>ty-s-control.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+
+    DATA lr_data TYPE REF TO data.
+    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    lr_cont  = CAST _=>ty-s-control( lr_data->* ).
+    lr_cont->name = 'OverflowToolbar'.
+
+    mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_group~switch.
+
+  r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'Switch'
+        t_property = VALUE #(
+           ( n = 'type'           v = type           )
+           ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
+           ( n = 'state'          v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
+           ( n = 'customTextOff'  v = customtextoff  )
+           ( n = 'customTextOn'   v = customtexton   )
+    ) ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_footer~end_of_overflow_toolbar.
+
+    r_result = me.
+
+    DATA(lr_control) = CAST _=>ty-s-control( mo_server->mr_control_actual_parent ).
+    lr_control = REF #( lr_control->parent->* ).
+    mo_server->mr_control_actual_parent = REF #( lr_control->* ).
+    mo_server->mr_control_actual = REF #( lr_control->t_child ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_group~progress_indicator.
+
+   r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'ProgressIndicator'
+        t_property = VALUE #(
+           ( n = 'percentValue' v = percent_Value )
+           ( n = 'displayValue' v = display_Value )
+           ( n = 'showValue'    v = show_value    )
+           ( n = 'state'        v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
+    ) ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_group~step_input.
+
+   r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'StepInput'
+        t_property = VALUE #(
+           ( n = 'max' v = '{' && mo_server->_get_name_by_ref( max ) && '}' )
+           ( n = 'min' v = '{' && mo_server->_get_name_by_ref( min ) && '}' )
+           ( n = 'step' v = '{' && mo_server->_get_name_by_ref( step ) && '}' )
+           ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
+    ) ) ).
 
   ENDMETHOD.
 
