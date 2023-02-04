@@ -14,7 +14,7 @@ Works with all availible abap stacks:
 * S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
 * SAP NetWeaver AS ABAP 7.52 (Abap Standard) - downport to very old releases possible
 
-More information [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
+For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
 
 ## Example
 After installing the abap2ui5 project in your system, you only have to create a new abap class and implement the interface Z2UI5_IF_APP. It has two methods to define the view and the behaviour of the app. Nothing more is needed to create a new standalone UI5 app [(Sample Code)](https://github.com/oblomov-dev/abap2ui5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap).<br>
