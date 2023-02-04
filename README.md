@@ -10,6 +10,15 @@ Project features:
 ## Example
 ![example](https://user-images.githubusercontent.com/102328295/216781351-1001a679-88f9-4154-bcac-ba8456a984e0.gif)
 
+## Installation
+Works with all availible abap stacks:
+* BTP ABAP Environment (Abap Cloud)
+* S/4 Public Cloud ABAP Environment (Abap Cloud)
+* S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
+* SAP NetWeaver AS ABAP 7.52 (Abap Standard) - downport to older releases possible [(#3)](https://github.com/oblomov-dev/ABAP2UI5/issues/6)
+
+Install with [abapGit](https://abapgit.org) and create a new http endpoint to call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
+
 #### ABAP Standard:
 ```abap
 method if_http_extension~handle_request.
