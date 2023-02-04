@@ -20,6 +20,27 @@ Works with all ABAP stacks:
 
 Install with [abapGit](https://abapgit.org), create a new http endpoint and call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
 
+#### ABAP Cloud:
+```abap
+  METHOD if_http_service_extension~handle_request.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+        t_header = request->get_header_fields( )
+        t_param  = request->get_form_fields( )
+        o_body   = z2ui5_cl_hlp_tree_json=>factory( request->get_text( ) )
+     ).
+
+    DATA(lv_resp) = SWITCH #( request->get_method( )
+        WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
+        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( )
+      ).
+
+    response->set_status( 200 ).
+    response->set_text( lv_resp ).
+
+  ENDMETHOD.
+```
+
 #### ABAP Standard:
 ```abap
 method if_http_extension~handle_request.
@@ -54,24 +75,4 @@ method if_http_extension~handle_request.
     ).
 
   endmethod.
-```
-#### ABAP Cloud:
-```abap
-  METHOD if_http_service_extension~handle_request.
-
-    z2ui5_cl_http_handler=>client = VALUE #(
-        t_header = request->get_header_fields( )
-        t_param  = request->get_form_fields( )
-        o_body   = z2ui5_cl_hlp_tree_json=>factory( request->get_text( ) )
-     ).
-
-    DATA(lv_resp) = SWITCH #( request->get_method( )
-        WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
-        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( )
-      ).
-
-    response->set_status( 200 ).
-    response->set_text( lv_resp ).
-
-  ENDMETHOD.
 ```
