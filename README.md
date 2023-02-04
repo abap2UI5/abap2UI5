@@ -1,4 +1,4 @@
-# ABAP2UI5 Project
+# ABAP2UI5
 
 Development of UI5 Apps in pure ABAP [(Blog Post)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/).
 
