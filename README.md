@@ -11,7 +11,7 @@ Project features:
 ![example](https://user-images.githubusercontent.com/102328295/216781351-1001a679-88f9-4154-bcac-ba8456a984e0.gif)
 
 ## Installation
-Works with all availible abap stacks:
+Works with all abap stacks:
 * BTP ABAP Environment (Abap Cloud)
 * S/4 Public Cloud ABAP Environment (Abap Cloud)
 * S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
