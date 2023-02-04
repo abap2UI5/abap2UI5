@@ -6,6 +6,7 @@
     <CTEXT>utility functions</CTEXT>
     <COMP_POSID>CA</COMP_POSID>
     <COMPONENT>HLB0009110</COMPONENT>
+    <TPCLASS>X</TPCLASS>
    </DEVC>
   </asx:values>
  </asx:abap>
