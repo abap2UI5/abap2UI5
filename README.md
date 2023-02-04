@@ -18,7 +18,7 @@ Works with all abap stacks:
 * S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
 * SAP NetWeaver AS ABAP 7.52 (Abap Standard) - downport to older releases possible [(#3)](https://github.com/oblomov-dev/ABAP2UI5/issues/6)
 
-Install with [abapGit](https://abapgit.org) and create a new http endpoint to call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
+Install with [abapGit](https://abapgit.org), create a new http endpoint and call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
 
 #### ABAP Standard:
 ```abap
