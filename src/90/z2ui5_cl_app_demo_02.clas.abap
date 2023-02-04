@@ -44,6 +44,9 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     "user handling
     CASE client->event( )->get_id( ).
 
+      WHEN 'BTN_BACK'.
+        client->controller( )->nav_to_app_called( ).
+
       WHEN 'BUTTON_ROUNDTRIP'.
         DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
 
@@ -71,8 +74,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~set_view.
 
-
-    DATA(lo_screen) = view->factory_selscreen_page( title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
+    DATA(lo_screen) = view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
     DATA(lo_block) = lo_screen->begin_of_block( 'Selection Screen Title' ).
 
 
@@ -90,7 +92,6 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
             ( descr = 'Blue2'  value = 'BLUE2' )
             ( descr = 'Blue3'  value = 'BLUE3' )
           ) ).
-
 
 
     lo_group = lo_block->begin_of_group( 'Input with select options' ).
@@ -127,7 +128,6 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     ).
 
 
-
     lo_group = lo_block->begin_of_group( 'Time Inputs' ).
 
     lo_group->label( 'Date' ).
@@ -139,7 +139,6 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     lo_group->label( 'Time Begin/End' ).
     lo_group->time_picker( screen-time_start ).
     lo_group->time_picker( screen-time_end ).
-
 
 
     lo_group = lo_block->begin_of_group( 'User Interaction' ).
@@ -158,7 +157,30 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     lo_group->label( 'Call new app' ).
     lo_group->button( text = 'App & Screen change' on_press_id = 'BUTTON_CHANGE_APP'   ).
 
+    lo_screen = lo_group->end_of_group( )->end_of_block( ).
 
-
+    lo_screen->message_strip( 'This is a message strip'
+        )->begin_of_block( 'Some new UI5 Controls...'
+            )->begin_of_group( 'ready to use in pure abap'
+            )->label( 'ProgressIndicator'
+                )->progress_indicator(
+        percent_value = '30'
+*        display_value =
+        show_value    = '30%'
+*        state         = z2ui5_if_view=>cs-progress_indicator-state-none
+ )->label( 'StepInput'
+    )->step_input(
+        value    = '6'
+        min      = '0'
+        max      = '20'
+        step     = '2'
+         )->label( 'Switch'
+    )->switch(
+*        state         = abap_true
+         customtexton  = 'an'
+        customtextoff =  'aus'
+*        enabled       = abap_true
+*        type          = z2ui5_if_view=>cs-switch-type-default
+    ).
   ENDMETHOD.
 ENDCLASS.

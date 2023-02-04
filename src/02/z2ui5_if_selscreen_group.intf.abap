@@ -45,12 +45,16 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
 
   METHODS custom_control
     IMPORTING
-      VALUE(val) TYPE  z2ui5_cl_hlp_utility=>ty-s-control.
+      VALUE(val) TYPE  z2ui5_cl_hlp_utility=>ty-s-control
+   RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS label
     IMPORTING
       text            TYPE string DEFAULT 'line_label'
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS date_picker
     IMPORTING
       value           TYPE string OPTIONAL
@@ -58,6 +62,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS time_picker
     IMPORTING
       value           TYPE string OPTIONAL
@@ -65,6 +70,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS date_time_picker
     IMPORTING
       value           TYPE string OPTIONAL
@@ -74,8 +80,9 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
   METHODS link
     IMPORTING
-      text            TYPE string DEFAULT 'line_label'
-      href            TYPE string OPTIONAL
+      text            TYPE string    DEFAULT 'line_label'
+      href            TYPE string    OPTIONAL
+      enabled         type abap_bool DEFAULT abap_true
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
   METHODS combobox
@@ -86,12 +93,45 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       t_item          TYPE ty-combobox-t_item
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS text_area
-    IMPORTING
-      value           TYPE string DEFAULT 'line_label'
-      rows            TYPE i DEFAULT 8
+    importing
+         value type string optional
+         rows  type i default 8
+         height type string optional
+         width  type string default '100%'
+          PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+  METHODS switch
+    importing
+         state type abap_bool default abap_true
+         customTextOn type string optional
+         customTextOff type string optional
+         enabled type abap_bool default abap_true
+         type type string DEFAULT z2ui5_if_view=>cs-switch-type-default
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+  METHODS step_input
+    importing
+      value type string
+      min type string
+      max type string
+      step type string
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+   methods progress_indicator
+        importing
+            percent_value type string
+            display_value type string optional
+            show_value type string
+            state type string default z2ui5_if_view=>cs-progress_indicator-state-none
+        RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS segmented_button
     IMPORTING
       selected_key    TYPE data OPTIONAL

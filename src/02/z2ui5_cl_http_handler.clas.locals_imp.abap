@@ -1,14 +1,11 @@
-
 CLASS z2ui5_lcl_runtime DEFINITION DEFERRED.
-CLASS z2ui5_lcl_system_app DEFINITION DEFERRED.
-
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
-
 
 CLASS z2ui5_lcl_app_client DEFINITION.
 
   PUBLIC SECTION.
+
     INTERFACES z2ui5_if_client.
     INTERFACES z2ui5_if_client_controller.
     INTERFACES z2ui5_if_client_event.
@@ -53,19 +50,22 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
     DATA:
       BEGIN OF ms_db,
-        id      TYPE string,
-        id_prev TYPE string,
-        app     TYPE string,
-        screen  TYPE string,
-        t_attri TYPE _=>ty-t-attri,
-        o_app   TYPE REF TO object,
+        id          TYPE string,
+        id_prev     TYPE string,
+        id_prev_app TYPE string,
+        app         TYPE string,
+        screen      TYPE string,
+        t_attri     TYPE _=>ty-t-attri,
+        o_app       TYPE REF TO object,
       END OF ms_db.
 
-   " class-DATA ss_client TYPE z2ui5_cl_http_handler=>ty_S_client.
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
+
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA mr_screen_actual TYPE REF TO s_screen.
-    DATA mo_leave_to_app TYPE REF TO z2ui5_if_app.
+    DATA mr_control_actual TYPE REF TO data.
+    DATA mr_control_actual_parent TYPE REF TO data.
+    DATA ms_leave_to_app LIKE ms_db.
     DATA mo_view_model TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
     DATA mo_ui5_model  TYPE z2ui5_cl_hlp_tree_json=>ty_o_me.
 
@@ -99,86 +99,24 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
     METHODS factory_new_error
       IMPORTING
-        kind            TYPE string
-        ix              TYPE REF TO cx_root
+                kind            TYPE string
+                ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
-      RAISING cx_uuid_error.
+                VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING   cx_uuid_error.
 
     METHODS factory_new
       IMPORTING
-        i_app           TYPE REF TO z2ui5_if_app
+                i_app           TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
-      RAISING cx_uuid_error.
+                VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime
+      RAISING   cx_uuid_error.
 
     DATA x TYPE REF TO cx_root.
 
   PRIVATE SECTION.
 
 ENDCLASS.
-
-CLASS z2ui5_lcl_system_app DEFINITION.
-
-  PUBLIC SECTION.
-
-    INTERFACES z2ui5_if_app.
-
-    CLASS-METHODS factory_error
-      IMPORTING
-        error           TYPE REF TO cx_root
-        app             TYPE REF TO z2ui5_if_app OPTIONAL
-        kind            TYPE string OPTIONAL
-        server          TYPE REF TO z2ui5_lcl_runtime
-      RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_app.
-
-    DATA:
-      BEGIN OF ms_error,
-        x_error   TYPE REF TO cx_root,
-        app       TYPE REF TO z2ui5_if_app,
-        classname TYPE string,
-        kind      TYPE string,
-      END OF ms_error.
-
-    DATA:
-      BEGIN OF ms_home,
-        is_initialized         TYPE abap_bool,
-        btn_text               TYPE string,
-        btn_event_id           TYPE string,
-        btn_icon               TYPE string,
-        classname              TYPE string,
-        class_value_state      TYPE string,
-        class_value_state_text TYPE string,
-        class_editable         TYPE abap_bool VALUE abap_true,
-      END OF ms_home.
-
-
-  PROTECTED SECTION.
-
-    METHODS on_event_error
-      IMPORTING
-        client TYPE REF TO z2ui5_if_client.
-
-    METHODS on_event_home
-      IMPORTING
-        client TYPE REF TO z2ui5_if_client.
-
-    METHODS get_app_url
-      IMPORTING
-        i_view         TYPE REF TO z2ui5_if_view
-        app            TYPE string
-      RETURNING
-        VALUE(rv_link) TYPE string
-      RAISING
-        cx_abap_context_info_error.
-
-
-
-  PRIVATE SECTION.
-
-ENDCLASS.
-
 
 CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
@@ -240,7 +178,6 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
     x = COND #( WHEN lines( mt_screen ) = 0 THEN THROW _( 'no view defined in method set_view' ) ).
 
-
     IF ms_db-screen IS INITIAL.
       DATA(lr_screen) = REF #( mt_screen[ 1 ] ).
       ms_db-screen = lr_screen->name.
@@ -249,87 +186,23 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     ENDIF.
 
 
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    " define ui5 view
+
     r_result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
-               `    xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
-                         `    xmlns="sap.m"> ` &&
-                    COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  <Shell> ` ) &&
-                       `  <Page id="page" title="` &&
-                       lr_screen->t_controls[ name = 'HEADER' ]-t_property[ n = 'TITLE' ]-v
-                       && `" class="sapUiResponsivePadding--header sapUiResponsivePadding--footer sapUiResponsivePadding--floatingFooter">`.
-
-    IF ms_db-app = 'ZZCL_APP_SYSTEM'.
-      r_result &&= `          <headerContent>` && |\n|  &&
-       `<Text text="abap2ui5  |  version 2212    |" /><Link target = "_blank" href="https://github.com/oblomov-dev/abap2ui5.git" text="GIT" />`   && |\n|  &&
-       `      </headerContent>  `.
-    ENDIF.
-    r_result &&=  `    <content>  ` &&
-     `       <VBox class="sapUiSmallMargin">` .
-
-    DATA(LV_is_block_active) = abap_false.
+               `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+                         ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
+                  COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` ).
 
     LOOP AT lr_screen->t_controls REFERENCE INTO DATA(lr_element).
-
-      CASE lr_element->name.
-        WHEN 'FOOTER'.
-          DATA(lv_footer_active) = abap_true.
-          r_result &&=       `          </f:content>` && |\n|  &&
-                          `     </f:SimpleForm> ` && |\n|  &&
-                   `            </VBox> </content> <footer>` && |\n|  &&
-                                 `            <OverflowToolbar id="otbFooter">` && |\n| .
-
-        WHEN 'BEGIN_OF_BLOCK'.
-
-          IF LV_is_block_active = abap_true.
-            r_result &&= `</f:content></f:SimpleForm> `.
-          ENDIF.
-
-          LV_is_block_active = abap_true.
-
-          r_result &&= `      <f:SimpleForm ` &&
-                                `           editable="true"`  &&
-                                `           layout="ResponsiveGridLayout"` &&
-                                 `           title="` &&  lr_element->t_property[ n = `TITLE` ]-v && `"` &&
-                                 `           labelSpanXL="4"` &&
-                                                         `          labelSpanL="3"` &&
-                                 `                                  labelSpanM="4"` &&
-                                 `                                   labelSpanS="12"` &&
-                                 `                                   adjustLabelSpan="false"` &&
-                                 `                                   emptySpanXL="0"`  &&
-                                 `                                   emptySpanL="4"` &&
-                                 `                                   emptySpanM="0"` &&
-                                 `                                   emptySpanS="0"` &&
-                                 `                                   columnsXL="2"` &&
-                                 `                                  columnsL="1"` &&
-                                 `                                  columnsM="1"` &&
-                                 `                                   singleContainerFullSize="false" >` &&
-                                 `                                   <f:content>`.
-
-
-        WHEN 'Input' OR 'Label' OR 'Title' OR 'Text'
-            OR 'TextArea' OR 'Label' OR 'Button' OR 'CheckBox' OR 'DateTimePicker'
-            OR 'TimePicker' OR 'DatePicker' OR 'ToolbarSpacer' OR 'MessageStripe' OR
-            'RadioButtonGroup' OR 'ComboBox' OR 'SegmentedButton' OR 'Link'.
-          r_result &&= _=>get_xml_by_control( lr_element->* ).
-
-      ENDCASE.
-
+      r_result &&= _=>get_xml_by_control( lr_element->* ).
     ENDLOOP.
 
+    r_result &&= COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`.
 
-    IF lv_footer_active = abaP_true.
-      r_result &&=
-          `  </OverflowToolbar>` && |\n|  &&
-                               `        </footer>`.
-    ELSE.
-      r_result &&=       `          </f:content>` && |\n|  &&
-                        `     </f:SimpleForm> ` && |\n|  &&
-                 `            </VBox> </content>`.
-    ENDIF.
-    r_result &&=      `    </Page> ` &&
-                 COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `  </Shell> ` )
-                    && |\n|  &&
-                   `</mvc:View>`.
 
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    " define ui5 model
 
     mo_ui5_model->add_attribute( n = `vView` v = r_result ).
 
@@ -346,7 +219,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'D' OR 'P' OR 'T' or 'C'.
+        WHEN 'g' OR 'D' OR 'P' OR 'T' OR 'C'.
 
           lo_update->add_attribute( n = lr_attri->name
                                     v = _=>get_abap_2_json( <attribute> )
@@ -402,14 +275,14 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       CASE lr_attri->kind.
 
-        WHEN 'g' OR 'I' or 'C'. " or 'D' or 'T'.
+        WHEN 'g' OR 'I' OR 'C'. " or 'D' or 'T'.
           DATA(lv_value) = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->get_val( ).
           <attribute> = lv_value.
 
-      "  when 'C'.
-      ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
-      "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
-       "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
+          "  when 'C'.
+          ""   lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+          "   lr_val = REF #( ms_db-o_app->(lr_attri->name) ).
+          "  lr_val->* = switch string( lv_value when 'true' then 'X' else '' ).
 
         WHEN 'h'.
 
@@ -435,7 +308,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
           TRY.
               ms_db-app = z2ui5_cl_http_handler=>client-t_param[ name = 'APP' ]-value.
             CATCH cx_root.
-              ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+              ms_db-o_app = NEW z2ui5_cl_app_system( ).
               EXIT.
           ENDTRY.
 
@@ -443,7 +316,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
           EXIT.
 
         CATCH cx_root.
-          DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
+          DATA(lo_error) = NEW z2ui5_cl_app_system( ).
           lo_error->ms_error-x_error = NEW _( val = `Class with name ` && ms_db-app && ` not found. Please check your repository.` ).
           ms_db-o_app = CAST #( lo_error ).
           EXIT.
@@ -461,7 +334,6 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri).
 
-      "DATA(lr_ref) = REF #( ms_db-o_app->(lr_attri->name) ).
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
       ASSIGN (lv_name) TO <attribute>.
@@ -483,7 +355,6 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     r_result = NEW z2ui5_lcl_runtime( ).
     r_result->ms_db-o_app = i_app.
     r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
-    "r_result->ss_client = ss_client.
     CLEAR z2ui5_cl_http_handler=>client-o_body.
     r_result->mt_after = mt_after.
     r_result->ms_db-t_attri = _=>hlp_get_t_attri( r_result->ms_db-o_app ).
@@ -493,7 +364,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
   METHOD factory_new_error.
 
     r_result = factory_new(
-             z2ui5_lcl_system_app=>factory_error( server = me error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
+             z2ui5_cl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
   ENDMETHOD.
 
@@ -557,15 +428,13 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client_controller~nav_to_app.
 
-    mo_server->mo_leave_to_app = app.
+    mo_server->ms_leave_to_app = VALUE #( o_app = app ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client_event~get_id.
     TRY.
-
         r_result = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
-
       CATCH cx_root.
     ENDTRY.
   ENDMETHOD.
@@ -573,196 +442,15 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client_controller~exit_to_home.
 
-    z2ui5_if_client_controller~nav_to_app( NEW z2ui5_lcl_system_app(  ) ).
+    z2ui5_if_client_controller~nav_to_app( NEW z2ui5_cl_app_system( ) ).
 
   ENDMETHOD.
 
-ENDCLASS.
+  METHOD z2ui5_if_client_controller~nav_to_app_called.
 
+    DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _('CX_STACK_EMPTY - NO CALLING APP FOUND') ).
+    mo_server->ms_leave_to_app = mo_server->db_load( mo_server->ms_db-id_prev_app ).
 
-CLASS z2ui5_lcl_system_app IMPLEMENTATION.
-
-
-
-  METHOD factory_error.
-
-    r_result = NEW #( ).
-
-    r_result->ms_error-x_error = error.
-    r_result->ms_error-app     = app.
-    r_result->ms_error-kind    = kind.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_app~on_event.
-
-    IF ms_error-x_error IS BOUND.
-      on_event_error( client ).
-    ELSE.
-      on_event_home( client ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_app~set_view.
-
-    IF ms_error-x_error IS NOT BOUND.
-
-      DATA(view2) = view->factory_selscreen_page( name = 'START' title = 'Home'
-            )->begin_of_block( 'Welcome to abap2ui5!'
-          )->begin_of_group( 'This is an easy way to create ui5 applications in pure abap:'
-                 )->label( 'Step 1'
-                 )->text( 'Create a new global class in the abap system'
-                 )->label( 'Step 2'
-                 )->text( 'Implement the interface Z2UI5_IF_APP'
-                 )->label( 'Step 3'
-                 )->text( 'Define the views in the method set_view and the behaviour in the method on_event '
-                 )->label( 'Step 4' ).
-
-      IF ms_home-class_editable = abap_true.
-        view2->input(
-                       value          = ms_home-classname
-                       placeholder    = 'fill in the classname and press check'
-                       value_state      = ms_home-class_value_state
-                       value_state_text = ms_home-class_value_state_text
-                       editable         = ms_home-class_editable
-                  ).
-      ELSE.
-        view2->text( ms_home-classname ).
-      ENDIF.
-      view2->button( text = ms_home-btn_text on_press_id = ms_home-btn_event_id  icon = ms_home-btn_icon   "type = view->cs-button-type-
-                )->label( 'Step 5' ).
-
-      IF ms_home-class_editable = abap_false.
-        view2->link( text = 'Link to the Application'
-                href = get_app_url( i_view = view app = ms_home-classname ) " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
-             ).
-      ENDIF.
-      view2->end_of_group(
-     )->begin_of_group( 'Demo'
-        )->label( 'Example 1'
-        )->link( text = 'Z2UI5_CL_APP_DEMO_01' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_01' )
-        )->label( 'Example 2'
-        )->link( text = 'Z2UI5_CL_APP_DEMO_02' href = get_app_url( i_view = view app = 'z2ui5_cl_app_demo_02' )
-    )->end_of_group(
-  )->end_of_block(
-  )->end_of_screen( ).
-
-
-    ELSE.
-
-      view->factory_selscreen_page( name = 'ERROR' title = 'abap2ui5 - error'
-          )->begin_of_block( SWITCH #(  ms_error-kind
-                  WHEN 'USER' THEN 'Application Error - check your code'
-                  WHEN 'CUSTOMIZING' THEN 'Customizing Error - check your code in method set_screen'
-                  ELSE 'System Error - please restart the framework')
-             )->begin_of_group( ms_error-x_error->get_text( )
-             )->label( 'Classname'
-             )->text( ms_error-classname
-            )->end_of_group(
-           )->end_of_block(
-           )->begin_of_footer(
-             )->button( text = 'Home'    on_press_id = 'BUTTON_HOME'     type = 'Reject'
-             )->spacer(
-             )->button( text = 'Neustart' on_press_id = 'BUTTON_RESTART' type = 'Accept'
-           )->end_of_footer(
-         )->end_of_screen( ).
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD on_event_error.
-
-    ms_error-classname = _=>get_classname_by_ref( ms_error-app ).
-
-    CASE client->event( )->get_id( ).
-
-      WHEN 'BUTTON_RESTART'.
-        DATA li_app TYPE REF TO z2ui5_if_app.
-        CREATE OBJECT li_app TYPE (ms_error-classname).
-        client->controller( )->nav_to_app( li_app  ).
-
-      WHEN 'BUTTON_HOME'.
-        client->controller( )->exit_to_home( ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD on_event_home.
-
-    DATA li_app TYPE REF TO z2ui5_if_app.
-
-    IF ms_home-is_initialized = abap_false.
-      ms_home-is_initialized = abaP_true.
-      ms_home-btn_text = 'check'.
-      ms_home-btn_event_id = 'BUTTON_CHECK'.
-      ms_home-class_editable = abap_true.
-      ms_home-btn_icon = 'sap-icon://validate'.
-    ENDIF.
-
-    ms_home-class_value_state_text = ''.
-    ms_home-class_value_state = ''.
-
-    CASE client->event( )->get_id( ).
-
-      WHEN 'BUTTON_GO'.
-        li_app = NEW z2ui5_cl_app_demo_01( ).
-        client->popup( )->message_box( type = 'warning' text = 'App wird gestartet' ).
-        client->controller( )->nav_to_app( li_app  ).
-
-
-      WHEN 'BUTTON_CHANGE'.
-        ms_home-btn_text = 'check'.
-        ms_home-btn_event_id = 'BUTTON_CHECK'.
-        ms_home-btn_icon = 'sap-icon://validate'.
-        ms_home-class_editable = abap_true.
-
-      WHEN 'BUTTON_CHECK'.
-
-        TRY.
-            DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = to_upper( ms_home-classname ).
-            CREATE OBJECT li_app_test TYPE (ms_home-classname).
-
-            client->popup( )->message_toast( 'App is ready to start!' ).
-            ms_home-btn_text = 'edit'.
-            ms_home-btn_event_id = 'BUTTON_CHANGE'.
-            ms_home-btn_icon = 'sap-icon://edit'.
-            ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-success.
-            ms_home-class_editable = abap_false.
-
-          CATCH cx_root INTO DATA(lx).
-            ms_home-class_value_state_text = lx->get_text( ).
-            ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-warning.
-            client->popup( )->message_box(
-                text = ms_home-class_value_state_text
-                type = z2ui5_if_view=>cs-message_box-type-error
-                 ).
-        ENDTRY.
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD get_app_url.
-  "  try.
-  "  DATA(lv_url) = cl_abap_context_info=>get_system_url( ).
-  "  catch cx_root.
-       data(lt_head) = z2ui5_cl_http_handler=>client-t_header.
-  "  endtry.
-    data(lv_url) = lt_head[ name = 'referer' ]-value.
-
-    DATA(lv_tenant) = sy-mandt.
-
-    DATA(lo_server) = CAST z2ui5_lcl_app_view( i_view )->mo_server.
-  "  rv_link  = 'https://' && lv_url && lo_server->ss_client-t_header[ name = '~path' ]-value && '?sap-client=' && lv_tenant && '&app=' && app .
-    rv_link = lv_url && '?sap-client=' && lv_tenant && '&app=' && app .
   ENDMETHOD.
 
 ENDCLASS.
@@ -787,11 +475,22 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'HEADER'
-      t_property = VALUE #(
-        ( n = 'TITLE' v = title )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    APPEND INITIAL LINE TO mo_server->mr_screen_actual->t_controls REFERENCE INTO DATA(lr_control).
+    lr_control->name = 'Page'.
+    lr_control->t_property = VALUE #(
+     ( n = 'title' v = title )
+     ( n = 'showNavButton' v = COND #( WHEN event_nav_back_id = '' THEN 'false' ELSE 'true' ) )
+     ( n = 'navButtonTap' v = `onEventBackend({ 'ID' : '` && event_nav_back_id && `' })` )
+     ).
+
+    APPEND INITIAL LINE TO lr_control->t_child REFERENCE INTO DATA(lr_data).
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    DATA(lr_cont) = CAST _=>ty-s-control( lr_data->* ).
+    lr_cont->name = 'content'.
+    lr_cont->parent = REF #( lr_control->* ).
+
+    mo_server->mr_control_actual = REF #( lr_cont->t_child ).
+    mo_server->mr_control_actual_parent = REF #( lr_cont->* ).
 
   ENDMETHOD.
 
@@ -856,9 +555,6 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
         ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
         ).
 
-*      INSERT lines of VALUE #( ( n = 'suggestionItems' v = '{/' && lv_id && '}' ) )  INTO TABLE ls_control-t_property.
-*      INSERT VALUE #( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )  INTO TABLE ls_control-t_property.
-
       mo_server->mo_view_model->add_attribute(
            n = lv_id
            v = _=>trans_any_2_json( suggestion_items  )
@@ -890,7 +586,6 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     IF editable IS SUPPLIED AND editable = abap_false.
       ls_property-v = value.
     ELSE.
-      "ls_property-name = '{' && mo_server->_get_name_by_ref( value ) && '}'.
       ls_property-v = '{' && mo_server->_get_name_by_ref( value ) && '}'.
     ENDIF.
     INSERT ls_property INTO TABLE ls_control-t_property.
@@ -903,12 +598,12 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    z2ui5_if_selscreen_group~custom_control(  VALUE #(
-      name  = 'Title'
-      ns = 'core'
-      t_property = VALUE #(
-          ( n = 'text' v = title ) )
-     ) ).
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+         name  = 'Title'
+         ns = 'core'
+         t_property = VALUE #(
+             ( n = 'text' v = title ) )
+        ) ).
 
   ENDMETHOD.
 
@@ -931,10 +626,16 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     r_result = me.
 
     IF selected_index IS SUPPLIED.
-      "pruefen ob typ i
+      "test if type 1
     ENDIF.
 
-    APPEND INITIAL LINE TO  mo_server->mr_screen_actual->t_controls REFERENCE INTO DATA(lr_cont).
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+    DATA lr_data2 TYPE REF TO data.
+    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data2.
+    CREATE DATA lr_data2->* TYPE _=>ty-s-control.
+    DATA(lr_cont) = CAST _=>ty-s-control( lr_data2->* ).
+
     lr_cont->name = 'RadioButtonGroup'.
     lr_cont->t_property = VALUE #(
              ( n = 'columns' v = lines( t_prop ) )
@@ -963,11 +664,11 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'Label'
-       t_property = VALUE #(
-          ( n = 'text' v = text )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+       name  = 'Label'
+        t_property = VALUE #(
+           ( n = 'text' v = text )
+        ) ) ).
 
   ENDMETHOD.
 
@@ -976,11 +677,53 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'BEGIN_OF_BLOCK'
-       t_property = VALUE #(
-          ( n = 'TITLE' v = title )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    DATA lr_cont2 TYPE REF TO _=>ty-s-control. " get_new_control( ).
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+
+    DATA lr_data TYPE REF TO data.
+    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    lr_cont2  = CAST _=>ty-s-control( lr_data->* ).
+
+    lr_cont2->name = 'VBox'.
+    lr_cont2->t_property = VALUE #( ( n = 'class' v = 'sapUiSmallMargin' ) ).
+    lr_cont2->parent = REF #( lr_cont2->* ).
+
+    APPEND INITIAL LINE TO lr_cont2->t_child REFERENCE INTO DATA(lr_data2).
+    CREATE DATA lr_data2->* TYPE _=>ty-s-control.
+    DATA(lr_control) = CAST _=>ty-s-control( lr_data2->* ).
+    lr_control->name = 'SimpleForm'.
+    lr_control->ns = 'f'.
+    lr_control->parent = REF #( mo_server->mr_control_actual_parent->* ).
+    lr_control->t_property = VALUE #(
+          ( n = 'title' v = title )
+        ( n = 'editable' v = 'true' )
+        ( n = 'layout' v = 'ResponsiveGridLayout' )
+        ( n = 'labelSpanXL' v = '4' )
+        ( n = 'labelSpanL' v = '3' )
+        ( n = 'labelSpanM' v = '4' )
+        ( n = 'labelSpanS' v = '12' )
+        ( n = 'emptySpanXL' v = '0' )
+        ( n = 'emptySpanL' v = '4' )
+        ( n = 'emptySpanM' v = '0' )
+        ( n = 'emptySpanS' v = '0' )
+        ( n = 'columnsL' v = '1' )
+        ( n = 'columnsM' v = '1' )
+        ( n = 'singleContainerFullSize' v = 'false' )
+        ( n = 'adjustLabelSpan' v = 'false' )
+     ).
+
+    APPEND INITIAL LINE TO lr_control->t_child REFERENCE INTO DATA(lr_data3).
+    CREATE DATA lr_data3->* TYPE _=>ty-s-control.
+    DATA(lr_cont) = CAST _=>ty-s-control( lr_data3->* ).
+    lr_cont->name = 'content'.
+    lr_cont->ns = 'f'.
+    lr_cont->parent = REF #( lr_control->* ).
+
+    mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
+
 
   ENDMETHOD.
 
@@ -988,12 +731,12 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
       name       = 'DatePicker'
       t_property = VALUE #(
           ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
           ( n = 'placeholder' v = placeholder )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+       ) ) ).
 
   ENDMETHOD.
 
@@ -1007,6 +750,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
          ( n = 'text'   v = text )
          ( n = 'target' v = '_blank' )
          ( n = 'href'   v = href )
+         ( n = 'enabled'   v = _=>get_abap_2_json( enabled ) )
        ) ) ).
 
   ENDMETHOD.
@@ -1056,12 +800,12 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
       name  = 'TimePicker'
           t_property = VALUE #(
           ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}'  )
           ( n = 'placeholder'  v = placeholder  )
-      ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+      ) ) ).
 
   ENDMETHOD.
 
@@ -1069,12 +813,12 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'DateTimePicker'
-      t_property = VALUE #(
-          ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
-          ( n = 'placeholder'  v = placeholder  )
-       ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'DateTimePicker'
+        t_property = VALUE #(
+            ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
+            ( n = 'placeholder'  v = placeholder  )
+         ) ) ).
 
   ENDMETHOD.
 
@@ -1119,9 +863,18 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'FOOTER'
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    DATA lr_cont TYPE REF TO _=>ty-s-control.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+
+    DATA lr_data TYPE REF TO data.
+    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    lr_cont  = CAST _=>ty-s-control( lr_data->* ).
+    lr_cont->name = 'footer'.
+
+    mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
 
   ENDMETHOD.
 
@@ -1129,12 +882,12 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'MessageStrip'
-      t_property = VALUE #(
-          ( n = 'text' v = text )
-          ( n = 'type' v = type )
-     ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+       name  = 'MessageStrip'
+       t_property = VALUE #(
+           ( n = 'text' v = text )
+           ( n = 'type' v = type )
+      ) ) ).
 
   ENDMETHOD.
 
@@ -1142,18 +895,25 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'TextArea'
-        t_property = VALUE #(
-          ( n = 'value' v = value )
-          ( n = 'rows' v = rows )
-      ) ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+         name  = 'TextArea'
+           t_property = VALUE #(
+             ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
+             ( n = 'rows' v = rows )
+             ( n = 'height' v = height )
+             ( n = 'width' v = width )
+         ) ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_selscreen_block~end_of_block.
 
     r_result = me.
+
+    DATA(lr_control) = CAST _=>ty-s-control( mo_server->mr_control_actual_parent ).
+    lr_control = REF #( lr_control->parent->* ).
+    mo_server->mr_control_actual_parent = REF #( lr_control->* ).
+    mo_server->mr_control_actual = REF #( lr_control->t_child ).
 
   ENDMETHOD.
 
@@ -1188,8 +948,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
       on_press_id = on_press_id
       type        = type
       icon = icon
-
-  ) ).
+        ) ).
 
     ENDIF.
 
@@ -1201,20 +960,127 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_selscreen_footer~spacer.
+  METHOD z2ui5_if_selscreen_footer~Toolbar_spacer.
 
     r_result = me.
 
-    INSERT VALUE #(
-      name  = 'ToolbarSpacer'
-     ) INTO TABLE mo_server->mr_screen_actual->t_controls.
+    z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'ToolbarSpacer'
+          ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_selscreen_group~custom_control.
 
+    r_result = me.
+
     DELETE val-t_property WHERE n IS INITIAL.
-    INSERT val INTO TABLE mo_server->mr_screen_actual->t_controls.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+    APPEND INITIAL LINE TO <tab> ASSIGNING FIELD-SYMBOL(<field2>).
+    CREATE DATA <field2> TYPE z2ui5_cl_hlp_utility=>ty-s-control.
+    <field2>->* = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_block~code_editor.
+
+    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'CodeEditor'
+        ns = 'editor'
+        t_property = VALUE #(
+            ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
+            ( n = 'type'  v = type )
+            ( n = 'height'  v = '600px' )
+         ) ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_block~html.
+
+    "todo
+    DATA(lv_html) = replace( val = val sub = '</' with = '#+´"?' occ   =   0 ).
+    lv_html = replace( val = lv_html sub = '<' with = '<html:' occ   =   0 ).
+    lv_html = replace( val = lv_html sub = '#+´"?' with = '</html:' occ   =   0 ).
+
+    lv_html = '<VBox>' && lv_html && '</VBox>'.
+
+    r_result ?= z2ui5_if_selscreen_group~custom_control(  VALUE #(
+        name  = 'ZZHTML'
+        t_property = VALUE #( ( n = 'VALUE' v = lv_html ) )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_footer~Begin_of_overflow_toolbar.
+
+
+    r_result = me.
+
+    DATA lr_cont TYPE REF TO _=>ty-s-control.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mo_server->mr_control_actual->* TO <tab>.
+
+    DATA lr_data TYPE REF TO data.
+    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
+    CREATE DATA lr_data->* TYPE _=>ty-s-control.
+    lr_cont  = CAST _=>ty-s-control( lr_data->* ).
+    lr_cont->name = 'OverflowToolbar'.
+
+    mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_group~switch.
+
+  r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'Switch'
+        t_property = VALUE #(
+           ( n = 'type'           v = type           )
+           ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
+           ( n = 'state'          v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
+           ( n = 'customTextOff'  v = customtextoff  )
+           ( n = 'customTextOn'   v = customtexton   )
+    ) ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_footer~end_of_overflow_toolbar.
+
+    r_result = me.
+
+    DATA(lr_control) = CAST _=>ty-s-control( mo_server->mr_control_actual_parent ).
+    lr_control = REF #( lr_control->parent->* ).
+    mo_server->mr_control_actual_parent = REF #( lr_control->* ).
+    mo_server->mr_control_actual = REF #( lr_control->t_child ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_group~progress_indicator.
+
+   r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'ProgressIndicator'
+        t_property = VALUE #(
+           ( n = 'percentValue' v = percent_Value )
+           ( n = 'displayValue' v = display_Value )
+           ( n = 'showValue'    v = show_value    )
+           ( n = 'state'        v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
+    ) ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_selscreen_group~step_input.
+
+   r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+        name  = 'StepInput'
+        t_property = VALUE #(
+           ( n = 'max' v = '{' && mo_server->_get_name_by_ref( max ) && '}' )
+           ( n = 'min' v = '{' && mo_server->_get_name_by_ref( min ) && '}' )
+           ( n = 'step' v = '{' && mo_server->_get_name_by_ref( step ) && '}' )
+           ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
+    ) ) ).
 
   ENDMETHOD.
 

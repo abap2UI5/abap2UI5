@@ -58,10 +58,17 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
             val         TYPE string,
             o           TYPE REF TO z2ui5_cl_hlp_utility,
           END OF get_result,
+          BEGIN OF get_server_info,
+            url_app  TYPE string,
+            url_abap TYPE string,
+            origin   TYPE string,
+            tenant   TYPE string,
+          END OF get_server_info,
         END OF s,
         BEGIN OF t,
           property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY,
           attri    TYPE STANDARD TABLE OF ty-s-attri WITH EMPTY KEY,
+          control  TYPE STANDARD TABLE OF REF TO ty-s-control WITH EMPTY KEY,
         END OF t,
         BEGIN OF o,
           me TYPE REF TO z2ui5_cl_hlp_utility,
@@ -113,6 +120,14 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     METHODS log_sy
       RETURNING VALUE(result) TYPE ty-o-me.
 
+
+    CLASS-METHODS get_server_info
+      IMPORTING
+        app           TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE ty-s-get_server_info.
+
+
     CLASS-METHODS msg
       IMPORTING val             TYPE any OPTIONAL
                 msg             TYPE ty-s-msg OPTIONAL
@@ -149,7 +164,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
 
     CLASS-METHODS get_uuid
       RETURNING VALUE(r_result) TYPE string
-      RAISING cx_uuid_error.
+      RAISING   cx_uuid_error.
 
     CLASS-METHODS get_uuid_session
       RETURNING VALUE(r_result) TYPE string.
@@ -173,7 +188,8 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     CLASS-METHODS trans_json_2_data
       IMPORTING
         iv_json   TYPE clike
-        iv_result TYPE REF TO data.
+       exporting
+        ev_result TYPE REF TO data.
 
     CLASS-METHODS trans_data_2_json
       IMPORTING
@@ -348,10 +364,10 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO cx_root.
 
-    class-methods get_ref_data
-      importing n type clike
-                o type ref to object
-      RETURNING VALUE(result) type ref to data.
+    CLASS-METHODS get_ref_data
+      IMPORTING n             TYPE clike
+                o             TYPE REF TO object
+      RETURNING VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS get_abap_2_json
       IMPORTING
@@ -379,7 +395,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
+CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
 
   METHOD action_parallel.
@@ -554,8 +570,8 @@ CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
     IF lo_ele->get_relative_name( ) = 'ABAP_BOOL'.
       r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
     ELSE.
-      r_result = |"{ conv string( val ) }"|.
-    endif.
+      r_result = |"{ CONV string( val ) }"|.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -619,7 +635,7 @@ CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
 
   METHOD get_data_by_json.
     CHECK val IS NOT INITIAL.
-RETURN.
+    RETURN.
 *    " Convert JSON to post structure
 *    xco_cp_json=>data->from_string( val )->apply(
 *      VALUE #( ( xco_cp_json=>transformation->camel_case_to_underscore ) )
@@ -749,6 +765,14 @@ RETURN.
 
 
   METHOD get_xml_by_control.
+
+
+    CASE ms_control-name.
+
+      WHEN 'ZZHTML'.
+        r_result = ms_control-t_property[ n = 'VALUE' ]-v.
+        RETURN.
+    ENDCASE.
 
     r_result = |{ r_result } <{ COND #( WHEN ms_control-ns <> '' THEN |{ ms_control-ns }:| ) }{ ms_control-name } \n {
                          REDUCE #( INIT val = `` FOR row IN ms_control-t_property
@@ -912,9 +936,9 @@ RETURN.
   ENDMETHOD.
 
 
-  method IF_MESSAGE~GET_TEXT.
+  METHOD if_message~get_text.
 
-      IF ms_error-x_root IS NOT INITIAL.
+    IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text(  ).
       result = COND #( WHEN result IS INITIAL THEN 'Es ist ein unbekannter Fehler aufgetreten' ELSE result ).
       RETURN.
@@ -938,7 +962,7 @@ RETURN.
 *  RECEIVING
 *    RESULT =
 *    .
-  endmethod.
+  ENDMETHOD.
 
 
   METHOD if_oo_adt_classrun~main.
@@ -1217,12 +1241,15 @@ RETURN.
 
 
   METHOD trans_data_2_json.
-RETURN.
-*    " Convert input post to JSON
-*    DATA(json_post) = xco_cp_json=>data->from_abap( data )->apply(
-*      VALUE #( ( xco_cp_json=>transformation->underscore_to_camel_case ) ) )->to_string(  ).
-*
-*    r_result = json_post.
+
+    r_result = /ui2/cl_json=>serialize( data ).
+
+    " RETURN.
+    " Convert input post to JSON
+    "  DATA(json_post) = xco_cp_json=>data->from_abap( data )->apply(
+    "    VALUE #( ( xco_cp_json=>transformation->underscore_to_camel_case ) ) )->to_string(  ).
+
+    "  r_result = json_post.
 
   ENDMETHOD.
 
@@ -1230,8 +1257,20 @@ RETURN.
   METHOD trans_json_2_data.
 
     CHECK iv_json IS NOT INITIAL.
-RETURN.
-*    " Convert JSON to post structure
+
+    DATA lr_data TYPE REF TO data.
+
+    /ui2/cl_json=>deserialize(
+        EXPORTING
+            json         = CONV string( iv_json )
+            assoc_arrays = abap_true
+        CHANGING
+         data            = ev_result
+        ).
+
+
+*    RETURN.
+    " Convert JSON to post structure
 *    xco_cp_json=>data->from_string( iv_json )->apply(
 *      VALUE #( ( xco_cp_json=>transformation->camel_case_to_underscore ) )
 *      )->write_to( iv_result ).
@@ -1421,4 +1460,16 @@ RETURN.
 
     ENDLOOP.
   ENDMETHOD.
+  METHOD get_server_info.
+
+    DATA(lt_head) = z2ui5_cl_http_handler=>client-t_header.
+    DATA(lv_url) = lt_head[ name = 'referer' ]-value.
+
+    result-tenant = sy-mandt.
+    result-url_app = lv_url && '?sap-client=' && result-tenant && '&app=' && app .
+    result-origin = lt_head[ name = 'origin' ]-value.
+    result-url_abap = result-origin && `/sap/bc/adt/oo/classes/` && app && `/source/main`.
+
+  ENDMETHOD.
+
 ENDCLASS.
