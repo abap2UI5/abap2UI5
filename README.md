@@ -8,7 +8,7 @@ Project features:
 * easy installation - abapgit project, no additional app deployment or javascript needed, works with all abap stacks
 
 ## Example
-![example](https://user-images.githubusercontent.com/102328295/216781351-1001a679-88f9-4154-bcac-ba8456a984e0.gif)
+![example](https://user-images.githubusercontent.com/102328295/216781915-85a1c1c6-b92a-4c0f-8f03-44a200fede5b.gif)
 
 ## Installation
 Works with all abap stacks:
