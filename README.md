@@ -8,23 +8,7 @@ Project features:
 * easy installation - abapgit project, no additional app deployment or javascript needed
 
 ## Example
-After installing the abap2ui5 project in your system, you only have to create a new abap class and implement the interface Z2UI5_IF_APP. It has two methods to define the view and the behaviour of the app. Nothing more is needed to create a new standalone UI5 app [(Sample Code)](https://github.com/oblomov-dev/abap2ui5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap).<br>
-View Definition:<br>
-<img width="900" alt="image" src="https://user-images.githubusercontent.com/102328295/207578802-c15add24-5ee9-4eb9-8373-49ecff6cb2a3.png">
-<br>
-Controller Definition: <br>
-<img width="700" alt="image" src="https://user-images.githubusercontent.com/102328295/207333675-3e9418dc-ca5c-4948-b967-1b34776d25e7.png">
-<br>
-To start the new ui5 app, you only have to call the delivered http endpoint and use the url parameter "app" with the name of your new abap class.
-
-## Installation
-Works with all availible abap stacks:
-* BTP ABAP Environment (Abap Cloud)
-* S/4 Public Cloud ABAP Environment (Abap Cloud)
-* S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
-* SAP NetWeaver AS ABAP 7.52 (Abap Standard) - downport to older releases possible [(#3)](https://github.com/oblomov-dev/ABAP2UI5/issues/6)
-
-Install with [abapGit](https://abapgit.org) and create a new http endpoint to call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
+![example](https://user-images.githubusercontent.com/102328295/216781351-1001a679-88f9-4154-bcac-ba8456a984e0.gif)
 
 #### ABAP Standard:
 ```abap
