@@ -12,11 +12,11 @@ Project features:
 ![example](https://user-images.githubusercontent.com/102328295/216781915-85a1c1c6-b92a-4c0f-8f03-44a200fede5b.gif)
 
 ## Installation
-Works with all abap stacks:
-* BTP ABAP Environment (Abap Cloud)
-* S/4 Public Cloud ABAP Environment (Abap Cloud)
-* S/4 Private Cloud or On-Premise (Abap Cloud, Abap Standard)
-* SAP NetWeaver AS ABAP 7.52 (Abap Standard) - downport to older releases possible [(#3)](https://github.com/oblomov-dev/ABAP2UI5/issues/6)
+Works with all ABAP stacks:
+* BTP ABAP Environment (ABAP Cloud)
+* S/4 Public Cloud ABAP Environment (ABAP Cloud)
+* S/4 Private Cloud or On-Premise (ABAP Cloud, ABAP Standard)
+* SAP NetWeaver AS ABAP 7.52 (ABAP Standard) - downport to older releases possible [(#3)](https://github.com/oblomov-dev/ABAP2UI5/issues/6)
 
 Install with [abapGit](https://abapgit.org), create a new http endpoint and call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
 
