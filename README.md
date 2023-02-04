@@ -16,9 +16,7 @@ Works with all availible abap stacks:
 
 Install with [abapGit](https://abapgit.org) and create a new http endpoint to call ABAP2UI5.
 
-
-
-### On-Prem:
+#### ABAP Standard:
 ```abap
 method if_http_extension~handle_request.
 
@@ -53,7 +51,7 @@ method if_http_extension~handle_request.
 
   endmethod.
 ```
-### Steampunk:
+#### ABAP Cloud:
 ```abap
   METHOD if_http_service_extension~handle_request.
 
