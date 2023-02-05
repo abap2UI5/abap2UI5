@@ -11,7 +11,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         browser_title TYPE string    VALUE 'ABAP2UI5',
         repository    TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
         letterboxing  TYPE abap_bool VALUE abap_true,
-        debug_mode_on TYPE abap_bool VALUE abap_true,
+        debug_mode_on TYPE abap_bool VALUE abap_false,
       END OF cs_config.
 
     CLASS-DATA:

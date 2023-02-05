@@ -401,7 +401,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
+CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
 
 
   METHOD action_parallel.
@@ -782,9 +782,7 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
     r_result = |{ r_result } <{ COND #( WHEN ms_control-ns <> '' THEN |{ ms_control-ns }:| ) }{ ms_control-name } \n {
                          REDUCE #( INIT val = `` FOR row IN ms_control-t_property
-                          NEXT val = |{ val } { row-n }="{
-                             escape( val = row-v  format = cl_abap_format=>e_xml_attr )
-                            }" \n | ) }|.
+                          NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
 
     "     COND #( WHEN row-name IS NOT INITIAL " IS BOUND
     "                  THEN row-name "`{/oUpdate/` && row-name && `}`
@@ -1466,6 +1464,8 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
 
     ENDLOOP.
   ENDMETHOD.
+
+
   METHOD get_server_info.
 
     DATA(lt_head) = z2ui5_cl_http_handler=>client-t_header.
@@ -1477,5 +1477,4 @@ CLASS z2ui5_cl_hlp_utility IMPLEMENTATION.
     result-url_abap = result-origin && `/sap/bc/adt/oo/classes/` && app && `/source/main`.
 
   ENDMETHOD.
-
 ENDCLASS.

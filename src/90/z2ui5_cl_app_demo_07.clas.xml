@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_APP_DEMO_07</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>html cl_demo_output</DESCRIPT>
+    <DESCRIPT>write - cl_demo_output</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

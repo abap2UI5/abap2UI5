@@ -141,18 +141,23 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
                  )->button( text = 'Detailed Example' on_press_id = 'BTN_SELSCREEN_COMPLEX'
                   )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_SELSCREEN_COMPLEX_CODE'
                   )->link( enabled = abap_false text = 'ADT' href = ''
+                 )->label( 'Demo 03'
+                 )->button( text = 'More Controls' on_press_id = 'BTN_SELSCREEN_MORE'
+                  )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_SELSCREEN_MORE_CODE'
+                  )->link( enabled = abap_false text = 'ADT' href = ''
               )->end_of_group(
-          )->begin_of_group( 'Write (HTML Output)'
-                 )->label( 'Demo 01'
-                 )->button( text = 'Basic Example' on_press_id = 'BTN_HTML_BASIC'
-                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_BASIC_CODE'
-                 )->link( text = 'ADT' href = '' enabled = abap_false
-                  )->label( 'Demo 02'
-                 )->button( text = 'CL_DEMO_OUTPUT (OnPrem)' on_press_id = 'BTN_HTML_DEMO_OUTPUT' enabled = abap_false
-                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DEMO_OUTPUT_CODE' enabled = abap_true
-                 )->link( text = 'ADT' href = '' enabled = abap_false
-                )->end_of_group( ).
+*          )->begin_of_group( 'Write (HTML Output)'
+*                 )->label( 'Demo 01'
+*                 )->button( text = 'Basic Example' on_press_id = 'BTN_HTML_BASIC'
+*                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_BASIC_CODE'
+*                 )->link( text = 'ADT' href = '' enabled = abap_false
+*                  )->label( 'Demo 02'
+*                 )->button( text = 'CL_DEMO_OUTPUT (OnPrem)' on_press_id = 'BTN_HTML_DEMO_OUTPUT' enabled = abap_false
+*                 )->button( icon = 'sap-icon://source-code' on_press_id = 'BTN_HTML_DEMO_OUTPUT_CODE' enabled = abap_true
+*                 )->link( text = 'ADT' href = '' enabled = abap_false
+*                )->end_of_group( ).
 
+             ).
            return.
 
 *                   )->begin_of_group( 'ALV'
@@ -321,6 +326,13 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
       WHEN 'BTN_SELSCREEN_COMPLEX_CODE'.
         client->controller( )->nav_to_app(
             z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_02' )-url_abap ) ).
+
+      WHEN 'BTN_SELSCREEN_MORE'.
+        client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_09( ) ).
+
+      WHEN 'BTN_SELSCREEN_MORE_CODE'.
+        client->controller( )->nav_to_app(
+            z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_09' )-url_abap ) ).
 
       WHEN 'BTN_TOOLS_BROWSER'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
