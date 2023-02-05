@@ -6,26 +6,32 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     INTERFACES if_t100_dyn_msg.
     INTERFACES if_oo_adt_classrun.
 
+    TYPES: BEGIN OF ty_property,
+             n TYPE string,
+             v TYPE string,
+             "  name TYPE string,
+           END OF ty_property.
+
+    TYPES: BEGIN OF ty_attri,
+             name       TYPE string,
+             kind       TYPE string,
+             check_used TYPE abap_bool,
+           END OF ty_attri.
+
+    TYPES: BEGIN OF ty_control,
+             name       TYPE string,
+             ns         TYPE string,
+             t_property TYPE STANDARD TABLE OF ty_property WITH EMPTY KEY, "if_web_http_request=>name_value_pairs,
+             t_child    TYPE STANDARD TABLE OF REF TO data WITH EMPTY KEY,
+             parent     TYPE REF TO data,
+           END OF ty_control.
+
     TYPES:
       BEGIN OF ty,
         BEGIN OF s,
-          BEGIN OF property,
-            n TYPE string,
-            v TYPE string,
-            "  name TYPE string,
-          END OF property,
-          BEGIN OF control,
-            name       TYPE string,
-            ns         TYPE string,
-            t_property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY, "if_web_http_request=>name_value_pairs,
-            t_child    TYPE STANDARD TABLE OF REF TO data WITH EMPTY KEY,
-            parent     TYPE REF TO data,
-          END OF control,
-          BEGIN OF attri,
-            name       TYPE string,
-            kind       TYPE string,
-            check_used TYPE abap_bool,
-          END OF attri,
+          property TYPE ty_property,
+          control TYPE ty_control,
+          attri TYPE ty_attri,
           BEGIN OF msg,
             id TYPE string,
             ty TYPE string,
@@ -66,9 +72,9 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
           END OF get_server_info,
         END OF s,
         BEGIN OF t,
-          property TYPE STANDARD TABLE OF ty-s-property WITH EMPTY KEY,
-          attri    TYPE STANDARD TABLE OF ty-s-attri WITH EMPTY KEY,
-          control  TYPE STANDARD TABLE OF REF TO ty-s-control WITH EMPTY KEY,
+          property TYPE STANDARD TABLE OF ty_property WITH EMPTY KEY,
+          attri    TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
+          control  TYPE STANDARD TABLE OF REF TO ty_control WITH EMPTY KEY,
         END OF t,
         BEGIN OF o,
           me TYPE REF TO z2ui5_cl_hlp_utility,
