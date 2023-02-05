@@ -69,11 +69,7 @@
     "description_empty": true,
     "double_space": false,
     "downport": true,
-    "empty_line_in_statement": {
-      "exclude": [],
-      "severity": "Error",
-      "allowChained": false
-    },
+    "empty_line_in_statement": false,
     "empty_statement": false,
     "empty_structure": false,
     "exit_or_check": false,
@@ -111,7 +107,7 @@
     "identical_descriptions": true,
     "identical_form_names": true,
     "if_in_if": true,
-    "implement_methods": true,
+    "implement_methods": false,
     "in_statement_indentation": false,
     "indentation": false,
     "inline_data_old_versions": true,
@@ -123,7 +119,7 @@
     "keep_single_parameter_on_one_line": false,
     "keyword_case": false,
     "line_break_multiple_parameters": false,
-    "line_break_style": true,
+    "line_break_style": false,
     "line_length": false,
     "line_only_punc": false,
     "local_class_naming": false,
@@ -200,11 +196,7 @@
     "prefer_returning_to_exporting": false,
     "prefer_xsdbool": true,
     "preferred_compare_operator": false,
-    "prefix_is_current_class": {
-      "exclude": [],
-      "severity": "Error",
-      "omitMeInstanceCalls": true
-    },
+    "prefix_is_current_class": false,
     "reduce_string_templates": true,
     "release_idoc": true,
     "remove_descriptions": {
@@ -214,24 +206,9 @@
       "ignoreWorkflow": true
     },
     "rfc_error_handling": true,
-    "select_add_order_by": true,
-    "select_performance": {
-      "exclude": [],
-      "severity": "Error",
-      "endSelect": true,
-      "selectStar": true,
-      "starOkayIfFewColumns": 10
-    },
-    "selection_screen_naming": {
-      "exclude": [],
-      "severity": "Error",
-      "patternKind": "required",
-      "ignoreNames": [],
-      "ignorePatterns": [],
-      "parameter": "^P_.+$",
-      "selectOption": "^S_.+$",
-      "screenElement": "^SC_.+$"
-    },
+    "select_add_order_by": false,
+    "select_performance": true,
+    "selection_screen_naming": true,
     "sequential_blank": false,
     "short_case": false,
     "sicf_consistency": true,
