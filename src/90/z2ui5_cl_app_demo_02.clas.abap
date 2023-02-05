@@ -163,35 +163,5 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     lo_screen = lo_group->end_of_group( )->end_of_block( ).
 
-    lo_screen->message_strip( 'This is a message strip'
-        )->begin_of_block( 'Some new UI5 Controls...'
-            )->begin_of_group( 'ready to use in pure abap'
-            )->label( 'ProgressIndicator'
-                )->progress_indicator(
-        percent_value = '30'
-*        display_value =
-        show_value    = '30%'
-*        state         = z2ui5_if_view=>cs-progress_indicator-state-none
-            )->label( 'StepInput'
-        )->step_input(
-        value    = '6'
-        min      = '0'
-        max      = '20'
-        step     = '2'
-         )->label( 'Switch'
-        )->switch(
-*        state         = abap_true
-         customtexton  = 'an'
-        customtextoff =  'aus'
-*        enabled       = abap_true
-*        type          = z2ui5_if_view=>cs-switch-type-default
-         )->text_area(  'this is a text area for a long text'
-*        rows     = 8
-*        height   =
-*        width    = '100%'
-*      RECEIVING
-*        r_result =
-    ).
-
   ENDMETHOD.
 ENDCLASS.

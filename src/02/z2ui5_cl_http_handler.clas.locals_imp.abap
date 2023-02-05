@@ -1063,10 +1063,10 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
         name  = 'ProgressIndicator'
         t_property = VALUE #(
-           ( n = 'percentValue' v = percent_Value )
+           ( n = 'percentValue' v = '{' && mo_server->_get_name_by_ref( percent_value ) && '}' )
            ( n = 'displayValue' v = display_Value )
-           ( n = 'showValue'    v = show_value    )
-           ( n = 'state'        v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
+           ( n = 'showValue'    v = _=>get_abap_2_json( show_value  )      )
+           ( n = 'state'        v = state  )
     ) ) ).
 
   ENDMETHOD.
@@ -1076,9 +1076,9 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
         name  = 'StepInput'
         t_property = VALUE #(
-           ( n = 'max' v = '{' && mo_server->_get_name_by_ref( max ) && '}' )
-           ( n = 'min' v = '{' && mo_server->_get_name_by_ref( min ) && '}' )
-           ( n = 'step' v = '{' && mo_server->_get_name_by_ref( step ) && '}' )
+           ( n = 'max'  v = max  )
+           ( n = 'min'  v = min  )
+           ( n = 'step' v = step )
            ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
     ) ) ).
 
