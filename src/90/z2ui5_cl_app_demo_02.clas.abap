@@ -18,7 +18,10 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
   PRIVATE SECTION.
 ENDCLASS.
 
+
+
 CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
+
 
   METHOD z2ui5_if_app~on_event.
 
@@ -71,6 +74,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~set_view.
 
@@ -168,19 +172,26 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 *        display_value =
         show_value    = '30%'
 *        state         = z2ui5_if_view=>cs-progress_indicator-state-none
- )->label( 'StepInput'
-    )->step_input(
+            )->label( 'StepInput'
+        )->step_input(
         value    = '6'
         min      = '0'
         max      = '20'
         step     = '2'
          )->label( 'Switch'
-    )->switch(
+        )->switch(
 *        state         = abap_true
          customtexton  = 'an'
         customtextoff =  'aus'
 *        enabled       = abap_true
 *        type          = z2ui5_if_view=>cs-switch-type-default
+         )->text_area(  'this is a text area for a long text'
+*        rows     = 8
+*        height   =
+*        width    = '100%'
+*      RECEIVING
+*        r_result =
     ).
+
   ENDMETHOD.
 ENDCLASS.
