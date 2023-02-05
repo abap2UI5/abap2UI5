@@ -6,14 +6,16 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
     INTERFACES if_t100_dyn_msg.
     INTERFACES if_oo_adt_classrun.
 
+    TYPES: BEGIN OF ty_property,
+             n TYPE string,
+             v TYPE string,
+             "  name TYPE string,
+           END OF ty_property.
+
     TYPES:
       BEGIN OF ty,
         BEGIN OF s,
-          BEGIN OF property,
-            n TYPE string,
-            v TYPE string,
-            "  name TYPE string,
-          END OF property,
+          property TYPE ty_proprety,
           BEGIN OF control,
             name       TYPE string,
             ns         TYPE string,
