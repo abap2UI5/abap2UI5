@@ -7,8 +7,8 @@ Project features:
 * lightweight - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
 * easy installation - abapgit project, no additional app deployment or javascript needed, works with all abap stacks
 
-## Example
-ABAP2UI5 Demo Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap):
+## Demo
+ABAP2UI5 Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap):
 ![example](https://user-images.githubusercontent.com/102328295/216781915-85a1c1c6-b92a-4c0f-8f03-44a200fede5b.gif)
 
 ## Installation
