@@ -32,8 +32,10 @@ CLASS z2ui5_cl_app_demo_08 IMPLEMENTATION.
         DATA lr_data_in TYPE REF TO data.
         CREATE DATA lr_data_in TYPE STANDARD TABLE OF (tabname).
         _=>trans_json_2_data(
-          iv_json   = input
-          iv_result = lr_data_in
+          EXPORTING
+            iv_json   = input
+          IMPORTING
+           ev_result = lr_data_in
         ).
 
         "save routine here, modify or bapi

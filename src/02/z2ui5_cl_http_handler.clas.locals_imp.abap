@@ -41,10 +41,14 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
   PUBLIC SECTION.
 
+    INTERFACES:
+      z2ui5_if_config.
+
     TYPES:
       BEGIN OF s_screen,
         name          TYPE string,
         check_binding TYPE abap_bool,
+        o_parser      TYPE REF TO z2ui5_if_view_parser,
         t_controls    TYPE STANDARD TABLE OF _=>ty-s-control WITH EMPTY KEY,
       END OF s_screen.
 
@@ -185,26 +189,10 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
       lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
     ENDIF.
 
-
-    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-    " define ui5 view
-
-    r_result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
-               `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
-                         ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
-                  COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` ).
-
-    LOOP AT lr_screen->t_controls REFERENCE INTO DATA(lr_element).
-      r_result &&= _=>get_xml_by_control( lr_element->* ).
-    ENDLOOP.
-
-    r_result &&= COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`.
-
-
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     " define ui5 model
 
-    mo_ui5_model->add_attribute( n = `vView` v = r_result ).
+    mo_ui5_model->add_attribute( n = `vView` v = lr_screen->o_parser->get_view( ) ).
 
     DATA(lo_update) = mo_view_model->add_attribute_object( 'oUpdate' ).
     lo_update->add_attribute( n = 'id' v = ms_db-id ).
@@ -256,6 +244,80 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
     r_result = mo_ui5_model->get_root( )->write_result( ).
     db_save( ).
+
+
+
+
+    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+    " define ui5 view
+
+*    r_result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
+*               `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+*                         ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
+*                  COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` ).
+*
+*    LOOP AT lr_screen->t_controls REFERENCE INTO DATA(lr_element).
+*      r_result &&= _=>get_xml_by_control( lr_element->* ).
+*    ENDLOOP.
+*
+*    r_result &&= COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`.
+
+
+*    """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+*    " define ui5 model
+*
+*    mo_ui5_model->add_attribute( n = `vView` v = r_result ).
+*
+*    DATA(lo_update) = mo_view_model->add_attribute_object( 'oUpdate' ).
+*    lo_update->add_attribute( n = 'id' v = ms_db-id ).
+*
+*
+*    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+*      WHERE check_used = abap_true.
+*
+*      FIELD-SYMBOLS <attribute> TYPE any.
+*      DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
+*      ASSIGN (lv_name) TO <attribute>.
+*
+*      CASE lr_attri->kind.
+*
+*        WHEN 'g' OR 'D' OR 'P' OR 'T' OR 'C'.
+*
+*          lo_update->add_attribute( n = lr_attri->name
+*                                    v = _=>get_abap_2_json( <attribute> )
+*                                    apos_active = abap_false ).
+*
+*        WHEN 'I'.
+*          lo_update->add_attribute( n = lr_attri->name
+*                                    v = CONV string( <attribute> )
+*                                    apos_active = abap_false ).
+*
+*        WHEN 'h'.
+*          lo_update->add_attribute( n = lr_attri->name
+*                                    v = _=>trans_any_2_json( <attribute> )
+*                                    apos_active = abap_false ).
+*
+*      ENDCASE.
+*
+*    ENDLOOP.
+*
+*
+*    mo_ui5_model = mo_ui5_model->get_root( ).
+*
+*    mo_view_model->add_attribute( n = 'debug' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-debug_mode_on )  apos_active = abap_false ).
+*
+*    IF mt_after IS NOT INITIAL.
+*      DATA(lo_list) = mo_ui5_model->add_attribute_list( 'oAfter' ).
+*      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
+*        DATA(lo_list2) = lo_list->add_list_list(  ).
+*        LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
+*          lo_list2->add_list_val( lr_con->* ).
+*        ENDLOOP.
+*      ENDLOOP.
+*    ENDIF.
+*
+*    r_result = mo_ui5_model->get_root( )->write_result( ).
+*    db_save( ).
 
   ENDMETHOD.
 
@@ -368,6 +430,23 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_config~get_attr_name_by_ref.
+
+    result = _get_name_by_ref(
+         value    = ref
+*          RECEIVING
+*            r_result =
+     ).
+
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_config~get_event_method.
+
+    result = |onEventBackend({ event_object })|.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_app_client IMPLEMENTATION.
@@ -460,6 +539,8 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
   METHOD constructor.
 
     me->mo_server = server.
+
+    server->z2ui5_if_config~mo_view_model = server->mo_view_model.
 
   ENDMETHOD.
 
@@ -1035,15 +1116,15 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   METHOD z2ui5_if_selscreen_group~switch.
 
-  r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
-        name  = 'Switch'
-        t_property = VALUE #(
-           ( n = 'type'           v = type           )
-           ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
-           ( n = 'state'          v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
-           ( n = 'customTextOff'  v = customtextoff  )
-           ( n = 'customTextOn'   v = customtexton   )
-    ) ) ).
+    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+          name  = 'Switch'
+          t_property = VALUE #(
+             ( n = 'type'           v = type           )
+             ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
+             ( n = 'state'          v = '{' && mo_server->_get_name_by_ref( state ) && '}' )
+             ( n = 'customTextOff'  v = customtextoff  )
+             ( n = 'customTextOn'   v = customtexton   )
+      ) ) ).
 
   ENDMETHOD.
 
@@ -1060,27 +1141,38 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   METHOD z2ui5_if_selscreen_group~progress_indicator.
 
-   r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
-        name  = 'ProgressIndicator'
-        t_property = VALUE #(
-           ( n = 'percentValue' v = '{' && mo_server->_get_name_by_ref( percent_value ) && '}' )
-           ( n = 'displayValue' v = display_Value )
-           ( n = 'showValue'    v = _=>get_abap_2_json( show_value  )      )
-           ( n = 'state'        v = state  )
-    ) ) ).
+    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+         name  = 'ProgressIndicator'
+         t_property = VALUE #(
+            ( n = 'percentValue' v = '{' && mo_server->_get_name_by_ref( percent_value ) && '}' )
+            ( n = 'displayValue' v = display_Value )
+            ( n = 'showValue'    v = _=>get_abap_2_json( show_value  )      )
+            ( n = 'state'        v = state  )
+     ) ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_selscreen_group~step_input.
 
-   r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
-        name  = 'StepInput'
-        t_property = VALUE #(
-           ( n = 'max'  v = max  )
-           ( n = 'min'  v = min  )
-           ( n = 'step' v = step )
-           ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
-    ) ) ).
+    r_result = z2ui5_if_selscreen_group~custom_control( VALUE #(
+         name  = 'StepInput'
+         t_property = VALUE #(
+            ( n = 'max'  v = max  )
+            ( n = 'min'  v = min  )
+            ( n = 'step' v = step )
+            ( n = 'value' v = '{' && mo_server->_get_name_by_ref( value ) && '}' )
+     ) ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~factory_view.
+
+    DATA(lo_parser) = CAST z2ui5_cl_control_library( parser ).
+    lo_parser->config = mo_server.
+
+    mo_server->mt_screen = VALUE #( BASE mo_server->mt_screen
+        ( name = name  o_parser = parser )
+     ).
 
   ENDMETHOD.
 
