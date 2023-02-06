@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_config
+INTERFACE z2ui5_if_view_context
   PUBLIC.
 
   METHODS get_event_method

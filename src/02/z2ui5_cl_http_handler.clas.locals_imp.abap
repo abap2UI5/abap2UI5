@@ -42,7 +42,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
   PUBLIC SECTION.
 
     INTERFACES:
-      z2ui5_if_config.
+      z2ui5_if_view_context.
 
     TYPES:
       BEGIN OF s_screen,
@@ -430,7 +430,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_config~get_attr_name_by_ref.
+  METHOD z2ui5_if_view_context~get_attr_name_by_ref.
 
     result = _get_name_by_ref(
          value    = ref
@@ -441,7 +441,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_config~get_event_method.
+  METHOD z2ui5_if_view_context~get_event_method.
 
     result = |onEventBackend({ event_object })|.
 
@@ -495,7 +495,7 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client_controller~nav_to_page.
+  METHOD z2ui5_if_client_controller~nav_to_view.
 
     mo_server->ms_db-screen = name.
 
@@ -540,38 +540,18 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     me->mo_server = server.
 
-    server->z2ui5_if_config~mo_view_model = server->mo_view_model.
+    server->z2ui5_if_view_context~mo_view_model = server->mo_view_model.
 
   ENDMETHOD.
 
   METHOD  z2ui5_if_view~factory_selscreen_page.
 
-    r_result = me.
-
-    INSERT VALUE #(
-        name = name
-     ) INTO TABLE mo_server->mt_screen.
-
-    mo_server->mr_screen_actual = REF #( mo_server->mt_screen[ lines( mo_server->mt_screen ) ] ).
-
-    r_result = me.
-
-    APPEND INITIAL LINE TO mo_server->mr_screen_actual->t_controls REFERENCE INTO DATA(lr_control).
-    lr_control->name = 'Page'.
-    lr_control->t_property = VALUE #(
-     ( n = 'title' v = title )
-     ( n = 'showNavButton' v = COND #( WHEN event_nav_back_id = '' THEN 'false' ELSE 'true' ) )
-     ( n = 'navButtonTap' v = `onEventBackend({ 'ID' : '` && event_nav_back_id && `' })` )
+   r_result = z2ui5_cl_view_selscreen=>create(
+         name              = name
+         title             = title
+         event_nav_back_id = event_nav_back_id
+         view              = me
      ).
-
-    APPEND INITIAL LINE TO lr_control->t_child REFERENCE INTO DATA(lr_data).
-    CREATE DATA lr_data->* TYPE _=>ty-s-control.
-    DATA(lr_cont) = CAST _=>ty-s-control( lr_data->* ).
-    lr_cont->name = 'content'.
-    lr_cont->parent = REF #( lr_control->* ).
-
-    mo_server->mr_control_actual = REF #( lr_cont->t_child ).
-    mo_server->mr_control_actual_parent = REF #( lr_cont->* ).
 
   ENDMETHOD.
 
@@ -1167,13 +1147,14 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~factory_view.
 
-    DATA(lo_parser) = CAST z2ui5_cl_control_library( parser ).
-    lo_parser->config = mo_server.
-
     mo_server->mt_screen = VALUE #( BASE mo_server->mt_screen
         ( name = name  o_parser = parser )
      ).
 
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~get_context.
+    result = mo_server.
   ENDMETHOD.
 
 ENDCLASS.

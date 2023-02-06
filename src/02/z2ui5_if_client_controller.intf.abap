@@ -1,6 +1,6 @@
 INTERFACE z2ui5_if_client_controller PUBLIC.
 
-  METHODS nav_to_page
+  METHODS nav_to_view
     IMPORTING
       name TYPE string.
 

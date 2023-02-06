@@ -36,44 +36,68 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
     ENDCASE.
 
+    client->controller( )->nav_to_view( 'FREESTYLE' ).
+
   ENDMETHOD.
 
   METHOD z2ui5_if_app~set_view.
 
-*    "define selection screen
-*    view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
-*         )->begin_of_block( 'Selection Screen Title'
-*            )->begin_of_group( 'Stock Information'
-*                )->label( 'Product'
-*                )->input( product
-*                )->label( 'Quantity'
-*                )->input( quantity
-*                )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-*           )->end_of_group(
-*           )->end_of_block(
-*       ).
-*
+
+    "inside
+    "define selection screen
+   view->factory_selscreen_page( name = 'SELSCREEN_IN' event_nav_back_id = 'BTN_BACK' title = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
+         )->begin_of_block( 'Selection Screen Title'
+            )->begin_of_group( 'Stock Information'
+                )->label( 'Product'
+                )->input( product
+                )->label( 'Quantity'
+                )->input( quantity
+                )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+      ).
 
 
-    data(lo_view) = z2ui5_cl_control_library=>factory( ).
 
-    view->factory_view( lo_view ).
+
+    "all outside
+    DATA(lo_view) = z2ui5_cl_control_library=>factory( view->get_context( ) ).
+    view->factory_view( name = 'FREESTYLE' parser = lo_view->root ).
 
     lo_view = lo_view->add_page( ).
     lo_view = lo_view->add_vbox( ).
-    data(lo_form) = lo_view->add_simple_form( ).
+
+    DATA(lo_form) = lo_view->add_simple_form( )->add_content( ).
     lo_view = lo_form->add_vbox( ).
     lo_view->add_input( product ).
     lo_view->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
     lo_view->add_input( product ).
     lo_view->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
 
-    lo_form = lo_form->parent->parent->add_simple_form( ).
-    lo_view = lo_form->add_vbox( ).
+    lo_form = lo_form->parent->parent->add_simple_form( )->add_content( ).
+    " lo_view = lo_form->add_vbox( ).
+    lo_view = lo_form->add_title( `Title` ).
     lo_view->add_input( product ).
     lo_view->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
     lo_view->add_input( product ).
     lo_view->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
+
+
+    "selscreen outside
+    DATA(li_selscreen) = z2ui5_cl_view_selscreen=>create(
+         name              = 'SELSCREEN_OUT'
+         title             = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
+         event_nav_back_id = 'BTN_BACK'
+         view              = view
+       ).
+
+    li_selscreen->begin_of_block( 'Selection Screen Title'
+           )->begin_of_group( 'Stock Information'
+               )->label( 'Product'
+               )->input( product
+               )->label( 'Quantity'
+               )->input( quantity
+               )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+     ).
+
   ENDMETHOD.
 
 ENDCLASS.

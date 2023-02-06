@@ -78,6 +78,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS link
     IMPORTING
       text            TYPE string    DEFAULT 'line_label'
@@ -85,6 +86,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       enabled         type abap_bool DEFAULT abap_true
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS combobox
     IMPORTING
       selectedKey     TYPE data
@@ -138,21 +140,24 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       t_button        TYPE ty-segemented_button-t_button
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS button
     IMPORTING
       text            TYPE clike OPTIONAL
       icon            TYPE clike OPTIONAL
       on_press_id     TYPE clike
       type            TYPE clike OPTIONAL
-      enabled         TYPE abap_bool OPTIONAL
+      enabled         TYPE abap_bool default abap_true
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS checkbox
     IMPORTING
       text            TYPE string OPTIONAL
       selected        TYPE abap_bool
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS radiobutton_group
     IMPORTING
       "    description     TYPE string OPTIONAL
@@ -160,6 +165,13 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       t_prop          TYPE ty-radiobutton_group-t_prop
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
+  METHODS text
+    IMPORTING
+      text            TYPE string OPTIONAL
+    RETURNING
+      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS input
     IMPORTING
       value            TYPE clike OPTIONAL
@@ -175,11 +187,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         PREFERRED PARAMETER value
     RETURNING
       VALUE(r_result)  TYPE REF TO z2ui5_if_selscreen_group.
-  METHODS text
-    IMPORTING
-      text            TYPE string OPTIONAL
-    RETURNING
-      VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.
+
   METHODS end_of_group
     RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_block.

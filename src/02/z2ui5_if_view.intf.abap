@@ -16,4 +16,9 @@ INTERFACE z2ui5_if_view PUBLIC.
       name   type string optional
       parser TYPE ref to z2ui5_if_view_parser.
 
+
+   methods get_context
+    RETURNING
+    value(result) type ref to z2ui5_if_view_context.
+
 ENDINTERFACE.

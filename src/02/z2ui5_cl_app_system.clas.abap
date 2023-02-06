@@ -297,7 +297,7 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
         ENDTRY.
 
       WHEN 'BUTTON_DEMO'.
-        client->controller( )->nav_to_page( name = 'DEMOS' ).
+        client->controller( )->nav_to_view( name = 'DEMOS' ).
 
 
     ENDCASE.
@@ -311,7 +311,7 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
     CASE client->event( )->get_id( ).
 
       WHEN 'BUTTON_BACK'.
-        client->controller( )->nav_to_page( 'START' ).
+        client->controller( )->nav_to_view( 'START' ).
 
       WHEN 'BTN_SELSCREEN_BASIC'.
         client->controller( )->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
@@ -377,7 +377,7 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
             z2ui5_cl_app_demo_04=>create( _=>get_server_info( 'Z2UI5_CL_APP_DEMO_03' )-url_abap ) ).
 
       WHEN OTHERS.
-        client->controller( )->nav_to_page( 'DEMOS' ).
+        client->controller( )->nav_to_view( 'DEMOS' ).
 
     ENDCASE.
 
