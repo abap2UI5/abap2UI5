@@ -7,9 +7,8 @@ Project features:
 * lightweight - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
 * easy installation - abapgit project, no additional app deployment or javascript needed, works with all abap stacks
 
-## Example
-ABAP2UI5 Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap):
-![example](https://user-images.githubusercontent.com/102328295/216781915-85a1c1c6-b92a-4c0f-8f03-44a200fede5b.gif)
+#### Demo Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap):
+![example](https://user-images.githubusercontent.com/102328295/216914734-c159148f-7ec7-416f-97f0-0342ba99dee7.gif)
 
 ## Installation
 Works with all ABAP stacks:
@@ -18,7 +17,7 @@ Works with all ABAP stacks:
 * S/4 Private Cloud or On-Premise (ABAP Cloud, ABAP Standard)
 * SAP NetWeaver AS ABAP 7.52 (ABAP Standard) - downport to older releases possible [(#3)](https://github.com/oblomov-dev/ABAP2UI5/issues/6)
 
-Install with [abapGit](https://abapgit.org), create a new http service and call ABAP2UI5. For more information, read the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki).
+Install with [abapGit](https://abapgit.org), create a new http service and call ABAP2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
 
 #### ABAP Cloud:
 ```abap
