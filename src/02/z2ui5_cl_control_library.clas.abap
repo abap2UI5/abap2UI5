@@ -47,7 +47,7 @@ CLASS z2ui5_cl_control_library DEFINITION
           END OF type,
         END OF message_box,
         BEGIN OF code_editor,
-         BEGIN OF type,
+          BEGIN OF type,
             abap       TYPE string VALUE 'abap',
             json       TYPE string VALUE 'json',
             xml        TYPE string VALUE 'xml',
@@ -128,8 +128,8 @@ CLASS z2ui5_cl_control_library DEFINITION
     DATA context TYPE REF TO z2ui5_if_view_context.
 
     CLASS-METHODS factory
-        importing
-          context type ref to z2ui5_if_view_context
+      IMPORTING
+        context       TYPE REF TO z2ui5_if_view_context
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
@@ -163,6 +163,38 @@ CLASS z2ui5_cl_control_library DEFINITION
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_table
+      IMPORTING
+        items         TYPE data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_columns
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_column
+      IMPORTING
+        width         TYPE string OPTIONAL
+        text          TYPE string DEFAULT 'title'
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_items
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_column_list_item
+      IMPORTING
+        vAlign        TYPE string DEFAULT 'Middle'
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_cells
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
 
     METHODS add_button
       IMPORTING
@@ -642,7 +674,7 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
   METHOD add_date_picker.
 
-   result = me.
+    result = me.
 
     add(
       name       = 'DatePicker'
@@ -838,6 +870,54 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
       name  = 'Text'
       t_prop = VALUE #( ( n = 'text' v = text ) )
      ).
+
+  ENDMETHOD.
+
+  METHOD add_table.
+
+    result = add(
+        name  = 'Table'
+        t_prop = VALUE #( ( n = 'items' v = '{' && context->get_attr_name_by_ref( items ) && '}' ) )
+       ).
+
+  ENDMETHOD.
+
+  METHOD add_cells.
+
+    result = add(  'cells' ).
+
+  ENDMETHOD.
+
+  METHOD add_column.
+
+    result = me.
+    DATA(lo_col) = add(
+        name  = 'Column'
+          t_prop = VALUE #( ( n = 'width' v = width ) )
+     ).
+
+    lo_col->add_text( text ).
+
+  ENDMETHOD.
+
+  METHOD add_columns.
+
+    result = add(  'columns' ).
+
+  ENDMETHOD.
+
+  METHOD add_column_list_item.
+
+    result = add(
+        name = 'ColumnListItem'
+        t_prop = VALUE #( ( n = 'vAlign' v = valign ) )
+         ).
+
+  ENDMETHOD.
+
+  METHOD add_items.
+
+    result = add(  'items' ).
 
   ENDMETHOD.
 

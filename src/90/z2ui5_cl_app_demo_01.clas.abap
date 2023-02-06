@@ -9,6 +9,13 @@ CLASS z2ui5_cl_app_demo_01 DEFINITION PUBLIC.
 
     DATA check_initialized TYPE abap_bool.
 
+    types: begin of ty_row,
+          name type string,
+          value type string,
+       end of ty_row.
+
+       data mt_tab type STANDARD TABLE OF ty_row with empty key.
+
 ENDCLASS.
 
 CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
@@ -23,6 +30,10 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
       quantity = '500'.
     ENDIF.
 
+    mt_tab = value #(
+        ( name = 'Hans' value = 'red' )
+        ( name = 'Otto' value = 'blue' )
+        ).
 
     "user event handling
     CASE client->event( )->get_id( ).
@@ -45,16 +56,16 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
     "inside
     "define selection screen
-   view->factory_selscreen_page( name = 'SELSCREEN_IN' event_nav_back_id = 'BTN_BACK' title = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
-         )->begin_of_block( 'Selection Screen Title'
-            )->begin_of_group( 'Stock Information'
-                )->label( 'Product'
-                )->input( product
-                )->label( 'Quantity'
-                )->input( quantity
-                )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-      ).
-
+*   view->factory_selscreen_page( name = 'SELSCREEN_IN' event_nav_back_id = 'BTN_BACK' title = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
+*         )->begin_of_block( 'Selection Screen Title'
+*            )->begin_of_group( 'Stock Information'
+*                )->label( 'Product'
+*                )->input( product
+*                )->label( 'Quantity'
+*                )->input( quantity
+*                )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+*      ).
+*
 
 
 
@@ -80,23 +91,36 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
     lo_view->add_input( product ).
     lo_view->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
 
+    lo_view = lo_view->parent->parent.
+
+    data(lo_tab) = lo_view->add_table(
+        items  = mt_tab
+    ).
+
+    lo_tab->add_columns(
+        )->add_column( text = 'Name'
+        )->add_column( text = 'Value'
+     )->parent->add_items( )->add_column_list_item( )->add_cells(
+        )->add_text( '{NAME}'
+        )->add_text( '{VALUE}'
+     ).
 
     "selscreen outside
-    DATA(li_selscreen) = z2ui5_cl_view_selscreen=>create(
-         name              = 'SELSCREEN_OUT'
-         title             = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
-         event_nav_back_id = 'BTN_BACK'
-         view              = view
-       ).
-
-    li_selscreen->begin_of_block( 'Selection Screen Title'
-           )->begin_of_group( 'Stock Information'
-               )->label( 'Product'
-               )->input( product
-               )->label( 'Quantity'
-               )->input( quantity
-               )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-     ).
+*    DATA(li_selscreen) = z2ui5_cl_view_selscreen=>create(
+*         name              = 'SELSCREEN_OUT'
+*         title             = 'My ABAP Application - Z2UI5_CL_APP_DEMO_01'
+*         event_nav_back_id = 'BTN_BACK'
+*         view              = view
+*       ).
+*
+*    li_selscreen->begin_of_block( 'Selection Screen Title'
+*           )->begin_of_group( 'Stock Information'
+*               )->label( 'Product'
+*               )->input( product
+*               )->label( 'Quantity'
+*               )->input( quantity
+*               )->button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+*     ).
 
   ENDMETHOD.
 
