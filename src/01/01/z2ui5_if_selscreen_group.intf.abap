@@ -15,6 +15,13 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         text TYPE string,
       END OF s_seg_btn,
     END OF ty_.
+
+  TYPES: BEGIN OF ty_s_tab,
+           text     TYPE string,
+           icon     TYPE string,
+           selected TYPE abap_bool,
+         END OF ty_s_tab.
+
   TYPES:
     BEGIN OF ty,
       BEGIN OF input,
@@ -32,15 +39,11 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
       END OF radiobutton_group,
       BEGIN OF segemented_button,
         t_button TYPE STANDARD TABLE OF ty_-s_seg_btn WITH EMPTY KEY,
-        BEGIN OF s_tab,
-          text     TYPE string,
-          icon     TYPE string,
-          selected TYPE abap_bool,
-        END OF s_tab,
-        tr_btn   TYPE STANDARD TABLE OF ty-segemented_button-s_tab WITH EMPTY KEY,
+        s_tab    TYPE ty_s_tab,
+        tr_btn   TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY,
       END OF segemented_button,
       test    TYPE string,
-      t_radio TYPE STANDARD TABLE OF ty-test WITH EMPTY KEY,
+      t_radio TYPE STANDARD TABLE OF string WITH EMPTY KEY,
     END OF ty.
 
   METHODS custom_control
