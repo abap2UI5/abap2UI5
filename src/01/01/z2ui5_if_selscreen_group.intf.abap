@@ -130,7 +130,7 @@ INTERFACE z2ui5_if_selscreen_group PUBLIC.
         importing
             percent_value type string
             display_value type string optional
-            show_value type string
+            show_value type abap_bool
             state type string default z2ui5_if_view=>cs-progress_indicator-state-none
         RETURNING
       VALUE(r_result) TYPE REF TO z2ui5_if_selscreen_group.

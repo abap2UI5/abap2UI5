@@ -4,7 +4,8 @@
   <asx:values>
    <DEVC>
     <CTEXT>selection screen</CTEXT>
-    <TPCLASS>X</TPCLASS>
+    <COMP_POSID>CA</COMP_POSID>
+    <COMPONENT>HLB0009110</COMPONENT>
    </DEVC>
   </asx:values>
  </asx:abap>
