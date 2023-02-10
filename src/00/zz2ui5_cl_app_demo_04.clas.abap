@@ -3,14 +3,17 @@ CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     INTERFACES zz2ui5_if_app.
-
     CLASS-METHODS factory
       IMPORTING
-        r_struct           TYPE data
+        i_app TYPE REF TO zz2ui5_if_app
+        i_name_attri TYPE string
       RETURNING
-        VALUE(r_result) TYPE REF TO zz2ui5_cl_app_demo_04.
+        value(r_result) TYPE REF TO zz2ui5_cl_app_demo_04.
 
-    DATA mr_struct TYPE ref to data.
+
+    DATA mo_app type ref to zz2ui5_if_app.
+    data mv_name_attri type string.
+
 
 ENDCLASS.
 
@@ -19,9 +22,10 @@ CLASS zz2ui5_cl_app_demo_04 IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-   " create data mr_struct like
-   " r_result->mt_log = i_log.
-"
+
+    r_result->mo_app = i_app.
+    r_result->mv_name_attri = i_name_attri.
+
   ENDMETHOD.
 
 

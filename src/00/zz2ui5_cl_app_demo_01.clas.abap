@@ -7,16 +7,19 @@ CLASS zz2ui5_cl_app_demo_01 DEFINITION PUBLIC.
     DATA product TYPE string.
     DATA quantity TYPE string.
 
-    types: begin of ty_row,
-           id type string,
-          name type string,
-          value type string,
-          test1 type string,
-          test2 type string,
-          check_valid type abap_bool,
-       end of ty_row.
+    TYPES: BEGIN OF ty_row,
+             id          TYPE string,
+             name        TYPE string,
+             value       TYPE string,
+             test1       TYPE string,
+             test2       TYPE string,
+             check_valid TYPE abap_bool,
+           END OF ty_row.
 
-       data mt_tab type STANDARD TABLE OF ty_row with empty key.
+    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA ms_edit TYPE ty_row.
+
+    DATA mo_app_popup_edit TYPE REF TO zz2ui5_if_app.
 
 ENDCLASS.
 
@@ -32,28 +35,32 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
         product = 'tomato'.
         quantity = '500'.
 
-    mt_tab = value #( id = '010'
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-        ).
+        mt_tab = VALUE #( id = '010'
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
+            ).
 
 
       WHEN client->lifecycle_method-on_event.
+
+        IF mo_app_popup_edit IS BOUND.
+          CLEAR mo_app_popup_edit.
+        ENDIF.
 
         "user event handling
         CASE client->get( )-event_id.
@@ -61,33 +68,44 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
           WHEN 'BTN_BACK'.
             client->nav_to_app( client->get_app_called( ) ).
 
-            when 'BUTTON_APP'.
-            client->nav_to_app( new zz2ui5_cl_app_demo_02( ) ).
+          WHEN 'BUTTON_APP'.
+            client->nav_to_app( NEW zz2ui5_cl_app_demo_02( ) ).
 
-            when 'POPUP_SELECT_TABLE'.
+          WHEN 'POPUP_SELECT_TABLE'.
             client->display_popup( 'POPUP_TABLE' ).
 
-            when 'TAB_CONFIRM'.
-             client->display_message_toast( |tab confirm| ).
-            when 'TAB_CANCEL'.
+          WHEN 'TAB_CONFIRM'.
+            client->display_message_toast( |tab confirm| ).
 
-            when 'BUTTON_SE16N'.
+          WHEN 'TAB_CANCEL'.
+
+          WHEN 'BUTTON_EDIT'.
+            ms_edit = mt_tab[ 3 ].
+
+            mo_app_popup_edit = zz2ui5_cl_app_demo_04=>factory(
+                i_app        =   me
+                i_name_attri = 'MS_EDIT'
+            ) .
+
+            client->nav_to_app( mo_app_popup_edit ).
+
+          WHEN 'BUTTON_SE16N'.
             client->nav_to_app( zz2ui5_cl_app_demo_06=>create( ) ).
 
-            when 'BUTTON_ERROR'.
-                client->nav_to_app( zz2ui5_cl_app_demo_05=>create(
-                                      i_text      = 'Es ist ein Fehler passiert'
-                                      i_text_long =  'Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein gan' &&
+          WHEN 'BUTTON_ERROR'.
+            client->nav_to_app( zz2ui5_cl_app_demo_05=>create(
+                                  i_text      = 'Es ist ein Fehler passiert'
+                                  i_text_long =  'Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein gan' &&
 'z lange beschreibung Das ist ein ganz lange beschreibungDas ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung Das ist ein ganz lange beschreibung'
-                                      i_type      = 'E'
-                                    ) ).
+                                  i_type      = 'E'
+                                ) ).
 
-            when 'BUTTON_BAL'.
-                client->nav_to_app( zz2ui5_cl_app_demo_03=>factory( VALUE #(
-          ( type = 'E' message = 'Das ist ein Fehler' id = 'CLNAME' number = '333' )
-          ( type = 'S' message = 'Das ist ein Erfolg' id = 'CLNAME' number = '333' )
-          ( type = 'I' message = 'Das ist eine Info' id = 'CLNAME' number = '333' )
-          ) ) ).
+          WHEN 'BUTTON_BAL'.
+            client->nav_to_app( zz2ui5_cl_app_demo_03=>factory( VALUE #(
+      ( type = 'E' message = 'Das ist ein Fehler' id = 'CLNAME' number = '333' )
+      ( type = 'S' message = 'Das ist ein Erfolg' id = 'CLNAME' number = '333' )
+      ( type = 'I' message = 'Das ist eine Info' id = 'CLNAME' number = '333' )
+      ) ) ).
 
           WHEN 'BUTTON_POST'.
             "do something
@@ -103,9 +121,9 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
 
         DATA(lo_view) = client->factory_view( 'FREESTYLE' ).
 
-        data(lo_page) = lo_view->add_page(
+        DATA(lo_page) = lo_view->add_page(
                    title             = 'App Title'
-                   event_nav_back_id = cond #(  when client->get( )-check_call_satck = abap_true then 'BTN_BACK' )
+                   event_nav_back_id = COND #(  WHEN client->get( )-check_call_satck = abap_true THEN 'BTN_BACK' )
                ).
 
         lo_page->add_header_content( )->add_overflow_toolbar(
@@ -142,11 +160,15 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
         lo_form = lo_grid->add_simple_form( )->add_content( 'f' ).
         "lo_form = lo_form->add_vbox( ).
         lo_form->add_input( product ).
-        lo_form->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
+        lo_form->add_button(
+                text = 'Post Goods Receipt'
+                 on_press_id = 'BUTTON_EDIT'
+                 type = client->cs-button-type-emphasized
+                  ).
         lo_form->add_input( product ).
         lo_form->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
 
-                lo_grid = lo_page->add_grid( default_span  = 'L12 M12 S12' )->add_content( 'l' ).
+        lo_grid = lo_page->add_grid( default_span  = 'L12 M12 S12' )->add_content( 'l' ).
 
         lo_form = lo_grid->add_simple_form( )->add_content( 'f' ).
         "lo_form = lo_form->add_vbox( ).
@@ -155,7 +177,7 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
         lo_form->add_input( product ).
         lo_form->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST' ).
 
-                lo_grid = lo_page->add_grid( default_span  = 'L12 M12 S12' )->add_content( 'l' ).
+        lo_grid = lo_page->add_grid( default_span  = 'L12 M12 S12' )->add_content( 'l' ).
 
         lo_form = lo_grid->add_simple_form( )->add_content( 'f' ).
         "lo_form = lo_form->add_vbox( ).
@@ -194,40 +216,40 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
 
 
 
-       lo_page->parent->add_footer( )->add_overflow_toolbar(
-            )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-            )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-            )->add_toolbar_spacer(
+        lo_page->parent->add_footer( )->add_overflow_toolbar(
              )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-            )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
-            ).
+             )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+             )->add_toolbar_spacer(
+              )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+             )->add_button( text = 'Post Goods Receipt' on_press_id = 'BUTTON_POST'
+             ).
 
 
 
 
 
-           lo_view = client->factory_view( 'POPUP_TABLE' ).
+        lo_view = client->factory_view( 'POPUP_TABLE' ).
 
-          lo_tab = lo_view->add_table_select_dialog(
-                      title            = 'title'
-                      event_id_confirm = 'TAB_CONFIRM'
-                      event_id_cancel  = 'TAB_CANCEL'
-                      items            = mt_tab
-                   ).
+        lo_tab = lo_view->add_table_select_dialog(
+                    title            = 'title'
+                    event_id_confirm = 'TAB_CONFIRM'
+                    event_id_cancel  = 'TAB_CANCEL'
+                    items            = mt_tab
+                 ).
 
-            lo_tab->add_column_list_item( )->add_cells(
-            )->add_text( '{NAME}'
-            )->add_text( '{VALUE}'
-            )->add_button( text = '{TEST1}' on_press_id = '{NAME}'
-            )->add_input( value = '{TEST2}'
-            )->add_checkbox( selected_json = '{CHECK_VALID}'
-    ).
-            lo_tab->add_columns(    )->add_column( text = 'Name'
-            )->add_column( text = 'Value'
-            )->add_column( text = 'Test1'
-            )->add_column( text = 'Test2'
-            )->add_column( text = 'Checkbox'
-            ).
+        lo_tab->add_column_list_item( )->add_cells(
+        )->add_text( '{NAME}'
+        )->add_text( '{VALUE}'
+        )->add_button( text = '{TEST1}' on_press_id = '{NAME}'
+        )->add_input( value = '{TEST2}'
+        )->add_checkbox( selected_json = '{CHECK_VALID}'
+).
+        lo_tab->add_columns(    )->add_column( text = 'Name'
+        )->add_column( text = 'Value'
+        )->add_column( text = 'Test1'
+        )->add_column( text = 'Test2'
+        )->add_column( text = 'Checkbox'
+        ).
 *        lo_tab->add_header_toolbar( )->add_overflow_toolbar(
 *            )->add_title( 'title'
 *             )->add_toolbar_spacer(

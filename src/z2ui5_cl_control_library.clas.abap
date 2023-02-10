@@ -4,6 +4,10 @@ CLASS z2ui5_cl_control_library DEFINITION
 
   PUBLIC SECTION.
 
+  interfaces: zz2ui5_if_ui5_library.
+
+"  ALIASES: add_code_editor FOR zz2ui5_if_ui5_library~add_code_editor.
+
     CONSTANTS:
       BEGIN OF cs,
         BEGIN OF input,
@@ -140,13 +144,6 @@ CLASS z2ui5_cl_control_library DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
-    METHODS add_code_editor
-      IMPORTING
-        value         TYPE string OPTIONAL
-        type          TYPE string
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
-
     METHODS add_input
       IMPORTING
         value            TYPE clike OPTIONAL
@@ -241,7 +238,7 @@ CLASS z2ui5_cl_control_library DEFINITION
       IMPORTING
         text          TYPE clike OPTIONAL
         icon          TYPE clike OPTIONAL
-        on_press_id   TYPE clike
+        on_press_id   TYPE clike optional
         type          TYPE clike OPTIONAL
         enabled       TYPE abap_bool DEFAULT abap_true
       RETURNING
@@ -251,6 +248,7 @@ CLASS z2ui5_cl_control_library DEFINITION
       IMPORTING
         title             TYPE string OPTIONAL
         event_nav_back_id TYPE string OPTIONAL
+        PREFERRED PARAMETER title
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_control_library.
 
@@ -590,7 +588,7 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
             ( n = 'editable'       v = _=>get_abap_2_json( editable ) )
             ( n = 'valueState'     v = value_state )
             ( n = 'valueStateText' v = value_state_text )
-            ( n = 'value'          v = COND #( WHEN value(1) = `{` THEN value
+            ( n = 'value'          v = COND #( WHEN value is not INITIAL and value(1) = `{` THEN value
                                                WHEN editable = abap_false THEN value
                                                ELSE   '{' && context->get_attr_name_by_ref( value ) && '}' ) )
                           ) ).
@@ -716,7 +714,7 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD add_code_editor.
+  METHOD zz2ui5_if_ui5_library~code_editor.
 
     result = me.
 

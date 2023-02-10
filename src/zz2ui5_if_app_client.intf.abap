@@ -1,13 +1,15 @@
 INTERFACE zz2ui5_if_app_client
   PUBLIC .
 
+  CONSTANTS cs LIKE z2ui5_cl_control_library=>cs VALUE z2ui5_cl_control_library=>cs.
+
   TYPES:
     BEGIN OF ty_S_get,
       screen_active    TYPE string,
       check_call_satck TYPE abap_bool,
       event_id         TYPE string,
       lifecycle_method TYPE string,
-      event_object     type ref to z2ui5_cl_hlp_tree_json,
+      event_object     TYPE REF TO z2ui5_cl_hlp_tree_json,
     END OF ty_s_get.
 
   CONSTANTS:
@@ -25,37 +27,37 @@ INTERFACE zz2ui5_if_app_client
     IMPORTING
       app TYPE REF TO zz2ui5_if_app.
 
-    methods nav_to_home.
+  METHODS nav_to_home.
 
   METHODS get_app_called
     RETURNING
       VALUE(result) TYPE REF TO zz2ui5_if_app.
 
 
-  METHODS display_popup_inform
-       IMPORTING
+  METHODS display_message_box
+    IMPORTING
       text TYPE string
       type TYPE string DEFAULT z2ui5_if_view=>cs-message_box-type-info.
 
   METHODS display_message_toast
-     IMPORTING
+    IMPORTING
       text TYPE string.
 
   METHODS display_view
     IMPORTING
-      val TYPE clike optional
-    check_no_rerender type abap_bool default abap_false
-    PREFERRED PARAMETER val.
+      val               TYPE clike OPTIONAL
+      check_no_rerender TYPE abap_bool DEFAULT abap_false
+        PREFERRED PARAMETER val.
 
-  methods factory_view
-    importing
-        name type string optional
+  METHODS factory_view
+    IMPORTING
+      name          TYPE string OPTIONAL
     RETURNING
-       value(result) type ref to z2ui5_cl_control_library.
+      VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
-  methods display_popup
-    importing
-      name type clike.
+  METHODS display_popup
+    IMPORTING
+      name TYPE clike.
 
   "  methods display_popup_inform.
 

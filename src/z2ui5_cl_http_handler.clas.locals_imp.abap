@@ -2,6 +2,269 @@ CLASS z2ui5_lcl_runtime DEFINITION DEFERRED.
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
 
+CLASS z2ui5_lcl_app_system DEFINITION.
+
+  PUBLIC SECTION.
+
+    INTERFACES  zz2ui5_if_app.
+
+    DATA:
+      BEGIN OF ms_error,
+        x_error   TYPE REF TO cx_root,
+        app       TYPE REF TO zz2ui5_if_app,
+        classname TYPE string,
+        kind      TYPE string,
+      END OF ms_error.
+
+    DATA:
+      BEGIN OF ms_home,
+        is_initialized         TYPE abap_bool,
+        btn_text               TYPE string,
+        btn_event_id           TYPE string,
+        btn_icon               TYPE string,
+        classname              TYPE string,
+        class_value_state      TYPE string,
+        class_value_state_text TYPE string,
+        class_editable         TYPE abap_bool VALUE abap_true,
+      END OF ms_home.
+
+    CLASS-METHODS factory_error
+      IMPORTING
+        error           TYPE REF TO cx_root
+        app             TYPE REF TO zz2ui5_if_app OPTIONAL
+        kind            TYPE string OPTIONAL
+        "  server          TYPE REF TO z2ui5_lcl_runtime
+      RETURNING
+        VALUE(r_result) TYPE REF TO  z2ui5_lcl_app_system.
+  PROTECTED SECTION.
+    METHODS a2ui5_on_init
+      IMPORTING
+        client TYPE REF TO zz2ui5_if_app_client.
+    METHODS a2ui5_on_event
+      IMPORTING
+        client TYPE REF TO zz2ui5_if_app_client.
+    METHODS a2ui5_on_rendering
+      IMPORTING
+        client TYPE REF TO zz2ui5_if_app_client.
+
+ENDCLASS.
+
+CLASS z2ui5_lcl_app_system IMPLEMENTATION.
+
+  METHOD zz2ui5_if_app~controller.
+
+    CASE client->get( )-lifecycle_method.
+
+      WHEN client->lifecycle_method-on_init.
+        a2ui5_on_init( client ).
+      WHEN client->lifecycle_method-on_event.
+        a2ui5_on_event( client ).
+      WHEN client->lifecycle_method-on_rendering.
+        a2ui5_on_rendering( client ).
+    ENDCASE.
+  ENDMETHOD.
+
+  METHOD factory_error.
+
+    r_result = NEW #( ).
+
+    r_result->ms_error-x_error = error.
+    r_result->ms_error-app     = app.
+    r_result->ms_error-kind    = kind.
+
+  ENDMETHOD.
+
+
+  METHOD a2ui5_on_init.
+    if ms_error-x_error is not bound.
+    client->display_view( 'HOME' ).
+    else.
+    client->display_view( 'ERROR' ).
+    endif.
+  ENDMETHOD.
+
+
+  METHOD a2ui5_on_event.
+
+    CASE client->get( )-screen_active.
+
+      WHEN 'HOME'.
+        CASE client->get( )-event_id.
+
+          WHEN 'BUTTON_CHANGE'.
+            ms_home-btn_text = 'check'.
+            ms_home-btn_event_id = 'BUTTON_CHECK'.
+            ms_home-btn_icon = 'sap-icon://validate'.
+            ms_home-class_editable = abap_true.
+
+          WHEN 'BUTTON_CHECK'.
+
+            data(test) = 1 / 0.
+
+            TRY.
+                DATA li_app_test TYPE REF TO z2ui5_if_app.
+                ms_home-classname = to_upper( ms_home-classname ).
+                CREATE OBJECT li_app_test TYPE (ms_home-classname).
+
+                client->display_message_toast( 'App is ready to start!' ).
+                ms_home-btn_text = 'edit'.
+                ms_home-btn_event_id = 'BUTTON_CHANGE'.
+                ms_home-btn_icon = 'sap-icon://edit'.
+                ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-success.
+                ms_home-class_editable = abap_false.
+
+              CATCH cx_root INTO DATA(lx).
+                ms_home-class_value_state_text = lx->get_text( ).
+                ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-warning.
+                client->display_message_box(
+                    text = ms_home-class_value_state_text
+                    type = z2ui5_if_view=>cs-message_box-type-error
+                     ).
+            ENDTRY.
+        ENDCASE.
+
+      WHEN 'ERROR'.
+        CASE client->get( )-event_id.
+
+          WHEN 'BUTTON_HOME'.
+            client->nav_to_app( NEW z2ui5_lcl_app_system( ) ).
+        ENDCASE.
+    ENDCASE.
+
+    "client->display_view( client->get( )-screen_active ).
+  ENDMETHOD.
+
+
+  METHOD a2ui5_on_rendering.
+
+    DATA(lo_view) = client->factory_view( 'HOME' ).
+
+    DATA(lo_page) = lo_view->add_page( 'ABAP2UI5 - Home' ).
+    lo_page->add_header_content(
+        )->add_link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
+        )->add_link( text = 'abapGit' href = 'https://github.com/oblomov-dev/abap2ui5'
+      "  )->add_button( text = 'Demos'
+    ).
+
+
+
+    DATA(lo_grid) = lo_page->add_grid( default_span  = 'L12 M12 S12' )->add_content( 'l' ).
+    DATA(lo_form) = lo_grid->add_simple_form( 'Quick Start' )->add_content( 'f' ).
+
+*        lo_form = lo_form->add_vbox( ).
+*        lo_form->add_input( product ).
+*        lo_form->add_button( text = 'POPUP_SELECT_TABLE' on_press_id = 'POPUP_SELECT_TABLE' ).
+*        lo_form->add_input( product ).
+*        lo_form->add_button( text = 'BAL Anzeige' on_press_id = 'BUTTON_BAL' ).
+*
+*        lo_form = lo_grid->add_simple_form( title = 'test' )->add_content( 'f' ).
+*        lo_form->add_title( 'new title' ).
+*        lo_form = lo_form->add_vbox( ).
+
+
+
+
+*    data(lo_content) = lo_page->add_content( ).
+*    DATA(lo_form) = lo_content->add_simple_form( 'Quick Start'
+    " lo_form->add_title( ':'
+    lo_form->add_label( 'Step 1'
+      )->add_text( 'Create a new global class in the abap system'
+      )->add_label( 'Step 2'
+      )->add_text( 'Implement the interface Z2UI5_IF_APP'
+      )->add_label( 'Step 3'
+      )->add_text( 'Define the views in the method set_view and the behaviour in the method on_event '
+      )->add_label( 'Step 4'
+    ).
+
+    IF ms_home-class_editable = abap_true.
+      lo_form->add_input(
+                     value          = ms_home-classname
+                     placeholder    = 'fill in the classname and press check'
+                     value_state      = ms_home-class_value_state
+                     value_state_text = ms_home-class_value_state_text
+                     editable         = ms_home-class_editable
+                ).
+    ELSE.
+      lo_form->add_text( ms_home-classname ).
+    ENDIF.
+
+    lo_form->add_button( text = ms_home-btn_text on_press_id = 'BUTTON_CHECK'  icon = ms_home-btn_icon   "type = view->cs-button-type-
+             )->add_label( 'Step 5' ).
+
+    IF ms_home-class_editable = abap_false.
+      lo_form->add_link( text = 'Link to the Application'
+              href = _=>get_server_info(  app = ms_home-classname )-url_app " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
+           ).
+    ENDIF.
+
+
+    lo_grid = lo_page->add_grid( default_span  = 'L4 M6 S12' )->add_content( 'l' ).
+
+    lo_form = lo_grid->add_simple_form(  'Selection-Screen' )->add_content( 'f' ).
+
+    " lo_form->add_title( ':'
+    lo_form->add_label( 'Selection-Screen'
+       )->add_text( 'Z2UI5_CL_APP_01'
+       )->add_label( 'Write Output'
+       )->add_text( 'Z2UI5_CL_APP_01'
+       )->add_label( 'Table (ALV)'
+       )->add_text( 'Z2UI5_CL_APP_01'
+     ).
+
+    lo_form = lo_grid->add_simple_form(  'Write Output' )->add_content( 'f' ).
+
+    " lo_form->add_title( ':'
+    lo_form->add_label( 'Write Output'
+       )->add_text( 'Z2UI5_CL_APP_01'
+       )->add_label( 'Write Output'
+       )->add_text( 'Z2UI5_CL_APP_01'
+       )->add_label( 'Table (ALV)'
+       )->add_text( 'Z2UI5_CL_APP_01'
+     ).
+
+    lo_form = lo_grid->add_simple_form(  'Table Output (ALV)' )->add_content( 'f' ).
+
+    " lo_form->add_title( ':'
+    lo_form->add_label( 'Selection-Screen'
+       )->add_text( 'Z2UI5_CL_APP_01'
+       )->add_label( 'Write Output'
+       )->add_text( 'Z2UI5_CL_APP_01'
+       )->add_label( 'Table (ALV)'
+       )->add_text( 'Z2UI5_CL_APP_01'
+     ).
+
+
+
+
+    lo_page->add_footer( )->add_overflow_toolbar(  )->add_toolbar_spacer(
+*         )->add_link( text = 'Link to the Application'
+*              href = _=>get_server_info(  app = ms_home-classname )-url_app " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
+*        )->add_button( text = 'Start' type = client->cs-button-type-success
+        ).
+
+
+
+
+    if ms_error-x_error is bound.
+    client->factory_view( 'ERROR' )->add_message_page(
+        text = ms_error-classname
+        description = ms_error-x_error->get_text( )
+        )->add_buttons(
+      )->add_button(
+            text = 'HOME'
+            on_press_id = 'BUTTON_HOME'
+    "  )->add_button(
+    "        text = 'Neustart'
+    "           on_press_id = 'RESTART'
+      ).
+endif.
+
+
+
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS z2ui5_lcl_app_client DEFINITION.
 
   PUBLIC SECTION.
@@ -39,15 +302,15 @@ CLASS z2ui5_lcl_runtime DEFINITION.
 
     DATA:
       BEGIN OF ms_db,
-        id           TYPE string,
-        id_prev      TYPE string,
-        id_prev_app  TYPE string,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
         app               TYPE string,
         screen            TYPE string,
-        check_no_rerender type abap_bool,
-        screen_popup TYPE string,
-        t_attri      TYPE _=>ty-t-attri,
-        o_app        TYPE REF TO object,
+        check_no_rerender TYPE abap_bool,
+        screen_popup      TYPE string,
+        t_attri           TYPE _=>ty-t-attri,
+        o_app             TYPE REF TO object,
       END OF ms_db.
 
     DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
@@ -179,9 +442,9 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
     """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
     " define ui5 model
-    if ms_db-check_no_rerender = abap_false.
-    mo_ui5_model->add_attribute( n = `vView` v = lr_screen->o_parser->get_view(  ) ).
-    endif.
+    IF ms_db-check_no_rerender = abap_false.
+      mo_ui5_model->add_attribute( n = `vView` v = lr_screen->o_parser->get_view(  ) ).
+    ENDIF.
 
     IF ms_db-screen_popup IS NOT INITIAL.
       lr_screen = REF #( mt_screen[ name = ms_db-screen_popup ] ).
@@ -393,7 +656,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
           TRY.
               ms_db-app = z2ui5_cl_http_handler=>client-t_param[ name = 'APP' ]-value.
             CATCH cx_root.
-              ms_db-o_app = NEW z2ui5_cl_app_system( ).
+              ms_db-o_app = NEW z2ui5_lcl_app_system( ).
               EXIT.
           ENDTRY.
 
@@ -401,7 +664,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
           EXIT.
 
         CATCH cx_root.
-          DATA(lo_error) = NEW z2ui5_cl_app_system( ).
+          DATA(lo_error) = NEW z2ui5_lcl_app_system( ).
           lo_error->ms_error-x_error = NEW _( val = `Class with name ` && ms_db-app && ` not found. Please check your repository.` ).
           ms_db-o_app = CAST #( lo_error ).
           EXIT.
@@ -454,8 +717,9 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
   METHOD factory_new_error.
 
     r_result = factory_new(
-             z2ui5_cl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
+             z2ui5_lcl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
+    r_result->ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_init.
   ENDMETHOD.
 
   METHOD z2ui5_if_view_context~get_attr_name_by_ref.
@@ -494,7 +758,7 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~display_popup_inform.
+  METHOD zz2ui5_if_app_client~display_message_box.
 
     INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) )
       INTO TABLE mo_server->mt_after.
@@ -517,7 +781,7 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   METHOD zz2ui5_if_app_client~nav_to_home.
 
-    " zz2ui5_if_app_client~nav_to_app( NEW z2ui5_cl_app_system( ) ).
+    zz2ui5_if_app_client~nav_to_app( NEW z2ui5_lcl_app_system( ) ).
 
   ENDMETHOD.
 
