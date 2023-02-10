@@ -1,7 +1,7 @@
 INTERFACE zz2ui5_if_app_client
   PUBLIC .
 
-  CONSTANTS cs LIKE z2ui5_cl_control_library=>cs VALUE z2ui5_cl_control_library=>cs.
+  CONSTANTS cs LIKE zz2ui5_if_ui5_library=>cs VALUE zz2ui5_if_ui5_library=>cs.
 
   TYPES:
     BEGIN OF ty_S_get,
@@ -37,7 +37,7 @@ INTERFACE zz2ui5_if_app_client
   METHODS display_message_box
     IMPORTING
       text TYPE string
-      type TYPE string DEFAULT z2ui5_if_view=>cs-message_box-type-info.
+      type TYPE string DEFAULT cs-message_box-type-info.
 
   METHODS display_message_toast
     IMPORTING
@@ -53,12 +53,10 @@ INTERFACE zz2ui5_if_app_client
     IMPORTING
       name          TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+      VALUE(result) TYPE REF TO zz2ui5_if_ui5_library.
 
   METHODS display_popup
     IMPORTING
       name TYPE clike.
-
-  "  methods display_popup_inform.
 
 ENDINTERFACE.

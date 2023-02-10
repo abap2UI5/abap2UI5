@@ -2,6 +2,769 @@ CLASS z2ui5_lcl_runtime DEFINITION DEFERRED.
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
 
+CLASS z2ui5_lcl_control_library DEFINITION
+  CREATE PUBLIC .
+
+  PUBLIC SECTION.
+
+    INTERFACES: zz2ui5_if_ui5_library.
+
+    CONSTANTS cs LIKE zz2ui5_if_ui5_library=>cs VALUE zz2ui5_if_ui5_library=>cs.
+    TYPES     ty TYPE zz2ui5_if_ui5_library=>ty.
+
+    DATA m_name TYPE string.
+    DATA m_ns   TYPE string.
+    DATA mt_prop TYPE STANDARD TABLE OF z2ui5_cl_hlp_utility=>ty_property WITH EMPTY KEY.
+
+    DATA m_root    TYPE REF TO z2ui5_lcl_control_library.
+    DATA m_parent  TYPE REF TO z2ui5_lcl_control_library.
+    DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_control_library WITH EMPTY KEY.
+
+    CLASS-METHODS factory
+      IMPORTING
+        context       TYPE REF TO z2ui5_if_view_context
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_lcl_control_library.
+
+    METHODS _generic
+      IMPORTING
+        name          TYPE string
+        ns            TYPE string OPTIONAL
+        t_prop        LIKE mt_prop OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_lcl_control_library.
+
+    METHODS get_view
+      IMPORTING
+        check_popup_active TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)      TYPE string.
+
+  PROTECTED SECTION.
+
+    DATA m_context TYPE REF TO z2ui5_if_view_context.
+
+    METHODS xml_get
+      IMPORTING
+        check_popup_active TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)      TYPE string.
+
+    METHODS xml_get_begin
+      IMPORTING
+        check_popup_active TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)      TYPE string.
+
+    METHODS xml_get_end
+      IMPORTING
+        check_popup_active TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)      TYPE string.
+
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+
+CLASS z2ui5_lcl_control_library IMPLEMENTATION.
+
+  METHOD xml_get_begin.
+
+    result = COND #(  WHEN check_popup_active = abap_false
+              THEN      `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
+                     `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+                               ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
+                         COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` )
+              ELSE   `<core:FragmentDefinition   xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
+                     `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+                               ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` ).
+
+  ENDMETHOD.
+
+  METHOD xml_get_end.
+
+    result &&= COND #( WHEN check_popup_active = abap_false
+              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`
+              ELSE `</core:FragmentDefinition>` ).
+
+  ENDMETHOD.
+
+  METHOD xml_get.
+
+    "case - root
+    IF me = m_root.
+      result = xml_get_begin( check_popup_active ).
+
+      LOOP AT t_child INTO DATA(lr_child).
+        result &&= lr_child->xml_get(  ).
+      ENDLOOP.
+
+      result &&= xml_get_end( check_popup_active ).
+      RETURN.
+    ENDIF.
+
+    "case - normal
+    CASE m_name.
+
+      WHEN 'ZZHTML'.
+        result = mt_prop[ n = 'VALUE' ]-v.
+        RETURN.
+    ENDCASE.
+
+    result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
+                         REDUCE #( INIT val = `` FOR row IN  mt_prop WHERE ( v <> '' )
+                          NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
+
+    IF t_child IS INITIAL.
+      result &&= '/>'.
+      RETURN.
+    ENDIF.
+
+    result &&= '>'.
+
+    LOOP AT t_child INTO lr_child.
+      result &&= lr_child->xml_get(  ).
+    ENDLOOP.
+
+    result &&= |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
+
+  ENDMETHOD.
+
+  METHOD _generic.
+
+    result = NEW z2ui5_lcl_control_library( ).
+    result->m_name = name.
+    result->m_ns = ns.
+    result->mt_prop = t_prop.
+    result->m_parent = me.
+    result->m_root   = m_root.
+    result->m_context = m_context.
+
+    INSERT result INTO TABLE t_child.
+
+  ENDMETHOD.
+
+  METHOD factory.
+
+    result = NEW z2ui5_lcl_control_library( ).
+    result->m_root = result.
+    result->m_parent = result.
+    result->m_context = context.
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~button.
+
+    result = me.
+
+    _generic(
+       name   = 'Button'
+       t_prop = VALUE #(
+          ( n = 'press'   v = m_context->get_event_method( `{ 'ID' : '` && on_press_id && `' }` ) )
+          "( n = 'press'   v = context->get_event_method( ` $event , { 'ID' : '` && on_press_id && `' } )` ) )
+          ( n = 'text'    v = text )
+          ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
+          ( n = 'icon'    v = icon )
+          ( COND #( WHEN type IS NOT INITIAL THEN VALUE #( n = 'type'  v = type ) ) )
+       ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~input.
+
+    result = me.
+
+    DATA(lr_input) = _generic(
+        name   = 'Input'
+        t_prop = VALUE #(
+            ( n = 'placeholder'    v = placeholder )
+            ( n = 'type'           v = type )
+            ( n = 'showClearIcon'  v = _=>get_abap_2_json( show_clear_icon ) )
+            ( n = 'description'    v = description )
+            ( n = 'editable'       v = _=>get_abap_2_json( editable ) )
+            ( n = 'valueState'     v = value_state )
+            ( n = 'valueStateText' v = value_state_text )
+            ( n = 'value'          v = COND #( WHEN value IS NOT INITIAL AND value(1) = `{` THEN value
+                                               WHEN editable = abap_false THEN value
+                                               ELSE   '{' && m_context->get_attr_name_by_ref( value ) && '}' ) )
+                          ) ).
+
+    IF suggestion_items IS NOT INITIAL.
+
+      DATA(lv_id) = _=>get_uuid_session( ).
+      lr_input->mt_prop = VALUE #( BASE lr_input->mt_prop
+        ( n = 'suggestionItems' v = '{/' && lv_id && '}' )
+        ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
+        ).
+
+      " ??????
+      m_context->mo_view_model->add_attribute(
+           n = lv_id
+           v = _=>trans_any_2_json( suggestion_items  )
+        apos_active = abap_false
+      ).
+
+      lr_input->_generic( |suggestionItems|
+             )->_generic(
+                 name   = 'ListItem'
+                 ns     = 'core'
+                 t_prop = VALUE #(
+                        ( n = 'text' v = '{VALUE}' )
+                        ( n = 'additionalText' v = '{DESCR}' ) ) ).
+
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD get_view.
+
+*    if check_popup_active = abap_true.
+*
+*    result = `<core:FragmentDefinition` && |\n|  &&
+*             `   xmlns="sap.m"` && |\n|  &&
+*             `   xmlns:core="sap.ui.core" >` && |\n|  &&
+*             `   <Dialog` && |\n|  &&
+*             `      id="helloDialog"` && |\n|  &&
+*             `      title="Hello {/recipient/name}">` && |\n|  &&
+*             `   </Dialog>` && |\n|  &&
+*             `</core:FragmentDefinition>`.
+*    return.
+*    endif.
+
+    result = m_root->xml_get( check_popup_active ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~page.
+
+    result = _generic(
+        name   = 'Page'
+         t_prop = VALUE #(
+             ( n = 'title' v = title )
+             ( n = 'showNavButton' v = COND #( WHEN event_nav_back_id = '' THEN 'false' ELSE 'true' ) )
+             ( n = 'navButtonTap' v = m_context->get_event_method( `{ 'ID' : '` && event_nav_back_id && `' } )` ) )
+          "   ( n = 'navButtonTap' v = context->get_event_method( `${$parameters}, ${$source} , $event , { 'ID' : '` && event_nav_back_id && `' } )` ) )
+     ) ).
+
+    " result = lo_page->add( 'content').
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~vbox.
+
+    result = _generic(
+         name   = 'VBox'
+         t_prop = VALUE #(
+            ( n = 'class' v = 'sapUiSmallMargin' )
+           "( n = 'height' v = '10%' )
+             ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~simple_form.
+
+    result = _generic(
+      name   = 'SimpleForm'
+      ns     = 'f'
+      t_prop = VALUE #(
+        ( n = 'title' v = title )
+        ( n = 'editable' v = 'true' )
+        ( n = 'layout' v = 'ResponsiveGridLayout' )
+        ( n = 'labelSpanXL' v = '4' )
+        ( n = 'labelSpanL' v = '3' )
+        ( n = 'labelSpanM' v = '4' )
+        ( n = 'labelSpanS' v = '12' )
+        ( n = 'emptySpanXL' v = '0' )
+        ( n = 'emptySpanL' v = '4' )
+        ( n = 'emptySpanM' v = '0' )
+        ( n = 'emptySpanS' v = '0' )
+        ( n = 'columnsL' v = '1' )
+        ( n = 'columnsM' v = '1' )
+        ( n = 'singleContainerFullSize' v = 'false' )
+        ( n = 'adjustLabelSpan' v = 'false' )
+      ) ).
+
+  ENDMETHOD.
+
+
+  METHOD zz2ui5_if_ui5_library~content.
+
+    result = _generic(
+        ns    = ns
+       name   = 'content'
+      ).
+
+  ENDMETHOD.
+
+
+  METHOD zz2ui5_if_ui5_library~title.
+
+    result = me.
+
+    _generic(
+         name  = 'Title'
+        " ns = 'core'
+         t_prop = VALUE #(
+             ( n = 'text' v = title ) )
+        ) .
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~code_editor.
+
+    result = me.
+
+    _generic(
+        name  = 'CodeEditor'
+        ns = 'editor'
+        t_prop = VALUE #(
+            ( n = 'value'   v = m_context->get_attr_name_by_ref( value ) )
+            ( n = 'type'    v = type )
+            ( n = 'height'  v = '600px' )
+         ) ) .
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~zz_html.
+
+    "todo
+    DATA(lv_html) = replace( val = val sub = '</' with = '#+´"?' occ   =   0 ).
+    lv_html = replace( val = lv_html sub = '<' with = '<html:' occ   =   0 ).
+    lv_html = replace( val = lv_html sub = '#+´"?' with = '</html:' occ   =   0 ).
+
+    result = me.
+
+    _generic(
+      name  = 'ZZHTML'
+      t_prop = VALUE #( ( n = 'VALUE' v = lv_html ) )
+    ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~overflow_toolbar.
+
+    result = _generic( 'OverflowToolbar' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~toolbar_spacer.
+
+    result = me.
+    _generic( 'ToolbarSpacer' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~combobox.
+
+    result = me.
+
+    DATA(lv_id) = _=>get_uuid_session( ).
+
+    DATA(lo_box) = _generic(
+      name  = 'ComboBox'
+      t_prop = VALUE #(
+       (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
+       (  n = 'selectedKey'   v = m_context->get_attr_name_by_ref( selectedkey ) )
+       (  n = 'items' v = '{/' && lv_id && '}' )
+      ) ).
+
+    lo_box->_generic(
+       name = 'Item'
+       ns = 'core'
+       t_prop = VALUE #(
+     ( n = 'key'  v ='{KEY}'  )
+     ( n = 'text' v = '{TEXT}' )
+    ) ).
+
+    m_context->mo_view_model->add_attribute(
+      n           = lv_id
+      v           = _=>trans_any_2_json( t_item )
+      apos_active = abap_false
+     ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~date_picker.
+
+    result = me.
+
+    _generic(
+      name       = 'DatePicker'
+      t_prop = VALUE #(
+          ( n = 'value' v = m_context->get_attr_name_by_ref( value )  )
+          ( n = 'placeholder' v = placeholder )
+       ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~date_time_picker.
+
+    result = me.
+
+    _generic(
+        name  = 'DateTimePicker'
+        t_prop = VALUE #(
+            ( n = 'value' v = m_context->get_attr_name_by_ref( value ) )
+            ( n = 'placeholder'  v = placeholder  )
+         ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~label.
+
+    result = me.
+
+    _generic(
+       name  = 'Label'
+       t_prop = VALUE #(
+           ( n = 'text' v = text )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~link.
+
+    result = me.
+
+    _generic(
+     name  = 'Link'
+       t_prop = VALUE #(
+         ( n = 'text'   v = text )
+         ( n = 'target' v = '_blank' )
+         ( n = 'href'   v = href )
+         ( n = 'enabled'   v = _=>get_abap_2_json( enabled ) )
+       ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~segmented_button.
+
+    result = me.
+
+    DATA(lo_button) = _generic(
+      name  = 'SegmentedButton'
+      t_prop = VALUE #(
+       ( n = 'selectedKey' v = m_context->get_attr_name_by_ref( selected_key ) )
+     ) ).
+
+    DATA(lo_item) = lo_button->_generic( 'items' ).
+
+    LOOP AT t_button REFERENCE INTO DATA(lr_btn).
+
+      lo_item->_generic(
+          name   = 'SegmentedButtonItem'
+          t_prop = VALUE #(
+            ( n = 'icon'  v = lr_btn->icon  )
+            ( n = 'key'   v = lr_btn->key )
+            ( n = 'text'  v = lr_btn->text )
+                  ) ).
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~step_input.
+
+    result = me.
+
+    _generic(
+         name  = 'StepInput'
+         t_prop = VALUE #(
+            ( n = 'max'  v = max  )
+            ( n = 'min'  v = min  )
+            ( n = 'step' v = step )
+            ( n = 'value' v = m_context->get_attr_name_by_ref( value )  )
+     ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~switch.
+
+    result = me.
+
+    _generic(
+          name  = 'Switch'
+          t_prop = VALUE #(
+             ( n = 'type'           v = type           )
+             ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
+             ( n = 'state'          v = m_context->get_attr_name_by_ref( state ) )
+             ( n = 'customTextOff'  v = customtextoff  )
+             ( n = 'customTextOn'   v = customtexton   )
+      ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~text_area.
+
+    result = me.
+
+    _generic(
+          name  = 'TextArea'
+            t_prop = VALUE #(
+              ( n = 'value' v = m_context->get_attr_name_by_ref( value ) )
+              ( n = 'rows' v = rows )
+              ( n = 'height' v = height )
+              ( n = 'width' v = width )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~time_picker.
+
+    result = me.
+
+    _generic(
+     name   = 'TimePicker'
+     t_prop = VALUE #(
+          ( n = 'value' v = m_context->get_attr_name_by_ref( value )  )
+          ( n = 'placeholder'  v = placeholder  )
+      ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~checkbox.
+
+    result = me.
+
+    _generic(
+       name  = 'CheckBox'
+       t_prop = VALUE #(
+          ( n = 'text'  v = text )
+          ( n = 'selected' v = COND #( WHEN selected_json IS SUPPLIED THEN selected_json ELSE m_context->get_attr_name_by_ref( selected ) ) )
+      ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~progress_indicator.
+
+    result = me.
+
+    _generic(
+         name  = 'ProgressIndicator'
+         t_prop = VALUE #(
+            ( n = 'percentValue' v = m_context->get_attr_name_by_ref( percent_value ) )
+            ( n = 'displayValue' v = display_Value )
+            ( n = 'showValue'    v = _=>get_abap_2_json( show_value  )      )
+            ( n = 'state'        v = state  )
+     ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~radiobutton_group.
+
+    result = me.
+
+    _generic(
+     name   = 'RadioButtonGroup'
+     t_prop = VALUE #(
+             ( n = 'columns' v = lines( t_prop ) )
+             ( n = 'selectedIndex' v = m_context->get_attr_name_by_ref( selected_index ) )
+     ) ).
+
+    LOOP AT t_prop REFERENCE INTO DATA(lr_prop).
+      DATA(lv_tabix) = sy-tabix - 1.
+
+      _generic(
+        name   = 'RadioButton'
+        t_prop = VALUE #(
+           ( n = 'text' v = lr_prop->* )
+         ) ).
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~text.
+
+    result = me.
+
+    _generic(
+      name  = 'Text'
+      t_prop = VALUE #( ( n = 'text' v = text ) )
+     ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~table.
+
+    result = _generic(
+        name  = 'Table'
+        t_prop = VALUE #(
+             ( n = 'items' v = '{' && m_context->get_attr_name_by_ref( ref = items check_update = zz_check_update_model ) && '}' )
+             ( n = 'growing' v = 'true' )
+             ( n = 'growingThreshold' v = growing_threshold )
+              )
+       ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~cells.
+
+    result = _generic(  'cells' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~column.
+
+    result = me.
+    DATA(lo_col) = _generic(
+        name  = 'Column'
+          t_prop = VALUE #( ( n = 'width' v = width ) )
+     ).
+
+    lo_col->zz2ui5_if_ui5_library~text( text ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~columns.
+
+    result = _generic(  'columns' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~column_list_item.
+
+    result = _generic(
+        name = 'ColumnListItem'
+        t_prop = VALUE #( ( n = 'vAlign' v = valign ) )
+         ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~items.
+
+    result = _generic(  'items' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~grid.
+
+    result = _generic(
+        name = 'Grid'
+        ns   = 'l'
+        t_prop = VALUE #(
+            ( n = 'defaultSpan' v = default_span )
+            ( n = 'class'       v = class )
+            ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~header_toolbar.
+
+    result = _generic( 'headerToolbar' ).
+
+  ENDMETHOD.
+
+
+
+  METHOD zz2ui5_if_ui5_library~scroll_container.
+
+    result = _generic(
+         name = 'ScrollContainer'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'height' v = height )
+          ( n = 'width'       v = width )
+          ( n = 'vertical'       v = 'true' )
+          ( n = 'focusable'       v = 'true' )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~header_content.
+
+    result = _generic( 'headerContent' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~sub_header.
+
+    result = _generic( 'subHeader' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~footer.
+
+    result = _generic( 'footer' ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~dialog.
+
+    result = _generic(
+         name = 'Dialog'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'title'  v = title )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~table_select_dialog.
+
+    result = _generic(
+         name = 'TableSelectDialog'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'title' v = title )
+        "  ( n = 'confirm'       v = context->get_event_method( `{ 'ID' : '` && event_id_confirm && `' }` ) )
+          ( n = 'confirm'      v = m_context->get_event_method( ` $event , { 'ID' : '` && event_id_confirm && `' } )` ) )
+          ( n = 'cancel'       v = m_context->get_event_method( `{ 'ID' : '` && event_id_cancel && `' }` ) )
+          ( n = 'items' v = '{' && m_context->get_attr_name_by_ref( ref = items check_update = abap_true ) && '}' )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~list.
+
+    result = _generic(
+          name = 'List'
+          "  ns   = 'l'
+         t_prop = VALUE #(
+           ( n = 'headerText' v = header_text )
+           ( n = 'items' v = '{' && m_context->get_attr_name_by_ref( ref = items check_update = abap_true ) && '}' )
+           ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~standard_list_item.
+
+    result = _generic(
+      name = 'StandardListItem'
+      "  ns   = 'l'
+     t_prop = VALUE #(
+       ( n = 'title' v = title )
+       ( n = 'description' v = description )
+       ( n = 'icon' v = icon )
+           ) ).
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~message_page.
+
+    result = _generic(
+      name = 'MessagePage'
+      "  ns   = 'l'
+     t_prop = VALUE #(
+       ( n = 'showHeader' v = _=>get_abap_2_json( show_header ) )
+       ( n = 'description' v = description )
+       ( n = 'icon' v = icon )
+       ( n = 'text' v = text )
+       ( n = 'enableFormattedText' v =  _=>get_abap_2_json( enable_formatted_text ) )
+      ) ).
+
+
+  ENDMETHOD.
+
+  METHOD zz2ui5_if_ui5_library~buttons.
+
+    result = _generic( 'buttons' ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS z2ui5_lcl_app_system DEFINITION.
 
   PUBLIC SECTION.
@@ -102,7 +865,7 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
             data(test) = 1 / 0.
 
             TRY.
-                DATA li_app_test TYPE REF TO z2ui5_if_app.
+                DATA li_app_test TYPE REF TO zz2ui5_if_app.
                 ms_home-classname = to_upper( ms_home-classname ).
                 CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
@@ -110,15 +873,15 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
                 ms_home-btn_text = 'edit'.
                 ms_home-btn_event_id = 'BUTTON_CHANGE'.
                 ms_home-btn_icon = 'sap-icon://edit'.
-                ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-success.
+                ms_home-class_value_state = zz2ui5_if_app_client=>cs-input-value_state-success.
                 ms_home-class_editable = abap_false.
 
               CATCH cx_root INTO DATA(lx).
                 ms_home-class_value_state_text = lx->get_text( ).
-                ms_home-class_value_state = z2ui5_if_view=>cs-input-value_state-warning.
+                ms_home-class_value_state = zz2ui5_if_app_client=>cs-input-value_state-warning.
                 client->display_message_box(
                     text = ms_home-class_value_state_text
-                    type = z2ui5_if_view=>cs-message_box-type-error
+                    type = zz2ui5_if_app_client=>cs-message_box-type-error
                      ).
             ENDTRY.
         ENDCASE.
@@ -139,17 +902,17 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
 
     DATA(lo_view) = client->factory_view( 'HOME' ).
 
-    DATA(lo_page) = lo_view->add_page( 'ABAP2UI5 - Home' ).
-    lo_page->add_header_content(
-        )->add_link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
-        )->add_link( text = 'abapGit' href = 'https://github.com/oblomov-dev/abap2ui5'
+    DATA(lo_page) = lo_view->page( 'ABAP2UI5 - Home' ).
+    lo_page->header_content(
+        )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
+        )->link( text = 'abapGit' href = 'https://github.com/oblomov-dev/abap2ui5'
       "  )->add_button( text = 'Demos'
     ).
 
 
 
-    DATA(lo_grid) = lo_page->add_grid( default_span  = 'L12 M12 S12' )->add_content( 'l' ).
-    DATA(lo_form) = lo_grid->add_simple_form( 'Quick Start' )->add_content( 'f' ).
+    DATA(lo_grid) = lo_page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+    DATA(lo_form) = lo_grid->simple_form( 'Quick Start' )->content( 'f' ).
 
 *        lo_form = lo_form->add_vbox( ).
 *        lo_form->add_input( product ).
@@ -167,17 +930,17 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
 *    data(lo_content) = lo_page->add_content( ).
 *    DATA(lo_form) = lo_content->add_simple_form( 'Quick Start'
     " lo_form->add_title( ':'
-    lo_form->add_label( 'Step 1'
-      )->add_text( 'Create a new global class in the abap system'
-      )->add_label( 'Step 2'
-      )->add_text( 'Implement the interface Z2UI5_IF_APP'
-      )->add_label( 'Step 3'
-      )->add_text( 'Define the views in the method set_view and the behaviour in the method on_event '
-      )->add_label( 'Step 4'
+    lo_form->label( 'Step 1'
+      )->text( 'Create a new global class in the abap system'
+      )->label( 'Step 2'
+      )->text( 'Implement the interface Z2UI5_IF_APP'
+      )->label( 'Step 3'
+      )->text( 'Define the views in the method set_view and the behaviour in the method on_event '
+      )->label( 'Step 4'
     ).
 
     IF ms_home-class_editable = abap_true.
-      lo_form->add_input(
+      lo_form->input(
                      value          = ms_home-classname
                      placeholder    = 'fill in the classname and press check'
                      value_state      = ms_home-class_value_state
@@ -185,58 +948,58 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
                      editable         = ms_home-class_editable
                 ).
     ELSE.
-      lo_form->add_text( ms_home-classname ).
+      lo_form->text( ms_home-classname ).
     ENDIF.
 
-    lo_form->add_button( text = ms_home-btn_text on_press_id = 'BUTTON_CHECK'  icon = ms_home-btn_icon   "type = view->cs-button-type-
-             )->add_label( 'Step 5' ).
+    lo_form->button( text = ms_home-btn_text on_press_id = 'BUTTON_CHECK'  icon = ms_home-btn_icon   "type = view->cs-button-type-
+             )->label( 'Step 5' ).
 
     IF ms_home-class_editable = abap_false.
-      lo_form->add_link( text = 'Link to the Application'
+      lo_form->link( text = 'Link to the Application'
               href = _=>get_server_info(  app = ms_home-classname )-url_app " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
            ).
     ENDIF.
 
 
-    lo_grid = lo_page->add_grid( default_span  = 'L4 M6 S12' )->add_content( 'l' ).
+    lo_grid = lo_page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
 
-    lo_form = lo_grid->add_simple_form(  'Selection-Screen' )->add_content( 'f' ).
-
-    " lo_form->add_title( ':'
-    lo_form->add_label( 'Selection-Screen'
-       )->add_text( 'Z2UI5_CL_APP_01'
-       )->add_label( 'Write Output'
-       )->add_text( 'Z2UI5_CL_APP_01'
-       )->add_label( 'Table (ALV)'
-       )->add_text( 'Z2UI5_CL_APP_01'
-     ).
-
-    lo_form = lo_grid->add_simple_form(  'Write Output' )->add_content( 'f' ).
+    lo_form = lo_grid->simple_form(  'Selection-Screen' )->content( 'f' ).
 
     " lo_form->add_title( ':'
-    lo_form->add_label( 'Write Output'
-       )->add_text( 'Z2UI5_CL_APP_01'
-       )->add_label( 'Write Output'
-       )->add_text( 'Z2UI5_CL_APP_01'
-       )->add_label( 'Table (ALV)'
-       )->add_text( 'Z2UI5_CL_APP_01'
+    lo_form->label( 'Selection-Screen'
+       )->text( 'Z2UI5_CL_APP_01'
+       )->label( 'Write Output'
+       )->text( 'Z2UI5_CL_APP_01'
+       )->label( 'Table (ALV)'
+       )->text( 'Z2UI5_CL_APP_01'
      ).
 
-    lo_form = lo_grid->add_simple_form(  'Table Output (ALV)' )->add_content( 'f' ).
+    lo_form = lo_grid->simple_form(  'Write Output' )->content( 'f' ).
 
     " lo_form->add_title( ':'
-    lo_form->add_label( 'Selection-Screen'
-       )->add_text( 'Z2UI5_CL_APP_01'
-       )->add_label( 'Write Output'
-       )->add_text( 'Z2UI5_CL_APP_01'
-       )->add_label( 'Table (ALV)'
-       )->add_text( 'Z2UI5_CL_APP_01'
+    lo_form->label( 'Write Output'
+       )->text( 'Z2UI5_CL_APP_01'
+       )->label( 'Write Output'
+       )->text( 'Z2UI5_CL_APP_01'
+       )->label( 'Table (ALV)'
+       )->text( 'Z2UI5_CL_APP_01'
+     ).
+
+    lo_form = lo_grid->simple_form(  'Table Output (ALV)' )->content( 'f' ).
+
+    " lo_form->add_title( ':'
+    lo_form->label( 'Selection-Screen'
+       )->text( 'Z2UI5_CL_APP_01'
+       )->label( 'Write Output'
+       )->text( 'Z2UI5_CL_APP_01'
+       )->label( 'Table (ALV)'
+       )->text( 'Z2UI5_CL_APP_01'
      ).
 
 
 
 
-    lo_page->add_footer( )->add_overflow_toolbar(  )->add_toolbar_spacer(
+    lo_page->footer( )->overflow_toolbar(  )->toolbar_spacer(
 *         )->add_link( text = 'Link to the Application'
 *              href = _=>get_server_info(  app = ms_home-classname )-url_app " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
 *        )->add_button( text = 'Start' type = client->cs-button-type-success
@@ -246,11 +1009,11 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
 
 
     if ms_error-x_error is bound.
-    client->factory_view( 'ERROR' )->add_message_page(
+    client->factory_view( 'ERROR' )->message_page(
         text = ms_error-classname
         description = ms_error-x_error->get_text( )
-        )->add_buttons(
-      )->add_button(
+        )->buttons(
+      )->button(
             text = 'HOME'
             on_press_id = 'BUTTON_HOME'
     "  )->add_button(
@@ -291,7 +1054,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
       BEGIN OF s_screen,
         name          TYPE string,
         check_binding TYPE abap_bool,
-        o_parser      TYPE REF TO z2ui5_cl_control_library,
+        o_parser      TYPE REF TO z2ui5_lcl_control_library,
         t_controls    TYPE STANDARD TABLE OF _=>ty-s-control WITH EMPTY KEY,
       END OF s_screen.
 
@@ -774,8 +1537,8 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   METHOD zz2ui5_if_app_client~factory_view.
 
-    result = z2ui5_cl_control_library=>factory( context = mo_server ).
-    INSERT VALUE #( name = name o_parser = result ) INTO TABLE mo_server->mt_screen.
+    result = z2ui5_lcl_control_library=>factory( context = mo_server ).
+    INSERT VALUE #( name = name o_parser = cast #(  result  ) ) INTO TABLE mo_server->mt_screen.
 
   ENDMETHOD.
 
