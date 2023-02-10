@@ -50,7 +50,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
     DATA(lo_screen) = view->factory_selscreen_page( event_nav_back_id = 'BTN_BACK' title = 'App Title - Z2UI5_CL_APP_DEMO_10' ).
 
-    lo_screen->message_strip( text = 'this is a success message strip' type = view->cs-message_strip-type-success
+    lo_screen->message_strip( text = 'this is a success message strip' type = view->cs-message_box-type-success
          )->begin_of_block( 'Some new UI5 Controls...'
              )->begin_of_group( '...ready to use in pure ABAP'
 

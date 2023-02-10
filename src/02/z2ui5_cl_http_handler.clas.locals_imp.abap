@@ -483,14 +483,13 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
      ( n = 'navButtonTap' v = `onEventBackend({ 'ID' : '` && event_nav_back_id && `' })` )
      ).
 
-    APPEND INITIAL LINE TO lr_control->t_child REFERENCE INTO DATA(lr_data).
-    CREATE DATA lr_data->* TYPE _=>ty-s-control.
-    DATA(lr_cont) = CAST _=>ty-s-control( lr_data->* ).
-    lr_cont->name = 'content'.
-    lr_cont->parent = REF #( lr_control->* ).
+    DATA lr_cont TYPE REF TO _=>ty-s-control.
+    lr_cont = NEW #( name = 'content'
+                     parent = REF #( lr_control->* ) ).
+    APPEND lr_cont TO lr_control->t_child.
 
+    mo_server->mr_control_actual_parent = lr_cont.
     mo_server->mr_control_actual = REF #( lr_cont->t_child ).
-    mo_server->mr_control_actual_parent = REF #( lr_cont->* ).
 
   ENDMETHOD.
 
@@ -631,10 +630,10 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mo_server->mr_control_actual->* TO <tab>.
-    DATA lr_data2 TYPE REF TO data.
-    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data2.
-    CREATE DATA lr_data2->* TYPE _=>ty-s-control.
-    DATA(lr_cont) = CAST _=>ty-s-control( lr_data2->* ).
+
+    DATA lr_cont TYPE REF TO _=>ty-s-control.
+    CREATE DATA lr_cont.
+    APPEND lr_cont TO <tab>.
 
     lr_cont->name = 'RadioButtonGroup'.
     lr_cont->t_property = VALUE #(
@@ -682,10 +681,8 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mo_server->mr_control_actual->* TO <tab>.
 
-    DATA lr_data TYPE REF TO data.
-    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
-    CREATE DATA lr_data->* TYPE _=>ty-s-control.
-    lr_cont2  = CAST _=>ty-s-control( lr_data->* ).
+    CREATE DATA lr_cont2.
+    APPEND lr_cont2 TO <tab>.
 
     lr_cont2->name = 'VBox'.
     lr_cont2->t_property = VALUE #( ( n = 'class' v = 'sapUiSmallMargin' ) ).
@@ -696,7 +693,7 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     DATA(lr_control) = CAST _=>ty-s-control( lr_data2->* ).
     lr_control->name = 'SimpleForm'.
     lr_control->ns = 'f'.
-    lr_control->parent = REF #( mo_server->mr_control_actual_parent->* ).
+    lr_control->parent = mo_server->mr_control_actual_parent.
     lr_control->t_property = VALUE #(
           ( n = 'title' v = title )
         ( n = 'editable' v = 'true' )
@@ -868,11 +865,9 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mo_server->mr_control_actual->* TO <tab>.
 
-    DATA lr_data TYPE REF TO data.
-    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
-    CREATE DATA lr_data->* TYPE _=>ty-s-control.
-    lr_cont  = CAST _=>ty-s-control( lr_data->* ).
-    lr_cont->name = 'footer'.
+
+    lr_cont = NEW #( name = 'footer' ).
+    APPEND lr_cont TO <tab>.
 
     mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
 
@@ -911,8 +906,8 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     r_result = me.
 
     DATA(lr_control) = CAST _=>ty-s-control( mo_server->mr_control_actual_parent ).
-    lr_control = REF #( lr_control->parent->* ).
-    mo_server->mr_control_actual_parent = REF #( lr_control->* ).
+    lr_control = CAST #( lr_control->parent ).
+    mo_server->mr_control_actual_parent = lr_control.
     mo_server->mr_control_actual = REF #( lr_control->t_child ).
 
   ENDMETHOD.
@@ -978,10 +973,11 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mo_server->mr_control_actual->* TO <tab>.
-    APPEND INITIAL LINE TO <tab> ASSIGNING FIELD-SYMBOL(<field2>).
-    CREATE DATA <field2> TYPE z2ui5_cl_hlp_utility=>ty-s-control.
-    <field2>->* = val.
 
+    DATA lr_field TYPE REF TO z2ui5_cl_hlp_utility=>ty-s-control.
+    CREATE DATA lr_field.
+    APPEND lr_field TO <tab>.
+    lr_field->* = val.
   ENDMETHOD.
 
   METHOD z2ui5_if_selscreen_block~code_editor.
@@ -1023,11 +1019,8 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mo_server->mr_control_actual->* TO <tab>.
 
-    DATA lr_data TYPE REF TO data.
-    APPEND INITIAL LINE TO <tab> REFERENCE INTO lr_data.
-    CREATE DATA lr_data->* TYPE _=>ty-s-control.
-    lr_cont  = CAST _=>ty-s-control( lr_data->* ).
-    lr_cont->name = 'OverflowToolbar'.
+    lr_cont = NEW #( name = 'OverflowToolbar' ).
+    APPEND lr_cont TO <tab>.
 
     mo_server->mr_control_actual ?= REF #( lr_cont->t_child ).
 
@@ -1051,9 +1044,11 @@ CLASS z2ui5_lcl_app_view IMPLEMENTATION.
 
     r_result = me.
 
-    DATA(lr_control) = CAST _=>ty-s-control( mo_server->mr_control_actual_parent ).
-    lr_control = REF #( lr_control->parent->* ).
-    mo_server->mr_control_actual_parent = REF #( lr_control->* ).
+    DATA lr_control TYPE REF TO _=>ty-s-control.
+
+    lr_control = CAST #( mo_server->mr_control_actual_parent ).
+    lr_control = CAST #( lr_control->parent ).
+    mo_server->mr_control_actual_parent = lr_control.
     mo_server->mr_control_actual = REF #( lr_control->t_child ).
 
   ENDMETHOD.
