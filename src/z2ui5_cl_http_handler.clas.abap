@@ -214,7 +214,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           TRY.
 
               ROLLBACK WORK.
-              CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_app_client( lo_runtime ) ).
+              CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_client( lo_runtime ) ).
               ROLLBACK WORK.
 
             CATCH cx_root INTO DATA(cx).
@@ -229,7 +229,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
             lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
             lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
             lo_runtime = lo_runtime_new.
-            lo_runtime->ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_init.
+            lo_runtime->ms_control-event_type = zz2ui5_if_client=>lifecycle_method-on_init.
             CONTINUE.
           ENDIF.
 
@@ -238,8 +238,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
               lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
 
               ROLLBACK WORK.
-              lo_runtime->ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_rendering.
-              CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_app_client( lo_runtime ) ).
+              lo_runtime->ms_control-event_type = zz2ui5_if_client=>lifecycle_method-on_rendering.
+              CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_client( lo_runtime ) ).
               ROLLBACK WORK.
 
             CATCH cx_root INTO cx.

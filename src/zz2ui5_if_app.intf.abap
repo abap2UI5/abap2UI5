@@ -5,6 +5,6 @@ INTERFACE zz2ui5_if_app
 
   METHODS controller
     IMPORTING
-      client TYPE REF TO zz2ui5_if_app_client.
+      client TYPE REF TO zz2ui5_if_client.
 
 ENDINTERFACE.

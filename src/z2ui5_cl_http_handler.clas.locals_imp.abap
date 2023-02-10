@@ -2,7 +2,7 @@ CLASS z2ui5_lcl_runtime DEFINITION DEFERRED.
 CLASS _ DEFINITION INHERITING FROM z2ui5_cl_hlp_utility.
 ENDCLASS.
 
-CLASS z2ui5_lcl_control_library DEFINITION
+CLASS z2ui5_lcl_ui5_library DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
@@ -16,15 +16,15 @@ CLASS z2ui5_lcl_control_library DEFINITION
     DATA m_ns   TYPE string.
     DATA mt_prop TYPE STANDARD TABLE OF z2ui5_cl_hlp_utility=>ty_property WITH EMPTY KEY.
 
-    DATA m_root    TYPE REF TO z2ui5_lcl_control_library.
-    DATA m_parent  TYPE REF TO z2ui5_lcl_control_library.
-    DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_control_library WITH EMPTY KEY.
+    DATA m_root    TYPE REF TO z2ui5_lcl_ui5_library.
+    DATA m_parent  TYPE REF TO z2ui5_lcl_ui5_library.
+    DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_ui5_library WITH EMPTY KEY.
 
     CLASS-METHODS factory
       IMPORTING
         context       TYPE REF TO z2ui5_if_view_context
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_control_library.
+        VALUE(result) TYPE REF TO z2ui5_lcl_ui5_library.
 
     METHODS _generic
       IMPORTING
@@ -32,7 +32,7 @@ CLASS z2ui5_lcl_control_library DEFINITION
         ns            TYPE string OPTIONAL
         t_prop        LIKE mt_prop OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_control_library.
+        VALUE(result) TYPE REF TO z2ui5_lcl_ui5_library.
 
     METHODS get_view
       IMPORTING
@@ -67,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_lcl_control_library IMPLEMENTATION.
+CLASS z2ui5_lcl_ui5_library IMPLEMENTATION.
 
   METHOD xml_get_begin.
 
@@ -133,7 +133,7 @@ CLASS z2ui5_lcl_control_library IMPLEMENTATION.
 
   METHOD _generic.
 
-    result = NEW z2ui5_lcl_control_library( ).
+    result = NEW z2ui5_lcl_ui5_library( ).
     result->m_name = name.
     result->m_ns = ns.
     result->mt_prop = t_prop.
@@ -147,7 +147,7 @@ CLASS z2ui5_lcl_control_library IMPLEMENTATION.
 
   METHOD factory.
 
-    result = NEW z2ui5_lcl_control_library( ).
+    result = NEW z2ui5_lcl_ui5_library( ).
     result->m_root = result.
     result->m_parent = result.
     result->m_context = context.
@@ -802,13 +802,13 @@ CLASS z2ui5_lcl_app_system DEFINITION.
   PROTECTED SECTION.
     METHODS a2ui5_on_init
       IMPORTING
-        client TYPE REF TO zz2ui5_if_app_client.
+        client TYPE REF TO zz2ui5_if_client.
     METHODS a2ui5_on_event
       IMPORTING
-        client TYPE REF TO zz2ui5_if_app_client.
+        client TYPE REF TO zz2ui5_if_client.
     METHODS a2ui5_on_rendering
       IMPORTING
-        client TYPE REF TO zz2ui5_if_app_client.
+        client TYPE REF TO zz2ui5_if_client.
 
 ENDCLASS.
 
@@ -873,15 +873,15 @@ CLASS z2ui5_lcl_app_system IMPLEMENTATION.
                 ms_home-btn_text = 'edit'.
                 ms_home-btn_event_id = 'BUTTON_CHANGE'.
                 ms_home-btn_icon = 'sap-icon://edit'.
-                ms_home-class_value_state = zz2ui5_if_app_client=>cs-input-value_state-success.
+                ms_home-class_value_state = zz2ui5_if_client=>cs-input-value_state-success.
                 ms_home-class_editable = abap_false.
 
               CATCH cx_root INTO DATA(lx).
                 ms_home-class_value_state_text = lx->get_text( ).
-                ms_home-class_value_state = zz2ui5_if_app_client=>cs-input-value_state-warning.
+                ms_home-class_value_state = zz2ui5_if_client=>cs-input-value_state-warning.
                 client->display_message_box(
                     text = ms_home-class_value_state_text
-                    type = zz2ui5_if_app_client=>cs-message_box-type-error
+                    type = zz2ui5_if_client=>cs-message_box-type-error
                      ).
             ENDTRY.
         ENDCASE.
@@ -1028,11 +1028,11 @@ endif.
 
 ENDCLASS.
 
-CLASS z2ui5_lcl_app_client DEFINITION.
+CLASS z2ui5_lcl_client DEFINITION.
 
   PUBLIC SECTION.
 
-    INTERFACES zz2ui5_if_app_client.
+    INTERFACES zz2ui5_if_client.
 
     DATA mo_server TYPE REF TO z2ui5_lcl_runtime.
 
@@ -1054,7 +1054,7 @@ CLASS z2ui5_lcl_runtime DEFINITION.
       BEGIN OF s_screen,
         name          TYPE string,
         check_binding TYPE abap_bool,
-        o_parser      TYPE REF TO z2ui5_lcl_control_library,
+        o_parser      TYPE REF TO z2ui5_lcl_ui5_library,
         t_controls    TYPE STANDARD TABLE OF _=>ty-s-control WITH EMPTY KEY,
       END OF s_screen.
 
@@ -1405,7 +1405,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
     ENDLOOP.
 
-    ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_event.
+    ms_control-event_type = zz2ui5_if_client=>lifecycle_method-on_event.
   ENDMETHOD.
 
 
@@ -1437,7 +1437,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     ms_db-app     = _=>get_classname_by_ref( ms_db-o_app ).
     ms_db-t_attri = _=>hlp_get_t_attri( ms_db-o_app ).
 
-    ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_init.
+    ms_control-event_type = zz2ui5_if_client=>lifecycle_method-on_init.
 
   ENDMETHOD.
 
@@ -1482,7 +1482,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
     r_result = factory_new(
              z2ui5_lcl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
-    r_result->ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_init.
+    r_result->ms_control-event_type = zz2ui5_if_client=>lifecycle_method-on_init.
   ENDMETHOD.
 
   METHOD z2ui5_if_view_context~get_attr_name_by_ref.
@@ -1505,7 +1505,7 @@ CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
 ENDCLASS.
 
-CLASS z2ui5_lcl_app_client IMPLEMENTATION.
+CLASS z2ui5_lcl_client IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -1514,41 +1514,41 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zz2ui5_if_app_client~display_message_toast.
+  METHOD zz2ui5_if_client~display_message_toast.
 
     INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) )
          INTO TABLE mo_server->mt_after.
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~display_message_box.
+  METHOD zz2ui5_if_client~display_message_box.
 
     INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) )
       INTO TABLE mo_server->mt_after.
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~display_view.
+  METHOD zz2ui5_if_client~display_view.
 
     mo_server->ms_db-screen = val.
     mo_server->ms_db-check_no_rerender = check_no_rerender.
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~factory_view.
+  METHOD zz2ui5_if_client~factory_view.
 
-    result = z2ui5_lcl_control_library=>factory( context = mo_server ).
+    result = z2ui5_lcl_ui5_library=>factory( context = mo_server ).
     INSERT VALUE #( name = name o_parser = cast #(  result  ) ) INTO TABLE mo_server->mt_screen.
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~nav_to_home.
+  METHOD zz2ui5_if_client~nav_to_home.
 
-    zz2ui5_if_app_client~nav_to_app( NEW z2ui5_lcl_app_system( ) ).
+    zz2ui5_if_client~nav_to_app( NEW z2ui5_lcl_app_system( ) ).
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~get.
+  METHOD zz2ui5_if_client~get.
 
     result = VALUE #(
         lifecycle_method = mo_server->ms_control-event_type
@@ -1566,20 +1566,20 @@ CLASS z2ui5_lcl_app_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~get_app_called.
+  METHOD zz2ui5_if_client~get_app_called.
 
     DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _('CX_STACK_EMPTY - NO CALLING APP FOUND') ).
     result = CAST #( mo_server->db_load( mo_server->ms_db-id_prev_app )-o_app ).
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~nav_to_app.
+  METHOD zz2ui5_if_client~nav_to_app.
 
     mo_server->ms_leave_to_app = VALUE #( o_app = app ).
 
   ENDMETHOD.
 
-  METHOD zz2ui5_if_app_client~display_popup.
+  METHOD zz2ui5_if_client~display_popup.
 
     mo_server->ms_db-screen_popup = name.
 

@@ -1,4 +1,4 @@
-INTERFACE zz2ui5_if_app_client
+INTERFACE zz2ui5_if_client
   PUBLIC .
 
   CONSTANTS cs LIKE zz2ui5_if_ui5_library=>cs VALUE zz2ui5_if_ui5_library=>cs.
