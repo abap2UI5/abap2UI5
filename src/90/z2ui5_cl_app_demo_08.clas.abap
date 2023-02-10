@@ -32,23 +32,25 @@ CLASS z2ui5_cl_app_demo_08 IMPLEMENTATION.
         DATA lr_data_in TYPE REF TO data.
         CREATE DATA lr_data_in TYPE STANDARD TABLE OF (tabname).
         _=>trans_json_2_data(
-          iv_json   = input
-          iv_result = lr_data_in
-        ).
+          EXPORTING iv_json   = input
+          IMPORTING ev_result = lr_data_in ).
 
         "save routine here, modify or bapi
 
       WHEN 'BUTTON_DOWNLOAD'.
 
         DATA lr_data TYPE REF TO data.
+        FIELD-SYMBOLS <lt_data> TYPE STANDARD TABLE.
+
         CREATE DATA lr_data TYPE STANDARD TABLE OF (tabname).
+        ASSIGN lr_data->* TO <lt_data>.
 
         SELECT FROM (tabname)
          FIELDS *
-         INTO CORRESPONDING FIELDS OF TABLE @lr_data->*
+         INTO CORRESPONDING FIELDS OF TABLE @<lt_data>
          UP TO 5 ROWS.
 
-        input = _=>trans_data_2_json( lr_data->* ).
+        input = _=>trans_data_2_json( <lt_data> ).
     ENDCASE.
 
     input = escape( format = cl_abap_format=>e_json_string val = input ).
