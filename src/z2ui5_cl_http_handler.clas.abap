@@ -93,11 +93,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `                "sap/ui/core/mvc/Controller",` && |\n|  &&
                `                "sap/ui/model/odata/v2/ODataModel",` && |\n|  &&
                `                "sap/ui/model/json/JSONModel", ` && |\n|  &&
-               `                "sap/m/MessageBox"     ` && |\n|  &&
-               `            ], function (Controller, ODataModel, JSONModel, MessageBox) {` && |\n|  &&
+               `                "sap/m/MessageBox",     ` && |\n|  &&
+               `                "sap/ui/core/Fragment"     ` && |\n|  &&
+               `            ], function (Controller, ODataModel, JSONModel, MessageBox, Fragment) {` && |\n|  &&
                `                "use strict";` && |\n|  &&
                `                return Controller.extend("MyController", {` && |\n|  &&
-               `                    onEventBackend: function (oEvent) {` && |\n|  &&
+               `                    onEventBackend: function (oEvent, oEvent2, oEvent3, oEvent4 ) {` && |\n|  &&
                `                        this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                `                        this.oBody.oEvent = oEvent;` && |\n|  &&
                `                   if ( this.oView.getModel().oData.debug ) {` && |\n|  &&
@@ -107,7 +108,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `                    },` && |\n|  &&
                `                    Roundtrip: function () {` && |\n|  &&
                `                        sap.ui.core.BusyIndicator.show();` && |\n|  &&
-               `                        this.oView.destroy();` && |\n|  &&
+               `                       if (this.getView( ).oPopup){  ` && |\n|  &&
+               `                   //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&
+               `                      this.getView( ).oPopup.destroy();` && |\n|  &&
+               `                        }` && |\n|  &&
+               `                 //       this.oView.destroy();` && |\n|  &&
                `                        var xhr = new XMLHttpRequest();` && |\n|  &&
                `              //          var url = window.location.pathname + window.location.search;` && |\n|  &&
                `                        var url = '` && lv_url && `'; // + window.location.search;` && |\n|  &&
@@ -123,11 +128,51 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `                            console.log(oResponse.vView);` && |\n|  &&
                `                            } ` && |\n|  &&
 
+*                       `        this.oApproveDialog = new sap.m.Dialog({` && |\n|  &&
+*                       `                    type: sap.m.DialogType.Message,` && |\n|  &&
+*                       `                    title: "Confirm",` && |\n|  &&
+*                       `                    content: new sap.m.Text({ text: "Do you want to submit this order?" }),` && |\n|  &&
+*                       `                    beginButton: new sap.m.Button({` && |\n|  &&
+*                       `                        type: sap.m.ButtonType.Emphasized,` && |\n|  &&
+*                       `                        text: "Submit",` && |\n|  &&
+*                       `                        press: function () {` && |\n|  &&
+*                       `                          this.oApproveDialog.destroy();` && |\n|  &&
+*                       `                         this.onEventBackend( { 'ID' : 'POPUP_DECIDE_YES' });` && |\n|  &&
+*                       `                        }.bind(this)` && |\n|  &&
+*                       `                    }),` && |\n|  &&
+*                       `                    endButton: new sap.m.Button({` && |\n|  &&
+*                       `                        text: "Cancel",` && |\n|  &&
+*                       `                        press: function () {` && |\n|  &&
+*                       `                            this.oApproveDialog.destroy();` && |\n|  &&
+*                       `                           this.onEventBackend( { 'ID' : 'POPUP_DECIDE_NO' });` && |\n|  &&
+*                       `                        }.bind(this)` && |\n|  &&
+*                       `                    })` && |\n|  &&
+*                       `                });                           ` && |\n|  &&
+*                       `              this.oApproveDialog.open();                    ` && |\n|  &&
+                       `                                  ` && |\n|  &&
+                       `                                  ` && |\n|  &&
                        `          if ( oResponse.oAfter ){ ` && |\n|  &&
                         `               oResponse.oAfter.forEach( item => sap.m[ item[0] ][ item[1] ]( item[2]) );  ` && |\n|  &&
                           `            }   ` && |\n|  &&
-                       `       var oModel = new JSONModel(oResponse.oViewModel);` && |\n|  &&
-               `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
+                       `                    var oModel = new JSONModel(oResponse.oViewModel);` && |\n|  &&
+                       `                                                               ` && |\n|  &&
+                       `         if (oResponse.vViewPopup) {                                                      ` && |\n|  &&
+                       `      const popup = new sap.ui.core.Fragment.load({` && |\n|  &&
+                       `                                definition: oResponse.vViewPopup,` && |\n|  &&
+                       `                                controller: this,` && |\n|  &&
+                       `                           }).then(function (oFragment) {` && |\n|  &&
+                          `                                                               ` && |\n|  &&
+                             `                     //  oFragment.setModel(oModel);                                       ` && |\n|  &&
+                                `                       this.getView( ).addDependent(oFragment);                                         ` && |\n|  &&
+                                `                     oFragment.open( );                                          ` && |\n|  &&
+                                   `                 this.getView( ).oPopup = oFragment;              ` && |\n|  &&
+                                   `                                                           ` && |\n|  &&
+                                      `       }.bind(this));                                                    ` && |\n|  &&
+                       `            }                                                         ` && |\n|  &&
+                       `                   //  this.oView.destroy();                                                     ` && |\n|  &&
+                       `                         if  (oResponse.vView)  {                                             ` && |\n|  &&
+                       `                     this.oView.destroy();                                                     ` && |\n|  &&
+               `                       var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                `                                viewContent: oResponse.vView,` && |\n|  &&
                `                                definition: oResponse.vView,` && |\n|  &&
                `                                preprocessors: {` && |\n|  &&
@@ -138,9 +183,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `                            }).then(oView => {` && |\n|  &&
                `                                oView.setModel(oModel);` && |\n|  &&
                `                                oView.placeAt("content");` && |\n|  &&
+               `                                 this.oView = oView;                      ` && |\n|  &&
                `                                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                `                            });` && |\n|  &&
-               `                        }.bind(this);` && |\n|  &&
+               `                                 } ` && |\n|  &&
+               `                                     }.bind(this);` && |\n|  &&
+               `                                                     ` && |\n|  &&
                `                        xhr.send(JSON.stringify(this.oBody));` && |\n|  &&
                `                    },` && |\n|  &&
                `                });` && |\n|  &&
@@ -164,8 +212,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
         DO.
 
           TRY.
+
               ROLLBACK WORK.
-              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->on_event( NEW z2ui5_lcl_app_client( lo_runtime )  ) .
+              CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_app_client( lo_runtime ) ).
               ROLLBACK WORK.
 
             CATCH cx_root INTO DATA(cx).
@@ -179,6 +228,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
             lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
             lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
             lo_runtime = lo_runtime_new.
+             lo_runtime->ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_init.
             CONTINUE.
           ENDIF.
 
@@ -187,7 +237,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
               lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
 
               ROLLBACK WORK.
-              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->set_view( NEW z2ui5_lcl_app_view( lo_runtime ) ).
+              lo_runtime->ms_control-event_type = zz2ui5_if_app_client=>lifecycle_method-on_rendering.
+              CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_app_client( lo_runtime ) ).
               ROLLBACK WORK.
 
             CATCH cx_root INTO cx.

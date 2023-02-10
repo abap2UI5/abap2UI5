@@ -13,9 +13,10 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
            END OF ty_property.
 
     TYPES: BEGIN OF ty_attri,
-             name       TYPE string,
-             kind       TYPE string,
-             check_used TYPE abap_bool,
+             name         TYPE string,
+             kind         TYPE string,
+             check_used   TYPE abap_bool,
+             check_update type abap_bool,
            END OF ty_attri.
 
     TYPES: BEGIN OF ty_control,
@@ -1324,16 +1325,31 @@ CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
       lr_tab_ui5_row = <tab_ui5>[ lv_tabix ].
       ASSIGN lr_tab_ui5_row->* TO <ui5_row>.
 
-      DATA(lv_int) = 0.
-      DO.
-        lv_int += 1.
-        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
+
+       data(lo_struct) = cast cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <back> ) ).
+
+        loop at lo_Struct->get_components( ) REFERENCE INTO data(lr_comp).
+
+             ASSIGN COMPONENT lr_comp->name OF STRUCTURE <back> TO <comp>.
         IF sy-subrc NE 0.
           EXIT.
         ENDIF.
-        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
-        <comp> = <comp_ui5>.
-      ENDDO.
+        ASSIGN COMPONENT lr_comp->name OF STRUCTURE <ui5_row> TO <comp_ui5>.
+           IF sy-subrc NE 0.
+          EXIT.
+        ENDIF.
+        <comp> = <comp_ui5>->*.
+       endloop.
+*      DATA(lv_int) = 0.
+*      DO.
+*        lv_int += 1.
+*        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
+*        IF sy-subrc NE 0.
+*          EXIT.
+*        ENDIF.
+*        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
+*        <comp> = <comp_ui5>.
+*      ENDDO.
 
     ENDLOOP.
 

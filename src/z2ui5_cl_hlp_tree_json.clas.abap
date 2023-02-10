@@ -287,6 +287,9 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = 'MR_ACTUAL->' && lv_test.
     ASSIGN (lv_name) TO <attribute>.
+    if sy-subrc <> 0.
+    return.
+    endif.
     lo_attri->mr_actual = <attribute>.
 
 *    TRY.

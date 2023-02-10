@@ -4,8 +4,6 @@
   <asx:values>
    <DEVC>
     <CTEXT>ABAP2UI5</CTEXT>
-    <COMP_POSID>CA</COMP_POSID>
-    <COMPONENT>HLB0009110</COMPONENT>
     <TPCLASS>X</TPCLASS>
    </DEVC>
   </asx:values>

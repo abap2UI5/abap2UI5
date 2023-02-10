@@ -4,7 +4,6 @@ CLASS z2ui5_cl_control_library DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES z2ui5_if_view_parser.
     CONSTANTS:
       BEGIN OF cs,
         BEGIN OF input,
@@ -166,8 +165,43 @@ CLASS z2ui5_cl_control_library DEFINITION
 
     METHODS add_table
       IMPORTING
-        items         TYPE data
+        items                 TYPE data
+        growing_threshold     TYPE string DEFAULT ''
+        zz_check_update_model TYPE abap_bool DEFAULT abap_false
       RETURNING
+        VALUE(result)         TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_footer
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    methods add_dialog
+        importing
+            title type string optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    methods add_buttons
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    methods add_message_page
+        importing
+            show_header type abap_bool default abap_false
+            text type string optional
+            enable_formatted_text type abap_bool default abap_true
+                description type string optional
+                icon type string optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    methods add_Table_Select_Dialog
+        importing
+        title type string optional
+        event_ID_confirm TYpe string optional
+        event_id_cancel type string optional
+        items type data optional
+          RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
     METHODS add_columns
@@ -195,6 +229,13 @@ CLASS z2ui5_cl_control_library DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
+    METHODS add_header_content
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_sub_header
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
     METHODS add_button
       IMPORTING
@@ -217,6 +258,13 @@ CLASS z2ui5_cl_control_library DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
+    METHODS add_scroll_container
+      IMPORTING
+        height        TYPE string DEFAULT '100%'
+        width         TYPE string DEFAULT '100%'
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
     METHODS add_simple_form
       IMPORTING
         title         TYPE string OPTIONAL
@@ -229,11 +277,14 @@ CLASS z2ui5_cl_control_library DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
+
     METHODS add_content
       IMPORTING
-        title         TYPE string OPTIONAL
+        ns            TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+
 
     METHODS add_title
       IMPORTING
@@ -287,6 +338,21 @@ CLASS z2ui5_cl_control_library DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
+    methods add_list
+      IMPORTING
+        header_text     TYPE string optional
+        items           TYPE data
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_control_library.
+
+   methods add_standard_list_item
+      IMPORTING
+        title        TYPE string optional
+        description  TYPE string optional
+        icon         TYPE string optional
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_control_library.
+
     METHODS add_combobox
       IMPORTING
         selectedKey     TYPE data
@@ -295,6 +361,13 @@ CLASS z2ui5_cl_control_library DEFINITION
         t_item          TYPE ty-combobox-t_item
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_grid
+      IMPORTING
+        class         TYPE string DEFAULT 'sapUiSmallMarginTop'
+        default_Span  TYPE string DEFAULT 'L6 M6 S12'
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
     METHODS add_text_area
       IMPORTING
@@ -344,9 +417,15 @@ CLASS z2ui5_cl_control_library DEFINITION
     METHODS add_checkbox
       IMPORTING
         text          TYPE string OPTIONAL
-        selected      TYPE abap_bool
+        selected      TYPE abap_bool OPTIONAL
+        selected_json TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
+    METHODS add_header_toolbar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_control_library.
+
 
     METHODS add_radiobutton_group
       IMPORTING
@@ -362,17 +441,29 @@ CLASS z2ui5_cl_control_library DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_control_library.
 
-    METHODS xml_get
+    METHODS get_view
+        importing
+            check_popup_active type abap_bool default abap_false
       RETURNING
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
+    METHODS xml_get
+        importing
+             check_popup_active type abap_bool default abap_false
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS xml_get_begin
+        importing
+             check_popup_active type abap_bool default abap_false
       RETURNING
         VALUE(result) TYPE string.
 
     METHODS xml_get_end
+          importing
+         check_popup_active type abap_bool default abap_false
       RETURNING
         VALUE(result) TYPE string.
 
@@ -385,16 +476,22 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
   METHOD xml_get_begin.
 
-    result = `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
-               `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
-                         ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
-                  COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` ).
+    result = cond #(  when check_popup_active = abap_false
+              then      `<mvc:View controllerName='MyController'     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
+                     `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+                               ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
+                         COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` )
+              else   `<core:FragmentDefinition   xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
+                     `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
+                               ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` ).
 
   ENDMETHOD.
 
   METHOD xml_get_end.
 
-    result &&= COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`.
+    result &&= cond #( when check_popup_active = abap_false
+              then COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`
+              else `</core:FragmentDefinition>` ).
 
   ENDMETHOD.
 
@@ -402,13 +499,13 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
     "case - root
     IF me = root.
-      result = xml_get_begin( ).
+      result = xml_get_begin( check_popup_active ).
 
       LOOP AT t_child INTO DATA(lr_child).
         result &&= lr_child->xml_get(  ).
       ENDLOOP.
 
-      result &&= xml_get_end( ).
+      result &&= xml_get_end( check_popup_active ).
       RETURN.
     ENDIF.
 
@@ -470,6 +567,7 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
        name   = 'Button'
        t_prop = VALUE #(
           ( n = 'press'   v = context->get_event_method( `{ 'ID' : '` && on_press_id && `' }` ) )
+          "( n = 'press'   v = context->get_event_method( ` $event , { 'ID' : '` && on_press_id && `' } )` ) )
           ( n = 'text'    v = text )
           ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
           ( n = 'icon'    v = icon )
@@ -492,8 +590,9 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
             ( n = 'editable'       v = _=>get_abap_2_json( editable ) )
             ( n = 'valueState'     v = value_state )
             ( n = 'valueStateText' v = value_state_text )
-            ( n = 'value'          v = COND #( WHEN editable = abap_false THEN value
-                                                  ELSE  '{' && context->get_attr_name_by_ref( value ) && '}' ) )
+            ( n = 'value'          v = COND #( WHEN value(1) = `{` THEN value
+                                               WHEN editable = abap_false THEN value
+                                               ELSE   '{' && context->get_attr_name_by_ref( value ) && '}' ) )
                           ) ).
 
     IF suggestion_items IS NOT INITIAL.
@@ -523,23 +622,37 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view_parser~get_view.
+  METHOD get_view.
 
-    result = root->xml_get( ).
+*    if check_popup_active = abap_true.
+*
+*    result = `<core:FragmentDefinition` && |\n|  &&
+*             `   xmlns="sap.m"` && |\n|  &&
+*             `   xmlns:core="sap.ui.core" >` && |\n|  &&
+*             `   <Dialog` && |\n|  &&
+*             `      id="helloDialog"` && |\n|  &&
+*             `      title="Hello {/recipient/name}">` && |\n|  &&
+*             `   </Dialog>` && |\n|  &&
+*             `</core:FragmentDefinition>`.
+*    return.
+*    endif.
+
+    result = root->xml_get( check_popup_active ).
 
   ENDMETHOD.
 
   METHOD add_page.
 
-    DATA(lo_page) = add(
+    result = add(
         name   = 'Page'
          t_prop = VALUE #(
              ( n = 'title' v = title )
              ( n = 'showNavButton' v = COND #( WHEN event_nav_back_id = '' THEN 'false' ELSE 'true' ) )
-             ( n = 'navButtonTap' v = context->get_event_method( event_nav_back_id ) )
+             ( n = 'navButtonTap' v = context->get_event_method( `{ 'ID' : '` && event_nav_back_id && `' } )` ) )
+          "   ( n = 'navButtonTap' v = context->get_event_method( `${$parameters}, ${$source} , $event , { 'ID' : '` && event_nav_back_id && `' } )` ) )
      ) ).
 
-    result = lo_page->add( 'content').
+    " result = lo_page->add( 'content').
 
   ENDMETHOD.
 
@@ -547,8 +660,10 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
     result = add(
          name   = 'VBox'
-         t_prop = VALUE #( ( n = 'class' v = 'sapUiSmallMargin' ) )
-     ).
+         t_prop = VALUE #(
+            ( n = 'class' v = 'sapUiSmallMargin' )
+           "( n = 'height' v = '10%' )
+             ) ).
 
   ENDMETHOD.
 
@@ -577,13 +692,16 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD add_content.
 
     result = add(
+        ns    = ns
        name   = 'content'
-       ns     = 'f' ).
+      ).
 
   ENDMETHOD.
+
 
   METHOD add_title.
 
@@ -591,7 +709,7 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
     add(
          name  = 'Title'
-         ns = 'core'
+        " ns = 'core'
          t_prop = VALUE #(
              ( n = 'text' v = title ) )
         ) .
@@ -818,7 +936,7 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
        name  = 'CheckBox'
        t_prop = VALUE #(
           ( n = 'text'  v = text )
-          ( n = 'selected' v = context->get_attr_name_by_ref( selected ) )
+          ( n = 'selected' v = COND #( WHEN selected_json IS SUPPLIED THEN selected_json ELSE context->get_attr_name_by_ref( selected ) ) )
       ) ).
 
   ENDMETHOD.
@@ -877,7 +995,11 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
 
     result = add(
         name  = 'Table'
-        t_prop = VALUE #( ( n = 'items' v = '{' && context->get_attr_name_by_ref( items ) && '}' ) )
+        t_prop = VALUE #(
+             ( n = 'items' v = '{' && context->get_attr_name_by_ref( ref = items check_update = zz_check_update_model ) && '}' )
+             ( n = 'growing' v = 'true' )
+             ( n = 'growingThreshold' v = growing_threshold )
+              )
        ).
 
   ENDMETHOD.
@@ -918,6 +1040,131 @@ CLASS z2ui5_cl_control_library IMPLEMENTATION.
   METHOD add_items.
 
     result = add(  'items' ).
+
+  ENDMETHOD.
+
+  METHOD add_grid.
+
+    result = add(
+        name = 'Grid'
+        ns   = 'l'
+        t_prop = VALUE #(
+            ( n = 'defaultSpan' v = default_span )
+            ( n = 'class'       v = class )
+            ) ).
+
+  ENDMETHOD.
+
+  METHOD add_header_toolbar.
+
+    result = add( 'headerToolbar' ).
+
+  ENDMETHOD.
+
+
+
+  METHOD add_scroll_container.
+
+    result = add(
+         name = 'ScrollContainer'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'height' v = height )
+          ( n = 'width'       v = width )
+          ( n = 'vertical'       v = 'true' )
+          ( n = 'focusable'       v = 'true' )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD add_header_content.
+
+    result = add( 'headerContent' ).
+
+  ENDMETHOD.
+
+  METHOD add_sub_header.
+
+    result = add( 'subHeader' ).
+
+  ENDMETHOD.
+
+  METHOD add_footer.
+
+    result = add( 'footer' ).
+
+  ENDMETHOD.
+
+  METHOD add_dialog.
+
+    result = add(
+         name = 'Dialog'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'title'  v = title )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD add_table_select_dialog.
+
+    result = add(
+         name = 'TableSelectDialog'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'title' v = title )
+        "  ( n = 'confirm'       v = context->get_event_method( `{ 'ID' : '` && event_id_confirm && `' }` ) )
+          ( n = 'confirm'      v = context->get_event_method( ` $event , { 'ID' : '` && event_id_confirm && `' } )` ) )
+          ( n = 'cancel'       v = context->get_event_method( `{ 'ID' : '` && event_id_cancel && `' }` ) )
+          ( n = 'items' v = '{' && context->get_attr_name_by_ref( ref = items check_update = abap_true ) && '}' )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD add_list.
+
+   result = add(
+         name = 'List'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'headerText' v = header_text )
+          ( n = 'items' v = '{' && context->get_attr_name_by_ref( ref = items check_update = abap_true ) && '}' )
+          ) ).
+
+  ENDMETHOD.
+
+  METHOD add_standard_list_item.
+
+       result = add(
+         name = 'StandardListItem'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'title' v = title )
+          ( n = 'description' v = description )
+          ( n = 'icon' v = icon )
+              ) ).
+
+  ENDMETHOD.
+
+  METHOD add_message_page.
+
+       result = add(
+         name = 'MessagePage'
+         "  ns   = 'l'
+        t_prop = VALUE #(
+          ( n = 'showHeader' v = _=>get_abap_2_json( show_header ) )
+          ( n = 'description' v = description )
+          ( n = 'icon' v = icon )
+          ( n = 'text' v = text )
+          ( n = 'enableFormattedText' v =  _=>get_abap_2_json( enable_formatted_text ) )
+         ) ).
+
+
+  ENDMETHOD.
+
+  METHOD add_buttons.
+
+    result = add( 'buttons' ).
 
   ENDMETHOD.
 

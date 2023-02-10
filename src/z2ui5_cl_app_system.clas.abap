@@ -1,8 +1,17 @@
 CLASS z2ui5_cl_app_system DEFINITION PUBLIC.
   PUBLIC SECTION.
 
+
+    INTERFACES zz2ui5_if_app.
     INTERFACES z2ui5_if_app.
 
+    DATA app_type TYPE string.
+
+    CLASS-METHODS create
+      IMPORTING
+        app_type        TYPE string
+      RETURNING
+        VALUE(r_result) TYPE REF TO z2ui5_cl_app_system.
     CLASS-METHODS factory_error
       IMPORTING
         error           TYPE REF TO cx_root
@@ -47,6 +56,14 @@ CLASS z2ui5_cl_app_system DEFINITION PUBLIC.
 ENDCLASS.
 
 CLASS z2ui5_cl_app_system IMPLEMENTATION.
+
+  METHOD create.
+
+    r_result = NEW #( ).
+
+    r_result->app_type = app_type.
+
+  ENDMETHOD.
   METHOD factory_error.
 
 
@@ -158,7 +175,7 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
 *                )->end_of_group( ).
 
              ).
-           return.
+      RETURN.
 
 *                   )->begin_of_group( 'ALV'
 *                 )->label( 'Demo 01'
@@ -382,4 +399,18 @@ CLASS z2ui5_cl_app_system IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+  METHOD zz2ui5_if_app~controller.
+
+      CASE app_type.
+
+        WHEN 'ERROR'.
+
+        WHEN 'HOME'.
+            client->nav_to_app( new lcl_app_home( ) ).
+
+
+      ENDCASE.
+
+  ENDMETHOD.
+
 ENDCLASS.
