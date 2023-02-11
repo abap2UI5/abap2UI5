@@ -12,12 +12,7 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
              "  name TYPE string,
            END OF ty_property.
 
-    TYPES: BEGIN OF ty_attri,
-             name         TYPE string,
-             kind         TYPE string,
-             check_used   TYPE abap_bool,
-             check_update type abap_bool,
-           END OF ty_attri.
+
 
     TYPES: BEGIN OF ty_control,
              name       TYPE string,
@@ -27,12 +22,20 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
              parent     TYPE REF TO data,
            END OF ty_control.
 
+   TYPES: BEGIN OF ty_attri,
+             name         TYPE string,
+             kind         TYPE string,
+             bind_type    type string,
+             data_stringify type string,
+          "   check_used   TYPE abap_bool,
+          "   check_update type abap_bool,
+           END OF ty_attri.
+
     TYPES:
       BEGIN OF ty,
         BEGIN OF s,
           property TYPE ty_property,
           control TYPE ty_control,
-          attri TYPE ty_attri,
           BEGIN OF msg,
             id TYPE string,
             ty TYPE string,
@@ -73,8 +76,8 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
           END OF get_server_info,
         END OF s,
         BEGIN OF t,
+             attri    TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
           property TYPE STANDARD TABLE OF ty_property WITH EMPTY KEY,
-          attri    TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
           control  TYPE STANDARD TABLE OF REF TO ty_control WITH EMPTY KEY,
         END OF t,
         BEGIN OF o,

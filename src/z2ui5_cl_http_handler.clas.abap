@@ -101,12 +101,13 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
               `                    onEventBackend: function (oEvent, oEvent2, oEvent3, oEvent4 ) {` && |\n|  &&
               `                        this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
               `                        this.oBody.oEvent = oEvent;` && |\n|  &&
-              `                   if ( this.oView.getModel().oData.debug ) {` && |\n|  &&
+              `                   if ( this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE ) {` && |\n|  &&
               `                       console.log(this.oBody);` && |\n|  &&
                  `                            } ` && |\n|  &&
               `                        this.Roundtrip();` && |\n|  &&
               `                    },` && |\n|  &&
               `                    Roundtrip: function () {` && |\n|  &&
+              `                         this.oView.destroy();   ` && |\n|  &&
               `                        sap.ui.core.BusyIndicator.show();` && |\n|  &&
               `                       if (this.getView( ).oPopup){  ` && |\n|  &&
               `                   //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&
@@ -123,7 +124,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
               `                            return; ` && |\n|  &&
                `                        }` && |\n|  &&
               `                            var oResponse = JSON.parse(that.target.response);` && |\n|  &&
-              `                            if ( oResponse.oViewModel.debug ) {` && |\n|  &&
+              `                            if ( oResponse.oSystem.CHECK_DEBUG_ACTIVE ) {` && |\n|  &&
               `                            console.log(oResponse);` && |\n|  &&
               `                            console.log(oResponse.vView);` && |\n|  &&
               `                            } ` && |\n|  &&
@@ -154,6 +155,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                       `          if ( oResponse.oAfter ){ ` && |\n|  &&
                        `               oResponse.oAfter.forEach( item => sap.m[ item[0] ][ item[1] ]( item[2]) );  ` && |\n|  &&
                          `            }   ` && |\n|  &&
+                      `                    oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n|  &&
                       `                    var oModel = new JSONModel(oResponse.oViewModel);` && |\n|  &&
                       `                                                               ` && |\n|  &&
                       `         if (oResponse.vViewPopup) {                                                      ` && |\n|  &&
@@ -171,7 +173,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                       `            }                                                         ` && |\n|  &&
                       `                   //  this.oView.destroy();                                                     ` && |\n|  &&
                       `                         if  (oResponse.vView)  {                                             ` && |\n|  &&
-                      `                     this.oView.destroy();                                                     ` && |\n|  &&
+                      `                                                                    ` && |\n|  &&
               `                       var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
               `                                viewContent: oResponse.vView,` && |\n|  &&
               `                                definition: oResponse.vView,` && |\n|  &&
@@ -234,9 +236,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           ENDIF.
 
           TRY.
-              lo_runtime->mo_ui5_model = z2ui5_cl_hlp_tree_json=>factory( ).
-              lo_runtime->mo_view_model = lo_runtime->mo_ui5_model->add_attribute_object( 'oViewModel' ).
-
               ROLLBACK WORK.
               lo_runtime->ms_control-event_type = zz2ui5_if_client=>lifecycle_method-on_rendering.
               CAST zz2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_client( lo_runtime ) ).

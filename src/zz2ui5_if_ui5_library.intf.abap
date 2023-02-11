@@ -3,6 +3,11 @@ INTERFACE zz2ui5_if_ui5_library
 
   CONSTANTS:
     BEGIN OF cs,
+      begin of _bind_type,
+        one_way type string value 'ONE_WAY',
+        two_way type string value 'TWO_WAY',
+        one_time type string value 'ONE_TIME',
+        END OF _bind_type,
       BEGIN OF input,
         BEGIN OF type,
           password TYPE string VALUE 'Password',
@@ -112,6 +117,13 @@ INTERFACE zz2ui5_if_ui5_library
       t_radio TYPE STANDARD TABLE OF ty-test WITH EMPTY KEY,
     END OF ty.
 
+    methods _bind
+        importing
+            val type data
+            type type string default cs-_bind_type-two_way
+        RETURNING
+        VALUE(result) type string.
+
   METHODS code_editor
     IMPORTING
       value         TYPE string OPTIONAL
@@ -134,11 +146,11 @@ INTERFACE zz2ui5_if_ui5_library
         PREFERRED PARAMETER value
     RETURNING
       VALUE(result)    TYPE REF TO  zz2ui5_if_ui5_library.
+
   METHODS  table
     IMPORTING
       items                 TYPE data
       growing_threshold     TYPE string DEFAULT ''
-      zz_check_update_model TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result)         TYPE REF TO  zz2ui5_if_ui5_library.
   METHODS  footer
@@ -169,6 +181,11 @@ INTERFACE zz2ui5_if_ui5_library
       items            TYPE data OPTIONAL
     RETURNING
       VALUE(result)    TYPE REF TO  zz2ui5_if_ui5_library.
+
+      methods get_parent
+         RETURNING
+      VALUE(result)    TYPE REF TO  zz2ui5_if_ui5_library.
+
   METHODS  columns
     RETURNING
       VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
@@ -346,11 +363,12 @@ INTERFACE zz2ui5_if_ui5_library
       t_button      TYPE ty-segemented_button-t_button
     RETURNING
       VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+
   METHODS  checkbox
     IMPORTING
-      text          TYPE string OPTIONAL
-      selected      TYPE abap_bool OPTIONAL
-      selected_json TYPE string OPTIONAL
+      text          TYPE clike OPTIONAL
+      selected      TYPE clike OPTIONAL
+   "   selected_json TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
   METHODS  header_toolbar
@@ -359,7 +377,7 @@ INTERFACE zz2ui5_if_ui5_library
   METHODS  radiobutton_group
     IMPORTING
       "    description     TYPE string OPTIONAL
-      selected_index TYPE i OPTIONAL
+      selected_index TYPE clike OPTIONAL
       t_prop         TYPE ty-radiobutton_group-t_prop
     RETURNING
       VALUE(result)  TYPE REF TO  zz2ui5_if_ui5_library.
