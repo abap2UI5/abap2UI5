@@ -2,7 +2,7 @@ CLASS zz2ui5_cl_app_demo_02 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
-    INTERFACES zz2ui5_if_app.
+    INTERFACES z2ui5_if_app.
 
 
     DATA:
@@ -35,7 +35,7 @@ ENDCLASS.
 CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
-  METHOD zz2ui5_if_app~controller.
+  METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
 

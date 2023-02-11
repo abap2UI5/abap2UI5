@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOINTERF>
-    <CLSNAME>ZZ2UI5_IF_CLIENT</CLSNAME>
+    <CLSNAME>Z2UI5_IF_CLIENT</CLSNAME>
     <LANGU>E</LANGU>
     <DESCRIPT>ABAP2UI5 - client</DESCRIPT>
     <EXPOSURE>2</EXPOSURE>

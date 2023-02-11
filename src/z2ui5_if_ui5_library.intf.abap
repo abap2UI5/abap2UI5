@@ -1,4 +1,4 @@
-INTERFACE zz2ui5_if_ui5_library
+INTERFACE z2ui5_if_ui5_library
   PUBLIC .
 
   CONSTANTS:
@@ -129,7 +129,7 @@ INTERFACE zz2ui5_if_ui5_library
       value         TYPE string OPTIONAL
       type          TYPE string
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS  input
     IMPORTING
@@ -145,25 +145,25 @@ INTERFACE zz2ui5_if_ui5_library
       showsuggestion   TYPE abap_bool DEFAULT abap_true
         PREFERRED PARAMETER value
     RETURNING
-      VALUE(result)    TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS  table
     IMPORTING
       items                 TYPE data
       growing_threshold     TYPE string DEFAULT ''
     RETURNING
-      VALUE(result)         TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)         TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  footer
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  dialog
     IMPORTING
       title         TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  buttons
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  message_page
     IMPORTING
       show_header           TYPE abap_bool DEFAULT abap_false
@@ -172,7 +172,7 @@ INTERFACE zz2ui5_if_ui5_library
       description           TYPE string OPTIONAL
       icon                  TYPE string OPTIONAL
     RETURNING
-      VALUE(result)         TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)         TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  table_select_dialog
     IMPORTING
       title            TYPE string OPTIONAL
@@ -180,38 +180,38 @@ INTERFACE zz2ui5_if_ui5_library
       event_id_cancel  TYPE string OPTIONAL
       items            TYPE data OPTIONAL
     RETURNING
-      VALUE(result)    TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
       methods get_parent
          RETURNING
-      VALUE(result)    TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS  columns
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  column
     IMPORTING
       width         TYPE string OPTIONAL
       text          TYPE string DEFAULT 'title'
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  items
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  column_list_item
     IMPORTING
       valign        TYPE string DEFAULT 'Middle'
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  cells
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  header_content
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  sub_header
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  button
     IMPORTING
       text          TYPE clike OPTIONAL
@@ -220,95 +220,95 @@ INTERFACE zz2ui5_if_ui5_library
       type          TYPE clike OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  page
     IMPORTING
       title             TYPE string OPTIONAL
       event_nav_back_id TYPE string OPTIONAL
         PREFERRED PARAMETER title
     RETURNING
-      VALUE(result)     TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  vbox
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  scroll_container
     IMPORTING
       height        TYPE string DEFAULT '100%'
       width         TYPE string DEFAULT '100%'
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  simple_form
     IMPORTING
       title         TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  zz_html
     IMPORTING
       val           TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  content
     IMPORTING
       ns            TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  title
     IMPORTING
       title         TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  overflow_toolbar
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  toolbar_spacer
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  label
     IMPORTING
       text          TYPE string DEFAULT 'line_label'
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  date_picker
     IMPORTING
       value         TYPE string OPTIONAL
       placeholder   TYPE string OPTIONAL
         PREFERRED PARAMETER value
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  time_picker
     IMPORTING
       value         TYPE string OPTIONAL
       placeholder   TYPE string OPTIONAL
         PREFERRED PARAMETER value
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  date_time_picker
     IMPORTING
       value         TYPE string OPTIONAL
       placeholder   TYPE string OPTIONAL
         PREFERRED PARAMETER value
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  link
     IMPORTING
       text          TYPE string    DEFAULT 'line_label'
       href          TYPE string    OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  list
     IMPORTING
       header_text   TYPE string OPTIONAL
       items         TYPE data
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  standard_list_item
     IMPORTING
       title         TYPE string OPTIONAL
       description   TYPE string OPTIONAL
       icon          TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  combobox
     IMPORTING
       selectedkey     TYPE data
@@ -316,13 +316,13 @@ INTERFACE zz2ui5_if_ui5_library
       label           TYPE string DEFAULT 'line_label'
       t_item          TYPE ty-combobox-t_item
     RETURNING
-      VALUE(result)   TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  grid
     IMPORTING
       class         TYPE string DEFAULT 'sapUiSmallMarginTop'
       default_span  TYPE string DEFAULT 'L6 M6 S12'
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  text_area
     IMPORTING
       value         TYPE string OPTIONAL
@@ -331,7 +331,7 @@ INTERFACE zz2ui5_if_ui5_library
       width         TYPE string DEFAULT '100%'
         PREFERRED PARAMETER value
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  switch
     IMPORTING
       state         TYPE abap_bool DEFAULT abap_true
@@ -340,7 +340,7 @@ INTERFACE zz2ui5_if_ui5_library
       enabled       TYPE abap_bool DEFAULT abap_true
       type          TYPE string DEFAULT cs-switch-type-default
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  step_input
     IMPORTING
       value         TYPE string
@@ -348,7 +348,7 @@ INTERFACE zz2ui5_if_ui5_library
       max           TYPE string
       step          TYPE string
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  progress_indicator
     IMPORTING
       percent_value TYPE string
@@ -356,13 +356,13 @@ INTERFACE zz2ui5_if_ui5_library
       show_value    TYPE abap_bool DEFAULT abap_false
       state         TYPE string DEFAULT cs-progress_indicator-state-none
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  segmented_button
     IMPORTING
       selected_key  TYPE data OPTIONAL
       t_button      TYPE ty-segemented_button-t_button
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS  checkbox
     IMPORTING
@@ -370,21 +370,21 @@ INTERFACE zz2ui5_if_ui5_library
       selected      TYPE clike OPTIONAL
    "   selected_json TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  header_toolbar
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  radiobutton_group
     IMPORTING
       "    description     TYPE string OPTIONAL
       selected_index TYPE clike OPTIONAL
       t_prop         TYPE ty-radiobutton_group-t_prop
     RETURNING
-      VALUE(result)  TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result)  TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  text
     IMPORTING
       text          TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
 ENDINTERFACE.

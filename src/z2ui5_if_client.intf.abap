@@ -1,7 +1,7 @@
-INTERFACE zz2ui5_if_client
+INTERFACE z2ui5_if_client
   PUBLIC .
 
-  CONSTANTS cs LIKE zz2ui5_if_ui5_library=>cs VALUE zz2ui5_if_ui5_library=>cs.
+  CONSTANTS cs LIKE z2ui5_if_ui5_library=>cs VALUE z2ui5_if_ui5_library=>cs.
 
   TYPES:
     BEGIN OF ty_S_get,
@@ -25,13 +25,13 @@ INTERFACE zz2ui5_if_client
 
   METHODS nav_to_app
     IMPORTING
-      app TYPE REF TO zz2ui5_if_app.
+      app TYPE REF TO z2ui5_if_app.
 
   METHODS nav_to_home.
 
   METHODS get_app_called
     RETURNING
-      VALUE(result) TYPE REF TO zz2ui5_if_app.
+      VALUE(result) TYPE REF TO z2ui5_if_app.
 
 
   METHODS display_message_box
@@ -53,7 +53,7 @@ INTERFACE zz2ui5_if_client
     IMPORTING
       name          TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO zz2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO z2ui5_if_ui5_library.
 
   METHODS display_popup
     IMPORTING
