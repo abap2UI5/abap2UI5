@@ -171,7 +171,6 @@ r_result &&= `</head>` && |\n|  &&
               ROLLBACK WORK.
 
             CATCH cx_root INTO DATA(cx).
-
               lo_runtime = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
               CONTINUE.
           ENDTRY.
@@ -182,13 +181,13 @@ r_result &&= `</head>` && |\n|  &&
             lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
             lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
             lo_runtime = lo_runtime_new.
-            lo_runtime->ms_control-event_type = z2ui5_if_client=>lifecycle_method-on_init.
+            lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_init.
             CONTINUE.
           ENDIF.
 
           TRY.
               ROLLBACK WORK.
-              lo_runtime->ms_control-event_type = z2ui5_if_client=>lifecycle_method-on_rendering.
+              lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_rendering.
               CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_client( lo_runtime ) ).
               ROLLBACK WORK.
 

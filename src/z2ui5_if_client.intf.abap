@@ -12,13 +12,6 @@ INTERFACE z2ui5_if_client
       event_object     TYPE REF TO z2ui5_cl_hlp_tree_json,
     END OF ty_s_get.
 
-  CONSTANTS:
-    BEGIN OF lifecycle_method,
-      on_init      TYPE string VALUE 'INIT',
-      on_event     TYPE string VALUE 'EVENT',
-      on_rendering TYPE string VALUE 'RENDERING',
-    END OF lifecycle_method.
-
   METHODS get
     RETURNING
       VALUE(result) TYPE ty_S_get.

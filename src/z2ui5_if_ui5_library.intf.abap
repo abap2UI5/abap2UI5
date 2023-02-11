@@ -3,11 +3,16 @@ INTERFACE z2ui5_if_ui5_library
 
   CONSTANTS:
     BEGIN OF cs,
-      begin of _bind_type,
-        one_way type string value 'ONE_WAY',
-        two_way type string value 'TWO_WAY',
-        one_time type string value 'ONE_TIME',
-        END OF _bind_type,
+      BEGIN OF _lifecycle_method,
+        on_init      TYPE string VALUE 'INIT',
+        on_event     TYPE string VALUE 'EVENT',
+        on_rendering TYPE string VALUE 'RENDERING',
+      END OF _lifecycle_method,
+      BEGIN OF _bind_type,
+        one_way  TYPE string VALUE 'ONE_WAY',
+        two_way  TYPE string VALUE 'TWO_WAY',
+        one_time TYPE string VALUE 'ONE_TIME',
+      END OF _bind_type,
       BEGIN OF input,
         BEGIN OF type,
           password TYPE string VALUE 'Password',
@@ -117,12 +122,12 @@ INTERFACE z2ui5_if_ui5_library
       t_radio TYPE STANDARD TABLE OF ty-test WITH EMPTY KEY,
     END OF ty.
 
-    methods _bind
-        importing
-            val type data
-            type type string default cs-_bind_type-two_way
-        RETURNING
-        VALUE(result) type string.
+  METHODS _bind
+    IMPORTING
+      val           TYPE data
+      type          TYPE string DEFAULT cs-_bind_type-two_way
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS code_editor
     IMPORTING
@@ -147,12 +152,12 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
-  METHODS  table
+  METHODS table
     IMPORTING
-      items                 TYPE data
-      growing_threshold     TYPE string DEFAULT ''
+      items             TYPE data
+      growing_threshold TYPE string DEFAULT ''
     RETURNING
-      VALUE(result)         TYPE REF TO  z2ui5_if_ui5_library.
+      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  footer
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
@@ -182,9 +187,9 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
-      methods get_parent
-         RETURNING
-      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
+  METHODS get_parent
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS  columns
     RETURNING
@@ -368,7 +373,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       text          TYPE clike OPTIONAL
       selected      TYPE clike OPTIONAL
-   "   selected_json TYPE string OPTIONAL
+      "   selected_json TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  header_toolbar

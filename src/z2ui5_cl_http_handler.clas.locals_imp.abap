@@ -10,8 +10,6 @@
         INTERFACES: z2ui5_if_ui5_library.
 
         CONSTANTS cs LIKE z2ui5_if_ui5_library=>cs VALUE z2ui5_if_ui5_library=>cs.
-        TYPES     ty TYPE z2ui5_if_ui5_library=>ty.
-
         DATA m_name TYPE string.
         DATA m_ns   TYPE string.
         DATA mt_prop TYPE STANDARD TABLE OF z2ui5_cl_hlp_utility=>ty_property WITH EMPTY KEY.
@@ -910,11 +908,11 @@
 
         CASE client->get( )-lifecycle_method.
 
-          WHEN client->lifecycle_method-on_init.
+          WHEN client->cs-_lifecycle_method-on_init.
             a2ui5_on_init( client ).
-          WHEN client->lifecycle_method-on_event.
+          WHEN client->cs-_lifecycle_method-on_event.
             a2ui5_on_event( client ).
-          WHEN client->lifecycle_method-on_rendering.
+          WHEN client->cs-_lifecycle_method-on_rendering.
             a2ui5_on_rendering( client ).
         ENDCASE.
       ENDMETHOD.
@@ -1217,9 +1215,6 @@
 
         DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
         DATA mt_screen TYPE STANDARD TABLE OF s_screen.
-        DATA mr_screen_actual TYPE REF TO s_screen.
-        DATA mr_control_actual TYPE REF TO data.
-        DATA mr_control_actual_parent TYPE REF TO data.
         DATA ms_leave_to_app LIKE ms_db.
 
         METHODS constructor RAISING cx_uuid_error.
@@ -1292,7 +1287,7 @@
 
         MODIFY z2ui5_t_draft FROM @( VALUE #(
           uuid  = ms_db-id
-          uname = _=>get_user_tech( ) "cl_abap_context_info=>get_user_technical_name( )
+          uname = _=>get_user_tech( )
           timestampl = _=>get_timestampl( )
           data  = _=>trans_object_2_xml( REF #( ms_db ) )
           ) ).
@@ -1329,9 +1324,6 @@
         ENDIF.
 
 
-        """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
-        " define ui5 view and model
-
         DATA(lo_ui5_model) = z2ui5_cl_hlp_tree_json=>factory( ).
 
         DATA(ls_view) = lr_screen->o_parser->get_view(  ).
@@ -1346,6 +1338,7 @@
         lo_system->add_attribute( n = 'ID_PREV' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-debug_mode_on ) ).
         "    lo_ui5_model->add_attribute( n = 'CHECK_POPUP_ACTIVE' v = ''  apos_active = abap_false ).
         lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-debug_mode_on )  apos_active = abap_false ).
+
 
         IF mt_after IS NOT INITIAL.
           DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
@@ -1391,7 +1384,7 @@
 
         ENDLOOP.
 
-        ms_control-event_type = z2ui5_if_client=>lifecycle_method-on_event.
+        ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_event.
       ENDMETHOD.
 
 
@@ -1423,7 +1416,7 @@
         ms_db-app     = _=>get_classname_by_ref( ms_db-o_app ).
         ms_db-t_attri = _=>hlp_get_t_attri( ms_db-o_app ).
 
-        ms_control-event_type = z2ui5_if_client=>lifecycle_method-on_init.
+        ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_init.
 
       ENDMETHOD.
 
@@ -1443,7 +1436,7 @@
         r_result = factory_new(
                  z2ui5_lcl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
-        r_result->ms_control-event_type = z2ui5_if_client=>lifecycle_method-on_init.
+        r_result->ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_init.
       ENDMETHOD.
 
     ENDCLASS.

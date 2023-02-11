@@ -39,7 +39,7 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->lifecycle_method-on_init.
+      WHEN client->cs-_lifecycle_method-on_init.
 
           mt_tab = VALUE #( id = '010'
             ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
@@ -61,7 +61,7 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
         "  client->display_view( check_no_rerender = ABAp_true ).
         client->display_popup( 'POPUP' ).
 
-      WHEN client->lifecycle_method-on_event.
+      WHEN client->cs-_lifecycle_method-on_event.
 
         "user event handling
         CASE client->get( )-event_id.
@@ -79,10 +79,10 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
 
-      WHEN client->lifecycle_method-on_rendering.
+      WHEN client->cs-_lifecycle_method-on_rendering.
 
         DATA(lo_view) = client->factory_view( ).
-        DATA(lo_page) = lo_view->page(  title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
+        DATA(lo_page) = lo_view->page( title = 'App Title - Z2UI5_CL_APP_DEMO_02' ).
 
 
         DATA(lo_grid) = lo_page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
