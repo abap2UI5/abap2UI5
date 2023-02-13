@@ -6,7 +6,7 @@ INTERFACE z2ui5_if_client
   TYPES:
     BEGIN OF ty_S_get,
       screen_active    TYPE string,
-      check_call_satck TYPE abap_bool,
+      check_call_stack TYPE abap_bool,
       event_id         TYPE string,
       lifecycle_method TYPE string,
       event_object     TYPE REF TO z2ui5_cl_hlp_tree_json,

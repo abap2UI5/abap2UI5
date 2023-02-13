@@ -1,4 +1,4 @@
-CLASS zz2ui5_cl_app_demo_03 DEFINITION PUBLIC.
+CLASS zz2ui5_cl_app_demo_11 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -8,7 +8,7 @@ CLASS zz2ui5_cl_app_demo_03 DEFINITION PUBLIC.
       IMPORTING
         i_log           TYPE bapirettab
       RETURNING
-        VALUE(r_result) TYPE REF TO zz2ui5_cl_app_demo_03.
+        VALUE(r_result) TYPE REF TO zz2ui5_cl_app_demo_11.
 
     DATA mt_log TYPE bapirettab.
 
@@ -26,7 +26,7 @@ CLASS zz2ui5_cl_app_demo_03 DEFINITION PUBLIC.
 
 ENDCLASS.
 
-CLASS zz2ui5_cl_app_demo_03 IMPLEMENTATION.
+CLASS zz2ui5_cl_app_demo_11 IMPLEMENTATION.
 
   METHOD factory.
 
@@ -70,50 +70,33 @@ CLASS zz2ui5_cl_app_demo_03 IMPLEMENTATION.
 
       WHEN client->cs-_lifecycle_method-on_rendering.
 
-        client->factory_view( 'POPUP_BAL' )->page(
-            event_nav_back_id = COND #( WHEN client->get( )-check_call_stack = abap_true THEN 'BUTTON_BACK' )
-            title  = 'BAL Ausgabe'
-          )->list(
-             header_text = 'Log Ausgabe'
-             items       = mt_log
-          )->standard_list_item(
-             title       =  '{TYPE}'
-             description = '{MESSAGE}'
+       data(view) = client->factory_view( 'POPUP_BAL' ).
+       data(lo_form) = view->page( ).
+
+        DATA(lo_tab) = lo_form->scroll_container( height = '70%' )->table(
+            items  = view->_bind( val = mt_tab type = view->cs-_bind_type-two_way )
+        ).
+
+        lo_tab->header_toolbar( )->overflow_toolbar(
+            )->title( 'title'
+             )->toolbar_spacer(
+             )->button( text = 'edit' on_press_id = 'BTN01'
+             )->button( text = 'edit' on_press_id = 'BTN02'
+          ).
+
+        lo_tab->columns(
+            )->column( text = 'Name'
+            )->column( text = 'Value'
+            )->column( text = 'Test1'
+            )->column( text = 'Test2'
+            )->column( text = 'Checkbox'
+         )->get_parent( )->items( )->column_list_item( )->cells(
+            )->text( '{NAME}'
+            )->text( '{VALUE}'
+            )->button( text = '{TEST1}' on_press_id = '{NAME}'
+            )->input( value = '{TEST2}'
+            )->checkbox( selected = '{CHECK_VALID}'
          ).
-
-
-*        RETURN.
-*
-*        lo_form = lo_form_h->content( 'f' ).
-*        lo_form->title( 'Table' ).
-*
-*        lo_form_h = lo_grid->simple_form('Tabelle' ).
-*        lo_form = lo_form_h->content( 'f' ).
-*
-*        DATA(lo_tab) = lo_form->scroll_container( height = '70%' )->table(
-*            items  = view->_bind( val = mt_tab type = view->cs-_bind_type-two_way )
-*        ).
-*
-*        lo_tab->header_toolbar( )->overflow_toolbar(
-*            )->title( 'title'
-*             )->toolbar_spacer(
-*             )->button( text = 'edit' on_press_id = 'BTN01'
-*             )->button( text = 'edit' on_press_id = 'BTN02'
-*          ).
-*
-*        lo_tab->columns(
-*            )->column( text = 'Name'
-*            )->column( text = 'Value'
-*            )->column( text = 'Test1'
-*            )->column( text = 'Test2'
-*            )->column( text = 'Checkbox'
-*         )->get_parent( )->items( )->column_list_item( )->cells(
-*            )->text( '{NAME}'
-*            )->text( '{VALUE}'
-*            )->button( text = '{TEST1}' on_press_id = '{NAME}'
-*            )->input( value = '{TEST2}'
-*            )->checkbox( selected = '{CHECK_VALID}'
-*         ).
 
     ENDCASE.
 

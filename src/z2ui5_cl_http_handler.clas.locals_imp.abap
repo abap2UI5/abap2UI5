@@ -269,7 +269,7 @@
 
         result-xml = m_root->xml_get( check_popup_active ).
 
-        data(m_view_model) = z2ui5_cl_hlp_tree_json=>factory( ).
+        DATA(m_view_model) = z2ui5_cl_hlp_tree_json=>factory( ).
         DATA(lo_update) = m_view_model->add_attribute_object( 'oUpdate' ).
 
         LOOP AT mt_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ''.
@@ -576,7 +576,7 @@
         _generic(
               name  = 'TextArea'
                 t_prop = VALUE #(
-                  ( n = 'value' v = _get_name_by_ref( value ) )
+                  ( n = 'value' v = value )
                   ( n = 'rows' v = rows )
                   ( n = 'height' v = height )
                   ( n = 'width' v = width )
@@ -841,6 +841,20 @@
         result = m_parent.
       ENDMETHOD.
 
+      METHOD z2ui5_if_ui5_library~message_strip.
+
+        result = me.
+
+        _generic(
+          name = 'MessageStrip'
+         t_prop = VALUE #(
+           ( n = 'text' v = text )
+           ( n = 'type' v = type )
+           ( n = 'class' v = class )
+          ) ).
+
+      ENDMETHOD.
+
     ENDCLASS.
 
     CLASS z2ui5_lcl_app_system DEFINITION.
@@ -890,13 +904,13 @@
         DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
       PROTECTED SECTION.
-        METHODS a2ui5_on_init
+        METHODS z2ui5_on_init
           IMPORTING
             client TYPE REF TO z2ui5_if_client.
-        METHODS a2ui5_on_event
+        METHODS z2ui5_on_event
           IMPORTING
             client TYPE REF TO z2ui5_if_client.
-        METHODS a2ui5_on_rendering
+        METHODS z2ui5_on_rendering
           IMPORTING
             client TYPE REF TO z2ui5_if_client.
 
@@ -909,11 +923,11 @@
         CASE client->get( )-lifecycle_method.
 
           WHEN client->cs-_lifecycle_method-on_init.
-            a2ui5_on_init( client ).
+            z2ui5_on_init( client ).
           WHEN client->cs-_lifecycle_method-on_event.
-            a2ui5_on_event( client ).
+            z2ui5_on_event( client ).
           WHEN client->cs-_lifecycle_method-on_rendering.
-            a2ui5_on_rendering( client ).
+            z2ui5_on_rendering( client ).
         ENDCASE.
       ENDMETHOD.
 
@@ -928,40 +942,23 @@
       ENDMETHOD.
 
 
-      METHOD a2ui5_on_init.
+      METHOD z2ui5_on_init.
         IF ms_error-x_error IS NOT BOUND.
           client->display_view( 'HOME' ).
+          ms_home-is_initialized = abaP_true.
+          ms_home-btn_text = 'check'.
+          ms_home-btn_event_id = 'BUTTON_CHECK'.
+          ms_home-class_editable = abap_true.
+          ms_home-btn_icon = 'sap-icon://validate'.
         ELSE.
           client->display_view( 'ERROR' ).
         ENDIF.
-
-
-
-        mt_tab = VALUE #( id = '010'
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ).
 
         " ms_home-classname = 'test'.
       ENDMETHOD.
 
 
-      METHOD a2ui5_on_event.
+      METHOD z2ui5_on_event.
 
         CASE client->get( )-screen_active.
 
@@ -974,13 +971,7 @@
                 ms_home-btn_icon = 'sap-icon://validate'.
                 ms_home-class_editable = abap_true.
 
-              WHEN 'POPUP_SELECT_TABLE'.
-                client->display_popup( 'POPUP_TABLE' ).
-
               WHEN 'BUTTON_CHECK'.
-
-                " data(test) = 1 / 0.
-
                 TRY.
                     DATA li_app_test TYPE REF TO z2ui5_if_app.
                     ms_home-classname = to_upper( ms_home-classname ).
@@ -1001,6 +992,16 @@
                         type = z2ui5_if_client=>cs-message_box-type-error
                          ).
                 ENDTRY.
+
+              WHEN '0101'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_01( ) ).
+
+              WHEN '0201'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_02( ) ).
+
+              WHEN '0202'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_05( ) ).
+
             ENDCASE.
 
           WHEN 'ERROR'.
@@ -1015,44 +1016,25 @@
       ENDMETHOD.
 
 
-      METHOD a2ui5_on_rendering.
+      METHOD z2ui5_on_rendering.
 
         DATA(lo_view) = client->factory_view( 'HOME' ).
 
-        DATA(lo_page) = lo_view->page( 'ABAP2UI5 - Home' ).
+        DATA(lo_page) = lo_view->page( 'Welcome to ABAP2UI5! - Development of UI5 Apps in pure ABAP' ).
         lo_page->header_content(
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
             )->link( text = 'abapGit' href = 'https://github.com/oblomov-dev/abap2ui5'
-          "  )->add_button( text = 'Demos'
         ).
-
-
 
         DATA(lo_grid) = lo_page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
         DATA(lo_form) = lo_grid->simple_form( 'Quick Start' )->content( 'f' ).
 
-*        lo_form = lo_form->add_vbox( ).
-*        lo_form->add_input( product ).
-*        lo_form->add_button( text = 'POPUP_SELECT_TABLE' on_press_id = 'POPUP_SELECT_TABLE' ).
-*        lo_form->add_input( product ).
-*        lo_form->add_button( text = 'BAL Anzeige' on_press_id = 'BUTTON_BAL' ).
-*
-*        lo_form = lo_grid->add_simple_form( title = 'test' )->add_content( 'f' ).
-*        lo_form->add_title( 'new title' ).
-*        lo_form = lo_form->add_vbox( ).
-
-
-
-
-*    data(lo_content) = lo_page->add_content( ).
-*    DATA(lo_form) = lo_content->add_simple_form( 'Quick Start'
-        " lo_form->add_title( ':'
         lo_form->label( 'Step 1'
           )->text( 'Create a new global class in the abap system'
           )->label( 'Step 2'
-          )->text( 'Implement the interface Z2UI5_IF_APP'
+          )->text( 'Add the interface Z2UI5_IF_APP'
           )->label( 'Step 3'
-          )->text( 'Define the views in the method set_view and the behaviour in the method on_event '
+          )->text( 'Implement the view and the behaviour in the controller method'
           )->label( 'Step 4'
         ).
 
@@ -1068,8 +1050,7 @@
           lo_form->text( ms_home-classname ).
         ENDIF.
 
-        lo_form->button( text = ms_home-btn_text on_press_id = 'BUTTON_CHECK'  icon = ms_home-btn_icon ).  "type = view->cs-button-type-
-        lo_form->button( text = ms_home-btn_text on_press_id = 'POPUP_SELECT_TABLE'  icon = ms_home-btn_icon   "type = view->cs-button-type-
+        lo_form->button( text = ms_home-btn_text on_press_id = ms_home-btn_event_id  icon = ms_home-btn_icon   "type = view->cs-button-type-
                  )->label( 'Step 5' ).
 
         IF ms_home-class_editable = abap_false.
@@ -1081,49 +1062,22 @@
 
         lo_grid = lo_page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
 
-        lo_form = lo_grid->simple_form(  'Demo - Selection-Screen' )->content( 'f' ).
+        lo_grid->simple_form(  'HowTo - General' )->content( 'f'
+            )->button( text = 'Client-Server Communication (Data Binding)' on_press_id = '0101'
+            )->button( text = 'Controller (Events, Navigation, Error)' on_press_id = '0102'
+            )->button( text = 'Messages (Toast, Box, Strip)' on_press_id = '0103'
+            )->button( text = 'Layout (Header, Footer, Grid)' on_press_id = '0104' ).
 
-        " lo_form->add_title( ':'
-        lo_form->label( 'Selection-Screen'
-           )->text( 'Z2UI5_CL_APP_01'
-           )->label( 'Write Output'
-           )->text( 'Z2UI5_CL_APP_01'
-           )->label( 'Table (ALV)'
-           )->text( 'Z2UI5_CL_APP_01'
-         ).
-
-        lo_form = lo_grid->simple_form(  'Demo - Write Output' )->content( 'f' ).
-
-        " lo_form->add_title( ':'
-        lo_form->label( 'Write Output'
-           )->text( 'Z2UI5_CL_APP_01'
-           )->label( 'Write Output'
-           )->text( 'Z2UI5_CL_APP_01'
-           )->label( 'Table (ALV)'
-           )->text( 'Z2UI5_CL_APP_01'
-         ).
-
-        lo_form = lo_grid->simple_form(  'Demo - Table Output (ALV)' )->content( 'f' ).
-
-        " lo_form->add_title( ':'
-        lo_form->label( 'Selection-Screen'
-           )->text( 'Z2UI5_CL_APP_01'
-           )->label( 'Write Output'
-           )->text( 'Z2UI5_CL_APP_01'
-           )->label( 'Table (ALV)'
-           )->text( 'Z2UI5_CL_APP_01'
-         ).
+        lo_grid->simple_form(  'HowTo - Selection-Screen' )->content( 'f'
+            )->button( text = 'Basic' on_press_id = '0201'
+            )->button( text = 'More Controls' on_press_id = '0202' ).
 
 
-
-
-        lo_page->footer( )->overflow_toolbar(  )->toolbar_spacer(
-*         )->add_link( text = 'Link to the Application'
-*              href = _=>get_server_info(  app = ms_home-classname )-url_app " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
-*        )->add_button( text = 'Start' type = client->cs-button-type-success
-            ).
-
-
+        lo_form = lo_grid->simple_form(  'HowTo - Table and List' )->content( 'f'
+            )->button( text = 'List' on_press_id = '0301'
+            )->button( text = 'Table' on_press_id = '0302'
+            )->button( text = 'Table with Toolbar, Icons, Checkbox' on_press_id = '0303'
+            )->button( text = 'Table Editable' on_press_id = '0304' ).
 
 
         IF ms_error-x_error IS BOUND.
@@ -1134,35 +1088,8 @@
             )->button(
                   text = 'HOME'
                   on_press_id = 'BUTTON_HOME'
-          "  )->add_button(
-          "        text = 'Neustart'
-          "           on_press_id = 'RESTART'
             ).
         ENDIF.
-
-
-        lo_view = client->factory_view( 'POPUP_TABLE' ).
-
-        DATA(lo_tab) = lo_view->table_select_dialog(
-                    title            = 'title'
-                    event_id_confirm = 'TAB_CONFIRM'
-                    event_id_cancel  = 'TAB_CANCEL'
-                    items            = mt_tab
-                 ).
-
-        lo_tab->column_list_item( )->cells(
-        )->text( '{NAME}'
-        )->text( '{VALUE}'
-        )->button( text = '{TEST1}' on_press_id = '{NAME}'
-        )->input( value = '{TEST2}'
-        )->checkbox( selected = '{CHECK_VALID}'
-).
-        lo_tab->columns( )->column( text = 'Name'
-        )->column( text = 'Value'
-        )->column( text = 'Test1'
-        )->column( text = 'Test2'
-        )->column( text = 'Checkbox'
-        ).
 
       ENDMETHOD.
 
@@ -1335,9 +1262,9 @@
 
         DATA(lo_system) = lo_ui5_model->add_attribute_object( 'oSystem' ).
         lo_system->add_attribute( n = 'ID' v = ms_db-id ).
-        lo_system->add_attribute( n = 'ID_PREV' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-debug_mode_on ) ).
+        lo_system->add_attribute( n = 'ID_PREV' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) ).
         "    lo_ui5_model->add_attribute( n = 'CHECK_POPUP_ACTIVE' v = ''  apos_active = abap_false ).
-        lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-debug_mode_on )  apos_active = abap_false ).
+        lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode )  apos_active = abap_false ).
 
 
         IF mt_after IS NOT INITIAL.
@@ -1491,7 +1418,7 @@
 
         result = VALUE #(
             lifecycle_method = mo_server->ms_control-event_type
-            check_call_satck = xsdbool( mo_server->ms_db-id_prev_app IS NOT INITIAL )
+            check_call_stack = xsdbool( mo_server->ms_db-id_prev_app IS NOT INITIAL )
             screen_active = mo_server->ms_db-screen
         ).
 

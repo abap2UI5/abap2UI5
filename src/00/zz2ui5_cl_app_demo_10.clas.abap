@@ -1,4 +1,4 @@
-CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
+CLASS zz2ui5_cl_app_demo_10 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -8,7 +8,7 @@ CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
         i_app TYPE REF TO z2ui5_if_app
         i_name_attri TYPE string
       RETURNING
-        value(r_result) TYPE REF TO zz2ui5_cl_app_demo_04.
+        value(r_result) TYPE REF TO zz2ui5_cl_app_demo_10.
 
 
     DATA mo_app type ref to z2ui5_if_app.
@@ -17,7 +17,7 @@ CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
 
 ENDCLASS.
 
-CLASS zz2ui5_cl_app_demo_04 IMPLEMENTATION.
+CLASS zz2ui5_cl_app_demo_10 IMPLEMENTATION.
 
   METHOD factory.
 

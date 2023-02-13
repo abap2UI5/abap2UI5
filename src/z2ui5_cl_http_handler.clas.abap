@@ -7,11 +7,11 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CONSTANTS:
       BEGIN OF cs_config,
-        theme         TYPE string    VALUE 'sap_horizon',
-        browser_title TYPE string    VALUE 'ABAP2UI5',
-        repository    TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
-        letterboxing  TYPE abap_bool VALUE abap_true,
-        debug_mode_on TYPE abap_bool VALUE abap_true,
+        theme            TYPE string    VALUE 'sap_horizon',
+        browser_title    TYPE string    VALUE 'ABAP2UI5',
+        repository       TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
+        letterboxing     TYPE abap_bool VALUE abap_true,
+        check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
     CLASS-DATA:

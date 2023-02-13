@@ -152,6 +152,15 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
+methods message_strip
+    importing
+      text type string optional
+      type type string optional
+      show_icon type abap_bool optional
+      class type string optional
+    RETURNING
+      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
+
   METHODS table
     IMPORTING
       items             TYPE data

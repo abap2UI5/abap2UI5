@@ -1,0 +1,131 @@
+CLASS zz2ui5_cl_app_demo_05 DEFINITION PUBLIC.
+
+  PUBLIC SECTION.
+
+    INTERFACES z2ui5_if_app.
+
+    DATA:
+      BEGIN OF screen,
+        check_initialized TYPE abap_bool,
+        check_is_active   TYPE abap_bool,
+        colour            TYPE string,
+        combo_key         TYPE string,
+        segment_key       TYPE string,
+        date              TYPE string,
+        date_time         TYPE string,
+        time_start        TYPE string,
+        time_end          TYPE string,
+        check_switch_01   TYPE abap_bool VALUE abap_false,
+        check_switch_02   TYPE abap_bool VALUE abap_false,
+        progress_value    TYPE string VALUE '3',
+        step_val_01       TYPE string VALUE '4',
+        step_val_02       TYPE string VALUE '10',
+        text_area         TYPE string,
+      END OF screen.
+
+
+ENDCLASS.
+
+CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
+
+
+  METHOD z2ui5_if_app~controller.
+
+    CASE client->get( )-lifecycle_method.
+
+      WHEN client->cs-_lifecycle_method-on_init.
+
+        screen = VALUE #(
+           check_initialized = abap_true
+           check_is_active   = abap_true
+           colour            = 'BLUE'
+           combo_key         = 'GRAY'
+           segment_key       = 'GREEN'
+           date              = '07.12.22'
+           date_time         = '23.12.2022, 19:27:20'
+           time_start        = '05:24:00'
+           time_end          = '17:23:57'
+         ).
+
+
+
+      WHEN client->cs-_lifecycle_method-on_event.
+
+        "user event handling
+        CASE client->get( )-event_id.
+
+          WHEN 'BUTTON_BACK'.
+            client->nav_to_app( client->get_app_called( ) ).
+
+          WHEN 'BUTTON_ROUNDTRIP'.
+            DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
+
+          WHEN 'BUTTON_MSG_BOX'.
+            client->display_message_box(
+              text = 'this is a message box with a custom text'
+              type = client->cs-message_box-type-success
+            ).
+
+          WHEN 'BUTTON_MSG_TOAST'.
+            client->display_message_toast( 'this is a message toast with a custom text' ).
+
+          WHEN 'BUTTON_RESTART'.
+           " client->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
+
+          WHEN 'BUTTON_ERROR'.
+            DATA(dummy) = 1 / 0.
+
+          WHEN 'BUTTON_CHANGE_APP'.
+           " client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
+
+        ENDCASE.
+
+
+
+      WHEN client->cs-_lifecycle_method-on_rendering.
+
+
+        DATA(view) = client->factory_view( ).
+        DATA(lo_page) = view->page( title = 'App Title - Header' event_nav_back_id = COND #( WHEN client->get( )-check_call_stack IS NOT INITIAL THEN 'BUTTON_BACK' )  ).
+
+        DATA(lo_grid) = lo_page->grid( default_span  = 'L6 M12 S12' )->content( 'l' ).
+
+
+
+
+            lo_page->message_strip( text = 'this is a success message strip' type = client->cs-message_strip-type-success ).
+
+        lo_grid->simple_form('More Controls' )->content( 'f'
+             )->label( 'ProgressIndicator'
+             )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = client->cs-progress_indicator-state-success
+
+             )->label( 'StepInput'
+             )->step_input( value = screen-step_val_01 step = '2'  min = '0' max = '20'
+             )->step_input( value = screen-step_val_02 step = '10' min = '0' max = '100'
+
+             )->label( 'Text Area'
+             )->text_area( value = view->_bind( screen-text_area ) height = '100px' ).
+
+
+
+        lo_grid = lo_page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
+            )->simple_form('Controller' )->content( 'f'
+                )->label( 'Roundtrip'
+                )->button( text = 'Client/Server Interaction' on_press_id = 'BUTTON_ROUNDTRIP'
+
+                )->label( 'Popups'
+                )->button( text = 'Display Message Box'   on_press_id = 'BUTTON_MSG_BOX'
+                )->button( text = 'Display Message Toast' on_press_id = 'BUTTON_MSG_TOAST'
+
+                )->label( 'System'
+                )->button( text = 'Restart' on_press_id = 'BUTTON_RESTART'
+                )->button( text = 'Error'   on_press_id = 'BUTTON_ERROR'
+
+                )->label( 'Call new app'
+                )->button( text = 'App & Screen change' on_press_id = 'BUTTON_CHANGE_APP' ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+ENDCLASS.
