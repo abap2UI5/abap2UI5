@@ -5,11 +5,14 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_S_get,
-      screen_active    TYPE string,
-      check_call_stack TYPE abap_bool,
-      event_id         TYPE string,
-      lifecycle_method TYPE string,
-      event_object     TYPE REF TO z2ui5_cl_hlp_tree_json,
+      view_active        TYPE string,
+      check_previous_app TYPE abap_bool,
+      event              TYPE string,
+      lifecycle_method   TYPE string,
+      event_object       TYPE REF TO z2ui5_cl_hlp_tree_json,
+      id                 type string,
+      id_prev            type string,
+      id_prev_app        type string,
     END OF ty_s_get.
 
   METHODS get
@@ -22,7 +25,7 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_to_home.
 
-  METHODS get_app_called
+  METHODS get_app_previous
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
 

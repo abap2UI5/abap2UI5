@@ -33,7 +33,7 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-_lifecycle_method-on_init.
+      WHEN client->cs-lifecycle_method-on_init.
 
         screen = VALUE #(
            check_initialized = abap_true
@@ -49,13 +49,13 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
 
 
 
-      WHEN client->cs-_lifecycle_method-on_event.
+      WHEN client->cs-lifecycle_method-on_event.
 
         "user event handling
-        CASE client->get( )-event_id.
+        CASE client->get( )-event.
 
           WHEN 'BUTTON_BACK'.
-            client->nav_to_app( client->get_app_called( ) ).
+            client->nav_to_app( client->get_app_previous( ) ).
 
           WHEN 'BUTTON_ROUNDTRIP'.
             DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
@@ -66,31 +66,17 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
               type = client->cs-message_box-type-success
             ).
 
-          WHEN 'BUTTON_MSG_TOAST'.
-            client->display_message_toast( 'this is a message toast with a custom text' ).
-
-          WHEN 'BUTTON_RESTART'.
-           " client->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
-
-          WHEN 'BUTTON_ERROR'.
-            DATA(dummy) = 1 / 0.
-
-          WHEN 'BUTTON_CHANGE_APP'.
-           " client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
-
         ENDCASE.
 
 
 
-      WHEN client->cs-_lifecycle_method-on_rendering.
-
+      WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(lo_page) = view->page( title = 'App Title - Header' event_nav_back_id = COND #( WHEN client->get( )-check_call_stack IS NOT INITIAL THEN 'BUTTON_BACK' )  ).
+        DATA(lo_page) = view->page( title = 'App Title - Header'
+        nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
 
         DATA(lo_grid) = lo_page->grid( default_span  = 'L6 M12 S12' )->content( 'l' ).
-
-
 
 
             lo_page->message_strip( text = 'this is a success message strip' type = client->cs-message_strip-type-success ).
@@ -105,24 +91,6 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
 
              )->label( 'Text Area'
              )->text_area( value = view->_bind( screen-text_area ) height = '100px' ).
-
-
-
-        lo_grid = lo_page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-            )->simple_form('Controller' )->content( 'f'
-                )->label( 'Roundtrip'
-                )->button( text = 'Client/Server Interaction' on_press_id = 'BUTTON_ROUNDTRIP'
-
-                )->label( 'Popups'
-                )->button( text = 'Display Message Box'   on_press_id = 'BUTTON_MSG_BOX'
-                )->button( text = 'Display Message Toast' on_press_id = 'BUTTON_MSG_TOAST'
-
-                )->label( 'System'
-                )->button( text = 'Restart' on_press_id = 'BUTTON_RESTART'
-                )->button( text = 'Error'   on_press_id = 'BUTTON_ERROR'
-
-                )->label( 'Call new app'
-                )->button( text = 'App & Screen change' on_press_id = 'BUTTON_CHANGE_APP' ).
 
     ENDCASE.
 

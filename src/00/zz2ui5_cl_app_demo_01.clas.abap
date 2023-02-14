@@ -6,6 +6,7 @@ CLASS zz2ui5_cl_app_demo_01 DEFINITION PUBLIC.
 
     DATA product TYPE string.
     DATA quantity TYPE string.
+    DATA unit TYPE string.
 
 ENDCLASS.
 
@@ -16,19 +17,15 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-_lifecycle_method-on_init.
-
+      WHEN client->cs-lifecycle_method-on_init.
         product = 'tomato'.
         quantity = '500'.
 
 
-      WHEN client->cs-_lifecycle_method-on_event.
+      WHEN client->cs-lifecycle_method-on_event.
 
         "user event handling
-        CASE client->get( )-event_id.
-
-          WHEN 'BUTTON_BACK'.
-            client->nav_to_app( client->get_app_called( ) ).
+        CASE client->get( )-event.
 
           WHEN 'BUTTON_POST'.
             client->display_message_toast( |{ product } { quantity } ST - GR successful| ).
@@ -36,19 +33,26 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
         ENDCASE.
 
 
-      WHEN client->cs-_lifecycle_method-on_rendering.
+      WHEN client->cs-lifecycle_method-on_rendering.
 
+        DATA(context) = client->get( ).
         DATA(view) = client->factory_view( ).
 
-        view->page( event_nav_back_id = COND #( WHEN client->get( )-check_call_stack IS NOT INITIAL THEN 'BUTTON_BACK' ) title = 'Page title'
+        view->page(
+           title = 'Page title'
+           nav_button_tap = COND #( WHEN context-id_prev_app IS NOT INITIAL THEN view->_event_display_id( context-id_prev_app ) )
            )->simple_form('Form Title'
                 )->content( 'f'
                     )->title( 'Input'
-                    )->label( 'product'
-                    )->input( view->_bind( product )
                     )->label( 'quantity'
+                    "two way binding, data is written into a a view model and send back to the server
                     )->input( view->_bind( quantity )
-                    )->button( text = 'post' on_press_id = 'BUTTON_POST' ).
+                    "one way binding, data is written into a view model but not send back to the server
+                    )->input( view->_bind_one_way( unit ) "
+                    )->label( 'product'
+                     "value is written directly into the xml, no data transfer
+                    )->input( value = product editable = abap_False
+                    )->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
 
     ENDCASE.
 

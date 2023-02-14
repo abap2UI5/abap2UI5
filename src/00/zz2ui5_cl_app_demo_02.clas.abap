@@ -40,13 +40,13 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-_lifecycle_method-on_init.
+      WHEN client->cs-lifecycle_method-on_init.
         z2ui5_on_init( client ).
 
-      WHEN client->cs-_lifecycle_method-on_event.
+      WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).
 
-      WHEN client->cs-_lifecycle_method-on_rendering.
+      WHEN client->cs-lifecycle_method-on_rendering.
         z2ui5_on_rendering( client ).
 
     ENDCASE.
@@ -57,7 +57,8 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'App Title - Header' event_nav_back_id = COND #( WHEN client->get( )-check_call_stack IS NOT INITIAL THEN 'BUTTON_BACK' ) ).
+    DATA(page) = view->page( title = 'App Title - Header'
+        nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
 
     DATA(grid) = page->grid( default_span  = 'L6 M12 S12' )->content( 'l' ).
 
@@ -125,10 +126,10 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
-    CASE client->get( )-event_id.
+    CASE client->get( )-event.
 
       WHEN 'BUTTON_BACK'.
-        client->nav_to_app( client->get_app_called( ) ).
+        client->nav_to_app( client->get_app_previous( ) ).
 
       WHEN 'BUTTON_POST'.
         "user pressed a button, your custom implementation can be called here'

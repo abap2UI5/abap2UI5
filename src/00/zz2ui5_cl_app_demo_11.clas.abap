@@ -74,7 +74,7 @@ CLASS zz2ui5_cl_app_demo_11 IMPLEMENTATION.
        data(lo_form) = view->page( ).
 
         DATA(lo_tab) = lo_form->scroll_container( height = '70%' )->table(
-            items  = view->_bind( val = mt_tab type = view->cs-_bind_type-two_way )
+            items  = view->_bind( val = mt_tab type = view->cs-bind_type-two_way )
         ).
 
         lo_tab->header_toolbar( )->overflow_toolbar(

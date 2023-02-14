@@ -3,16 +3,20 @@ INTERFACE z2ui5_if_ui5_library
 
   CONSTANTS:
     BEGIN OF cs,
-      BEGIN OF _lifecycle_method,
+      BEGIN OF lifecycle_method,
         on_init      TYPE string VALUE 'INIT',
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
-      END OF _lifecycle_method,
-      BEGIN OF _bind_type,
+      END OF lifecycle_method,
+      BEGIN OF event_type,
+        server_function   TYPE string VALUE 'SERVER_FUNCTION',
+        display_id        TYPE string VALUE 'CALL_PREVIOUS_APP',
+      END OF event_type,
+      BEGIN OF bind_type,
         one_way  TYPE string VALUE 'ONE_WAY',
         two_way  TYPE string VALUE 'TWO_WAY',
         one_time TYPE string VALUE 'ONE_TIME',
-      END OF _bind_type,
+      END OF bind_type,
       BEGIN OF input,
         BEGIN OF type,
           password TYPE string VALUE 'Password',
@@ -79,6 +83,12 @@ INTERFACE z2ui5_if_ui5_library
       END OF progress_indicator,
     END OF cs.
 
+  TYPES: BEGIN OF ty_s_tab,
+           text     TYPE string,
+           icon     TYPE string,
+           selected TYPE abap_bool,
+         END OF ty_s_tab.
+
   TYPES:
     BEGIN OF ty,
       BEGIN OF _,
@@ -111,21 +121,35 @@ INTERFACE z2ui5_if_ui5_library
       END OF radiobutton_group,
       BEGIN OF segemented_button,
         t_button TYPE STANDARD TABLE OF ty-_-s_seg_btn WITH EMPTY KEY,
-        BEGIN OF s_tab,
-          text     TYPE string,
-          icon     TYPE string,
-          selected TYPE abap_bool,
-        END OF s_tab,
-        tr_btn   TYPE STANDARD TABLE OF ty-segemented_button-s_tab WITH EMPTY KEY,
+        s_tab    TYPE ty_s_tab,
+        tr_btn   TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY,
       END OF segemented_button,
-      test    TYPE string,
-      t_radio TYPE STANDARD TABLE OF ty-test WITH EMPTY KEY,
+      t_radio TYPE STANDARD TABLE OF string WITH EMPTY KEY,
     END OF ty.
 
   METHODS _bind
     IMPORTING
       val           TYPE data
-      type          TYPE string DEFAULT cs-_bind_type-two_way
+     " type          TYPE string DEFAULT cs-bind_type-two_way
+    RETURNING
+      VALUE(result) TYPE string.
+
+  METHODS _bind_ONE_way
+    IMPORTING
+      val           TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
+
+  METHODS _event
+    IMPORTING
+      val           TYPE string
+     " type          TYPE string DEFAULT cs-event_type-server_function
+    RETURNING
+      VALUE(result) TYPE string.
+
+  METHODS _event_display_id
+    IMPORTING
+      val           TYPE string
     RETURNING
       VALUE(result) TYPE string.
 
@@ -152,14 +176,15 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
 
-methods message_strip
-    importing
-      text type string optional
-      type type string optional
-      show_icon type abap_bool optional
-      class type string optional
+  METHODS message_strip
+    IMPORTING
+      text          TYPE string OPTIONAL
+      type          TYPE string OPTIONAL
+      show_icon     TYPE abap_bool OPTIONAL
+      class         TYPE string OPTIONAL
+        PREFERRED PARAMETER text
     RETURNING
-      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS table
     IMPORTING
@@ -230,15 +255,17 @@ methods message_strip
     IMPORTING
       text          TYPE clike OPTIONAL
       icon          TYPE clike OPTIONAL
-      on_press_id   TYPE clike OPTIONAL
+    "  on_press_id   TYPE clike OPTIONAL
       type          TYPE clike OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
+      press         TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  page
     IMPORTING
       title             TYPE string OPTIONAL
-      event_nav_back_id TYPE string OPTIONAL
+     " event_nav_back_id TYPE string OPTIONAL
+      nav_button_tap type string optional
         PREFERRED PARAMETER title
     RETURNING
       VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.

@@ -28,12 +28,6 @@
           RETURNING
             VALUE(result) TYPE REF TO z2ui5_lcl_ui5_library.
 
-        METHODS _get_event_method
-          IMPORTING
-            event_object  TYPE string
-          RETURNING
-            VALUE(result) TYPE string.
-
         METHODS _generic
           IMPORTING
             name          TYPE string
@@ -58,7 +52,7 @@
         METHODS _get_name_by_ref
           IMPORTING
             value           TYPE data
-            type            TYPE string DEFAULT cs-_bind_type-two_way
+            type            TYPE string DEFAULT cs-bind_type-two_way
           RETURNING
             VALUE(r_result) TYPE string.
 
@@ -92,7 +86,7 @@
 
       METHOD _get_name_by_ref.
 
-        IF type = cs-_bind_type-one_time.
+        IF type = cs-bind_type-one_time.
           DATA(lv_id) = _=>get_uuid_session( ).
           INSERT VALUE #(
             name = lv_id
@@ -114,7 +108,7 @@
 
           IF lr_in = lr_ref.
             lr_attri->bind_type = type.
-            r_result = COND #( WHEN type = cs-_bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+            r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
             RETURN.
           ENDIF.
 
@@ -206,11 +200,7 @@
 
       ENDMETHOD.
 
-      METHOD _get_event_method.
 
-        result = |onEventBackend({ event_object })|.
-
-      ENDMETHOD.
 
       METHOD z2ui5_if_ui5_library~button.
 
@@ -219,9 +209,8 @@
         _generic(
            name   = 'Button'
            t_prop = VALUE #(
-              ( n = 'press'   v = _get_event_method( `{ 'ID' : '` && on_press_id && `' }` ) )
-              "( n = 'press'   v = context->get_event_method( ` $event , { 'ID' : '` && on_press_id && `' } )` ) )
-              ( n = 'text'    v = text )
+              ( n = 'press'   v = press )
+                  ( n = 'text'    v = text )
               ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
               ( n = 'icon'    v = icon )
               ( COND #( WHEN type IS NOT INITIAL THEN VALUE #( n = 'type'  v = type ) ) )
@@ -249,7 +238,7 @@
         IF suggestion_items IS NOT INITIAL.
 
           lr_input->mt_prop = VALUE #( BASE lr_input->mt_prop
-            ( n = 'suggestionItems' v = _get_name_by_ref( value = suggestion_items type = cs-_bind_type-one_time )  ) "'{/' && lv_id && '}' )
+            ( n = 'suggestionItems' v = _get_name_by_ref( value = suggestion_items type = cs-bind_type-one_time )  ) "'{/' && lv_id && '}' )
             ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
             ).
 
@@ -274,7 +263,7 @@
 
         LOOP AT mt_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ''.
 
-          IF lr_attri->bind_type = cs-_bind_type-one_time.
+          IF lr_attri->bind_type = cs-bind_type-one_time.
             m_view_model->add_attribute(
                   n = lr_attri->name
                   v = lr_attri->data_stringify
@@ -283,7 +272,7 @@
             CONTINUE.
           ENDIF.
 
-          DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs-_bind_type-one_way THEN m_view_model
+          DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs-bind_type-one_way THEN m_view_model
                                      ELSE lo_update ).
 
           FIELD-SYMBOLS <attribute> TYPE any.
@@ -317,7 +306,7 @@
         ENDIF.
 
         result-o_model = m_view_model.
-        DELETE m_root->mt_attri WHERE bind_type = cs-_bind_type-one_time.
+        DELETE m_root->mt_attri WHERE bind_type = cs-bind_type-one_time.
         result-t_attri = m_root->mt_attri.
 
       ENDMETHOD.
@@ -328,8 +317,10 @@
             name   = 'Page'
              t_prop = VALUE #(
                  ( n = 'title' v = title )
-                 ( n = 'showNavButton' v = COND #( WHEN event_nav_back_id = '' THEN 'false' ELSE 'true' ) )
-                 ( n = 'navButtonTap' v = _get_event_method( `{ 'ID' : '` && event_nav_back_id && `' } )` ) )
+                 ( n = 'showNavButton' v = COND #( WHEN nav_button_tap = '' THEN 'false' ELSE 'true' ) )
+              "   ( n = 'navButtonTap' v = event_nav_back_id )
+                 ( n = 'navButtonTap' v = nav_button_tap )
+              "   ( n = 'navButtonTap' v = _get_event_method( `{ 'ID' : '` && event_nav_back_id && `' } )` ) )
              ) ).
 
       ENDMETHOD.
@@ -446,7 +437,7 @@
           t_prop = VALUE #(
            (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
            (  n = 'selectedKey'   v = selectedkey )
-           (  n = 'items'         v = _get_name_by_ref( value = t_item type = cs-_bind_type-one_time ) )
+           (  n = 'items'         v = _get_name_by_ref( value = t_item type = cs-bind_type-one_time ) )
           ) ).
 
         lo_box->_generic(
@@ -776,14 +767,14 @@
 
       METHOD z2ui5_if_ui5_library~table_select_dialog.
 
-        result = _generic(
-             name = 'TableSelectDialog'
-            t_prop = VALUE #(
-              ( n = 'title' v = title )
-              ( n = 'confirm'      v = _get_event_method( ` $event , { 'ID' : '` && event_id_confirm && `' } )` ) )
-              ( n = 'cancel'       v = _get_event_method( `{ 'ID' : '` && event_id_cancel && `' }` ) )
-              ( n = 'items' v = '{' && _get_name_by_ref( value = items ) && '}' )
-              ) ).
+*        result = _generic(
+*             name = 'TableSelectDialog'
+*            t_prop = VALUE #(
+*              ( n = 'title' v = title )
+*              ( n = 'confirm'      v = _get_event_method( ` $event , { 'ID' : '` && event_id_confirm && `' } )` ) )
+*              ( n = 'cancel'       v = _get_event_method( `{ 'ID' : '` && event_id_cancel && `' }` ) )
+*              ( n = 'items' v = '{' && _get_name_by_ref( value = items ) && '}' )
+*              ) ).
 
       ENDMETHOD.
 
@@ -833,7 +824,13 @@
 
       METHOD z2ui5_if_ui5_library~_bind.
 
-        result = '{' && _get_name_by_ref( value = val  type = type ) && '}'.
+        result = '{' && _get_name_by_ref( value = val  type = cs-bind_type-two_way ) && '}'.
+
+      ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~_bind_one_way.
+
+        result = '{' && _get_name_by_ref( value = val  type = cs-bind_type-one_way ) && '}'.
 
       ENDMETHOD.
 
@@ -853,6 +850,21 @@
            ( n = 'class' v = class )
           ) ).
 
+      ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~_event.
+
+        "  CASE type.
+
+        "   WHEN cs-event_type-server_function.
+        result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
+
+        "  ENDCASE.
+
+      ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~_event_display_id.
+        result = `onEvent( { 'ID' : '` && val && `', 'METHOD' : 'DISPLAY_ID' } )`.
       ENDMETHOD.
 
     ENDCLASS.
@@ -922,11 +934,11 @@
 
         CASE client->get( )-lifecycle_method.
 
-          WHEN client->cs-_lifecycle_method-on_init.
+          WHEN client->cs-lifecycle_method-on_init.
             z2ui5_on_init( client ).
-          WHEN client->cs-_lifecycle_method-on_event.
+          WHEN client->cs-lifecycle_method-on_event.
             z2ui5_on_event( client ).
-          WHEN client->cs-_lifecycle_method-on_rendering.
+          WHEN client->cs-lifecycle_method-on_rendering.
             z2ui5_on_rendering( client ).
         ENDCASE.
       ENDMETHOD.
@@ -960,10 +972,10 @@
 
       METHOD z2ui5_on_event.
 
-        CASE client->get( )-screen_active.
+        CASE client->get( )-view_active.
 
           WHEN 'HOME'.
-            CASE client->get( )-event_id.
+            CASE client->get( )-event.
 
               WHEN 'BUTTON_CHANGE'.
                 ms_home-btn_text = 'check'.
@@ -996,16 +1008,37 @@
               WHEN '0101'.
                 client->nav_to_app( NEW zz2ui5_cl_app_demo_01( ) ).
 
+              WHEN '0102'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_04( ) ).
+
+              WHEN '0103'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_08( ) ).
+
+              WHEN '0104'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_10( ) ).
+
               WHEN '0201'.
                 client->nav_to_app( NEW zz2ui5_cl_app_demo_02( ) ).
 
               WHEN '0202'.
                 client->nav_to_app( NEW zz2ui5_cl_app_demo_05( ) ).
 
+              WHEN '0301'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_03( ) ).
+
+              WHEN '0302'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_04( ) ).
+
+              WHEN '0303'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_06( ) ).
+
+              WHEN '0304'.
+                client->nav_to_app( NEW zz2ui5_cl_app_demo_11( ) ).
+
             ENDCASE.
 
           WHEN 'ERROR'.
-            CASE client->get( )-event_id.
+            CASE client->get( )-event.
 
               WHEN 'BUTTON_HOME'.
                 client->nav_to_app( NEW z2ui5_lcl_app_system( ) ).
@@ -1018,15 +1051,15 @@
 
       METHOD z2ui5_on_rendering.
 
-        DATA(lo_view) = client->factory_view( 'HOME' ).
+        DATA(view) = client->factory_view( 'HOME' ).
 
-        DATA(lo_page) = lo_view->page( 'Welcome to ABAP2UI5! - Development of UI5 Apps in pure ABAP' ).
-        lo_page->header_content(
+        DATA(page) = view->page( 'Welcome to ABAP2UI5! - Development of UI5 Apps in pure ABAP' ).
+        page->header_content(
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
-            )->link( text = 'abapGit' href = 'https://github.com/oblomov-dev/abap2ui5'
+            )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5'
         ).
 
-        DATA(lo_grid) = lo_page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+        DATA(lo_grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
         DATA(lo_form) = lo_grid->simple_form( 'Quick Start' )->content( 'f' ).
 
         lo_form->label( 'Step 1'
@@ -1050,7 +1083,7 @@
           lo_form->text( ms_home-classname ).
         ENDIF.
 
-        lo_form->button( text = ms_home-btn_text on_press_id = ms_home-btn_event_id  icon = ms_home-btn_icon   "type = view->cs-button-type-
+        lo_form->button( text = ms_home-btn_text press = view->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon   "type = view->cs-button-type-
                  )->label( 'Step 5' ).
 
         IF ms_home-class_editable = abap_false.
@@ -1060,34 +1093,39 @@
         ENDIF.
 
 
-        lo_grid = lo_page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
+        lo_grid = page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
 
         lo_grid->simple_form(  'HowTo - General' )->content( 'f'
-            )->button( text = 'Client-Server Communication (Data Binding)' on_press_id = '0101'
-            )->button( text = 'Controller (Events, Navigation, Error)' on_press_id = '0102'
-            )->button( text = 'Messages (Toast, Box, Strip)' on_press_id = '0103'
-            )->button( text = 'Layout (Header, Footer, Grid)' on_press_id = '0104' ).
+            )->button( text = 'Client-Server Communication (Data Binding)' press = view->_event( '0101' )
+            )->button( text = 'Controller (Events, Navigation)' press = view->_event( '0102' )
+            )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
+            )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' ) ).
 
         lo_grid->simple_form(  'HowTo - Selection-Screen' )->content( 'f'
-            )->button( text = 'Basic' on_press_id = '0201'
-            )->button( text = 'More Controls' on_press_id = '0202' ).
+            )->button( text = 'Basic' press = view->_event( '0201' )
+            )->button( text = 'More Controls' press = view->_event( '0202' ) ).
 
 
         lo_form = lo_grid->simple_form(  'HowTo - Table and List' )->content( 'f'
-            )->button( text = 'List' on_press_id = '0301'
-            )->button( text = 'Table' on_press_id = '0302'
-            )->button( text = 'Table with Toolbar, Icons, Checkbox' on_press_id = '0303'
-            )->button( text = 'Table Editable' on_press_id = '0304' ).
+            )->button( text = 'List' press = view->_event( '0301' )
+            )->button( text = 'Table' press = view->_event( '0302' )
+            )->button( text = 'Table with Toolbar, Icons, Checkbox' press = view->_event( '0303' )
+            )->button( text = 'Table Editable' press = view->_event( '0304' ) ).
 
 
         IF ms_error-x_error IS BOUND.
-          client->factory_view( 'ERROR' )->message_page(
+          view = client->factory_view( 'ERROR' ).
+          view->message_page(
               text = ms_error-classname
               description = ms_error-x_error->get_text( )
               )->buttons(
             )->button(
-                  text = 'HOME'
-                  on_press_id = 'BUTTON_HOME'
+                  text  = 'HOME'
+                  press = view->_event( 'BUTTON_HOME' )
+            )->button(
+                  text = 'BACK'
+                  press = view->_event_display_id( client->get( )-id_prev_app )
+                  type = view->cs-button-type-emphasized
             ).
         ENDIF.
 
@@ -1146,7 +1184,9 @@
 
         METHODS constructor RAISING cx_uuid_error.
 
-        METHODS db_save.
+        METHODS db_save
+          IMPORTING
+            response TYPE string OPTIONAL.
 
         METHODS db_load
           IMPORTING
@@ -1156,7 +1196,7 @@
 
         METHODS execute_init
           RETURNING
-            VALUE(ro_model) TYPE REF TO z2ui5_lcl_runtime.
+            VALUE(result) TYPE string.
 
         METHODS execute_finish
           RETURNING
@@ -1216,6 +1256,7 @@
           uuid  = ms_db-id
           uname = _=>get_user_tech( )
           timestampl = _=>get_timestampl( )
+          response = response
           data  = _=>trans_object_2_xml( REF #( ms_db ) )
           ) ).
         COMMIT WORK.
@@ -1228,13 +1269,45 @@
         TRY.
             ms_db-id_prev = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'ID')->get_val( ).
           CATCH cx_root.
+            init_app_new( ).
+            RETURN.
         ENDTRY.
 
-        IF ms_db-id_prev IS INITIAL.
-          init_app_new( ).
-        ELSE.
-          init_app_prev( ).
-        ENDIF.
+        TRY.
+            DATA(lv_method_event) = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'METHOD' )->get_val( ).
+            IF lv_method_event = 'DISPLAY_ID'.
+
+              SELECT SINGLE FROM z2ui5_t_draft
+                  FIELDS
+                      *
+                 WHERE uuid = @( z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ) )
+                INTO @DATA(ls_db).
+              IF sy-subrc = 0.
+                IF ls_db-response IS NOT INITIAL.
+                  result = ls_db-response.
+                  RETURN.
+                ENDIF.
+
+                _=>trans_xml_2_object(
+                    EXPORTING
+                        xml    = ls_db-data
+                    IMPORTING
+                        data   = ms_db
+                    ).
+
+                ROLLBACK WORK.
+                ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
+                CAST z2ui5_if_app( ms_db-o_app )->controller( NEW z2ui5_lcl_client( me ) ).
+                ROLLBACK WORK.
+
+                result = execute_finish( ).
+                RETURN.
+              ENDIF.
+            ENDIF.
+          CATCH cx_root.
+        ENDTRY.
+
+        init_app_prev( ).
 
       ENDMETHOD.
 
@@ -1262,7 +1335,8 @@
 
         DATA(lo_system) = lo_ui5_model->add_attribute_object( 'oSystem' ).
         lo_system->add_attribute( n = 'ID' v = ms_db-id ).
-        lo_system->add_attribute( n = 'ID_PREV' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) ).
+        " lo_system->add_attribute( n = 'ID_PREV' v = ms_db-id_prev ).
+        " lo_system->add_attribute( n = 'ID_PREV_APP' v = ms_db-id_prev_app ).
         "    lo_ui5_model->add_attribute( n = 'CHECK_POPUP_ACTIVE' v = ''  apos_active = abap_false ).
         lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode )  apos_active = abap_false ).
 
@@ -1278,7 +1352,7 @@
         ENDIF.
 
         r_result = lo_ui5_model->get_root( )->write_result( ).
-        db_save( ).
+
 
       ENDMETHOD.
 
@@ -1288,7 +1362,7 @@
         ms_db = CORRESPONDING #( BASE ( ms_db ) db_load( ms_db-id_prev ) EXCEPT id id_prev ).
 
         LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-            WHERE bind_type = z2ui5_if_ui5_library=>cs-_bind_type-two_way. " check_used = abap_true AND check_update = abap_true.
+            WHERE bind_type = z2ui5_if_ui5_library=>cs-bind_type-two_way. " check_used = abap_true AND check_update = abap_true.
 
           lr_attri->bind_type = ''.
 
@@ -1311,7 +1385,7 @@
 
         ENDLOOP.
 
-        ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_event.
+        ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_event.
       ENDMETHOD.
 
 
@@ -1343,7 +1417,7 @@
         ms_db-app     = _=>get_classname_by_ref( ms_db-o_app ).
         ms_db-t_attri = _=>hlp_get_t_attri( ms_db-o_app ).
 
-        ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_init.
+        ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
       ENDMETHOD.
 
@@ -1363,7 +1437,7 @@
         r_result = factory_new(
                  z2ui5_lcl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
 
-        r_result->ms_control-event_type = z2ui5_if_client=>cs-_lifecycle_method-on_init.
+        r_result->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
       ENDMETHOD.
 
     ENDCLASS.
@@ -1418,18 +1492,21 @@
 
         result = VALUE #(
             lifecycle_method = mo_server->ms_control-event_type
-            check_call_stack = xsdbool( mo_server->ms_db-id_prev_app IS NOT INITIAL )
-            screen_active = mo_server->ms_db-screen
+            check_previous_app = xsdbool( mo_server->ms_db-id_prev_app IS NOT INITIAL )
+            view_active = mo_server->ms_db-screen
+            id = mo_server->ms_db-id
+            id_prev = mo_server->ms_db-id_prev
+            id_prev_app = mo_server->ms_db-id_prev_app
         ).
 
         TRY.
-            result-event_id = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
+            result-event = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
           CATCH cx_root.
         ENDTRY.
 
       ENDMETHOD.
 
-      METHOD z2ui5_if_client~get_app_called.
+      METHOD z2ui5_if_client~get_app_previous.
 
         DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _('CX_STACK_EMPTY - NO CALLING APP FOUND') ).
         result = CAST #( mo_server->db_load( mo_server->ms_db-id_prev_app )-o_app ).

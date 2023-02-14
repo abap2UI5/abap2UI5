@@ -2,7 +2,7 @@ CLASS zz2ui5_cl_app_demo_06 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
-    INTERFACES zz2ui5_if_app.
+    INTERFACES z2ui5_if_app.
     CLASS-METHODS create
       RETURNING
         VALUE(r_result) TYPE REF TO zz2ui5_cl_app_demo_06.
@@ -37,13 +37,13 @@ CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
 
 
 
-  METHOD zz2ui5_if_app~controller.
+  METHOD z2ui5_if_app~controller.
 
 
     CASE client->get( )-lifecycle_method.
 
 
-      WHEN client->lifecycle_method-on_init.
+      WHEN client->cs-_lifecycle_method-on_init.
         client->display_view( 'TABLE' ).
 
         mt_tab = VALUE #( id = '010'
@@ -61,7 +61,7 @@ CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
          ).
 
 
-      WHEN client->lifecycle_method-on_event.
+      WHEN client->cs-_lifecycle_method-on_event.
         CASE client->get( )-event_id.
 
           WHEN 'BUTTON_BACK'.
@@ -74,47 +74,47 @@ CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
 
 
 
-      WHEN client->lifecycle_method-on_rendering.
+      WHEN client->cs-_lifecycle_method-on_rendering.
 
-        DATA(lo_page) = client->factory_view( 'TABLE' )->add_page(
-            title = 'SE16 - edit'
-            ).
-
-        DATA(lo_tab) = lo_page->add_table(
-                 items  = mt_tab
-                 zz_check_update_model = abap_true
-             ).
-
-        lo_tab->add_header_toolbar( )->add_overflow_toolbar(
-            )->add_title( 'title'
-             )->add_toolbar_spacer(
-             )->add_button( text = 'edit' on_press_id = 'EDIT'
-             )->add_button( text = 'edit' on_press_id = 'EDIT'
-          ).
-
-        DATA(lo_cells) = lo_tab->add_columns(
-              )->add_column( text = 'Name'
-              )->add_column( text = 'Value'
-              )->add_column( text = 'Test1'
-              )->add_column( text = 'Test2'
-              )->add_column( text = 'Checkbox'
-           )->parent->add_items( )->add_column_list_item( )->add_cells( ).
-
-        IF mv_check_active = abap_true.
-          lo_cells->add_text( '{NAME}'
-              )->add_text( '{VALUE}'
-              )->add_button( text = '{TEST1}' on_press_id = '{NAME}'
-              )->add_input( value = '{TEST2}'
-              )->add_checkbox( selected_json = '{CHECK_VALID}'
-           ).
-        ELSE.
-          lo_cells->add_text( '{NAME}'
-             )->add_input( value = '{VALUE}'
-             )->add_input( value = '{TEST1}'
-             )->add_input( value = '{TEST2}'
-             )->add_input( value = '{NAME}'
-          ).
-        ENDIF.
+*        DATA(lo_page) = client->factory_view( 'TABLE' )->add_page(
+*            title = 'SE16 - edit'
+*            ).
+*
+*        DATA(lo_tab) = lo_page->add_table(
+*                 items  = mt_tab
+*                 zz_check_update_model = abap_true
+*             ).
+*
+*        lo_tab->add_header_toolbar( )->add_overflow_toolbar(
+*            )->add_title( 'title'
+*             )->add_toolbar_spacer(
+*             )->add_button( text = 'edit' on_press_id = 'EDIT'
+*             )->add_button( text = 'edit' on_press_id = 'EDIT'
+*          ).
+*
+*        DATA(lo_cells) = lo_tab->add_columns(
+*              )->add_column( text = 'Name'
+*              )->add_column( text = 'Value'
+*              )->add_column( text = 'Test1'
+*              )->add_column( text = 'Test2'
+*              )->add_column( text = 'Checkbox'
+*           )->m_parent->add_items( )->add_column_list_item( )->add_cells( ).
+*
+*        IF mv_check_active = abap_true.
+*          lo_cells->add_text( '{NAME}'
+*              )->add_text( '{VALUE}'
+*              )->add_button( text = '{TEST1}' on_press_id = '{NAME}'
+*              )->add_input( value = '{TEST2}'
+*              )->add_checkbox( selected_json = '{CHECK_VALID}'
+*           ).
+*        ELSE.
+*          lo_cells->add_text( '{NAME}'
+*             )->add_input( value = '{VALUE}'
+*             )->add_input( value = '{TEST1}'
+*             )->add_input( value = '{TEST2}'
+*             )->add_input( value = '{NAME}'
+*          ).
+*        ENDIF.
 
 
 
