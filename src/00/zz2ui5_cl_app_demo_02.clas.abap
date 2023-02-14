@@ -18,6 +18,26 @@ CLASS zz2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         check_switch_02 TYPE abap_bool VALUE abap_false,
       END OF screen.
 
+   types:
+       BEGIN OF s_suggestion_items,
+          value TYPE string,
+          descr TYPE string,
+        END OF s_suggestion_items.
+
+    types:
+       BEGIN OF s_combobox,
+          key  TYPE string,
+          text TYPE string,
+        END OF s_combobox,
+        BEGIN OF s_seg_btn,
+          key  TYPE string,
+          icon TYPE string,
+          text TYPE string,
+        END OF s_seg_btn.
+   types ty_t_combo type STANDARD TABLE OF s_combobox WITH empty key.
+   types ty_t_segment type STANDARD TABLE OF s_seg_btn with empty key.
+    data  mt_suggestion type STANDARD TABLE OF s_suggestion_items with empty key.
+
   PROTECTED SECTION.
 
     METHODS z2ui5_on_rendering
@@ -67,14 +87,8 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
         )->input(
             value       = view->_bind( screen-colour )
             placeholder = 'fill in your favorite colour'
-            suggestion_items = VALUE #(
-                ( descr = 'Green'  value = 'GREEN' )
-                ( descr = 'Blue'   value = 'BLUE' )
-                ( descr = 'Black'  value = 'BLACK' )
-                ( descr = 'Grey'   value = 'GREY' )
-                ( descr = 'Blue2'  value = 'BLUE2' )
-                ( descr = 'Blue3'  value = 'BLUE3' )
-    ) ).
+            suggestion_items = view->_bind_one_way( mt_suggestion )
+           )->suggestion_items( )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
 
 
     grid->simple_form('Time Inputs' )->content( 'f'
@@ -100,19 +114,20 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
        )->label( 'Combobox'
        )->combobox(
             selectedkey = view->_bind( screen-combo_key )
-            t_item      = VALUE #(
+            items      = view->_bind_one_way( VALUE ty_t_combo(
                 ( key = 'BLUE'  text = 'green' )
                 ( key = 'GREEN' text = 'blue'  )
                 ( key = 'BLACK' text = 'red'   )
                 ( key = 'GRAY'  text = 'gray'  ) )
+            ) )->item( key = '{KEY}' text = '{TEXT}' )->get_parent(
 
        )->label( 'Segmented Button'
-       )->segmented_button(
-            selected_key = view->_bind( screen-segment_key )
-            t_button     = VALUE #(
-                ( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue'  )
-                ( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green' )
-                ( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black' ) )
+       )->segmented_button( view->_bind( screen-segment_key )
+             )->items(
+                )->segmented_button_item( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue'
+                )->segmented_button_item( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green'
+                )->segmented_button_item( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black'
+       )->get_parent( )->get_parent(
 
        )->label( 'Switch disabled'
        )->switch( enabled = abap_false    customtexton = 'A' customtextoff = 'B'
@@ -151,6 +166,14 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
           time_start        = '05:24:00'
           time_end          = '17:23:57'
      ).
+
+     mt_suggestion = VALUE #(
+                ( descr = 'Green'  value = 'GREEN' )
+                ( descr = 'Blue'   value = 'BLUE' )
+                ( descr = 'Black'  value = 'BLACK' )
+                ( descr = 'Grey'   value = 'GREY' )
+                ( descr = 'Blue2'  value = 'BLUE2' )
+                ( descr = 'Blue3'  value = 'BLUE3' ) ).
 
   ENDMETHOD.
 

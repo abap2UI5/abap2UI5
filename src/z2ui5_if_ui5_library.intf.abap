@@ -91,27 +91,23 @@ INTERFACE z2ui5_if_ui5_library
 
   TYPES:
     BEGIN OF ty,
-      BEGIN OF _,
-        BEGIN OF s_suggestion_items,
-          value TYPE string,
-          descr TYPE string,
-        END OF s_suggestion_items,
-        BEGIN OF s_combobox,
-          key  TYPE string,
-          text TYPE string,
-        END OF s_combobox,
-        BEGIN OF s_seg_btn,
-          key  TYPE string,
-          icon TYPE string,
-          text TYPE string,
-        END OF s_seg_btn,
-      END OF _,
-      BEGIN OF input,
-        t_suggestions TYPE STANDARD TABLE OF ty-_-s_suggestion_items WITH EMPTY KEY,
-      END OF input,
-      BEGIN OF combobox,
-        t_item TYPE STANDARD TABLE OF ty-_-s_combobox WITH EMPTY KEY,
-      END OF combobox,
+*      BEGIN OF _,
+*        BEGIN OF s_combobox,
+*          key  TYPE string,
+*          text TYPE string,
+*        END OF s_combobox,
+*        BEGIN OF s_seg_btn,
+*          key  TYPE string,
+*          icon TYPE string,
+*          text TYPE string,
+*        END OF s_seg_btn,
+*      END OF _,
+    "  BEGIN OF input,
+     "   t_suggestions TYPE STANDARD TABLE OF ty-_-s_suggestion_items WITH EMPTY KEY,
+   "  " END OF input,
+   "   BEGIN OF combobox,
+   "     t_item TYPE STANDARD TABLE OF ty-_-s_combobox WITH EMPTY KEY,
+   "   END OF combobox,
       BEGIN OF radiobutton_group,
         BEGIN OF s_prop,
           selected TYPE abap_bool,
@@ -120,7 +116,7 @@ INTERFACE z2ui5_if_ui5_library
         t_prop TYPE string_table,
       END OF radiobutton_group,
       BEGIN OF segemented_button,
-        t_button TYPE STANDARD TABLE OF ty-_-s_seg_btn WITH EMPTY KEY,
+*        t_button TYPE STANDARD TABLE OF ty-_-s_seg_btn WITH EMPTY KEY,
         s_tab    TYPE ty_s_tab,
         tr_btn   TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY,
       END OF segemented_button,
@@ -160,6 +156,19 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
+    methods suggestion_items
+        RETURNING
+      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
+
+    methods list_item
+        importing
+            text type string optional
+            additional_text type string optional
+           RETURNING
+      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
+
+
+
   METHODS  input
     IMPORTING
       value            TYPE clike OPTIONAL
@@ -170,7 +179,7 @@ INTERFACE z2ui5_if_ui5_library
       value_state_text TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE abap_bool DEFAULT abap_true
-      suggestion_items TYPE ty-input-t_suggestions OPTIONAL
+      suggestion_items TYPE string optional "ty-input-t_suggestions OPTIONAL
       showsuggestion   TYPE abap_bool DEFAULT abap_true
         PREFERRED PARAMETER value
     RETURNING
@@ -350,12 +359,29 @@ INTERFACE z2ui5_if_ui5_library
       icon          TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+      methods item
+        importing
+            key type string optional
+            text type string optional
+              RETURNING
+      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
+
+
+  methods segmented_button_item
+    importing
+        icon type string optional
+        key type string optional
+        text type string optional
+                    RETURNING
+      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
+
   METHODS  combobox
     IMPORTING
       selectedkey     TYPE data
       show_clear_icon TYPE abap_bool DEFAULT abap_false
       label           TYPE string DEFAULT 'line_label'
-      t_item          TYPE ty-combobox-t_item
+      items           TYPE string optional
     RETURNING
       VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  grid
@@ -400,8 +426,8 @@ INTERFACE z2ui5_if_ui5_library
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  segmented_button
     IMPORTING
-      selected_key  TYPE data OPTIONAL
-      t_button      TYPE ty-segemented_button-t_button
+      selected_key  TYPE string
+  "    t_button      TYPE ty-segemented_button-t_button
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

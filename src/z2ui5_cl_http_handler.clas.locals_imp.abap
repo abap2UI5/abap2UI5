@@ -93,7 +93,8 @@
             data_stringify = _=>trans_any_2_json( value )
             bind_type = type
            ) INTO TABLE m_root->mt_attri.
-          r_result = '{/' && lv_id && '}'.
+*          r_result = '{/' && lv_id && '}'.
+          r_result = '/' && lv_id && ''.
           RETURN.
         ENDIF.
 
@@ -113,6 +114,16 @@
           ENDIF.
 
         ENDLOOP.
+
+        "one time when not global class attribute
+        lv_id = _=>get_uuid_session( ).
+        INSERT VALUE #(
+          name = lv_id
+          data_stringify = _=>trans_any_2_json( value )
+          bind_type = cs-bind_type-one_time
+         ) INTO TABLE m_root->mt_attri.
+*        r_result = '{/' && lv_id && '}'.
+        r_result = '/' && lv_id && ''.
 
       ENDMETHOD.
 
@@ -220,37 +231,21 @@
 
       METHOD z2ui5_if_ui5_library~input.
 
-        result = me.
-
-        DATA(lr_input) = _generic(
+        result = _generic(
             name   = 'Input'
             t_prop = VALUE #(
-                ( n = 'placeholder'    v = placeholder )
-                ( n = 'type'           v = type )
-                ( n = 'showClearIcon'  v = _=>get_abap_2_json( show_clear_icon ) )
-                ( n = 'description'    v = description )
-                ( n = 'editable'       v = _=>get_abap_2_json( editable ) )
-                ( n = 'valueState'     v = value_state )
-                ( n = 'valueStateText' v = value_state_text )
-                ( n = 'value'          v = value )
-                              ) ).
+                ( n = 'placeholder'     v = placeholder )
+                ( n = 'type'            v = type )
+                ( n = 'showClearIcon'   v = _=>get_abap_2_json( show_clear_icon ) )
+                ( n = 'description'     v = description )
+                ( n = 'editable'        v = _=>get_abap_2_json( editable ) )
+                ( n = 'valueState'      v = value_state )
+                ( n = 'valueStateText'  v = value_state_text )
+                ( n = 'value'           v = value )
+                ( n = 'suggestionItems' v = suggestion_items )
+                ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
+                  ) ).
 
-        IF suggestion_items IS NOT INITIAL.
-
-          lr_input->mt_prop = VALUE #( BASE lr_input->mt_prop
-            ( n = 'suggestionItems' v = _get_name_by_ref( value = suggestion_items type = cs-bind_type-one_time )  ) "'{/' && lv_id && '}' )
-            ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
-            ).
-
-          lr_input->_generic( |suggestionItems|
-                 )->_generic(
-                     name   = 'ListItem'
-                     ns     = 'core'
-                     t_prop = VALUE #(
-                            ( n = 'text' v = '{VALUE}' )
-                            ( n = 'additionalText' v = '{DESCR}' ) ) ).
-
-        ENDIF.
 
       ENDMETHOD.
 
@@ -318,9 +313,7 @@
              t_prop = VALUE #(
                  ( n = 'title' v = title )
                  ( n = 'showNavButton' v = COND #( WHEN nav_button_tap = '' THEN 'false' ELSE 'true' ) )
-              "   ( n = 'navButtonTap' v = event_nav_back_id )
                  ( n = 'navButtonTap' v = nav_button_tap )
-              "   ( n = 'navButtonTap' v = _get_event_method( `{ 'ID' : '` && event_nav_back_id && `' } )` ) )
              ) ).
 
       ENDMETHOD.
@@ -430,22 +423,12 @@
 
       METHOD z2ui5_if_ui5_library~combobox.
 
-        result = me.
-
-        DATA(lo_box) = _generic(
+        result = _generic(
           name  = 'ComboBox'
           t_prop = VALUE #(
            (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
            (  n = 'selectedKey'   v = selectedkey )
-           (  n = 'items'         v = _get_name_by_ref( value = t_item type = cs-bind_type-one_time ) )
-          ) ).
-
-        lo_box->_generic(
-           name = 'Item'
-           ns = 'core'
-           t_prop = VALUE #(
-              ( n = 'key'  v ='{KEY}'  )
-              ( n = 'text' v = '{TEXT}' )
+           (  n = 'items'         v = items )
           ) ).
 
       ENDMETHOD.
@@ -505,27 +488,11 @@
 
       METHOD z2ui5_if_ui5_library~segmented_button.
 
-        result = me.
-
-        DATA(lo_button) = _generic(
+       result = _generic(
           name  = 'SegmentedButton'
           t_prop = VALUE #(
            ( n = 'selectedKey' v = selected_key )
          ) ).
-
-        DATA(lo_item) = lo_button->_generic( 'items' ).
-
-        LOOP AT t_button REFERENCE INTO DATA(lr_btn).
-
-          lo_item->_generic(
-              name   = 'SegmentedButtonItem'
-              t_prop = VALUE #(
-                ( n = 'icon'  v = lr_btn->icon  )
-                ( n = 'key'   v = lr_btn->key )
-                ( n = 'text'  v = lr_btn->text )
-                      ) ).
-
-        ENDLOOP.
 
       ENDMETHOD.
 
@@ -867,7 +834,55 @@
         result = `onEvent( { 'ID' : '` && val && `', 'METHOD' : 'DISPLAY_ID' } )`.
       ENDMETHOD.
 
-    ENDCLASS.
+      METHOD z2ui5_if_ui5_library~list_item.
+
+        result = me.
+
+        _generic(
+                   name   = 'ListItem'
+                   ns     = 'core'
+                   t_prop = VALUE #(
+                          ( n = 'text' v = text )
+                          ( n = 'additionalText' v = additional_text ) ) ).
+
+      ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~suggestion_items.
+
+        result = _generic( 'suggestionItems' ).
+
+      ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~item.
+
+        result = me.
+
+        _generic(
+        name = 'Item'
+        ns = 'core'
+        t_prop = VALUE #(
+           ( n = 'key'  v = key  )
+           ( n = 'text' v =  text )
+       ) ).
+
+      ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~segmented_button_item.
+
+        result = me.
+
+       _generic(
+        name = 'SegmentedButtonItem'
+        t_prop = VALUE #(
+       ( n = 'icon'  v = icon  )
+       ( n = 'key'   v = key )
+       ( n = 'text'  v = text )
+       ) ).
+
+
+  ENDMETHOD.
+
+ENDCLASS.
 
     CLASS z2ui5_lcl_app_system DEFINITION.
 
