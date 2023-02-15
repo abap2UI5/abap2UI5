@@ -46,12 +46,12 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
                     )->title( 'Input'
                     )->label( 'quantity'
                     "two way binding, data is written into a a view model and send back to the server
-                    )->input( view->_bind( quantity )
+                    )->input( view->_bind( quantity ) )->get_parent(
                     "one way binding, data is written into a view model but not send back to the server
-                    )->input( view->_bind_one_way( unit ) "
+                    )->input( view->_bind_one_way( unit ) )->get_parent(
                     )->label( 'product'
                      "value is written directly into the xml, no data transfer
-                    )->input( value = product editable = abap_False
+                    )->input( value = product editable = abap_False )->get_parent(
                     )->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
 
     ENDCASE.

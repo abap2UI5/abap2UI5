@@ -210,12 +210,6 @@
           RETURNING
             VALUE(r_result) TYPE xstring.
 
-        CLASS-METHODS get_abap_as_json
-          IMPORTING
-            i_mo_app_row2_abap TYPE any
-          RETURNING
-            VALUE(r_result)    TYPE string.
-
         CLASS-METHODS conv_xstring_2_string
           IMPORTING
             iv_xstring      TYPE xstring
@@ -424,55 +418,6 @@
       ENDMETHOD.
 
 
-      METHOD get_abap_as_json.
-
-        DATA(o_type_desc) = cl_abap_typedescr=>describe_by_data( i_mo_app_row2_abap ).
-
-        CASE o_type_desc->kind.
-          WHEN cl_abap_typedescr=>kind_struct.
-*      DATA(o_struct_desc) = CAST cl_abap_structdescr( o_type_desc ).
-*      cl_demo_output=>write_data( o_struct_desc->components ).
-          WHEN cl_abap_typedescr=>kind_table.
-
-            r_result = /ui2/cl_json=>serialize( i_mo_app_row2_abap ).
-            RETURN.
-
-            r_result = escape( val    = /ui2/cl_json=>serialize( i_mo_app_row2_abap )
-                               format = cl_abap_format=>e_json_string ) .
-
-*      DATA(o_table_desc) = CAST cl_abap_tabledescr( o_type_desc ).
-*      DATA(o_tl_struct_desc) = CAST cl_abap_structdescr( o_table_desc->get_table_line_type( ) ).
-*      cl_demo_output=>write_data( o_tl_struct_desc->components ).
-          WHEN cl_abap_typedescr=>kind_class.
-*      DATA(o_class_desc) = CAST cl_abap_classdescr( o_type_desc ).
-*      LOOP AT o_class_desc->methods ASSIGNING FIELD-SYMBOL(xxx<m>).
-*        cl_demo_output=>write( <m>-name ).
-*      ENDLOOP.
-          WHEN cl_abap_typedescr=>kind_intf.
-*      DATA(o_if_desc) = CAST cl_abap_intfdescr( o_type_desc ).
-*      LOOP AT o_if_desc->methods ASSIGNING FIELD-SYMBOL(<i>).
-*        cl_demo_output=>write( <i>-name ).
-*      ENDLOOP.
-          WHEN cl_abap_typedescr=>kind_elem.
-
-            IF o_type_desc->get_relative_name( ) = 'ABAP_BOOL'.
-              DATA(lv_value) = COND #( WHEN i_mo_app_row2_abap = abap_true THEN `true` ELSE `false` ).
-              r_result = lv_value.
-            ELSE.
-              r_result = escape( val    = i_mo_app_row2_abap
-                         format = cl_abap_format=>e_json_string ) .
-              r_result =  '"' && r_result && '"'.
-
-            ENDIF.
-
-          WHEN cl_abap_typedescr=>kind_ref.
-        ENDCASE.
-
-
-
-      ENDMETHOD.
-
-
       METHOD get_classname_by_ref.
 
         DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
@@ -589,17 +534,12 @@
 
       ENDMETHOD.
 
-
       METHOD get_uuid_session.
 
         mv_counter = mv_counter + 1.
         r_result = shift_left( shift_right( CONV string( mv_counter ) ) ).
 
       ENDMETHOD.
-
-
-
-
 
       METHOD get_xml_by_data.
 
@@ -677,10 +617,6 @@
           RETURN.
         ENDIF.
 
-*CALL METHOD SUPER->IF_MESSAGE~GET_TEXT
-*  RECEIVING
-*    RESULT =
-*    .
       ENDMETHOD.
 
       METHOD trans_any_2_json.
@@ -688,7 +624,6 @@
         result = /ui2/cl_json=>serialize( any ).
 
       ENDMETHOD.
-
 
       METHOD trans_any_2_xml_multi.
 
@@ -766,14 +701,8 @@
         FIELD-SYMBOLS <back> TYPE data.
         FIELD-SYMBOLS <ui5_row> TYPE data.
 
-        "  DATA(lr_tab) = REF #( io_obj->(ir_attri->name) ).
         ASSIGN ir_tab_to->* TO <tab>.
-        " DATA(lv_name) = ir_attri->name.
-        "lr_tab_ui5 = mo_body->get_attribute( lv_name )->mr_actual.
         ASSIGN ir_tab_from->* TO <tab_ui5>.
-        " <tab>.
-
-        "  DATA(lv_test) = mo_body->get_attribute( lv_name )->write_result( ). "write( ).
 
         LOOP AT <tab> REFERENCE INTO lr_tab_back.
           ASSIGN lr_tab_back->* TO <back>.
@@ -798,16 +727,6 @@
             ENDIF.
             <comp> = <comp_ui5>->*.
           ENDLOOP.
-*      DATA(lv_int) = 0.
-*      DO.
-*        lv_int += 1.
-*        ASSIGN COMPONENT lv_int OF STRUCTURE <back> TO <comp>.
-*        IF sy-subrc NE 0.
-*          EXIT.
-*        ENDIF.
-*        ASSIGN COMPONENT lv_int OF STRUCTURE <ui5_row> TO <comp_ui5>.
-*        <comp> = <comp_ui5>.
-*      ENDDO.
 
         ENDLOOP.
 
@@ -863,8 +782,6 @@
       METHOD _get_t_attri.
         FIELD-SYMBOLS <attribute> TYPE any.
 
-        "DATA(lr_assign_struct) = REF #( io_app->(ir_attri) ).
-        "DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( lr_assign_struct->* ) ).
         DATA(lv_name) = |IO_APP->{ to_upper( ir_attri ) }|.
         ASSIGN (lv_name) TO <attribute>.
         DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
@@ -875,11 +792,8 @@
           DATA(lv_element) = ir_attri.
           lv_element = lv_element && '-' && lr_comp->name.
 
-
           TRY.
-              "DATA(lr_value) = REF #( io_app->(lv_element) ).
-              "lo_struct = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( lr_value->* ) ).
-              lv_name = |IO_APP->{ to_upper( lv_element ) }|.
+             lv_name = |IO_APP->{ to_upper( lv_element ) }|.
               ASSIGN (lv_name) TO <attribute>.
               lo_struct = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
 
@@ -998,7 +912,6 @@
             data_stringify = _=>trans_any_2_json( value )
             bind_type = type
            ) INTO TABLE m_root->mt_attri.
-*          r_result = '{/' && lv_id && '}'.
           r_result = '/' && lv_id && ''.
           RETURN.
         ENDIF.
@@ -1027,7 +940,6 @@
           data_stringify = _=>trans_any_2_json( value )
           bind_type = cs-bind_type-one_time
          ) INTO TABLE m_root->mt_attri.
-*        r_result = '{/' && lv_id && '}'.
         r_result = '/' && lv_id && ''.
 
       ENDMETHOD.
@@ -1115,8 +1027,6 @@
         result->mo_app = o_app.
 
       ENDMETHOD.
-
-
 
       METHOD z2ui5_if_ui5_library~button.
 
@@ -1592,8 +1502,6 @@
 
       ENDMETHOD.
 
-
-
       METHOD z2ui5_if_ui5_library~scroll_container.
 
         result = _generic(
@@ -1684,7 +1592,6 @@
            ( n = 'text' v = text )
            ( n = 'enableFormattedText' v =  _=>get_abap_2_json( enable_formatted_text ) )
           ) ).
-
 
       ENDMETHOD.
 
@@ -1777,13 +1684,12 @@
         result = me.
 
         _generic(
-         name = 'SegmentedButtonItem'
-         t_prop = VALUE #(
-        ( n = 'icon'  v = icon  )
-        ( n = 'key'   v = key )
-        ( n = 'text'  v = text )
-        ) ).
-
+            name = 'SegmentedButtonItem'
+            t_prop = VALUE #(
+                ( n = 'icon'  v = icon  )
+                ( n = 'key'   v = key )
+                ( n = 'text'  v = text )
+            ) ).
 
       ENDMETHOD.
 
@@ -1820,7 +1726,6 @@
             error           TYPE REF TO cx_root
             app             TYPE REF TO z2ui5_if_app OPTIONAL
             kind            TYPE string OPTIONAL
-            "  server          TYPE REF TO z2ui5_lcl_runtime
           RETURNING
             VALUE(r_result) TYPE REF TO  z2ui5_lcl_app_system.
 
@@ -1834,12 +1739,15 @@
                END OF ty_row.
 
       PROTECTED SECTION.
+
         METHODS z2ui5_on_init
           IMPORTING
             client TYPE REF TO z2ui5_if_client.
+
         METHODS z2ui5_on_event
           IMPORTING
             client TYPE REF TO z2ui5_if_client.
+
         METHODS z2ui5_on_rendering
           IMPORTING
             client TYPE REF TO z2ui5_if_client.
@@ -1884,7 +1792,6 @@
           client->display_view( 'ERROR' ).
         ENDIF.
 
-        " ms_home-classname = 'test'.
       ENDMETHOD.
 
 
@@ -1963,7 +1870,6 @@
             ENDCASE.
         ENDCASE.
 
-        "client->display_view( client->get( )-screen_active ).
       ENDMETHOD.
 
 
@@ -2138,8 +2044,6 @@
           RETURNING
             VALUE(r_result) TYPE REF TO z2ui5_lcl_runtime.
 
-
-
       PRIVATE SECTION.
 
     ENDCLASS.
@@ -2272,7 +2176,6 @@
 
         r_result = lo_ui5_model->get_root( )->write_result( ).
 
-
       ENDMETHOD.
 
 
@@ -2354,7 +2257,9 @@
       METHOD factory_new_error.
 
         r_result = factory_new(
-                 z2ui5_lcl_app_system=>factory_error( error = ix app = CAST #( me->ms_db-o_app ) kind = kind ) ).
+                 z2ui5_lcl_app_system=>factory_error(
+                    error = ix app = CAST #( me->ms_db-o_app )
+                    kind = kind ) ).
 
         r_result->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
       ENDMETHOD.
