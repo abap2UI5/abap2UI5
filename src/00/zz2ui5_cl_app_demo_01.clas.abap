@@ -41,17 +41,17 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
         view->page(
            title = 'Page title'
            nav_button_tap = COND #( WHEN context-id_prev_app IS NOT INITIAL THEN view->_event_display_id( context-id_prev_app ) )
-           )->simple_form('Form Title'
-                )->content( 'f'
+           )->simple_form('Form Title' )->get(
+                )->content( 'f' )->get(
                     )->title( 'Input'
                     )->label( 'quantity'
                     "two way binding, data is written into a a view model and send back to the server
-                    )->input( view->_bind( quantity ) )->get_parent(
+                    )->input( view->_bind( quantity )
                     "one way binding, data is written into a view model but not send back to the server
-                    )->input( view->_bind_one_way( unit ) )->get_parent(
+                    )->input( view->_bind_one_way( unit )
                     )->label( 'product'
                      "value is written directly into the xml, no data transfer
-                    )->input( value = product editable = abap_False )->get_parent(
+                    )->input( value = product editable = abap_False
                     )->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
 
     ENDCASE.

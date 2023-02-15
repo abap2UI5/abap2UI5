@@ -3,120 +3,76 @@ CLASS zz2ui5_cl_app_demo_06 DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
-    CLASS-METHODS create
-      RETURNING
-        VALUE(r_result) TYPE REF TO zz2ui5_cl_app_demo_06.
 
-
-    TYPES: BEGIN OF ty_row,
-             id          TYPE string,
-             name        TYPE string,
-             value       TYPE string,
-             test1       TYPE string,
-             test2       TYPE string,
-             check_valid TYPE abap_bool,
-           END OF ty_row.
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        descr    TYPE string,
+        icon     TYPE string,
+        info     TYPE string,
+        checkbox TYPE abap_bool,
+      END OF ty_row.
 
     DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA: mv_check_active TYPE abap_bool.
-    DATA mv_text TYPE string.
-    DATA mv_text_long TYPE string.
-    DATA type TYPE string.
 
 ENDCLASS.
 
 CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
 
-  METHOD create.
-
-    r_result = NEW #( ).
-
-
-  ENDMETHOD.
-
-
-
   METHOD z2ui5_if_app~controller.
-
 
     CASE client->get( )-lifecycle_method.
 
+      WHEN client->cs-lifecycle_method-on_init.
 
-      WHEN client->cs-_lifecycle_method-on_init.
-        client->display_view( 'TABLE' ).
-
-        mt_tab = VALUE #( id = '010'
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-            ( name = 'Hans' value = 'red' test1 = 'das ist ein langer text' test2 = 'das ist noch ein langer text' check_valid = abap_true )
-         ).
+        mt_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT ret =
+            VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true )
+            ) ).
 
 
-      WHEN client->cs-_lifecycle_method-on_event.
-        CASE client->get( )-event_id.
+      WHEN client->cs-lifecycle_method-on_event.
 
-          WHEN 'BUTTON_BACK'.
-            client->nav_to_app( client->get_app_called( ) ).
+        CASE client->get( )-event.
 
-          WHEN 'EDIT'.
-            mv_check_active = xsdbool( mv_check_active = abap_false ).
+          WHEN 'BUTTON_SORT'.
+            SORT mt_tab BY value.
 
+          WHEN 'BUTTON_POST'.
+            client->display_message_box( 'button post was pressed' ).
         ENDCASE.
 
 
+      WHEN client->cs-lifecycle_method-on_rendering.
 
-      WHEN client->cs-_lifecycle_method-on_rendering.
+        DATA(view) = client->factory_view( ).
+        DATA(page) = view->page(
+            title = 'Example - ZZ2UI5_CL_APP_DEMO_06'
+            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
+                                            THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
 
-*        DATA(lo_page) = client->factory_view( 'TABLE' )->add_page(
-*            title = 'SE16 - edit'
-*            ).
-*
-*        DATA(lo_tab) = lo_page->add_table(
-*                 items  = mt_tab
-*                 zz_check_update_model = abap_true
-*             ).
-*
-*        lo_tab->add_header_toolbar( )->add_overflow_toolbar(
-*            )->add_title( 'title'
-*             )->add_toolbar_spacer(
-*             )->add_button( text = 'edit' on_press_id = 'EDIT'
-*             )->add_button( text = 'edit' on_press_id = 'EDIT'
-*          ).
-*
-*        DATA(lo_cells) = lo_tab->add_columns(
-*              )->add_column( text = 'Name'
-*              )->add_column( text = 'Value'
-*              )->add_column( text = 'Test1'
-*              )->add_column( text = 'Test2'
-*              )->add_column( text = 'Checkbox'
-*           )->m_parent->add_items( )->add_column_list_item( )->add_cells( ).
-*
-*        IF mv_check_active = abap_true.
-*          lo_cells->add_text( '{NAME}'
-*              )->add_text( '{VALUE}'
-*              )->add_button( text = '{TEST1}' on_press_id = '{NAME}'
-*              )->add_input( value = '{TEST2}'
-*              )->add_checkbox( selected_json = '{CHECK_VALID}'
-*           ).
-*        ELSE.
-*          lo_cells->add_text( '{NAME}'
-*             )->add_input( value = '{VALUE}'
-*             )->add_input( value = '{TEST1}'
-*             )->add_input( value = '{TEST2}'
-*             )->add_input( value = '{NAME}'
-*          ).
-*        ENDIF.
+        DATA(lo_tab) = page->scroll_container( '70%' )->table( view->_bind_one_way( mt_tab ) ).
 
+        lo_tab->header_toolbar( )->overflow_toolbar(
+            )->title( 'title of the table'
+             )->toolbar_spacer(
+             )->button( text = 'Sort' press = view->_event( 'BUTTON_SORT' )
+             )->button( text = 'Post' press = view->_event( 'BUTTON_POST' )
+          ).
 
+        lo_tab->columns(
+            )->column( 'Name'
+            )->column( 'Color'
+            )->column( 'Info'
+            )->column( 'Description'
+            )->column( 'Checkbox' ).
+
+        lo_tab->items( )->column_list_item( )->cells(
+           )->text( '{TITLE}'
+           )->text( '{VALUE}'
+           )->text( '{INFO}'
+           )->text( '{DESCR}'
+           )->checkbox( '{CHECKBOX}' ).
 
     ENDCASE.
 

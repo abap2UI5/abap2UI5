@@ -212,6 +212,5 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         result = cx->get_text( ).
     ENDTRY.
 
-
   ENDMETHOD.
 ENDCLASS.
