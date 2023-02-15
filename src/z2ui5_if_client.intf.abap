@@ -10,9 +10,15 @@ INTERFACE z2ui5_if_client
       event              TYPE string,
       lifecycle_method   TYPE string,
       event_object       TYPE REF TO z2ui5_cl_hlp_tree_json,
-      id                 type string,
-      id_prev            type string,
-      id_prev_app        type string,
+      id                 TYPE string,
+      id_prev            TYPE string,
+      id_prev_app        TYPE string,
+      BEGIN OF s_request,
+        tenant          TYPE string,
+        url_app         TYPE string,
+        origin          TYPE string,
+        url_source_code TYPE string,
+      END OF s_request,
     END OF ty_s_get.
 
   METHODS get
@@ -28,7 +34,6 @@ INTERFACE z2ui5_if_client
   METHODS get_app_previous
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
-
 
   METHODS display_message_box
     IMPORTING

@@ -585,25 +585,25 @@
 
       METHOD z2ui5_if_ui5_library~radiobutton_group.
 
-        result = me.
-
-        _generic(
-         name   = 'RadioButtonGroup'
-         t_prop = VALUE #(
-                 ( n = 'columns' v = lines( t_prop ) )
-                 ( n = 'selectedIndex' v = selected_index )
-         ) ).
-
-        LOOP AT t_prop REFERENCE INTO DATA(lr_prop).
-          DATA(lv_tabix) = sy-tabix - 1.
-
-          _generic(
-            name   = 'RadioButton'
-            t_prop = VALUE #(
-               ( n = 'text' v = lr_prop->* )
-             ) ).
-
-        ENDLOOP.
+*        result = me.
+*
+*        _generic(
+*         name   = 'RadioButtonGroup'
+*         t_prop = VALUE #(
+*                 ( n = 'columns' v = lines( t_prop ) )
+*                 ( n = 'selectedIndex' v = selected_index )
+*         ) ).
+*
+*        LOOP AT t_prop REFERENCE INTO DATA(lr_prop).
+*          DATA(lv_tabix) = sy-tabix - 1.
+*
+*          _generic(
+*            name   = 'RadioButton'
+*            t_prop = VALUE #(
+*               ( n = 'text' v = lr_prop->* )
+*             ) ).
+*
+*        ENDLOOP.
 
       ENDMETHOD.
 
@@ -1514,6 +1514,14 @@ ENDCLASS.
             id_prev_app = mo_server->ms_db-id_prev_app
         ).
 
+    DATA(lt_head) = z2ui5_cl_http_handler=>client-t_header.
+    DATA(lv_url) = lt_head[ name = 'referer' ]-value.
+
+    result-s_request-tenant = sy-mandt.
+    result-s_request-url_app = lv_url && '?sap-client=' && result-s_request-tenant && '&app=' && mo_server->ms_db-app.
+    result-s_request-origin = lt_head[ name = 'origin' ]-value.
+    result-s_request-url_source_code = result-s_request-origin && `/sap/bc/adt/oo/classes/` && mo_server->ms_db-app && `/source/main`.
+
         TRY.
             result-event = z2ui5_cl_http_handler=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
           CATCH cx_root.
@@ -1536,7 +1544,8 @@ ENDCLASS.
 
       METHOD z2ui5_if_client~display_popup.
 
-        mo_server->ms_db-screen_popup = name.
+        "coming soon
+*        mo_server->ms_db-screen_popup = name.
 
       ENDMETHOD.
 

@@ -77,7 +77,7 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'App Title - Header'
+    DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02'
         nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
 
     DATA(grid) = page->grid( default_span  = 'L6 M12 S12' )->content( 'l' ).
@@ -136,6 +136,22 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
        )->label( 'Switch normal'
        )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
 
+
+       page->footer( )->overflow_toolbar(
+            )->link(
+                text    = 'Go to Source Code'
+                href    = client->get( )-s_request-url_source_code
+            )->toolbar_spacer(
+            )->button(
+                text  = 'Clear'
+                press = view->_event( 'BUTTON_CLEAR' )
+                type  = view->cs-button-type-reject
+                icon  = 'sap-icon://delete'
+            )->button(
+                text  = 'Send to Server'
+                press = view->_event( 'BUTTON_SEND' )
+                type  = view->cs-button-type-success ).
+
   ENDMETHOD.
 
 
@@ -143,11 +159,11 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'BUTTON_BACK'.
-        client->nav_to_app( client->get_app_previous( ) ).
-
-      WHEN 'BUTTON_POST'.
-        "user pressed a button, your custom implementation can be called here'
+      WHEN 'BUTTON_SEND'.
+        client->display_message_box( 'Values were send to the server successfully').
+      when 'BUTTON_CLEAR'.
+      clear screen.
+        client->display_message_toast( 'View initialized' ).
 
     ENDCASE.
 

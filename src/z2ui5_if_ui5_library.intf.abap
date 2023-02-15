@@ -89,39 +89,39 @@ INTERFACE z2ui5_if_ui5_library
            selected TYPE abap_bool,
          END OF ty_s_tab.
 
-  TYPES:
-    BEGIN OF ty,
-*      BEGIN OF _,
-*        BEGIN OF s_combobox,
-*          key  TYPE string,
-*          text TYPE string,
-*        END OF s_combobox,
-*        BEGIN OF s_seg_btn,
-*          key  TYPE string,
-*          icon TYPE string,
-*          text TYPE string,
-*        END OF s_seg_btn,
-*      END OF _,
-    "  BEGIN OF input,
-     "   t_suggestions TYPE STANDARD TABLE OF ty-_-s_suggestion_items WITH EMPTY KEY,
-   "  " END OF input,
-   "   BEGIN OF combobox,
-   "     t_item TYPE STANDARD TABLE OF ty-_-s_combobox WITH EMPTY KEY,
-   "   END OF combobox,
-      BEGIN OF radiobutton_group,
-        BEGIN OF s_prop,
-          selected TYPE abap_bool,
-          text     TYPE string,
-        END OF s_prop,
-        t_prop TYPE string_table,
-      END OF radiobutton_group,
-      BEGIN OF segemented_button,
-*        t_button TYPE STANDARD TABLE OF ty-_-s_seg_btn WITH EMPTY KEY,
-        s_tab    TYPE ty_s_tab,
-        tr_btn   TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY,
-      END OF segemented_button,
-      t_radio TYPE STANDARD TABLE OF string WITH EMPTY KEY,
-    END OF ty.
+*  TYPES:
+*    BEGIN OF ty,
+**      BEGIN OF _,
+**        BEGIN OF s_combobox,
+**          key  TYPE string,
+**          text TYPE string,
+**        END OF s_combobox,
+**        BEGIN OF s_seg_btn,
+**          key  TYPE string,
+**          icon TYPE string,
+**          text TYPE string,
+**        END OF s_seg_btn,
+**      END OF _,
+*    "  BEGIN OF input,
+*     "   t_suggestions TYPE STANDARD TABLE OF ty-_-s_suggestion_items WITH EMPTY KEY,
+*   "  " END OF input,
+*   "   BEGIN OF combobox,
+*   "     t_item TYPE STANDARD TABLE OF ty-_-s_combobox WITH EMPTY KEY,
+*   "   END OF combobox,
+*      BEGIN OF radiobutton_group,
+*        BEGIN OF s_prop,
+*          selected TYPE abap_bool,
+*          text     TYPE string,
+*        END OF s_prop,
+*        t_prop TYPE string_table,
+*      END OF radiobutton_group,
+*      BEGIN OF segemented_button,
+**        t_button TYPE STANDARD TABLE OF ty-_-s_seg_btn WITH EMPTY KEY,
+*        s_tab    TYPE ty_s_tab,
+*        tr_btn   TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY,
+*      END OF segemented_button,
+*      t_radio TYPE STANDARD TABLE OF string WITH EMPTY KEY,
+*    END OF ty.
 
   METHODS _bind
     IMPORTING
@@ -445,7 +445,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       "    description     TYPE string OPTIONAL
       selected_index TYPE clike OPTIONAL
-      t_prop         TYPE ty-radiobutton_group-t_prop
+      "t_prop         TYPE ty-radiobutton_group-t_prop
     RETURNING
       VALUE(result)  TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  text
