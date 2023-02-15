@@ -12,8 +12,6 @@ CLASS z2ui5_cl_hlp_utility DEFINITION
              "  name TYPE string,
            END OF ty_property.
 
-
-
     TYPES: BEGIN OF ty_control,
              name       TYPE string,
              ns         TYPE string,
@@ -768,7 +766,7 @@ CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
 
   METHOD get_uuid_session.
 
-    mv_counter += 1.
+    mv_counter = mv_counter + 1.
     r_result = shift_left( shift_right( CONV string( mv_counter ) ) ).
 
   ENDMETHOD.
@@ -792,21 +790,21 @@ CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
     "                  THEN row-name "`{/oUpdate/` && row-name && `}`
     "                ELSE row-v ) }" \n | ) }|.
     IF ms_control-t_child IS INITIAL.
-      r_result &&= '/>'.
+      r_result = r_result && '/>'.
       RETURN.
     ENDIF.
 
-    r_result &&= '>'.
+    r_result = r_result && '>'.
 
     LOOP AT ms_control-t_child INTO DATA(lr_child).
       FIELD-SYMBOLS <child> TYPE ty-s-control.
 
       ASSIGN lr_child->* TO <child>.
-      r_result &&= get_xml_by_control( <child> ).
+      r_result = r_result && get_xml_by_control( <child> ).
 
     ENDLOOP.
 
-    r_result &&= |</{ COND #( WHEN ms_control-ns <> '' THEN |{ ms_control-ns }:| ) }{ ms_control-name }>|.
+    r_result = r_result && |</{ COND #( WHEN ms_control-ns <> '' THEN |{ ms_control-ns }:| ) }{ ms_control-name }>|.
 
 
   ENDMETHOD.
@@ -1455,7 +1453,7 @@ CLASS Z2UI5_CL_HLP_UTILITY IMPLEMENTATION.
 
     LOOP AT lt_comp2 REFERENCE INTO DATA(lr_comp).
       DATA(lv_element) = ir_attri.
-      lv_element &&= '-' && lr_comp->name.
+      lv_element = lv_element && '-' && lr_comp->name.
 
 
       TRY.
