@@ -9,8 +9,8 @@ INTERFACE z2ui5_if_ui5_library
         on_rendering TYPE string VALUE 'RENDERING',
       END OF lifecycle_method,
       BEGIN OF event_type,
-        server_function   TYPE string VALUE 'SERVER_FUNCTION',
-        display_id        TYPE string VALUE 'CALL_PREVIOUS_APP',
+        server_function TYPE string VALUE 'SERVER_FUNCTION',
+        display_id      TYPE string VALUE 'CALL_PREVIOUS_APP',
       END OF event_type,
       BEGIN OF bind_type,
         one_way  TYPE string VALUE 'ONE_WAY',
@@ -83,50 +83,17 @@ INTERFACE z2ui5_if_ui5_library
       END OF progress_indicator,
     END OF cs.
 
-  TYPES: BEGIN OF ty_s_tab,
-           text     TYPE string,
-           icon     TYPE string,
-           selected TYPE abap_bool,
-         END OF ty_s_tab.
-
-*  TYPES:
-*    BEGIN OF ty,
-**      BEGIN OF _,
-**        BEGIN OF s_combobox,
-**          key  TYPE string,
-**          text TYPE string,
-**        END OF s_combobox,
-**        BEGIN OF s_seg_btn,
-**          key  TYPE string,
-**          icon TYPE string,
-**          text TYPE string,
-**        END OF s_seg_btn,
-**      END OF _,
-*    "  BEGIN OF input,
-*     "   t_suggestions TYPE STANDARD TABLE OF ty-_-s_suggestion_items WITH EMPTY KEY,
-*   "  " END OF input,
-*   "   BEGIN OF combobox,
-*   "     t_item TYPE STANDARD TABLE OF ty-_-s_combobox WITH EMPTY KEY,
-*   "   END OF combobox,
-*      BEGIN OF radiobutton_group,
-*        BEGIN OF s_prop,
-*          selected TYPE abap_bool,
-*          text     TYPE string,
-*        END OF s_prop,
-*        t_prop TYPE string_table,
-*      END OF radiobutton_group,
-*      BEGIN OF segemented_button,
-**        t_button TYPE STANDARD TABLE OF ty-_-s_seg_btn WITH EMPTY KEY,
-*        s_tab    TYPE ty_s_tab,
-*        tr_btn   TYPE STANDARD TABLE OF ty_s_tab WITH EMPTY KEY,
-*      END OF segemented_button,
-*      t_radio TYPE STANDARD TABLE OF string WITH EMPTY KEY,
-*    END OF ty.
+  TYPES:
+    BEGIN OF ty,
+      BEGIN OF s_property,
+        n TYPE string,
+        v TYPE string,
+      END OF s_property,
+    END OF ty.
 
   METHODS _bind
     IMPORTING
       val           TYPE data
-     " type          TYPE string DEFAULT cs-bind_type-two_way
     RETURNING
       VALUE(result) TYPE string.
 
@@ -139,7 +106,6 @@ INTERFACE z2ui5_if_ui5_library
   METHODS _event
     IMPORTING
       val           TYPE string
-     " type          TYPE string DEFAULT cs-event_type-server_function
     RETURNING
       VALUE(result) TYPE string.
 
@@ -156,16 +122,16 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
-    methods suggestion_items
-        RETURNING
-      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
+  METHODS suggestion_items
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
-    methods list_item
-        importing
-            text type string optional
-            additional_text type string optional
-           RETURNING
-      VALUE(result)    TYPE REF TO  z2ui5_if_ui5_library.
+  METHODS list_item
+    IMPORTING
+      text            TYPE string OPTIONAL
+      additional_text TYPE string OPTIONAL
+    RETURNING
+      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
 
 
 
@@ -179,7 +145,7 @@ INTERFACE z2ui5_if_ui5_library
       value_state_text TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE abap_bool DEFAULT abap_true
-      suggestion_items TYPE string optional "ty-input-t_suggestions OPTIONAL
+      suggestion_items TYPE string OPTIONAL "ty-input-t_suggestions OPTIONAL
       showsuggestion   TYPE abap_bool DEFAULT abap_true
         PREFERRED PARAMETER value
     RETURNING
@@ -264,7 +230,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       text          TYPE clike OPTIONAL
       icon          TYPE clike OPTIONAL
-    "  on_press_id   TYPE clike OPTIONAL
+      "  on_press_id   TYPE clike OPTIONAL
       type          TYPE clike OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
       press         TYPE string OPTIONAL
@@ -272,12 +238,12 @@ INTERFACE z2ui5_if_ui5_library
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  page
     IMPORTING
-      title             TYPE string OPTIONAL
-     " event_nav_back_id TYPE string OPTIONAL
-      nav_button_tap type string optional
+      title          TYPE string OPTIONAL
+      " event_nav_back_id TYPE string OPTIONAL
+      nav_button_tap TYPE string OPTIONAL
         PREFERRED PARAMETER title
     RETURNING
-      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
+      VALUE(result)  TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  vbox
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
@@ -360,28 +326,28 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
-      methods item
-        importing
-            key type string optional
-            text type string optional
-              RETURNING
-      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
+  METHODS item
+    IMPORTING
+      key           TYPE string OPTIONAL
+      text          TYPE string OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
 
-  methods segmented_button_item
-    importing
-        icon type string optional
-        key type string optional
-        text type string optional
-                    RETURNING
-      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
+  METHODS segmented_button_item
+    IMPORTING
+      icon          TYPE string OPTIONAL
+      key           TYPE string OPTIONAL
+      text          TYPE string OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS  combobox
     IMPORTING
       selectedkey     TYPE data
       show_clear_icon TYPE abap_bool DEFAULT abap_false
       label           TYPE string DEFAULT 'line_label'
-      items           TYPE string optional
+      items           TYPE string OPTIONAL
     RETURNING
       VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
   METHODS  grid
@@ -427,7 +393,7 @@ INTERFACE z2ui5_if_ui5_library
   METHODS  segmented_button
     IMPORTING
       selected_key  TYPE string
-  "    t_button      TYPE ty-segemented_button-t_button
+      "    t_button      TYPE ty-segemented_button-t_button
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

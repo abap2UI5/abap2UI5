@@ -259,12 +259,20 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
     r_result = NEW #(  ).
     r_result->mo_root = r_result.
 
-      _=>trans_json_2_data(
-        exporting
-            iv_json   = iv_json
-         importing
-            ev_result = r_result->mr_actual
-      ).
+    /ui2/cl_json=>deserialize(
+        EXPORTING
+            json         = CONV string( iv_json )
+            assoc_arrays = abap_true
+        CHANGING
+         data            = r_result->mr_actual
+        ).
+
+*      _=>trans_json_2_data(
+*        exporting
+*            iv_json   = iv_json
+*         importing
+*            ev_result = r_result->mr_actual
+*      ).
 
   ENDMETHOD.
 
@@ -272,7 +280,8 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
   METHOD get_attribute.
 
     IF mr_actual IS INITIAL.
-      RAISE EXCEPTION NEW _( 'ZCX_JSON_TREE_NO_ATTRIBUTE' ).
+        raise exception new cx_abap_api_state( ). "sy_assign_cast_unknown_type( ).
+    "  RAISE EXCEPTION NEW _( 'ZCX_JSON_TREE_NO_ATTRIBUTE' ).
     ENDIF.
 
     DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).

@@ -16,6 +16,7 @@ INTERFACE z2ui5_if_client
       BEGIN OF s_request,
         tenant          TYPE string,
         url_app         TYPE string,
+        url_app_gen     type string,
         origin          TYPE string,
         url_source_code TYPE string,
       END OF s_request,
