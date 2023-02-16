@@ -7,6 +7,8 @@ CLASS zz2ui5_cl_app_demo_08 DEFINITION PUBLIC.
     DATA check_strip_active TYPE abap_bool.
     DATA strip_type TYPE string.
 
+PROTECTED SECTION.
+PRIVATE SECTION.
 ENDCLASS.
 
 CLASS zz2ui5_cl_app_demo_08 IMPLEMENTATION.
@@ -26,28 +28,28 @@ CLASS zz2ui5_cl_app_demo_08 IMPLEMENTATION.
             client->display_message_box( 'this is a message box' ).
 
           WHEN 'BUTTON_MESSAGE_BOX_ERROR'.
-            client->display_message_box( text = 'this is a message box' type = client->cs-message_box-type-error ).
+            client->display_message_box( text = 'this is a message box' type = 'error' ).
 
           WHEN 'BUTTON_MESSAGE_BOX_SUCCESS'.
-            client->display_message_box( text = 'this is a message box' type = client->cs-message_box-type-success ).
+            client->display_message_box( text = 'this is a message box' type = 'success' ).
 
           WHEN 'BUTTON_MESSAGE_BOX_WARNING'.
-            client->display_message_box( text = 'this is a message box' type = client->cs-message_box-type-warning ).
+            client->display_message_box( text = 'this is a message box' type = 'warning' ).
 
           WHEN 'BUTTON_MESSAGE_TOAST'.
             client->display_message_toast( 'this is a message toast' ).
 
           WHEN 'BUTTON_MESSAGE_STRIP_INFO'.
             check_strip_active = xsdbool(  check_strip_active = abap_false ).
-            strip_type = client->cs-message_strip-type-information.
+            strip_type = 'Information'.
 
           WHEN 'BUTTON_MESSAGE_STRIP_ERROR'.
             check_strip_active = xsdbool(  check_strip_active = abap_false ).
-            strip_type = client->cs-message_strip-type-error.
+            strip_type = 'Error'.
 
           WHEN 'BUTTON_MESSAGE_STRIP_SUCCESS'.
             check_strip_active = xsdbool(  check_strip_active = abap_false ).
-            strip_type = client->cs-message_strip-type-success.
+            strip_type = 'Success'.
 
           WHEN 'BUTTON_ERROR'.
             DATA(dummy) = 1 / 0.

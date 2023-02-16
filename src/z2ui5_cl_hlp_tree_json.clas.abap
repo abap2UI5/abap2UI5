@@ -280,48 +280,22 @@ CLASS z2ui5_cl_hlp_tree_json IMPLEMENTATION.
   METHOD get_attribute.
 
     IF mr_actual IS INITIAL.
-        raise exception new cx_abap_api_state( ). "sy_assign_cast_unknown_type( ).
-    "  RAISE EXCEPTION NEW _( 'ZCX_JSON_TREE_NO_ATTRIBUTE' ).
+      RAISE EXCEPTION NEW cx_abap_api_state( ).
     ENDIF.
 
     DATA(lo_attri) = NEW z2ui5_cl_hlp_tree_json(  ).
     lo_attri->mo_root = mo_root.
     lo_attri->mv_name = name.
 
-    " DATA(lv_test) = name.
     DATA(lv_test) = replace( val = name sub = '-' with = '_' occ = 0 ).
-    " REPLACE all OCCURRENCES OF '-' IN lv_test WITH '_'.
 
-    "lo_attri->mr_actual = mr_actual->(lv_test).
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = 'MR_ACTUAL->' && lv_test.
     ASSIGN (lv_name) TO <attribute>.
-    if sy-subrc <> 0.
-    return.
-    endif.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
     lo_attri->mr_actual = <attribute>.
-
-*    TRY.
-*        lo_attri->mr_actual = mr_actual->(name).
-*      CATCH cx_root.
-*        DATA(lv_test) = name.
-*        REPLACE '-' IN lv_test WITH '_'.
-*        lo_attri->mr_actual = mr_actual->(lv_test).
-*    ENDTRY.
-
-    " try.
-    " lo_attri->mv_value = conv string( lo_attri->mr_actual->* ).
-    " catch cx_root.
-    " endtry.
-
-*    IF apos_active = abap_false.
-*      lo_attri->mv_value = v.
-*    ELSE.
-*      lo_attri->mv_value = escape( val    = v
-*             format = cl_abap_format=>e_json_string ) .
-*    ENDIF.
-*    lo_attri->mv_apost_active = apos_active.
-
     lo_attri->mo_parent = me.
 
     INSERT lo_attri INTO TABLE mt_values.

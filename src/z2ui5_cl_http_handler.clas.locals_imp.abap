@@ -1379,7 +1379,7 @@
               t_prop = VALUE #( ( n = 'width' v = width ) )
          ).
 
-       " lo_col->z2ui5_if_ui5_library~text( text ).
+        " lo_col->z2ui5_if_ui5_library~text( text ).
 
       ENDMETHOD.
 
@@ -1449,8 +1449,7 @@
 
       METHOD z2ui5_if_ui5_library~footer.
 
-        result = me.
-        _generic( 'footer' ).
+        result = _generic( 'footer' ).
 
       ENDMETHOD.
 
@@ -1750,15 +1749,15 @@
                     ms_home-btn_text = 'edit'.
                     ms_home-btn_event_id = 'BUTTON_CHANGE'.
                     ms_home-btn_icon = 'sap-icon://edit'.
-                    ms_home-class_value_state = z2ui5_if_client=>cs-input-value_state-success.
+                    ms_home-class_value_state = 'Success'.
                     ms_home-class_editable = abap_false.
 
                   CATCH cx_root INTO DATA(lx).
                     ms_home-class_value_state_text = lx->get_text( ).
-                    ms_home-class_value_state = z2ui5_if_client=>cs-input-value_state-warning.
+                    ms_home-class_value_state = 'Warning'.
                     client->display_message_box(
                         text = ms_home-class_value_state_text
-                        type = z2ui5_if_client=>cs-message_box-type-error
+                        type = 'error'
                          ).
                 ENDTRY.
 
@@ -1881,7 +1880,7 @@
             )->button(
                   text = 'BACK'
                   press = view->_event_display_id( client->get( )-id_prev_app )
-                  type = view->cs-button-type-emphasized
+                  type = 'Emphasized'
             ).
         ENDIF.
 
@@ -1937,7 +1936,7 @@
         DATA mt_screen TYPE STANDARD TABLE OF s_screen.
         DATA ms_leave_to_app LIKE ms_db.
 
-        METHODS constructor RAISING cx_uuid_error.
+        METHODS constructor.
 
         METHODS db_save
           IMPORTING
@@ -1981,9 +1980,11 @@
     CLASS z2ui5_lcl_runtime IMPLEMENTATION.
 
       METHOD constructor.
-
-        ms_db-id = _=>get_uuid( ).
-
+        TRY.
+            ms_db-id = _=>get_uuid( ).
+          CATCH cx_root.
+            ASSERT 1 = 0.
+        ENDTRY.
       ENDMETHOD.
 
       METHOD db_load.

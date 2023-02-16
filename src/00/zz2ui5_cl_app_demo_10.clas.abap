@@ -3,7 +3,8 @@ CLASS zz2ui5_cl_app_demo_10 DEFINITION PUBLIC.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-
+PROTECTED SECTION.
+PRIVATE SECTION.
 ENDCLASS.
 
 CLASS zz2ui5_cl_app_demo_10 IMPLEMENTATION.
@@ -83,8 +84,9 @@ CLASS zz2ui5_cl_app_demo_10 IMPLEMENTATION.
            )->toolbar_spacer(
            )->text( 'text'
            )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
-           )->button( text = 'reject' type = client->cs-button-type-reject
-           )->button( text = 'accept' type = client->cs-button-type-success ).
+           )->button( text = 'reject' type = 'Reject'
+           )->button( text = 'accept' type = 'Success'
+           ).
 
     ENDCASE.
 

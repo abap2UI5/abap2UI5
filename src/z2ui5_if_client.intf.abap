@@ -39,7 +39,7 @@ INTERFACE z2ui5_if_client
   METHODS display_message_box
     IMPORTING
       text TYPE string
-      type TYPE string DEFAULT cs-message_box-type-info.
+      type TYPE string DEFAULT 'information'.
 
   METHODS display_message_toast
     IMPORTING

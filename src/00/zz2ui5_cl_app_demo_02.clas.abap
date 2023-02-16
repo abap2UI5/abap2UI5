@@ -133,25 +133,25 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
     )->label( 'Switch disabled'
     )->switch( enabled = abap_false    customtexton = 'A' customtextoff = 'B'
     )->label( 'Switch accept/reject'
-    )->switch( state = screen-check_switch_01 customtexton = 'on'  customtextoff = 'off' type = client->cs-switch-type-accept_reject
+    )->switch( state = screen-check_switch_01 customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject'
     )->label( 'Switch normal'
     )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
 
 
     page->footer( )->overflow_toolbar(
          )->link(
-             text    = 'Go to Source Code'
-             href    = client->get( )-s_request-url_source_code
+             text = 'Go to Source Code'
+             href = client->get( )-s_request-url_source_code
          )->toolbar_spacer(
          )->button(
              text  = 'Clear'
              press = view->_event( 'BUTTON_CLEAR' )
-             type  = view->cs-button-type-reject
+             type  = 'Reject'
              icon  = 'sap-icon://delete'
          )->button(
              text  = 'Send to Server'
              press = view->_event( 'BUTTON_SEND' )
-             type  = view->cs-button-type-success ).
+             type  = 'Success' ).
 
   ENDMETHOD.
 

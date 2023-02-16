@@ -16,6 +16,9 @@ CLASS zz2ui5_cl_app_demo_11 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     DATA check_editable_active TYPE abap_bool.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 CLASS zz2ui5_cl_app_demo_11 IMPLEMENTATION.
@@ -45,35 +48,28 @@ CLASS zz2ui5_cl_app_demo_11 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page(
-            title = 'Example - ZZ2UI5_CL_APP_DEMO_11'
-            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                                            THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_11' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         DATA(tab) = page->table( view->_bind( t_tab ) ).
 
+        "set toolbar
         tab->header_toolbar( )->overflow_toolbar(
             )->title( 'title of the table'
              )->toolbar_spacer(
              )->button(
                     text = SWITCH #( check_editable_active WHEN abap_true THEN 'display' ELSE 'edit' )
-                    press = view->_event( 'BUTTON_EDIT' )
-          ).
+                    press = view->_event( 'BUTTON_EDIT' ) ).
 
         "set header
         tab->columns(
-            )->column(
-                 )->text( 'Title' )->get_parent(
-            )->column(
-                  )->text( 'Color' )->get_parent(
-            )->column(
-                 )->text( 'Info' )->get_parent(
-            )->column(
-                 )->text( 'Description' )->get_parent(
-            )->column(
-              )->text( 'Checkbox' ).
+            )->column( )->text( 'Title' )->get_parent(
+            )->column( )->text( 'Color' )->get_parent(
+            )->column( )->text( 'Info' )->get_parent(
+            )->column( )->text( 'Description' )->get_parent(
+            )->column( )->text( 'Checkbox' ).
 
 
+        "set toolbar
         IF check_editable_active = abap_true.
 
           tab->items( )->column_list_item( )->cells(

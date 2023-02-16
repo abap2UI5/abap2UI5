@@ -14,9 +14,10 @@ CLASS zz2ui5_cl_app_demo_06 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-
     DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
@@ -47,12 +48,12 @@ CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page(
-            title = 'Example - ZZ2UI5_CL_APP_DEMO_06'
-            nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_06' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
+        "set table and container
         DATA(tab) = page->scroll_container( '70%' )->table( view->_bind_one_way( mt_tab ) ).
 
+        "set toolbar
         tab->header_toolbar( )->overflow_toolbar(
             )->title( 'title of the table'
              )->toolbar_spacer(
@@ -60,19 +61,15 @@ CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
              )->button( text = 'Post' press = view->_event( 'BUTTON_POST' )
           ).
 
-            "set header
+        "set header
         tab->columns(
-            )->column(
-                 )->text( 'Title' )->get_parent(
-            )->column(
-                  )->text( 'Color' )->get_parent(
-            )->column(
-                 )->text( 'Info' )->get_parent(
-            )->column(
-                 )->text( 'Description' )->get_parent(
-            )->column(
-              )->text( 'Checkbox' ).
+            )->column( )->text( 'Title' )->get_parent(
+            )->column( )->text( 'Color' )->get_parent(
+            )->column( )->text( 'Info' )->get_parent(
+            )->column( )->text( 'Description' )->get_parent(
+            )->column( )->text( 'Checkbox' ).
 
+        "set content
         tab->items( )->column_list_item( )->cells(
            )->text( '{TITLE}'
            )->text( '{VALUE}'

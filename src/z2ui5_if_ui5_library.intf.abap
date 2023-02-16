@@ -17,70 +17,6 @@ INTERFACE z2ui5_if_ui5_library
         two_way  TYPE string VALUE 'TWO_WAY',
         one_time TYPE string VALUE 'ONE_TIME',
       END OF bind_type,
-      BEGIN OF input,
-        BEGIN OF type,
-          password TYPE string VALUE 'Password',
-          email    TYPE string VALUE 'Email',
-          telefon  TYPE string VALUE 'Tel',
-          number   TYPE string VALUE 'Number',
-          url      TYPE string VALUE 'Url',
-        END OF type,
-        BEGIN OF value_state,
-          warning     TYPE string VALUE 'Warning',
-          success     TYPE string VALUE 'Success',
-          error       TYPE string VALUE 'Error',
-          information TYPE string VALUE 'Information',
-        END OF value_state,
-      END OF input,
-      BEGIN OF button,
-        BEGIN OF type,
-          reject     TYPE string VALUE 'Reject',
-          success    TYPE string VALUE 'Success',
-          emphasized TYPE string VALUE 'Emphasized',
-        END OF type,
-      END OF button,
-      BEGIN OF message_strip,
-        BEGIN OF type,
-          error       TYPE string VALUE 'Error',
-          warning     TYPE string VALUE 'Warning',
-          success     TYPE string VALUE 'Success',
-          information TYPE string VALUE 'Information',
-        END OF type,
-      END OF message_strip,
-      BEGIN OF message_box,
-        BEGIN OF type,
-          error   TYPE string VALUE 'error',
-          alert   TYPE string VALUE 'alert',
-          info    TYPE string VALUE 'information',
-          warning TYPE string VALUE 'warning',
-          success TYPE string VALUE 'success',
-        END OF type,
-      END OF message_box,
-      BEGIN OF code_editor,
-        BEGIN OF type,
-          abap       TYPE string VALUE 'abap',
-          json       TYPE string VALUE 'json',
-          xml        TYPE string VALUE 'xml',
-          yaml       TYPE string VALUE 'yaml',
-          css        TYPE string VALUE 'css',
-          javascript TYPE string VALUE 'javascript',
-        END OF type,
-      END OF code_editor,
-      BEGIN OF switch,
-        BEGIN OF type,
-          accept_reject TYPE string VALUE 'AcceptReject',
-          Default       TYPE string VALUE 'Default',
-        END OF type,
-      END OF switch,
-      BEGIN OF progress_indicator,
-        BEGIN OF state,
-          error       TYPE string VALUE 'Error',
-          warning     TYPE string VALUE 'Warning',
-          success     TYPE string VALUE 'Success',
-          information TYPE string VALUE 'Information',
-          none        TYPE string VALUE 'None',
-        END OF state,
-      END OF progress_indicator,
     END OF cs.
 
   TYPES:
@@ -161,11 +97,11 @@ INTERFACE z2ui5_if_ui5_library
 
   METHODS table
     IMPORTING
-      items             TYPE data optional
-      growing           type abap_bool DEFAULT abap_false
+      items             TYPE data OPTIONAL
+      growing           TYPE abap_bool DEFAULT abap_false
       growing_threshold TYPE string DEFAULT ''
-      header_text       type string optional
-      PREFERRED PARAMETER items
+      header_text       TYPE string OPTIONAL
+        PREFERRED PARAMETER items
     RETURNING
       VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -206,14 +142,13 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
-    "last created
   METHODS get
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS get_child
-    importing
-        index type i DEFAULT 1
+    IMPORTING
+      index         TYPE i DEFAULT 1
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -275,7 +210,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       height        TYPE string DEFAULT '100%'
       width         TYPE string DEFAULT '100%'
-      PREFERRED PARAMETER height
+        PREFERRED PARAMETER height
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -394,7 +329,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       class         TYPE string DEFAULT 'sapUiSmallMarginTop'
       default_span  TYPE string DEFAULT 'L6 M6 S12'
-      PREFERRED PARAMETER default_span
+        PREFERRED PARAMETER default_span
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -414,7 +349,7 @@ INTERFACE z2ui5_if_ui5_library
       customtexton  TYPE string OPTIONAL
       customtextoff TYPE string OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
-      type          TYPE string DEFAULT cs-switch-type-default
+      type          TYPE string DEFAULT 'Default'
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -432,7 +367,7 @@ INTERFACE z2ui5_if_ui5_library
       percent_value TYPE string
       display_value TYPE string OPTIONAL
       show_value    TYPE abap_bool DEFAULT abap_false
-      state         TYPE string DEFAULT cs-progress_indicator-state-none
+      state         TYPE string DEFAULT 'None'
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -447,15 +382,15 @@ INTERFACE z2ui5_if_ui5_library
       text          TYPE clike OPTIONAL
       selected      TYPE clike OPTIONAL
       enabled       TYPE abap_bool OPTIONAL
-      PREFERRED PARAMETER selected
+        PREFERRED PARAMETER selected
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
-  METHODS  header_toolbar
+  METHODS header_toolbar
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
-  METHODS  text
+  METHODS text
     IMPORTING
       text          TYPE string OPTIONAL
     RETURNING

@@ -23,7 +23,8 @@ CLASS zz2ui5_cl_app_demo_05 DEFINITION PUBLIC.
         text_area         TYPE string,
       END OF screen.
 
-
+PROTECTED SECTION.
+PRIVATE SECTION.
 ENDCLASS.
 
 CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
@@ -44,9 +45,7 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
            date              = '07.12.22'
            date_time         = '23.12.2022, 19:27:20'
            time_start        = '05:24:00'
-           time_end          = '17:23:57'
-         ).
-
+           time_end          = '17:23:57'  ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -63,11 +62,9 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
           WHEN 'BUTTON_MSG_BOX'.
             client->display_message_box(
               text = 'this is a message box with a custom text'
-              type = client->cs-message_box-type-success
-            ).
+              type = 'success' ).
 
         ENDCASE.
-
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
@@ -75,13 +72,13 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'App Title - Header' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        page->message_strip( text = 'this is a success message strip' type = client->cs-message_strip-type-success ).
+        page->message_strip( text = 'this is a success message strip' type = 'Success' ).
 
         DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
         grid->simple_form('More Controls' )->content( 'f'
              )->label( 'ProgressIndicator'
-             )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = client->cs-progress_indicator-state-success
+             )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = 'Success'
 
              )->label( 'StepInput'
              )->step_input( value = screen-step_val_01 step = '2'  min = '0' max = '20'
