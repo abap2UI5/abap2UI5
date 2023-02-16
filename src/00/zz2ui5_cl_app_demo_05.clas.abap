@@ -73,15 +73,13 @@ CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(lo_page) = view->page( title = 'App Title - Header'
-        nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+        DATA(page) = view->page( title = 'App Title - Header' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        DATA(lo_grid) = lo_page->grid( default_span  = 'L6 M12 S12' )->content( 'l' ).
+        DATA(grid) = page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get( ).
 
+        page->message_strip( text = 'this is a success message strip' type = client->cs-message_strip-type-success ).
 
-            lo_page->message_strip( text = 'this is a success message strip' type = client->cs-message_strip-type-success ).
-
-        lo_grid->simple_form('More Controls' )->content( 'f'
+        grid->simple_form('More Controls' )->get( )->content( 'f' )->get(
              )->label( 'ProgressIndicator'
              )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = client->cs-progress_indicator-state-success
 

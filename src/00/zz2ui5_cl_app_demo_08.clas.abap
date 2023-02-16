@@ -49,38 +49,36 @@ CLASS zz2ui5_cl_app_demo_08 IMPLEMENTATION.
             check_strip_active = xsdbool(  check_strip_active = abap_false ).
             strip_type = client->cs-message_strip-type-success.
 
-            when 'BUTTON_ERROR'.
-            data(dummy) = 1 / 0.
+          WHEN 'BUTTON_ERROR'.
+            DATA(dummy) = 1 / 0.
 
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         "Definition of View Main
-        data(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - Messages'
-            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+        DATA(view) = client->factory_view( 'MAIN' ).
+        DATA(page) = view->page( title = 'ABAP2UI5 - Messages' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         IF  check_strip_active = abap_true.
           page->message_strip( text = 'This is a Message Strip' type = strip_type ).
         ENDIF.
 
-        page->grid( default_span  = 'L6 M12 S12' )->content( 'l'
-         )->simple_form('Message Box' )->content( 'f'
-           )->button( text = 'information' press = view->_event(  'BUTTON_MESSAGE_BOX'  )
+        page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
+         )->simple_form('Message Box' )->get( )->content( 'f' )->get(
+           )->button( text = 'information'  press = view->_event(  'BUTTON_MESSAGE_BOX'  )
            )->button( text = 'success'      press = view->_event( 'BUTTON_MESSAGE_BOX_SUCCESS'  )
            )->button( text = 'error'        press = view->_event( 'BUTTON_MESSAGE_BOX_ERROR' )
            )->button( text = 'warning'      press = view->_event('BUTTON_MESSAGE_BOX_WARNING' ) ).
 
-        page->grid( default_span  = 'L6 M12 S12' )->content( 'l'
-          )->simple_form('Message Strip' )->content( 'f'
-            )->button( text = 'success'   press = view->_event( 'BUTTON_MESSAGE_STRIP_SUCCESS' )
-            )->button( text = 'error'  press = view->_event( 'BUTTON_MESSAGE_STRIP_ERROR' )
-            )->button( text = 'information'   press = view->_event( 'BUTTON_MESSAGE_STRIP_INFO' )
-            ).
+        page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
+          )->simple_form('Message Strip' )->get( )->content( 'f' )->get(
+            )->button( text = 'success'       press = view->_event( 'BUTTON_MESSAGE_STRIP_SUCCESS' )
+            )->button( text = 'error'         press = view->_event( 'BUTTON_MESSAGE_STRIP_ERROR' )
+            )->button( text = 'information'   press = view->_event( 'BUTTON_MESSAGE_STRIP_INFO' ) ).
 
-        page->grid( default_span  = 'L6 M12 S12' )->content( 'l'
-              )->simple_form('Display' )->content( 'f'
+        page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
+              )->simple_form('Display' )->get( )->content( 'f' )->get(
                 )->button( text = 'Message Toast'   press = view->_event( 'BUTTON_MESSAGE_TOAST' )
                 )->button( text = 'Error'           press = view->_event( 'BUTTON_ERROR' ) ).
 

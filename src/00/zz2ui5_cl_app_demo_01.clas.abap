@@ -35,24 +35,22 @@ CLASS zz2ui5_cl_app_demo_01 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(context) = client->get( ).
         DATA(view) = client->factory_view( ).
 
-        view->page(
-           title = 'Page title'
-           nav_button_tap = COND #( WHEN context-id_prev_app IS NOT INITIAL THEN view->_event_display_id( context-id_prev_app ) )
-           )->simple_form('Form Title' )->get(
-                )->content( 'f' )->get(
-                    )->title( 'Input'
-                    )->label( 'quantity'
-                    "two way binding, data is written into a a view model and send back to the server
-                    )->input( view->_bind( quantity )
-                    "one way binding, data is written into a view model but not send back to the server
-                    )->input( view->_bind_one_way( unit )
-                    )->label( 'product'
-                     "value is written directly into the xml, no data transfer
-                    )->input( value = product editable = abap_False
-                    )->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
+        DATA(content) = view->page( title = 'Page title'  nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+           )->simple_form('Form Title'
+                )->content( 'f' )->title( 'Input' ).
+
+        "two way binding, data is written into a a view model and send back to the server
+        content->label( 'quantity' ).
+        content->input( view->_bind( quantity ) ).
+
+        "value is written directly into the xml, no data transfer
+        content->label( 'product' ).
+        content->input( value = product editable = abap_False ).
+
+        "event is mapped on the backend function on_event with event 'BUTTON_POST'
+        content->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
 
     ENDCASE.
 

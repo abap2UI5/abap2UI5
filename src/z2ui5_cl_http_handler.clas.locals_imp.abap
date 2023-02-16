@@ -15,8 +15,15 @@
           END OF ty_attri.
 
         TYPES:
+          BEGIN OF ty_name_value,
+            name  TYPE string,
+            value TYPE string,
+          END OF ty_name_value.
+
+        TYPES:
           BEGIN OF ty,
             BEGIN OF s,
+
               BEGIN OF msg,
                 id TYPE string,
                 ty TYPE string,
@@ -35,7 +42,8 @@
               END OF msg_result,
             END OF s,
             BEGIN OF t,
-              attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
+              attri      TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
+              name_value TYPE STANDARD TABLE OF ty_name_value WITH EMPTY KEY,
             END OF t,
             BEGIN OF o,
               me TYPE REF TO z2ui5_lcl_utility,
@@ -88,10 +96,6 @@
           RETURNING
             VALUE(r_result) TYPE string.
 
-        CLASS-METHODS get_timestamp_utcl
-          RETURNING
-            VALUE(r_result) TYPE utcl.
-
         CLASS-METHODS get_user_tech
           RETURNING
             VALUE(r_result) TYPE string.
@@ -122,7 +126,7 @@
           EXPORTING
             data          TYPE data
           RETURNING
-            VALUE(result) TYPE REF TO data. "if_serializable_object.
+            VALUE(result) TYPE REF TO data.
 
         CLASS-METHODS trans_xml_2_any_multi
           IMPORTING
@@ -252,15 +256,16 @@
             ir_tab_from TYPE REF TO data
             ir_tab_to   TYPE REF TO data.
 
+      PROTECTED SECTION.
+
+        CLASS-DATA mv_counter TYPE int4.
+
         CLASS-METHODS _get_t_attri
           IMPORTING
             io_app          TYPE REF TO object
             ir_attri        TYPE string "REF TO abap_attrdescr
           RETURNING
             VALUE(r_result) TYPE abap_attrdescr_tab.
-
-      PROTECTED SECTION.
-        CLASS-DATA mv_counter TYPE int4.
 
       PRIVATE SECTION.
 
@@ -275,9 +280,9 @@
 
         NEW cl_abap_parallel( )->run_inst(
            EXPORTING
-              p_in_tab = it_parallel "value #( ( lo_update )  )
+              p_in_tab = it_parallel
            IMPORTING
-              p_out_tab = result ). "DATA(l_out_tab) ).
+              p_out_tab = result ).
 
       ENDMETHOD.
 
@@ -406,7 +411,7 @@
         name = to_upper( name ).
         SPLIT url AT `?` INTO DATA(dummy) url.
         SPLIT url AT `&` INTO TABLE DATA(lt_href).
-        DATA(lt_url_params) = VALUE if_web_http_request=>name_value_pairs(  ).
+        DATA(lt_url_params) = VALUE ty-t-name_value( ). "if_web_http_request=>name_value_pairs(  ).
         LOOP AT lt_href REFERENCE INTO DATA(lr_href).
           SPLIT lr_href->* AT `=` INTO TABLE DATA(lt_param).
           INSERT VALUE #( name = to_upper( lt_param[ 1 ] ) value = to_upper( lt_param[ 2 ] ) ) INTO TABLE lt_url_params.
@@ -446,13 +451,6 @@
       ENDMETHOD.
 
 
-      METHOD get_timestamp_utcl.
-
-*    r_result = lcl_help=>get_utc_current(  ).
-
-      ENDMETHOD.
-
-
       METHOD get_user_name.
 
 *   r_result =  lcl_help=>get_user_name(  ).
@@ -483,7 +481,7 @@
       METHOD get_xml_by_data.
 
         CALL TRANSFORMATION id
-        SOURCE data = is_any "i_result->ms_db-data
+        SOURCE data = is_any
         RESULT XML r_result.
 
       ENDMETHOD.
@@ -525,9 +523,8 @@
         LOOP AT rt_attri REFERENCE INTO lr_attri.
 
           INSERT VALUE #(
-           name = lr_attri->name
-           kind = lr_attri->type_kind
-          ) INTO TABLE r_result.
+             name = lr_attri->name
+             kind = lr_attri->type_kind ) INTO TABLE r_result.
 
         ENDLOOP.
 
@@ -616,14 +613,14 @@
 
 
       METHOD trans_object_2_xml.
+
         FIELD-SYMBOLS <object> TYPE any.
         ASSIGN object->* TO <object>.
 
         CALL TRANSFORMATION id
-           SOURCE data = <object> "i_result->ms_db-data
+           SOURCE data = <object>
            RESULT XML result
             OPTIONS data_refs = 'heap-or-create'.
-        "i_result->mi_object.
 
       ENDMETHOD.
 
@@ -719,6 +716,7 @@
       ENDMETHOD.
 
       METHOD _get_t_attri.
+
         FIELD-SYMBOLS <attribute> TYPE any.
 
         DATA(lv_name) = |IO_APP->{ to_upper( ir_attri ) }|.
@@ -746,6 +744,7 @@
 
                 INSERT LINES OF lt_tmp INTO TABLE r_result.
               ENDLOOP.
+
             CATCH cx_root.
               INSERT VALUE #(
                 name = lv_element
@@ -760,18 +759,24 @@
     CLASS _ DEFINITION INHERITING FROM z2ui5_lcl_utility.
     ENDCLASS.
 
-    CLASS z2ui5_lcl_ui5_library DEFINITION
-      CREATE PUBLIC .
+    CLASS z2ui5_lcl_ui5_library DEFINITION CREATE PUBLIC .
 
       PUBLIC SECTION.
 
         INTERFACES: z2ui5_if_ui5_library.
 
         CONSTANTS cs LIKE z2ui5_if_ui5_library=>cs VALUE z2ui5_if_ui5_library=>cs.
+
+        TYPES:
+          BEGIN OF ty_S_view,
+            xml     TYPE string,
+            o_model TYPE REF TO z2ui5_cl_hlp_tree_json,
+            t_attri TYPE _=>ty-t-attri,
+          END OF ty_S_view.
+
         DATA m_name TYPE string.
         DATA m_ns   TYPE string.
         DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty-s_property WITH EMPTY KEY.
-
         DATA mt_attri  TYPE _=>ty-t-attri.
         DATA mo_app TYPE REF TO object.
 
@@ -787,6 +792,12 @@
           RETURNING
             VALUE(result) TYPE REF TO z2ui5_lcl_ui5_library.
 
+        METHODS get_view
+          IMPORTING
+            check_popup_active TYPE abap_bool DEFAULT abap_false
+          RETURNING
+            VALUE(result)      TYPE ty_S_view.
+
         METHODS _generic
           IMPORTING
             name          TYPE string
@@ -794,19 +805,6 @@
             t_prop        LIKE mt_prop OPTIONAL
           RETURNING
             VALUE(result) TYPE REF TO z2ui5_lcl_ui5_library.
-
-        TYPES:
-          BEGIN OF ty_S_view,
-            xml     TYPE string,
-            o_model TYPE REF TO z2ui5_cl_hlp_tree_json,
-            t_attri TYPE _=>ty-t-attri,
-          END OF ty_S_view.
-
-        METHODS get_view
-          IMPORTING
-            check_popup_active TYPE abap_bool DEFAULT abap_false
-          RETURNING
-            VALUE(result)      TYPE ty_S_view.
 
         METHODS _get_name_by_ref
           IMPORTING
@@ -838,7 +836,6 @@
       PRIVATE SECTION.
 
     ENDCLASS.
-
 
 
     CLASS z2ui5_lcl_ui5_library IMPLEMENTATION.
@@ -978,7 +975,7 @@
            name   = 'Button'
            t_prop = VALUE #(
               ( n = 'press'   v = press )
-                  ( n = 'text'    v = text )
+              ( n = 'text'    v = text )
               ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
               ( n = 'icon'    v = icon )
               ( COND #( WHEN type IS NOT INITIAL THEN VALUE #( n = 'type'  v = type ) ) )
@@ -1018,11 +1015,12 @@
         LOOP AT mt_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ''.
 
           IF lr_attri->bind_type = cs-bind_type-one_time.
+
             m_view_model->add_attribute(
                   n = lr_attri->name
                   v = lr_attri->data_stringify
-                  apos_active = abap_false
-               ).
+                  apos_active = abap_false  ).
+
             CONTINUE.
           ENDIF.
 
@@ -1090,9 +1088,7 @@
 
       METHOD z2ui5_if_ui5_library~simple_form.
 
-        result = me.
-
-        _generic(
+        result = _generic(
           name   = 'SimpleForm'
           ns     = 'f'
           t_prop = VALUE #(
@@ -1118,12 +1114,7 @@
 
       METHOD z2ui5_if_ui5_library~content.
 
-        result = me.
-
-        _generic(
-            ns    = ns
-           name   = 'content'
-          ).
+        result = _generic( ns = ns name = 'content' ).
 
       ENDMETHOD.
 
@@ -1165,8 +1156,8 @@
         result = me.
 
         _generic(
-          name  = 'ZZHTML'
-          t_prop = VALUE #( ( n = 'VALUE' v = lv_html ) )
+             name  = 'ZZHTML'
+             t_prop = VALUE #( ( n = 'VALUE' v = lv_html ) )
         ).
 
       ENDMETHOD.
@@ -1186,12 +1177,14 @@
 
       METHOD z2ui5_if_ui5_library~combobox.
 
-        result = _generic(
-          name  = 'ComboBox'
-          t_prop = VALUE #(
-           (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
-           (  n = 'selectedKey'   v = selectedkey )
-           (  n = 'items'         v = items )
+        result = me.
+
+        _generic(
+           name  = 'ComboBox'
+           t_prop = VALUE #(
+              (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
+              (  n = 'selectedKey'   v = selectedkey )
+              (  n = 'items'         v = items )
           ) ).
 
       ENDMETHOD.
@@ -1251,7 +1244,9 @@
 
       METHOD z2ui5_if_ui5_library~segmented_button.
 
-        result = _generic(
+        result = me.
+
+        _generic(
            name  = 'SegmentedButton'
            t_prop = VALUE #(
             ( n = 'selectedKey' v = selected_key )
@@ -1360,9 +1355,7 @@
 
       METHOD z2ui5_if_ui5_library~table.
 
-        result = me.
-
-        _generic(
+        result = _generic(
             name  = 'Table'
             t_prop = VALUE #(
                ( n = 'items'            v = items )
@@ -1375,8 +1368,7 @@
 
       METHOD z2ui5_if_ui5_library~cells.
 
-        result = me.
-        _generic(  'cells' ).
+        result = _generic(  'cells' ).
 
       ENDMETHOD.
 
@@ -1394,8 +1386,7 @@
 
       METHOD z2ui5_if_ui5_library~columns.
 
-        result = me.
-        _generic(  'columns' ).
+        result = _generic(  'columns' ).
 
       ENDMETHOD.
 
@@ -1411,15 +1402,13 @@
 
       METHOD z2ui5_if_ui5_library~items.
 
-        result = me.
-        _generic(  'items' ).
+        result = _generic(  'items' ).
 
       ENDMETHOD.
 
       METHOD z2ui5_if_ui5_library~grid.
 
-        result = me.
-        _generic(
+        result = _generic(
             name = 'Grid'
             ns   = 'l'
             t_prop = VALUE #(
@@ -1437,10 +1426,8 @@
 
       METHOD z2ui5_if_ui5_library~scroll_container.
 
-        result = me.
-        _generic(
+        result = _generic(
             name = 'ScrollContainer'
-            "  ns   = 'l'
             t_prop = VALUE #(
               ( n = 'height' v = height )
               ( n = 'width'       v = width )
@@ -1452,15 +1439,13 @@
 
       METHOD z2ui5_if_ui5_library~header_content.
 
-        result = me.
-        _generic( 'headerContent' ).
+        result = _generic( 'headerContent' ).
 
       ENDMETHOD.
 
       METHOD z2ui5_if_ui5_library~sub_header.
 
-        result = me.
-        _generic( 'subHeader' ).
+        result = _generic( 'subHeader' ).
 
       ENDMETHOD.
 
@@ -1496,9 +1481,7 @@
 
       METHOD z2ui5_if_ui5_library~list.
 
-        result = me.
-
-        _generic(
+        result = _generic(
             name = 'List'
             t_prop = VALUE #(
               ( n = 'headerText' v = header_text )
@@ -1510,6 +1493,7 @@
       METHOD z2ui5_if_ui5_library~standard_list_item.
 
         result = me.
+
         _generic(
             name = 'StandardListItem'
             t_prop = VALUE #(
@@ -1524,24 +1508,21 @@
 
       METHOD z2ui5_if_ui5_library~message_page.
 
-        result = me.
-
-        _generic(
-          name = 'MessagePage'
-         t_prop = VALUE #(
-           ( n = 'showHeader' v = _=>get_abap_2_json( show_header ) )
-           ( n = 'description' v = description )
-           ( n = 'icon' v = icon )
-           ( n = 'text' v = text )
-           ( n = 'enableFormattedText' v =  _=>get_abap_2_json( enable_formatted_text ) )
+        result = _generic(
+            name   = 'MessagePage'
+            t_prop = VALUE #(
+               ( n = 'showHeader' v = _=>get_abap_2_json( show_header ) )
+               ( n = 'description' v = description )
+               ( n = 'icon' v = icon )
+               ( n = 'text' v = text )
+               ( n = 'enableFormattedText' v =  _=>get_abap_2_json( enable_formatted_text ) )
           ) ).
 
       ENDMETHOD.
 
       METHOD z2ui5_if_ui5_library~buttons.
 
-        result = me.
-        _generic( 'buttons' ).
+        result = _generic( 'buttons' ).
 
       ENDMETHOD.
 
@@ -1577,17 +1558,14 @@
 
       METHOD z2ui5_if_ui5_library~_event.
 
-        "  CASE type.
-
-        "   WHEN cs-event_type-server_function.
         result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
-
-        "  ENDCASE.
 
       ENDMETHOD.
 
       METHOD z2ui5_if_ui5_library~_event_display_id.
+
         result = `onEvent( { 'ID' : '` && val && `', 'METHOD' : 'DISPLAY_ID' } )`.
+
       ENDMETHOD.
 
       METHOD z2ui5_if_ui5_library~list_item.
@@ -1605,9 +1583,7 @@
 
       METHOD z2ui5_if_ui5_library~suggestion_items.
 
-        result = me.
-
-        _generic( 'suggestionItems' ).
+        result = _generic( 'suggestionItems' ).
 
       ENDMETHOD.
 
@@ -1616,11 +1592,11 @@
         result = me.
 
         _generic(
-        name = 'Item'
-        ns = 'core'
-        t_prop = VALUE #(
-           ( n = 'key'  v = key  )
-           ( n = 'text' v =  text )
+           name = 'Item'
+           ns = 'core'
+           t_prop = VALUE #(
+               ( n = 'key'  v = key  )
+               ( n = 'text' v =  text )
        ) ).
 
       ENDMETHOD.
@@ -1648,6 +1624,7 @@
       METHOD z2ui5_if_ui5_library~get.
 
         result = m_root->m_last.
+
       ENDMETHOD.
 
     ENDCLASS.
@@ -1835,36 +1812,35 @@
         DATA(view) = client->factory_view( 'HOME' ).
 
         DATA(page) = view->page( 'Welcome to ABAP2UI5! - Development of UI5 Apps in pure ABAP' ).
-        page->header_content( )->get(
+        page->header_content(
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
-            )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5'
-        ).
+            )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
-        DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->get( )->content( 'l' )->get( ).
-        DATA(form) = grid->simple_form( 'Quick Start' )->get( )->content( 'f' )->get( ).
+        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        DATA(form) = grid->simple_form( 'Quick Start' )->content( 'f' ).
 
         form->label( 'Step 1'
-          )->text( 'Create a new global class in the abap system'
-          )->label( 'Step 2'
-          )->text( 'Add the interface Z2UI5_IF_APP'
-          )->label( 'Step 3'
-          )->text( 'Implement the view and the behaviour in the controller method'
-          )->label( 'Step 4'
+           )->text( 'Create a new global class in the abap system'
+           )->label( 'Step 2'
+           )->text( 'Add the interface Z2UI5_IF_APP'
+           )->label( 'Step 3'
+           )->text( 'Implement the view and the behaviour in the controller method'
+           )->label( 'Step 4'
         ).
 
         IF ms_home-class_editable = abap_true.
           form->input(
-                         value          = form->_bind( ms_home-classname )
-                         placeholder    = 'fill in the classname and press check'
-                         value_state      = ms_home-class_value_state
-                         value_state_text = ms_home-class_value_state_text
-                         editable         = ms_home-class_editable
-                    ).
+               value            = form->_bind( ms_home-classname )
+               placeholder      = 'fill in the classname and press check'
+               value_state      = ms_home-class_value_state
+               value_state_text = ms_home-class_value_state_text
+               editable         = ms_home-class_editable
+           ).
         ELSE.
           form->text( ms_home-classname ).
         ENDIF.
 
-        form->button( text = ms_home-btn_text press = view->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon   "type = view->cs-button-type-
+        form->button( text = ms_home-btn_text press = view->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
            )->label( 'Step 5' ).
 
         IF ms_home-class_editable = abap_false.
@@ -1875,20 +1851,20 @@
         ENDIF.
 
 
-        grid = page->grid( default_span  = 'L4 M6 S12' )->get( )->content( 'l' )->get( ).
+        grid = page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
 
-        grid->simple_form(  'HowTo - General' )->get( )->content( 'f' )->get(
+        grid->simple_form(  'HowTo - General' )->content( 'f'
             )->button( text = 'Client-Server Communication (Data Binding)' press = view->_event( '0101' )
             )->button( text = 'Controller (Events, Navigation)' press = view->_event( '0102' )
             )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' ) ).
 
-        grid->simple_form(  'HowTo - Selection-Screen' )->get( )->content( 'f' )->get(
+        grid->simple_form(  'HowTo - Selection-Screen' )->content( 'f'
             )->button( text = 'Basic' press = view->_event( '0201' )
             )->button( text = 'More Controls' press = view->_event( '0202' ) ).
 
 
-        grid->simple_form(  'HowTo - List and Tables' )->get( )->content( 'f' )->get(
+        grid->simple_form(  'HowTo - List and Tables' )->content( 'f'
             )->button( text = 'List' press = view->_event( '0301' )
             )->button( text = 'Table' press = view->_event( '0302' )
             )->button( text = 'Table with Toolbar and Container' press = view->_event( '0303' )
@@ -1900,7 +1876,7 @@
           view->message_page(
               text = ms_error-classname
               description = ms_error-x_error->get_text( )
-            )->buttons( )->get_child(
+            )->buttons(
             )->button(
                   text  = 'HOME'
                   press = view->_event( 'BUTTON_HOME' )
@@ -1939,7 +1915,6 @@
             name          TYPE string,
             check_binding TYPE abap_bool,
             o_parser      TYPE REF TO z2ui5_lcl_ui5_library,
-*            t_controls    TYPE STANDARD TABLE OF _=>ty-s-control WITH EMPTY KEY,
           END OF s_screen.
 
         DATA:

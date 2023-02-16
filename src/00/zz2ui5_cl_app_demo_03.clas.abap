@@ -29,12 +29,12 @@ CLASS zz2ui5_cl_app_demo_03 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
 
         mt_tab = VALUE #(
-          ( title = 'Hans'  info = 'completed' value = 'red' descr = 'this is a description' icon = 'sap-icon://account' checkbox = abap_true )
-          ( title = 'Hans'  info = 'completed' value = 'red' descr = 'this is a description' icon = 'sap-icon://account' checkbox = abap_true )
-          ( title = 'Hans'  info = 'completed' value = 'red' descr = 'this is a description' icon = 'sap-icon://account' checkbox = abap_true )
-          ( title = 'Hans'  info = 'completed' value = 'red' descr = 'this is a description' icon = 'sap-icon://account' checkbox = abap_true )
-          ( title = 'Hans'  info = 'completed' value = 'red' descr = 'this is a description' icon = 'sap-icon://account' checkbox = abap_true )
-          ( title = 'Hans'  info = 'completed' value = 'red' descr = 'this is a description' icon = 'sap-icon://account' checkbox = abap_true )
+          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Hans'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
         ).
 
 
@@ -47,12 +47,11 @@ CLASS zz2ui5_cl_app_demo_03 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page(
             title = 'Example - ZZ2UI5_CL_APP_DEMO_03'
-            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                                        THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+            nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         page->list(
            header_text = 'List Ouput'
-           items       = mt_tab
+           items       = mt_tab )->get(
         )->standard_list_item(
            title       = '{TITLE}'
            description = '{DESCR}'

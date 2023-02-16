@@ -396,6 +396,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       class         TYPE string DEFAULT 'sapUiSmallMarginTop'
       default_span  TYPE string DEFAULT 'L6 M6 S12'
+      PREFERRED PARAMETER default_span
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

@@ -18,25 +18,25 @@ CLASS zz2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         check_switch_02 TYPE abap_bool VALUE abap_false,
       END OF screen.
 
-   types:
-       BEGIN OF s_suggestion_items,
-          value TYPE string,
-          descr TYPE string,
-        END OF s_suggestion_items.
+    TYPES:
+      BEGIN OF s_suggestion_items,
+        value TYPE string,
+        descr TYPE string,
+      END OF s_suggestion_items.
 
-    types:
-       BEGIN OF s_combobox,
-          key  TYPE string,
-          text TYPE string,
-        END OF s_combobox,
-        BEGIN OF s_seg_btn,
-          key  TYPE string,
-          icon TYPE string,
-          text TYPE string,
-        END OF s_seg_btn.
-   types ty_t_combo type STANDARD TABLE OF s_combobox WITH empty key.
-   types ty_t_segment type STANDARD TABLE OF s_seg_btn with empty key.
-    data  mt_suggestion type STANDARD TABLE OF s_suggestion_items with empty key.
+    TYPES:
+      BEGIN OF s_combobox,
+        key  TYPE string,
+        text TYPE string,
+      END OF s_combobox,
+      BEGIN OF s_seg_btn,
+        key  TYPE string,
+        icon TYPE string,
+        text TYPE string,
+      END OF s_seg_btn.
+    TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
+    TYPES ty_t_segment TYPE STANDARD TABLE OF s_seg_btn WITH EMPTY KEY.
+    DATA  mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH EMPTY KEY.
 
   PROTECTED SECTION.
 
@@ -77,21 +77,21 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02'
-        nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+    DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-    DATA(grid) = page->grid( default_span  = 'L6 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get( ).
 
-    grid->simple_form('Input' )->content( 'f'
+    grid->simple_form('Input' )->get( )->content( 'f' )->get(
         )->label( 'Input with value help'
         )->input(
             value       = view->_bind( screen-colour )
             placeholder = 'fill in your favorite colour'
-            suggestion_items = view->_bind_one_way( mt_suggestion )
-           )->suggestion_items( )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
+            suggestion_items = view->_bind_one_way( mt_suggestion ) )->get(
+            )->suggestion_items( )->get(
+                )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
 
 
-    grid->simple_form('Time Inputs' )->content( 'f'
+    grid->simple_form('Time Inputs' )->get( )->content( 'f' )->get(
         )->label( 'Date'
         )->date_picker( view->_bind( screen-date )
 
@@ -103,54 +103,55 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
         )->time_picker( view->_bind( screen-time_end ) ).
 
 
-    page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-       )->simple_form('Input with select options' )->content( 'f'
+    page->grid( default_span  = 'L12 M12 S12' )->get( )->content( 'l' )->get(
+       )->simple_form('Input with select options' )->get( )->content( 'f' )->get(
 
-       )->label( 'Checkbox'
-       )->checkbox(
-            selected = view->_bind( screen-check_is_active )
-            text     = 'this is a checkbox'
+    )->label( 'Checkbox'
+    )->checkbox(
+         selected = view->_bind( screen-check_is_active )
+         text     = 'this is a checkbox'
 
-       )->label( 'Combobox'
-       )->combobox(
-            selectedkey = view->_bind( screen-combo_key )
-            items      = view->_bind_one_way( VALUE ty_t_combo(
-                ( key = 'BLUE'  text = 'green' )
-                ( key = 'GREEN' text = 'blue'  )
-                ( key = 'BLACK' text = 'red'   )
-                ( key = 'GRAY'  text = 'gray'  ) )
-            ) )->item( key = '{KEY}' text = '{TEXT}' )->get_parent(
+    )->label( 'Combobox'
+    )->combobox(
+         selectedkey = view->_bind( screen-combo_key )
+         items      = view->_bind_one_way( VALUE ty_t_combo(
+             ( key = 'BLUE'  text = 'green' )
+             ( key = 'GREEN' text = 'blue'  )
+             ( key = 'BLACK' text = 'red'   )
+             ( key = 'GRAY'  text = 'gray'  ) )
+         ) )->get( )->item( key = '{KEY}' text = '{TEXT}'
+        )->get_parent( )->get_parent(
 
-       )->label( 'Segmented Button'
-       )->segmented_button( view->_bind( screen-segment_key )
-             )->items(
-                )->segmented_button_item( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue'
-                )->segmented_button_item( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green'
-                )->segmented_button_item( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black'
+    )->label( 'Segmented Button'
+    )->segmented_button( view->_bind( screen-segment_key ) )->get(
+        )->items( )->get(
+             )->segmented_button_item( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue'
+             )->segmented_button_item( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green'
+             )->segmented_button_item( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black'
        )->get_parent( )->get_parent(
 
-       )->label( 'Switch disabled'
-       )->switch( enabled = abap_false    customtexton = 'A' customtextoff = 'B'
-       )->label( 'Switch accept/reject'
-       )->switch( state = screen-check_switch_01 customtexton = 'on'  customtextoff = 'off' type = client->cs-switch-type-accept_reject
-       )->label( 'Switch normal'
-       )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
+    )->label( 'Switch disabled'
+    )->switch( enabled = abap_false    customtexton = 'A' customtextoff = 'B'
+    )->label( 'Switch accept/reject'
+    )->switch( state = screen-check_switch_01 customtexton = 'on'  customtextoff = 'off' type = client->cs-switch-type-accept_reject
+    )->label( 'Switch normal'
+    )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
 
 
-       page->footer( )->overflow_toolbar(
-            )->link(
-                text    = 'Go to Source Code'
-                href    = client->get( )-s_request-url_source_code
-            )->toolbar_spacer(
-            )->button(
-                text  = 'Clear'
-                press = view->_event( 'BUTTON_CLEAR' )
-                type  = view->cs-button-type-reject
-                icon  = 'sap-icon://delete'
-            )->button(
-                text  = 'Send to Server'
-                press = view->_event( 'BUTTON_SEND' )
-                type  = view->cs-button-type-success ).
+    page->footer( )->get( )->overflow_toolbar( )->get(
+         )->link(
+             text    = 'Go to Source Code'
+             href    = client->get( )-s_request-url_source_code
+         )->toolbar_spacer(
+         )->button(
+             text  = 'Clear'
+             press = view->_event( 'BUTTON_CLEAR' )
+             type  = view->cs-button-type-reject
+             icon  = 'sap-icon://delete'
+         )->button(
+             text  = 'Send to Server'
+             press = view->_event( 'BUTTON_SEND' )
+             type  = view->cs-button-type-success ).
 
   ENDMETHOD.
 
@@ -161,8 +162,8 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
 
       WHEN 'BUTTON_SEND'.
         client->display_message_box( 'Values were send to the server successfully').
-      when 'BUTTON_CLEAR'.
-      clear screen.
+      WHEN 'BUTTON_CLEAR'.
+        CLEAR screen.
         client->display_message_toast( 'View initialized' ).
 
     ENDCASE.
@@ -183,13 +184,13 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
           time_end          = '17:23:57'
      ).
 
-     mt_suggestion = VALUE #(
-                ( descr = 'Green'  value = 'GREEN' )
-                ( descr = 'Blue'   value = 'BLUE' )
-                ( descr = 'Black'  value = 'BLACK' )
-                ( descr = 'Grey'   value = 'GREY' )
-                ( descr = 'Blue2'  value = 'BLUE2' )
-                ( descr = 'Blue3'  value = 'BLUE3' ) ).
+    mt_suggestion = VALUE #(
+               ( descr = 'Green'  value = 'GREEN' )
+               ( descr = 'Blue'   value = 'BLUE' )
+               ( descr = 'Black'  value = 'BLACK' )
+               ( descr = 'Grey'   value = 'GREY' )
+               ( descr = 'Blue2'  value = 'BLUE2' )
+               ( descr = 'Blue3'  value = 'BLUE3' ) ).
 
   ENDMETHOD.
 

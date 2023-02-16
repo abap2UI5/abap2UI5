@@ -40,21 +40,20 @@ CLASS zz2ui5_cl_app_demo_07 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page(
             title = 'Example - ZZ2UI5_CL_APP_DEMO_07'
-            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                                            THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+            nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        DATA(lo_tab) = page->table(
+        DATA(tab) = page->table(
             header_text = 'Table with 100 entries'
-            items  = view->_bind_one_way( mt_tab ) ).
+            items  = view->_bind_one_way( mt_tab ) )->get( ).
 
-        lo_tab->columns(
+        tab->columns( )->get(
             )->column( text = 'Name'
             )->column( text = 'Color'
             )->column( text = 'Info'
             )->column( text = 'Description'
             )->column( text = 'Checkbox' ).
 
-        lo_tab->items( )->column_list_item( )->cells(
+        tab->items( )->get( )->column_list_item( )->get( )->cells( )->get(
            )->text( '{TITLE}'
            )->text( '{VALUE}'
            )->text( '{INFO}'
