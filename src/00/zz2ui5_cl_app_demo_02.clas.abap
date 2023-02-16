@@ -79,9 +79,9 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
     DATA(view) = client->factory_view( ).
     DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-    DATA(grid) = page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get( ).
+    DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
-    grid->simple_form('Input' )->get( )->content( 'f' )->get(
+    grid->simple_form('Input' )->content( 'f'
         )->label( 'Input with value help'
         )->input(
             value       = view->_bind( screen-colour )
@@ -91,7 +91,7 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
                 )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
 
 
-    grid->simple_form('Time Inputs' )->get( )->content( 'f' )->get(
+    grid->simple_form('Time Inputs' )->content( 'f'
         )->label( 'Date'
         )->date_picker( view->_bind( screen-date )
 
@@ -103,8 +103,8 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
         )->time_picker( view->_bind( screen-time_end ) ).
 
 
-    page->grid( default_span  = 'L12 M12 S12' )->get( )->content( 'l' )->get(
-       )->simple_form('Input with select options' )->get( )->content( 'f' )->get(
+    page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
+       )->simple_form('Input with select options' )->content( 'f'
 
     )->label( 'Checkbox'
     )->checkbox(
@@ -138,7 +138,7 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
     )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
 
 
-    page->footer( )->get( )->overflow_toolbar( )->get(
+    page->footer( )->overflow_toolbar(
          )->link(
              text    = 'Go to Source Code'
              href    = client->get( )-s_request-url_source_code

@@ -64,21 +64,21 @@ CLASS zz2ui5_cl_app_demo_08 IMPLEMENTATION.
           page->message_strip( text = 'This is a Message Strip' type = strip_type ).
         ENDIF.
 
-        page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
-         )->simple_form('Message Box' )->get( )->content( 'f' )->get(
+        page->grid( 'L6 M12 S12' )->content( 'l'
+         )->simple_form('Message Box' )->content( 'f'
            )->button( text = 'information'  press = view->_event(  'BUTTON_MESSAGE_BOX'  )
            )->button( text = 'success'      press = view->_event( 'BUTTON_MESSAGE_BOX_SUCCESS'  )
            )->button( text = 'error'        press = view->_event( 'BUTTON_MESSAGE_BOX_ERROR' )
            )->button( text = 'warning'      press = view->_event('BUTTON_MESSAGE_BOX_WARNING' ) ).
 
-        page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
-          )->simple_form('Message Strip' )->get( )->content( 'f' )->get(
+        page->grid( 'L6 M12 S12' )->content( 'l'
+          )->simple_form('Message Strip' )->content( 'f'
             )->button( text = 'success'       press = view->_event( 'BUTTON_MESSAGE_STRIP_SUCCESS' )
             )->button( text = 'error'         press = view->_event( 'BUTTON_MESSAGE_STRIP_ERROR' )
             )->button( text = 'information'   press = view->_event( 'BUTTON_MESSAGE_STRIP_INFO' ) ).
 
-        page->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
-              )->simple_form('Display' )->get( )->content( 'f' )->get(
+        page->grid( 'L6 M12 S12' )->content( 'l'
+              )->simple_form('Display' )->content( 'f'
                 )->button( text = 'Message Toast'   press = view->_event( 'BUTTON_MESSAGE_TOAST' )
                 )->button( text = 'Error'           press = view->_event( 'BUTTON_ERROR' ) ).
 

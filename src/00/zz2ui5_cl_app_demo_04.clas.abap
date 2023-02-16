@@ -75,11 +75,10 @@ CLASS zz2ui5_cl_app_demo_04 IMPLEMENTATION.
         "Definition of View Main
         DATA(view) = client->factory_view( 'MAIN' ).
 
-        view->page( title = 'ABAP2UI5 - Controller'
-            nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
 
-           )->grid( default_span  = 'L6 M12 S12' )->get( )->content( 'l' )->get(
-           )->simple_form('Controller' )->get( )->content( 'f' )->get(
+           )->grid( 'L6 M12 S12' )->content( 'l'
+           )->simple_form('Controller' )->content( 'f'
 
              )->label( 'Roundtrip'
              )->button( text = 'Client/Server Interaction' press = view->_event( 'BUTTON_ROUNDTRIP' )
@@ -96,12 +95,11 @@ CLASS zz2ui5_cl_app_demo_04 IMPLEMENTATION.
 
         "Definition of View Second
         view = client->factory_view( 'SECOND' ).
-        view->page( title = 'ABAP2UI5 - Controller'
-            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
+        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
                 THEN view->_event_display_id( client->get( )-id_prev_app ) )
 
-          )->grid( default_span  = 'L12 M12 S12' )->get( )->content( 'l' )->get(
-          )->simple_form('View Second' )->get( )->content( 'f' )->get(
+          )->grid( default_span  = 'L12 M12 S12' )->content( 'l'
+          )->simple_form('View Second' )->content( 'f'
 
              )->label( 'Change View'
              )->button( text = 'Display View MAIN' press = view->_event( 'BUTTON_CHANGE_VIEW' ) ).

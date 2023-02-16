@@ -60,21 +60,27 @@ CLASS zz2ui5_cl_app_demo_11 IMPLEMENTATION.
                     press = view->_event( 'BUTTON_EDIT' )
           ).
 
+        "set header
         tab->columns(
-            )->column( 'Name'
-            )->column( 'Color'
-            )->column( 'Info'
-            )->column( 'Description'
-            )->column( 'Checkbox' ).
+            )->column(
+                 )->text( 'Title' )->get_parent(
+            )->column(
+                  )->text( 'Color' )->get_parent(
+            )->column(
+                 )->text( 'Info' )->get_parent(
+            )->column(
+                 )->text( 'Description' )->get_parent(
+            )->column(
+              )->text( 'Checkbox' ).
 
 
         IF check_editable_active = abap_true.
 
           tab->items( )->column_list_item( )->cells(
-              )->input( '{TITLE}' )->get_parent(
-              )->input( '{VALUE}' )->get_parent(
-              )->input( '{INFO}'  )->get_parent(
-              )->input( '{DESCR}' )->get_parent(
+              )->input( '{TITLE}'
+              )->input( '{VALUE}'
+              )->input( '{INFO}'
+              )->input( '{DESCR}'
               )->checkbox( selected = '{CHECKBOX}' enabled = abap_true ).
 
         ELSE.

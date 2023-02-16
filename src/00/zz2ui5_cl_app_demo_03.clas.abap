@@ -45,13 +45,11 @@ CLASS zz2ui5_cl_app_demo_03 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page(
-            title = 'Example - ZZ2UI5_CL_APP_DEMO_03'
-            nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_03' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         page->list(
            header_text = 'List Ouput'
-           items       = mt_tab )->get(
+           items       = mt_tab
         )->standard_list_item(
            title       = '{TITLE}'
            description = '{DESCR}'

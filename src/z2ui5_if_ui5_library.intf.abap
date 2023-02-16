@@ -223,9 +223,7 @@ INTERFACE z2ui5_if_ui5_library
 
   METHODS column
     IMPORTING
-      text          TYPE string optional
       width         TYPE string OPTIONAL
-     PREFERRED PARAMETER text
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

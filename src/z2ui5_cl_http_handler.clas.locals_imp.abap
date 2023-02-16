@@ -1374,13 +1374,12 @@
 
       METHOD z2ui5_if_ui5_library~column.
 
-        result = me.
-        DATA(lo_col) = _generic(
+        result = _generic(
             name  = 'Column'
               t_prop = VALUE #( ( n = 'width' v = width ) )
          ).
 
-        lo_col->z2ui5_if_ui5_library~text( text ).
+       " lo_col->z2ui5_if_ui5_library~text( text ).
 
       ENDMETHOD.
 
@@ -1392,8 +1391,7 @@
 
       METHOD z2ui5_if_ui5_library~column_list_item.
 
-        result = me.
-        _generic(
+        result = _generic(
             name = 'ColumnListItem'
             t_prop = VALUE #( ( n = 'vAlign' v = valign ) )
              ).

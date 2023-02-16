@@ -30,16 +30,14 @@ CLASS zz2ui5_cl_app_demo_10 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page(
-             title          = 'header title'
-             nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'header title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        page->header_content( )->get(
+        page->header_content(
           )->button( text = 'button'
           )->text( 'text'
           )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
-        page->sub_header( )->get( )->overflow_toolbar( )->get(
+        page->sub_header( )->overflow_toolbar(
             )->button( text = 'button'
             )->text( 'text'
             )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
@@ -51,32 +49,32 @@ CLASS zz2ui5_cl_app_demo_10 IMPLEMENTATION.
             )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
 
-        DATA(grid) = page->grid( default_span  = 'L4 M4 S4'  )->get( )->content( 'l' )->get( ).
-        grid->simple_form(  'Grid width 33%' )->get( )->content( 'f' )->get(
+        DATA(grid) = page->grid( 'L4 M4 S4'  )->content( 'l' ).
+        grid->simple_form(  'Grid width 33%' )->content( 'f'
            )->button( text = 'button'
            )->text( 'text'
            )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
-        grid->simple_form(  'Grid width 33%' )->get( )->content( 'f' )->get(
+        grid->simple_form(  'Grid width 33%' )->content( 'f'
           )->button( text = 'button'
           )->text( 'text'
           )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
-        grid->simple_form(  'Grid width 33%' )->get( )->content( 'f' )->get(
-          )->button( text = 'button'
-          )->text( 'text'
-          )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
-
-
-        grid = page->grid( default_span  = 'L12 M12 S12' )->get( )->content( 'l' )->get( ).
-
-        grid->simple_form(  'grid width 100%' )->get( )->content( 'f' )->get(
+        grid->simple_form(  'Grid width 33%' )->content( 'f'
           )->button( text = 'button'
           )->text( 'text'
           )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
 
-        page->footer( )->get( )->overflow_toolbar( )->get(
+        grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+
+        grid->simple_form( 'grid width 100%' )->content( 'f'
+          )->button( text = 'button'
+          )->text( 'text'
+          )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+
+
+        page->footer( )->overflow_toolbar(
            )->button( text = 'button'
            )->text( 'text'
            )->link( text = 'link' href = 'https://twitter.com/OblomovDev'

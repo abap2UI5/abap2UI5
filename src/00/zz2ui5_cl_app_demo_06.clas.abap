@@ -14,6 +14,7 @@ CLASS zz2ui5_cl_app_demo_06 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
+
     DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
 ENDCLASS.
@@ -48,26 +49,31 @@ CLASS zz2ui5_cl_app_demo_06 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page(
             title = 'Example - ZZ2UI5_CL_APP_DEMO_06'
-            nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                                            THEN view->_event_display_id( client->get( )-id_prev_app ) ) ).
+            nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        DATA(lo_tab) = page->scroll_container( '70%' )->table( view->_bind_one_way( mt_tab ) ).
+        DATA(tab) = page->scroll_container( '70%' )->table( view->_bind_one_way( mt_tab ) ).
 
-        lo_tab->header_toolbar( )->overflow_toolbar(
+        tab->header_toolbar( )->overflow_toolbar(
             )->title( 'title of the table'
              )->toolbar_spacer(
              )->button( text = 'Sort' press = view->_event( 'BUTTON_SORT' )
              )->button( text = 'Post' press = view->_event( 'BUTTON_POST' )
           ).
 
-        lo_tab->columns(
-            )->column( 'Name'
-            )->column( 'Color'
-            )->column( 'Info'
-            )->column( 'Description'
-            )->column( 'Checkbox' ).
+            "set header
+        tab->columns(
+            )->column(
+                 )->text( 'Title' )->get_parent(
+            )->column(
+                  )->text( 'Color' )->get_parent(
+            )->column(
+                 )->text( 'Info' )->get_parent(
+            )->column(
+                 )->text( 'Description' )->get_parent(
+            )->column(
+              )->text( 'Checkbox' ).
 
-        lo_tab->items( )->column_list_item( )->cells(
+        tab->items( )->column_list_item( )->cells(
            )->text( '{TITLE}'
            )->text( '{VALUE}'
            )->text( '{INFO}'
