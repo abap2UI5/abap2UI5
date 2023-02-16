@@ -1821,7 +1821,7 @@
            )->label( 'Step 2'
            )->text( 'Add the interface Z2UI5_IF_APP'
            )->label( 'Step 3'
-           )->text( 'Implement the view and the behaviour in the controller method'
+           )->text( 'Implement the view and the behaviour in the method controller'
            )->label( 'Step 4'
         ).
 
