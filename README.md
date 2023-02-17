@@ -1,6 +1,6 @@
 # ABAP2UI5
 
-Development of UI5 Apps in pure ABAP. Follow on [twitter](https://twitter.com/OblomovDev) for all news and upcoming improvements.
+Development of UI5 Apps in pure ABAP. Follow also on [twitter](https://twitter.com/OblomovDev) for all news and upcoming improvements.
 
 #### Project features:
 * easy to use – 100% abap source code based, implement just one interface for a standalone ui5 app
