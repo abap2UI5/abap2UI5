@@ -761,9 +761,9 @@
 
          TYPES:
            BEGIN OF ty_S_name,
-             n                    TYPE string,
-             v                    TYPE string,
-             apostrophe_deactived TYPE abap_bool,
+             n          TYPE string,
+             v          TYPE string,
+             apos_deact TYPE abap_bool,
            END OF ty_S_name.
 
          TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name.
@@ -889,7 +889,6 @@
 
        METHOD add_attribute.
 
-
          DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json(  ).
          lo_attri->mo_root = mo_root.
          lo_attri->mv_name = n.
@@ -907,19 +906,17 @@
 
          r_result = me.
 
-
        ENDMETHOD.
 
 
        METHOD add_attributes_name_value_tab.
 
-
          LOOP AT it_name_value INTO DATA(ls_value).
 
            add_attribute(
-                n              = ls_value-n
-                v             = ls_value-v
-                apos_active = xsdbool( ls_value-apostrophe_deactived = abap_false )
+                n           = ls_value-n
+                v           = ls_value-v
+                apos_active = xsdbool( ls_value-apos_deact = abap_false )
             ).
 
          ENDLOOP.
@@ -931,7 +928,6 @@
 
        METHOD add_attribute_instance.
 
-
          val->mo_root = mo_root.
          val->mo_parent = me.
 
@@ -939,53 +935,42 @@
 
          r_result = val.
 
-
        ENDMETHOD.
 
 
        METHOD add_attribute_list.
 
-
          r_result = add_attribute_object( name = name ).
          r_result->mv_check_list = abap_true.
-
 
        ENDMETHOD.
 
 
        METHOD add_attribute_object.
 
-
          DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json(  ).
          lo_attri->mv_name = name.
-         " lo_attri->mv_apost_active = apostrophe_active.
 
-         mt_values = VALUE #( BASE mt_values  ( lo_attri ) ).
-         " INSERT lo_attri INTO TABLE mt_values.
+         mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
 
          lo_attri->mo_root = mo_root.
          lo_attri->mo_parent = me.
 
          r_result = lo_attri.
 
-
        ENDMETHOD.
 
 
        METHOD add_list_list.
 
-
          r_result = add_attribute_list( name =  CONV string( lines( mt_values ) ) ).
-
 
        ENDMETHOD.
 
 
        METHOD add_list_object.
 
-
          r_result = add_attribute_object( name =  CONV string( lines( mt_values ) ) ).
-
 
        ENDMETHOD.
 
@@ -997,10 +982,8 @@
          lo_attri->mv_value = v.
 
          lo_attri->mv_apost_active = abap_true.
-         "apostrophe_active.
 
          mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
-         " INSERT lo_attri INTO TABLE mt_values.
 
          lo_attri->mo_root = mo_root.
          lo_attri->mo_parent = me.
@@ -1031,13 +1014,6 @@
              CHANGING
               data            = r_result->mr_actual
              ).
-
-*      _=>trans_json_2_data(
-*        exporting
-*            iv_json   = iv_json
-*         importing
-*            ev_result = r_result->mr_actual
-*      ).
 
        ENDMETHOD.
 
@@ -1093,7 +1069,6 @@
 
 
        METHOD get_data.
-         "r_result = mr_actual->*.
 
          FIELD-SYMBOLS <attribute> TYPE any.
          ASSIGN mr_actual->* TO <attribute>.
@@ -1104,18 +1079,14 @@
 
        METHOD get_name.
 
-
          r_result = mv_name.
-
 
        ENDMETHOD.
 
 
        METHOD get_parent.
 
-
          r_result = COND #( WHEN mo_parent IS NOT BOUND THEN me ELSE mo_parent ).
-
 
        ENDMETHOD.
 
@@ -1139,16 +1110,10 @@
        METHOD hlp_replace_apostr.
 
 
-
        ENDMETHOD.
 
 
        METHOD hlp_shrink.
-
-
-         "leerzeichen weg
-         "zeilenumbrüche
-
 
 
        ENDMETHOD.
@@ -1188,9 +1153,8 @@
 
          r_result &&= COND #( WHEN mv_check_list = abaP_true THEN `]` ELSE `}` ).
 
-
-
        ENDMETHOD.
+
      ENDCLASS.
 
      CLASS z2ui5_lcl_if_ui5_library DEFINITION.
