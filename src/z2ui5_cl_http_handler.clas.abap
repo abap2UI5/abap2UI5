@@ -16,7 +16,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-DATA:
       BEGIN OF client,
-        o_body   TYPE REF TO z2ui5_cl_hlp_tree_json,
+        body     type string,
         t_header TYPE tihttpnvp,
         t_param  TYPE tihttpnvp,
       END OF client.
@@ -159,7 +159,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD main_roundtrip.
     TRY.
 
-        DATA(lo_runtime) = NEW z2ui5_lcl_runtime(  ).
+        z2ui5_lcl_system_runtime=>client-t_header = client-t_header.
+        z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
+        z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
+
+        DATA(lo_runtime) = NEW z2ui5_lcl_system_runtime(  ).
         result = lo_runtime->execute_init(  ).
         IF result IS NOT INITIAL.
           RETURN.
@@ -170,11 +174,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           TRY.
 
               ROLLBACK WORK.
-              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_client( lo_runtime ) ).
+              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
               ROLLBACK WORK.
 
             CATCH cx_root INTO DATA(cx).
-              data(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
+              DATA(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
               lo_runtime->db_save( ).
               lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
               lo_runtime = lo_runtime_error.
@@ -194,7 +198,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           TRY.
               ROLLBACK WORK.
               lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_client( lo_runtime ) ).
+              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
               ROLLBACK WORK.
 
             CATCH cx_root INTO cx.

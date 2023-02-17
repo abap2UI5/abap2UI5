@@ -110,6 +110,7 @@ CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
     )->checkbox(
          selected = view->_bind( screen-check_is_active )
          text     = 'this is a checkbox'
+         enabled  = abap_true
 
     )->label( 'Combobox'
     )->combobox(
