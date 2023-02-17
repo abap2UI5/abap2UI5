@@ -26,13 +26,11 @@ Install with [abapGit](https://abapgit.org), create a new http service and call 
     z2ui5_cl_http_handler=>client = VALUE #(
         t_header = request->get_header_fields( )
         t_param  = request->get_form_fields( )
-        o_body   = z2ui5_cl_hlp_tree_json=>factory( request->get_text( ) )
-     ).
+        o_body   = z2ui5_cl_hlp_tree_json=>factory( request->get_text( ) ) ).
 
     DATA(lv_resp) = SWITCH #( request->get_method( )
         WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
-        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( )
-      ).
+        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
 
     response->set_status( 200 ).
     response->set_text( lv_resp ).
@@ -53,13 +51,11 @@ method if_http_extension~handle_request.
     z2ui5_cl_http_handler=>client = VALUE #(
         t_header = lt_header
         t_param  = lt_param
-        o_body   = z2ui5_cl_hlp_tree_json=>factory( server->request->get_cdata( ) )
-     ).
+        o_body   = z2ui5_cl_hlp_tree_json=>factory( server->request->get_cdata( ) ) ).
 
     data(lv_resp) = switch #( server->request->get_method( )
         when 'GET'  then z2ui5_cl_http_handler=>main_index_html( )
-        when 'POST' then z2ui5_cl_http_handler=>main_roundtrip( )
-      ).
+        when 'POST' then z2ui5_cl_http_handler=>main_roundtrip( ) ).
 
     server->response->set_cdata( lv_resp ).
     server->response->set_status( code = 200 reason = 'success' ).
