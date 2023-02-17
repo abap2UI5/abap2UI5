@@ -2151,34 +2151,34 @@
                  ENDTRY.
 
                WHEN '0101'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_01( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
 
                WHEN '0102'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_04( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
 
                WHEN '0103'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_08( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_08( ) ).
 
                WHEN '0104'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_10( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_10( ) ).
 
                WHEN '0201'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_02( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
 
                WHEN '0202'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_05( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_05( ) ).
 
                WHEN '0301'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_03( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_03( ) ).
 
                WHEN '0302'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_07( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_07( ) ).
 
                WHEN '0303'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_06( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_06( ) ).
 
                WHEN '0304'.
-                 client->nav_to_app( NEW zz2ui5_cl_app_demo_11( ) ).
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_11( ) ).
 
              ENDCASE.
 

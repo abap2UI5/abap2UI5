@@ -1,4 +1,4 @@
-CLASS zz2ui5_cl_app_demo_02 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -34,9 +34,10 @@ CLASS zz2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         icon TYPE string,
         text TYPE string,
       END OF s_seg_btn.
+
     TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
-    TYPES ty_t_segment TYPE STANDARD TABLE OF s_seg_btn WITH EMPTY KEY.
-    DATA  mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH EMPTY KEY.
+
+    DATA mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH EMPTY KEY.
 
   PROTECTED SECTION.
 
@@ -53,7 +54,7 @@ CLASS zz2ui5_cl_app_demo_02 DEFINITION PUBLIC.
 
 ENDCLASS.
 
-CLASS zz2ui5_cl_app_demo_02 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.

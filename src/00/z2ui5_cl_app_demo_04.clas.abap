@@ -1,4 +1,4 @@
-CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_04 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -8,7 +8,7 @@ CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
         i_app           TYPE REF TO z2ui5_if_app
         i_name_attri    TYPE string
       RETURNING
-        VALUE(r_result) TYPE REF TO zz2ui5_cl_app_demo_04.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_app_demo_04.
 
 
     DATA mo_app TYPE REF TO z2ui5_if_app.
@@ -17,7 +17,7 @@ CLASS zz2ui5_cl_app_demo_04 DEFINITION PUBLIC.
 
 ENDCLASS.
 
-CLASS zz2ui5_cl_app_demo_04 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
 
   METHOD factory.
 
@@ -51,10 +51,10 @@ CLASS zz2ui5_cl_app_demo_04 IMPLEMENTATION.
             client->display_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
 
           WHEN 'BUTTON_RESTART'.
-            client->nav_to_app( NEW zz2ui5_cl_app_demo_04( ) ).
+            client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
 
           WHEN 'BUTTON_CHANGE_APP'.
-            client->nav_to_app( NEW zz2ui5_cl_app_demo_01( ) ).
+            client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
 
           WHEN 'BUTTON_CHANGE_VIEW'.
 

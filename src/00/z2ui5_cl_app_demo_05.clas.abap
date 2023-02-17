@@ -1,4 +1,4 @@
-CLASS zz2ui5_cl_app_demo_05 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_05 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -27,7 +27,7 @@ PROTECTED SECTION.
 PRIVATE SECTION.
 ENDCLASS.
 
-CLASS zz2ui5_cl_app_demo_05 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_05 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
