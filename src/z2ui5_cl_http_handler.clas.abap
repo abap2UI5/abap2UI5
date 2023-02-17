@@ -17,8 +17,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-DATA:
       BEGIN OF client,
         o_body   TYPE REF TO z2ui5_cl_hlp_tree_json,
-        t_header TYPE if_web_http_request=>name_value_pairs,
-        t_param  TYPE if_web_http_request=>name_value_pairs,
+        t_header TYPE tihttpnvp,
+        t_param  TYPE tihttpnvp,
       END OF client.
 
     CLASS-METHODS main_index_html
