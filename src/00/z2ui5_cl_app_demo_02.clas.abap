@@ -28,12 +28,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
       BEGIN OF s_combobox,
         key  TYPE string,
         text TYPE string,
-      END OF s_combobox,
-      BEGIN OF s_seg_btn,
-        key  TYPE string,
-        icon TYPE string,
-        text TYPE string,
-      END OF s_seg_btn.
+      END OF s_combobox.
 
     TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
 

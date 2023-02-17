@@ -30,6 +30,7 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
 
         check_editable_active = abap_false.
+
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10 NEXT ret =
             VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true )
             ) ).

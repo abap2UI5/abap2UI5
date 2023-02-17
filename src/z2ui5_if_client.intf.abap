@@ -9,7 +9,6 @@ INTERFACE z2ui5_if_client
       check_previous_app TYPE abap_bool,
       event              TYPE string,
       lifecycle_method   TYPE string,
-    "  event_object       TYPE REF TO z2ui5_cl_hlp_tree_json,
       id                 TYPE string,
       id_prev            TYPE string,
       id_prev_app        TYPE string,
