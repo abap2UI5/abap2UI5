@@ -1,7 +1,6 @@
      CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
 
-     CLASS z2ui5_lcl_utility DEFINITION CREATE PUBLIC
-     INHERITING FROM cx_no_check.
+     CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
        PUBLIC SECTION.
          INTERFACES if_t100_dyn_msg.
@@ -88,8 +87,9 @@
 
          CLASS-METHODS get_uuid
            RETURNING
-                     VALUE(r_result) TYPE string
-           RAISING   cx_uuid_error.
+             VALUE(r_result) TYPE string
+           RAISING
+             cx_uuid_error.
 
          CLASS-METHODS get_uuid_session
            RETURNING
@@ -298,7 +298,7 @@
 
        ENDMETHOD.
 
-       METHOD constructor ##ADT_SUPPRESS_GENERATION.
+       METHOD constructor.
 
          super->constructor( previous = previous ).
 
@@ -525,30 +525,6 @@
        ENDMETHOD.
 
 
-       METHOD if_message~get_text.
-
-         IF ms_error-x_root IS NOT INITIAL.
-           result = ms_error-x_root->get_text(  ).
-           result = COND #( WHEN result IS INITIAL THEN 'Es ist ein unbekannter Fehler aufgetreten' ELSE result ).
-           RETURN.
-         ENDIF.
-
-         IF ms_error-s_msg-message IS NOT INITIAL.
-           result = ms_error-s_msg-message.
-           result = COND #( WHEN result IS INITIAL THEN 'Es ist ein unbekannter Fehler aufgetreten' ELSE result ).
-           RETURN.
-         ENDIF.
-
-         IF if_t100_message~t100key-msgid IS NOT INITIAL.
-
-           MESSAGE ID if_t100_message~t100key-msgid TYPE `I` NUMBER if_t100_message~t100key-msgno
-              INTO ms_error-text.
-           result = COND #( WHEN result IS INITIAL THEN 'Es ist ein unbekannter Fehler aufgetreten' ELSE result ).
-           RETURN.
-         ENDIF.
-
-       ENDMETHOD.
-
        METHOD trans_any_2_json.
 
          result = /ui2/cl_json=>serialize( any ).
@@ -748,14 +724,35 @@
          ENDLOOP.
        ENDMETHOD.
 
+       METHOD get_text.
+
+         IF ms_error-x_root IS NOT INITIAL.
+           result = ms_error-x_root->get_text(  ).
+           result = COND #( WHEN result IS INITIAL THEN 'unknown error'  ELSE result ).
+           RETURN.
+         ENDIF.
+
+         IF ms_error-s_msg-message IS NOT INITIAL.
+           result = ms_error-s_msg-message.
+           result = COND #( WHEN result IS INITIAL THEN 'unknown error'  ELSE result ).
+           RETURN.
+         ENDIF.
+
+         IF if_t100_message~t100key-msgid IS NOT INITIAL.
+           MESSAGE ID if_t100_message~t100key-msgid TYPE `I` NUMBER if_t100_message~t100key-msgno
+              INTO ms_error-text.
+           result = COND #( WHEN result IS INITIAL THEN 'unknown error' ELSE result ).
+           RETURN.
+         ENDIF.
+
+       ENDMETHOD.
+
      ENDCLASS.
 
      CLASS _ DEFINITION INHERITING FROM z2ui5_lcl_utility.
      ENDCLASS.
 
-     CLASS z2ui5_lcl_utility_tree_json DEFINITION
-       FINAL
-       CREATE PUBLIC .
+     CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
        PUBLIC SECTION.
 
@@ -876,7 +873,6 @@
          DATA mv_value  TYPE string.
          DATA mt_values TYPE ty_t_me.
          DATA mv_check_list TYPE abap_bool.
-         DATA mo_value TYPE ty_o_me.
          DATA mr_actual TYPE REF TO data.
          DATA mv_apost_active TYPE abap_bool.
 
@@ -1197,7 +1193,7 @@
        ENDMETHOD.
      ENDCLASS.
 
-     CLASS z2ui5_lcl_if_ui5_library DEFINITION CREATE PUBLIC .
+     CLASS z2ui5_lcl_if_ui5_library DEFINITION.
 
        PUBLIC SECTION.
 
@@ -2068,7 +2064,7 @@
 
        PUBLIC SECTION.
 
-         INTERFACES  z2ui5_if_app.
+         INTERFACES z2ui5_if_app.
 
          DATA:
            BEGIN OF ms_error,
@@ -2097,15 +2093,6 @@
              kind            TYPE string OPTIONAL
            RETURNING
              VALUE(r_result) TYPE REF TO  z2ui5_lcl_system_app.
-
-         TYPES: BEGIN OF ty_row,
-                  id          TYPE string,
-                  name        TYPE string,
-                  value       TYPE string,
-                  test1       TYPE string,
-                  test2       TYPE string,
-                  check_valid TYPE abap_bool,
-                END OF ty_row.
 
        PROTECTED SECTION.
 
