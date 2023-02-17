@@ -32,8 +32,7 @@ Install with [abapGit](https://abapgit.org), create a new http service and call 
         WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
         WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
 
-    response->set_status( 200 ).
-    response->set_text( lv_resp ).
+    response->set_status( 200 )->set_text( lv_resp ).
 
   ENDMETHOD.
 ```
