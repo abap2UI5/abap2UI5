@@ -44,17 +44,11 @@ Install with [abapGit](https://abapgit.org), create a new http service and call 
 ```abap
 method if_http_extension~handle_request.
 
- data lt_header type tihttpnvp.
-    server->request->get_header_fields(
-      changing
-        fields = lt_header
-    ).
+    data lt_header type tihttpnvp.
+    server->request->get_header_fields( changing fields = lt_header ).
 
     data lt_param type tihttpnvp.
-    server->request->get_form_fields(
-      changing
-        fields             = lt_param
-    ).
+    server->request->get_form_fields( changing fields = lt_param ).
 
     z2ui5_cl_http_handler=>client = VALUE #(
         t_header = lt_header
@@ -68,10 +62,7 @@ method if_http_extension~handle_request.
       ).
 
     server->response->set_cdata( lv_resp ).
-    server->response->set_status(
-        code          = 200
-        reason        = 'success'
-    ).
+    server->response->set_status( code = 200 reason = 'success' ).
 
   endmethod.
 ```
