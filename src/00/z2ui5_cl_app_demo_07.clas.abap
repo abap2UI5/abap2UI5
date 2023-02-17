@@ -13,7 +13,7 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
 PROTECTED SECTION.
 PRIVATE SECTION.
@@ -27,7 +27,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        mt_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT
+        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT
              ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
 
 
@@ -40,7 +40,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        DATA(tab) = page->table( header_text = 'Table with 100 entries' items = view->_bind_one_way( mt_tab ) ).
+        DATA(tab) = page->table( header_text = 'Table with 100 entries' items = view->_bind_one_way( t_tab ) ).
 
         "set header
         tab->columns(

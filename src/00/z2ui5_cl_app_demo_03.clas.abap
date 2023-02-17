@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_demo_03 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
 PROTECTED SECTION.
 PRIVATE SECTION.
@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        mt_tab = VALUE #(
+        t_tab = VALUE #(
           ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
           ( title = 'Hans'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
           ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
 
         page->list(
            header_text = 'List Ouput'
-           items       = mt_tab
+           items       = t_tab
         )->standard_list_item(
            title       = '{TITLE}'
            description = '{DESCR}'

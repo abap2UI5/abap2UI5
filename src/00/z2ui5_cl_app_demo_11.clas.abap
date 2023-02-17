@@ -21,7 +21,10 @@ CLASS z2ui5_cl_app_demo_11 DEFINITION PUBLIC.
   PRIVATE SECTION.
 ENDCLASS.
 
-CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
+
+
+CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
+
 
   METHOD z2ui5_if_app~controller.
 
@@ -32,8 +35,7 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
         check_editable_active = abap_false.
 
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10 NEXT ret =
-            VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true )
-            ) ).
+            VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true )  ) ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -94,5 +96,4 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
-
 ENDCLASS.
