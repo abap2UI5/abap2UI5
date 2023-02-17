@@ -23,7 +23,6 @@
         TYPES:
           BEGIN OF ty,
             BEGIN OF s,
-
               BEGIN OF msg,
                 id TYPE string,
                 ty TYPE string,
@@ -272,9 +271,7 @@
     ENDCLASS.
 
 
-
     CLASS z2ui5_lcl_utility IMPLEMENTATION.
-
 
       METHOD action_parallel.
 
@@ -285,7 +282,6 @@
               p_out_tab = result ).
 
       ENDMETHOD.
-
 
       METHOD assign.
 
@@ -301,7 +297,6 @@
         <result> = <attribute>.
 
       ENDMETHOD.
-
 
       METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
@@ -359,7 +354,6 @@
         "ENDTRY.
 
       ENDMETHOD.
-
 
       METHOD conv_XSTRING_2_string.
 
