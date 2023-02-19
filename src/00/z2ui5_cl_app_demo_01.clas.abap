@@ -10,7 +10,9 @@ CLASS z2ui5_cl_app_demo_01 DEFINITION PUBLIC.
 
 ENDCLASS.
 
-CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
+
+
+CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -37,23 +39,17 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(content) = view->page( title = 'Page title'  nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        view->page( title = 'Page title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
            )->simple_form('Form Title'
-                )->content( 'f' )->title( 'Input' ).
-
-        "two way binding, data is written into a a view model and send back to the server
-        content->label( 'quantity' ).
-        content->input( view->_bind( quantity ) ).
-
-        "value is written directly into the xml, no data transfer
-        content->label( 'product' ).
-        content->input( value = product editable = abap_False ).
-
-        "event is mapped on the backend function on_event with event 'BUTTON_POST'
-        content->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
+             )->content( 'f'
+                )->title( 'Input'
+                )->label( 'quantity'
+                )->input( view->_bind( quantity )
+                )->label( 'product'
+                )->input( value = product editable = abap_False
+                )->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
 
     ENDCASE.
 
   ENDMETHOD.
-
 ENDCLASS.
