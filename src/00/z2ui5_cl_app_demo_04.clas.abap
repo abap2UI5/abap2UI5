@@ -14,7 +14,8 @@ CLASS z2ui5_cl_app_demo_04 DEFINITION PUBLIC.
     DATA mo_app TYPE REF TO z2ui5_if_app.
     DATA mv_name_attri TYPE string.
 
-
+PROTECTED SECTION.
+PRIVATE SECTION.
 ENDCLASS.
 
 

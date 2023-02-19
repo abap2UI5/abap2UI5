@@ -53,7 +53,7 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
 
         page->list(
            header_text = 'List Ouput'
-           items       = t_tab
+           items       = view->_bind_one_way( t_tab )
         )->standard_list_item(
            title       = '{TITLE}'
            description = '{DESCR}'

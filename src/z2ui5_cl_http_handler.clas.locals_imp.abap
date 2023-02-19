@@ -1880,8 +1880,8 @@
              name = 'List'
              t_prop = VALUE #(
                ( n = 'headerText' v = header_text )
-               ( n = 'items' v = '{' && _get_name_by_ref( items ) && '}' )
-               ) ).
+               ( n = 'items' v = items ) "'{' && _get_name_by_ref( items ) && '}' )
+           ) ).
 
        ENDMETHOD.
 
@@ -2407,9 +2407,9 @@
            uname = _=>get_user_tech( )
            timestampl = _=>get_timestampl( )
            response = response
-           data  = _=>trans_object_2_xml( REF #( ms_db ) )
-           ) ).
-         COMMIT WORK.
+           data  = _=>trans_object_2_xml( REF #( ms_db ) ) ) ).
+
+         COMMIT WORK AND WAIT.
 
        ENDMETHOD.
 

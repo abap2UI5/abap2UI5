@@ -287,7 +287,7 @@ INTERFACE z2ui5_if_ui5_library
   METHODS list
     IMPORTING
       header_text   TYPE string OPTIONAL
-      items         TYPE data
+      items         TYPE string optional
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
