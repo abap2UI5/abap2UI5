@@ -30,7 +30,7 @@ CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT
+        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10000 NEXT
              ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
 
 

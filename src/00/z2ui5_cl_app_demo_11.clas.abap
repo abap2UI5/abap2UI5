@@ -34,7 +34,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
 
         check_editable_active = abap_false.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10 NEXT ret =
+        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 11 NEXT ret =
             VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true )  ) ).
 
 
