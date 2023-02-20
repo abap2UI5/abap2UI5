@@ -6,7 +6,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 * easy to use – 100% source code based, implement just one interface for a full working UI5 application
 * pure ABAP - no additional Javascript or annotations needed
 * cloud ready - works with all available ABAP stacks and language versions (ABAP Standard, ABAP Cloud)
-* lightweight - based on a single http handler (no odata, no segw, no bsp, no rap, no cds needed)
+* lightweight - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
 * easy installation - abapgit project, no additional app deployment needed
 
 #### Blog posts:
