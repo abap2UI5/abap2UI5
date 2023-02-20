@@ -3,11 +3,11 @@
 Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://twitter.com/OblomovDev) and keep up to date!
 
 #### Project features:
-* easy to use – 100% source code based, implement just one interface for a standalone UI5 app
+* easy to use – 100% source code based, implement just one interface for a full working UI5 application
 * pure ABAP - no additional Javascript or annotations needed
+* cloud ready - works with all available ABAP stacks and language versions (ABAP Standard, ABAP Cloud)
 * lightweight - based on a single http handler (no odata, no segw, no bsp, no rap, no cds)
 * easy installation - abapgit project, no additional app deployment needed
-* cloud ready - works with all available ABAP stacks and language versions (ABAP Standard, ABAP Cloud)
 
 #### Blog posts:
 [ABAP2UI5 - Development of UI5 Selection-Screens in pure ABAP](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
