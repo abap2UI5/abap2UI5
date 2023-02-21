@@ -51,7 +51,7 @@ method if_http_extension~handle_request.
     server->request->get_header_fields( CHANGING fields = lt_header ).
 
     DATA lt_param TYPE tihttpnvp.
-    server->request->get_form_fields( CHANGINGg fields = lt_param ).
+    server->request->get_form_fields( CHANGING fields = lt_param ).
 
     z2ui5_cl_http_handler=>client = VALUE #(
         t_header = lt_header
