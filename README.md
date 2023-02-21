@@ -11,10 +11,10 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 
 #### Blog posts:
 ABAP2UI5 - Development of UI5 Apps in pure ABAP (1/3) [(Blog SCN - 20.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/) <br>
-ABAP2UI5 - Output of Lists and Tables, Toolbar and Editable [(Blog SCN - 21.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
-ABAP2UI5 - Full working UI5 demo applications [(Blog SCN - 28.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
+ABAP2UI5 - Output of Lists and Tables, Toolbar and Editable (2/3)[(Blog SCN - 21.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
+ABAP2UI5 - Full working UI5 demo applications (3/3)[(Blog SCN - 28.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
 Former version and functionality:<br>
-Development of UI5 Selection-Screens in pure ABAP [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
+ABAP2UI5 - Development of UI5 Selection-Screens in pure ABAP [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 <br>
 
 #### Demo Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap):
