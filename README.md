@@ -32,7 +32,7 @@ Install with [abapGit](https://abapgit.org), create a new http service and call 
     z2ui5_cl_http_handler=>client = VALUE #(
         t_header = request->get_header_fields( )
         t_param  = request->get_form_fields( )
-        o_body   = z2ui5_cl_hlp_tree_json=>factory( request->get_text( ) ) ).
+        body     = request->get_text( ) ).
 
     DATA(lv_resp) = SWITCH #( request->get_method( )
         WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
@@ -56,7 +56,7 @@ method if_http_extension~handle_request.
     z2ui5_cl_http_handler=>client = VALUE #(
         t_header = lt_header
         t_param  = lt_param
-        o_body   = z2ui5_cl_hlp_tree_json=>factory( server->request->get_cdata( ) ) ).
+        body     = server->request->get_cdata( ) ).
 
     data(lv_resp) = SWITCH #( server->request->get_method( )
         WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
