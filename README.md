@@ -50,7 +50,7 @@ Install with [abapGit](https://abapgit.org), create a new http service and call 
 
 #### ABAP Standard:
 ```abap
-method if_http_extension~handle_request.
+METHOD if_http_extension~handle_request.
 
     DATA lt_header TYPE tihttpnvp.
     server->request->get_header_fields( CHANGING fields = lt_header ).
@@ -70,5 +70,5 @@ method if_http_extension~handle_request.
     server->response->set_cdata( lv_resp ).
     server->response->set_status( code = 200 reason = 'success' ).
 
-  endmethod.
+  EDNMETHOD.
 ```
