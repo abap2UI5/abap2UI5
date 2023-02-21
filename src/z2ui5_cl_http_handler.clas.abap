@@ -43,7 +43,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     DATA(lv_url) = client-t_header[ name = '~path' ]-value.
     TRY.
         DATA(lv_app) = client-t_param[ name = 'app' ]-value.
-        lv_url &&= `?app=` && lv_app.
+        lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_sy_itab_line_not_found.
     ENDTRY.
 
