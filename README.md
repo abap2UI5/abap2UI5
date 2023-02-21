@@ -10,16 +10,16 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 * easy installation - AbapGit project, no additional app deployment needed
 
 #### Blog posts:
+[ABAP2UI5 – Development of UI5 Apps in pure ABAP (1/3)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
+[ABAP2UI5 – Output of Lists and Tables, Toolbar and Editable (2/3)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
+[ABAP2UI5 – Demo UI5 applications (3/3)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
+Former version and functionality:<br>
 [ABAP2UI5 - Development of UI5 Selection-Screens in pure ABAP](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 <br>
 
 #### Demo Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/90/z2ui5_cl_app_demo_02.clas.abap):
-
 ![tweet1](https://user-images.githubusercontent.com/102328295/220315102-2e1e6545-ac32-4ea3-9d10-7286998304e7.gif)
 
-
-
-![example](https://user-images.githubusercontent.com/102328295/216914734-c159148f-7ec7-416f-97f0-0342ba99dee7.gif)
 
 ## Installation
 Works with all ABAP stacks:
