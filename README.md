@@ -10,7 +10,7 @@ Development of UI5 apps in pure ABAP. Follow this project on [Twitter](https://t
 * easy installation - AbapGit project, no additional app deployment needed
 
 ### Information
-##### SCN Blog series - Introduction of ABAP2UI5:
+##### SCN blog series - Introduction of ABAP2UI5:
 * Development of UI5 Apps in pure ABAP (1/3) [(Blog SCN - 20.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/) <br>
 * Output of Lists and Tables, Toolbar and Editable (2/3) [(Blog SCN - 21.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
 * Full working UI5 demo applications (3/3) [(Blog SCN - 28.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
