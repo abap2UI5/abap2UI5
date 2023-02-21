@@ -10,9 +10,9 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 * easy installation - AbapGit project, no additional app deployment needed
 
 #### Blog posts:
-[(1/3) Development of UI5 Apps in pure ABAP](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/) <br>
-[(2/3) Output of Lists and Tables, Toolbar and Editable (2/3)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
-[(3/3 )ABAP2UI5 – Demo UI5 applications](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
+[1. Development of UI5 Apps in pure ABAP](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/) <br>
+[2. Output of Lists and Tables, Toolbar and Editable](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
+[3. ABAP2UI5 – Demo UI5 applications](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
 Former version and functionality:<br>
 [Development of UI5 Selection-Screens in pure ABAP](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 <br>
