@@ -57,7 +57,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `        data-sap-ui-preload="async">` && |\n|  &&
                `     </script>` && |\n|.
 
-    r_result &&= `</head>` && |\n|  &&
+    r_result = r_result && `</head>` && |\n|  &&
                  `    <body class="sapUiBody">` && |\n|  &&
                  `        <div id="content"></div>` && |\n|  &&
                  `    </body>` && |\n|  &&
