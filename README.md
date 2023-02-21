@@ -32,20 +32,20 @@ Install with [abapGit](https://abapgit.org), create a new http service and call 
 
 #### ABAP Cloud:
 ```abap
-  METHOD if_http_service_extension~handle_request.
+METHOD if_http_service_extension~handle_request.
 
-    z2ui5_cl_http_handler=>client = VALUE #(
-        t_header = request->get_header_fields( )
-        t_param  = request->get_form_fields( )
-        body     = request->get_text( ) ).
+  z2ui5_cl_http_handler=>client = VALUE #(
+      t_header = request->get_header_fields( )
+      t_param  = request->get_form_fields( )
+      body     = request->get_text( ) ).
 
-    DATA(lv_resp) = SWITCH #( request->get_method( )
-        WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
-        WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
+  DATA(lv_resp) = SWITCH #( request->get_method( )
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
 
-    response->set_status( 200 )->set_text( lv_resp ).
+  response->set_status( 200 )->set_text( lv_resp ).
 
-  ENDMETHOD.
+ENDMETHOD.
 ```
 
 #### ABAP Standard:
@@ -70,5 +70,5 @@ METHOD if_http_extension~handle_request.
     server->response->set_cdata( lv_resp ).
     server->response->set_status( code = 200 reason = 'success' ).
 
-  EDNMETHOD.
+ENDMETHOD.
 ```
