@@ -65,7 +65,7 @@ METHOD if_http_extension~handle_request.
       t_param  = lt_param
       body     = server->request->get_cdata( ) ).
 
-   data(lv_resp) = SWITCH #( server->request->get_method( )
+   DATA(lv_resp) = SWITCH #( server->request->get_method( )
       WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
       WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
 
