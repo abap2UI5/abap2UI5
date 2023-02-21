@@ -21,7 +21,7 @@ Development of UI5 apps in pure ABAP. Follow this project on [Twitter](https://t
 ![tweet1](https://user-images.githubusercontent.com/102328295/220315102-2e1e6545-ac32-4ea3-9d10-7286998304e7.gif)
 
 ## Installation
-Works with all ABAP stacks:
+Works with all available ABAP stacks and language versions:
 * BTP ABAP Environment (ABAP Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP Cloud)
 * S/4 Private Cloud or On-Premise (ABAP Cloud, ABAP Standard)
