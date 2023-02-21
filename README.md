@@ -15,8 +15,8 @@ Development of UI5 Apps in pure ABAP. You can also follow this project on [Twitt
 * Output of Lists and Tables, Toolbar and Editable (2/3) [(Blog SCN - 21.02.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)<br>
 * Full working UI5 demo applications (3/3) (coming soon)<br>
 ##### Others:
-* SAP Developer News [(Youtube Video - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* ABAP Open Source Projects [(dotabap.org - 30.01.2023)](https://dotabap.org/)
+* Recommended in the SAP Developer News [(Youtube Video - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
+* Part of ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Development of UI5 Selection-Screens in pure ABAP (former version) [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 
 ### Demo Application [(Source Code)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_02.clas.abap)
