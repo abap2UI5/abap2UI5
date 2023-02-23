@@ -156,7 +156,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD main_roundtrip.
-    TRY.
 
         z2ui5_lcl_system_runtime=>client-t_header = client-t_header.
         z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
@@ -210,10 +209,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
         result = lo_runtime->execute_finish( ).
         lo_runtime->db_save( result ).
-
-      CATCH cx_uuid_error INTO cx.
-        result = cx->get_text( ).
-    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
