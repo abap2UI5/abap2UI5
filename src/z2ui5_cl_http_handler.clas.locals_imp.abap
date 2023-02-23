@@ -631,7 +631,12 @@
              IF sy-subrc NE 0.
                EXIT.
              ENDIF.
-             <comp> = <comp_ui5>->*.
+           " <comp> = <comp_ui5>->*.
+             DATA lr_data_ui5 TYPE REF TO data.
+             lr_data_ui5 = <comp_ui5>.
+           "  ASSIGN lr_data_ui5->* TO <comp>.
+             <comp> = lr_data_ui5->*.
+
            ENDLOOP.
 
          ENDLOOP.
@@ -1021,7 +1026,7 @@
        METHOD get_attribute.
 
          IF mr_actual IS INITIAL.
-           RAISE EXCEPTION NEW cx_abap_api_state( ).
+           RAISE EXCEPTION NEW _( ).
          ENDIF.
 
          DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json(  ).
@@ -1659,10 +1664,10 @@
          _generic(
               name  = 'StepInput'
               t_prop = VALUE #(
-                 ( n = 'max'  v = max  )
-                 ( n = 'min'  v = min  )
-                 ( n = 'step' v = step )
-                 ( n = 'value' v = _get_name_by_ref( value )  )
+                 ( n = 'max'   v = max  )
+                 ( n = 'min'   v = min  )
+                 ( n = 'step'  v = step )
+                 ( n = 'value' v =  value )
           ) ).
 
        ENDMETHOD.
@@ -1676,7 +1681,7 @@
                t_prop = VALUE #(
                   ( n = 'type'           v = type           )
                   ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
-                  ( n = 'state'          v = _get_name_by_ref( state ) )
+                  ( n = 'state'          v = state )
                   ( n = 'customTextOff'  v = customtextoff  )
                   ( n = 'customTextOn'   v = customtexton   )
            ) ).
@@ -2401,6 +2406,10 @@
        ENDMETHOD.
 
        METHOD db_save.
+
+         DATA(li_app) = CAST z2ui5_if_app( ms_db-o_app ).
+         ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_serialization.
+         li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
 
          MODIFY z2ui5_t_draft FROM @( VALUE #(
            uuid  = ms_db-id

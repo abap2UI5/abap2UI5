@@ -83,8 +83,8 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
              )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = 'Success'
 
              )->label( 'StepInput'
-             )->step_input( value = screen-step_val_01 step = '2'  min = '0' max = '20'
-             )->step_input( value = screen-step_val_02 step = '10' min = '0' max = '100'
+             )->step_input( value = view->_bind( screen-step_val_01 ) step = '2'  min = '0' max = '20'
+             )->step_input( value = view->_bind( screen-step_val_02 ) step = '10' min = '0' max = '100'
 
              )->label( 'Text Area'
              )->text_area( value = view->_bind( screen-text_area ) height = '100px' ).

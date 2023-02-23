@@ -4,9 +4,10 @@ INTERFACE z2ui5_if_ui5_library
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF lifecycle_method,
-        on_init      TYPE string VALUE 'INIT',
-        on_event     TYPE string VALUE 'EVENT',
-        on_rendering TYPE string VALUE 'RENDERING',
+        on_init          TYPE string VALUE 'INIT',
+        on_event         TYPE string VALUE 'EVENT',
+        on_rendering     TYPE string VALUE 'RENDERING',
+        on_serialization type string value 'SERIALIZATION',
       END OF lifecycle_method,
       BEGIN OF event_type,
         server_function TYPE string VALUE 'SERVER_FUNCTION',
