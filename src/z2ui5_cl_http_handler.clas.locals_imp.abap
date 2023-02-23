@@ -1192,11 +1192,11 @@
          CONSTANTS cs LIKE z2ui5_if_ui5_library=>cs VALUE z2ui5_if_ui5_library=>cs.
 
          TYPES:
-           BEGIN OF ty_s_view,
+           BEGIN OF ty_S_view,
              xml     TYPE string,
              o_model TYPE REF TO z2ui5_lcl_utility_tree_json,
              t_attri TYPE _=>ty-t-attri,
-           END OF ty_s_view.
+           END OF ty_S_view.
 
          DATA m_name TYPE string.
          DATA m_ns   TYPE string.
@@ -1220,7 +1220,7 @@
            IMPORTING
              check_popup_active TYPE abap_bool DEFAULT abap_false
            RETURNING
-             VALUE(result)      TYPE ty_s_view.
+             VALUE(result)      TYPE ty_S_view.
 
          METHODS _generic
            IMPORTING
@@ -1688,7 +1688,7 @@
                  ( n = 'max'  v = max  )
                  ( n = 'min'  v = min  )
                  ( n = 'step' v = step )
-                 ( n = 'value' v = _get_name_by_ref( value )  )
+                 ( n = 'value' v = value )
           ) ).
 
        ENDMETHOD.
@@ -1702,7 +1702,7 @@
                t_prop = VALUE #(
                   ( n = 'type'           v = type           )
                   ( n = 'enabled'        v = _=>get_abap_2_json( enabled  )      )
-                  ( n = 'state'          v = _get_name_by_ref( state ) )
+                  ( n = 'state'          v = state )
                   ( n = 'customTextOff'  v = customtextoff  )
                   ( n = 'customTextOn'   v = customtexton   )
            ) ).
@@ -2427,6 +2427,9 @@
        ENDMETHOD.
 
        METHOD db_save.
+*         DATA(li_app) = CAST z2ui5_if_app( ms_db-o_app ).
+*         ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_serialization.
+*         li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
 
          MODIFY z2ui5_t_draft FROM @( VALUE #(
            uuid  = ms_db-id
