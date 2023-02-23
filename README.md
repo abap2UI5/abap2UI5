@@ -11,8 +11,8 @@ Development of UI5 Apps in pure ABAP. You can also follow this project on [Twitt
 
 ### Information
 ##### SCN Blog Series - Introduction of ABAP2UI5
-* (1/3) Development of UI5 Apps in pure ABAP [(Blog SCN - 20.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
-* (2/3) Output of Lists and Tables, Toolbar and Editable [(Blog SCN - 20.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
+* (1/3) Development of UI5 Apps in pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
+* (2/3) Output of Lists and Tables, Toolbar and Editable [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
 * (3/3) Demo Applications developed with ABAP2UI5 (...)<br>
 
 ##### Others
