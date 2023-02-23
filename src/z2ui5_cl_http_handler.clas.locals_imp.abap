@@ -340,7 +340,7 @@
        ENDMETHOD.
 
 
-       METHOD conv_string_2_xstring.
+       METHOD conv_string_2_XSTRING.
 
          " TRY.
          DATA(l_convout2) = cl_abap_conv_codepage=>create_out(
@@ -354,7 +354,7 @@
 
        ENDMETHOD.
 
-       METHOD conv_xstring_2_string.
+       METHOD conv_XSTRING_2_string.
 
          " TRY.
          DATA(l_conv_in) = cl_abap_conv_codepage=>create_in(
@@ -595,9 +595,9 @@
 
 
        METHOD trans_ref_tab_2_tab.
-         TYPES tt_ref TYPE STANDARD TABLE OF REF TO data.
+         TYPES ty_T_ref TYPE STANDARD TABLE OF REF TO data.
 
-         FIELD-SYMBOLS <tab_ui5> TYPE tt_ref.
+         FIELD-SYMBOLS <tab_ui5> TYPE ty_T_ref.
          FIELD-SYMBOLS <comp> TYPE data.
          FIELD-SYMBOLS <comp_ui5> TYPE REF TO data.
 
@@ -753,16 +753,16 @@
        PUBLIC SECTION.
 
          TYPES ty_o_me TYPE REF TO z2ui5_lcl_utility_tree_json.
-         TYPES ty_t_me TYPE STANDARD TABLE OF ty_o_me WITH EMPTY KEY.
+         TYPES ty_T_me TYPE STANDARD TABLE OF ty_o_me WITH EMPTY KEY.
 
          TYPES:
-           BEGIN OF ty_s_name,
+           BEGIN OF ty_S_name,
              n          TYPE string,
              v          TYPE string,
              apos_deact TYPE abap_bool,
-           END OF ty_s_name.
+           END OF ty_S_name.
 
-         TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name.
+         TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name.
 
          CLASS-METHODS hlp_shrink
            IMPORTING
@@ -803,7 +803,7 @@
 
          METHODS get_attribute_all
            RETURNING
-             VALUE(r_result) TYPE ty_t_me.
+             VALUE(r_result) TYPE ty_T_me.
 
          METHODS get_parent
            RETURNING
@@ -825,7 +825,7 @@
 
          METHODS add_attributes_name_value_tab
            IMPORTING
-             it_name_value   TYPE ty_t_name_value
+             it_name_value   TYPE ty_T_name_value
            RETURNING
              VALUE(r_result) TYPE  ty_o_me.
 
@@ -875,6 +875,19 @@
        PROTECTED SECTION.
          DATA mv_check_attr_all_read TYPE abap_bool.
        PRIVATE SECTION.
+
+         METHODS wrap_json
+           IMPORTING
+             iv_text         TYPE string
+           RETURNING
+             VALUE(r_result) TYPE string.
+
+         METHODS quote_json
+           IMPORTING
+             iv_text         TYPE string
+             iv_cond         TYPE abap_bool
+           RETURNING
+             VALUE(r_result) TYPE string.
 
      ENDCLASS.
 
@@ -1017,7 +1030,7 @@
        METHOD get_attribute.
 
          IF mr_actual IS INITIAL.
-           RAISE EXCEPTION NEW cx_ucon_api_state( ).
+           RAISE EXCEPTION NEW _( ).
          ENDIF.
 
          DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json(  ).
@@ -1114,41 +1127,58 @@
 
        ENDMETHOD.
 
+       METHOD wrap_json.
+         DATA open_char TYPE char01.
+         DATA close_char TYPE char01.
+
+         r_result = iv_text.
+
+         CASE mv_check_list.
+           WHEN abap_true.
+             open_char = '['.
+             close_char = ']'.
+           WHEN abap_false.
+             open_char = '{'.
+             close_char = '}'.
+           WHEN OTHERS.
+             RETURN.
+         ENDCASE.
+         r_result = open_char && r_result && close_char.
+       ENDMETHOD.
+
+       METHOD quote_json.
+         IF iv_cond EQ abap_true.
+           r_result = `"` && iv_text && `"`.
+         ELSE.
+           r_result = iv_text.
+         ENDIF.
+       ENDMETHOD.
 
        METHOD write_result.
 
-
-         r_result &&= COND #( WHEN mv_check_list = abap_true THEN `[` ELSE `{` ).
-
-         "  IF mv_check_attr_all_read = abap_false.
-         "   get_attribute_all( ).
-         " ENDIF.
-
          LOOP AT mt_values INTO DATA(lo_attri).
-           DATA(lv_index) = sy-tabix.
 
-           r_result  &&= COND #( WHEN mv_check_list = abap_false THEN |"{ lo_attri->mv_name }":| ).
+           IF sy-tabix GT 1.
+             r_result = r_result && |,|.
+           ENDIF.
 
+           r_result = r_result && COND #( WHEN mv_check_list = abap_false THEN |"{ lo_attri->mv_name }":| ).
 
            IF lo_attri->mt_values IS NOT INITIAL.
 
-             r_result &&= lo_attri->write_result(  ).
+             r_result = r_result && lo_attri->write_result(  ).
 
            ELSE.
 
-             r_result &&= COND #( WHEN lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL THEN |"| )
-              && lo_attri->mv_value
-           "  && escape( val = lo_attri->mv_value format = cl_abap_format=>e_json_string )
-              && COND #( WHEN lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL THEN |"| ).
-
+             r_result = r_result &&
+                quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
+                            iv_text = lo_attri->mv_value ).   " escape( val = lo_attri->mv_value
+                                                              "         format = cl_abap_format=>e_json_string )
            ENDIF.
-
-           r_result &&= COND #( WHEN lv_index < lines( mt_values )  THEN |,| ).
 
          ENDLOOP.
 
-         r_result &&= COND #( WHEN mv_check_list = abap_true THEN `]` ELSE `}` ).
-
+         r_result = wrap_json( r_result ).
        ENDMETHOD.
 
      ENDCLASS.
