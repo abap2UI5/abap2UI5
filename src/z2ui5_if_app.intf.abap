@@ -1,12 +1,10 @@
-INTERFACE z2ui5_if_app PUBLIC.
+INTERFACE z2ui5_if_app
+  PUBLIC .
+
   INTERFACES if_serializable_object.
 
-  METHODS on_event
+  METHODS controller
     IMPORTING
       client TYPE REF TO z2ui5_if_client.
-
-  METHODS set_view
-    IMPORTING
-      view TYPE REF TO z2ui5_if_view.
 
 ENDINTERFACE.
