@@ -16,7 +16,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-DATA:
       BEGIN OF client,
-        body     type string,
+        body     TYPE string,
         t_header TYPE tihttpnvp,
         t_param  TYPE tihttpnvp,
       END OF client.
@@ -35,7 +35,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD main_index_html.
@@ -157,58 +157,58 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-        z2ui5_lcl_system_runtime=>client-t_header = client-t_header.
-        z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
-        z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
+    z2ui5_lcl_system_runtime=>client-t_header = client-t_header.
+    z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
+    z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
 
-        DATA(lo_runtime) = NEW z2ui5_lcl_system_runtime(  ).
-        result = lo_runtime->execute_init(  ).
-        IF result IS NOT INITIAL.
-          RETURN.
-        ENDIF.
+    DATA(lo_runtime) = NEW z2ui5_lcl_system_runtime(  ).
+    result = lo_runtime->execute_init(  ).
+    IF result IS NOT INITIAL.
+      RETURN.
+    ENDIF.
 
-        DO.
+    DO.
 
-          TRY.
+      TRY.
 
-              ROLLBACK WORK.
-              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
-              ROLLBACK WORK.
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          ROLLBACK WORK.
 
-            CATCH cx_root INTO DATA(cx).
-              DATA(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
-              lo_runtime->db_save( ).
-              lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
-              lo_runtime = lo_runtime_error.
-              CONTINUE.
-          ENDTRY.
+        CATCH cx_root INTO DATA(cx).
+          DATA(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
+          lo_runtime->db_save( ).
+          lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
+          lo_runtime = lo_runtime_error.
+          CONTINUE.
+      ENDTRY.
 
-          IF lo_runtime->ms_leave_to_app IS NOT INITIAL.
-            lo_runtime->db_save( ).
-            DATA(lo_runtime_new) = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
-            lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
-            lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
-            lo_runtime = lo_runtime_new.
-            lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
-            CONTINUE.
-          ENDIF.
+      IF lo_runtime->ms_leave_to_app IS NOT INITIAL.
+        lo_runtime->db_save( ).
+        DATA(lo_runtime_new) = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
+        lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
+        lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
+        lo_runtime = lo_runtime_new.
+        lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
+        CONTINUE.
+      ENDIF.
 
-          TRY.
-              ROLLBACK WORK.
-              lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-              CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
-              ROLLBACK WORK.
+      TRY.
+          ROLLBACK WORK.
+          lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          ROLLBACK WORK.
 
-            CATCH cx_root INTO cx.
-              lo_runtime = lo_runtime->factory_new_error( kind = 'ON_SCREEN' ix = cx ).
-              CONTINUE.
-          ENDTRY.
+        CATCH cx_root INTO cx.
+          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_SCREEN' ix = cx ).
+          CONTINUE.
+      ENDTRY.
 
-          EXIT.
-        ENDDO.
+      EXIT.
+    ENDDO.
 
-        result = lo_runtime->execute_finish( ).
-        lo_runtime->db_save( result ).
+    result = lo_runtime->execute_finish( ).
+    lo_runtime->db_save( result ).
 
   ENDMETHOD.
 ENDCLASS.
