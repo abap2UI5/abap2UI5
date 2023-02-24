@@ -163,11 +163,11 @@
            RETURNING
              VALUE(result) TYPE string.
 
-         CLASS-METHODS action_parallel
-           IMPORTING
-             it_parallel   TYPE cl_abap_parallel=>t_in_inst_tab
-           RETURNING
-             VALUE(result) TYPE cl_abap_parallel=>t_out_inst_tab.
+*         CLASS-METHODS action_parallel
+*           IMPORTING
+*             it_parallel   TYPE cl_abap_parallel=>t_in_inst_tab
+*           RETURNING
+*             VALUE(result) TYPE cl_abap_parallel=>t_out_inst_tab.
 
          CLASS-METHODS conv_char_2_hex
            IMPORTING
@@ -272,15 +272,15 @@
 
      CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
-       METHOD action_parallel.
-
-         NEW cl_abap_parallel( )->run_inst(
-            EXPORTING
-               p_in_tab = it_parallel
-            IMPORTING
-               p_out_tab = result ).
-
-       ENDMETHOD.
+*       METHOD action_parallel.
+*
+*         NEW cl_abap_parallel( )->run_inst(
+*            EXPORTING
+*               p_in_tab = it_parallel
+*            IMPORTING
+*               p_out_tab = result ).
+*
+*       ENDMETHOD.
 
        METHOD assign.
 
@@ -342,30 +342,63 @@
 
        METHOD conv_string_2_XSTRING.
 
-         " TRY.
-         DATA(l_convout2) = cl_abap_conv_codepage=>create_out(
-             codepage = 'UTF-8' ).
-         r_result = l_convout2->convert( source = iv_string ).
-*      CATCH cx_sy_conversion_codepage.(
+         DATA conv TYPE REF TO object.
 
-         "  CATCH cx_root.
-         " message 'Conversion failure' type 'E'.
-         "ENDTRY.
+         TRY.
+             CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
+               RECEIVING
+                 instance = conv.
+
+             CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
+               EXPORTING
+                 source = iv_string
+               RECEIVING
+                 result = r_result.
+           CATCH cx_sy_dyn_call_illegal_class.
+             DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
+             CALL METHOD (conv_out_class)=>create
+               EXPORTING
+                 encoding = 'UTF-8'
+               RECEIVING
+                 conv     = conv.
+
+             CALL METHOD conv->('CONVERT')
+               EXPORTING
+                 data   = iv_string
+               IMPORTING
+                 buffer = r_result.
+         ENDTRY.
 
        ENDMETHOD.
 
        METHOD conv_XSTRING_2_string.
 
-         " TRY.
-         DATA(l_conv_in) = cl_abap_conv_codepage=>create_in(
-             codepage = 'UTF-8' ).
+ DATA conv TYPE REF TO object.
 
-         r_result = l_conv_in->convert( source = iv_xstring ).
-*      CATCH cx_sy_conversion_codepage.(
+    TRY.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
+          RECEIVING
+            instance = conv.
 
-         "  CATCH cx_root.
-         " message 'Conversion failure' type 'E'.
-         "ENDTRY.
+        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
+          EXPORTING
+            source = iv_xstring
+          RECEIVING
+            result = r_result.
+      CATCH cx_sy_dyn_call_illegal_class.
+        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
+        CALL METHOD (conv_in_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            input = iv_xstring
+          IMPORTING
+            data  = r_result.
+    ENDTRY.
 
        ENDMETHOD.
 
@@ -1128,7 +1161,7 @@
        ENDMETHOD.
 
        METHOD wrap_json.
-         DATA open_char type string. " char01.
+         DATA open_char TYPE string. " char01.
          DATA close_char TYPE string.
 
          r_result = iv_text.
@@ -1173,7 +1206,7 @@
              r_result = r_result &&
                 quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
                             iv_text = lo_attri->mv_value ).   " escape( val = lo_attri->mv_value
-                                                              "         format = cl_abap_format=>e_json_string )
+             "         format = cl_abap_format=>e_json_string )
            ENDIF.
 
          ENDLOOP.
