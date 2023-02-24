@@ -1128,8 +1128,8 @@
        ENDMETHOD.
 
        METHOD wrap_json.
-         DATA open_char TYPE char01.
-         DATA close_char TYPE char01.
+         DATA open_char type string. " char01.
+         DATA close_char TYPE string.
 
          r_result = iv_text.
 
