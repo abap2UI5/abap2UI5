@@ -308,13 +308,11 @@
            if_t100_message~t100key = textid.
          ENDIF.
 
-
-         CASE TYPE OF cl_abap_typedescr=>describe_by_data( val ).
-           WHEN TYPE cl_abap_refdescr.
+         TRY.
              ms_error-x_root ?= val.
-           WHEN OTHERS.
+           CATCH cx_root.
              ms_error-s_msg-message = val.
-         ENDCASE.
+         ENDTRY.
 
          ms_error-kind = kind.
 
@@ -373,32 +371,32 @@
 
        METHOD conv_XSTRING_2_string.
 
- DATA conv TYPE REF TO object.
+         DATA conv TYPE REF TO object.
 
-    TRY.
-        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
-          RECEIVING
-            instance = conv.
+         TRY.
+             CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
+               RECEIVING
+                 instance = conv.
 
-        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
-          EXPORTING
-            source = iv_xstring
-          RECEIVING
-            result = r_result.
-      CATCH cx_sy_dyn_call_illegal_class.
-        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
-        CALL METHOD (conv_in_class)=>create
-          EXPORTING
-            encoding = 'UTF-8'
-          RECEIVING
-            conv     = conv.
+             CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
+               EXPORTING
+                 source = iv_xstring
+               RECEIVING
+                 result = r_result.
+           CATCH cx_sy_dyn_call_illegal_class.
+             DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
+             CALL METHOD (conv_in_class)=>create
+               EXPORTING
+                 encoding = 'UTF-8'
+               RECEIVING
+                 conv     = conv.
 
-        CALL METHOD conv->('CONVERT')
-          EXPORTING
-            input = iv_xstring
-          IMPORTING
-            data  = r_result.
-    ENDTRY.
+             CALL METHOD conv->('CONVERT')
+               EXPORTING
+                 input = iv_xstring
+               IMPORTING
+                 data  = r_result.
+         ENDTRY.
 
        ENDMETHOD.
 
@@ -450,10 +448,16 @@
 
        METHOD get_prev_when_no_handler.
 
-         CASE TYPE OF val.
-           WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
+        data lx_no_handler type ref to cx_sy_no_handler.
+        try.
+            lx_no_handler ?= val.
              r_result = lx_no_handler->previous.
-         ENDCASE.
+        catch cx_root.
+        endtry.
+      "   CASE TYPE OF val.
+      "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
+      "       r_result = lx_no_handler->previous.
+      "   ENDCASE.
 
          IF r_result IS NOT BOUND.
            r_result = val.
