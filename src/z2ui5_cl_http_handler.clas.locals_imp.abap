@@ -251,9 +251,8 @@
              VALUE(r_result) TYPE string.
 
          CLASS-METHODS trans_ref_tab_2_tab
-           IMPORTING
-             ir_tab_from TYPE REF TO data
-             ir_tab_to   TYPE REF TO data.
+           IMPORTING ir_tab_from TYPE REF TO data
+           CHANGING  ct_to       TYPE STANDARD TABLE.
 
        PROTECTED SECTION.
 
@@ -596,53 +595,45 @@
 
 
        METHOD trans_ref_tab_2_tab.
+         TYPES ty_T_ref TYPE STANDARD TABLE OF REF TO data.
 
-         FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-         FIELD-SYMBOLS <tab_ui5> TYPE STANDARD TABLE.
+         FIELD-SYMBOLS <tab_ui5> TYPE ty_T_ref.
          FIELD-SYMBOLS <comp> TYPE data.
-         FIELD-SYMBOLS <comp_ui5> TYPE data.
+         FIELD-SYMBOLS <comp_ui5> TYPE REF TO data.
 
-         DATA lr_tab_back TYPE REF TO data.
-         DATA lr_tab_ui5_row TYPE REF TO data.
-         FIELD-SYMBOLS <back> TYPE data.
-         FIELD-SYMBOLS <ui5_row> TYPE data.
-
-         ASSIGN ir_tab_to->* TO <tab>.
          ASSIGN ir_tab_from->* TO <tab_ui5>.
 
-         LOOP AT <tab> REFERENCE INTO lr_tab_back.
-           ASSIGN lr_tab_back->* TO <back>.
-
-           DATA(lv_tabix) = sy-tabix.
-
-           lr_tab_ui5_row = <tab_ui5>[ lv_tabix ].
-           ASSIGN lr_tab_ui5_row->* TO <ui5_row>.
-
-
+         READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
+         IF sy-subrc EQ 0.
            DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <back> ) ).
+           DATA(lt_components) = lo_struct->get_components( ).
+         ENDIF.
 
-           LOOP AT lo_Struct->get_components( ) REFERENCE INTO DATA(lr_comp).
+         LOOP AT ct_to ASSIGNING <back>.
 
-             ASSIGN COMPONENT lr_comp->name OF STRUCTURE <back> TO <comp>.
+           DATA(lr_row_ui5) = <tab_ui5>[ sy-tabix ].
+           ASSIGN lr_row_ui5->* TO FIELD-SYMBOL(<ui5_row>).
+
+           LOOP AT lt_components INTO DATA(ls_comp).
+
+             ASSIGN COMPONENT ls_comp-name OF STRUCTURE <back> TO <comp>.
              IF sy-subrc NE 0.
                EXIT.
              ENDIF.
-             ASSIGN COMPONENT lr_comp->name OF STRUCTURE <ui5_row> TO <comp_ui5>.
+             ASSIGN COMPONENT ls_comp-name OF STRUCTURE <ui5_row> TO <comp_ui5>.
              IF sy-subrc NE 0.
                EXIT.
              ENDIF.
-           " <comp> = <comp_ui5>->*.
-             DATA lr_data_ui5 TYPE REF TO data.
-             lr_data_ui5 = <comp_ui5>.
-           "  ASSIGN lr_data_ui5->* TO <comp>.
-             <comp> = lr_data_ui5->*.
 
+             ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
+             IF sy-subrc EQ 0.
+               <comp> = <ls_data_ui5>.
+             ENDIF.
            ENDLOOP.
 
          ENDLOOP.
 
        ENDMETHOD.
-
 
        METHOD trans_xml_2_any_multi.
 
@@ -885,6 +876,19 @@
          DATA mv_check_attr_all_read TYPE abap_bool.
        PRIVATE SECTION.
 
+         METHODS wrap_json
+           IMPORTING
+             iv_text         TYPE string
+           RETURNING
+             VALUE(r_result) TYPE string.
+
+         METHODS quote_json
+           IMPORTING
+             iv_text         TYPE string
+             iv_cond         TYPE abap_bool
+           RETURNING
+             VALUE(r_result) TYPE string.
+
      ENDCLASS.
 
 
@@ -1123,41 +1127,58 @@
 
        ENDMETHOD.
 
+       METHOD wrap_json.
+         DATA open_char TYPE char01.
+         DATA close_char TYPE char01.
+
+         r_result = iv_text.
+
+         CASE mv_check_list.
+           WHEN abap_true.
+             open_char = '['.
+             close_char = ']'.
+           WHEN abap_false.
+             open_char = '{'.
+             close_char = '}'.
+           WHEN OTHERS.
+             RETURN.
+         ENDCASE.
+         r_result = open_char && r_result && close_char.
+       ENDMETHOD.
+
+       METHOD quote_json.
+         IF iv_cond EQ abap_true.
+           r_result = `"` && iv_text && `"`.
+         ELSE.
+           r_result = iv_text.
+         ENDIF.
+       ENDMETHOD.
 
        METHOD write_result.
 
-
-         r_result &&= COND #( WHEN mv_check_list = abaP_true THEN `[` ELSE `{` ).
-
-         "  IF mv_check_attr_all_read = abap_false.
-         "   get_attribute_all( ).
-         " ENDIF.
-
          LOOP AT mt_values INTO DATA(lo_attri).
-           DATA(lv_index) = sy-tabix.
 
-           r_result  &&= COND #( WHEN mv_check_list = abaP_false THEN |"{ lo_attri->mv_name }":| ).
+           IF sy-tabix GT 1.
+             r_result = r_result && |,|.
+           ENDIF.
 
+           r_result = r_result && COND #( WHEN mv_check_list = abap_false THEN |"{ lo_attri->mv_name }":| ).
 
            IF lo_attri->mt_values IS NOT INITIAL.
 
-             r_result &&= lo_attri->write_result(  ).
+             r_result = r_result && lo_attri->write_result(  ).
 
            ELSE.
 
-             r_result &&= COND #( WHEN lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL THEN |"| )
-              && lo_attri->mv_value
-           "  && escape( val = lo_attri->mv_value format = cl_abap_format=>e_json_string )
-              && COND #( WHEN lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL THEN |"| ).
-
+             r_result = r_result &&
+                quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
+                            iv_text = lo_attri->mv_value ).   " escape( val = lo_attri->mv_value
+                                                              "         format = cl_abap_format=>e_json_string )
            ENDIF.
-
-           r_result &&= COND #( WHEN lv_index < lines( mt_values )  THEN |,| ).
 
          ENDLOOP.
 
-         r_result &&= COND #( WHEN mv_check_list = abaP_true THEN `]` ELSE `}` ).
-
+         r_result = wrap_json( r_result ).
        ENDMETHOD.
 
      ENDCLASS.
@@ -1664,10 +1685,10 @@
          _generic(
               name  = 'StepInput'
               t_prop = VALUE #(
-                 ( n = 'max'   v = max  )
-                 ( n = 'min'   v = min  )
-                 ( n = 'step'  v = step )
-                 ( n = 'value' v =  value )
+                 ( n = 'max'  v = max  )
+                 ( n = 'min'  v = min  )
+                 ( n = 'step' v = step )
+                 ( n = 'value' v = value )
           ) ).
 
        ENDMETHOD.
@@ -1738,7 +1759,7 @@
               name  = 'ProgressIndicator'
               t_prop = VALUE #(
                  ( n = 'percentValue' v = _get_name_by_ref( percent_value ) )
-                 ( n = 'displayValue' v = display_Value )
+                 ( n = 'displayValue' v = display_value )
                  ( n = 'showValue'    v = _=>get_abap_2_json( show_value  )      )
                  ( n = 'state'        v = state  )
           ) ).
@@ -2108,7 +2129,7 @@
        METHOD z2ui5_on_init.
          IF ms_error-x_error IS NOT BOUND.
            client->display_view( 'HOME' ).
-           ms_home-is_initialized = abaP_true.
+           ms_home-is_initialized = abap_true.
            ms_home-btn_text = 'check'.
            ms_home-btn_event_id = 'BUTTON_CHECK'.
            ms_home-class_editable = abap_true.
@@ -2406,10 +2427,9 @@
        ENDMETHOD.
 
        METHOD db_save.
-
-         DATA(li_app) = CAST z2ui5_if_app( ms_db-o_app ).
-         ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_serialization.
-         li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
+*         DATA(li_app) = CAST z2ui5_if_app( ms_db-o_app ).
+*         ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_serialization.
+*         li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
 
          MODIFY z2ui5_t_draft FROM @( VALUE #(
            uuid  = ms_db-id
@@ -2534,14 +2554,12 @@
 
              WHEN 'g' OR 'I' OR 'C'.
                DATA(lv_value) = client-o_body->get_attribute( lr_attri->name )->get_val( ).
-               "DATA(lv_value) = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->get_val( ).
                <attribute> = lv_value.
 
              WHEN 'h'.
                _=>trans_ref_tab_2_tab(
-                        "  ir_tab_from = z2ui5_cl_http_handler=>client-o_body->get_attribute( lr_attri->name )->mr_actual
-                          ir_tab_from = client-o_body->get_attribute( lr_attri->name )->mr_actual
-                          ir_tab_to   = REF #( <attribute> )          ).
+                          EXPORTING ir_tab_from = client-o_body->get_attribute( lr_attri->name )->mr_actual
+                          CHANGING ct_to   = <attribute> ).
 
            ENDCASE.
 
@@ -2556,12 +2574,10 @@
            TRY.
 
                client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
-               "z2ui5_cl_http_handler=>client-t_param = VALUE #( LET tab = z2ui5_cl_http_handler=>client-t_param IN FOR row IN tab
-                 ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
+                                         ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
 
                TRY.
                    ms_db-app = client-t_param[ name = 'APP' ]-value.
-                   "ms_db-app = z2ui5_cl_http_handler=>client-t_param[ name = 'APP' ]-value.
                  CATCH cx_root.
                    ms_db-o_app = NEW z2ui5_lcl_system_app( ).
                    EXIT.
@@ -2590,7 +2606,7 @@
          r_result = NEW z2ui5_lcl_system_runtime( ).
          r_result->ms_db-o_app = i_app.
          r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
-         "  CLEAR z2ui5_cl_http_handler=>client-o_body.
+
          CLEAR client-o_body.
          r_result->mt_after = mt_after.
          r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
@@ -2666,7 +2682,6 @@
              id_prev_app = mo_server->ms_db-id_prev_app
          ).
 
-         " DATA(lt_head) = z2ui5_cl_http_handler=>client-t_header.
          DATA(lt_head) = z2ui5_lcl_system_runtime=>client-t_header.
          DATA(lv_url) = lt_head[ name = 'referer' ]-value.
 
