@@ -1353,7 +1353,7 @@
 
        METHOD xml_get_end.
 
-         result &&= COND #( WHEN check_popup_active = abap_false
+         result = result && COND #( WHEN check_popup_active = abap_false
                    THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `</Shell>` ) && `</mvc:View>`
                    ELSE `</core:FragmentDefinition>` ).
 
@@ -1366,10 +1366,10 @@
            result = xml_get_begin( check_popup_active ).
 
            LOOP AT t_child INTO DATA(lr_child).
-             result &&= lr_child->xml_get(  ).
+             result = result && lr_child->xml_get(  ).
            ENDLOOP.
 
-           result &&= xml_get_end( check_popup_active ).
+           result = result && xml_get_end( check_popup_active ).
            RETURN.
          ENDIF.
 
@@ -1386,17 +1386,17 @@
                                NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
 
          IF t_child IS INITIAL.
-           result &&= '/>'.
+           result = result && '/>'.
            RETURN.
          ENDIF.
 
-         result &&= '>'.
+         result = result && '>'.
 
          LOOP AT t_child INTO lr_child.
-           result &&= lr_child->xml_get(  ).
+           result = result && lr_child->xml_get(  ).
          ENDLOOP.
 
-         result &&= |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
+         result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
 
        ENDMETHOD.
 
