@@ -1063,7 +1063,7 @@
        METHOD get_attribute.
 
          IF mr_actual IS INITIAL.
-           RAISE EXCEPTION NEW _( ).
+           RAISE EXCEPTION type _.
          ENDIF.
 
          DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json(  ).
