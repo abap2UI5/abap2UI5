@@ -448,16 +448,16 @@
 
        METHOD get_prev_when_no_handler.
 
-        data lx_no_handler type ref to cx_sy_no_handler.
-        try.
-            lx_no_handler ?= val.
+         DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
+         TRY.
+             lx_no_handler ?= val.
              r_result = lx_no_handler->previous.
-        catch cx_root.
-        endtry.
-      "   CASE TYPE OF val.
-      "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
-      "       r_result = lx_no_handler->previous.
-      "   ENDCASE.
+           CATCH cx_root.
+         ENDTRY.
+         "   CASE TYPE OF val.
+         "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
+         "       r_result = lx_no_handler->previous.
+         "   ENDCASE.
 
          IF r_result IS NOT BOUND.
            r_result = val.
@@ -1067,7 +1067,7 @@
        METHOD get_attribute.
 
          IF mr_actual IS INITIAL.
-           RAISE EXCEPTION type _.
+           RAISE EXCEPTION TYPE _.
          ENDIF.
 
          DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json(  ).
@@ -1347,11 +1347,11 @@
          result = COND #(  WHEN check_popup_active = abap_false
                    THEN      `<mvc:View controllerName="MyController"     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
                           `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
-                                    ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
+                                    ` xmlns:editor="sap.ui.codeeditor"   xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
                               COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN  `<Shell>` )
                    ELSE   `<core:FragmentDefinition   xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n|  &&
                           `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n|  &&
-                                    ` xmlns:editor="sap.ui.codeeditor"   xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` ).
+                                    ` xmlns:editor="sap.ui.codeeditor"  xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` ).
 
        ENDMETHOD.
 
@@ -1823,6 +1823,7 @@
                 ( n = 'headerText'       v = header_text )
                 ( n = 'growing'          v = _=>get_abap_2_json( growing ) )
                 ( n = 'growingThreshold' v = growing_threshold )
+                ( n = 'sticky'           v = sticky  )
              ) ).
 
        ENDMETHOD.
@@ -2082,6 +2083,77 @@
        METHOD z2ui5_if_ui5_library~get.
 
          result = m_root->m_last.
+
+       ENDMETHOD.
+
+       METHOD z2ui5_if_ui5_library~ui_column.
+
+       result =  _generic(
+             name = 'Column'
+             ns   = 'ui'
+            t_prop = VALUE #(
+                 ( n = 'width'  v = width  )
+*                 ( n = 'key'   v = key )
+*                 ( n = 'text'  v = text )
+             )
+             ).
+
+       ENDMETHOD.
+
+       METHOD z2ui5_if_ui5_library~ui_columns.
+
+       result =  _generic(
+             name = 'columns'
+             ns   = 'ui'
+*             t_prop = VALUE #(
+*                 ( n = 'icon'  v = icon  )
+*                 ( n = 'key'   v = key )
+*                 ( n = 'text'  v = text )
+*             )
+             ).
+
+       ENDMETHOD.
+
+       METHOD z2ui5_if_ui5_library~ui_extension.
+
+       result =  _generic(
+             name = 'extension'
+             ns   = 'ui'
+*             t_prop = VALUE #(
+*                 ( n = 'icon'  v = icon  )
+*                 ( n = 'key'   v = key )
+*                 ( n = 'text'  v = text )
+*             )
+             ).
+
+       ENDMETHOD.
+
+       METHOD z2ui5_if_ui5_library~ui_table.
+
+       result =  _generic(
+             name = 'Table'
+             ns   = 'ui'
+             t_prop = VALUE #(
+                 ( n = 'rows'  v = rows  )
+                 ( n = 'selectionMode'   v = selectionMode )
+                 ( n = 'visibleRowCount' v = visibleRowCount )
+                 ( n = 'selectedIndex'   v = selectedIndex )
+             )
+             ).
+
+       ENDMETHOD.
+
+       METHOD z2ui5_if_ui5_library~ui_template.
+
+       result =  _generic(
+             name = 'template'
+             ns   = 'ui'
+*             t_prop = VALUE #(
+*                 ( n = 'icon'  v = icon  )
+*                 ( n = 'key'   v = key )
+*                 ( n = 'text'  v = text )
+*             )
+             ).
 
        ENDMETHOD.
 

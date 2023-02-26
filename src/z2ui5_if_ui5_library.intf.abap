@@ -7,7 +7,7 @@ INTERFACE z2ui5_if_ui5_library
         on_init          TYPE string VALUE 'INIT',
         on_event         TYPE string VALUE 'EVENT',
         on_rendering     TYPE string VALUE 'RENDERING',
-        on_serialization type string value 'SERIALIZATION',
+       " on_serialization TYPE string VALUE 'SERIALIZATION',
       END OF lifecycle_method,
       BEGIN OF event_type,
         server_function TYPE string VALUE 'SERVER_FUNCTION',
@@ -96,12 +96,41 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
+  METHODS ui_table
+    IMPORTING
+      rows            TYPE string OPTIONAL
+      selectionMode   TYPE string OPTIONAL
+      visibleRowCount TYPE string OPTIONAL
+      selectedIndex   TYPE string optional
+    RETURNING
+      VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS ui_extension
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS ui_columns
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS ui_column
+    IMPORTING
+      width         TYPE string DEFAULT '11rem'
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS ui_template
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+
   METHODS table
     IMPORTING
       items             TYPE data OPTIONAL
       growing           TYPE abap_bool DEFAULT abap_false
       growing_threshold TYPE string DEFAULT ''
       header_text       TYPE string OPTIONAL
+      sticky            TYPE string OPTIONAL
         PREFERRED PARAMETER items
     RETURNING
       VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
@@ -288,7 +317,7 @@ INTERFACE z2ui5_if_ui5_library
   METHODS list
     IMPORTING
       header_text   TYPE string OPTIONAL
-      items         TYPE string optional
+      items         TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

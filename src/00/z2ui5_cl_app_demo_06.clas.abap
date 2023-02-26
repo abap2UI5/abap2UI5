@@ -53,7 +53,10 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_06' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         "set table and container
-        DATA(tab) = page->scroll_container( '70%' )->table( view->_bind_one_way( t_tab ) ).
+        DATA(tab) = page->scroll_container( '70%' )->table(
+            items = view->_bind_one_way( t_tab )
+             sticky = 'ColumnHeaders,HeaderToolbar'
+             ).
 
         "set toolbar
         tab->header_toolbar( )->overflow_toolbar(
