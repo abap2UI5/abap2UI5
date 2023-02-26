@@ -490,7 +490,9 @@
 
        METHOD get_user_tech.
 
-         r_result = cl_abap_context_info=>get_user_technical_name( ).
+         r_result = sy-uname.
+        " r_result = cl_abap_syst=>get_user_name( ).
+        " cl_abap_context_info=>get_user_technical_name( ).
 
        ENDMETHOD.
 
