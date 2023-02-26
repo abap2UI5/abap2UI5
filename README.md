@@ -32,7 +32,7 @@ Works with all available ABAP stacks and language versions:
 
 Install with [abapGit](https://abapgit.org), create a new http service and call ABAP2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
 
-#### ABAP Cloud:
+#### ABAP for Cloud:
 ```abap
 METHOD if_http_service_extension~handle_request.
 
@@ -50,7 +50,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 
-#### ABAP Standard:
+#### Standard ABAP:
 ```abap
 METHOD if_http_extension~handle_request.
 
