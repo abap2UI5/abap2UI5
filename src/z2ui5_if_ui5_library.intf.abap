@@ -55,7 +55,10 @@ INTERFACE z2ui5_if_ui5_library
   METHODS code_editor
     IMPORTING
       value         TYPE string OPTIONAL
-      type          TYPE string
+      type          TYPE string optional
+      height        type string optional
+      width         type string optional
+      editable      type abap_bool optional
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

@@ -1602,9 +1602,11 @@
              name  = 'CodeEditor'
              ns = 'editor'
              t_prop = VALUE #(
-                 ( n = 'value'   v = _get_name_by_ref( value ) )
-                 ( n = 'type'    v = type )
-                 ( n = 'height'  v = '600px' )
+                 ( n = 'value'  v = value )
+                 ( n = 'type'   v = type )
+                 ( n = 'editable'   v = _=>get_abap_2_json( editable ) )
+                 ( n = 'height' v = height ) "'600px' )
+                 ( n = 'width'  v = width ) "'600px' )
               ) ) .
 
        ENDMETHOD.
