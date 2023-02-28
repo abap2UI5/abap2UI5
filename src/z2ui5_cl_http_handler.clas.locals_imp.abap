@@ -451,7 +451,16 @@
          DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
          TRY.
              lx_no_handler ?= val.
+         DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
+         TRY.
+             lx_no_handler ?= val.
              r_result = lx_no_handler->previous.
+           CATCH cx_root.
+         ENDTRY.
+         "   CASE TYPE OF val.
+         "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
+         "       r_result = lx_no_handler->previous.
+         "   ENDCASE.
            CATCH cx_root.
          ENDTRY.
          "   CASE TYPE OF val.
@@ -492,7 +501,9 @@
 
          r_result = sy-uname.
          " r_result = cl_abap_syst=>get_user_name( ).
-         " cl_abap_context_info=>get_user_technical_name( ).
+         " sy-uname.
+        " r_result = cl_abap_syst=>get_user_name( ).
+        " cl_abap_context_info=>get_user_technical_name( ).
 
        ENDMETHOD.
 
