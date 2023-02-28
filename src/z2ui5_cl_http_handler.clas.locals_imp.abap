@@ -451,7 +451,16 @@
          DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
          TRY.
              lx_no_handler ?= val.
+       "  DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
+         TRY.
+             lx_no_handler ?= val.
              r_result = lx_no_handler->previous.
+           CATCH cx_root.
+         ENDTRY.
+         "   CASE TYPE OF val.
+         "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
+         "       r_result = lx_no_handler->previous.
+         "   ENDCASE.
            CATCH cx_root.
          ENDTRY.
          "   CASE TYPE OF val.
@@ -491,6 +500,8 @@
        METHOD get_user_tech.
 
          r_result = sy-uname.
+         " r_result = cl_abap_syst=>get_user_name( ).
+         " sy-uname.
         " r_result = cl_abap_syst=>get_user_name( ).
         " cl_abap_context_info=>get_user_technical_name( ).
 
@@ -785,6 +796,21 @@
      ENDCLASS.
 
      CLASS _ DEFINITION INHERITING FROM z2ui5_lcl_utility.
+       PUBLIC SECTION.
+         CLASS-METHODS get_trim_upper
+           IMPORTING
+             val             TYPE clike
+           RETURNING
+             VALUE(r_result) TYPE string.
+     ENDCLASS.
+
+     CLASS _ IMPLEMENTATION.
+
+       METHOD get_trim_upper.
+         r_result = val.
+         r_result = shift_left( shift_right( to_upper( r_result ) ) ).
+       ENDMETHOD.
+
      ENDCLASS.
 
      CLASS z2ui5_lcl_utility_tree_json DEFINITION.
@@ -1602,9 +1628,11 @@
              name  = 'CodeEditor'
              ns = 'editor'
              t_prop = VALUE #(
-                 ( n = 'value'   v = _get_name_by_ref( value ) )
-                 ( n = 'type'    v = type )
-                 ( n = 'height'  v = '600px' )
+                 ( n = 'value'  v = value )
+                 ( n = 'type'   v = type )
+                 ( n = 'editable'   v = _=>get_abap_2_json( editable ) )
+                 ( n = 'height' v = height ) "'600px' )
+                 ( n = 'width'  v = width ) "'600px' )
               ) ) .
 
        ENDMETHOD.
@@ -2090,72 +2118,72 @@
 
        METHOD z2ui5_if_ui5_library~ui_column.
 
-       result =  _generic(
-             name = 'Column'
-             ns   = 'ui'
-            t_prop = VALUE #(
-                 ( n = 'width'  v = width  )
+         result =  _generic(
+               name = 'Column'
+               ns   = 'ui'
+              t_prop = VALUE #(
+                   ( n = 'width'  v = width  )
 *                 ( n = 'key'   v = key )
 *                 ( n = 'text'  v = text )
-             )
-             ).
+               )
+               ).
 
        ENDMETHOD.
 
        METHOD z2ui5_if_ui5_library~ui_columns.
 
-       result =  _generic(
-             name = 'columns'
-             ns   = 'ui'
+         result =  _generic(
+               name = 'columns'
+               ns   = 'ui'
 *             t_prop = VALUE #(
 *                 ( n = 'icon'  v = icon  )
 *                 ( n = 'key'   v = key )
 *                 ( n = 'text'  v = text )
 *             )
-             ).
+               ).
 
        ENDMETHOD.
 
        METHOD z2ui5_if_ui5_library~ui_extension.
 
-       result =  _generic(
-             name = 'extension'
-             ns   = 'ui'
+         result =  _generic(
+               name = 'extension'
+               ns   = 'ui'
 *             t_prop = VALUE #(
 *                 ( n = 'icon'  v = icon  )
 *                 ( n = 'key'   v = key )
 *                 ( n = 'text'  v = text )
 *             )
-             ).
+               ).
 
        ENDMETHOD.
 
        METHOD z2ui5_if_ui5_library~ui_table.
 
-       result =  _generic(
-             name = 'Table'
-             ns   = 'ui'
-             t_prop = VALUE #(
-                 ( n = 'rows'  v = rows  )
-                 ( n = 'selectionMode'   v = selectionMode )
-                 ( n = 'visibleRowCount' v = visibleRowCount )
-                 ( n = 'selectedIndex'   v = selectedIndex )
-             )
-             ).
+         result =  _generic(
+               name = 'Table'
+               ns   = 'ui'
+               t_prop = VALUE #(
+                   ( n = 'rows'  v = rows  )
+                   ( n = 'selectionMode'   v = selectionMode )
+                   ( n = 'visibleRowCount' v = visibleRowCount )
+                   ( n = 'selectedIndex'   v = selectedIndex )
+               )
+               ).
 
        ENDMETHOD.
 
        METHOD z2ui5_if_ui5_library~ui_template.
 
-       result =  _generic(
-             name = 'template'
-             ns   = 'ui'
+         result =  _generic(
+               name = 'template'
+               ns   = 'ui'
 *             t_prop = VALUE #(
 *                 ( n = 'icon'  v = icon  )
 *                 ( n = 'key'   v = key )
 *                 ( n = 'text'  v = text )
 *             )
-             ).
+               ).
 
        ENDMETHOD.
 
@@ -2268,7 +2296,7 @@
                WHEN 'BUTTON_CHECK'.
                  TRY.
                      DATA li_app_test TYPE REF TO z2ui5_if_app.
-                     ms_home-classname = to_upper( ms_home-classname ).
+                     ms_home-classname = _=>get_trim_upper( ms_home-classname ).
                      CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
                      client->display_message_toast( 'App is ready to start!' ).
@@ -2287,35 +2315,8 @@
                           ).
                  ENDTRY.
 
-               WHEN '0101'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
-
-               WHEN '0102'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
-
-               WHEN '0103'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_08( ) ).
-
-               WHEN '0104'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_10( ) ).
-
-               WHEN '0201'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
-
-               WHEN '0202'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_05( ) ).
-
-               WHEN '0301'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_03( ) ).
-
-               WHEN '0302'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_07( ) ).
-
-               WHEN '0303'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_06( ) ).
-
-               WHEN '0304'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_11( ) ).
+               WHEN 'DEMOS'.
+                 client->nav_to_app( NEW z2ui5_cl_app_demo_00( ) ).
 
              ENDCASE.
 
@@ -2334,7 +2335,7 @@
 
          DATA(view) = client->factory_view( 'HOME' ).
 
-         DATA(page) = view->page( 'Welcome to ABAP2UI5! - Development of UI5 Apps in pure ABAP' ).
+         DATA(page) = view->page( 'ABAP2UI5 - Welcome to development of UI5 Apps in pure ABAP!' ).
          page->header_content(
              )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
              )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
@@ -2366,32 +2367,17 @@
          form->button( text = ms_home-btn_text press = view->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
             )->label( 'Step 5' ).
 
-         IF ms_home-class_editable = abap_false.
-           DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
-           form->link( text = 'Link to the Application'
-                   href = lv_link " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
-                ).
-         ENDIF.
+         "  IF ms_home-class_editable = abap_false.
+         DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
+         form->link( text = 'Link to the Application'
+                 href = lv_link " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
+                  enabled = xsdbool( ms_home-class_editable = abap_false )
+             ).
+         "   ENDIF.
+         grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+         grid->simple_form(  'Applications and Examples' )->content( 'f'
+           )->button( text = 'Press to continue...' press = view->_event( 'DEMOS'  ) ).
 
-
-         grid = page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
-
-         grid->simple_form(  'HowTo - General' )->content( 'f'
-             )->button( text = 'Client-Server Communication (Data Binding)' press = view->_event( '0101' )
-             )->button( text = 'Controller (Events, Navigation)' press = view->_event( '0102' )
-             )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
-             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' ) ).
-
-         grid->simple_form(  'HowTo - Selection-Screen' )->content( 'f'
-             )->button( text = 'Basic' press = view->_event( '0201' )
-             )->button( text = 'More Controls' press = view->_event( '0202' ) ).
-
-
-         grid->simple_form(  'HowTo - List and Tables' )->content( 'f'
-             )->button( text = 'List' press = view->_event( '0301' )
-             )->button( text = 'Table' press = view->_event( '0302' )
-             )->button( text = 'Table with Toolbar and Container' press = view->_event( '0303' )
-             )->button( text = 'Table Editable' press = view->_event( '0304' ) ).
 
 
          IF ms_error-x_error IS BOUND.
@@ -2655,7 +2641,7 @@
          LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
              WHERE bind_type = z2ui5_if_ui5_library=>cs-bind_type-two_way. " check_used = abap_true AND check_update = abap_true.
 
-           lr_attri->bind_type = ''.
+          " lr_attri->bind_type = ''.
 
            FIELD-SYMBOLS <attribute> TYPE any.
            DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
