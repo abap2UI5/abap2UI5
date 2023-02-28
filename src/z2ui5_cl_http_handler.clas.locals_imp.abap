@@ -451,7 +451,7 @@
          DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
          TRY.
              lx_no_handler ?= val.
-         DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
+       "  DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
          TRY.
              lx_no_handler ?= val.
              r_result = lx_no_handler->previous.
