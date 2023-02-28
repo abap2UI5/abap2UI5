@@ -256,7 +256,7 @@
 
        PROTECTED SECTION.
 
-         CLASS-DATA mv_counter TYPE int4.
+         CLASS-DATA mv_counter TYPE i.
 
          CLASS-METHODS _get_t_attri
            IMPORTING
