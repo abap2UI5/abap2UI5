@@ -168,7 +168,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_lcl_system_runtime=>client-t_header = client-t_header.
     z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
     z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
-    
+
     data lo_runtime type ref to z2ui5_lcl_system_runtime.
     create object lo_runtime.
     result = lo_runtime->execute_init(  ).
@@ -183,7 +183,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
-       
+
           data cx type ref to cx_root.
         CATCH cx_root INTO cx.
           data lo_runtime_error type ref to z2ui5_lcl_system_runtime.
@@ -196,7 +196,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
       IF lo_runtime->ms_leave_to_app IS NOT INITIAL.
         lo_runtime->db_save( ).
-        DATA(lo_runtime_new) = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
+        data lo_runtime_new type ref to z2ui5_lcl_system_runtime.
+        lo_runtime_new = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
         lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
         lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
         lo_runtime = lo_runtime_new.
