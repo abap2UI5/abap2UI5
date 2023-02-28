@@ -10,6 +10,7 @@
              cl_abap_format_e_json_string TYPE i VALUE 24, "cl_abap_format=>e_xml_attr
            END OF cs.
 
+           
          TYPES:
            BEGIN OF ty_attri,
              name           TYPE string,
