@@ -198,7 +198,8 @@
 
        METHOD get_abap_2_json.
 
-         DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
+         DATA lo_ele TYPE REF TO cl_abap_elemdescr.
+         lo_ele = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
          IF lo_ele->get_relative_name( ) = 'ABAP_BOOL'.
            r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
          ELSE.
