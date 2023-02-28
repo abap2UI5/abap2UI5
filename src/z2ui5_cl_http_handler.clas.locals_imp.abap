@@ -4,13 +4,6 @@
 
        PUBLIC SECTION.
 
-         CONSTANTS:
-           BEGIN OF cs,
-             cl_abap_format_e_xml_attr    TYPE i VALUE 1,  "cl_abap_format=>e_xml_attr
-             cl_abap_format_e_json_string TYPE i VALUE 24, "cl_abap_format=>e_xml_attr
-           END OF cs.
-
-           
          TYPES:
            BEGIN OF ty_attri,
              name           TYPE string,
@@ -663,7 +656,7 @@
          IF apos_active = abap_false.
            lo_attri->mv_value = v.
          ELSE.
-           lo_attri->mv_value = escape( val = v format = _=>cs-cl_abap_format_e_json_string ). "cl_abap_format=>e_json_string ) .
+           lo_attri->mv_value = escape( val = v format = cl_abap_format=>e_json_string ). "cl_abap_format=>e_json_string ) .
          ENDIF.
          lo_attri->mv_apost_active = apos_active.
          lo_attri->mo_parent = me.
@@ -1107,7 +1100,7 @@
 
          result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
                               REDUCE #( INIT val = `` FOR row IN  mt_prop WHERE ( v <> '' )
-                               NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = _=>cs-cl_abap_format_e_xml_attr  ) }" \n | ) }|.
+                               NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr  ) }" \n | ) }|.
          "cl_abap_format=>e_xml_attr
          IF t_child IS INITIAL.
            result = result && '/>'.
