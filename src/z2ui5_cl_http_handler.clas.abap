@@ -14,11 +14,18 @@ CLASS z2ui5_cl_http_handler DEFINITION
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
+    types:
+      begin of ty_S_name_value,
+        name type string,
+        value type string,
+      end of ty_S_name_value.
+    types ty_t_name_value type standard table of ty_S_name_value.
+
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
-        t_header TYPE tihttpnvp,
-        t_param  TYPE tihttpnvp,
+        t_header TYPE ty_t_name_value, "tihttpnvp,
+        t_param  TYPE ty_t_name_value, "tihttpnvp,
       END OF client.
 
     CLASS-METHODS main_index_html

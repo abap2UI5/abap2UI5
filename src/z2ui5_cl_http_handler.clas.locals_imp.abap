@@ -3,7 +3,12 @@
      CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
        PUBLIC SECTION.
-         INTERFACES if_t100_dyn_msg.
+
+         CONSTANTS:
+           BEGIN OF cs,
+             cl_abap_format_e_xml_attr    TYPE i VALUE 1,  "cl_abap_format=>e_xml_attr
+             cl_abap_format_e_json_string TYPE i VALUE 24, "cl_abap_format=>e_xml_attr
+           END OF cs.
 
          TYPES:
            BEGIN OF ty_attri,
@@ -12,6 +17,8 @@
              bind_type      TYPE string,
              data_stringify TYPE string,
            END OF ty_attri.
+
+         TYPES ty_t_string TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
          TYPES:
            BEGIN OF ty_name_value,
@@ -49,11 +56,6 @@
            END OF ty.
 
          DATA:
-           BEGIN OF ms_log,
-             t_log TYPE STANDARD TABLE OF ty-s-msg_result WITH EMPTY KEY,
-           END OF ms_log.
-
-         DATA:
            BEGIN OF ms_error,
              x_root TYPE REF TO cx_root,
              uuid   TYPE string,
@@ -67,17 +69,10 @@
            IMPORTING
              val      TYPE any OPTIONAL
              kind     TYPE string OPTIONAL
-             textid   LIKE if_t100_message=>t100key OPTIONAL
              previous LIKE previous OPTIONAL
                PREFERRED PARAMETER val.
 
          METHODS get_text REDEFINITION.
-
-         CLASS-METHODS x_factory_by
-           IMPORTING
-             x_root        TYPE REF TO cx_root
-           RETURNING
-             VALUE(result) TYPE ty-o-me.
 
          CLASS-METHODS get_classname_by_ref
            IMPORTING
@@ -87,9 +82,7 @@
 
          CLASS-METHODS get_uuid
            RETURNING
-             VALUE(r_result) TYPE string
-           RAISING
-             cx_uuid_error.
+             VALUE(r_result) TYPE string.
 
          CLASS-METHODS get_uuid_session
            RETURNING
@@ -103,21 +96,17 @@
            RETURNING
              VALUE(r_result) TYPE timestampl.
 
-         CLASS-METHODS get_user_name
-           RETURNING
-             VALUE(r_result) TYPE string.
-
          CLASS-METHODS trans_json_2_data
            IMPORTING
              iv_json   TYPE clike
            EXPORTING
              ev_result TYPE REF TO data.
 
-         CLASS-METHODS trans_data_2_json
+         CLASS-METHODS trans_any_2_json
            IMPORTING
-             data            TYPE data
+             any           TYPE any
            RETURNING
-             VALUE(r_result) TYPE string.
+             VALUE(result) TYPE string.
 
          CLASS-METHODS trans_xml_2_object
            IMPORTING
@@ -126,24 +115,6 @@
              data          TYPE data
            RETURNING
              VALUE(result) TYPE REF TO data.
-
-         CLASS-METHODS trans_xml_2_any_multi
-           IMPORTING
-             xml     TYPE clike
-           EXPORTING
-             object1 TYPE REF TO if_serializable_object
-             object2 TYPE REF TO if_serializable_object
-             data1   TYPE REF TO data
-             data2   TYPE REF TO data.
-
-         CLASS-METHODS trans_any_2_xml_multi
-           IMPORTING
-             object1       TYPE REF TO if_serializable_object OPTIONAL
-             object2       TYPE REF TO if_serializable_object OPTIONAL
-             data1         TYPE REF TO data OPTIONAL
-             data2         TYPE REF TO data OPTIONAL
-           RETURNING
-             VALUE(result) TYPE string.
 
          CLASS-METHODS get_t_attri_by_ref
            IMPORTING
@@ -156,73 +127,6 @@
              object        TYPE data
            RETURNING
              VALUE(result) TYPE string.
-
-         CLASS-METHODS trans_any_2_json
-           IMPORTING
-             any           TYPE any
-           RETURNING
-             VALUE(result) TYPE string.
-
-*         CLASS-METHODS action_parallel
-*           IMPORTING
-*             it_parallel   TYPE cl_abap_parallel=>t_in_inst_tab
-*           RETURNING
-*             VALUE(result) TYPE cl_abap_parallel=>t_out_inst_tab.
-
-         CLASS-METHODS conv_char_2_hex
-           IMPORTING
-             iv_string       TYPE clike
-           RETURNING
-             VALUE(r_result) TYPE xstring.
-
-         CLASS-METHODS conv_hex_2_bin
-           IMPORTING
-             iv_string       TYPE clike
-           RETURNING
-             VALUE(r_result) TYPE xstring.
-
-         CLASS-METHODS conv_bin_2_base64
-           IMPORTING
-             iv_string       TYPE clike
-           RETURNING
-             VALUE(r_result) TYPE xstring.
-
-         CLASS-METHODS conv_string_2_xstring
-           IMPORTING
-             iv_string       TYPE clike
-           RETURNING
-             VALUE(r_result) TYPE xstring.
-
-         CLASS-METHODS conv_xstring_2_string
-           IMPORTING
-             iv_xstring      TYPE xstring
-           RETURNING
-             VALUE(r_result) TYPE string.
-
-         CLASS-METHODS assign
-           IMPORTING
-             object          TYPE REF TO object
-             attri_name      TYPE clike
-           RETURNING
-             VALUE(r_result) TYPE REF TO data.
-
-         CLASS-METHODS get_data_by_xml
-           IMPORTING
-             iv_data         TYPE string
-           EXPORTING
-             VALUE(r_result) TYPE data.
-
-         CLASS-METHODS get_xml_by_data
-           IMPORTING
-             is_any          TYPE data
-           RETURNING
-             VALUE(r_result) TYPE string.
-
-         CLASS-METHODS x_get_details
-           IMPORTING
-             val             TYPE REF TO cx_root
-           RETURNING
-             VALUE(r_result) TYPE string.
 
          CLASS-METHODS get_params_by_url
            IMPORTING
@@ -256,7 +160,7 @@
 
        PROTECTED SECTION.
 
-         CLASS-DATA mv_counter TYPE int4.
+         CLASS-DATA mv_counter TYPE i.
 
          CLASS-METHODS _get_t_attri
            IMPORTING
@@ -272,41 +176,11 @@
 
      CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
-*       METHOD action_parallel.
-*
-*         NEW cl_abap_parallel( )->run_inst(
-*            EXPORTING
-*               p_in_tab = it_parallel
-*            IMPORTING
-*               p_out_tab = result ).
-*
-*       ENDMETHOD.
-
-       METHOD assign.
-
-         FIELD-SYMBOLS <attribute> TYPE any.
-         FIELD-SYMBOLS <result> TYPE any.
-
-         DATA(lv_name) = |OBJECT->{ to_upper( attri_name ) }|.
-         ASSIGN (lv_name) TO <attribute>.
-
-         CREATE DATA r_result LIKE <attribute>.
-         ASSIGN r_result->* TO <result>.
-
-         <result> = <attribute>.
-
-       ENDMETHOD.
-
        METHOD constructor.
 
          super->constructor( previous = previous ).
 
          CLEAR me->textid.
-         IF textid IS INITIAL.
-           if_t100_message~t100key = if_t100_message=>default_textid.
-         ELSE.
-           if_t100_message~t100key = textid.
-         ENDIF.
 
          TRY.
              ms_error-x_root ?= val.
@@ -317,87 +191,9 @@
          ms_error-kind = kind.
 
          TRY.
-             ms_error-uuid = cl_system_uuid=>create_uuid_c32_static( ).
+             ms_error-uuid = z2ui5_lcl_utility=>get_uuid( ). "cl_system_uuid=>create_uuid_c32_static( ).
            CATCH cx_root.
          ENDTRY.
-       ENDMETHOD.
-
-
-       METHOD conv_bin_2_base64.
-
-       ENDMETHOD.
-
-
-       METHOD conv_char_2_hex.
-
-       ENDMETHOD.
-
-
-       METHOD conv_hex_2_bin.
-
-       ENDMETHOD.
-
-
-       METHOD conv_string_2_XSTRING.
-
-         DATA conv TYPE REF TO object.
-
-         TRY.
-             CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
-               RECEIVING
-                 instance = conv.
-
-             CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
-               EXPORTING
-                 source = iv_string
-               RECEIVING
-                 result = r_result.
-           CATCH cx_sy_dyn_call_illegal_class.
-             DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
-             CALL METHOD (conv_out_class)=>create
-               EXPORTING
-                 encoding = 'UTF-8'
-               RECEIVING
-                 conv     = conv.
-
-             CALL METHOD conv->('CONVERT')
-               EXPORTING
-                 data   = iv_string
-               IMPORTING
-                 buffer = r_result.
-         ENDTRY.
-
-       ENDMETHOD.
-
-       METHOD conv_XSTRING_2_string.
-
-         DATA conv TYPE REF TO object.
-
-         TRY.
-             CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
-               RECEIVING
-                 instance = conv.
-
-             CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
-               EXPORTING
-                 source = iv_xstring
-               RECEIVING
-                 result = r_result.
-           CATCH cx_sy_dyn_call_illegal_class.
-             DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
-             CALL METHOD (conv_in_class)=>create
-               EXPORTING
-                 encoding = 'UTF-8'
-               RECEIVING
-                 conv     = conv.
-
-             CALL METHOD conv->('CONVERT')
-               EXPORTING
-                 input = iv_xstring
-               IMPORTING
-                 data  = r_result.
-         ENDTRY.
-
        ENDMETHOD.
 
        METHOD get_abap_2_json.
@@ -418,16 +214,6 @@
          r_result = substring_after( val = lv_classname sub = '\CLASS=' ).
 
        ENDMETHOD.
-
-
-       METHOD get_data_by_xml.
-
-         CALL TRANSFORMATION id
-             SOURCE XML iv_data
-             RESULT data = r_result.
-
-       ENDMETHOD.
-
 
        METHOD get_params_by_url.
 
@@ -451,23 +237,13 @@
          DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
          TRY.
              lx_no_handler ?= val.
-       "  DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
-         TRY.
-             lx_no_handler ?= val.
-             r_result = lx_no_handler->previous.
+             TRY.
+                 lx_no_handler ?= val.
+                 r_result = lx_no_handler->previous.
+               CATCH cx_root.
+             ENDTRY.
            CATCH cx_root.
          ENDTRY.
-         "   CASE TYPE OF val.
-         "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
-         "       r_result = lx_no_handler->previous.
-         "   ENDCASE.
-           CATCH cx_root.
-         ENDTRY.
-         "   CASE TYPE OF val.
-         "     WHEN TYPE cx_sy_no_handler INTO DATA(lx_no_handler).
-         "       r_result = lx_no_handler->previous.
-         "   ENDCASE.
-
          IF r_result IS NOT BOUND.
            r_result = val.
          ENDIF.
@@ -490,27 +266,33 @@
        ENDMETHOD.
 
 
-       METHOD get_user_name.
-
-*   r_result =  lcl_help=>get_user_name(  ).
-
-       ENDMETHOD.
-
-
        METHOD get_user_tech.
 
          r_result = sy-uname.
-         " r_result = cl_abap_syst=>get_user_name( ).
-         " sy-uname.
-        " r_result = cl_abap_syst=>get_user_name( ).
-        " cl_abap_context_info=>get_user_technical_name( ).
 
        ENDMETHOD.
 
 
        METHOD get_uuid.
 
-         r_result = cl_system_uuid=>create_uuid_c32_static( ).
+         DATA uuid TYPE c LENGTH 32.
+
+         TRY.
+             CALL METHOD ('CL_SYSTEM_UUID')=>create_uuid_c32_static
+               RECEIVING
+                 uuid = uuid.
+
+           CATCH cx_sy_dyn_call_illegal_class.
+
+             DATA lv_fm TYPE string.
+             lv_fm = 'GUID_CREATE'.
+             CALL FUNCTION lv_fm
+               IMPORTING
+                 ev_guid_32 = uuid.
+
+         ENDTRY.
+
+         r_result = uuid.
 
        ENDMETHOD.
 
@@ -520,15 +302,6 @@
          r_result = shift_left( shift_right( CONV string( mv_counter ) ) ).
 
        ENDMETHOD.
-
-       METHOD get_xml_by_data.
-
-         CALL TRANSFORMATION id
-         SOURCE data = is_any
-         RESULT XML r_result.
-
-       ENDMETHOD.
-
 
        METHOD get_t_attri_by_ref.
 
@@ -573,41 +346,11 @@
 
        ENDMETHOD.
 
-
        METHOD trans_any_2_json.
 
          result = /ui2/cl_json=>serialize( any ).
 
        ENDMETHOD.
-
-       METHOD trans_any_2_xml_multi.
-
-         CALL TRANSFORMATION id
-            SOURCE
-             obj1  = object1
-             obj2  = object2
-             data1 = data1
-             data2 = data2 "i_result->ms_db-data
-            RESULT
-            XML result.
-         "i_result->mi_object.
-
-       ENDMETHOD.
-
-
-       METHOD trans_data_2_json.
-
-         r_result = /ui2/cl_json=>serialize( data ).
-
-         " RETURN.
-         " Convert input post to JSON
-         "  DATA(json_post) = xco_cp_json=>data->from_abap( data )->apply(
-         "    VALUE #( ( xco_cp_json=>transformation->underscore_to_camel_case ) ) )->to_string(  ).
-
-         "  r_result = json_post.
-
-       ENDMETHOD.
-
 
        METHOD trans_json_2_data.
 
@@ -620,13 +363,6 @@
              CHANGING
               data            = ev_result
              ).
-
-
-*    RETURN.
-         " Convert JSON to post structure
-*    xco_cp_json=>data->from_string( iv_json )->apply(
-*      VALUE #( ( xco_cp_json=>transformation->camel_case_to_underscore ) )
-*      )->write_to( iv_result ).
 
        ENDMETHOD.
 
@@ -685,49 +421,12 @@
 
        ENDMETHOD.
 
-       METHOD trans_xml_2_any_multi.
-
-         CALL TRANSFORMATION id
-            SOURCE XML xml
-            RESULT
-             obj1  = object1
-             obj2  = object2
-             data1 = data1
-             data2 = data2.
-
-       ENDMETHOD.
-
 
        METHOD trans_xml_2_object.
 
          CALL TRANSFORMATION id
             SOURCE XML xml
             RESULT data = data.
-
-       ENDMETHOD.
-
-       METHOD x_factory_by.
-
-         result = NEW #(  ).
-         result->ms_error-x_root = x_root.
-         result->ms_error-text = x_root->get_text( ).
-
-       ENDMETHOD.
-
-       METHOD x_get_details.
-
-         DATA(lx) = val.
-         DATA(lt_text) = VALUE string_table(   ).
-         WHILE lx IS BOUND.
-           INSERT lx->get_text(  ) INTO TABLE lt_text.
-           lx = lx->previous.
-         ENDWHILE.
-
-         DELETE ADJACENT DUPLICATES FROM lt_text COMPARING table_line.
-
-         r_result = REDUCE #( INIT result = ||
-                              FOR row IN lt_text
-                              NEXT result = result && row && | / | ).
 
        ENDMETHOD.
 
@@ -781,13 +480,6 @@
          IF ms_error-s_msg-message IS NOT INITIAL.
            result = ms_error-s_msg-message.
            result = COND #( WHEN result IS INITIAL THEN 'unknown error'  ELSE result ).
-           RETURN.
-         ENDIF.
-
-         IF if_t100_message~t100key-msgid IS NOT INITIAL.
-           MESSAGE ID if_t100_message~t100key-msgid TYPE `I` NUMBER if_t100_message~t100key-msgno
-              INTO ms_error-text.
-           result = COND #( WHEN result IS INITIAL THEN 'unknown error' ELSE result ).
            RETURN.
          ENDIF.
 
@@ -939,7 +631,6 @@
 
        PROTECTED SECTION.
          DATA mv_check_attr_all_read TYPE abap_bool.
-       PRIVATE SECTION.
 
          METHODS wrap_json
            IMPORTING
@@ -954,8 +645,8 @@
            RETURNING
              VALUE(r_result) TYPE string.
 
+       PRIVATE SECTION.
      ENDCLASS.
-
 
 
      CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
@@ -970,8 +661,7 @@
          IF apos_active = abap_false.
            lo_attri->mv_value = v.
          ELSE.
-           lo_attri->mv_value = escape( val    = v
-                  format = cl_abap_format=>e_json_string ) .
+           lo_attri->mv_value = escape( val = v format = _=>cs-cl_abap_format_e_json_string ). "cl_abap_format=>e_json_string ) .
          ENDIF.
          lo_attri->mv_apost_active = apos_active.
          lo_attri->mo_parent = me.
@@ -1237,8 +927,8 @@
 
              r_result = r_result &&
                 quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
-                            iv_text = lo_attri->mv_value ).   " escape( val = lo_attri->mv_value
-             "         format = cl_abap_format=>e_json_string )
+                            iv_text = lo_attri->mv_value ).
+             " escape( val = lo_attri->mv_value  format = cl_abap_format=>e_json_string )
            ENDIF.
 
          ENDLOOP.
@@ -1415,8 +1105,8 @@
 
          result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
                               REDUCE #( INIT val = `` FOR row IN  mt_prop WHERE ( v <> '' )
-                               NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
-
+                               NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = _=>cs-cl_abap_format_e_xml_attr  ) }" \n | ) }|.
+         "cl_abap_format=>e_xml_attr
          IF t_child IS INITIAL.
            result = result && '/>'.
            RETURN.
@@ -2316,7 +2006,9 @@
                  ENDTRY.
 
                WHEN 'DEMOS'.
-                 client->nav_to_app( NEW z2ui5_cl_app_demo_00( ) ).
+                 DATA li_app TYPE REF TO z2ui5_if_app.
+                 CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
+                 client->nav_to_app( li_app ).
 
              ENDCASE.
 
@@ -2348,7 +2040,8 @@
             )->label( 'Step 2'
             )->text( 'Add the interface Z2UI5_IF_APP'
             )->label( 'Step 3'
-            )->text( 'Implement the view and the behaviour in the method controller'
+            )->text( 'Implement the view and the behaviour'
+            )->link( text = '(Example)' href = 'https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap'
             )->label( 'Step 4'
          ).
 
@@ -2367,18 +2060,14 @@
          form->button( text = ms_home-btn_text press = view->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
             )->label( 'Step 5' ).
 
-         "  IF ms_home-class_editable = abap_false.
          DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
          form->link( text = 'Link to the Application'
-                 href = lv_link " 'https://' && lv_url && '' && '?sap-client=' && lv_tenant && '&amp;app=' && ms_home-classname
+                 href = lv_link
                   enabled = xsdbool( ms_home-class_editable = abap_false )
              ).
-         "   ENDIF.
          grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
          grid->simple_form(  'Applications and Examples' )->content( 'f'
            )->button( text = 'Press to continue...' press = view->_event( 'DEMOS'  ) ).
-
-
 
          IF ms_error-x_error IS BOUND.
            view = client->factory_view( 'ERROR' ).
@@ -2386,14 +2075,11 @@
                text = ms_error-classname
                description = ms_error-x_error->get_text( )
              )->buttons(
-             )->button(
-                   text  = 'HOME'
-                   press = view->_event( 'BUTTON_HOME' )
+             )->button( text = 'HOME' press = view->_event( 'BUTTON_HOME' )
              )->button(
                    text = 'BACK'
                    press = view->_event_display_id( client->get( )-id_prev_app )
-                   type = 'Emphasized'
-             ).
+                   type = 'Emphasized' ).
          ENDIF.
 
        ENDMETHOD.
@@ -2422,8 +2108,8 @@
          CLASS-DATA:
            BEGIN OF client,
              o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
-             t_header TYPE tihttpnvp,
-             t_param  TYPE tihttpnvp,
+             t_header TYPE z2ui5_cl_http_handler=>ty_t_name_value, "tihttpnvp,
+             t_param  TYPE z2ui5_cl_http_handler=>ty_t_name_value,
            END OF client.
 
          TYPES:
@@ -2451,7 +2137,7 @@
              o_app             TYPE REF TO object,
            END OF ms_db.
 
-         DATA mt_after TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
+         DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH EMPTY KEY.
          DATA mt_screen TYPE STANDARD TABLE OF s_screen.
          DATA ms_leave_to_app LIKE ms_db.
 
@@ -2641,7 +2327,7 @@
          LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
              WHERE bind_type = z2ui5_if_ui5_library=>cs-bind_type-two_way. " check_used = abap_true AND check_update = abap_true.
 
-          " lr_attri->bind_type = ''.
+           " lr_attri->bind_type = ''.
 
            FIELD-SYMBOLS <attribute> TYPE any.
            DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
