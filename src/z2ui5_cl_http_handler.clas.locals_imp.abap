@@ -656,7 +656,7 @@
          IF apos_active = abap_false.
            lo_attri->mv_value = v.
          ELSE.
-           lo_attri->mv_value = escape( val = v format = cl_abap_format=>e_json_string ). "cl_abap_format=>e_json_string ) .
+           lo_attri->mv_value = escape( val = v format = cl_abap_format=>e_json_string ).
          ENDIF.
          lo_attri->mv_apost_active = apos_active.
          lo_attri->mo_parent = me.
