@@ -75,3 +75,7 @@ METHOD if_http_extension~handle_request.
 
 ENDMETHOD.
 ```
+## FAQ
+For questions/comments/bugs/feature requests/wishes please create an (issue)[https://github.com/oblomov-dev/ABAP2UI5/issues].
+Read this (instructions)[https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App] when you develope your first app.
+Having unknown problems with your newly created app, check this (debugging & troubleshooting page)[https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troublshooting] or create an (issue)[https://github.com/oblomov-dev/ABAP2UI5/issues].
