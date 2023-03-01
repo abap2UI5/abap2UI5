@@ -98,7 +98,74 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
 
-*        grid->simple_form(  'Demo Apps' )->content( 'f'
+      return.
+
+      data(form) = grid->simple_form(  'Demo Apps' )->content( 'f' ).
+    "   )->vertical_layout( class = 'sapUiContentPadding equalColumns' width = '100%'
+
+
+       form->flex_box( class = 'columns'
+        )->text( text = 'Code Editor (MIME Repository)'
+                    )->get(
+            )->layout_data(
+             )->flex_item_data(
+                    background_design = 'Solid'
+                    grow_Factor = '1'
+                    base_size = '0'
+                    style_class = 'sapUiTinyMargin'
+            )->get_parent( )->get_parent(
+        )->text( text = 'Code Editor (MIME Repository)Code Editor (MIME Repository)Code Editor (MIME Repository)Code Editor (MIME Repository)'
+            )->get(
+            )->layout_data(
+             )->flex_item_data(
+                    background_design = 'Solid'
+                    grow_Factor = '3'
+                    base_size = '0'
+                    style_class = 'sapUiTinyMargin'
+            )->get_parent( )->get_parent(
+        )->button( text = 'Start' press = view->_event( '0301' )
+            )->get(
+            )->layout_data(
+             )->flex_item_data(
+                    background_design = 'Solid'
+                    grow_Factor = '1'
+                    base_size = '0'
+                    style_class = 'sapUiTinyMargin'
+            )->get_parent( )->get_parent(
+            )->get_parent( )->get_parent(
+      ).
+
+
+             form->flex_box( class = 'columns'
+        )->text( text = 'Code Editor (MIME Repository)'
+                    )->get(
+            )->layout_data(
+             )->flex_item_data(
+                    background_design = 'Solid'
+                    grow_Factor = '1'
+                    base_size = '0'
+                    style_class = 'sapUiTinyMargin'
+            )->get_parent( )->get_parent(
+        )->text( text = 'Code Editor (MIME Repository)Code Editor (MIME Repository)Code Editor (MIME Repository)Code Editor (MIME Repository)'
+            )->get(
+            )->layout_data(
+             )->flex_item_data(
+                    background_design = 'Solid'
+                    grow_Factor = '3'
+                    base_size = '0'
+                    style_class = 'sapUiTinyMargin'
+            )->get_parent( )->get_parent(
+        )->button( text = 'Start' press = view->_event( '0301' )
+            )->get(
+            )->layout_data(
+             )->flex_item_data(
+                    background_design = 'Solid'
+                    grow_Factor = '1'
+                    base_size = '0'
+                    style_class = 'sapUiTinyMargin'
+            )->get_parent( )->get_parent(
+            )->get_parent( )->get_parent(
+      ).
 *                )->text( 'Code Editor (MIME Repository) - Code_editor Control used, develope nice Editor apps'
 *            )->button( text = 'Code Editor (MIME Repository)' press = view->_event( '0301' )
 *            )->button( text = 'Table Maintenance (se16-edit)' press = view->_event( '0302' )

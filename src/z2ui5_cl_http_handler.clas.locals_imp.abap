@@ -1866,7 +1866,61 @@
 
        ENDMETHOD.
 
-     ENDCLASS.
+       METHOD z2ui5_if_ui5_library~flex_box.
+
+
+         result =  _generic(
+               name = 'FlexBox'
+            "   ns   = 'ui'
+             t_prop = VALUE #(
+                 ( n = 'class'  v = class  )
+*                 ( n = 'key'   v = key )
+*                 ( n = 'text'  v = text )
+             )
+               ).
+
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_library~vertical_layout.
+
+         result =  _generic(
+               name = 'VerticalLayout'
+                ns   = 'l'
+             t_prop = VALUE #(
+                 ( n = 'class'  v = class  )
+                 ( n = 'width'   v = width )
+             )
+               ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_library~flex_item_data.
+
+        result = me.
+
+         _generic(
+               name = 'FlexItemData'
+                "ns   = 'l'
+             t_prop = VALUE #(
+                 ( n = 'growFactor'  v = grow_Factor  )
+                 ( n = 'baseSize'   v = base_Size )
+                 ( n = 'backgroundDesign'   v = background_Design )
+                 ( n = 'styleClass'   v = style_Class )
+             )
+               ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_ui5_library~layout_data.
+
+        result = _generic(
+               name = 'layoutData'
+           ).
+
+  ENDMETHOD.
+
+ENDCLASS.
 
      CLASS z2ui5_lcl_system_app DEFINITION.
 
