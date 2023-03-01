@@ -78,4 +78,4 @@ ENDMETHOD.
 ## FAQ
 * for comments/questions/wishes/bugs please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)<br>
 * read this [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
-* having problems with your own developed app, check [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting) or create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)<br>
+* for problems with your own developed app, check [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting) or create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)<br>
