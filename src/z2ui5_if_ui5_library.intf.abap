@@ -89,6 +89,7 @@ INTERFACE z2ui5_if_ui5_library
   METHODS flex_box
     importing
     class type string optional
+    render_Type  type string optional
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -262,6 +263,10 @@ INTERFACE z2ui5_if_ui5_library
       VALUE(result)  TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS vbox
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS hbox
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 

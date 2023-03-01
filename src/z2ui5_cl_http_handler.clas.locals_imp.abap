@@ -1245,9 +1245,18 @@
 
        METHOD z2ui5_if_ui5_library~vbox.
 
-         result = me.
-         _generic(
+         result = _generic(
               name   = 'VBox'
+              t_prop = VALUE #(
+                 ( n = 'class' v = 'sapUiSmallMargin' )
+                  ) ).
+
+       ENDMETHOD.
+
+      METHOD z2ui5_if_ui5_library~hbox.
+
+        result = _generic(
+              name   = 'HBox'
               t_prop = VALUE #(
                  ( n = 'class' v = 'sapUiSmallMargin' )
                   ) ).
@@ -1874,6 +1883,8 @@
             "   ns   = 'ui'
              t_prop = VALUE #(
                  ( n = 'class'  v = class  )
+                 ( n = 'renderType'  v = render_type  )
+                "  type string optional
 *                 ( n = 'key'   v = key )
 *                 ( n = 'text'  v = text )
              )
