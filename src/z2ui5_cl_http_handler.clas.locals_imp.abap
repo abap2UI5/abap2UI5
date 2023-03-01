@@ -151,6 +151,11 @@
          CLASS-METHODS trans_ref_tab_2_tab
            IMPORTING ir_tab_from TYPE REF TO data
            CHANGING  ct_to       TYPE STANDARD TABLE.
+         CLASS-METHODS get_trim_upper
+           IMPORTING
+             val             TYPE clike
+           RETURNING
+             VALUE(r_result) TYPE string.
 
        PROTECTED SECTION.
 
@@ -159,7 +164,7 @@
          CLASS-METHODS _get_t_attri
            IMPORTING
              io_app          TYPE REF TO object
-             ir_attri        TYPE string "REF TO abap_attrdescr
+             ir_attri        TYPE string
            RETURNING
              VALUE(r_result) TYPE abap_attrdescr_tab.
 
@@ -169,6 +174,11 @@
 
 
      CLASS z2ui5_lcl_utility IMPLEMENTATION.
+
+       METHOD get_trim_upper.
+         r_result = val.
+         r_result = shift_left( shift_right( to_upper( r_result ) ) ).
+       ENDMETHOD.
 
        METHOD constructor.
 
@@ -185,7 +195,7 @@
          ms_error-kind = kind.
 
          TRY.
-             ms_error-uuid = z2ui5_lcl_utility=>get_uuid( ). "cl_system_uuid=>create_uuid_c32_static( ).
+             ms_error-uuid = z2ui5_lcl_utility=>get_uuid( ).
            CATCH cx_root.
          ENDTRY.
        ENDMETHOD.
@@ -212,11 +222,11 @@
 
        METHOD get_params_by_url.
 
-         url = to_upper( url ).
-         name = to_upper( name ).
+         url = get_trim_upper( url ).
+         name = get_trim_upper( name ).
          SPLIT url AT `?` INTO DATA(dummy) url.
          SPLIT url AT `&` INTO TABLE DATA(lt_href).
-         DATA(lt_url_params) = VALUE ty-t-name_value( ). "if_web_http_request=>name_value_pairs(  ).
+         DATA(lt_url_params) = VALUE ty-t-name_value( ).
          LOOP AT lt_href REFERENCE INTO DATA(lr_href).
            SPLIT lr_href->* AT `=` INTO TABLE DATA(lt_param).
            INSERT VALUE #( name = to_upper( lt_param[ 1 ] ) value = to_upper( lt_param[ 2 ] ) ) INTO TABLE lt_url_params.
@@ -482,23 +492,7 @@
 
      ENDCLASS.
 
-     CLASS _ DEFINITION INHERITING FROM z2ui5_lcl_utility.
-       PUBLIC SECTION.
-         CLASS-METHODS get_trim_upper
-           IMPORTING
-             val             TYPE clike
-           RETURNING
-             VALUE(r_result) TYPE string.
-     ENDCLASS.
-
-     CLASS _ IMPLEMENTATION.
-
-       METHOD get_trim_upper.
-         r_result = val.
-         r_result = shift_left( shift_right( to_upper( r_result ) ) ).
-       ENDMETHOD.
-
-     ENDCLASS.
+     CLASS _ DEFINITION INHERITING FROM z2ui5_lcl_utility. ENDCLASS.
 
      CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
@@ -2205,9 +2199,6 @@
        ENDMETHOD.
 
        METHOD db_save.
-*         DATA(li_app) = CAST z2ui5_if_app( ms_db-o_app ).
-*         ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_serialization.
-*         li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
 
          MODIFY z2ui5_t_draft FROM @( VALUE #(
            uuid  = ms_db-id

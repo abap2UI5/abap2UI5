@@ -80,6 +80,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                  `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                  `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                  `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                 `                        console.log('LAST REQUEST OBJECT:');` && |\n|  &&
                  `                        console.log(this.oBody);` && |\n|  &&
                  `                    }` && |\n|  &&
                  `                    this.Roundtrip();` && |\n|  &&
@@ -101,7 +102,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                  `                        }` && |\n|  &&
                  `                        var oResponse = JSON.parse(that.target.response);` && |\n|  &&
                  `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                 `                            console.log('LAST RESPONSE OBJECT:');` && |\n|  &&
                  `                            console.log(oResponse);` && |\n|  &&
+                 `                            console.log('LAST UI5-XML-VIEW:');` && |\n|  &&
                  `                            console.log(oResponse.vView);` && |\n|  &&
                  `                        }` && |\n|  &&
                  |\n|  &&
