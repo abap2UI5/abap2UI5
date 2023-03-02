@@ -41,8 +41,8 @@
                END OF msg_result,
              END OF s,
              BEGIN OF t,
-               attri      TYPE STANDARD TABLE OF ty_attri with default key,
-               name_value TYPE STANDARD TABLE OF ty_name_value with default key,
+               attri      TYPE STANDARD TABLE OF ty_attri WITH DEFAULT KEY,
+               name_value TYPE STANDARD TABLE OF ty_name_value WITH DEFAULT KEY,
              END OF t,
              BEGIN OF o,
                me TYPE REF TO z2ui5_lcl_utility,
@@ -104,9 +104,9 @@
 
          CLASS-METHODS trans_xml_2_object
            IMPORTING
-             xml           TYPE clike
+             xml  TYPE clike
            EXPORTING
-             data          TYPE data.
+             data TYPE data.
 
          CLASS-METHODS get_t_attri_by_ref
            IMPORTING
@@ -165,7 +165,7 @@
          CLASS-METHODS _get_t_attri
            IMPORTING
              io_app          TYPE REF TO object
-             ir_attri        TYPE string
+             ir_attri        TYPE clike
            RETURNING
              VALUE(r_result) TYPE abap_attrdescr_tab.
 
@@ -178,9 +178,9 @@
 
        METHOD get_trim_upper.
          r_result = val.
-         shift r_result right DELETING trailing ' '.
-         shift r_result left DELETING leading ' '.
-       "  r_result = shift_left( shift_right( to_upper( r_result ) ) ).
+         SHIFT r_result RIGHT DELETING TRAILING ' '.
+         SHIFT r_result LEFT DELETING LEADING ' '.
+         r_result = to_upper( r_result ).
        ENDMETHOD.
 
        METHOD constructor.
@@ -217,8 +217,8 @@
 
 
        METHOD get_classname_by_ref.
-
-         DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
+         DATA lv_classname TYPE string.
+         lv_classname = cl_abap_classdescr=>get_class_name( in ).
          r_result = substring_after( val = lv_classname sub = '\CLASS=' ).
 
        ENDMETHOD.
@@ -227,15 +227,26 @@
 
          url = get_trim_upper( url ).
          name = get_trim_upper( name ).
-         SPLIT url AT `?` INTO DATA(dummy) url.
-         SPLIT url AT `&` INTO TABLE DATA(lt_href).
-         DATA(lt_url_params) = VALUE ty-t-name_value( ).
-         LOOP AT lt_href REFERENCE INTO DATA(lr_href).
-           SPLIT lr_href->* AT `=` INTO TABLE DATA(lt_param).
+         DATA dummy TYPE string.
+         DATA lt_href TYPE ty_T_string.
+         SPLIT url AT `?` INTO dummy url.
+         SPLIT url AT `&` INTO TABLE lt_href.
+         DATA lt_url_params TYPE ty-t-name_value.
+         DATA lr_href TYPE REF TO string.
+         LOOP AT lt_href REFERENCE INTO lr_href.
+           DATA lt_param TYPE ty_t_string.
+           CLEAR lt_param.
+           SPLIT lr_href->* AT `=` INTO TABLE lt_param.
            INSERT VALUE #( name = to_upper( lt_param[ 1 ] ) value = to_upper( lt_param[ 2 ] ) ) INTO TABLE lt_url_params.
          ENDLOOP.
 
-         r_result = lt_url_params[ name = name ]-value.
+         DATA ls_row LIKE LINE OF lt_url_params.
+         READ TABLE lt_url_params WITH KEY name = name
+            INTO ls_row.
+         IF sy-subrc = 0.
+           r_result = ls_row-value.
+         ENDIF.
+         "lt_url_params[ name = name ]-value.
 
        ENDMETHOD.
 
@@ -315,25 +326,29 @@
 
          io_app = CAST object( io_app ).
 
-         DATA(lo_descr) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref(
-               p_object_ref         = io_app
-               ) ).
+         DATA lo_descr TYPE REF TO cl_abap_classdescr.
+         lo_descr ?=  cl_abap_objectdescr=>describe_by_object_ref( io_app ) .
 
-         DATA(rt_attri)  = lo_descr->attributes.
+         DATA rt_attri TYPE abap_attrdescr_tab.
+         rt_attri  = lo_descr->attributes.
 
-         DATA(rt_tmp) = VALUE abap_attrdescr_tab( ).
+         DATA rt_tmp TYPE STANDARD TABLE OF abap_attrdescr.
+         rt_tmp = VALUE abap_attrdescr_tab( ).
 
          DELETE rt_attri WHERE visibility <> cl_abap_classdescr=>public.
 
-         LOOP AT rt_attri REFERENCE INTO DATA(lr_attri).
+         DATA lr_attri TYPE REF TO abap_attrdescr.
+         LOOP AT rt_attri REFERENCE INTO lr_attri.
 
            CASE lr_attri->type_kind.
 
              WHEN cl_abap_classdescr=>typekind_struct2.
 
-               DATA(lt_attri_tmp) =  _get_t_attri(
+               DATA lt_attri_tmp    TYPE abap_attrdescr_tab.
+               CLEAR lt_attri_tmp.
+               lt_attri_tmp = _get_t_attri(
                    io_app = io_app
-                   ir_attri = CONV #( lr_attri->name )
+                   ir_attri = lr_attri->name
                     ).
 
                DELETE rt_attri.
@@ -346,9 +361,13 @@
 
          LOOP AT rt_attri REFERENCE INTO lr_attri.
 
-           INSERT VALUE #(
-              name = lr_attri->name
-              kind = lr_attri->type_kind ) INTO TABLE r_result.
+           DATA ls_row TYPE ty_attri.
+           CLEAR ls_row.
+           ls_row-name = lr_attri->name.
+           ls_row-kind = lr_attri->type_kind.
+
+           INSERT ls_row INTO TABLE r_result.
+
 
          ENDLOOP.
 
@@ -442,26 +461,36 @@
 
          FIELD-SYMBOLS <attribute> TYPE any.
 
-         DATA(lv_name) = |IO_APP->{ to_upper( ir_attri ) }|.
+         DATA lv_name TYPE string.
+         lv_name = |IO_APP->{ to_upper( ir_attri ) }|.
          ASSIGN (lv_name) TO <attribute>.
-         DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
+         DATA lo_struct TYPE REF TO cl_abap_structdescr.
+         lo_struct ?= cl_abap_structdescr=>describe_by_data( <attribute> ) .
 
-         DATA(lt_comp2) = lo_struct->get_components( ).
+         DATA lt_comp2 TYPE cl_abap_structdescr=>component_table.
+         lt_comp2 = lo_struct->get_components( ).
 
-         LOOP AT lt_comp2 REFERENCE INTO DATA(lr_comp).
-           DATA(lv_element) = ir_attri.
+         DATA lr_comp TYPE REF TO  abap_componentdescr.
+
+         LOOP AT lt_comp2 REFERENCE INTO lr_comp.
+           DATA lv_element TYPE string.
+           CLEAR lv_element.
+           lv_element = ir_attri.
            lv_element = lv_element && '-' && lr_comp->name.
 
            TRY.
                lv_name = |IO_APP->{ to_upper( lv_element ) }|.
                ASSIGN (lv_name) TO <attribute>.
-               lo_struct = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
+               lo_struct ?= cl_abap_structdescr=>describe_by_data( <attribute> ).
 
-               DATA(lt_comp3) = lo_struct->get_components( ).
+               DATA lt_comp3 TYPE cl_abap_structdescr=>component_table.
+               lt_comp3 = lo_struct->get_components( ).
 
-               LOOP AT lt_comp3 REFERENCE INTO DATA(lr_comp2).
-
-                 DATA(lt_tmp) =  _get_t_attri(
+               DATA lr_comp2 TYPE REF TO abap_componentdescr.
+               LOOP AT lt_comp3 REFERENCE INTO lr_comp2.
+                 DATA lt_tmp TYPE abap_attrdescr_tab.
+                 CLEAR lt_tmp.
+                 lt_tmp = _get_t_attri(
                        io_app   = io_app
                        ir_attri = lr_comp2->name ).
 
@@ -469,9 +498,10 @@
                ENDLOOP.
 
              CATCH cx_root.
-               INSERT VALUE #(
-                 name = lv_element
-                 type_kind = lr_comp->type->type_kind ) INTO TABLE r_result.
+               DATA ls_row TYPE abap_attrdescr.
+               ls_row-name = lv_element.
+               ls_row-type_kind = lr_comp->type->type_kind.
+               INSERT ls_row INTO TABLE r_result.
            ENDTRY.
 
          ENDLOOP.
@@ -1256,13 +1286,13 @@
 
        ENDMETHOD.
 
-      METHOD z2ui5_if_ui5_library~hbox.
+       METHOD z2ui5_if_ui5_library~hbox.
 
-        result = _generic(
-              name   = 'HBox'
-              t_prop = VALUE #(
-                 ( n = 'class' v = 'sapUiSmallMargin' )
-                  ) ).
+         result = _generic(
+               name   = 'HBox'
+               t_prop = VALUE #(
+                  ( n = 'class' v = 'sapUiSmallMargin' )
+                   ) ).
 
        ENDMETHOD.
 
@@ -1894,9 +1924,9 @@
                ).
 
 
-  ENDMETHOD.
+       ENDMETHOD.
 
-  METHOD z2ui5_if_ui5_library~vertical_layout.
+       METHOD z2ui5_if_ui5_library~vertical_layout.
 
          result =  _generic(
                name = 'VerticalLayout'
@@ -1907,11 +1937,11 @@
              )
                ).
 
-  ENDMETHOD.
+       ENDMETHOD.
 
-  METHOD z2ui5_if_ui5_library~flex_item_data.
+       METHOD z2ui5_if_ui5_library~flex_item_data.
 
-        result = me.
+         result = me.
 
          _generic(
                name = 'FlexItemData'
@@ -1924,17 +1954,17 @@
              )
                ).
 
-  ENDMETHOD.
+       ENDMETHOD.
 
-  METHOD z2ui5_if_ui5_library~layout_data.
+       METHOD z2ui5_if_ui5_library~layout_data.
 
-        result = _generic(
-               name = 'layoutData'
-           ).
+         result = _generic(
+                name = 'layoutData'
+            ).
 
-  ENDMETHOD.
+       ENDMETHOD.
 
-ENDCLASS.
+     ENDCLASS.
 
      CLASS z2ui5_lcl_system_app DEFINITION.
 
