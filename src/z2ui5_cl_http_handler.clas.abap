@@ -47,10 +47,16 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
     DATA lv_url TYPE string.
-    lv_url = client-t_header[ name = '~path' ]-value.
+    DATA ls_head LIKE LINE OF client-t_header.
+    READ TABLE client-t_header WITH KEY name = '~path'
+        INTO ls_head.
+    lv_url = ls_head-value.
     TRY.
         DATA lv_app TYPE string.
-        lv_app = client-t_param[ name = 'app' ]-value.
+        DATA ls_param LIKE LINE OF client-t_param.
+        READ TABLE client-t_param WITH KEY name = 'app'
+            INTO ls_param.
+        lv_app = ls_param-value.
         lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
