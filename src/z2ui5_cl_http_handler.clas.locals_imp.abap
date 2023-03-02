@@ -368,7 +368,6 @@
 
            INSERT ls_row INTO TABLE r_result.
 
-
          ENDLOOP.
 
        ENDMETHOD.
@@ -585,7 +584,7 @@
            IMPORTING
              v               TYPE string
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS add_attribute
            IMPORTING
@@ -599,33 +598,33 @@
            IMPORTING
              it_name_value   TYPE ty_T_name_value
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS add_attribute_object
            IMPORTING
              name            TYPE clike
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS add_list_object
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS add_list_list
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS add_attribute_list
            IMPORTING
              name            TYPE clike
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS add_attribute_instance
            IMPORTING
              val             TYPE ty_o_me
            RETURNING
-             VALUE(r_result) TYPE  ty_o_me.
+             VALUE(r_result) TYPE ty_o_me.
 
          METHODS write_result
            RETURNING
@@ -1034,7 +1033,7 @@
          ENDIF.
 
          DATA lr_in TYPE REF TO data.
-         GET REFERENCE OF value INTO lr_in.
+         lr_in = REF #( value ).
 
          DATA lr_attri TYPE REF TO  z2ui5_lcl_utility=>ty_attri.
          LOOP AT m_root->mt_attri REFERENCE INTO lr_attri.
@@ -1044,7 +1043,7 @@
            lv_name = |M_ROOT->MO_APP->{ to_upper( lr_attri->name ) }|.
            ASSIGN (lv_name) TO <attribute>.
            DATA lr_ref TYPE REF TO data.
-           GET REFERENCE OF <attribute> INTO lr_ref.
+           lr_ref = REF #( <attribute> ).
 
            IF lr_in = lr_ref.
              lr_attri->bind_type = type.
