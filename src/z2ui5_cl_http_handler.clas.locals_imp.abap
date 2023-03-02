@@ -1033,7 +1033,7 @@
          ENDIF.
 
          DATA lr_in TYPE REF TO data.
-         lr_in = REF #( value ).
+         GET REFERENCE OF value INTO lr_in.
 
          DATA lr_attri TYPE REF TO  z2ui5_lcl_utility=>ty_attri.
          LOOP AT m_root->mt_attri REFERENCE INTO lr_attri.
