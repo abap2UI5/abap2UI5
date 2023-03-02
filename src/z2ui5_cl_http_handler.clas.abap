@@ -14,18 +14,18 @@ CLASS z2ui5_cl_http_handler DEFINITION
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
-    types:
-      begin of ty_S_name_value,
-        name type string,
-        value type string,
-      end of ty_S_name_value.
-    types ty_t_name_value type standard table of ty_S_name_value.
+    TYPES:
+      BEGIN OF ty_S_name_value,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_S_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_S_name_value.
 
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
-        t_header TYPE ty_t_name_value, "tihttpnvp,
-        t_param  TYPE ty_t_name_value, "tihttpnvp,
+        t_header TYPE ty_t_name_value,
+        t_param  TYPE ty_t_name_value,
       END OF client.
 
     CLASS-METHODS main_index_html
@@ -42,16 +42,27 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD main_index_html.
-    data lv_url type string.
-    lv_url = client-t_header[ name = '~path' ]-value.
+    DATA lv_url TYPE string.
+    DATA ls_head LIKE LINE OF client-t_header.
+    READ TABLE client-t_header WITH KEY name = '~path'
+        INTO ls_head.
+    "  if sy-subrc <> 0.
+    "  raise EXCEPTION type _.
+    "  endif.
+    lv_url = ls_head-value.
     TRY.
-        data lv_app type string.
-        lv_app = client-t_param[ name = 'app' ]-value.
-        lv_url = lv_url && `?app=` && lv_app.
+        DATA lv_app TYPE string.
+        DATA ls_param LIKE LINE OF client-t_param.
+        READ TABLE client-t_param WITH KEY name = 'app'
+            INTO ls_param.
+        IF sy-subrc = 0.
+          lv_app = ls_param-value.
+          lv_url = lv_url && `?app=` && lv_app.
+        ENDIF.
       CATCH cx_root.
     ENDTRY.
 
@@ -80,6 +91,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                  `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                  `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                  `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                 `                        console.log('LAST REQUEST OBJECT:');` && |\n|  &&
                  `                        console.log(this.oBody);` && |\n|  &&
                  `                    }` && |\n|  &&
                  `                    this.Roundtrip();` && |\n|  &&
@@ -101,7 +113,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                  `                        }` && |\n|  &&
                  `                        var oResponse = JSON.parse(that.target.response);` && |\n|  &&
                  `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                 `                            console.log('LAST RESPONSE OBJECT:');` && |\n|  &&
                  `                            console.log(oResponse);` && |\n|  &&
+                 `                            console.log('LAST UI5-XML-VIEW:');` && |\n|  &&
                  `                            console.log(oResponse.vView);` && |\n|  &&
                  `                        }` && |\n|  &&
                  |\n|  &&
@@ -169,24 +183,30 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
     z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
 
-    data lo_runtime type ref to z2ui5_lcl_system_runtime.
-    create object lo_runtime.
+    DATA lo_runtime TYPE REF TO z2ui5_lcl_system_runtime.
+    CREATE OBJECT lo_runtime.
     result = lo_runtime->execute_init(  ).
     IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
 
     DO.
+      DATA li_app TYPE REF TO z2ui5_if_app.
+      DATA lo_client TYPE REF TO z2ui5_lcl_if_client.
 
       TRY.
 
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          li_app ?= lo_runtime->ms_db-o_app.
+          CREATE OBJECT lo_client
+            EXPORTING
+              i_server = lo_runtime.
+          li_app->controller( lo_client ).
           ROLLBACK WORK.
 
-          data cx type ref to cx_root.
+          DATA cx TYPE REF TO cx_root.
         CATCH cx_root INTO cx.
-          data lo_runtime_error type ref to z2ui5_lcl_system_runtime.
+          DATA lo_runtime_error TYPE REF TO z2ui5_lcl_system_runtime.
           lo_runtime_error = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
           lo_runtime->db_save( ).
           lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
@@ -196,8 +216,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
       IF lo_runtime->ms_leave_to_app IS NOT INITIAL.
         lo_runtime->db_save( ).
-        data lo_runtime_new type ref to z2ui5_lcl_system_runtime.
-        lo_runtime_new = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
+        DATA lo_runtime_new TYPE REF TO z2ui5_lcl_system_runtime.
+        li_app ?= lo_runtime->ms_leave_to_app-o_app.
+        lo_runtime_new = lo_runtime->factory_new( li_app ).
         lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
         lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
         lo_runtime = lo_runtime_new.
@@ -208,7 +229,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       TRY.
           ROLLBACK WORK.
           lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          li_app ?= lo_runtime->ms_db-o_app.
+          CREATE OBJECT lo_client
+            EXPORTING
+              i_server = lo_runtime.
+          li_app->controller( lo_client  ).
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.
