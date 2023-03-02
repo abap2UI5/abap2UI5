@@ -24,8 +24,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
-        t_header TYPE ty_t_name_value, "tihttpnvp,
-        t_param  TYPE ty_t_name_value, "tihttpnvp,
+        t_header TYPE ty_t_name_value,
+        t_param  TYPE ty_t_name_value,
       END OF client.
 
     CLASS-METHODS main_index_html
@@ -50,14 +50,19 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA ls_head LIKE LINE OF client-t_header.
     READ TABLE client-t_header WITH KEY name = '~path'
         INTO ls_head.
+    "  if sy-subrc <> 0.
+    "  raise EXCEPTION type _.
+    "  endif.
     lv_url = ls_head-value.
     TRY.
         DATA lv_app TYPE string.
         DATA ls_param LIKE LINE OF client-t_param.
         READ TABLE client-t_param WITH KEY name = 'app'
             INTO ls_param.
-        lv_app = ls_param-value.
-        lv_url = lv_url && `?app=` && lv_app.
+        IF sy-subrc = 0.
+          lv_app = ls_param-value.
+          lv_url = lv_url && `?app=` && lv_app.
+        ENDIF.
       CATCH cx_root.
     ENDTRY.
 
