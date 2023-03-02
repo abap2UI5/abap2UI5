@@ -41,8 +41,8 @@
                END OF msg_result,
              END OF s,
              BEGIN OF t,
-               attri      TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
-               name_value TYPE STANDARD TABLE OF ty_name_value WITH EMPTY KEY,
+               attri      TYPE STANDARD TABLE OF ty_attri with default key,
+               name_value TYPE STANDARD TABLE OF ty_name_value with default key,
              END OF t,
              BEGIN OF o,
                me TYPE REF TO z2ui5_lcl_utility,
@@ -106,9 +106,7 @@
            IMPORTING
              xml           TYPE clike
            EXPORTING
-             data          TYPE data
-           RETURNING
-             VALUE(result) TYPE REF TO data.
+             data          TYPE data.
 
          CLASS-METHODS get_t_attri_by_ref
            IMPORTING
@@ -149,8 +147,11 @@
              VALUE(r_result) TYPE string.
 
          CLASS-METHODS trans_ref_tab_2_tab
-           IMPORTING ir_tab_from TYPE REF TO data
-           CHANGING  ct_to       TYPE STANDARD TABLE.
+           IMPORTING
+             ir_tab_from TYPE REF TO data
+           CHANGING
+             ct_to       TYPE STANDARD TABLE.
+
          CLASS-METHODS get_trim_upper
            IMPORTING
              val             TYPE clike
@@ -177,7 +178,9 @@
 
        METHOD get_trim_upper.
          r_result = val.
-         r_result = shift_left( shift_right( to_upper( r_result ) ) ).
+         shift r_result right DELETING trailing ' '.
+         shift r_result left DELETING leading ' '.
+       "  r_result = shift_left( shift_right( to_upper( r_result ) ) ).
        ENDMETHOD.
 
        METHOD constructor.
