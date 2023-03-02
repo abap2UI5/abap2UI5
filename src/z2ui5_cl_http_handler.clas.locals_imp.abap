@@ -548,18 +548,6 @@
 
          TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name.
 
-         CLASS-METHODS hlp_shrink
-           IMPORTING
-             iv_json         TYPE string
-           RETURNING
-             VALUE(r_result) TYPE string.
-
-         CLASS-METHODS hlp_replace_apostr
-           IMPORTING
-             iv_json         TYPE string
-           RETURNING
-             VALUE(r_result) TYPE string.
-
          CLASS-METHODS factory
            IMPORTING
              iv_json         TYPE clike OPTIONAL
@@ -886,22 +874,10 @@
 
 
        METHOD get_val.
-         "r_result = mr_actual->*. "v_value.
+
          FIELD-SYMBOLS <attribute> TYPE any.
          ASSIGN mr_actual->* TO <attribute>.
          r_result = <attribute>.
-
-       ENDMETHOD.
-
-
-       METHOD hlp_replace_apostr.
-
-
-       ENDMETHOD.
-
-
-       METHOD hlp_shrink.
-
 
        ENDMETHOD.
 
@@ -1058,7 +1034,7 @@
          ENDIF.
 
          DATA lr_in TYPE REF TO data.
-         GET REFERENCE OF value INTO lr_in.
+         lr_in = REF #( value ).
 
          DATA lr_attri TYPE REF TO  z2ui5_lcl_utility=>ty_attri.
          LOOP AT m_root->mt_attri REFERENCE INTO lr_attri.
@@ -1068,7 +1044,7 @@
            lv_name = |M_ROOT->MO_APP->{ to_upper( lr_attri->name ) }|.
            ASSIGN (lv_name) TO <attribute>.
            DATA lr_ref TYPE REF TO data.
-           GET REFERENCE OF <attribute> INTO lr_ref.
+           lr_ref = REF #( <attribute> ).
 
            IF lr_in = lr_ref.
              lr_attri->bind_type = type.
