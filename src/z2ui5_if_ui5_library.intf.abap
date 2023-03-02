@@ -4,10 +4,10 @@ INTERFACE z2ui5_if_ui5_library
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF lifecycle_method,
-        on_init          TYPE string VALUE 'INIT',
-        on_event         TYPE string VALUE 'EVENT',
-        on_rendering     TYPE string VALUE 'RENDERING',
-       " on_serialization TYPE string VALUE 'SERIALIZATION',
+        on_init      TYPE string VALUE 'INIT',
+        on_event     TYPE string VALUE 'EVENT',
+        on_rendering TYPE string VALUE 'RENDERING',
+        " on_serialization TYPE string VALUE 'SERIALIZATION',
       END OF lifecycle_method,
       BEGIN OF event_type,
         server_function TYPE string VALUE 'SERVER_FUNCTION',
@@ -52,17 +52,44 @@ INTERFACE z2ui5_if_ui5_library
     RETURNING
       VALUE(result) TYPE string.
 
+  METHODS layout_data
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS flex_item_data
+    IMPORTING
+      grow_Factor       TYPE string OPTIONAL
+      base_Size         TYPE string OPTIONAL
+      background_Design TYPE string OPTIONAL
+      style_Class       TYPE string OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
   METHODS code_editor
     IMPORTING
       value         TYPE string OPTIONAL
-      type          TYPE string optional
-      height        type string optional
-      width         type string optional
-      editable      type abap_bool optional
+      type          TYPE string OPTIONAL
+      height        TYPE string OPTIONAL
+      width         TYPE string OPTIONAL
+      editable      TYPE abap_bool OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS suggestion_items
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS vertical_layout
+    IMPORTING
+      class         TYPE string OPTIONAL
+      width         TYPE string OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS flex_box
+    importing
+    class type string optional
+    render_Type  type string optional
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -104,7 +131,7 @@ INTERFACE z2ui5_if_ui5_library
       rows            TYPE string OPTIONAL
       selectionMode   TYPE string OPTIONAL
       visibleRowCount TYPE string OPTIONAL
-      selectedIndex   TYPE string optional
+      selectedIndex   TYPE string OPTIONAL
     RETURNING
       VALUE(result)   TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -236,6 +263,10 @@ INTERFACE z2ui5_if_ui5_library
       VALUE(result)  TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS vbox
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+
+  METHODS hbox
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
