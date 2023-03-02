@@ -1068,7 +1068,7 @@
            lv_name = |M_ROOT->MO_APP->{ to_upper( lr_attri->name ) }|.
            ASSIGN (lv_name) TO <attribute>.
            DATA lr_ref TYPE REF TO data.
-           lr_ref = REF #( <attribute> ).
+           GET REFERENCE OF <attribute> INTO lr_ref.
 
            IF lr_in = lr_ref.
              lr_attri->bind_type = type.
