@@ -800,7 +800,7 @@
 
        METHOD factory.
 
-         r_result = NEW #(  ).
+         CREATE OBJECT r_result.
          r_result->mo_root = r_result.
 
          /ui2/cl_json=>deserialize(
@@ -1154,7 +1154,7 @@
 
        METHOD _generic.
 
-         result = NEW z2ui5_lcl_if_ui5_library( ).
+         CREATE OBJECT result.
          result->m_name = name.
          result->m_ns = ns.
          result->mt_prop = t_prop.
@@ -1168,7 +1168,7 @@
 
        METHOD factory.
 
-         result = NEW z2ui5_lcl_if_ui5_library( ).
+         CREATE OBJECT result.
          result->m_root = result.
          result->m_parent = result.
          result->mt_attri = t_attri.
@@ -2047,7 +2047,7 @@
 
        METHOD factory_error.
 
-         r_result = NEW #( ).
+         CREATE OBJECT r_result.
 
          r_result->ms_error-x_error = error.
          r_result->ms_error-app     ?= app.
@@ -2118,7 +2118,9 @@
              CASE client->get( )-event.
 
                WHEN 'BUTTON_HOME'.
-                 client->nav_to_app( NEW z2ui5_lcl_system_app( ) ).
+                 DATA lo_app TYPE REF TO z2ui5_lcl_system_app.
+                 CREATE OBJECT lo_app.
+                 client->nav_to_app( lo_app ).
              ENDCASE.
          ENDCASE.
 
@@ -2371,7 +2373,11 @@
                  ROLLBACK WORK.
                  ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
                  li_app ?= ms_db-o_app.
-                 li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
+                 DATA lo_client TYPE REF TO z2ui5_lcl_if_client.
+                 CREATE OBJECT lo_client
+                   EXPORTING
+                     i_server = me.
+                 li_app->controller( lo_client ).
                  ROLLBACK WORK.
 
                  result = execute_finish( ).
@@ -2484,7 +2490,9 @@
                TRY.
                    ms_db-app = client-t_param[ name = 'APP' ]-value.
                  CATCH cx_root.
-                   ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+                   DATA lo_app TYPE REF TO z2ui5_lcl_system_app.
+                   CREATE OBJECT lo_app.
+                   ms_db-o_app = lo_app.
                    EXIT.
                ENDTRY.
 
@@ -2494,7 +2502,11 @@
              CATCH cx_root.
                DATA lo_error TYPE REF TO z2ui5_lcl_system_app.
                CREATE OBJECT lo_error.
-               lo_error->ms_error-x_error = NEW _( val = `Class with name ` && ms_db-app && ` not found. Please check your repository.` ).
+               DATA lx_error TYPE REF TO _.
+               CREATE OBJECT lx_error
+                 EXPORTING
+                   val = `Class with name ` && ms_db-app && ` not found. Please check your repository.`.
+               lo_error->ms_error-x_error = lx_error.
                ms_db-o_app ?= lo_error .
                EXIT.
            ENDTRY.
@@ -2509,7 +2521,7 @@
 
        METHOD factory_new.
 
-         r_result = NEW z2ui5_lcl_system_runtime( ).
+         CREATE OBJECT r_result.
          r_result->ms_db-o_app = i_app.
          r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
 
@@ -2568,15 +2580,17 @@
              o_app   = mo_server->ms_db-o_app
               ).
 
-          data lo_parser type ref to z2ui5_lcl_if_ui5_library.
-          lo_parser ?= result.
+         DATA lo_parser TYPE REF TO z2ui5_lcl_if_ui5_library.
+         lo_parser ?= result.
          INSERT VALUE #( name = name o_parser = lo_parser ) INTO TABLE mo_server->mt_screen.
 
        ENDMETHOD.
 
        METHOD z2ui5_if_client~nav_to_home.
 
-         z2ui5_if_client~nav_to_app( NEW z2ui5_lcl_system_app( ) ).
+         DATA lo_home TYPE REF TO z2ui5_lcl_system_app.
+         CREATE OBJECT lo_Home.
+         z2ui5_if_client~nav_to_app( lo_Home ).
 
        ENDMETHOD.
 
