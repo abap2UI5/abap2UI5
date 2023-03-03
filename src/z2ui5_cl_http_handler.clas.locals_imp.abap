@@ -2112,6 +2112,7 @@
          DATA form TYPE REF TO z2ui5_if_ui5_library.
          page = view->page( 'ABAP2UI5 - Welcome to development of UI5 Apps in pure ABAP!' ).
          page->header_content(
+             )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
              )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
              )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
