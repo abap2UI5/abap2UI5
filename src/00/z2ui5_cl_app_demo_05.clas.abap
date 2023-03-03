@@ -47,7 +47,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
            date              = '07.12.22'
            date_time         = '23.12.2022, 19:27:20'
            time_start        = '05:24:00'
-           time_end          = '17:23:57' ).
+           time_end          = '17:23:57'  ).
 
 
       WHEN client->cs-lifecycle_method-on_event.

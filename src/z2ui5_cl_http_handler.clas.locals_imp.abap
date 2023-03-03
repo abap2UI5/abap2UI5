@@ -273,7 +273,7 @@
        METHOD get_ref_data.
 
          ASSIGN o->(n) TO FIELD-SYMBOL(<field>).
-         data(x) = cond i( when sy-subrc <> 0 then throw _( 'CX_SY_SUBRC' ) ).
+         data(x) = cond i( when sy-subrc <> 0 then throw z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
          GET REFERENCE OF <field> INTO result.
 
        ENDMETHOD.
