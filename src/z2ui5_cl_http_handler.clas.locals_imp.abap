@@ -273,6 +273,7 @@
        METHOD get_ref_data.
 
          ASSIGN o->(n) TO FIELD-SYMBOL(<field>).
+         data(x) = cond #( when sy-subrc <> 0 then throw _( 'CX_SY_SUBRC' ) ).
          GET REFERENCE OF <field> INTO result.
 
        ENDMETHOD.
@@ -676,7 +677,7 @@
          IF apos_active = abap_false.
            lo_attri->mv_value = v.
          ELSE.
-           lo_attri->mv_value = escape( val = v format = cl_abap_format=>e_json_string ). "cl_abap_format=>e_json_string ) .
+           lo_attri->mv_value = escape( val = v format = cl_abap_format=>e_json_string ).
          ENDIF.
          lo_attri->mv_apost_active = apos_active.
          lo_attri->mo_parent = me.
@@ -879,7 +880,7 @@
        ENDMETHOD.
 
        METHOD wrap_json.
-         DATA open_char TYPE string. " char01.
+         DATA open_char TYPE string.
          DATA close_char TYPE string.
 
          r_result = iv_text.
@@ -1109,7 +1110,7 @@
          result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
                               REDUCE #( INIT val = `` FOR row IN  mt_prop WHERE ( v <> '' )
                                NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr  ) }" \n | ) }|.
-         "cl_abap_format=>e_xml_attr
+         
          IF t_child IS INITIAL.
            result = result && '/>'.
            RETURN.
@@ -1338,8 +1339,8 @@
                  ( n = 'value'  v = value )
                  ( n = 'type'   v = type )
                  ( n = 'editable'   v = _=>get_abap_2_json( editable ) )
-                 ( n = 'height' v = height ) "'600px' )
-                 ( n = 'width'  v = width ) "'600px' )
+                 ( n = 'height' v = height )
+                 ( n = 'width'  v = width )
               ) ) .
 
        ENDMETHOD.
@@ -1682,7 +1683,7 @@
              name = 'List'
              t_prop = VALUE #(
                ( n = 'headerText' v = header_text )
-               ( n = 'items' v = items ) "'{' && _get_name_by_ref( items ) && '}' )
+               ( n = 'items' v = items ) 
            ) ).
 
        ENDMETHOD.
@@ -2189,7 +2190,7 @@
          CLASS-DATA:
            BEGIN OF client,
              o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
-             t_header TYPE z2ui5_cl_http_handler=>ty_t_name_value, "tihttpnvp,
+             t_header TYPE z2ui5_cl_http_handler=>ty_t_name_value,
              t_param  TYPE z2ui5_cl_http_handler=>ty_t_name_value,
            END OF client.
 
@@ -2395,7 +2396,7 @@
          IF mt_after IS NOT INITIAL.
            DATA lo_list TYPE REF TO z2ui5_lcl_utility_tree_json.
            lo_list = lo_ui5_model->add_attribute_list( 'oAfter' ).
-           DATA lr_after TYPE REF TO _=>ty_t_string. "string.
+           DATA lr_after TYPE REF TO _=>ty_t_string.
            LOOP AT mt_after REFERENCE INTO lr_after.
              DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
              CLEAR lo_list2.
@@ -2418,7 +2419,7 @@
 
          DATA lr_attri TYPE REF TO z2ui5_lcl_utility=>ty_attri.
          LOOP AT ms_db-t_attri REFERENCE INTO lr_attri
-             WHERE bind_type = z2ui5_if_ui5_library=>cs-bind_type-two_way. " check_used = abap_true AND check_update = abap_true.
+             WHERE bind_type = z2ui5_if_ui5_library=>cs-bind_type-two_way.
 
            " lr_attri->bind_type = ''.
 
@@ -2459,7 +2460,7 @@
                TRY.
                    ms_db-app = client-t_param[ name = 'APP' ]-value.
                  CATCH cx_root.
-                   ms_db-o_app = new z2ui5_lcl_system_app( ). "lo_app.
+                   ms_db-o_app = new z2ui5_lcl_system_app( ).
                    EXIT.
                ENDTRY.
 

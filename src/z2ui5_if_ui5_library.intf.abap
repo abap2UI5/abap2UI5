@@ -110,7 +110,7 @@ INTERFACE z2ui5_if_ui5_library
       value_state_text TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE abap_bool DEFAULT abap_true
-      suggestion_items TYPE string OPTIONAL "ty-input-t_suggestions OPTIONAL
+      suggestion_items TYPE string OPTIONAL
       showsuggestion   TYPE abap_bool DEFAULT abap_true
         PREFERRED PARAMETER value
     RETURNING

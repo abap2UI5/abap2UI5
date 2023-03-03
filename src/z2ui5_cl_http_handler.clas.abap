@@ -24,8 +24,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
-        t_header TYPE ty_t_name_value, "tihttpnvp,
-        t_param  TYPE ty_t_name_value, "tihttpnvp,
+        t_header TYPE ty_t_name_value,
+        t_param  TYPE ty_t_name_value,
       END OF client.
 
     CLASS-METHODS main_index_html
@@ -55,10 +55,10 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    r_result = `<html>` && |\n|  &&
-               `<head>` && |\n|  &&
-               `    <meta charset="utf-8">` && |\n|  &&
-               `    <title>` && cs_config-browser_title && `</title>` && |\n|  &&
+    r_result = `<html>` && |\n| &&
+               `<head>` && |\n| &&
+               `    <meta charset="utf-8">` && |\n| &&
+               `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
                `    <script src="` && cs_config-repository && `" ` &&
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n|  &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n|  &&
@@ -173,7 +173,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
 
     data(lo_runtime) = new z2ui5_lcl_system_runtime( ).
-    result = lo_runtime->execute_init(  ).
+    result = lo_runtime->execute_init( ).
     IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
