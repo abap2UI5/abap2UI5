@@ -115,9 +115,9 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
          selectedkey = view->_bind( screen-combo_key )
          items      = view->_bind_one_way( VALUE ty_t_combo(
              ( key = 'BLUE'  text = 'green' )
-             ( key = 'GREEN' text = 'blue'  )
-             ( key = 'BLACK' text = 'red'   )
-             ( key = 'GRAY'  text = 'gray'  ) )
+             ( key = 'GREEN' text = 'blue' )
+             ( key = 'BLACK' text = 'red' )
+             ( key = 'GRAY'  text = 'gray' ) )
          ) )->get( )->item( key = '{KEY}' text = '{TEXT}'
         )->get_parent( )->get_parent(
 

@@ -83,27 +83,27 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
         grid = page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
 
-        grid->simple_form(  'HowTo - General' )->content( 'f'
+        grid->simple_form( 'HowTo - General' )->content( 'f'
             )->button( text = 'Client-Server Communication (Data Binding)' press = view->_event( '0101' )
             )->button( text = 'Controller (Events, Navigation)' press = view->_event( '0102' )
             )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' ) ).
 
-        grid->simple_form(  'HowTo - Selection-Screen' )->content( 'f'
+        grid->simple_form( 'HowTo - Selection-Screen' )->content( 'f'
             )->button( text = 'Basic' press = view->_event( '0201' )
             )->button( text = 'More Controls' press = view->_event( '0202' ) ).
 
 
-        grid->simple_form(  'HowTo - List and Tables' )->content( 'f'
+        grid->simple_form( 'HowTo - List and Tables' )->content( 'f'
             )->button( text = 'List' press = view->_event( '0301' )
             )->button( text = 'Table' press = view->_event( '0302' )
             )->button( text = 'Table with Toolbar and Container' press = view->_event( '0303' )
             )->button( text = 'Table Editable' press = view->_event( '0304' ) ).
 
-        grid = page->grid( default_span  = 'L12 M12 S12' ). "->content( 'l' ).
+        grid = page->grid( default_span  = 'L12 M12 S12' ).
 
 
-        DATA(form) = grid->simple_form(  'Applications - Demos, Templates, Examples'  )->vbox( ).
+        DATA(form) = grid->simple_form( 'Applications - Demos, Templates, Examples' )->vbox( ).
 
         form->flex_box( class = 'columns'
         )->button( text = 'MIME Editor'  press = view->_event( 'MIME_EDITOR' )

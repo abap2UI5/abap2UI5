@@ -24,8 +24,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
-        t_header TYPE ty_t_name_value, "tihttpnvp,
-        t_param  TYPE ty_t_name_value, "tihttpnvp,
+        t_header TYPE ty_t_name_value,
+        t_param  TYPE ty_t_name_value,
       END OF client.
 
     CLASS-METHODS main_index_html
@@ -46,69 +46,67 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD main_index_html.
-    data lv_url type string.
-    lv_url = client-t_header[ name = '~path' ]-value.
+    data(lv_url) = client-t_header[ name = '~path' ]-value.
     TRY.
-        data lv_app type string.
-        lv_app = client-t_param[ name = 'app' ]-value.
+        data(lv_app) = client-t_param[ name = 'app' ]-value.
         lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
 
-    r_result = `<html>` && |\n|  &&
-               `<head>` && |\n|  &&
-               `    <meta charset="utf-8">` && |\n|  &&
-               `    <title>` && cs_config-browser_title && `</title>` && |\n|  &&
+    r_result = `<html>` && |\n| &&
+               `<head>` && |\n| &&
+               `    <meta charset="utf-8">` && |\n| &&
+               `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
                `    <script src="` && cs_config-repository && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n|  &&
+               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n|  &&
                `        data-sap-ui-preload="async">` && |\n|  &&
                `     </script>` && |\n|.
 
-    r_result = r_result && `</head>` && |\n|  &&
-                 `    <body class="sapUiBody">` && |\n|  &&
-                 `        <div id="content"></div>` && |\n|  &&
-                 `    </body>` && |\n|  &&
-                 `</html>` && |\n|  &&
-                 `<script>` && |\n|  &&
-                 `    sap.ui.getCore().attachInit(function() {` && |\n|  &&
-                 `        "use strict";` && |\n|  &&
+    r_result = r_result && `</head>` && |\n| &&
+                 `    <body class="sapUiBody">` && |\n| &&
+                 `        <div id="content"></div>` && |\n| &&
+                 `    </body>` && |\n| &&
+                 `</html>` && |\n| &&
+                 `<script>` && |\n| &&
+                 `    sap.ui.getCore().attachInit(function() {` && |\n| &&
+                 `        "use strict";` && |\n| &&
                  `        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function(Controller, ODataModel, JSONModel, MessageBox, Fragment) {` &&
-                 `            "use strict";` && |\n|  &&
-                 `            return Controller.extend("MyController", {` && |\n|  &&
-                 `                onEvent: function(oEvent, oEvent2, oEvent3, oEvent4) {` && |\n|  &&
-                 `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
-                 `                    this.oBody.oEvent = oEvent;` && |\n|  &&
-                 `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
-                 `                        console.log('Request Object:');` && |\n|  &&
-                 `                        console.log(this.oBody);` && |\n|  &&
+                 `            "use strict";` && |\n| &&
+                 `            return Controller.extend("MyController", {` && |\n| &&
+                 `                onEvent: function(oEvent, oEvent2, oEvent3, oEvent4) {` && |\n| &&
+                 `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n| &&
+                 `                    this.oBody.oEvent = oEvent;` && |\n| &&
+                 `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
+                 `                        console.log('Request Object:');` && |\n| &&
+                 `                        console.log(this.oBody);` && |\n| &&
+                 `                    }` && |\n| &&
+                 `                    this.Roundtrip();` && |\n| &&
+                 `                },` && |\n| &&
+                 `                Roundtrip: function() {` && |\n| &&
+                 `                    this.oView.destroy();` && |\n| &&
+                 `                    sap.ui.core.BusyIndicator.show();` && |\n| &&
+                 `                    if (this.getView().oPopup) {` && |\n| &&
+                 `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n| &&
+                 `                        this.getView().oPopup.destroy();` && |\n| &&
                  `                    }` && |\n|  &&
-                 `                    this.Roundtrip();` && |\n|  &&
-                 `                },` && |\n|  &&
-                 `                Roundtrip: function() {` && |\n|  &&
-                 `                    this.oView.destroy();` && |\n|  &&
-                 `                    sap.ui.core.BusyIndicator.show();` && |\n|  &&
-                 `                    if (this.getView().oPopup) {` && |\n|  &&
-                 `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&
-                 `                        this.getView().oPopup.destroy();` && |\n|  &&
-                 `                    }` && |\n|  &&
-                 `                    var xhr = new XMLHttpRequest();` && |\n|  &&
-                 `                    var url = '` && lv_url && `';` && |\n|  &&
-                 `                    xhr.open("POST", url, true);` && |\n|  &&
-                 `                    xhr.onload = function(that) {` && |\n|  &&
-                 `                        if (that.target.status == 500) {` && |\n|  &&
-                 `                            document.write(that.target.response);` && |\n|  &&
-                 `                            return;` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 `                        var oResponse = JSON.parse(that.target.response);` && |\n|  &&
-                 `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
-                 `                            console.log('Response Object:');` && |\n|  &&
-                 `                            console.log(oResponse);` && |\n|  &&
-                 `                            console.log('UI5-XML-View:');` && |\n|  &&
-                 `                            console.log(oResponse.vView);` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 |\n|  &&
-                 `                        if (oResponse.oAfter) {` && |\n|  &&
+                 `                    var xhr = new XMLHttpRequest();` && |\n| &&
+                 `                    var url = '` && lv_url && `';` && |\n| &&
+                 `                    xhr.open("POST", url, true);` && |\n| &&
+                 `                    xhr.onload = function(that) {` && |\n| &&
+                 `                        if (that.target.status == 500) {` && |\n| &&
+                 `                            document.write(that.target.response);` && |\n| &&
+                 `                            return;` && |\n| &&
+                 `                        }` && |\n| &&
+                 `                        var oResponse = JSON.parse(that.target.response);` && |\n| &&
+                 `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
+                 `                            console.log('Response Object:');` && |\n| &&
+                 `                            console.log(oResponse);` && |\n| &&
+                 `                            console.log('UI5-XML-View:');` && |\n| &&
+                 `                            console.log(oResponse.vView);` && |\n| &&
+                 `                        }` && |\n| &&
+                 |\n| &&
+                 `                        if (oResponse.oAfter) {` && |\n| &&
                  `                            oResponse.oAfter.forEach(item=>sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
                  `                        }` && |\n|  &&
                  `                        oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n|  &&
@@ -173,7 +171,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
 
     data(lo_runtime) = new z2ui5_lcl_system_runtime( ).
-    result = lo_runtime->execute_init(  ).
+    result = lo_runtime->execute_init( ).
     IF result IS NOT INITIAL.
       RETURN.
     ENDIF.
@@ -186,10 +184,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
-          data cx type ref to cx_root.
-        CATCH cx_root INTO cx.
-          data lo_runtime_error type ref to z2ui5_lcl_system_runtime.
-          lo_runtime_error = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
+        CATCH cx_root INTO data(cx).
+          data(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
           lo_runtime->db_save( ).
           lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
           lo_runtime = lo_runtime_error.
