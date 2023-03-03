@@ -60,14 +60,14 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `    <meta charset="utf-8">` && |\n| &&
                `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
                `    <script src="` && cs_config-repository && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n|  &&
+               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n|  &&
                `        data-sap-ui-preload="async">` && |\n|  &&
                `     </script>` && |\n|.
 
-    r_result = r_result && `</head>` && |\n|  &&
-                 `    <body class="sapUiBody">` && |\n|  &&
-                 `        <div id="content"></div>` && |\n|  &&
+    r_result = r_result && `</head>` && |\n| &&
+                 `    <body class="sapUiBody">` && |\n| &&
+                 `        <div id="content"></div>` && |\n| &&
                  `    </body>` && |\n|  &&
                  `</html>` && |\n|  &&
                  `<script>` && |\n|  &&

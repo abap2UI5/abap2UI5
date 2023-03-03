@@ -273,7 +273,7 @@
        METHOD get_ref_data.
 
          ASSIGN o->(n) TO FIELD-SYMBOL(<field>).
-         data(x) = cond #( when sy-subrc <> 0 then throw _( 'CX_SY_SUBRC' ) ).
+         data(x) = cond i( when sy-subrc <> 0 then throw _( 'CX_SY_SUBRC' ) ).
          GET REFERENCE OF <field> INTO result.
 
        ENDMETHOD.
@@ -328,7 +328,7 @@
          io_app ?= io_app.
 
          DATA lo_descr TYPE REF TO cl_abap_classdescr.
-         lo_descr ?=  cl_abap_objectdescr=>describe_by_object_ref( io_app ) .
+         lo_descr ?= cl_abap_objectdescr=>describe_by_object_ref( io_app ) .
 
          DATA rt_attri TYPE abap_attrdescr_tab.
          rt_attri  = lo_descr->attributes.
@@ -381,7 +381,9 @@
 
        METHOD trans_json_2_data.
 
-         CHECK iv_json IS NOT INITIAL.
+        if iv_json is initial.
+          return.
+        endif.
 
          /ui2/cl_json=>deserialize(
              EXPORTING
@@ -398,6 +400,7 @@
 
          FIELD-SYMBOLS <object> TYPE any.
          ASSIGN object->* TO <object>.
+         data(x) = cond i( when sy-subrc <> 0 then throw z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
 
          CALL TRANSFORMATION id
             SOURCE data = <object>
@@ -415,6 +418,7 @@
          FIELD-SYMBOLS <comp_ui5> TYPE REF TO data.
 
          ASSIGN ir_tab_from->* TO <tab_ui5>.
+         data(x) = cond i( when sy-subrc <> 0 then throw z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
 
          READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
          IF sy-subrc EQ 0.
@@ -429,6 +433,7 @@
            DATA lr_row_ui5 TYPE LINE OF  ty_t_ref.
            lr_row_ui5 = <tab_ui5>[ sy-tabix ].
            ASSIGN lr_row_ui5->* TO FIELD-SYMBOL(<ui5_row>).
+           data(x) = cond i( when sy-subrc <> 0 then throw z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
 
            DATA ls_comp TYPE REF TO abap_componentdescr.
            LOOP AT lt_components REFERENCE INTO ls_comp.
