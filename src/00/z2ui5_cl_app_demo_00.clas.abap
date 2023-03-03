@@ -76,6 +76,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             ).
 
         page->header_content(
+            )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
             )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
