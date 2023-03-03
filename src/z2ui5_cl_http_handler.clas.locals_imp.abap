@@ -12,7 +12,7 @@
              data_stringify TYPE string,
            END OF ty_attri.
 
-         TYPES ty_t_string TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+         TYPES ty_t_string TYPE STANDARD TABLE OF string WITH empty key.
 
          TYPES:
            BEGIN OF ty_name_value,
@@ -41,8 +41,8 @@
                END OF msg_result,
              END OF s,
              BEGIN OF t,
-               attri      TYPE STANDARD TABLE OF ty_attri WITH DEFAULT KEY,
-               name_value TYPE STANDARD TABLE OF ty_name_value WITH DEFAULT KEY,
+               attri      TYPE STANDARD TABLE OF ty_attri WITH empty key,
+               name_value TYPE STANDARD TABLE OF ty_name_value WITH empty key,
              END OF t,
              BEGIN OF o,
                me TYPE REF TO z2ui5_lcl_utility,
@@ -536,7 +536,7 @@
        PUBLIC SECTION.
 
          TYPES ty_o_me TYPE REF TO z2ui5_lcl_utility_tree_json.
-         TYPES ty_T_me TYPE STANDARD TABLE OF ty_o_me WITH DEFAULT KEY.
+         TYPES ty_T_me TYPE STANDARD TABLE OF ty_o_me WITH empty key.
 
          TYPES:
            BEGIN OF ty_S_name,
@@ -668,8 +668,7 @@
 
        METHOD add_attribute.
 
-         DATA lo_attri TYPE REF TO z2ui5_lcl_utility_tree_json.
-         CREATE OBJECT lo_attri.
+         data(lo_attri) = new z2ui5_lcl_utility_tree_json( ).
 
          lo_attri->mo_root = mo_root.
          lo_attri->mv_name = n.
@@ -697,7 +696,7 @@
            add_attribute(
                 n           = lr_value->n
                 v           = lr_value->v
-                apos_active = boolc( lr_value->apos_deact = abap_false )
+                apos_active = xsdbool( lr_value->apos_deact = abap_false )
             ).
 
          ENDLOOP.
@@ -728,8 +727,8 @@
 
 
        METHOD add_attribute_object.
-         DATA lo_attri TYPE REF TO z2ui5_lcl_utility_tree_json.
-         CREATE OBJECT lo_attri.
+
+         data(lo_attri) = new z2ui5_lcl_utility_tree_json( ).
          lo_attri->mv_name = name.
 
          mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
@@ -758,8 +757,7 @@
 
        METHOD add_list_val.
 
-         DATA lo_attri TYPE REF TO z2ui5_lcl_utility_tree_json.
-         CREATE OBJECT lo_attri.
+         data(lo_attri) = new z2ui5_lcl_utility_tree_json( ).
 
          lo_attri->mv_name = lines( mt_values ).
          lo_attri->mv_value = v.
@@ -787,7 +785,7 @@
 
        METHOD factory.
 
-         CREATE OBJECT r_result.
+         r_result = new #( ).
          r_result->mo_root = r_result.
 
          /ui2/cl_json=>deserialize(
@@ -807,8 +805,8 @@
            RAISE EXCEPTION TYPE _.
          ENDIF.
 
-         DATA lo_attri TYPE REF TO z2ui5_lcl_utility_tree_json.
-         CREATE OBJECT lo_attri.
+
+           data(lo_attri) = new z2ui5_lcl_utility_tree_json( ).
          lo_attri->mo_root = mo_root.
          lo_attri->mv_name = name.
 
@@ -925,7 +923,7 @@
            ELSE.
 
              r_result = r_result &&
-                quote_json( iv_cond = boolc( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
+                quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
                             iv_text = lo_attri->mv_value ).
              " escape( val = lo_attri->mv_value  format = cl_abap_format=>e_json_string )
            ENDIF.
@@ -954,14 +952,14 @@
 
          DATA m_name TYPE string.
          DATA m_ns   TYPE string.
-         DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty-s_property WITH DEFAULT KEY.
+         DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty-s_property WITH empty key.
          DATA mt_attri  TYPE _=>ty-t-attri.
          DATA mo_app TYPE REF TO object.
 
          DATA m_root    TYPE REF TO z2ui5_lcl_if_ui5_library.
          DATA m_last    TYPE REF TO z2ui5_lcl_if_ui5_library.
          DATA m_parent  TYPE REF TO z2ui5_lcl_if_ui5_library.
-         DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_if_ui5_library WITH DEFAULT KEY.
+         DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_if_ui5_library WITH empty key.
 
          CLASS-METHODS factory
            IMPORTING
@@ -1129,7 +1127,7 @@
 
        METHOD _generic.
 
-         CREATE OBJECT result.
+         result = new #( ).
          result->m_name = name.
          result->m_ns = ns.
          result->mt_prop = t_prop.
@@ -1143,7 +1141,7 @@
 
        METHOD factory.
 
-         CREATE OBJECT result.
+         result = new #( ).
          result->m_root = result.
          result->m_parent = result.
          result->mt_attri = t_attri.
@@ -2022,7 +2020,7 @@
 
        METHOD factory_error.
 
-         CREATE OBJECT r_result.
+         r_result = new #( ).
 
          r_result->ms_error-x_error = error.
          r_result->ms_error-app     ?= app.
@@ -2093,9 +2091,7 @@
              CASE client->get( )-event.
 
                WHEN 'BUTTON_HOME'.
-                 DATA lo_app TYPE REF TO z2ui5_lcl_system_app.
-                 CREATE OBJECT lo_app.
-                 client->nav_to_app( lo_app ).
+                 client->nav_to_app( new z2ui5_lcl_system_app( ) ).
              ENDCASE.
          ENDCASE.
 
@@ -2112,6 +2108,7 @@
          DATA form TYPE REF TO z2ui5_if_ui5_library.
          page = view->page( 'ABAP2UI5 - Welcome to development of UI5 Apps in pure ABAP!' ).
          page->header_content(
+             )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
              )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
              )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
@@ -2147,7 +2144,7 @@
          lv_link = client->get( )-s_request-url_app_gen && ms_home-classname.
          form->link( text = 'Link to the Application'
                  href = lv_link
-                  enabled = boolc( ms_home-class_editable = abap_false )
+                  enabled = xsdbool( ms_home-class_editable = abap_false )
              ).
          grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
          grid->simple_form(  'Applications and Examples' )->content( 'f'
@@ -2221,7 +2218,7 @@
              o_app             TYPE REF TO object,
            END OF ms_db.
 
-         DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH DEFAULT KEY.
+         DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH empty key.
          DATA mt_screen TYPE STANDARD TABLE OF s_screen.
          DATA ms_leave_to_app LIKE ms_db.
 
@@ -2348,11 +2345,8 @@
                  ROLLBACK WORK.
                  ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
                  li_app ?= ms_db-o_app.
-                 DATA lo_client TYPE REF TO z2ui5_lcl_if_client.
-                 CREATE OBJECT lo_client
-                   EXPORTING
-                     i_server = me.
-                 li_app->controller( lo_client ).
+
+                 li_app->controller( new z2ui5_lcl_if_client( me ) ).
                  ROLLBACK WORK.
 
                  result = execute_finish( ).
@@ -2465,9 +2459,7 @@
                TRY.
                    ms_db-app = client-t_param[ name = 'APP' ]-value.
                  CATCH cx_root.
-                   DATA lo_app TYPE REF TO z2ui5_lcl_system_app.
-                   CREATE OBJECT lo_app.
-                   ms_db-o_app = lo_app.
+                   ms_db-o_app = new z2ui5_lcl_system_app( ). "lo_app.
                    EXIT.
                ENDTRY.
 
@@ -2475,13 +2467,8 @@
                EXIT.
 
              CATCH cx_root.
-               DATA lo_error TYPE REF TO z2ui5_lcl_system_app.
-               CREATE OBJECT lo_error.
-               DATA lx_error TYPE REF TO _.
-               CREATE OBJECT lx_error
-                 EXPORTING
-                   val = `Class with name ` && ms_db-app && ` not found. Please check your repository.`.
-               lo_error->ms_error-x_error = lx_error.
+               data(lo_error) = new z2ui5_lcl_system_app( ).
+               lo_error->ms_error-x_error = new _(  `Class with name ` && ms_db-app && ` not found. Please check your repository.` ).
                ms_db-o_app ?= lo_error .
                EXIT.
            ENDTRY.
@@ -2496,7 +2483,7 @@
 
        METHOD factory_new.
 
-         CREATE OBJECT r_result.
+         r_result = new #( ).
          r_result->ms_db-o_app = i_app.
          r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
 
@@ -2563,9 +2550,7 @@
 
        METHOD z2ui5_if_client~nav_to_home.
 
-         DATA lo_home TYPE REF TO z2ui5_lcl_system_app.
-         CREATE OBJECT lo_Home.
-         z2ui5_if_client~nav_to_app( lo_Home ).
+         z2ui5_if_client~nav_to_app( new z2ui5_lcl_system_app( ) ).
 
        ENDMETHOD.
 
@@ -2573,7 +2558,7 @@
 
          result = VALUE #(
              lifecycle_method = mo_server->ms_control-event_type
-             check_previous_app = boolc( mo_server->ms_db-id_prev_app IS NOT INITIAL )
+             check_previous_app = xsdbool( mo_server->ms_db-id_prev_app IS NOT INITIAL )
              view_active = mo_server->ms_db-screen
              id = mo_server->ms_db-id
              id_prev = mo_server->ms_db-id_prev
