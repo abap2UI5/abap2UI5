@@ -46,11 +46,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD main_index_html.
-    data lv_url type string.
-    lv_url = client-t_header[ name = '~path' ]-value.
+    data(lv_url) = client-t_header[ name = '~path' ]-value.
     TRY.
-        data lv_app type string.
-        lv_app = client-t_param[ name = 'app' ]-value.
+        data(lv_app) = client-t_param[ name = 'app' ]-value.
         lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
@@ -186,10 +184,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
-          data cx type ref to cx_root.
-        CATCH cx_root INTO cx.
-          data lo_runtime_error type ref to z2ui5_lcl_system_runtime.
-          lo_runtime_error = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
+        CATCH cx_root INTO data(cx).
+          data(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
           lo_runtime->db_save( ).
           lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
           lo_runtime = lo_runtime_error.
