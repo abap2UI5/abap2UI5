@@ -130,11 +130,11 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
        )->get_parent( )->get_parent(
 
     )->label( 'Switch disabled'
-    )->switch( enabled = abap_false    customtexton = 'A' customtextoff = 'B'
+    )->switch( enabled = abap_false   customtexton = 'A' customtextoff = 'B'
     )->label( 'Switch accept/reject'
-    )->switch( state = screen-check_switch_01 customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject'
+    )->switch( state = view->_bind( screen-check_switch_01 ) customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject'
     )->label( 'Switch normal'
-    )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
+    )->switch( state = view->_bind( screen-check_switch_02 ) customtexton = 'YES' customtextoff = 'NO' ).
 
 
     page->footer( )->overflow_toolbar(
