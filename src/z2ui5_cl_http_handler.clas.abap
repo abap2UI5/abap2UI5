@@ -68,47 +68,47 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     r_result = r_result && `</head>` && |\n| &&
                  `    <body class="sapUiBody">` && |\n| &&
                  `        <div id="content"></div>` && |\n| &&
-                 `    </body>` && |\n|  &&
-                 `</html>` && |\n|  &&
-                 `<script>` && |\n|  &&
-                 `    sap.ui.getCore().attachInit(function() {` && |\n|  &&
-                 `        "use strict";` && |\n|  &&
+                 `    </body>` && |\n| &&
+                 `</html>` && |\n| &&
+                 `<script>` && |\n| &&
+                 `    sap.ui.getCore().attachInit(function() {` && |\n| &&
+                 `        "use strict";` && |\n| &&
                  `        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function(Controller, ODataModel, JSONModel, MessageBox, Fragment) {` &&
-                 `            "use strict";` && |\n|  &&
-                 `            return Controller.extend("MyController", {` && |\n|  &&
-                 `                onEvent: function(oEvent, oEvent2, oEvent3, oEvent4) {` && |\n|  &&
-                 `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
-                 `                    this.oBody.oEvent = oEvent;` && |\n|  &&
-                 `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
-                 `                        console.log('Request Object:');` && |\n|  &&
-                 `                        console.log(this.oBody);` && |\n|  &&
+                 `            "use strict";` && |\n| &&
+                 `            return Controller.extend("MyController", {` && |\n| &&
+                 `                onEvent: function(oEvent, oEvent2, oEvent3, oEvent4) {` && |\n| &&
+                 `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n| &&
+                 `                    this.oBody.oEvent = oEvent;` && |\n| &&
+                 `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
+                 `                        console.log('Request Object:');` && |\n| &&
+                 `                        console.log(this.oBody);` && |\n| &&
+                 `                    }` && |\n| &&
+                 `                    this.Roundtrip();` && |\n| &&
+                 `                },` && |\n| &&
+                 `                Roundtrip: function() {` && |\n| &&
+                 `                    this.oView.destroy();` && |\n| &&
+                 `                    sap.ui.core.BusyIndicator.show();` && |\n| &&
+                 `                    if (this.getView().oPopup) {` && |\n| &&
+                 `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n| &&
+                 `                        this.getView().oPopup.destroy();` && |\n| &&
                  `                    }` && |\n|  &&
-                 `                    this.Roundtrip();` && |\n|  &&
-                 `                },` && |\n|  &&
-                 `                Roundtrip: function() {` && |\n|  &&
-                 `                    this.oView.destroy();` && |\n|  &&
-                 `                    sap.ui.core.BusyIndicator.show();` && |\n|  &&
-                 `                    if (this.getView().oPopup) {` && |\n|  &&
-                 `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&
-                 `                        this.getView().oPopup.destroy();` && |\n|  &&
-                 `                    }` && |\n|  &&
-                 `                    var xhr = new XMLHttpRequest();` && |\n|  &&
-                 `                    var url = '` && lv_url && `';` && |\n|  &&
-                 `                    xhr.open("POST", url, true);` && |\n|  &&
-                 `                    xhr.onload = function(that) {` && |\n|  &&
-                 `                        if (that.target.status == 500) {` && |\n|  &&
-                 `                            document.write(that.target.response);` && |\n|  &&
-                 `                            return;` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 `                        var oResponse = JSON.parse(that.target.response);` && |\n|  &&
-                 `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
-                 `                            console.log('Response Object:');` && |\n|  &&
-                 `                            console.log(oResponse);` && |\n|  &&
-                 `                            console.log('UI5-XML-View:');` && |\n|  &&
-                 `                            console.log(oResponse.vView);` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 |\n|  &&
-                 `                        if (oResponse.oAfter) {` && |\n|  &&
+                 `                    var xhr = new XMLHttpRequest();` && |\n| &&
+                 `                    var url = '` && lv_url && `';` && |\n| &&
+                 `                    xhr.open("POST", url, true);` && |\n| &&
+                 `                    xhr.onload = function(that) {` && |\n| &&
+                 `                        if (that.target.status == 500) {` && |\n| &&
+                 `                            document.write(that.target.response);` && |\n| &&
+                 `                            return;` && |\n| &&
+                 `                        }` && |\n| &&
+                 `                        var oResponse = JSON.parse(that.target.response);` && |\n| &&
+                 `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
+                 `                            console.log('Response Object:');` && |\n| &&
+                 `                            console.log(oResponse);` && |\n| &&
+                 `                            console.log('UI5-XML-View:');` && |\n| &&
+                 `                            console.log(oResponse.vView);` && |\n| &&
+                 `                        }` && |\n| &&
+                 |\n| &&
+                 `                        if (oResponse.oAfter) {` && |\n| &&
                  `                            oResponse.oAfter.forEach(item=>sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
                  `                        }` && |\n|  &&
                  `                        oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n|  &&
