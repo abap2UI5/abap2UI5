@@ -409,7 +409,7 @@ INTERFACE z2ui5_if_ui5_library
 
   METHODS switch
     IMPORTING
-      state         TYPE abap_bool DEFAULT abap_true
+      state         TYPE string optional
       customtexton  TYPE string OPTIONAL
       customtextoff TYPE string OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
