@@ -4,7 +4,6 @@
 
        PUBLIC SECTION.
 
-
          TYPES:
            BEGIN OF ty_attri,
              name           TYPE string,
