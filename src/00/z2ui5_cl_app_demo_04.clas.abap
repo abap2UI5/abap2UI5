@@ -94,7 +94,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
              )->button( text = 'Display View SECOND' press = view->_event( 'BUTTON_CHANGE_VIEW' )
 
              )->label( 'Change App'
-             )->button( text = 'Display APP_DEMO_01' press = view->_event( 'BUTTON_CHANGE_APP' )  ).
+             )->button( text = 'Display APP_DEMO_01' press = view->_event( 'BUTTON_CHANGE_APP' ) ).
 
 
         "Definition of View Second
