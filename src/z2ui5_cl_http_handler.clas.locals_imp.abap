@@ -12,7 +12,7 @@
              data_stringify TYPE string,
            END OF ty_attri.
 
-         TYPES ty_t_string TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+         TYPES ty_t_string TYPE STANDARD TABLE OF string WITH empty key.
 
          TYPES:
            BEGIN OF ty_name_value,
@@ -41,8 +41,8 @@
                END OF msg_result,
              END OF s,
              BEGIN OF t,
-               attri      TYPE STANDARD TABLE OF ty_attri WITH DEFAULT KEY,
-               name_value TYPE STANDARD TABLE OF ty_name_value WITH DEFAULT KEY,
+               attri      TYPE STANDARD TABLE OF ty_attri WITH empty key,
+               name_value TYPE STANDARD TABLE OF ty_name_value WITH empty key,
              END OF t,
              BEGIN OF o,
                me TYPE REF TO z2ui5_lcl_utility,
@@ -536,7 +536,7 @@
        PUBLIC SECTION.
 
          TYPES ty_o_me TYPE REF TO z2ui5_lcl_utility_tree_json.
-         TYPES ty_T_me TYPE STANDARD TABLE OF ty_o_me WITH DEFAULT KEY.
+         TYPES ty_T_me TYPE STANDARD TABLE OF ty_o_me WITH empty key.
 
          TYPES:
            BEGIN OF ty_S_name,
@@ -952,14 +952,14 @@
 
          DATA m_name TYPE string.
          DATA m_ns   TYPE string.
-         DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty-s_property WITH DEFAULT KEY.
+         DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty-s_property WITH empty key.
          DATA mt_attri  TYPE _=>ty-t-attri.
          DATA mo_app TYPE REF TO object.
 
          DATA m_root    TYPE REF TO z2ui5_lcl_if_ui5_library.
          DATA m_last    TYPE REF TO z2ui5_lcl_if_ui5_library.
          DATA m_parent  TYPE REF TO z2ui5_lcl_if_ui5_library.
-         DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_if_ui5_library WITH DEFAULT KEY.
+         DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_if_ui5_library WITH empty key.
 
          CLASS-METHODS factory
            IMPORTING
@@ -2218,7 +2218,7 @@
              o_app             TYPE REF TO object,
            END OF ms_db.
 
-         DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH DEFAULT KEY.
+         DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH empty key.
          DATA mt_screen TYPE STANDARD TABLE OF s_screen.
          DATA ms_leave_to_app LIKE ms_db.
 
