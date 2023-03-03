@@ -404,7 +404,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
 
          READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
          IF sy-subrc = 0.
-           data(lo_struct) ?= cast cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <back> ) ).
+           data(lo_struct) = cast cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <back> ) ).
            data(lt_components) = lo_struct->get_components( ).
          ENDIF.
 
@@ -453,7 +453,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
          ASSIGN (lv_name) TO <attribute>.
          data(x) = cond i( when sy-subrc <> 0 then throw z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
 
-         data(lo_struct) ?= cast cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
+         data(lo_struct) = cast cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
          data(lt_comp2) = lo_struct->get_components( ).
 
          LOOP AT lt_comp2 REFERENCE INTO data(lr_comp).
