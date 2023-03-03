@@ -172,8 +172,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
     z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
 
-    data lo_runtime type ref to z2ui5_lcl_system_runtime.
-    create object lo_runtime.
+    data(lo_runtime) = new z2ui5_lcl_system_runtime( ).
     result = lo_runtime->execute_init(  ).
     IF result IS NOT INITIAL.
       RETURN.
