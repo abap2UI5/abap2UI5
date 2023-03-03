@@ -457,9 +457,8 @@ CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
          data(lt_comp2) = lo_struct->get_components( ).
 
          LOOP AT lt_comp2 REFERENCE INTO data(lr_comp).
-           DATA lv_element TYPE string.
-           CLEAR lv_element.
-           lv_element = ir_attri.
+
+           data(lv_element) = conv string( ir_attri ).
            lv_element = lv_element && '-' && lr_comp->name.
 
            TRY.
