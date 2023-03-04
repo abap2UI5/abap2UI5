@@ -2312,7 +2312,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       uname = _=>get_user_tech( )
       timestampl = _=>get_timestampl( )
       response = response
-      data  = _=>trans_object_2_xml( REF #( ms_db )  ) ).
+      data  = _=>trans_object_2_xml( REF #( ms_db ) ) ).
 
     MODIFY z2ui5_t_draft FROM @ls_db.
 
@@ -2413,8 +2413,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-      DATA lr_after TYPE REF TO z2ui5_lcl_utility=>ty_t_string.
-      LOOP AT mt_after REFERENCE INTO lr_after.
+
+      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
         lo_list2 = lo_list->add_list_list( ).
