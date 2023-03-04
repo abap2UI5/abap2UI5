@@ -14,7 +14,8 @@ CLASS z2ui5_cl_app_demo_14 DEFINITION PUBLIC.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
+
+CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -42,7 +43,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
 
           WHEN 'DB_SAVE'.
             lcl_mime_api=>save_data( ).
-            client->display_message_box( text = 'Upload successfull. File saved!' type = 'Success' ).
+            client->display_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
 
           WHEN 'EDIT'.
             mv_check_editable = xsdbool( mv_check_editable = abap_False ).
