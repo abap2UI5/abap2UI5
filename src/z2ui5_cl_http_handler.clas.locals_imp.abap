@@ -2537,7 +2537,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
 
        METHOD z2ui5_if_client~get_app_previous.
 
-         data(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _('CX_STACK_EMPTY - NO CALLING APP FOUND') ).
+         data(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _( 'CX_STACK_EMPTY - NO CALLING APP FOUND' ) ).
          result ?= mo_server->db_load( mo_server->ms_db-id_prev_app )-o_app.
 
        ENDMETHOD.
