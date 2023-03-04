@@ -59,8 +59,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
                `    <script src="` && cs_config-repository && `" ` &&
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
-               `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n|  &&
-               `        data-sap-ui-preload="async">` && |\n|  &&
+               `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n| &&
+               `        data-sap-ui-preload="async">` && |\n| &&
                `     </script>` && |\n|.
 
     r_result = r_result && `</head>` && |\n| &&
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                  `                    if (this.getView().oPopup) {` && |\n| &&
                  `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n| &&
                  `                        this.getView().oPopup.destroy();` && |\n| &&
-                 `                    }` && |\n|  &&
+                 `                    }` && |\n| &&
                  `                    var xhr = new XMLHttpRequest();` && |\n| &&
                  `                    var url = '` && lv_url && `';` && |\n| &&
                  `                    xhr.open("POST", url, true);` && |\n| &&
@@ -107,58 +107,58 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                  `                        }` && |\n| &&
                  |\n| &&
                  `                        if (oResponse.oAfter) {` && |\n| &&
-                 `                            oResponse.oAfter.forEach(item=>sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 `                        oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n|  &&
-                 `                        var oModel = new JSONModel(oResponse.oViewModel);` && |\n|  &&
-                 |\n|  &&
-                 `                        if (oResponse.vViewPopup) {` && |\n|  &&
-                 `                            const popup = new sap.ui.core.Fragment.load({` && |\n|  &&
-                 `                                definition: oResponse.vViewPopup,` && |\n|  &&
-                 `                                controller: this,` && |\n|  &&
-                 `                            }).then(function(oFragment) {` && |\n|  &&
-                 |\n|  &&
-                 `                                //  oFragment.setModel(oModel);                                       ` && |\n|  &&
-                 `                                this.getView().addDependent(oFragment);` && |\n|  &&
-                 `                                oFragment.open();` && |\n|  &&
-                 `                                this.getView().oPopup = oFragment;` && |\n|  &&
-                 |\n|  &&
-                 `                            }` && |\n|  &&
-                 `                            .bind(this));` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 `                        //  this.oView.destroy();                                                     ` && |\n|  &&
-                 `                        if (oResponse.vView) {` && |\n|  &&
-                 |\n|  &&
-                 `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
-                 `                                viewContent: oResponse.vView,` && |\n|  &&
-                 `                                definition: oResponse.vView,` && |\n|  &&
-                 `                                preprocessors: {` && |\n|  &&
-                 `                                    xml: {` && |\n|  &&
-                 `                                        models: {` && |\n|  &&
-                 `                                            meta: oModel` && |\n|  &&
-                 `                                        }` && |\n|  &&
-                 `                                    }` && |\n|  &&
-                 `                                },` && |\n|  &&
-                 `                            }).then(oView=>{` && |\n|  &&
-                 `                                oView.setModel(oModel);` && |\n|  &&
-                 `                                oView.placeAt("content");` && |\n|  &&
-                 `                                this.oView = oView;` && |\n|  &&
-                 `                                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
-                 `                            }` && |\n|  &&
-                 `                            );` && |\n|  &&
-                 `                        }` && |\n|  &&
-                 `                    }` && |\n|  &&
-                 `                    .bind(this);` && |\n|  &&
-                 `                    xhr.send(JSON.stringify(this.oBody));` && |\n|  &&
-                 `                },` && |\n|  &&
-                 `            });` && |\n|  &&
-                 `        });` && |\n|  &&
-                 `        var oView = sap.ui.xmlview({` && |\n|  &&
-                 `            viewContent: "<mvc:View controllerName='MyController' xmlns:mvc='sap.ui.core.mvc' />"` && |\n|  &&
-                 `        });` && |\n|  &&
-                 `        oView.getController().Roundtrip();` && |\n|  &&
-                 `    });` && |\n|  &&
-                 `</script>` && |\n|  &&
+                 `                            oResponse.oAfter.forEach(item=>sap.m[item[0]][item[1]](item[2]));` && |\n| &&
+                 `                        }` && |\n| &&
+                 `                        oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n| &&
+                 `                        var oModel = new JSONModel(oResponse.oViewModel);` && |\n| &&
+                 |\n| &&
+                 `                        if (oResponse.vViewPopup) {` && |\n| &&
+                 `                            const popup = new sap.ui.core.Fragment.load({` && |\n| &&
+                 `                                definition: oResponse.vViewPopup,` && |\n| &&
+                 `                                controller: this,` && |\n| &&
+                 `                            }).then(function(oFragment) {` && |\n| &&
+                 |\n| &&
+                 `                                //  oFragment.setModel(oModel);                                       ` && |\n| &&
+                 `                                this.getView().addDependent(oFragment);` && |\n| &&
+                 `                                oFragment.open();` && |\n| &&
+                 `                                this.getView().oPopup = oFragment;` && |\n| &&
+                 |\n| &&
+                 `                            }` && |\n| &&
+                 `                            .bind(this));` && |\n| &&
+                 `                        }` && |\n| &&
+                 `                        //  this.oView.destroy();                                                     ` && |\n| &&
+                 `                        if (oResponse.vView) {` && |\n| &&
+                 |\n| &&
+                 `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n| &&
+                 `                                viewContent: oResponse.vView,` && |\n| &&
+                 `                                definition: oResponse.vView,` && |\n| &&
+                 `                                preprocessors: {` && |\n| &&
+                 `                                    xml: {` && |\n| &&
+                 `                                        models: {` && |\n| &&
+                 `                                            meta: oModel` && |\n| &&
+                 `                                        }` && |\n| &&
+                 `                                    }` && |\n| &&
+                 `                                },` && |\n| &&
+                 `                            }).then(oView=>{` && |\n| &&
+                 `                                oView.setModel(oModel);` && |\n| &&
+                 `                                oView.placeAt("content");` && |\n| &&
+                 `                                this.oView = oView;` && |\n| &&
+                 `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
+                 `                            }` && |\n| &&
+                 `                            );` && |\n| &&
+                 `                        }` && |\n| &&
+                 `                    }` && |\n| &&
+                 `                    .bind(this);` && |\n| &&
+                 `                    xhr.send(JSON.stringify(this.oBody));` && |\n| &&
+                 `                },` && |\n| &&
+                 `            });` && |\n| &&
+                 `        });` && |\n| &&
+                 `        var oView = sap.ui.xmlview({` && |\n| &&
+                 `            viewContent: "<mvc:View controllerName='MyController' xmlns:mvc='sap.ui.core.mvc' />"` && |\n| &&
+                 `        });` && |\n| &&
+                 `        oView.getController().Roundtrip();` && |\n| &&
+                 `    });` && |\n| &&
+                 `</script>` && |\n| &&
                  `</html>`.
 
   ENDMETHOD.

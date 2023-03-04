@@ -228,7 +228,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     url = get_trim_upper( url ).
     name = get_trim_upper( name ).
 
-    SPLIT url AT `?` INTO DATA(dummy) url.
+    url = segment( val = url index = 2 sep = `?` ).
+    "  SPLIT url AT `?` INTO DATA(dummy) url.
     SPLIT url AT `&` INTO TABLE DATA(lt_href).
     DATA lt_url_params TYPE ty-t-name_value.
 
@@ -2154,9 +2155,19 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
             href = lv_link
              enabled = xsdbool( ms_home-class_editable = abap_false )
         ).
+    TRY.
+        DATA li_app TYPE REF TO z2ui5_if_app.
+        CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
+        client->nav_to_app( li_app ).
+        DATA(lv_check_demo_active) = abap_true.
+        DATA(lv_text) = `Press to continue..`.
+      CATCH cx_root.
+        lv_check_demo_active = abap_false.
+        lv_text = `Press to continue..(release too low, only available from abap v750)`.
+    ENDTRY.
     grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
     grid->simple_form( 'Applications and Examples' )->content( 'f'
-      )->button( text = 'Press to continue...' press = view->_event( 'DEMOS' ) ).
+      )->button( text = lv_text press = view->_event( 'DEMOS' ) enabled = lv_check_demo_active ).
 
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
