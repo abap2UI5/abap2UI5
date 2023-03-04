@@ -63,11 +63,11 @@
       "severity": "Error",
       "max": 20
     },
-    "dangerous_statement": false,
+    "dangerous_statement": true,
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
-    "double_space": false,
+    "double_space": true,
     "downport": true,
     "empty_line_in_statement": false,
     "empty_statement": true,
@@ -243,7 +243,7 @@
       "severity": "Error",
       "skipNames": []
     },
-    "unused_variables": false,
+    "unused_variables": true,
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
     "use_line_exists": true,
