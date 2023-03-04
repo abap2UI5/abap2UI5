@@ -332,7 +332,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN cl_abap_classdescr=>typekind_struct2 or cl_abap_classdescr=>typekind_struct1.
+        WHEN cl_abap_classdescr=>typekind_struct2 OR cl_abap_classdescr=>typekind_struct1.
 
           DATA(lt_attri_tmp) = _get_t_attri(
               io_app = io_app
@@ -2109,7 +2109,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( 'HOME' ).
-    DATA(page) = view->page( 'ABAP2UI5 - Welcome to development of UI5 Apps in pure ABAP!' ).
+    DATA(page) = view->page( 'ABAP2UI5 - Development of UI5 Apps in pure ABAP' ).
     page->header_content(
         )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
@@ -2196,13 +2196,13 @@ CLASS z2ui5_lcl_db DEFINITION.
         o_app             TYPE REF TO object,
       END OF ty_S_db.
 
-    class-METHODS db_save
+    CLASS-METHODS db_save
       IMPORTING
-        id type string
+        id       TYPE string
         response TYPE string OPTIONAL
-        db type ty_s_db.
+        db       TYPE ty_s_db.
 
-    class-METHODS db_load
+    CLASS-METHODS db_load
       IMPORTING
         id              TYPE string
       RETURNING
