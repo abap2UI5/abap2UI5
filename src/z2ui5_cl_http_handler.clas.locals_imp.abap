@@ -186,8 +186,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   METHOD constructor.
 
     super->constructor( previous = previous ).
-
-    CLEAR me->textid.
+    CLEAR textid.
 
     TRY.
         ms_error-x_root ?= val.
