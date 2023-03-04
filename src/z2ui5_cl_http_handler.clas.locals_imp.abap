@@ -1,6 +1,7 @@
 CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
 
   CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
+  CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     PUBLIC SECTION.
 
