@@ -327,7 +327,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION DEFERRED.
 
         CASE lr_attri->type_kind.
 
-          WHEN cl_abap_classdescr=>typekind_struct2 OR cl_abap_classdescr=>typekind_struct1.
+          WHEN cl_abap_classdescr=>typekind_struct2.
 
             data(lt_attri_tmp) = _get_t_attri(
                 io_app = io_app
