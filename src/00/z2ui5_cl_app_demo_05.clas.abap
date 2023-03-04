@@ -78,7 +78,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
-        grid->simple_form('More Controls' )->content( 'f'
+        grid->simple_form( 'More Controls' )->content( 'f'
              )->label( 'ProgressIndicator'
              )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = 'Success'
 

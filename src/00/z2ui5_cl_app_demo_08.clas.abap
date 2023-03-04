@@ -74,7 +74,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
            )->button( text = 'information'  press = view->_event( 'BUTTON_MESSAGE_BOX' )
            )->button( text = 'success'      press = view->_event( 'BUTTON_MESSAGE_BOX_SUCCESS' )
            )->button( text = 'error'        press = view->_event( 'BUTTON_MESSAGE_BOX_ERROR' )
-           )->button( text = 'warning'      press = view->_event('BUTTON_MESSAGE_BOX_WARNING' ) ).
+           )->button( text = 'warning'      press = view->_event( 'BUTTON_MESSAGE_BOX_WARNING' ) ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
           )->simple_form( 'Message Strip' )->content( 'f'

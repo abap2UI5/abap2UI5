@@ -77,7 +77,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
     DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
-    grid->simple_form('Input' )->content( 'f'
+    grid->simple_form( 'Input' )->content( 'f'
         )->label( 'Input with value help'
         )->input(
             value       = view->_bind( screen-colour )
@@ -87,7 +87,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
                 )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
 
 
-    grid->simple_form('Time Inputs' )->content( 'f'
+    grid->simple_form( 'Time Inputs' )->content( 'f'
         )->label( 'Date'
         )->date_picker( view->_bind( screen-date )
 
@@ -100,7 +100,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
 
     page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-       )->simple_form('Input with select options' )->content( 'f'
+       )->simple_form( 'Input with select options' )->content( 'f'
 
     )->label( 'Checkbox'
     )->checkbox(
@@ -158,7 +158,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'BUTTON_SEND'.
-        client->display_message_box( 'Values were send to the server successfully').
+        client->display_message_box( 'Values were send to the server successfully' ).
       WHEN 'BUTTON_CLEAR'.
         CLEAR screen.
         client->display_message_toast( 'View initialized' ).
