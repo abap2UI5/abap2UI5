@@ -4,7 +4,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
   PUBLIC SECTION.
 
-  
     TYPES:
       BEGIN OF ty_attri,
         name           TYPE string,
