@@ -1041,7 +1041,8 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
     ENDIF.
 
     "DATA lr_in TYPE REF TO data.
-    GET REFERENCE OF value INTO DATA(lr_in).
+    DATA lr_in TYPE REF TO data.
+    GET REFERENCE OF value INTO lr_in.
 
     LOOP AT m_root->mt_attri REFERENCE INTO DATA(lr_attri).
 
@@ -1059,7 +1060,14 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+        "  r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+
+        "  DATA temp25 TYPE string.
+        IF type = cs-bind_type-two_way.
+          r_result = '/oUpdate/' && lr_attri->name.
+        ELSE.
+          r_result = '/' && lr_attri->name.
+        ENDIF.
         RETURN.
       ENDIF.
 
@@ -1091,9 +1099,16 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD xml_get_end.
 
-    result = result && COND #( WHEN check_popup_active = abap_false
-              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
-              ELSE `</core:FragmentDefinition>` ).
+    IF check_popup_active = abap_false.
+      IF z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true.
+        DATA(temp9) = `</Shell></mvc:View>`.
+      ELSE.
+        temp9 = `</mvc:View>`.
+      ENDIF.
+    ELSE.
+      temp9 = `</core:FragmentDefinition>`.
+    ENDIF.
+    result = result && temp9.
 
   ENDMETHOD.
 
@@ -1119,13 +1134,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    data(lv_tmp2) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
-    data(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
+    DATA(lv_tmp2) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
+    DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
                           NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ).
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
     "result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
-     "                    REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
-      "                    NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
+    "                    REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
+    "                    NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
 
     IF t_child IS INITIAL.
       result = result && '/>'.
@@ -1138,7 +1153,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       result = result && lr_child->xml_get( ).
     ENDLOOP.
 
-    data(lv_tmp) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
+    DATA(lv_tmp) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
     result = result && |</{ lv_tmp }{ m_name }>|.
     "result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
 
@@ -1366,10 +1381,18 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~zz_html.
 
-    "todo
-    DATA(lv_html) = replace( val = val sub = '</' with = '#+´"?' occ = 0 ).
-    lv_html = replace( val = lv_html sub = '<' with = '<html:' occ = 0 ).
-    lv_html = replace( val = lv_html sub = '#+´"?' with = '</html:' occ = 0 ).
+    SPLIT val AT '<' INTO TABLE DATA(lt_table).
+
+    DATA(lv_html) = ``.
+    LOOP AT lt_table REFERENCE INTO DATA(lr_line).
+
+      IF lr_line->*(1) = '/'.
+        lv_html = '</html:' && lr_line->*.
+      ELSE.
+        lv_html = '<html:' && lr_line->*.
+      ENDIF.
+
+    ENDLOOP.
 
     result = me.
 
@@ -1598,8 +1621,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
           t_prop = VALUE #( ( n = 'width' v = width ) )
      ).
 
-    " lo_col->z2ui5_if_ui5_library~text( text ).
-
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~columns.
@@ -1683,15 +1704,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~table_select_dialog.
-
-*        result = _generic(
-*             name = 'TableSelectDialog'
-*            t_prop = VALUE #(
-*              ( n = 'title' v = title )
-*              ( n = 'confirm'      v = _get_event_method( ` $event , { 'ID' : '` && event_id_confirm && `' } )` ) )
-*              ( n = 'cancel'       v = _get_event_method( `{ 'ID' : '` && event_id_cancel && `' }` ) )
-*              ( n = 'items' v = '{' && _get_name_by_ref( value = items ) && '}' )
-*              ) ).
 
   ENDMETHOD.
 
@@ -1850,9 +1862,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
           ns   = 'ui'
          t_prop = VALUE #(
               ( n = 'width'  v = width )
-*                 ( n = 'key'   v = key )
-*                 ( n = 'text'  v = text )
-          )
+              )
           ).
 
   ENDMETHOD.
@@ -1862,12 +1872,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
     result = _generic(
           name = 'columns'
           ns   = 'ui'
-*             t_prop = VALUE #(
-*                 ( n = 'icon'  v = icon  )
-*                 ( n = 'key'   v = key )
-*                 ( n = 'text'  v = text )
-*             )
-          ).
+     ).
 
   ENDMETHOD.
 
@@ -1876,12 +1881,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
     result = _generic(
           name = 'extension'
           ns   = 'ui'
-*             t_prop = VALUE #(
-*                 ( n = 'icon'  v = icon  )
-*                 ( n = 'key'   v = key )
-*                 ( n = 'text'  v = text )
-*             )
-          ).
+     ).
 
   ENDMETHOD.
 
@@ -1905,12 +1905,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
     result = _generic(
           name = 'template'
           ns   = 'ui'
-*             t_prop = VALUE #(
-*                 ( n = 'icon'  v = icon  )
-*                 ( n = 'key'   v = key )
-*                 ( n = 'text'  v = text )
-*             )
-          ).
+     ).
 
   ENDMETHOD.
 
@@ -1919,15 +1914,11 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = _generic(
           name = 'FlexBox'
-       "   ns   = 'ui'
         t_prop = VALUE #(
             ( n = 'class'  v = class )
             ( n = 'renderType'  v = render_type )
-           "  type string optional
-*                 ( n = 'key'   v = key )
-*                 ( n = 'text'  v = text )
         )
-          ).
+     ).
 
 
   ENDMETHOD.
@@ -1951,7 +1942,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     _generic(
           name = 'FlexItemData'
-           "ns   = 'l'
         t_prop = VALUE #(
             ( n = 'growFactor'  v = grow_Factor )
             ( n = 'baseSize'   v = base_Size )
@@ -2189,6 +2179,86 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
 ENDCLASS.
 
+CLASS z2ui5_lcl_db DEFINITION.
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_S_db,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
+        app               TYPE string,
+        screen            TYPE string,
+        check_no_rerender TYPE abap_bool,
+        screen_popup      TYPE string,
+        t_attri           TYPE _=>ty-t-attri,
+        o_app             TYPE REF TO object,
+      END OF ty_S_db.
+
+    class-METHODS db_save
+      IMPORTING
+        id type string " type ty_S_db.
+        response TYPE string OPTIONAL
+        db type ty_s_db.
+
+    class-METHODS db_load
+      IMPORTING
+        id              TYPE string
+      RETURNING
+        VALUE(r_result) TYPE ty_S_db.
+
+ENDCLASS.
+
+CLASS z2ui5_lcl_db IMPLEMENTATION.
+
+  METHOD db_load.
+
+    SELECT SINGLE data
+      FROM z2ui5_t_draft
+     WHERE uuid = @id
+    INTO @DATA(lv_data).
+
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
+
+    _=>trans_xml_2_object(
+      EXPORTING
+        xml    = lv_data
+       IMPORTING
+        data   = r_result
+    ).
+
+  ENDMETHOD.
+
+  METHOD db_save.
+
+    DATA ls_db TYPE z2ui5_t_draft.
+
+    ls_db = VALUE #(
+      uuid  = id
+      uname = _=>get_user_tech( )
+      timestampl = _=>get_timestampl( )
+      response = response
+      data  = _=>trans_object_2_xml( REF #( db ) ) ).
+
+    MODIFY z2ui5_t_draft FROM @ls_db.
+
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
+
+    COMMIT WORK AND WAIT.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
 CLASS z2ui5_lcl_if_client DEFINITION.
 
   PUBLIC SECTION.
@@ -2227,34 +2297,15 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         event_type TYPE string,
       END OF ms_control.
 
-    DATA:
-      BEGIN OF ms_db,
-        id                TYPE string,
-        id_prev           TYPE string,
-        id_prev_app       TYPE string,
-        app               TYPE string,
-        screen            TYPE string,
-        check_no_rerender TYPE abap_bool,
-        screen_popup      TYPE string,
-        t_attri           TYPE _=>ty-t-attri,
-        o_app             TYPE REF TO object,
-      END OF ms_db.
+    DATA ms_db TYPE z2ui5_lcl_db=>ty_S_Db.
+
+
 
     DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH EMPTY KEY.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA ms_leave_to_app LIKE ms_db.
 
     METHODS constructor.
-
-    METHODS db_save
-      IMPORTING
-        response TYPE string OPTIONAL.
-
-    METHODS db_load
-      IMPORTING
-        id              TYPE string
-      RETURNING
-        VALUE(r_result) LIKE ms_db.
 
     METHODS execute_init
       RETURNING
@@ -2295,50 +2346,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD db_load.
 
-    SELECT SINGLE data
-      FROM z2ui5_t_draft
-     WHERE uuid = @id
-    INTO @DATA(lv_data).
-
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
-
-    _=>trans_xml_2_object(
-      EXPORTING
-        xml    = lv_data
-       IMPORTING
-        data   = r_result
-    ).
-
-  ENDMETHOD.
-
-  METHOD db_save.
-
-    DATA ls_db TYPE z2ui5_t_draft.
-
-    ls_db = VALUE #(
-      uuid  = ms_db-id
-      uname = _=>get_user_tech( )
-      timestampl = _=>get_timestampl( )
-      response = response
-      data  = _=>trans_object_2_xml( REF #( ms_db ) ) ).
-
-    MODIFY z2ui5_t_draft FROM @ls_db.
-
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
-
-    COMMIT WORK AND WAIT.
-
-  ENDMETHOD.
 
 
   METHOD execute_init.
@@ -2427,7 +2435,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
+      DATA lr_after TYPE REF TO z2ui5_lcl_utility=>ty_t_string.
+      LOOP AT mt_after REFERENCE INTO lr_after.
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
         lo_list2 = lo_list->add_list_list( ).
@@ -2448,7 +2457,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     " MOVE-CORRESPONDING  db_load( ms_db-id_prev ) TO ms_db.
     " CLEAR: ms_db-id, ms_db-id_prev.
     DATA(ls_db_tmp) = ms_db.
-    ms_db = db_load( ms_db-id_prev ).
+    ms_db = z2ui5_lcl_db=>db_load( ms_db-id_prev ).
     ms_db-id = ls_db_tmp-id.
     ms_db-id_prev = ls_db_tmp-id_prev.
 
@@ -2633,7 +2642,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     ENDIF.
 
-    result ?= mo_server->db_load( mo_server->ms_db-id_prev_app )-o_app.
+    result ?= z2ui5_lcl_db=>db_load( mo_server->ms_db-id_prev_app )-o_app.
 
   ENDMETHOD.
 
