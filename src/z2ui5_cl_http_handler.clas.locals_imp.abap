@@ -228,7 +228,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     name = get_trim_upper( name ).
 
     url = segment( val = url index = 2 sep = `?` ).
-    "  SPLIT url AT `?` INTO DATA(dummy) url.
     SPLIT url AT `&` INTO TABLE DATA(lt_href).
     DATA lt_url_params TYPE ty-t-name_value.
 
@@ -273,7 +272,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         EXPORTING
           val = 'CX_SY_SUBRC'.
     ENDIF.
-    "DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
     GET REFERENCE OF <field> INTO result.
 
   ENDMETHOD.
@@ -1121,9 +1119,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
-                         REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
-                          NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
+    data(lv_tmp2) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
+    data(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
+                          NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ).
+    result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
+    "result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
+     "                    REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
+      "                    NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
 
     IF t_child IS INITIAL.
       result = result && '/>'.
@@ -1136,7 +1138,9 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       result = result && lr_child->xml_get( ).
     ENDLOOP.
 
-    result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
+    data(lv_tmp) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
+    result = result && |</{ lv_tmp }{ m_name }>|.
+    "result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
 
   ENDMETHOD.
 
@@ -2546,7 +2550,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD constructor.
 
-    me->mo_server = i_server.
+    mo_server = i_server.
 
   ENDMETHOD.
 
