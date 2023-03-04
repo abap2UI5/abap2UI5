@@ -57,7 +57,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
-        z2ui5_on_init( client ).
+        z2ui5_on_init( ).
 
       WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).
@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
     grid->simple_form('Input' )->content( 'f'
         )->label( 'Input with value help'
-        )->input( 
+        )->input(
             value       = view->_bind( screen-colour )
             placeholder = 'fill in your favorite colour'
             suggestion_items = view->_bind_one_way( mt_suggestion ) )->get(
