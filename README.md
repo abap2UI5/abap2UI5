@@ -29,7 +29,7 @@ Works with all available ABAP stacks and language versions:
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 (Standard ABAP) - downport to older releases possible [(#47)](https://github.com/oblomov-dev/ABAP2UI5/issues/47)
+* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 
 Install with [abapGit](https://abapgit.org), create a new http service and call ABAP2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
 
