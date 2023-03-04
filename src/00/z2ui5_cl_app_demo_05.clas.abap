@@ -47,7 +47,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
            date              = '07.12.22'
            date_time         = '23.12.2022, 19:27:20'
            time_start        = '05:24:00'
-           time_end          = '17:23:57'  ).
+           time_end          = '17:23:57' ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -78,7 +78,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
-        grid->simple_form('More Controls' )->content( 'f'
+        grid->simple_form( 'More Controls' )->content( 'f'
              )->label( 'ProgressIndicator'
              )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = 'Success'
 
