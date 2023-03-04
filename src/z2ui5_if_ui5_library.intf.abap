@@ -21,12 +21,10 @@ INTERFACE z2ui5_if_ui5_library
     END OF cs.
 
   TYPES:
-    BEGIN OF ty,
-      BEGIN OF s_property,
-        n TYPE string,
-        v TYPE string,
-      END OF s_property,
-    END OF ty.
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
 
   METHODS _bind
     IMPORTING
@@ -63,7 +61,7 @@ INTERFACE z2ui5_if_ui5_library
       background_Design TYPE string OPTIONAL
       style_Class       TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS code_editor
     IMPORTING
@@ -87,9 +85,9 @@ INTERFACE z2ui5_if_ui5_library
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS flex_box
-    importing
-    class type string optional
-    render_Type  type string optional
+    IMPORTING
+      class         TYPE string OPTIONAL
+      render_Type   TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -409,7 +407,7 @@ INTERFACE z2ui5_if_ui5_library
 
   METHODS switch
     IMPORTING
-      state         TYPE string optional
+      state         TYPE string OPTIONAL
       customtexton  TYPE string OPTIONAL
       customtextoff TYPE string OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true
