@@ -42,7 +42,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD main_index_html.
@@ -186,14 +186,22 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
         CATCH cx_root INTO DATA(cx).
           DATA(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
-          lo_runtime->db_save( ).
+          " lo_runtime->db_save( ).
+          z2ui5_lcl_db=>db_save(
+                id       = lo_runtime->ms_db-id
+                db       = lo_runtime->ms_db
+                ).
           lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
           lo_runtime = lo_runtime_error.
           CONTINUE.
       ENDTRY.
 
       IF lo_runtime->ms_leave_to_app IS NOT INITIAL.
-        lo_runtime->db_save( ).
+        " lo_runtime->db_save( ).
+        z2ui5_lcl_db=>db_save(
+                id       = lo_runtime->ms_db-id
+                 db       = lo_runtime->ms_db
+            ).
         DATA lo_runtime_new TYPE REF TO z2ui5_lcl_system_runtime.
         lo_runtime_new = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
         lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
@@ -218,7 +226,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     ENDDO.
 
     result = lo_runtime->execute_finish( ).
-    lo_runtime->db_save( result ).
+    z2ui5_lcl_db=>db_save(
+      id       = lo_runtime->ms_db-id
+      response = result
+      db       = lo_runtime->ms_db
+    ).
+    " lo_runtime->db_save( result ).
 
   ENDMETHOD.
 ENDCLASS.
