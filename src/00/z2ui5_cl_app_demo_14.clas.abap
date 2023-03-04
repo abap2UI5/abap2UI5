@@ -38,7 +38,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
                 WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( )
                 WHEN mv_path CS 'js'   THEN lcl_mime_api=>read_js( )
                 ).
-            client->display_message_toast( 'Download successfull').
+            client->display_message_toast( 'Download successfull' ).
 
           WHEN 'DB_SAVE'.
             lcl_mime_api=>save_data( mv_editor ).

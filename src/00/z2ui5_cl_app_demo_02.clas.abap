@@ -42,9 +42,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
     METHODS z2ui5_on_event
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
-    METHODS z2ui5_on_init
-      IMPORTING
-        client TYPE REF TO z2ui5_if_client.
+    METHODS z2ui5_on_init.
 
 PRIVATE SECTION.
 ENDCLASS.
@@ -81,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
     grid->simple_form('Input' )->content( 'f'
         )->label( 'Input with value help'
-        )->input(
+        )->input( 
             value       = view->_bind( screen-colour )
             placeholder = 'fill in your favorite colour'
             suggestion_items = view->_bind_one_way( mt_suggestion ) )->get(
