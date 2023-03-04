@@ -2198,7 +2198,7 @@ CLASS z2ui5_lcl_db DEFINITION.
 
     class-METHODS db_save
       IMPORTING
-        id type string " type ty_S_db.
+        id type string
         response TYPE string OPTIONAL
         db type ty_s_db.
 
@@ -2347,8 +2347,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-
-
   METHOD execute_init.
 
     TRY.
@@ -2435,8 +2433,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-      DATA lr_after TYPE REF TO z2ui5_lcl_utility=>ty_t_string.
-      LOOP AT mt_after REFERENCE INTO lr_after.
+
+      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
         lo_list2 = lo_list->add_list_list( ).
