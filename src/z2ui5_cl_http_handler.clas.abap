@@ -38,14 +38,16 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD main_index_html.
+
     DATA(lv_url) = client-t_header[ name = '~path' ]-value.
     TRY.
         DATA(lv_app) = client-t_param[ name = 'app' ]-value.

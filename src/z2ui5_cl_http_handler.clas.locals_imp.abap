@@ -12,7 +12,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
-    TYPES ty_t_string TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+   " TYPES ty_t_string TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_name_value,
@@ -232,7 +233,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DATA lt_url_params TYPE ty-t-name_value.
 
     LOOP AT lt_href REFERENCE INTO DATA(lr_href).
-      DATA lt_param TYPE ty_t_string.
+      DATA lt_param TYPE string_table.
       CLEAR lt_param.
       SPLIT lr_href->* AT `=` INTO TABLE lt_param.
       INSERT VALUE #( name = to_upper( lt_param[ 1 ] ) value = to_upper( lt_param[ 2 ] ) ) INTO TABLE lt_url_params.
@@ -332,7 +333,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN cl_abap_classdescr=>typekind_struct2 or cl_abap_classdescr=>typekind_struct1.
+        WHEN cl_abap_classdescr=>typekind_struct2 OR cl_abap_classdescr=>typekind_struct1.
 
           DATA(lt_attri_tmp) = _get_t_attri(
               io_app = io_app
@@ -963,7 +964,7 @@ CLASS z2ui5_lcl_if_ui5_library DEFINITION.
 
     DATA m_name TYPE string.
     DATA m_ns   TYPE string.
-    DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty_s_name_value WITH EMPTY KEY.
+    DATA mt_prop TYPE z2ui5_if_ui5_library=>ty_t_name_value.
     DATA mt_attri  TYPE _=>ty-t-attri.
     DATA mo_app TYPE REF TO object.
 
@@ -989,7 +990,7 @@ CLASS z2ui5_lcl_if_ui5_library DEFINITION.
       IMPORTING
         name          TYPE string
         ns            TYPE string OPTIONAL
-        t_prop        LIKE mt_prop OPTIONAL
+        t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value optional
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_if_ui5_library.
 
@@ -1060,14 +1061,14 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        "  r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+          r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
 
         "  DATA temp25 TYPE string.
-        IF type = cs-bind_type-two_way.
-          r_result = '/oUpdate/' && lr_attri->name.
-        ELSE.
-          r_result = '/' && lr_attri->name.
-        ENDIF.
+      "  IF type = cs-bind_type-two_way.
+       "   r_result = '/oUpdate/' && lr_attri->name.
+      "  ELSE.
+      "    r_result = '/' && lr_attri->name.
+      "  ENDIF.
         RETURN.
       ENDIF.
 
@@ -1099,16 +1100,9 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD xml_get_end.
 
-    IF check_popup_active = abap_false.
-      IF z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true.
-        DATA(temp9) = `</Shell></mvc:View>`.
-      ELSE.
-        temp9 = `</mvc:View>`.
-      ENDIF.
-    ELSE.
-      temp9 = `</core:FragmentDefinition>`.
-    ENDIF.
-    result = result && temp9.
+   result = result && COND #( WHEN check_popup_active = abap_false
+              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
+              ELSE `</core:FragmentDefinition>` ).
 
   ENDMETHOD.
 
@@ -1138,9 +1132,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
     DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
                           NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ).
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
-    "result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
-    "                    REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
-    "                    NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
 
     IF t_child IS INITIAL.
       result = result && '/>'.
@@ -1155,7 +1146,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     DATA(lv_tmp) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
     result = result && |</{ lv_tmp }{ m_name }>|.
-    "result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
 
   ENDMETHOD.
 
@@ -2109,7 +2099,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( 'HOME' ).
-    DATA(page) = view->page( 'ABAP2UI5 - Welcome to development of UI5 Apps in pure ABAP!' ).
+    DATA(page) = view->page( 'ABAP2UI5 - Development of UI5 Apps in pure ABAP' ).
     page->header_content(
         )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
@@ -2196,13 +2186,13 @@ CLASS z2ui5_lcl_db DEFINITION.
         o_app             TYPE REF TO object,
       END OF ty_S_db.
 
-    class-METHODS db_save
+    CLASS-METHODS db_save
       IMPORTING
-        id type string
+        id       TYPE string
         response TYPE string OPTIONAL
-        db type ty_s_db.
+        db       TYPE ty_s_db.
 
-    class-METHODS db_load
+    CLASS-METHODS db_load
       IMPORTING
         id              TYPE string
       RETURNING
@@ -2299,9 +2289,9 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     DATA ms_db TYPE z2ui5_lcl_db=>ty_S_Db.
 
+  "  types
 
-
-    DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH EMPTY KEY.
+    DATA mt_after TYPE _=>ty_tt_string.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA ms_leave_to_app LIKE ms_db.
 
@@ -2433,8 +2423,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-
-      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
+      data lr_after type ref to string_table.
+      LOOP AT mt_after REFERENCE INTO lr_after.
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
         lo_list2 = lo_list->add_list_list( ).
@@ -2654,6 +2644,8 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     "coming soon
     "mo_server->ms_db-screen_popup = name.
+
+
 
   ENDMETHOD.
 
