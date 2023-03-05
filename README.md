@@ -1,4 +1,4 @@
-## Downport of ABAP2UI5
+## Downport of abap2UI5
 
 * version with compatible syntax to old R/3 NetWeaver releases
 * use this branch for NW 7.02 to NW 7.40 (use "main" for NW 7.50 or higher, S/4 and Cloud)
