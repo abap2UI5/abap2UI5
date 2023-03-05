@@ -7,7 +7,7 @@ Development of UI5 Apps in pure ABAP. You can also follow this project on [Twitt
 * pure ABAP – development in 100% ABAP source code (no JavaScript, EML, DDL or Customizing)
 * small system footprint - based on a plain http handler (no OData, SEGW, BOPF, BSP, RAP or FE)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* high system compatibility - runs on all available ABAP stacks (NW 7.50 to ABAP 2302)
+* high system compatibility - runs on all available ABAP stacks (NW 7.02 to ABAP 2302)
 * easy installation - abapGit project, no additional app deployment needed
 
 ### Information
@@ -31,6 +31,7 @@ Works with all available ABAP stacks and language versions:
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
+* R/3 Netweaver AS ABAP 7.02 to 7.40 (Standard ABAP) - use this (branch)[https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702]
 
 Install with [abapGit](https://abapgit.org), create a new http service and call ABAP2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
 
