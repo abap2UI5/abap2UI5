@@ -1060,14 +1060,14 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        "  r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+          r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
 
         "  DATA temp25 TYPE string.
-        IF type = cs-bind_type-two_way.
-          r_result = '/oUpdate/' && lr_attri->name.
-        ELSE.
-          r_result = '/' && lr_attri->name.
-        ENDIF.
+      "  IF type = cs-bind_type-two_way.
+       "   r_result = '/oUpdate/' && lr_attri->name.
+      "  ELSE.
+      "    r_result = '/' && lr_attri->name.
+      "  ENDIF.
         RETURN.
       ENDIF.
 
