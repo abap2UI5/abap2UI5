@@ -33,46 +33,70 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             client->display_message_toast( |{ product } { quantity } ST - GR successful| ).
 
           WHEN '0101'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
+            DATA temp1 TYPE REF TO z2ui5_cl_app_demo_01.
+            CREATE OBJECT temp1 TYPE z2ui5_cl_app_demo_01.
+            client->nav_to_app( temp1 ).
 
           WHEN '0102'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
+            DATA temp2 TYPE REF TO z2ui5_cl_app_demo_04.
+            CREATE OBJECT temp2 TYPE z2ui5_cl_app_demo_04.
+            client->nav_to_app( temp2 ).
 
           WHEN '0103'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_08( ) ).
+            DATA temp3 TYPE REF TO z2ui5_cl_app_demo_08.
+            CREATE OBJECT temp3 TYPE z2ui5_cl_app_demo_08.
+            client->nav_to_app( temp3 ).
 
           WHEN '0104'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_10( ) ).
+            DATA temp4 TYPE REF TO z2ui5_cl_app_demo_10.
+            CREATE OBJECT temp4 TYPE z2ui5_cl_app_demo_10.
+            client->nav_to_app( temp4 ).
 
           WHEN '0201'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
+            DATA temp5 TYPE REF TO z2ui5_cl_app_demo_02.
+            CREATE OBJECT temp5 TYPE z2ui5_cl_app_demo_02.
+            client->nav_to_app( temp5 ).
 
           WHEN '0202'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_05( ) ).
+            DATA temp6 TYPE REF TO z2ui5_cl_app_demo_05.
+            CREATE OBJECT temp6 TYPE z2ui5_cl_app_demo_05.
+            client->nav_to_app( temp6 ).
 
           WHEN '0301'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_03( ) ).
+            DATA temp7 TYPE REF TO z2ui5_cl_app_demo_03.
+            CREATE OBJECT temp7 TYPE z2ui5_cl_app_demo_03.
+            client->nav_to_app( temp7 ).
 
           WHEN '0302'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_07( ) ).
+            DATA temp8 TYPE REF TO z2ui5_cl_app_demo_07.
+            CREATE OBJECT temp8 TYPE z2ui5_cl_app_demo_07.
+            client->nav_to_app( temp8 ).
 
           WHEN '0303'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_06( ) ).
+            DATA temp9 TYPE REF TO z2ui5_cl_app_demo_06.
+            CREATE OBJECT temp9 TYPE z2ui5_cl_app_demo_06.
+            client->nav_to_app( temp9 ).
 
           WHEN '0304'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_11( ) ).
+            DATA temp10 TYPE REF TO z2ui5_cl_app_demo_11.
+            CREATE OBJECT temp10 TYPE z2ui5_cl_app_demo_11.
+            client->nav_to_app( temp10 ).
 
           WHEN 'MIME_EDITOR'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_14( ) ).
+            DATA temp11 TYPE REF TO z2ui5_cl_app_demo_14.
+            CREATE OBJECT temp11 TYPE z2ui5_cl_app_demo_14.
+            client->nav_to_app( temp11 ).
 
         ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'ABAP2UI5 - Applications and Examples' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'ABAP2UI5 - Applications and Examples' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
             ).
 
         page->header_content(
@@ -80,7 +104,8 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
             )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
-        DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+        DATA grid TYPE REF TO z2ui5_if_ui5_library.
+        grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
         grid = page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
 
         grid->simple_form( 'HowTo - General' )->content( 'f'
@@ -103,7 +128,8 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         grid = page->grid( default_span  = 'L12 M12 S12' ).
 
 
-        DATA(form) = grid->simple_form( 'Applications - Demos, Templates, Examples' )->vbox( ).
+        DATA form TYPE REF TO z2ui5_if_ui5_library.
+        form = grid->simple_form( 'Applications - Demos, Templates, Examples' )->vbox( ).
 
         form->flex_box( class = 'columns'
         )->button( text = 'MIME Editor'  press = view->_event( 'MIME_EDITOR' )

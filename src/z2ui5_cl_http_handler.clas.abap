@@ -48,9 +48,27 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
   METHOD main_index_html.
 
-    DATA(lv_url) = client-t_header[ name = '~path' ]-value.
+    DATA lv_url TYPE ty_s_name_value-value.
+    DATA temp1 LIKE LINE OF client-t_header.
+    DATA temp2 LIKE sy-tabix.
+    temp2 = sy-tabix.
+    READ TABLE client-t_header WITH KEY name = '~path' INTO temp1.
+    sy-tabix = temp2.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+    ENDIF.
+    lv_url = temp1-value.
     TRY.
-        DATA(lv_app) = client-t_param[ name = 'app' ]-value.
+        DATA lv_app TYPE ty_s_name_value-value.
+        DATA temp3 LIKE LINE OF client-t_param.
+        DATA temp4 LIKE sy-tabix.
+        temp4 = sy-tabix.
+        READ TABLE client-t_param WITH KEY name = 'app' INTO temp3.
+        sy-tabix = temp4.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        lv_app = temp3-value.
         lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
@@ -172,7 +190,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
     z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
 
-    DATA(lo_runtime) = NEW z2ui5_lcl_system_runtime( ).
+    DATA lo_runtime TYPE REF TO z2ui5_lcl_system_runtime.
+    CREATE OBJECT lo_runtime TYPE z2ui5_lcl_system_runtime.
     result = lo_runtime->execute_init( ).
     IF result IS NOT INITIAL.
       RETURN.
@@ -183,11 +202,17 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       TRY.
 
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          DATA temp1 TYPE REF TO z2ui5_if_app.
+          temp1 ?= lo_runtime->ms_db-o_app.
+          DATA temp5 TYPE REF TO z2ui5_lcl_if_client.
+          CREATE OBJECT temp5 TYPE z2ui5_lcl_if_client EXPORTING I_SERVER = lo_runtime.
+          temp1->controller( temp5 ).
           ROLLBACK WORK.
 
-        CATCH cx_root INTO DATA(cx).
-          DATA(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
+          DATA cx TYPE REF TO cx_root.
+        CATCH cx_root INTO cx.
+          DATA lo_runtime_error TYPE REF TO z2ui5_lcl_system_runtime.
+          lo_runtime_error = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
           " lo_runtime->db_save( ).
           z2ui5_lcl_db=>db_save(
                 id       = lo_runtime->ms_db-id
@@ -205,7 +230,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                  db       = lo_runtime->ms_db
             ).
         DATA lo_runtime_new TYPE REF TO z2ui5_lcl_system_runtime.
-        lo_runtime_new = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
+        DATA temp2 TYPE REF TO z2ui5_if_app.
+        temp2 ?= lo_runtime->ms_leave_to_app-o_app.
+        lo_runtime_new = lo_runtime->factory_new( temp2 ).
         lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
         lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
         lo_runtime = lo_runtime_new.
@@ -216,7 +243,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       TRY.
           ROLLBACK WORK.
           lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          DATA temp3 TYPE REF TO z2ui5_if_app.
+          temp3 ?= lo_runtime->ms_db-o_app.
+          DATA temp6 TYPE REF TO z2ui5_lcl_if_client.
+          CREATE OBJECT temp6 TYPE z2ui5_lcl_if_client EXPORTING I_SERVER = lo_runtime.
+          temp3->controller( temp6 ).
           ROLLBACK WORK.
 
         CATCH cx_root INTO cx.

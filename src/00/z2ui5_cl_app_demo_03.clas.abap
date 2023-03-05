@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_demo_03 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
 
 PROTECTED SECTION.
 PRIVATE SECTION.
@@ -32,14 +32,40 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = VALUE #(
-          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ).
+        DATA temp1 LIKE t_tab.
+        CLEAR temp1.
+        DATA temp2 LIKE LINE OF temp1.
+        temp2-title = 'Hans'.
+        temp2-info = 'completed'.
+        temp2-descr = 'this is a description'.
+        temp2-icon = 'sap-icon://account'.
+        APPEND temp2 TO temp1.
+        temp2-title = 'Hans'.
+        temp2-info = 'incompleted'.
+        temp2-descr = 'this is a description'.
+        temp2-icon = 'sap-icon://account'.
+        APPEND temp2 TO temp1.
+        temp2-title = 'Hans'.
+        temp2-info = 'working'.
+        temp2-descr = 'this is a description'.
+        temp2-icon = 'sap-icon://account'.
+        APPEND temp2 TO temp1.
+        temp2-title = 'Hans'.
+        temp2-info = 'working'.
+        temp2-descr = 'this is a description'.
+        temp2-icon = 'sap-icon://account'.
+        APPEND temp2 TO temp1.
+        temp2-title = 'Hans'.
+        temp2-info = 'completed'.
+        temp2-descr = 'this is a description'.
+        temp2-icon = 'sap-icon://account'.
+        APPEND temp2 TO temp1.
+        temp2-title = 'Hans'.
+        temp2-info = 'completed'.
+        temp2-descr = 'this is a description'.
+        temp2-icon = 'sap-icon://account'.
+        APPEND temp2 TO temp1.
+        t_tab = temp1.
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -48,8 +74,10 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_03' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( ).
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_03' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         page->list(
            header_text = 'List Ouput'

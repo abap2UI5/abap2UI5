@@ -43,27 +43,30 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
             client->display_message_toast( 'this is a message toast' ).
 
           WHEN 'BUTTON_MESSAGE_STRIP_INFO'.
-            check_strip_active = xsdbool( check_strip_active = abap_false ).
-            strip_type = 'Information'.
+            "check_strip_active = xsdbool( check_strip_active = abap_false ).
+           " strip_type = 'Information'.
 
           WHEN 'BUTTON_MESSAGE_STRIP_ERROR'.
-            check_strip_active = xsdbool( check_strip_active = abap_false ).
-            strip_type = 'Error'.
+          "  check_strip_active = xsdbool( check_strip_active = abap_false ).
+          "  strip_type = 'Error'.
 
           WHEN 'BUTTON_MESSAGE_STRIP_SUCCESS'.
-            check_strip_active = xsdbool( check_strip_active = abap_false ).
-            strip_type = 'Success'.
+           " check_strip_active = xsdbool( check_strip_active = abap_false ).
+          "  strip_type = 'Success'.
 
           WHEN 'BUTTON_ERROR'.
-            DATA(lv_dummy) = 1 / 0.
+            DATA lv_dummy TYPE i.
+            lv_dummy = 1 / 0.
 
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         "Definition of View Main
-        DATA(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - Messages' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( 'MAIN' ).
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'ABAP2UI5 - Messages' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         IF check_strip_active = abap_true.
           page->message_strip( text = 'This is a Message Strip' type = strip_type ).

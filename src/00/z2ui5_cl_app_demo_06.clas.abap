@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_demo_06 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -31,8 +31,8 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT ret =
-            VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
+      "  t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT ret =
+      "      VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -49,11 +49,14 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_06' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( ).
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_06' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         "set table and container
-        DATA(tab) = page->scroll_container( '70%' )->table(
+        DATA tab TYPE REF TO z2ui5_if_ui5_library.
+        tab = page->scroll_container( '70%' )->table(
             items = view->_bind_one_way( t_tab )
              sticky = 'ColumnHeaders,HeaderToolbar'
              ).

@@ -25,7 +25,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    CREATE OBJECT r_result.
 
     r_result->mo_app = i_app.
     r_result->mv_name_attri = i_name_attri.
@@ -55,10 +55,14 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
             client->display_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
 
           WHEN 'BUTTON_RESTART'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
+            DATA temp1 TYPE REF TO z2ui5_cl_app_demo_04.
+            CREATE OBJECT temp1 TYPE z2ui5_cl_app_demo_04.
+            client->nav_to_app( temp1 ).
 
           WHEN 'BUTTON_CHANGE_APP'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
+            DATA temp2 TYPE REF TO z2ui5_cl_app_demo_01.
+            CREATE OBJECT temp2 TYPE z2ui5_cl_app_demo_01.
+            client->nav_to_app( temp2 ).
 
           WHEN 'BUTTON_CHANGE_VIEW'.
 
@@ -77,7 +81,8 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         "Definition of View Main
-        DATA(view) = client->factory_view( 'MAIN' ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( 'MAIN' ).
 
         view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
 
@@ -99,8 +104,13 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
 
         "Definition of View Second
         view = client->factory_view( 'SECOND' ).
-        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                THEN view->_event_display_id( client->get( )-id_prev_app ) )
+        DATA temp3 TYPE string.
+        IF client->get( )-check_previous_app IS NOT INITIAL.
+          temp3 = view->_event_display_id( client->get( )-id_prev_app ).
+        ELSE.
+          CLEAR temp3.
+        ENDIF.
+        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = temp3
 
           )->grid( default_span  = 'L12 M12 S12' )->content( 'l'
           )->simple_form( 'View Second' )->content( 'f'

@@ -38,16 +38,16 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        screen = VALUE #(
-           check_initialized = abap_true
-           check_is_active   = abap_true
-           colour            = 'BLUE'
-           combo_key         = 'GRAY'
-           segment_key       = 'GREEN'
-           date              = '07.12.22'
-           date_time         = '23.12.2022, 19:27:20'
-           time_start        = '05:24:00'
-           time_end          = '17:23:57' ).
+        CLEAR screen.
+        screen-check_initialized = abap_true.
+        screen-check_is_active = abap_true.
+        screen-colour = 'BLUE'.
+        screen-combo_key = 'GRAY'.
+        screen-segment_key = 'GREEN'.
+        screen-date = '07.12.22'.
+        screen-date_time = '23.12.2022, 19:27:20'.
+        screen-time_start = '05:24:00'.
+        screen-time_end = '17:23:57'.
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -59,7 +59,8 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
             client->nav_to_app( client->get_app_previous( ) ).
 
           WHEN 'BUTTON_ROUNDTRIP'.
-            DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
+            DATA lv_dummy TYPE c LENGTH 68.
+            lv_dummy = 'user pressed a button, your custom implementation can be called here'.
 
           WHEN 'BUTTON_MSG_BOX'.
             client->display_message_box(
@@ -71,12 +72,15 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'App Title - Header' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( ).
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'App Title - Header' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         page->message_strip( text = 'this is a success message strip' type = 'Success' ).
 
-        DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
+        DATA grid TYPE REF TO z2ui5_if_ui5_library.
+        grid = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'More Controls' )->content( 'f'
              )->label( 'ProgressIndicator'

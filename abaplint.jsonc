@@ -10,7 +10,7 @@
     }
   ],
   "syntax": {
-    "version": "v750",
+    "version": "v702",
     "errorNamespace": "."
   },
   "rules": {
@@ -37,7 +37,7 @@
     "check_comments": true,
     "check_ddic": true,
     "check_include": true,
-    "check_subrc": true,
+    "check_subrc": false,
     "check_syntax": true,
     "check_text_elements": true,
     "check_transformation_exists": true,
@@ -236,7 +236,7 @@
     },
     "superclass_final": true,
     "superfluous_value": true,
-    "sy_modification": true,
+    "sy_modification": false,
     "tabl_enhancement_category": true,
     "try_without_catch": true,
     "type_form_parameters": true,

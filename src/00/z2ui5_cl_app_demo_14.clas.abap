@@ -32,13 +32,21 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
           WHEN 'DB_LOAD'.
 
-            mv_editor = COND #(
-                WHEN mv_path CS 'abap' THEN lcl_mime_api=>read_abap( )
-                WHEN mv_path CS 'json' THEN lcl_mime_api=>read_json( )
-                WHEN mv_path CS 'yaml' THEN lcl_mime_api=>read_yaml( )
-                WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( )
-                WHEN mv_path CS 'js'   THEN lcl_mime_api=>read_js( )
-                ).
+            DATA temp1 TYPE string.
+            IF mv_path CS 'abap'.
+              temp1 = lcl_mime_api=>read_abap( ).
+            ELSEIF mv_path CS 'json'.
+              temp1 = lcl_mime_api=>read_json( ).
+            ELSEIF mv_path CS 'yaml'.
+              temp1 = lcl_mime_api=>read_yaml( ).
+            ELSEIF mv_path CS 'text'.
+              temp1 = lcl_mime_api=>read_text( ).
+            ELSEIF mv_path CS 'js'.
+              temp1 = lcl_mime_api=>read_js( ).
+            ELSE.
+              CLEAR temp1.
+            ENDIF.
+            mv_editor = temp1.
             client->display_message_toast( 'Download successfull' ).
 
           WHEN 'DB_SAVE'.
@@ -46,16 +54,19 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
             client->display_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
 
           WHEN 'EDIT'.
-            mv_check_editable = xsdbool( mv_check_editable = abap_False ).
+            mv_check_editable = boolc( mv_check_editable = abap_False ).
           WHEN 'CLEAR'.
             mv_editor = ``.
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
-        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( 'VIEW_INPUT' ).
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA grid TYPE REF TO z2ui5_if_ui5_library.
+        grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
              )->label( 'path'
@@ -87,7 +98,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                 press = view->_event( 'DB_SAVE' )
                 type  = 'Emphasized'
                 icon = 'sap-icon://upload-to-cloud'
-                enabled = xsdbool( mv_editor IS NOT INITIAL ) ).
+                enabled = boolc( mv_editor IS NOT INITIAL ) ).
 
         mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
 

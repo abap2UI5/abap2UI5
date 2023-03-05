@@ -30,9 +30,9 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         text TYPE string,
       END OF s_combobox.
 
-    TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
+    TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH DEFAULT KEY.
 
-    DATA mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH EMPTY KEY.
+    DATA mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH DEFAULT KEY.
 
   PROTECTED SECTION.
 
@@ -72,10 +72,13 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_rendering.
 
-    DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+    DATA view TYPE REF TO z2ui5_if_ui5_library.
+    view = client->factory_view( ).
+    DATA page TYPE REF TO z2ui5_if_ui5_library.
+    page = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-    DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
+    DATA grid TYPE REF TO z2ui5_if_ui5_library.
+    grid = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
     grid->simple_form( 'Input' )->content( 'f'
         )->label( 'Input with value help'
@@ -99,6 +102,21 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
         )->time_picker( view->_bind( screen-time_end ) ).
 
 
+    DATA temp1 TYPE ty_t_combo.
+    CLEAR temp1.
+    DATA temp2 LIKE LINE OF temp1.
+    temp2-key = 'BLUE'.
+    temp2-text = 'green'.
+    APPEND temp2 TO temp1.
+    temp2-key = 'GREEN'.
+    temp2-text = 'blue'.
+    APPEND temp2 TO temp1.
+    temp2-key = 'BLACK'.
+    temp2-text = 'red'.
+    APPEND temp2 TO temp1.
+    temp2-key = 'GRAY'.
+    temp2-text = 'gray'.
+    APPEND temp2 TO temp1.
     page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
        )->simple_form( 'Input with select options' )->content( 'f'
 
@@ -111,11 +129,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     )->label( 'Combobox'
     )->combobox(
          selectedkey = view->_bind( screen-combo_key )
-         items      = view->_bind_one_way( VALUE ty_t_combo(
-             ( key = 'BLUE'  text = 'green' )
-             ( key = 'GREEN' text = 'blue' )
-             ( key = 'BLACK' text = 'red' )
-             ( key = 'GRAY'  text = 'gray' ) )
+         items      = view->_bind_one_way( temp1
          ) )->get( )->item( key = '{KEY}' text = '{TEXT}'
         )->get_parent( )->get_parent(
 
@@ -170,24 +184,38 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    screen = VALUE #(
-          check_is_active   = abap_true
-          colour            = 'BLUE'
-          combo_key         = 'GRAY'
-          segment_key       = 'GREEN'
-          date              = '07.12.22'
-          date_time         = '23.12.2022, 19:27:20'
-          time_start        = '05:24:00'
-          time_end          = '17:23:57'
-     ).
+    CLEAR screen.
+    screen-check_is_active = abap_true.
+    screen-colour = 'BLUE'.
+    screen-combo_key = 'GRAY'.
+    screen-segment_key = 'GREEN'.
+    screen-date = '07.12.22'.
+    screen-date_time = '23.12.2022, 19:27:20'.
+    screen-time_start = '05:24:00'.
+    screen-time_end = '17:23:57'.
 
-    mt_suggestion = VALUE #(
-               ( descr = 'Green'  value = 'GREEN' )
-               ( descr = 'Blue'   value = 'BLUE' )
-               ( descr = 'Black'  value = 'BLACK' )
-               ( descr = 'Grey'   value = 'GREY' )
-               ( descr = 'Blue2'  value = 'BLUE2' )
-               ( descr = 'Blue3'  value = 'BLUE3' ) ).
+    DATA temp3 LIKE mt_suggestion.
+    CLEAR temp3.
+    DATA temp4 LIKE LINE OF temp3.
+    temp4-descr = 'Green'.
+    temp4-value = 'GREEN'.
+    APPEND temp4 TO temp3.
+    temp4-descr = 'Blue'.
+    temp4-value = 'BLUE'.
+    APPEND temp4 TO temp3.
+    temp4-descr = 'Black'.
+    temp4-value = 'BLACK'.
+    APPEND temp4 TO temp3.
+    temp4-descr = 'Grey'.
+    temp4-value = 'GREY'.
+    APPEND temp4 TO temp3.
+    temp4-descr = 'Blue2'.
+    temp4-value = 'BLUE2'.
+    APPEND temp4 TO temp3.
+    temp4-descr = 'Blue3'.
+    temp4-value = 'BLUE3'.
+    APPEND temp4 TO temp3.
+    mt_suggestion = temp3.
 
   ENDMETHOD.
 ENDCLASS.

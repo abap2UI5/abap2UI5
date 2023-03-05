@@ -34,7 +34,8 @@ CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( ).
 
         view->page( title = 'Page title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
            )->simple_form( 'Form Title'

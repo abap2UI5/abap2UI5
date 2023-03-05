@@ -32,9 +32,11 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
+        DATA view TYPE REF TO z2ui5_if_ui5_library.
+        view = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'header title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA page TYPE REF TO z2ui5_if_ui5_library.
+        page = view->page( title = 'header title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         page->header_content(
           )->button( text = 'button'
@@ -53,7 +55,8 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
             )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
 
-        DATA(grid) = page->grid( 'L4 M4 S4' )->content( 'l' ).
+        DATA grid TYPE REF TO z2ui5_if_ui5_library.
+        grid = page->grid( 'L4 M4 S4' )->content( 'l' ).
         grid->simple_form( 'Grid width 33%' )->content( 'f'
            )->button( text = 'button'
            )->text( 'text'

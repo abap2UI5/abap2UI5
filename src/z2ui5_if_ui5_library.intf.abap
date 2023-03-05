@@ -25,7 +25,7 @@ INTERFACE z2ui5_if_ui5_library
       v TYPE string,
     END OF ty_s_name_value.
 
-  TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name_value WITH EMPTY KEY.
+  TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name_value WITH DEFAULT KEY.
 
   METHODS _bind
     IMPORTING
