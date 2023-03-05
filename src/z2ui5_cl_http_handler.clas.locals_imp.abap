@@ -964,7 +964,7 @@ CLASS z2ui5_lcl_if_ui5_library DEFINITION.
 
     DATA m_name TYPE string.
     DATA m_ns   TYPE string.
-    DATA mt_prop TYPE STANDARD TABLE OF z2ui5_if_ui5_library=>ty_s_name_value WITH EMPTY KEY.
+    DATA mt_prop TYPE z2ui5_if_ui5_library=>ty_t_name_value.
     DATA mt_attri  TYPE _=>ty-t-attri.
     DATA mo_app TYPE REF TO object.
 
@@ -990,7 +990,7 @@ CLASS z2ui5_lcl_if_ui5_library DEFINITION.
       IMPORTING
         name          TYPE string
         ns            TYPE string OPTIONAL
-        t_prop        LIKE mt_prop OPTIONAL
+        t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value optional
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_if_ui5_library.
 
@@ -2423,8 +2423,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-      "  data lr_after type ref to z2ui5_lcl_utility=>ty_t_string.
-      LOOP AT mt_after REFERENCE INTO data(lr_after).
+      data lr_after type ref to string_table. "z2ui5_lcl_utility=>ty_t_string.
+      LOOP AT mt_after REFERENCE INTO lr_after.
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
         lo_list2 = lo_list->add_list_list( ).

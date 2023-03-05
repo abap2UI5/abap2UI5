@@ -7,7 +7,6 @@ INTERFACE z2ui5_if_ui5_library
         on_init      TYPE string VALUE 'INIT',
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
-        " on_serialization TYPE string VALUE 'SERIALIZATION',
       END OF lifecycle_method,
       BEGIN OF event_type,
         server_function TYPE string VALUE 'SERVER_FUNCTION',
@@ -25,6 +24,8 @@ INTERFACE z2ui5_if_ui5_library
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
+
+  TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name_value WITH EMPTY KEY.
 
   METHODS _bind
     IMPORTING

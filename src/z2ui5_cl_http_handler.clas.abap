@@ -43,7 +43,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+
 
   METHOD main_index_html.
 
@@ -235,5 +236,4 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     " lo_runtime->db_save( result ).
 
   ENDMETHOD.
-
 ENDCLASS.
