@@ -33,7 +33,7 @@ Works with all available ABAP stacks and language versions:
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 Netweaver AS ABAP 7.02 to 7.40 (Standard ABAP) - use this low syntax [branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
 
-Install with [abapGit](https://abapgit.org), create a new HTTP service and call ABAP2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
+Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
 
 #### ABAP for Cloud:
 ```abap
