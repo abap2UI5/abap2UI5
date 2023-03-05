@@ -12,7 +12,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
-    TYPES ty_t_string TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+   " TYPES ty_t_string TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_name_value,
@@ -232,7 +233,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DATA lt_url_params TYPE ty-t-name_value.
 
     LOOP AT lt_href REFERENCE INTO DATA(lr_href).
-      DATA lt_param TYPE ty_t_string.
+      DATA lt_param TYPE string_table. "ty_t_string.
       CLEAR lt_param.
       SPLIT lr_href->* AT `=` INTO TABLE lt_param.
       INSERT VALUE #( name = to_upper( lt_param[ 1 ] ) value = to_upper( lt_param[ 2 ] ) ) INTO TABLE lt_url_params.
@@ -1099,16 +1100,9 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD xml_get_end.
 
-    IF check_popup_active = abap_false.
-      IF z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true.
-        DATA(temp9) = `</Shell></mvc:View>`.
-      ELSE.
-        temp9 = `</mvc:View>`.
-      ENDIF.
-    ELSE.
-      temp9 = `</core:FragmentDefinition>`.
-    ENDIF.
-    result = result && temp9.
+   result = result && COND #( WHEN check_popup_active = abap_false
+              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
+              ELSE `</core:FragmentDefinition>` ).
 
   ENDMETHOD.
 
@@ -1138,9 +1132,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
     DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
                           NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ).
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
-    "result = |{ result } <{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name } \n {
-    "                    REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
-    "                    NEXT val = |{ val } { row-n }="{ escape( val = row-v  format = cl_abap_format=>e_xml_attr ) }" \n | ) }|.
 
     IF t_child IS INITIAL.
       result = result && '/>'.
@@ -1155,7 +1146,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     DATA(lv_tmp) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
     result = result && |</{ lv_tmp }{ m_name }>|.
-    "result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
 
   ENDMETHOD.
 
@@ -2299,9 +2289,9 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     DATA ms_db TYPE z2ui5_lcl_db=>ty_S_Db.
 
+  "  types
 
-
-    DATA mt_after TYPE STANDARD TABLE OF _=>ty_t_string WITH EMPTY KEY.
+    DATA mt_after TYPE _=>ty_tt_string.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
     DATA ms_leave_to_app LIKE ms_db.
 
@@ -2433,8 +2423,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-
-      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
+      "  data lr_after type ref to z2ui5_lcl_utility=>ty_t_string.
+      LOOP AT mt_after REFERENCE INTO data(lr_after).
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
         lo_list2 = lo_list->add_list_list( ).
@@ -2654,6 +2644,8 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     "coming soon
     "mo_server->ms_db-screen_popup = name.
+
+
 
   ENDMETHOD.
 
