@@ -3,7 +3,7 @@ CLASS z2ui5_lcl_unit_test DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    METHODS:
+    METHODS
       first_test FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 

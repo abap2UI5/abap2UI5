@@ -233,7 +233,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DATA lt_url_params TYPE ty-t-name_value.
 
     LOOP AT lt_href REFERENCE INTO DATA(lr_href).
-      DATA lt_param TYPE string_table. "ty_t_string.
+      DATA lt_param TYPE string_table.
       CLEAR lt_param.
       SPLIT lr_href->* AT `=` INTO TABLE lt_param.
       INSERT VALUE #( name = to_upper( lt_param[ 1 ] ) value = to_upper( lt_param[ 2 ] ) ) INTO TABLE lt_url_params.
