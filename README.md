@@ -1,4 +1,4 @@
-# ABAP2UI5
+# abap2UI5
 
 Development of UI5 Apps in pure ABAP. You can also follow this project on [Twitter](https://twitter.com/OblomovDev) and keep up to date!
 
