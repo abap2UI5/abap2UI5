@@ -37,7 +37,7 @@ CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
 
         view->page( title = 'Page title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
-           )->simple_form('Form Title'
+           )->simple_form( 'Form Title'
              )->content( 'f'
                 )->title( 'Input'
                 )->label( 'quantity'

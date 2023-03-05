@@ -7,7 +7,6 @@ INTERFACE z2ui5_if_ui5_library
         on_init      TYPE string VALUE 'INIT',
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
-        " on_serialization TYPE string VALUE 'SERIALIZATION',
       END OF lifecycle_method,
       BEGIN OF event_type,
         server_function TYPE string VALUE 'SERVER_FUNCTION',
@@ -21,12 +20,12 @@ INTERFACE z2ui5_if_ui5_library
     END OF cs.
 
   TYPES:
-    BEGIN OF ty,
-      BEGIN OF s_property,
-        n TYPE string,
-        v TYPE string,
-      END OF s_property,
-    END OF ty.
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
+
+  TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name_value WITH EMPTY KEY.
 
   METHODS _bind
     IMPORTING
@@ -63,7 +62,7 @@ INTERFACE z2ui5_if_ui5_library
       background_Design TYPE string OPTIONAL
       style_Class       TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+      VALUE(result)     TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS code_editor
     IMPORTING
@@ -87,9 +86,9 @@ INTERFACE z2ui5_if_ui5_library
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
   METHODS flex_box
-    importing
-    class type string optional
-    render_Type  type string optional
+    IMPORTING
+      class         TYPE string OPTIONAL
+      render_Type   TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
@@ -110,7 +109,7 @@ INTERFACE z2ui5_if_ui5_library
       value_state_text TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE abap_bool DEFAULT abap_true
-      suggestion_items TYPE string OPTIONAL "ty-input-t_suggestions OPTIONAL
+      suggestion_items TYPE string OPTIONAL
       showsuggestion   TYPE abap_bool DEFAULT abap_true
         PREFERRED PARAMETER value
     RETURNING
@@ -409,7 +408,7 @@ INTERFACE z2ui5_if_ui5_library
 
   METHODS switch
     IMPORTING
-      state         TYPE abap_bool DEFAULT abap_true
+      state         TYPE string OPTIONAL
       customtexton  TYPE string OPTIONAL
       customtextoff TYPE string OPTIONAL
       enabled       TYPE abap_bool DEFAULT abap_true

@@ -42,9 +42,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
     METHODS z2ui5_on_event
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
-    METHODS z2ui5_on_init
-      IMPORTING
-        client TYPE REF TO z2ui5_if_client.
+    METHODS z2ui5_on_init.
 
 PRIVATE SECTION.
 ENDCLASS.
@@ -59,7 +57,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
-        z2ui5_on_init( client ).
+        z2ui5_on_init( ).
 
       WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).
@@ -79,7 +77,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
     DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
-    grid->simple_form('Input' )->content( 'f'
+    grid->simple_form( 'Input' )->content( 'f'
         )->label( 'Input with value help'
         )->input(
             value       = view->_bind( screen-colour )
@@ -89,7 +87,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
                 )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
 
 
-    grid->simple_form('Time Inputs' )->content( 'f'
+    grid->simple_form( 'Time Inputs' )->content( 'f'
         )->label( 'Date'
         )->date_picker( view->_bind( screen-date )
 
@@ -102,7 +100,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
 
     page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-       )->simple_form('Input with select options' )->content( 'f'
+       )->simple_form( 'Input with select options' )->content( 'f'
 
     )->label( 'Checkbox'
     )->checkbox(
@@ -115,9 +113,9 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
          selectedkey = view->_bind( screen-combo_key )
          items      = view->_bind_one_way( VALUE ty_t_combo(
              ( key = 'BLUE'  text = 'green' )
-             ( key = 'GREEN' text = 'blue'  )
-             ( key = 'BLACK' text = 'red'   )
-             ( key = 'GRAY'  text = 'gray'  ) )
+             ( key = 'GREEN' text = 'blue' )
+             ( key = 'BLACK' text = 'red' )
+             ( key = 'GRAY'  text = 'gray' ) )
          ) )->get( )->item( key = '{KEY}' text = '{TEXT}'
         )->get_parent( )->get_parent(
 
@@ -130,11 +128,11 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
        )->get_parent( )->get_parent(
 
     )->label( 'Switch disabled'
-    )->switch( enabled = abap_false    customtexton = 'A' customtextoff = 'B'
+    )->switch( enabled = abap_false   customtexton = 'A' customtextoff = 'B'
     )->label( 'Switch accept/reject'
-    )->switch( state = screen-check_switch_01 customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject'
+    )->switch( state = view->_bind( screen-check_switch_01 ) customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject'
     )->label( 'Switch normal'
-    )->switch( state = screen-check_switch_02 customtexton = 'YES' customtextoff = 'NO' ).
+    )->switch( state = view->_bind( screen-check_switch_02 ) customtexton = 'YES' customtextoff = 'NO' ).
 
 
     page->footer( )->overflow_toolbar(
@@ -160,7 +158,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'BUTTON_SEND'.
-        client->display_message_box( 'Values were send to the server successfully').
+        client->display_message_box( 'Values were send to the server successfully' ).
       WHEN 'BUTTON_CLEAR'.
         CLEAR screen.
         client->display_message_toast( 'View initialized' ).

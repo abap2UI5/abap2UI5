@@ -1,12 +1,13 @@
-# ABAP2UI5
+# abap2UI5
 
 Development of UI5 Apps in pure ABAP. You can also follow this project on [Twitter](https://twitter.com/OblomovDev) and keep up to date!
 
 ### Project features
 * easy to use – implement just one interface for a standalone UI5 application
-* pure ABAP – develop in 100% ABAP source code (no JavaScript, EML, Annotations or Customizing needed)
-* cloud and on-premise ready – works with all available ABAP stacks and language versions (ABAP for Cloud, Standard ABAP)
-* small system footprint - based on a plain http handler (no OData, SEGW, BOPF, BSP, RAP or CDS)
+* pure ABAP – development in 100% ABAP source code (no JavaScript, EML, DDL or Customizing)
+* low system footprint - based on a plain http handler (no OData, SEGW, BOPF, BSP, RAP or FE)
+* cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
+* high system compatibility - runs on all available ABAP stacks (NW 7.02 to ABAP 2302)
 * easy installation - abapGit project, no additional app deployment needed
 
 ### Information
@@ -29,9 +30,10 @@ Works with all available ABAP stacks and language versions:
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 (Standard ABAP) - downport to older releases possible [(#47)](https://github.com/oblomov-dev/ABAP2UI5/issues/47)
+* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
+* R/3 Netweaver AS ABAP 7.02 to 7.40 (Standard ABAP) - use the low syntax [branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
 
-Install with [abapGit](https://abapgit.org), create a new http service and call ABAP2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
+Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
 
 #### ABAP for Cloud:
 ```abap
@@ -76,6 +78,6 @@ METHOD if_http_extension~handle_request.
 ENDMETHOD.
 ```
 ## FAQ
-* your comments/questions/wishes/bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)<br>
+* your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)<br>
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
 * for problems with your own developed app, check [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting) or create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)<br>
