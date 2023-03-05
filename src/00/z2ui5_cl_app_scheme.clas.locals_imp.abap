@@ -116,8 +116,8 @@
   CLASS lcl_lisp_environment DEFINITION DEFERRED.
 
   TYPES: BEGIN OF ENUM tv_port_type BASE TYPE tv_char,
-            textual VALUE IS INITIAL,
-            binary  VALUE 'b',
+           textual VALUE IS INITIAL,
+           binary  VALUE 'b',
          END OF ENUM tv_port_type.
 
   TYPES: BEGIN OF ENUM tv_category BASE TYPE tv_char,
@@ -166,15 +166,15 @@
            abap_turtle   VALUE 't',
          END OF ENUM tv_type.
 
-      TYPES: BEGIN OF ts_result,
-                  type TYPE tv_type,
-                  int TYPE tv_int,
-                  real TYPE tv_real,
-                  nummer TYPE tv_int,
-                  denom TYPE tv_int,
-                  exact TYPE abap_boolean,
-                  operation TYPE string,
-             END OF ts_result.
+  TYPES: BEGIN OF ts_result,
+           type      TYPE tv_type,
+           int       TYPE tv_int,
+           real      TYPE tv_real,
+           nummer    TYPE tv_int,
+           denom     TYPE tv_int,
+           exact     TYPE abap_boolean,
+           operation TYPE string,
+         END OF ts_result.
 
   CLASS lcl_lisp_iterator DEFINITION DEFERRED.
   CLASS lcl_lisp_new DEFINITION DEFERRED.
@@ -186,6 +186,7 @@
 *----------------------------------------------------------------------*
   CLASS lcl_lisp DEFINITION CREATE PROTECTED FRIENDS lcl_lisp_new.
     PUBLIC SECTION.
+      INTERFACES if_serializable_object.
       DATA type TYPE tv_type.
 *     Can this be replaced by a mesh? cf. DEMO_RND_PARSER_AST
       DATA mutable TYPE abap_boolean VALUE abap_true READ-ONLY.
@@ -261,7 +262,7 @@
                               message TYPE string
                     RAISING   lcx_lisp_exception.
 
-      METHODS raise_NaN IMPORTING operation TYPE string
+      METHODS raise_nan IMPORTING operation TYPE string
                         RAISING   lcx_lisp_exception.
 
       METHODS assert_last_param  RAISING lcx_lisp_exception.
@@ -377,7 +378,7 @@
     PUBLIC SECTION.
       DATA int TYPE tv_int READ-ONLY.
     PROTECTED SECTION.
-      METHODS constructor IMPORTING value TYPE any
+      METHODS constructor IMPORTING value    TYPE any
                                     iv_exact TYPE abap_boolean.
   ENDCLASS.
 
@@ -392,8 +393,8 @@
       TYPES tv_sign_char TYPE c LENGTH 1.
 
       TYPES: BEGIN OF ENUM tv_sign BASE TYPE c,
-               positive  VALUE IS INITIAL,
-               negative  VALUE '-',
+               positive VALUE IS INITIAL,
+               negative VALUE '-',
              END OF ENUM tv_sign.
 
       TYPES tr_bigint TYPE REF TO lcl_lisp_bigint.
@@ -412,8 +413,8 @@
 
       CLASS-DATA chunksize TYPE tv_int VALUE 16.
       CLASS-DATA dchunksize TYPE tv_int VALUE 32.
-      CLASS-DATA chunkmod TYPE tv_chunk VALUE `1e16`.       "#EC NOTEXT.
-      CLASS-DATA dchunkmod TYPE tv_chunk VALUE `1e32`.      "#EC NOTEXT.
+      CLASS-DATA chunkmod TYPE tv_chunk VALUE `1e16`.      "#EC NOTEXT.
+      CLASS-DATA dchunkmod TYPE tv_chunk VALUE `1e32`.     "#EC NOTEXT.
 
       DATA sign TYPE tv_sign.
       DATA dat TYPE tt_chunk.
@@ -433,8 +434,8 @@
                         RETURNING VALUE(result) TYPE tv_int
                         RAISING   lcx_lisp_exception.
     PROTECTED SECTION.
-      METHODS constructor IMPORTING nummer TYPE tv_int
-                                    denom  TYPE tv_int
+      METHODS constructor IMPORTING nummer   TYPE tv_int
+                                    denom    TYPE tv_int
                                     iv_exact TYPE abap_boolean.
       METHODS normalize RAISING lcx_lisp_exception.
   ENDCLASS.
@@ -584,7 +585,7 @@
       DATA size TYPE tv_int READ-ONLY.
       DATA head TYPE REF TO lcl_lisp READ-ONLY.
       METHODS constructor IMPORTING io_elem TYPE REF TO lcl_lisp.
-      METHODS add IMPORTING io_value TYPE REF TO lcl_lisp
+      METHODS add IMPORTING io_value      TYPE REF TO lcl_lisp
                   RETURNING VALUE(result) TYPE REF TO lcl_lisp_values.
     PROTECTED SECTION.
       DATA last TYPE REF TO lcl_lisp.
@@ -1702,7 +1703,7 @@
                            RETURNING VALUE(ro_elem) TYPE REF TO lcl_lisp
                            RAISING   cx_sy_conversion_no_number.
 
-      CLASS-METHODS numeric IMPORTING record TYPE ts_result
+      CLASS-METHODS numeric IMPORTING record         TYPE ts_result
                             RETURNING VALUE(ro_elem) TYPE REF TO lcl_lisp
                             RAISING   lcx_lisp_exception.
 
@@ -1765,8 +1766,8 @@
                                      iv_mutable    TYPE abap_boolean
                            RETURNING VALUE(ro_vec) TYPE REF TO lcl_lisp_vector.
 
-      CLASS-METHODS bytevector IMPORTING it_byte       TYPE tt_byte
-                                         iv_mutable    TYPE abap_boolean
+      CLASS-METHODS bytevector IMPORTING it_byte      TYPE tt_byte
+                                         iv_mutable   TYPE abap_boolean
                                RETURNING VALUE(ro_u8) TYPE REF TO lcl_lisp_bytevector.
 
       CLASS-METHODS lambda IMPORTING io_car              TYPE REF TO lcl_lisp
@@ -1815,10 +1816,10 @@
       CLASS-METHODS throw_radix IMPORTING message TYPE string
                                 RAISING   lcx_lisp_exception.
 
-      CLASS-METHODS values IMPORTING io_elem TYPE REF TO lcl_lisp DEFAULT lcl_lisp=>nil
+      CLASS-METHODS values IMPORTING io_elem        TYPE REF TO lcl_lisp DEFAULT lcl_lisp=>nil
                            RETURNING VALUE(ro_elem) TYPE REF TO lcl_lisp_values.
 
-      CLASS-METHODS escape IMPORTING value TYPE any
+      CLASS-METHODS escape IMPORTING value          TYPE any
                            RETURNING VALUE(ro_elem) TYPE REF TO lcl_lisp_escape.
   ENDCLASS.
 
@@ -2159,8 +2160,8 @@
                              RETURNING VALUE(rv_text) TYPE string
                              RAISING   lcx_lisp_exception.
 
-      METHODS set IMPORTING index         TYPE tv_index
-                            iv_byte       TYPE tv_byte
+      METHODS set IMPORTING index   TYPE tv_index
+                            iv_byte TYPE tv_byte
                   RAISING   lcx_lisp_exception.
 
       METHODS get IMPORTING index          TYPE tv_index
@@ -2261,10 +2262,10 @@
      CREATE PROTECTED FRIENDS lcl_lisp_new.
     PUBLIC SECTION.
       METHODS constructor IMPORTING osql TYPE string OPTIONAL
-                          RAISING   CX_SY_OPEN_SQL_ERROR. "cx_sql_exception.
+                          RAISING   cx_sy_open_sql_error. "cx_sql_exception.
       METHODS execute IMPORTING query         TYPE string
                       RETURNING VALUE(result) TYPE REF TO lcl_lisp_sql_result
-                      RAISING   CX_SY_OPEN_SQL_ERROR. " cx_sql_exception.
+                      RAISING   cx_sy_open_sql_error. " cx_sql_exception.
     PROTECTED SECTION.
       DATA mv_hold_cursor TYPE abap_boolean.
       DATA sql_query TYPE string.
@@ -2279,6 +2280,7 @@
 *----------------------------------------------------------------------*
   CLASS lcl_lisp_environment DEFINITION CREATE PRIVATE FRIENDS lcl_lisp_env_factory.
     PUBLIC SECTION.
+      INTERFACES if_serializable_object.
       DATA top_level TYPE abap_boolean VALUE abap_false READ-ONLY.
 
       METHODS:
@@ -2320,7 +2322,7 @@
 
   TYPES: BEGIN OF ts_continuation,
            elem TYPE REF TO lcl_lisp,
-           env TYPE REF TO lcl_lisp_environment,
+           env  TYPE REF TO lcl_lisp_environment,
          END OF ts_continuation.
 
   CLASS lcl_lisp_env_factory DEFINITION ABSTRACT.
@@ -3181,7 +3183,7 @@
 
     METHOD peek_bytevector.
       CONSTANTS:
-        c_prefix_length TYPE i VALUE 3,
+        c_prefix_length     TYPE i VALUE 3,
         c_bytevector_prefix TYPE c LENGTH c_prefix_length VALUE 'u8('.
       DATA lv_token TYPE string.
 
@@ -7232,20 +7234,20 @@
                                    operation = '+' ).
       WHILE iter->has_next( ).
         DATA(cell) = iter->next( ).
-          IF cell->type EQ values.
-            DATA(lo_head) = CAST lcl_lisp_values( cell )->head.
+        IF cell->type EQ values.
+          DATA(lo_head) = CAST lcl_lisp_values( cell )->head.
 
-            IF lo_head IS BOUND AND lo_head NE nil.
-              IF lo_head->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              cell = lo_head->car.
-
-              lo_head = lo_head->cdr.
-            ELSE.
-              cell = nil.
+          IF lo_head IS BOUND AND lo_head NE nil.
+            IF lo_head->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            cell = lo_head->car.
+
+            lo_head = lo_head->cdr.
+          ELSE.
+            cell = nil.
           ENDIF.
+        ENDIF.
 
         "_cell_arith + `[+]`.
         CASE cell->type.
@@ -7353,20 +7355,20 @@
 
       WHILE iter->has_next( ).
         DATA(cell) = iter->next( ).
-          IF cell->type EQ values.
-            DATA(lo_head) = CAST lcl_lisp_values( cell )->head.
+        IF cell->type EQ values.
+          DATA(lo_head) = CAST lcl_lisp_values( cell )->head.
 
-            IF lo_head IS BOUND AND lo_head NE nil.
-              IF lo_head->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              cell = lo_head->car.
-
-              lo_head = lo_head->cdr.
-            ELSE.
-              cell = nil.
+          IF lo_head IS BOUND AND lo_head NE nil.
+            IF lo_head->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            cell = lo_head->car.
+
+            lo_head = lo_head->cdr.
+          ELSE.
+            cell = nil.
           ENDIF.
+        ENDIF.
 
         CASE cell->type.
           WHEN integer.
@@ -10066,44 +10068,44 @@
       DATA lo_int TYPE REF TO lcl_lisp_integer.
       DATA lo_real TYPE REF TO lcl_lisp_real.
 
-       TRY.
-         "_get_2_ints n1 n2 exact list 'floor/'.
-    IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+      TRY.
+          "_get_2_ints n1 n2 exact list 'floor/'.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-    CASE list->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->car ).
-         n1 = lo_int->int.
-         exact = lo_int->exact.
-      WHEN real.
-         TRY.
-           lo_real = CAST lcl_lisp_real( list->car ).
-           n1 = EXACT #( lo_real->float ).
-           exact = lo_real->exact.
-         CATCH cx_sy_conversion_error.
-           throw( lo_real->to_string( ) && | is not an integer in [floor/]| ).
-         ENDTRY.
-      WHEN OTHERS.
-        throw( list->car->to_string( ) && | is not an integer in [floor/]| ).
-    ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              n1 = lo_int->int.
+              exact = lo_int->exact.
+            WHEN real.
+              TRY.
+                  lo_real = CAST lcl_lisp_real( list->car ).
+                  n1 = EXACT #( lo_real->float ).
+                  exact = lo_real->exact.
+                CATCH cx_sy_conversion_error.
+                  throw( lo_real->to_string( ) && | is not an integer in [floor/]| ).
+              ENDTRY.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [floor/]| ).
+          ENDCASE.
 
-    CASE list->cdr->car->type.
-      WHEN integer.
-        lo_int = CAST lcl_lisp_integer( list->cdr->car ).
-        n2 = lo_int->int.
-        IF n2 EQ 0.
-          throw( | second parameter cannot be zero in [floor/]| ).
-        ENDIF.
-        IF exact EQ abap_true.
-          exact = lo_int->exact.
-        ENDIF.
-      WHEN OTHERS.
-        throw( list->cdr->car->to_string( ) && | is not an integer in [floor/]| ).
-    ENDCASE.
+          CASE list->cdr->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->cdr->car ).
+              n2 = lo_int->int.
+              IF n2 EQ 0.
+                throw( | second parameter cannot be zero in [floor/]| ).
+              ENDIF.
+              IF exact EQ abap_true.
+                exact = lo_int->exact.
+              ENDIF.
+            WHEN OTHERS.
+              throw( list->cdr->car->to_string( ) && | is not an integer in [floor/]| ).
+          ENDCASE.
 
-    list->cdr->assert_last_param( ).
+          list->cdr->assert_last_param( ).
 
           carry = n1 / n2.    " first convert to float, or 3 = trunc( 5 / 2 ) coercion happens with ABAP rules
           nq = floor( carry ).
@@ -10706,7 +10708,7 @@
           WHEN integer.
             result = lcl_lisp_new=>number( value = CAST lcl_lisp_integer( lo_number )->int
                                            iv_exact = abap_true ).
-                           "RAISING   cx_sy_conversion_no_number.
+            "RAISING   cx_sy_conversion_no_number.
 
           WHEN OTHERS.
             throw( |no exact representation of { lo_number->to_string( ) }| ).
@@ -11193,8 +11195,8 @@
       lv_index = CAST lcl_lisp_integer( list->cdr->car )->int.
       TRY.
           lv_char = list->car->value+lv_index(1).
-      CATCH cx_sy_range_out_of_bounds.
-        list->cdr->car->raise( ` index is out of range in string-ref` ) ##NO_TEXT.
+        CATCH cx_sy_range_out_of_bounds.
+          list->cdr->car->raise( ` index is out of range in string-ref` ) ##NO_TEXT.
       ENDTRY.
 
       result = lcl_lisp_new=>char( lv_char ).
@@ -11447,20 +11449,20 @@
           lcl_lisp=>throw( c_error_incorrect_input ).
         ENDIF.
         cell = lo_ptr->car.
-          IF cell->type EQ values.
-            lo_head = CAST lcl_lisp_values( cell )->head.
+        IF cell->type EQ values.
+          lo_head = CAST lcl_lisp_values( cell )->head.
 
-            IF lo_head IS BOUND AND lo_head NE nil.
-              IF lo_head->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              cell = lo_head->car.
-
-              lo_head = lo_head->cdr.
-            ELSE.
-              cell = nil.
+          IF lo_head IS BOUND AND lo_head NE nil.
+            IF lo_head->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            cell = lo_head->car.
+
+            lo_head = lo_head->cdr.
+          ELSE.
+            cell = nil.
           ENDIF.
+        ENDIF.
 
         CASE cell->type.
           WHEN integer.
@@ -11500,20 +11502,20 @@
           lcl_lisp=>throw( c_error_incorrect_input ).
         ENDIF.
         DATA(cell) = list->car.
-          IF cell->type EQ values.
-            DATA(lo_head) = CAST lcl_lisp_values( cell )->head.
+        IF cell->type EQ values.
+          DATA(lo_head) = CAST lcl_lisp_values( cell )->head.
 
-            IF lo_head IS BOUND AND lo_head NE nil.
-              IF lo_head->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              cell = lo_head->car.
-
-              lo_head = lo_head->cdr.
-            ELSE.
-              cell = nil.
+          IF lo_head IS BOUND AND lo_head NE nil.
+            IF lo_head->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            cell = lo_head->car.
+
+            lo_head = lo_head->cdr.
+          ELSE.
+            cell = nil.
           ENDIF.
+        ENDIF.
 
         CASE cell->type.
           WHEN integer.
@@ -13525,13 +13527,13 @@
       ENDIF.
     ENDMETHOD. "get_element
 
-    method proc_sql_prepare.
+    METHOD proc_sql_prepare.
 *     define-query
       IF list IS NOT BOUND OR list->car IS NOT BOUND.
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
       result = lcl_lisp_new=>query( value = CAST lcl_lisp_string( list->car )->value ).
-    endmethod.
+    ENDMETHOD.
 
     METHOD proc_sql_query.
 *     sql-query
@@ -14153,7 +14155,7 @@
 
     METHOD define_values.
 
-  ENDMETHOD.
+    ENDMETHOD.
 
 
     METHOD proc_bytevector.
@@ -14346,9 +14348,9 @@
       " (utf8->string bytevector)
       " (utf8->string bytevector start)
       " (utf8->string bytevector start end)
-"     The utf8->string procedure decodes the bytes of a bytevector
-"     between start and end and returns the corresponding string;
-     " (utf8->string #u8(#x41)) =) "A"
+      "     The utf8->string procedure decodes the bytes of a bytevector
+      "     between start and end and returns the corresponding string;
+      " (utf8->string #u8(#x41)) =) "A"
       DATA lo_u8 TYPE REF TO lcl_lisp_bytevector.
       DATA lv_start TYPE tv_index.
       DATA lv_end TYPE tv_index.
@@ -14382,23 +14384,23 @@
 
         lv_start = CAST lcl_lisp_integer( list->cdr->car )->int.
 
-          IF list->cdr->cdr IS BOUND.
-            DATA(lo_last) = list->cdr->cdr.
-            IF lo_last NE nil.
-              IF lo_last->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              IF lo_last->car->type NE integer.
-                lo_last->car->raise( ` is not an integer in utf8->string end` ) ##NO_TEXT.
-              ENDIF.
-              IF CAST lcl_lisp_integer( lo_last->car )->int LT 0.
-                lo_last->car->raise( ` must be non-negative in utf8->string end` ) ##NO_TEXT.
-              ENDIF.
-              lv_end = CAST lcl_lisp_integer( lo_last->car )->int.
-
-              lo_last->assert_last_param( ).
+        IF list->cdr->cdr IS BOUND.
+          DATA(lo_last) = list->cdr->cdr.
+          IF lo_last NE nil.
+            IF lo_last->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            IF lo_last->car->type NE integer.
+              lo_last->car->raise( ` is not an integer in utf8->string end` ) ##NO_TEXT.
+            ENDIF.
+            IF CAST lcl_lisp_integer( lo_last->car )->int LT 0.
+              lo_last->car->raise( ` must be non-negative in utf8->string end` ) ##NO_TEXT.
+            ENDIF.
+            lv_end = CAST lcl_lisp_integer( lo_last->car )->int.
+
+            lo_last->assert_last_param( ).
           ENDIF.
+        ENDIF.
 
       ENDIF.
 
@@ -14440,23 +14442,23 @@
         ENDIF.
         lv_start = CAST lcl_lisp_integer( list->cdr->car )->int.
 
-          IF list->cdr->cdr IS BOUND.
-            DATA(lo_last) = list->cdr->cdr.
-            IF lo_last NE nil.
-              IF lo_last->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              IF lo_last->car->type NE integer.
-                lo_last->car->raise( ` is not an integer in string->utf8 end` ) ##NO_TEXT.
-              ENDIF.
-              IF CAST lcl_lisp_integer( lo_last->car )->int LT 0.
-                lo_last->car->raise( ` must be non-negative in string->utf8 end` ) ##NO_TEXT.
-              ENDIF.
-              lv_end = CAST lcl_lisp_integer( lo_last->car )->int.
-
-              lo_last->assert_last_param( ).
+        IF list->cdr->cdr IS BOUND.
+          DATA(lo_last) = list->cdr->cdr.
+          IF lo_last NE nil.
+            IF lo_last->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            IF lo_last->car->type NE integer.
+              lo_last->car->raise( ` is not an integer in string->utf8 end` ) ##NO_TEXT.
+            ENDIF.
+            IF CAST lcl_lisp_integer( lo_last->car )->int LT 0.
+              lo_last->car->raise( ` must be non-negative in string->utf8 end` ) ##NO_TEXT.
+            ENDIF.
+            lv_end = CAST lcl_lisp_integer( lo_last->car )->int.
+
+            lo_last->assert_last_param( ).
           ENDIF.
+        ENDIF.
 
       ENDIF.
 
@@ -14470,8 +14472,8 @@
 *    (bytevector-copy bytevector start end) procedure
 *    Returns a newly allocated bytevector containing the bytes
 *    in bytevector between start and end.
-     " (define a #u8(1 2 3 4 5))
-     " (bytevector-copy a 2 4)) =) #u8(3 4)
+      " (define a #u8(1 2 3 4 5))
+      " (bytevector-copy a 2 4)) =) #u8(3 4)
 
       DATA lo_u8 TYPE REF TO lcl_lisp_bytevector.
       DATA lv_start TYPE tv_index.
@@ -14500,23 +14502,23 @@
         ENDIF.
         lv_start = CAST lcl_lisp_integer( list->cdr->car )->int.
 
-          IF list->cdr->cdr IS BOUND.
-            DATA(lo_last) = list->cdr->cdr.
-            IF lo_last NE nil.
-              IF lo_last->car IS NOT BOUND.
-                lcl_lisp=>throw( c_error_incorrect_input ).
-              ENDIF.
-              IF lo_last->car->type NE integer.
-                lo_last->car->raise( ` is not an integer in bytevector-copy end` ) ##NO_TEXT.
-              ENDIF.
-              IF CAST lcl_lisp_integer( lo_last->car )->int LT 0.
-                lo_last->car->raise( ` must be non-negative in bytevector-copy end` ) ##NO_TEXT.
-              ENDIF.
-              lv_end = CAST lcl_lisp_integer( lo_last->car )->int.
-
-              lo_last->assert_last_param( ).
+        IF list->cdr->cdr IS BOUND.
+          DATA(lo_last) = list->cdr->cdr.
+          IF lo_last NE nil.
+            IF lo_last->car IS NOT BOUND.
+              lcl_lisp=>throw( c_error_incorrect_input ).
             ENDIF.
+            IF lo_last->car->type NE integer.
+              lo_last->car->raise( ` is not an integer in bytevector-copy end` ) ##NO_TEXT.
+            ENDIF.
+            IF CAST lcl_lisp_integer( lo_last->car )->int LT 0.
+              lo_last->car->raise( ` must be non-negative in bytevector-copy end` ) ##NO_TEXT.
+            ENDIF.
+            lv_end = CAST lcl_lisp_integer( lo_last->car )->int.
+
+            lo_last->assert_last_param( ).
           ENDIF.
+        ENDIF.
 
       ENDIF.
 
@@ -14528,11 +14530,11 @@
       "(bytevector-copy! to at from) procedure
       "(bytevector-copy! to at from start) procedure
       "(bytevector-copy! to at from start end) procedure
-" Copies the bytes of bytevector from between start and end to bytevector to, starting at at.
+      " Copies the bytes of bytevector from between start and end to bytevector to, starting at at.
 
-" The order in which bytes are copied is unspecified, except that if the source and destination overlap,
-" copying takes place as if the source is first copied into a temporary bytevector and then into the destination.
-" This can be achieved without allocating storage by making sure to copy in the correct direction in such circumstances.
+      " The order in which bytes are copied is unspecified, except that if the source and destination overlap,
+      " copying takes place as if the source is first copied into a temporary bytevector and then into the destination.
+      " This can be achieved without allocating storage by making sure to copy in the correct direction in such circumstances.
       DATA lo_u8_to TYPE REF TO lcl_lisp_bytevector.
       DATA lo_u8_from TYPE REF TO lcl_lisp_bytevector.
       DATA lv_start TYPE tv_index.
@@ -14612,7 +14614,7 @@
 
           lo_ptr->assert_last_param( ).
         ENDIF.
-     ENDIF.
+      ENDIF.
 
       "  It is also an error if (- (bytevector-length to) at) is less than (- end start).
       IF ( lv_length_to - lv_at ) < ( lv_end - lv_start ).
@@ -14627,15 +14629,15 @@
       result = lo_u8_to.
     ENDMETHOD.
 
-  METHOD proc_call_with_values.
+    METHOD proc_call_with_values.
       throw( `call-with-values not implemented yet` ).
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_dynamic_wind.
+    METHOD proc_dynamic_wind.
       throw( `dynamic-wind not implemented yet` ).
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_floor_quotient.
+    METHOD proc_floor_quotient.
       DATA carry TYPE tv_real.
       DATA n1 TYPE tv_int.
       DATA n2 TYPE tv_int.
@@ -14646,42 +14648,42 @@
 
       TRY.
           "_get_2_ints n1 n2 exact list 'floor-quotient'.
-    IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-    CASE list->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->car ).
-         n1 = lo_int->int.
-         exact = lo_int->exact.
-      WHEN real.
-         TRY.
-           lo_real = CAST lcl_lisp_real( list->car ).
-           n1 = EXACT #( lo_real->float ).
-           exact = lo_real->exact.
-         CATCH cx_sy_conversion_error.
-           throw( lo_real->to_string( ) && | is not an integer in [floor-quotient]| ).
-         ENDTRY.
-      WHEN OTHERS.
-        throw( list->car->to_string( ) && | is not an integer in [floor-quotient]| ).
-    ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              n1 = lo_int->int.
+              exact = lo_int->exact.
+            WHEN real.
+              TRY.
+                  lo_real = CAST lcl_lisp_real( list->car ).
+                  n1 = EXACT #( lo_real->float ).
+                  exact = lo_real->exact.
+                CATCH cx_sy_conversion_error.
+                  throw( lo_real->to_string( ) && | is not an integer in [floor-quotient]| ).
+              ENDTRY.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [floor-quotient]| ).
+          ENDCASE.
 
-    CASE list->cdr->car->type.
-      WHEN integer.
-        lo_int = CAST lcl_lisp_integer( list->cdr->car ).
-        n2 = lo_int->int.
-        IF n2 EQ 0.
-          throw( | second parameter cannot be zero in [floor-quotient]| ).
-        ENDIF.
-        IF exact EQ abap_true.
-          exact = lo_int->exact.
-        ENDIF.
-      WHEN OTHERS.
-        throw( list->cdr->car->to_string( ) && | is not an integer in [floor-quotient]| ).
-    ENDCASE.
+          CASE list->cdr->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->cdr->car ).
+              n2 = lo_int->int.
+              IF n2 EQ 0.
+                throw( | second parameter cannot be zero in [floor-quotient]| ).
+              ENDIF.
+              IF exact EQ abap_true.
+                exact = lo_int->exact.
+              ENDIF.
+            WHEN OTHERS.
+              throw( list->cdr->car->to_string( ) && | is not an integer in [floor-quotient]| ).
+          ENDCASE.
 
-    list->cdr->assert_last_param( ).
+          list->cdr->assert_last_param( ).
 
           carry = n1 / n2.    " first convert to float, or 3 = trunc( 5 / 2 ) coercion happens with ABAP rules
           nq = floor( carry ).
@@ -14690,9 +14692,9 @@
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
           throw( lx_error->get_text( ) ).
       ENDTRY.
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_floor_remainder.
+    METHOD proc_floor_remainder.
       " (floor-remainder n1 n2) -- equivalent to (modulo n1 n2)
       DATA carry TYPE tv_real.
       DATA n1 TYPE tv_int.
@@ -14705,42 +14707,42 @@
 
       TRY.
           "_get_2_ints n1 n2 exact list 'floor-remainder'.
-    IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-    CASE list->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->car ).
-         n1 = lo_int->int.
-         exact = lo_int->exact.
-      WHEN real.
-         TRY.
-           lo_real = CAST lcl_lisp_real( list->car ).
-           n1 = EXACT #( lo_real->float ).
-           exact = lo_real->exact.
-         CATCH cx_sy_conversion_error.
-           throw( lo_real->to_string( ) && | is not an integer in [floor-remainder]| ).
-         ENDTRY.
-      WHEN OTHERS.
-        throw( list->car->to_string( ) && | is not an integer in [floor-remainder]| ).
-    ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              n1 = lo_int->int.
+              exact = lo_int->exact.
+            WHEN real.
+              TRY.
+                  lo_real = CAST lcl_lisp_real( list->car ).
+                  n1 = EXACT #( lo_real->float ).
+                  exact = lo_real->exact.
+                CATCH cx_sy_conversion_error.
+                  throw( lo_real->to_string( ) && | is not an integer in [floor-remainder]| ).
+              ENDTRY.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [floor-remainder]| ).
+          ENDCASE.
 
-    CASE list->cdr->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->cdr->car ).
-         n2 = lo_int->int.
-         IF n2 EQ 0.
-          throw( | second parameter cannot be zero in [floor-remainder]| ).
-        ENDIF.
-        IF exact EQ abap_true.
-          exact = lo_int->exact.
-        ENDIF.
-      WHEN OTHERS.
-        throw( list->cdr->car->to_string( ) && | is not an integer in [floor-remainder]| ).
-    ENDCASE.
+          CASE list->cdr->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->cdr->car ).
+              n2 = lo_int->int.
+              IF n2 EQ 0.
+                throw( | second parameter cannot be zero in [floor-remainder]| ).
+              ENDIF.
+              IF exact EQ abap_true.
+                exact = lo_int->exact.
+              ENDIF.
+            WHEN OTHERS.
+              throw( list->cdr->car->to_string( ) && | is not an integer in [floor-remainder]| ).
+          ENDCASE.
 
-    list->cdr->assert_last_param( ).
+          list->cdr->assert_last_param( ).
           carry = n1 / n2.    " first convert to float, or 3 = trunc( 5 / 2 ) coercion happens with ABAP rules
           nq = floor( carry ).
           nr = n1 - n2 * nq.
@@ -14751,10 +14753,10 @@
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
           throw( lx_error->get_text( ) ).
       ENDTRY.
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_int_sqrt.
- " procedure (exact-integer-sqrt k) returns two non-negative exact integers s and r where k = s^2 + r and k < (s + 1)^2.
+    METHOD proc_int_sqrt.
+      " procedure (exact-integer-sqrt k) returns two non-negative exact integers s and r where k = s^2 + r and k < (s + 1)^2.
       " (exact-integer-sqrt 4) =) 2 0
       " (exact-integer-sqrt 5) =) 2 1
       DATA lv_int TYPE tv_int.
@@ -14763,45 +14765,45 @@
 
       result = nil.
       TRY.
-        IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND.
-          lcl_lisp=>throw( c_error_incorrect_input ).
-        ENDIF.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-            CASE list->car->type.
-              WHEN integer.
-                 lo_int = CAST lcl_lisp_integer( list->car ).
-                 IF lo_int->exact EQ abap_false.
-                   throw( list->car->to_string( ) && | is a not an exact integer in [exact-integer-sqrt]| ).
-                 ENDIF.
-                 lv_int = lo_int->int.
-                 IF lv_int LT 0.
-                   throw( list->car->to_string( ) && | is a negative integer in [exact-integer-sqrt]| ).
-                 ELSEIF lv_int GT 1.
-                   lv_int = trunc( sqrt( lo_int->int ) ).
-                 ENDIF.
-                 lv_rest = lo_int->int - lv_int * lv_int.
-              WHEN OTHERS.
-                throw( list->car->to_string( ) && | is not an integer in [exact-integer-sqrt]| ).
-            ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              IF lo_int->exact EQ abap_false.
+                throw( list->car->to_string( ) && | is a not an exact integer in [exact-integer-sqrt]| ).
+              ENDIF.
+              lv_int = lo_int->int.
+              IF lv_int LT 0.
+                throw( list->car->to_string( ) && | is a negative integer in [exact-integer-sqrt]| ).
+              ELSEIF lv_int GT 1.
+                lv_int = trunc( sqrt( lo_int->int ) ).
+              ENDIF.
+              lv_rest = lo_int->int - lv_int * lv_int.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [exact-integer-sqrt]| ).
+          ENDCASE.
 
-            list->assert_last_param( ).
+          list->assert_last_param( ).
 
-            result = lcl_lisp_new=>values(
-                    )->add( lcl_lisp_new=>integer( value = lv_int
-                                                   iv_exact = abap_true )
-                    )->add( lcl_lisp_new=>integer( value = lv_rest
-                                                   iv_exact = abap_true ) ).
-    CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
-      throw( lx_error->get_text( ) ).
+          result = lcl_lisp_new=>values(
+                  )->add( lcl_lisp_new=>integer( value = lv_int
+                                                 iv_exact = abap_true )
+                  )->add( lcl_lisp_new=>integer( value = lv_rest
+                                                 iv_exact = abap_true ) ).
+        CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
+          throw( lx_error->get_text( ) ).
       ENDTRY.
-  ENDMETHOD.
+    ENDMETHOD.
 
 
-  METHOD proc_rationalize.
+    METHOD proc_rationalize.
       throw( `rationalize not implemented yet` ).
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_truncate_new.
+    METHOD proc_truncate_new.
       DATA carry TYPE tv_real.
       DATA n1 TYPE tv_int.
       DATA n2 TYPE tv_int.
@@ -14813,42 +14815,42 @@
 
       TRY.
           "_get_2_ints n1 n2 exact list 'truncate/'.
-    IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-    CASE list->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->car ).
-         n1 = lo_int->int.
-         exact = lo_int->exact.
-      WHEN real.
-         TRY.
-           lo_real = CAST lcl_lisp_real( list->car ).
-           n1 = EXACT #( lo_real->float ).
-           exact = lo_real->exact.
-         CATCH cx_sy_conversion_error.
-           throw( lo_real->to_string( ) && | is not an integer in [truncate/]| ).
-         ENDTRY.
-      WHEN OTHERS.
-        throw( list->car->to_string( ) && | is not an integer in [truncate/]| ).
-    ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              n1 = lo_int->int.
+              exact = lo_int->exact.
+            WHEN real.
+              TRY.
+                  lo_real = CAST lcl_lisp_real( list->car ).
+                  n1 = EXACT #( lo_real->float ).
+                  exact = lo_real->exact.
+                CATCH cx_sy_conversion_error.
+                  throw( lo_real->to_string( ) && | is not an integer in [truncate/]| ).
+              ENDTRY.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [truncate/]| ).
+          ENDCASE.
 
-    CASE list->cdr->car->type.
-      WHEN integer.
-        lo_int = CAST lcl_lisp_integer( list->cdr->car ).
-        n2 = lo_int->int.
-        IF n2 EQ 0.
-          throw( | second parameter cannot be zero in [truncate/]| ).
-        ENDIF.
-        IF exact EQ abap_true.
-          exact = lo_int->exact.
-        ENDIF.
-      WHEN OTHERS.
-        throw( list->cdr->car->to_string( ) && | is not an integer in [truncate/]| ).
-    ENDCASE.
+          CASE list->cdr->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->cdr->car ).
+              n2 = lo_int->int.
+              IF n2 EQ 0.
+                throw( | second parameter cannot be zero in [truncate/]| ).
+              ENDIF.
+              IF exact EQ abap_true.
+                exact = lo_int->exact.
+              ENDIF.
+            WHEN OTHERS.
+              throw( list->cdr->car->to_string( ) && | is not an integer in [truncate/]| ).
+          ENDCASE.
 
-    list->cdr->assert_last_param( ).
+          list->cdr->assert_last_param( ).
 
           carry = n1 / n2.    " first convert to float, or 3 = trunc( 5 / 2 ) coercion happens with ABAP rules
           nq = trunc( carry ).
@@ -14863,9 +14865,9 @@
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
           throw( lx_error->get_text( ) ).
       ENDTRY.
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_trunc_quotient.
+    METHOD proc_trunc_quotient.
       " (truncate-quotient n1 n2) -- equivalent to (quotient n1 n2)
       DATA carry TYPE tv_real.
       DATA n1 TYPE tv_int.
@@ -14877,42 +14879,42 @@
 
       TRY.
           "_get_2_ints n1 n2 exact list 'truncate-quotient'.
-    IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-    CASE list->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->car ).
-         n1 = lo_int->int.
-         exact = lo_int->exact.
-      WHEN real.
-         TRY.
-           lo_real = CAST lcl_lisp_real( list->car ).
-           n1 = EXACT #( lo_real->float ).
-           exact = lo_real->exact.
-         CATCH cx_sy_conversion_error.
-           throw( lo_real->to_string( ) && | is not an integer in [truncate-quotient]| ).
-         ENDTRY.
-      WHEN OTHERS.
-        throw( list->car->to_string( ) && | is not an integer in [truncate-quotient]| ).
-    ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              n1 = lo_int->int.
+              exact = lo_int->exact.
+            WHEN real.
+              TRY.
+                  lo_real = CAST lcl_lisp_real( list->car ).
+                  n1 = EXACT #( lo_real->float ).
+                  exact = lo_real->exact.
+                CATCH cx_sy_conversion_error.
+                  throw( lo_real->to_string( ) && | is not an integer in [truncate-quotient]| ).
+              ENDTRY.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [truncate-quotient]| ).
+          ENDCASE.
 
-    CASE list->cdr->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->cdr->car ).
-         n2 = lo_int->int.
-        IF n2 EQ 0.
-          throw( | second parameter cannot be zero in [truncate-quotient]| ).
-        ENDIF.
-        IF exact EQ abap_true.
-          exact = lo_int->exact.
-        ENDIF.
-      WHEN OTHERS.
-        throw( list->cdr->car->to_string( ) && | is not an integer in [truncate-quotient]| ).
-    ENDCASE.
+          CASE list->cdr->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->cdr->car ).
+              n2 = lo_int->int.
+              IF n2 EQ 0.
+                throw( | second parameter cannot be zero in [truncate-quotient]| ).
+              ENDIF.
+              IF exact EQ abap_true.
+                exact = lo_int->exact.
+              ENDIF.
+            WHEN OTHERS.
+              throw( list->cdr->car->to_string( ) && | is not an integer in [truncate-quotient]| ).
+          ENDCASE.
 
-    list->cdr->assert_last_param( ).
+          list->cdr->assert_last_param( ).
           carry = n1 / n2.    " first convert to float, or 3 = trunc( 5 / 2 ) coercion happens with ABAP rules
           nq = trunc( carry ).
           result = lcl_lisp_new=>integer( value = nq
@@ -14920,10 +14922,10 @@
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
           throw( lx_error->get_text( ) ).
       ENDTRY.
-  ENDMETHOD.
+    ENDMETHOD.
 
-  METHOD proc_trunc_remainder.
-" (truncate-remainder n1 n2) -- equivalent to (remainder n1 n2)
+    METHOD proc_trunc_remainder.
+      " (truncate-remainder n1 n2) -- equivalent to (remainder n1 n2)
       DATA carry TYPE tv_real.
       DATA n1 TYPE tv_int.
       DATA n2 TYPE tv_int.
@@ -14935,42 +14937,42 @@
 
       TRY.
           "_get_2_ints n1 n2 exact list 'truncate-remainder/'.
-    IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+          IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND OR list->cdr->car IS NOT BOUND.
+            lcl_lisp=>throw( c_error_incorrect_input ).
+          ENDIF.
 
-    CASE list->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->car ).
-         n1 = lo_int->int.
-         exact = lo_int->exact.
-      WHEN real.
-         TRY.
-           lo_real = CAST lcl_lisp_real( list->car ).
-           n1 = EXACT #( lo_real->float ).
-           exact = lo_real->exact.
-         CATCH cx_sy_conversion_error.
-           throw( lo_real->to_string( ) && | is not an integer in [truncate-remainder/]| ).
-         ENDTRY.
-      WHEN OTHERS.
-        throw( list->car->to_string( ) && | is not an integer in [truncate-remainder/]| ).
-    ENDCASE.
+          CASE list->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->car ).
+              n1 = lo_int->int.
+              exact = lo_int->exact.
+            WHEN real.
+              TRY.
+                  lo_real = CAST lcl_lisp_real( list->car ).
+                  n1 = EXACT #( lo_real->float ).
+                  exact = lo_real->exact.
+                CATCH cx_sy_conversion_error.
+                  throw( lo_real->to_string( ) && | is not an integer in [truncate-remainder/]| ).
+              ENDTRY.
+            WHEN OTHERS.
+              throw( list->car->to_string( ) && | is not an integer in [truncate-remainder/]| ).
+          ENDCASE.
 
-    CASE list->cdr->car->type.
-      WHEN integer.
-         lo_int = CAST lcl_lisp_integer( list->cdr->car ).
-         n2 = lo_int->int.
-        IF n2 EQ 0.
-          throw( | second parameter cannot be zero in [truncate-remainder/]| ).
-        ENDIF.
-        IF exact EQ abap_true.
-          exact = lo_int->exact.
-        ENDIF.
-      WHEN OTHERS.
-        throw( list->cdr->car->to_string( ) && | is not an integer in [truncate-remainder/]| ).
-    ENDCASE.
+          CASE list->cdr->car->type.
+            WHEN integer.
+              lo_int = CAST lcl_lisp_integer( list->cdr->car ).
+              n2 = lo_int->int.
+              IF n2 EQ 0.
+                throw( | second parameter cannot be zero in [truncate-remainder/]| ).
+              ENDIF.
+              IF exact EQ abap_true.
+                exact = lo_int->exact.
+              ENDIF.
+            WHEN OTHERS.
+              throw( list->cdr->car->to_string( ) && | is not an integer in [truncate-remainder/]| ).
+          ENDCASE.
 
-    list->cdr->assert_last_param( ).
+          list->cdr->assert_last_param( ).
 
           carry = n1 / n2.    " first convert to float, or 3 = trunc( 5 / 2 ) coercion happens with ABAP rules
           nq = trunc( carry ).
@@ -14980,18 +14982,18 @@
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
           throw( lx_error->get_text( ) ).
       ENDTRY.
-  ENDMETHOD.
+    ENDMETHOD.
 
 
-  METHOD proc_values.
-    IF list IS NOT BOUND.
-      lcl_lisp=>throw( c_error_incorrect_input ).
-    ENDIF.
+    METHOD proc_values.
+      IF list IS NOT BOUND.
+        lcl_lisp=>throw( c_error_incorrect_input ).
+      ENDIF.
 
-    result = lcl_lisp_new=>values( list ).
-  ENDMETHOD.
+      result = lcl_lisp_new=>values( list ).
+    ENDMETHOD.
 
-ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
+  ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
 
 *----------------------------------------------------------------------*
 *       CLASS lcl_lisp_abapfunction IMPLEMENTATION
@@ -15658,6 +15660,7 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
 *----------------------------------------------------------------------*
   CLASS lcl_lisp_profiler DEFINITION INHERITING FROM lcl_lisp_interpreter.
     PUBLIC SECTION.
+      INTERFACES if_serializable_object.
       METHODS eval_repl REDEFINITION.
       DATA runtime TYPE tv_int READ-ONLY.
   ENDCLASS.                    "lcl_lisp_profiler DEFINITION
@@ -16141,7 +16144,7 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
       throw( context && to_string( ) && message ).
     ENDMETHOD.
 
-    METHOD raise_NaN.
+    METHOD raise_nan.
       throw( to_string( ) && | is not a number in [{ operation }]| ).
     ENDMETHOD.
 
@@ -16352,14 +16355,14 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
             SPLIT lv_nummer_str AT lcl_parser=>c_lisp_dot INTO lv_int_str lv_dec_str.
             lv_int_str &&= lv_dec_str.
             TRY.
-              lv_int = lv_int_str.
-              lv_denom = ipow( base = 10 exp = numofchar( lv_dec_str ) ).
-              ro_elem = rational( nummer = lv_int
-                                  denom = lv_denom
-                                  iv_exact = iv_exact ).
-            CATCH cx_sy_conversion_overflow.
-              ro_elem = real( value = lv_real
-                              exact = abap_false ).
+                lv_int = lv_int_str.
+                lv_denom = ipow( base = 10 exp = numofchar( lv_dec_str ) ).
+                ro_elem = rational( nummer = lv_int
+                                    denom = lv_denom
+                                    iv_exact = iv_exact ).
+              CATCH cx_sy_conversion_overflow.
+                ro_elem = real( value = lv_real
+                                exact = abap_false ).
             ENDTRY.
             RETURN.
           ENDIF.
@@ -16985,36 +16988,36 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
 
   CLASS lcl_lisp_bytevector IMPLEMENTATION.
 
-      METHOD init.
-        DATA lt_byte TYPE tt_byte.
+    METHOD init.
+      DATA lt_byte TYPE tt_byte.
 
-        DO size TIMES.
-          APPEND iv_fill TO lt_byte.
-        ENDDO.
-        ro_u8 = lcl_lisp_new=>bytevector( it_byte = lt_byte
-                                          iv_mutable = iv_mutable ).
-      ENDMETHOD.
+      DO size TIMES.
+        APPEND iv_fill TO lt_byte.
+      ENDDO.
+      ro_u8 = lcl_lisp_new=>bytevector( it_byte = lt_byte
+                                        iv_mutable = iv_mutable ).
+    ENDMETHOD.
 
-      METHOD from_list.
-        DATA lt_byte TYPE tt_byte.
-        DATA lv_int TYPE tv_int.
+    METHOD from_list.
+      DATA lt_byte TYPE tt_byte.
+      DATA lv_int TYPE tv_int.
 
-        DATA(lo_ptr) = io_list.
-        WHILE lo_ptr NE nil.
-          IF lo_ptr->car IS NOT BOUND.
-            lcl_lisp=>throw( c_error_incorrect_input ).
-          ENDIF.
-          IF lo_ptr->car->type NE integer
-            OR CAST lcl_lisp_integer( lo_ptr->car )->int NOT BETWEEN 0 AND 255.
-            lo_ptr->car->raise( ` is not a byte in bytevector` ) ##NO_TEXT.
-          ENDIF.
-          lv_int = CAST lcl_lisp_integer( lo_ptr->car )->int.
-          APPEND lv_int TO lt_byte.
-          lo_ptr = lo_ptr->cdr.
-        ENDWHILE.
-        ro_u8 = lcl_lisp_new=>bytevector( it_byte = lt_byte
-                                          iv_mutable = iv_mutable ).
-      ENDMETHOD.
+      DATA(lo_ptr) = io_list.
+      WHILE lo_ptr NE nil.
+        IF lo_ptr->car IS NOT BOUND.
+          lcl_lisp=>throw( c_error_incorrect_input ).
+        ENDIF.
+        IF lo_ptr->car->type NE integer
+          OR CAST lcl_lisp_integer( lo_ptr->car )->int NOT BETWEEN 0 AND 255.
+          lo_ptr->car->raise( ` is not a byte in bytevector` ) ##NO_TEXT.
+        ENDIF.
+        lv_int = CAST lcl_lisp_integer( lo_ptr->car )->int.
+        APPEND lv_int TO lt_byte.
+        lo_ptr = lo_ptr->cdr.
+      ENDWHILE.
+      ro_u8 = lcl_lisp_new=>bytevector( it_byte = lt_byte
+                                        iv_mutable = iv_mutable ).
+    ENDMETHOD.
 
     METHOD to_string.
       CONSTANTS c_max_ascii TYPE x VALUE '7F'.
@@ -17027,40 +17030,40 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
       DATA lv_idx TYPE x.
       FIELD-SYMBOLS <byte> TYPE tv_byte.
 
-      LOOP AT bytes TRANSPORTING NO FIELDS WHERE TABLE_LINE GT c_max_ascii.
+      LOOP AT bytes TRANSPORTING NO FIELDS WHERE table_line GT c_max_ascii.
         EXIT.
       ENDLOOP.
       IF sy-subrc EQ 0.
-          " non ASCII chars
-          LOOP AT bytes ASSIGNING <byte>.
-            lv_hex = <byte>.
-            "WRITE lv_hex TO lv_char2.
-            "lv_str &&= ` #x` && lv_char2.
+        " non ASCII chars
+        LOOP AT bytes ASSIGNING <byte>.
+          lv_hex = <byte>.
+          "WRITE lv_hex TO lv_char2.
+          "lv_str &&= ` #x` && lv_char2.
 
-            lv_idx = lv_hex BIT-AND c_low_byte.
-            lv_char1 = c_hex_digits+lv_idx(1).
-            lv_str &&= ` #x` && lv_char1.
+          lv_idx = lv_hex BIT-AND c_low_byte.
+          lv_char1 = c_hex_digits+lv_idx(1).
+          lv_str &&= ` #x` && lv_char1.
 
-            lv_idx = lv_hex BIT-AND c_high_byte.
-            lv_idx = lv_idx DIV 16.
-            lv_char1 = c_hex_digits+lv_idx(1).
-            lv_str &&= lv_char1.
-          ENDLOOP.
+          lv_idx = lv_hex BIT-AND c_high_byte.
+          lv_idx = lv_idx DIV 16.
+          lv_char1 = c_hex_digits+lv_idx(1).
+          lv_str &&= lv_char1.
+        ENDLOOP.
       ELSE.
-          LOOP AT bytes ASSIGNING <byte>.
-            lv_hex = <byte>.
-            "WRITE lv_hex TO lv_char2.
-            "lv_str = lv_str && ` ` && lv_char2.
+        LOOP AT bytes ASSIGNING <byte>.
+          lv_hex = <byte>.
+          "WRITE lv_hex TO lv_char2.
+          "lv_str = lv_str && ` ` && lv_char2.
 
-            lv_idx = lv_hex BIT-AND c_low_byte.
-            lv_char1 = c_hex_digits+lv_idx(1).
-            lv_str &&= ` #x` && lv_char1.
+          lv_idx = lv_hex BIT-AND c_low_byte.
+          lv_char1 = c_hex_digits+lv_idx(1).
+          lv_str &&= ` #x` && lv_char1.
 
-            lv_idx = lv_hex BIT-AND c_high_byte.
-            lv_idx = lv_idx DIV 16.
-            lv_char1 = c_hex_digits+lv_idx(1).
-            lv_str &&= lv_char1.
-          ENDLOOP.
+          lv_idx = lv_hex BIT-AND c_high_byte.
+          lv_idx = lv_idx DIV 16.
+          lv_char1 = c_hex_digits+lv_idx(1).
+          lv_str &&= lv_char1.
+        ENDLOOP.
       ENDIF.
 
       IF lv_str IS NOT INITIAL.
@@ -17071,126 +17074,126 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
 
     ENDMETHOD.
 
-      METHOD utf8_from_string.
-       " UTF-16 String to UTF-8 bytes
-        DATA lv_idx TYPE tv_int.
-        DATA lv_byte TYPE tv_byte.
-        DATA lt_byte TYPE tt_byte.
-        DATA lv_buffer TYPE xstring.
+    METHOD utf8_from_string.
+      " UTF-16 String to UTF-8 bytes
+      DATA lv_idx TYPE tv_int.
+      DATA lv_byte TYPE tv_byte.
+      DATA lt_byte TYPE tt_byte.
+      DATA lv_buffer TYPE xstring.
 
 *        cl_abap_conv_out_ce=>create( encoding = 'UTF-8' )->convert( EXPORTING data   = iv_text
 *                                                                    IMPORTING buffer = lv_buffer ).
-        lv_buffer = iv_text.
-        DO xstrlen( lv_buffer ) TIMES.
-          lv_byte = lv_buffer+lv_idx(1).
-          lv_idx = lv_idx + 1.
-          APPEND lv_byte TO lt_byte.
-        ENDDO.
+      lv_buffer = iv_text.
+      DO xstrlen( lv_buffer ) TIMES.
+        lv_byte = lv_buffer+lv_idx(1).
+        lv_idx = lv_idx + 1.
+        APPEND lv_byte TO lt_byte.
+      ENDDO.
 
-        ro_u8 = lcl_lisp_new=>bytevector( it_byte = lt_byte
-                                          iv_mutable = iv_mutable ).
-      ENDMETHOD.
+      ro_u8 = lcl_lisp_new=>bytevector( it_byte = lt_byte
+                                        iv_mutable = iv_mutable ).
+    ENDMETHOD.
 
-      METHOD utf8_to_string.
-        DATA lv_buffer TYPE xstring.
-        DATA lv_hex TYPE x LENGTH 1.
+    METHOD utf8_to_string.
+      DATA lv_buffer TYPE xstring.
+      DATA lv_hex TYPE x LENGTH 1.
 
-        DATA(lv_from) = from + 1.
-        DATA(lv_to) = to.
-        LOOP AT bytes FROM lv_from TO lv_to INTO DATA(lv_byte).
-          lv_hex = lv_byte.
-          lv_buffer = lv_buffer && lv_hex.
-        ENDLOOP.
+      DATA(lv_from) = from + 1.
+      DATA(lv_to) = to.
+      LOOP AT bytes FROM lv_from TO lv_to INTO DATA(lv_byte).
+        lv_hex = lv_byte.
+        lv_buffer = lv_buffer && lv_hex.
+      ENDLOOP.
 
 *        cl_abap_conv_in_ce=>create( encoding = 'UTF-8' )->convert( EXPORTING input = lv_buffer
 *                                                                   IMPORTING data = rv_text ).
-        rv_text = lv_buffer.
-      ENDMETHOD.
+      rv_text = lv_buffer.
+    ENDMETHOD.
 
-      METHOD set.
-        "_validate me.
-        IF me->mutable EQ abap_false.
-          throw( |constant bytevector cannot be changed| ) ##NO_TEXT.
-        ENDIF.
+    METHOD set.
+      "_validate me.
+      IF me->mutable EQ abap_false.
+        throw( |constant bytevector cannot be changed| ) ##NO_TEXT.
+      ENDIF.
 
-        DATA(lv_start) = index + 1.
+      DATA(lv_start) = index + 1.
 
-        IF lv_start BETWEEN 1 AND lines( bytes ).
-          bytes[ lv_start ] = iv_byte.
-        ELSE.
-          throw( |bytevector-u8-set!: out-of-bound position { index }| ).
-        ENDIF.
-      ENDMETHOD.
+      IF lv_start BETWEEN 1 AND lines( bytes ).
+        bytes[ lv_start ] = iv_byte.
+      ELSE.
+        throw( |bytevector-u8-set!: out-of-bound position { index }| ).
+      ENDIF.
+    ENDMETHOD.
 
-      METHOD get.
-        DATA(lv_start) = index + 1.
+    METHOD get.
+      DATA(lv_start) = index + 1.
 
-        IF lv_start BETWEEN 1 AND lines( bytes ).
-          rv_byte = bytes[ lv_start ].
-        ELSE.
-          throw( |bytevector-u8-ref: out-of-bound position { index }| ).
-        ENDIF.
-      ENDMETHOD.
+      IF lv_start BETWEEN 1 AND lines( bytes ).
+        rv_byte = bytes[ lv_start ].
+      ELSE.
+        throw( |bytevector-u8-ref: out-of-bound position { index }| ).
+      ENDIF.
+    ENDMETHOD.
 
-      METHOD copy_new.
-        DATA lt_byte TYPE tt_byte.
-        DATA lv_u8 TYPE tv_byte.
-        DATA lv_to TYPE tv_index.
+    METHOD copy_new.
+      DATA lt_byte TYPE tt_byte.
+      DATA lv_u8 TYPE tv_byte.
+      DATA lv_to TYPE tv_index.
 
-        DATA(lv_from) = from + 1.          " from is Inclusive
+      DATA(lv_from) = from + 1.          " from is Inclusive
 
-        IF to IS INITIAL.
-          lv_to = lines( bytes ).   " to is Exclusive
-        ELSE.
-          lv_to = to.               " End of bytevector
-        ENDIF.
+      IF to IS INITIAL.
+        lv_to = lines( bytes ).   " to is Exclusive
+      ELSE.
+        lv_to = to.               " End of bytevector
+      ENDIF.
 
-        LOOP AT bytes INTO lv_u8 FROM lv_from TO lv_to.
-          APPEND lv_u8 TO lt_byte.
-        ENDLOOP.
+      LOOP AT bytes INTO lv_u8 FROM lv_from TO lv_to.
+        APPEND lv_u8 TO lt_byte.
+      ENDLOOP.
 
-        ro_elem = lcl_lisp_new=>bytevector( it_byte = lt_byte
-                                            iv_mutable = mutable ).
-      ENDMETHOD.
+      ro_elem = lcl_lisp_new=>bytevector( it_byte = lt_byte
+                                          iv_mutable = mutable ).
+    ENDMETHOD.
 
-      METHOD copy.
-        " ( |bytevector-copy!:| ).
-        DATA lv_end TYPE tv_index.
+    METHOD copy.
+      " ( |bytevector-copy!:| ).
+      DATA lv_end TYPE tv_index.
 
-        DATA(lv_start) = start + 1.          " from is Inclusive
+      DATA(lv_start) = start + 1.          " from is Inclusive
 
-        IF end IS INITIAL.
-          lv_end = lines( io_from->bytes ).   " to is Exclusive
-        ELSE.
-          lv_end = end.                       " End of bytevector
-        ENDIF.
+      IF end IS INITIAL.
+        lv_end = lines( io_from->bytes ).   " to is Exclusive
+      ELSE.
+        lv_end = end.                       " End of bytevector
+      ENDIF.
 
-        DATA(lv_at) = at + 1.
-        DATA(lv_max) = lv_end - lv_start + lv_at.
+      DATA(lv_at) = at + 1.
+      DATA(lv_max) = lv_end - lv_start + lv_at.
 
-        DATA(lv_idx) = lv_start.
-        LOOP AT bytes FROM lv_at TO lv_max ASSIGNING FIELD-SYMBOL(<lv_byte>).
-          <lv_byte> = io_from->bytes[ lv_idx ].
-          lv_idx = lv_idx + 1.
-        ENDLOOP.
+      DATA(lv_idx) = lv_start.
+      LOOP AT bytes FROM lv_at TO lv_max ASSIGNING FIELD-SYMBOL(<lv_byte>).
+        <lv_byte> = io_from->bytes[ lv_idx ].
+        lv_idx = lv_idx + 1.
+      ENDLOOP.
 
-      ENDMETHOD.
+    ENDMETHOD.
 
-      METHOD length.
-        ro_length = mo_length.
-      ENDMETHOD.
+    METHOD length.
+      ro_length = mo_length.
+    ENDMETHOD.
 
-      METHOD is_equal.
-        DATA lo_u8 TYPE REF TO lcl_lisp_bytevector.
+    METHOD is_equal.
+      DATA lo_u8 TYPE REF TO lcl_lisp_bytevector.
 
-        result = false.
-        CHECK io_elem->type EQ bytevector.
+      result = false.
+      CHECK io_elem->type EQ bytevector.
 
-        lo_u8 ?= io_elem.
-        CHECK bytes = lo_u8->bytes.
+      lo_u8 ?= io_elem.
+      CHECK bytes = lo_u8->bytes.
 
-        result = true.
-      ENDMETHOD.
+      result = true.
+    ENDMETHOD.
 
   ENDCLASS.
 
@@ -17200,8 +17203,9 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
       super->constructor( abap_query ).
       sql_query = osql.
       mv_hold_cursor = abap_false.
-      RAISE EXCEPTION TYPE CX_SY_OPEN_SQL_ERROR
-        EXPORTING SQLMSG = osql.
+      RAISE EXCEPTION TYPE cx_sy_open_sql_error
+        EXPORTING
+          sqlmsg = osql.
 *      connection = cl_sql_connection=>get_connection( ).
 *      IF value IS INITIAL.
 *        statement = connection->create_statement( ).
@@ -17217,19 +17221,21 @@ ENDCLASS.                    "lcl_lisp_interpreter IMPLEMENTATION
       IF sql_query IS NOT INITIAL.
 *       prepared statement
 *       statement->set_param( dref1 ).
-        RAISE EXCEPTION TYPE CX_SY_SQL_ERROR
-          EXPORTING SQLMSG = sql_query.
+        RAISE EXCEPTION TYPE cx_sy_sql_error
+          EXPORTING
+            sqlmsg = sql_query.
 
         "lo_set = statement->execute_query( hold_cursor = mv_hold_cursor ).
       ELSEIF query IS NOT INITIAL.
-        RAISE EXCEPTION TYPE CX_SY_SQL_ERROR
-          EXPORTING SQLMSG = query.
+        RAISE EXCEPTION TYPE cx_sy_sql_error
+          EXPORTING
+            sqlmsg = query.
 
         "lo_set = statement->execute_query( statement = query
         "                                   hold_cursor = mv_hold_cursor ).
 *     ELSE ? which query to execute
       ENDIF.
-        RAISE EXCEPTION TYPE CX_SY_SQL_ERROR.
+      RAISE EXCEPTION TYPE cx_sy_sql_error.
       "result = NEW lcl_lisp_sql_result( lo_set ).
     ENDMETHOD.
 

@@ -11,21 +11,23 @@ CLASS z2ui5_cl_app_scheme DEFINITION
         check_initialized TYPE abap_bool,
         check_is_active   TYPE abap_bool,
         code_area         TYPE string,
+        input_area        TYPE string,
         console_area      TYPE string,
         output_area       TYPE string,
 
         log TYPE string,
         output TYPE string,
+
+        port TYPE REF TO object,
+        interpreter TYPE REF TO if_serializable_object,
       END OF screen.
-    CLASS-METHODS class_constructor.
   PRIVATE SECTION.
-    CLASS-DATA port TYPE REF TO object.
-    CLASS-DATA interpreter TYPE REF TO object.
 
     METHODS formatter IMPORTING iv_text       TYPE string
                       RETURNING VALUE(result) TYPE string.
     METHODS reset.
     METHODS init_console.
+    METHODS init_scheme.
     METHODS repl IMPORTING code TYPE string
                  RETURNING VALUE(response) TYPE string.
 ENDCLASS.
@@ -33,21 +35,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_APP_SCHEME IMPLEMENTATION.
-
-
-  METHOD class_constructor.
-    DATA lo_port TYPE REF TO lcl_lisp_buffered_port.
-    DATA lo_int TYPE REF TO lcl_lisp_profiler.
-    lo_port ?= lcl_lisp_new=>port( iv_port_type = textual
-                                iv_input     = abap_true
-                                iv_output    = abap_true
-                                iv_error     = abap_true
-                                iv_buffered  = abap_true ).
-    port ?= lo_port.
-    lo_int = NEW lcl_lisp_profiler( io_port = lo_port
-                                    ii_log = lo_port ).
-    interpreter = lo_int.
-  ENDMETHOD.
 
 
   METHOD formatter.
@@ -58,11 +45,27 @@ CLASS Z2UI5_CL_APP_SCHEME IMPLEMENTATION.
 
   METHOD init_console.
     CLEAR screen.
+    screen-check_is_active = abap_true.
     screen-code_area = `(+ 1 3 4 4)`.
     screen-log =
       |==> Welcome to ABAP List Processing!\n| &&
       |==> ABAP Lisp -- Console { sy-uname } -- { sy-datlo DATE = ENVIRONMENT } { sy-uzeit TIME = ENVIRONMENT }\n|.
+    init_scheme( ).
+  ENDMETHOD.
 
+
+  METHOD init_scheme.
+    DATA lo_port TYPE REF TO lcl_lisp_buffered_port.
+    DATA lo_int TYPE REF TO lcl_lisp_profiler.
+    lo_port ?= lcl_lisp_new=>port( iv_port_type = textual
+                                   iv_input     = abap_true
+                                   iv_output    = abap_true
+                                   iv_error     = abap_true
+                                   iv_buffered  = abap_true ).
+    screen-port ?= lo_port.
+    lo_int = NEW lcl_lisp_profiler( io_port = lo_port
+                                    ii_log = lo_port ).
+    screen-interpreter ?= lo_int.
   ENDMETHOD.
 
 
@@ -70,9 +73,9 @@ CLASS Z2UI5_CL_APP_SCHEME IMPLEMENTATION.
     DATA output TYPE string.
     DATA lo_int TYPE REF TO lcl_lisp_profiler. "The Lisp interpreter.
 
-    CHECK interpreter IS BOUND.
+    CHECK screen-interpreter IS BOUND.
     TRY.
-        lo_int ?= interpreter.
+        lo_int ?= screen-interpreter.
         response = lo_int->eval_repl( EXPORTING code = code
                                       IMPORTING output = output ).
         response = |[ { lo_int->runtime } µs ] { response }|.
@@ -111,7 +114,7 @@ CLASS Z2UI5_CL_APP_SCHEME IMPLEMENTATION.
             DATA(response) = repl( screen-code_area ).
             screen-console_area = formatter( screen-output ).
             screen-output_area = formatter( screen-log ).
-            CLEAR screen-code_area.
+            reset( ).
 
           WHEN 'BUTTON_BACK'.
             client->nav_to_app( client->get_app_previous( ) ).
@@ -126,20 +129,30 @@ CLASS Z2UI5_CL_APP_SCHEME IMPLEMENTATION.
         DATA(page) = view->page( title = 'abapScheme - UI5 Workbench'
                                  nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
-        page->simple_form('Scheme Interpreter' )->content( 'f'
-             )->title( 'REPL'
-             )->label( 'Scheme Editor'
-             )->code_editor( value = view->_bind( screen-code_area )
-                             type = 'scheme'
-                             editable = abap_true
-                             height = '200px'
-                             width = '600px'
-             )->label( 'Eval Output'
-             )->text_area( value = view->_bind( screen-output_area )
-                           height = '200px'
-                            width = '600px'
-             )->button( text = 'Eval' press = view->_event( 'BUTTON_EVAL' )
- ).
+        page->header_content(
+                  )->button( text = 'Eval' press = view->_event( 'BUTTON_EVAL' )
+                  )->link( text = 'Help' href = 'https://github.com/nomssi/abap_scheme/wiki' ).
+
+        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        grid->simple_form( '' )->content( 'f'
+          )->button( text = 'Evaluate' press = view->_event( 'BUTTON_EVAL' )
+          )->button( text = 'S-Expression' press = view->_event( 'BUTTON_SEXP' )
+          )->button( text = 'Refresh' press = view->_event( 'BUTTON_RESET' )
+          )->button( text = 'Trace' press = view->_event( 'BUTTON_TRACE' ) ).
+        grid->simple_form(  'Scheme Editor' )->content( 'f'
+            )->code_editor( value = view->_bind( screen-code_area )
+                            type = 'scheme'
+                            editable = abap_true
+                            height = '200px' ).
+        grid->simple_form( 'Output' )->content( 'f'
+          )->text_area( value = view->_bind( screen-output_area )
+                        height = '200px' ).
+        grid->simple_form( 'Input' )->content( 'f'
+          )->input( view->_bind( screen-input_area )  ).
+        grid->simple_form( 'Console' )->content( 'f'
+          )->text_area( value = view->_bind( screen-console_area )
+                        height = '200px' ).
+
     ENDCASE.
   ENDMETHOD.
 ENDCLASS.
