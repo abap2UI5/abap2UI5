@@ -67,7 +67,14 @@
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
-    "double_space": true,
+    "double_space": {
+  "exclude": [],
+  "severity": "Information",
+  "keywords": true,
+  "startParen": true,
+  "endParen": true,
+  "afterColon": true
+},
     "downport": true,
     "empty_line_in_statement": false,
     "empty_statement": true,
