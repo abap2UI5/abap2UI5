@@ -1225,10 +1225,15 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       ELSE.
         CLEAR temp13.
       ENDIF.
-      temp30 = `<mvc:View controllerName="MyController"     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n| && `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n| && ` xmlns:editor="sap.ui.codeeditor"   xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` && temp13.
+      
+       temp30 = `<mvc:View controllerName="MyController" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout"` && |\n| &&
+               ` xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n| &&
+               ` xmlns:editor="sap.ui.codeeditor"   xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` && temp13.
     ELSE.
-      temp30 = `<core:FragmentDefinition   xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n| && `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n| && ` xmlns:editor="sap.ui.codeeditor"  xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > `.
-    ENDIF.
+      temp30 = `<core:FragmentDefinition   xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n| &&
+               `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n| &&
+               ` xmlns:editor="sap.ui.codeeditor"  xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > `.
+   ENDIF.
     result = temp30.
 
   ENDMETHOD.
