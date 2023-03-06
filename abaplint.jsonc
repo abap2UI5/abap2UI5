@@ -69,7 +69,7 @@
     "description_empty": true,
     "double_space": {
   "exclude": [],
-  "severity": "Information",
+  "severity": "Warning",
   "keywords": true,
   "startParen": true,
   "endParen": true,
