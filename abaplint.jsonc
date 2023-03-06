@@ -202,7 +202,10 @@
     "parser_missing_space": true,
     "pragma_style": true,
     "prefer_corresponding": true,
-    "prefer_inline": true,
+    "prefer_inline": {
+         "exclude": [],
+         "severity": "Warning"
+     },
     "prefer_is_not": true,
     "prefer_raise_exception_new": true,
     "prefer_returning_to_exporting": false,
