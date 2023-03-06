@@ -2771,8 +2771,8 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
     DATA lv_data TYPE z2ui5_t_draft-data.
     SELECT SINGLE data
       FROM z2ui5_t_draft
-     WHERE uuid = id
-    INTO lv_data.
+      INTO lv_data
+     WHERE uuid = id.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_lcl_utility
@@ -2926,8 +2926,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           lv_uuid = client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
           DATA ls_db TYPE z2ui5_t_draft.
           SELECT SINGLE * FROM z2ui5_t_draft
-             WHERE uuid = lv_uuid
-            INTO ls_db.
+          INTO ls_db
+             WHERE uuid = lv_uuid.
           IF sy-subrc = 0.
             IF ls_db-response IS NOT INITIAL.
               result = ls_db-response.
