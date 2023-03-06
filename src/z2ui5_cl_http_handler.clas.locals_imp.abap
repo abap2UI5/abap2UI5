@@ -2194,7 +2194,13 @@ CLASS z2ui5_lcl_db DEFINITION.
       IMPORTING
         id              TYPE string
       RETURNING
-        VALUE(r_result) TYPE ty_S_db.
+        VALUE(result) TYPE ty_S_db.
+
+    CLASS-METHODS read
+      IMPORTING
+        id              TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_t_draft.
 
     CLASS-METHODS read
       IMPORTING
@@ -2214,7 +2220,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       EXPORTING
         xml    = ls_db-data
        IMPORTING
-        data   = r_result
+        data   = result
     ).
 
   ENDMETHOD.
@@ -2247,8 +2253,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
     SELECT SINGLE *
       FROM z2ui5_t_draft
      WHERE uuid = @id
-     INTO @DATA(result)
-    .
+     INTO @result.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_lcl_utility
