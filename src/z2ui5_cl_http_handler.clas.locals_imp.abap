@@ -2202,6 +2202,12 @@ CLASS z2ui5_lcl_db DEFINITION.
       RETURNING
         VALUE(result) TYPE z2ui5_t_draft.
 
+    CLASS-METHODS read
+      IMPORTING
+        id              TYPE string
+      RETURNING
+        VALUE(r_result) TYPE z2ui5_t_draft.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_db IMPLEMENTATION.
@@ -2247,8 +2253,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
     SELECT SINGLE *
       FROM z2ui5_t_draft
      WHERE uuid = @id
-     INTO @result
-    .
+     INTO @result.
 
     IF sy-subrc <> 0.
       RAISE EXCEPTION TYPE z2ui5_lcl_utility
