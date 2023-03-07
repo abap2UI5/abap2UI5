@@ -17,7 +17,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 * (3/3) Demo Applications developed with abap2UI5 (...)<br>
 
 ##### More
-* Abap2UI5 featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
+* Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Development of UI5 Selection-Screens in pure ABAP (former version) [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 
