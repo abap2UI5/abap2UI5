@@ -12,7 +12,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
-   " TYPES ty_t_string TYPE STANDARD TABLE OF string WITH EMPTY KEY.
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
@@ -990,7 +989,7 @@ CLASS z2ui5_lcl_if_ui5_library DEFINITION.
       IMPORTING
         name          TYPE string
         ns            TYPE string OPTIONAL
-        t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value optional
+        t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_if_ui5_library.
 
@@ -1061,14 +1060,14 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-          r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+        r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
 
         "  DATA temp25 TYPE string.
-      "  IF type = cs-bind_type-two_way.
-       "   r_result = '/oUpdate/' && lr_attri->name.
-      "  ELSE.
-      "    r_result = '/' && lr_attri->name.
-      "  ENDIF.
+        "  IF type = cs-bind_type-two_way.
+        "   r_result = '/oUpdate/' && lr_attri->name.
+        "  ELSE.
+        "    r_result = '/' && lr_attri->name.
+        "  ENDIF.
         RETURN.
       ENDIF.
 
@@ -1087,22 +1086,21 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD xml_get_begin.
 
-    result = COND #( WHEN check_popup_active = abap_false
-              THEN `<mvc:View controllerName="MyController"     xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n| &&
-                     `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n| &&
-                               ` xmlns:editor="sap.ui.codeeditor"   xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` &&
-                         COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `<Shell>` )
-              ELSE `<core:FragmentDefinition   xmlns:core="sap.ui.core"    xmlns:l="sap.ui.layout"` && |\n| &&
-                     `    xmlns:html="http://www.w3.org/1999/xhtml"  xmlns:f="sap.ui.layout.form" xmlns:mvc='sap.ui.core.mvc' displayBlock="true"` && |\n| &&
-                               ` xmlns:editor="sap.ui.codeeditor"  xmlns:ui="sap.ui.table"  xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > ` ).
+    result = COND #( WHEN check_popup_active = abap_true THEN `<core:FragmentDefinition` ELSE `<mvc:View controllerName="MyController"` ).
+
+    result = result && ` xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
+               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
+                     `xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > `.
+
+    result = result && COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
   ENDMETHOD.
 
   METHOD xml_get_end.
 
-   result = result && COND #( WHEN check_popup_active = abap_false
-              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
-              ELSE `</core:FragmentDefinition>` ).
+    result = result && COND #( WHEN check_popup_active = abap_false
+               THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
+               ELSE `</core:FragmentDefinition>` ).
 
   ENDMETHOD.
 
@@ -1184,7 +1182,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
           ( n = 'text'    v = text )
           ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
           ( n = 'icon'    v = icon )
-          ( COND #( WHEN type IS NOT INITIAL THEN VALUE #( n = 'type'  v = type ) ) )
+          ( n = 'type'    v = type  )
        ) ).
 
   ENDMETHOD.
@@ -2099,7 +2097,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( 'HOME' ).
-    DATA(page) = view->page( 'ABAP2UI5 - Development of UI5 Apps in pure ABAP' ).
+    DATA(page) = view->page( 'abap2UI5 - Development of UI5 Apps in pure ABAP' ).
     page->header_content(
         )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
@@ -2186,45 +2184,42 @@ CLASS z2ui5_lcl_db DEFINITION.
         o_app             TYPE REF TO object,
       END OF ty_S_db.
 
-    CLASS-METHODS db_save
+    CLASS-METHODS create
       IMPORTING
         id       TYPE string
         response TYPE string OPTIONAL
         db       TYPE ty_s_db.
 
-    CLASS-METHODS db_load
+    CLASS-METHODS load_app
       IMPORTING
         id              TYPE string
       RETURNING
-        VALUE(r_result) TYPE ty_S_db.
+        VALUE(result) TYPE ty_S_db.
+
+    CLASS-METHODS read
+      IMPORTING
+        id              TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_t_draft.
 
 ENDCLASS.
 
 CLASS z2ui5_lcl_db IMPLEMENTATION.
 
-  METHOD db_load.
+  METHOD load_app.
 
-    SELECT SINGLE data
-      FROM z2ui5_t_draft
-     WHERE uuid = @id
-    INTO @DATA(lv_data).
-
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
+    DATA(ls_db) = read( id ).
 
     _=>trans_xml_2_object(
       EXPORTING
-        xml    = lv_data
+        xml    = ls_db-data
        IMPORTING
-        data   = r_result
+        data   = result
     ).
 
   ENDMETHOD.
 
-  METHOD db_save.
+  METHOD create.
 
     DATA ls_db TYPE z2ui5_t_draft.
 
@@ -2244,6 +2239,21 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
     ENDIF.
 
     COMMIT WORK AND WAIT.
+
+  ENDMETHOD.
+
+  METHOD read.
+
+    SELECT SINGLE *
+      FROM z2ui5_t_draft
+     WHERE uuid = @id
+     INTO @result.
+
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -2289,7 +2299,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     DATA ms_db TYPE z2ui5_lcl_db=>ty_S_Db.
 
-  "  types
+    "  types
 
     DATA mt_after TYPE _=>ty_tt_string.
     DATA mt_screen TYPE STANDARD TABLE OF s_screen.
@@ -2355,32 +2365,43 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         IF lv_method_event = 'DISPLAY_ID'.
           " DATA ls_db TYPE z2ui5_t_draft.
           DATA(lv_uuid) = client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
-          SELECT SINGLE * FROM z2ui5_t_draft
-             WHERE uuid = @lv_uuid
-            INTO @DATA(ls_db).
-          IF sy-subrc = 0.
-            IF ls_db-response IS NOT INITIAL.
-              result = ls_db-response.
-              RETURN.
-            ENDIF.
 
-            _=>trans_xml_2_object(
-                EXPORTING
-                    xml    = ls_db-data
-                IMPORTING
-                    data   = ms_db
-                ).
 
-            ROLLBACK WORK.
-            ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-            li_app ?= ms_db-o_app.
+          DATA(ls_db2) = z2ui5_lcl_db=>read( lv_uuid ).
 
-            li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
-            ROLLBACK WORK.
-
-            result = execute_finish( ).
+          IF ls_db2-response IS NOT INITIAL.
+            result = ls_db2-response.
             RETURN.
           ENDIF.
+
+
+*
+*          SELECT SINGLE * FROM z2ui5_t_draft
+*             WHERE uuid = @lv_uuid
+*            INTO @DATA(ls_db).
+*          IF sy-subrc = 0.
+*            IF ls_db-response IS NOT INITIAL.
+*              result = ls_db-response.
+*              RETURN.
+*            ENDIF.
+
+          _=>trans_xml_2_object(
+              EXPORTING
+                  xml    = ls_db2-data
+              IMPORTING
+                  data   = ms_db
+              ).
+
+          ROLLBACK WORK.
+          ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
+          li_app ?= ms_db-o_app.
+
+          li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
+          ROLLBACK WORK.
+
+          result = execute_finish( ).
+          RETURN.
+          "  ENDIF.
         ENDIF.
       CATCH cx_root.
     ENDTRY.
@@ -2423,7 +2444,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-      data lr_after type ref to string_table.
+      DATA lr_after TYPE REF TO string_table.
       LOOP AT mt_after REFERENCE INTO lr_after.
         DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
         CLEAR lo_list2.
@@ -2436,6 +2457,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     r_result = lo_ui5_model->get_root( )->write_result( ).
 
+
   ENDMETHOD.
 
 
@@ -2445,7 +2467,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     " MOVE-CORRESPONDING  db_load( ms_db-id_prev ) TO ms_db.
     " CLEAR: ms_db-id, ms_db-id_prev.
     DATA(ls_db_tmp) = ms_db.
-    ms_db = z2ui5_lcl_db=>db_load( ms_db-id_prev ).
+    ms_db = z2ui5_lcl_db=>load_app( ms_db-id_prev ).
     ms_db-id = ls_db_tmp-id.
     ms_db-id_prev = ls_db_tmp-id_prev.
 
@@ -2630,7 +2652,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     ENDIF.
 
-    result ?= z2ui5_lcl_db=>db_load( mo_server->ms_db-id_prev_app )-o_app.
+    result ?= z2ui5_lcl_db=>load_app( mo_server->ms_db-id_prev_app )-o_app.
 
   ENDMETHOD.
 

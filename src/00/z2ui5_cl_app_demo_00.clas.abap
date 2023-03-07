@@ -13,7 +13,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'ABAP2UI5 - Applications and Examples' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        DATA(page) = view->page( title = 'abap2UI5 - Applications and Examples' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
             ).
 
         page->header_content(
