@@ -7,13 +7,13 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 * pure ABAP – development in 100% ABAP source code (no JavaScript, EML, DDL or Customizing)
 * low system footprint - based on a plain http handler (no OData, SEGW, BOPF, BSP, RAP or FE)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* high system compatibility - runs on all available ABAP stacks (NW 7.02 to ABAP 2302)
-* easy installation - abapGit project, no additional app deployment needed
+* high system compatibility – runs on all available ABAP stacks (NW 7.02 to ABAP 2302)
+* easy installation – abapGit project, no additional app deployment needed
 
 ### Information
 ##### SCN Blog Series - Introduction to abap2UI5
 * (1/3) Development of UI5 Apps in pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
-* (2/3) Output of Lists & Tables--add toolbars and make editable [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
+* (2/3) Output of Lists & Tables – add toolbars and make editable [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
 * (3/3) Demo Applications developed with ABAP2UI5 (...)<br>
 
 ##### More
@@ -79,4 +79,4 @@ ENDMETHOD.
 ## FAQ
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
 * running into problems with your app? see [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting)
-* as always -- your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
+* as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
