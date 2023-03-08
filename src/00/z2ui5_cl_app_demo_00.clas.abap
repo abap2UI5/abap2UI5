@@ -81,13 +81,20 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
             )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
         DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
-        grid = page->grid( default_span  = 'L4 M6 S12' )->content( 'l' ).
+        grid = page->grid( default_span  = 'L3 M6 S12' )->content( 'l' ).
 
         grid->simple_form( 'HowTo - General' )->content( 'f'
-            )->button( text = 'Client-Server Communication (Data Binding)' press = view->_event( '0101' )
-            )->button( text = 'Controller (Events, Navigation)' press = view->_event( '0102' )
+            )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )
+            )->button( text = 'Events & Navigation' press = view->_event( '0102' )
             )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' ) ).
+
+*        grid->simple_form( 'HowTo - General II' )->content( 'f'
+*            )->button( text = 'Popups I' press = view->_event( '0101' )
+*            )->button( text = 'Popups II (F4 Help)' press = view->_event( '0101' )
+*            )->button( text = 'Side Effects, Expression Binding' press = view->_event( '0102' )
+*            )->button( text = 'Preprocessor' press = view->_event( '0103' )
+*          ).
 
         grid->simple_form( 'HowTo - Selection-Screen' )->content( 'f'
             )->button( text = 'Basic' press = view->_event( '0201' )
@@ -103,7 +110,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         grid = page->grid( default_span  = 'L12 M12 S12' ).
 
 
-        DATA(form) = grid->simple_form( 'Applications - Demos, Templates, Examples' )->vbox( ).
+        DATA(form) = grid->simple_form( 'Applications and Examples' )->vbox( ).
 
         form->flex_box( class = 'columns'
         )->button( text = 'MIME Editor'  press = view->_event( 'MIME_EDITOR' )

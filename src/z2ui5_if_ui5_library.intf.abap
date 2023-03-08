@@ -458,5 +458,21 @@ INTERFACE z2ui5_if_ui5_library
       text          TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
+  METHODS _generic
+    IMPORTING
+      name          TYPE string
+      ns            TYPE string OPTIONAL
+      t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_ui5_library.
+
+  METHODS zz_file_uploader
+    IMPORTING
+      value         TYPE clike OPTIONAL
+      path          TYPE clike OPTIONAL
+      placeholder   TYPE clike OPTIONAL
+      upload        type clike optional
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_ui5_library.
 
 ENDINTERFACE.

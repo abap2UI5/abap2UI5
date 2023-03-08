@@ -61,6 +61,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
                `    <script src="` && cs_config-repository && `" ` &&
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
+            "   `  data-sap-ui-resourceroots='{ "z2ui5.project1": "./" }' ` && |\n| &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n| &&
                `        data-sap-ui-preload="async">` && |\n| &&
                `     </script>` && |\n|.
