@@ -985,14 +985,6 @@ CLASS z2ui5_lcl_if_ui5_library DEFINITION.
       RETURNING
         VALUE(result)      TYPE ty_S_view.
 
-    METHODS _generic
-      IMPORTING
-        name          TYPE string
-        ns            TYPE string OPTIONAL
-        t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_if_ui5_library.
-
     METHODS _get_name_by_ref
       IMPORTING
         value           TYPE data
@@ -1090,7 +1082,8 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = result && ` xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
                ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `xmlns="sap.m" xmlns:text="sap.ui.richtexteditor" > `.
+                    `xmlns="sap.m" xmlns:z2ui5="z2ui5"  xmlns:text="sap.ui.richtexteditor" > `.
+    "      `xmlns:m="sap.m" xmlns="z2ui5.controls" xmlns:text="sap.ui.richtexteditor" > `.
 
     result = result && COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
@@ -1147,17 +1140,19 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _generic.
+  METHOD z2ui5_if_ui5_library~_generic.
 
-    result = NEW #( ).
-    result->m_name = name.
-    result->m_ns = ns.
-    result->mt_prop = t_prop.
-    result->m_parent = me.
-    result->m_root   = m_root.
-    INSERT result INTO TABLE t_child.
+    DATA(result2) = NEW z2ui5_lcl_if_ui5_library( ).
+    result2->m_name = name.
+    result2->m_ns = ns.
+    result2->mt_prop = t_prop.
+    result2->m_parent = me.
+    result2->m_root   = m_root.
+    INSERT result2 INTO TABLE t_child.
 
-    m_root->m_last = result.
+    m_root->m_last = result2.
+
+    result = result2.
 
   ENDMETHOD.
 
@@ -1175,7 +1170,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name   = 'Button'
        t_prop = VALUE #(
           ( n = 'press'   v = press )
@@ -1191,7 +1186,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name   = 'Input'
        t_prop = VALUE #(
            ( n = 'placeholder'     v = placeholder )
@@ -1275,8 +1270,9 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~page.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name   = 'Page'
+      "  ns     = 'm'
          t_prop = VALUE #(
              ( n = 'title' v = title )
              ( n = 'showNavButton' v = COND #( WHEN nav_button_tap = '' THEN 'false' ELSE 'true' ) )
@@ -1287,7 +1283,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~vbox.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
          name   = 'VBox'
          t_prop = VALUE #(
             ( n = 'class' v = 'sapUiSmallMargin' )
@@ -1297,7 +1293,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~hbox.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name   = 'HBox'
           t_prop = VALUE #(
              ( n = 'class' v = 'sapUiSmallMargin' )
@@ -1307,7 +1303,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~simple_form.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
       name   = 'SimpleForm'
       ns     = 'f'
       t_prop = VALUE #(
@@ -1333,7 +1329,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~content.
 
-    result = _generic( ns = ns name = 'content' ).
+    result = z2ui5_if_ui5_library~_generic( ns = ns name = 'content' ).
 
   ENDMETHOD.
 
@@ -1342,7 +1338,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
          name  = 'Title'
          t_prop = VALUE #(
              ( n = 'text' v = title ) )
@@ -1354,7 +1350,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
         name  = 'CodeEditor'
         ns = 'editor'
         t_prop = VALUE #(
@@ -1367,12 +1363,35 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD z2ui5_if_ui5_library~zz_file_uploader.
+
+    result = me.
+
+    z2ui5_if_ui5_library~_generic(
+      name   = 'FileUploader'
+      ns     = 'z2ui5'
+      t_prop = VALUE #(
+         (  n = 'placeholder' v = placeholder )
+         (  n = 'upload' v = upload )
+         (  n = 'path'   v = path )
+         (  n = 'value'  v = value )
+        )
+  ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_ui5_library~zz_html.
 
     SPLIT val AT '<' INTO TABLE DATA(lt_table).
 
     DATA(lv_html) = ``.
     LOOP AT lt_table REFERENCE INTO DATA(lr_line).
+      IF sy-tabix = 1.
+        lv_html = lv_html && lr_line->*.
+        CONTINUE.
+      ENDIF.
 
       IF lr_line->*(1) = '/'.
         lv_html = '</html:' && lr_line->*.
@@ -1384,7 +1403,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
          name  = 'ZZHTML'
          t_prop = VALUE #( ( n = 'VALUE' v = lv_html ) )
     ).
@@ -1393,14 +1412,14 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~overflow_toolbar.
 
-    result = _generic( 'OverflowToolbar' ).
+    result = z2ui5_if_ui5_library~_generic( 'OverflowToolbar' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~toolbar_spacer.
 
     result = me.
-    _generic( 'ToolbarSpacer' ).
+    z2ui5_if_ui5_library~_generic( 'ToolbarSpacer' ).
 
   ENDMETHOD.
 
@@ -1408,7 +1427,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name  = 'ComboBox'
        t_prop = VALUE #(
           (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
@@ -1422,7 +1441,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
       name       = 'DatePicker'
       t_prop = VALUE #(
           ( n = 'value' v = value )
@@ -1435,7 +1454,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
         name  = 'DateTimePicker'
         t_prop = VALUE #(
             ( n = 'value' v = value )
@@ -1448,7 +1467,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name  = 'Label'
        t_prop = VALUE #(
            ( n = 'text' v = text )
@@ -1460,7 +1479,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
      name  = 'Link'
        t_prop = VALUE #(
          ( n = 'text'   v = text )
@@ -1475,7 +1494,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name  = 'SegmentedButton'
        t_prop = VALUE #(
         ( n = 'selectedKey' v = selected_key )
@@ -1487,7 +1506,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
          name  = 'StepInput'
          t_prop = VALUE #(
             ( n = 'max'  v = max )
@@ -1502,7 +1521,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
           name  = 'Switch'
           t_prop = VALUE #(
              ( n = 'type'           v = type )
@@ -1518,7 +1537,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
           name  = 'TextArea'
             t_prop = VALUE #(
               ( n = 'value' v = value )
@@ -1533,7 +1552,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
      name   = 'TimePicker'
      t_prop = VALUE #(
           ( n = 'value' v = value )
@@ -1546,7 +1565,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name  = 'CheckBox'
        t_prop = VALUE #(
           ( n = 'text'     v = text )
@@ -1560,7 +1579,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
          name  = 'ProgressIndicator'
          t_prop = VALUE #(
             ( n = 'percentValue' v = _get_name_by_ref( percent_value ) )
@@ -1575,7 +1594,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
       name  = 'Text'
       t_prop = VALUE #( ( n = 'text' v = text ) )
      ).
@@ -1584,7 +1603,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~table.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name  = 'Table'
         t_prop = VALUE #(
            ( n = 'items'            v = items )
@@ -1598,13 +1617,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~cells.
 
-    result = _generic( 'cells' ).
+    result = z2ui5_if_ui5_library~_generic( 'cells' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~column.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name  = 'Column'
           t_prop = VALUE #( ( n = 'width' v = width ) )
      ).
@@ -1613,13 +1632,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~columns.
 
-    result = _generic( 'columns' ).
+    result = z2ui5_if_ui5_library~_generic( 'columns' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~column_list_item.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name = 'ColumnListItem'
         t_prop = VALUE #( ( n = 'vAlign' v = valign ) )
          ).
@@ -1628,13 +1647,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~items.
 
-    result = _generic( 'items' ).
+    result = z2ui5_if_ui5_library~_generic( 'items' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~grid.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name = 'Grid'
         ns   = 'l'
         t_prop = VALUE #(
@@ -1646,13 +1665,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~header_toolbar.
 
-    result = _generic( 'headerToolbar' ).
+    result = z2ui5_if_ui5_library~_generic( 'headerToolbar' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~scroll_container.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name = 'ScrollContainer'
         t_prop = VALUE #(
           ( n = 'height' v = height )
@@ -1665,25 +1684,25 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~header_content.
 
-    result = _generic( 'headerContent' ).
+    result = z2ui5_if_ui5_library~_generic( 'headerContent' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~sub_header.
 
-    result = _generic( 'subHeader' ).
+    result = z2ui5_if_ui5_library~_generic( 'subHeader' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~footer.
 
-    result = _generic( 'footer' ).
+    result = z2ui5_if_ui5_library~_generic( 'footer' ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_ui5_library~dialog.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
          name = 'Dialog'
         t_prop = VALUE #(
           ( n = 'title'  v = title )
@@ -1697,7 +1716,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~list.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name = 'List'
         t_prop = VALUE #(
           ( n = 'headerText' v = header_text )
@@ -1710,7 +1729,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
         name = 'StandardListItem'
         t_prop = VALUE #(
             ( n = 'title'       v = title )
@@ -1724,7 +1743,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~message_page.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
         name   = 'MessagePage'
         t_prop = VALUE #(
            ( n = 'showHeader' v = _=>get_abap_2_json( show_header ) )
@@ -1738,7 +1757,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~buttons.
 
-    result = _generic( 'buttons' ).
+    result = z2ui5_if_ui5_library~_generic( 'buttons' ).
 
   ENDMETHOD.
 
@@ -1762,7 +1781,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
       name = 'MessageStrip'
      t_prop = VALUE #(
        ( n = 'text' v = text )
@@ -1788,7 +1807,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
                name   = 'ListItem'
                ns     = 'core'
                t_prop = VALUE #(
@@ -1799,7 +1818,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~suggestion_items.
 
-    result = _generic( 'suggestionItems' ).
+    result = z2ui5_if_ui5_library~_generic( 'suggestionItems' ).
 
   ENDMETHOD.
 
@@ -1807,7 +1826,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
        name = 'Item'
        ns = 'core'
        t_prop = VALUE #(
@@ -1821,7 +1840,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
         name = 'SegmentedButtonItem'
         t_prop = VALUE #(
             ( n = 'icon'  v = icon )
@@ -1845,7 +1864,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~ui_column.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'Column'
           ns   = 'ui'
          t_prop = VALUE #(
@@ -1857,7 +1876,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~ui_columns.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'columns'
           ns   = 'ui'
      ).
@@ -1866,7 +1885,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~ui_extension.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'extension'
           ns   = 'ui'
      ).
@@ -1875,7 +1894,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~ui_table.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'Table'
           ns   = 'ui'
           t_prop = VALUE #(
@@ -1890,7 +1909,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~ui_template.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'template'
           ns   = 'ui'
      ).
@@ -1900,7 +1919,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
   METHOD z2ui5_if_ui5_library~flex_box.
 
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'FlexBox'
         t_prop = VALUE #(
             ( n = 'class'  v = class )
@@ -1913,7 +1932,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~vertical_layout.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
           name = 'VerticalLayout'
            ns   = 'l'
         t_prop = VALUE #(
@@ -1928,7 +1947,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-    _generic(
+    z2ui5_if_ui5_library~_generic(
           name = 'FlexItemData'
         t_prop = VALUE #(
             ( n = 'growFactor'  v = grow_Factor )
@@ -1942,7 +1961,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
   METHOD z2ui5_if_ui5_library~layout_data.
 
-    result = _generic(
+    result = z2ui5_if_ui5_library~_generic(
            name = 'layoutData'
        ).
 
@@ -2098,6 +2117,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     DATA(view) = client->factory_view( 'HOME' ).
     DATA(page) = view->page( 'abap2UI5 - Development of UI5 Apps in pure ABAP' ).
+
     page->header_content(
         )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
@@ -2141,14 +2161,15 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
         client->nav_to_app( li_app ).
         DATA(lv_check_demo_active) = abap_true.
-        DATA(lv_text) = `Press to continue..`.
+        DATA(lv_text) = `Press to continue...`.
       CATCH cx_root.
         lv_check_demo_active = abap_false.
-        lv_text = `Press to continue..(release too low, only available from abap v750)`.
+        lv_text = `Press to continue... (only available with NetWeaver v.750 or higher)`.
     ENDTRY.
     grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
     grid->simple_form( 'Applications and Examples' )->content( 'f'
       )->button( text = lv_text press = view->_event( 'DEMOS' ) enabled = lv_check_demo_active ).
+
 
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
@@ -2192,15 +2213,17 @@ CLASS z2ui5_lcl_db DEFINITION.
 
     CLASS-METHODS load_app
       IMPORTING
-        id              TYPE string
+        id            TYPE string
       RETURNING
         VALUE(result) TYPE ty_S_db.
 
     CLASS-METHODS read
       IMPORTING
-        id              TYPE string
+        id            TYPE string
       RETURNING
         VALUE(result) TYPE z2ui5_t_draft.
+
+    CLASS-METHODS cleanup.
 
 ENDCLASS.
 
@@ -2254,6 +2277,20 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
         EXPORTING
           val = 'CX_SY_SUBRC'.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD cleanup.
+
+    DATA(lv_date) = sy-datum - 2.
+    DATA lv_timestampl TYPE timestampl.
+    lv_timestampl = lv_date.
+
+    CONVERT DATE lv_date
+         INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
+
+    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_timestampl.
+    COMMIT WORK.
 
   ENDMETHOD.
 
@@ -2423,7 +2460,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       lr_screen = REF #( mt_screen[ 1 ] ).
       ms_db-screen = lr_screen->name.
     ELSE.
-      lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
+      TRY.
+          lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
+        CATCH cx_root.
+          RAISE EXCEPTION TYPE _
+            exporting
+                val = `View not found - Check name ` && ms_db-screen.
+      ENDTRY.
     ENDIF.
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
@@ -2444,11 +2487,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF mt_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( 'oAfter' ).
-      DATA lr_after TYPE REF TO string_table.
-      LOOP AT mt_after REFERENCE INTO lr_after.
-        DATA lo_list2 TYPE REF TO z2ui5_lcl_utility_tree_json.
-        CLEAR lo_list2.
-        lo_list2 = lo_list->add_list_list( ).
+      LOOP AT mt_after REFERENCE INTO DATA(lr_after).
+        DATA(lo_list2) = lo_list->add_list_list( ).
         LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
           lo_list2->add_list_val( lr_con->* ).
         ENDLOOP.
@@ -2457,15 +2497,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     r_result = lo_ui5_model->get_root( )->write_result( ).
 
-
   ENDMETHOD.
 
 
   METHOD init_app_prev.
 
-    " ms_db = CORRESPONDING #( BASE ( ms_db ) db_load( ms_db-id_prev ) EXCEPT id id_prev ).
-    " MOVE-CORRESPONDING  db_load( ms_db-id_prev ) TO ms_db.
-    " CLEAR: ms_db-id, ms_db-id_prev.
     DATA(ls_db_tmp) = ms_db.
     ms_db = z2ui5_lcl_db=>load_app( ms_db-id_prev ).
     ms_db-id = ls_db_tmp-id.

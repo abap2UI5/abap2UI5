@@ -54,7 +54,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
@@ -67,7 +67,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
              )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'
-                )->code_editor(
+                )->scroll_container( '75%' )->code_editor(
                         type  = mv_type
                         editable = mv_check_editable
                         value = view->_bind( mv_editor ) ).
@@ -88,6 +88,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                 type  = 'Emphasized'
                 icon = 'sap-icon://upload-to-cloud'
                 enabled = xsdbool( mv_editor IS NOT INITIAL ) ).
+
 
         mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
 
