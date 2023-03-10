@@ -4,33 +4,22 @@ CLASS z2ui5_cl_app_demo_00 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    DATA product TYPE string.
-    DATA quantity TYPE string.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-        product = 'tomato'.
-        quantity = '500'.
-
-
       WHEN client->cs-lifecycle_method-on_event.
 
         CASE client->get( )-event.
-
-          WHEN 'BUTTON_POST'.
-            client->display_message_toast( |{ product } { quantity } ST - GR successful| ).
 
           WHEN '0101'.
             client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
@@ -65,6 +54,9 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
           WHEN 'MIME_EDITOR'.
             client->nav_to_app( NEW z2ui5_cl_app_demo_14( ) ).
 
+          WHEN 'TABLE_MAINTENANCE'.
+            client->nav_to_app( NEW z2ui5_cl_app_demo_13( ) ).
+
         ENDCASE.
 
 
@@ -72,7 +64,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'abap2UI5 - Applications and Examples' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        DATA(page) = view->page( title = 'abap2UI5 - Demo Section' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
             ).
 
         page->header_content(
@@ -120,15 +112,29 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                  grow_Factor = '1'
               style_class = 'sapUiTinyMargin'
          )->get_parent( )->get_parent(
-     )->text( text = 'Use the sap.ui.codeeditor to develop editor apps - for instance upload/download files form the MIME Repository'
+     )->text( text = 'Use the sap.ui.codeeditor to develop editor apps - for instance edit files form the MIME Repository'
          )->get(
          )->layout_data(
           )->flex_item_data(
                  grow_Factor = '3'
            style_class = 'sapUiTinyMargin'
-    ).
+          ).
 
-    RETURN.
+        form->flex_box( class = 'columns'
+     )->button( text = 'Table Maintenance'  press = view->_event( 'TABLE_MAINTENANCE' )
+        )->get(
+           )->layout_data(
+       )->flex_item_data(
+              grow_Factor = '1'
+           style_class = 'sapUiTinyMargin'
+      )->get_parent( )->get_parent(
+  )->text( text = 'Use the sap.ui.table to develop table maintenance apps - import/export data in csv/json/xml, edit entries in the table control and save it to database'
+      )->get(
+      )->layout_data(
+       )->flex_item_data(
+              grow_Factor = '3'
+        style_class = 'sapUiTinyMargin'
+       ).
 
 
     ENDCASE.

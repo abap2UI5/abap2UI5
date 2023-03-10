@@ -1368,18 +1368,18 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
 
     result = me.
 
-  z2ui5_if_ui5_library~_generic(
-    name   = 'FileUploader'
-    ns     = 'z2ui5'
-    t_prop = VALUE #(
-       (  n = 'placeholder' v = placeholder )
-       (  n = 'upload' v = upload )
-       (  n = 'path'   v = path )
-       (  n = 'value'  v = value )
-      )
-).
+    z2ui5_if_ui5_library~_generic(
+      name   = 'FileUploader'
+      ns     = 'z2ui5'
+      t_prop = VALUE #(
+         (  n = 'placeholder' v = placeholder )
+         (  n = 'upload' v = upload )
+         (  n = 'path'   v = path )
+         (  n = 'value'  v = value )
+        )
+  ).
 
-endmethod.
+  ENDMETHOD.
 
 
   METHOD z2ui5_if_ui5_library~zz_html.
@@ -2161,10 +2161,10 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
         client->nav_to_app( li_app ).
         DATA(lv_check_demo_active) = abap_true.
-        DATA(lv_text) = `Press to continue..`.
+        DATA(lv_text) = `Press to continue...`.
       CATCH cx_root.
         lv_check_demo_active = abap_false.
-        lv_text = `Press to continue..(release too low, only available from abap v750)`.
+        lv_text = `Press to continue... (only available with NetWeaver v.750 or higher)`.
     ENDTRY.
     grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
     grid->simple_form( 'Applications and Examples' )->content( 'f'
@@ -2223,6 +2223,8 @@ CLASS z2ui5_lcl_db DEFINITION.
       RETURNING
         VALUE(result) TYPE z2ui5_t_draft.
 
+    CLASS-METHODS cleanup.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_db IMPLEMENTATION.
@@ -2275,6 +2277,20 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
         EXPORTING
           val = 'CX_SY_SUBRC'.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD cleanup.
+
+    DATA(lv_date) = sy-datum - 2.
+    DATA lv_timestampl TYPE timestampl.
+    lv_timestampl = lv_date.
+
+    CONVERT DATE lv_date
+         INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
+
+    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_timestampl.
+    COMMIT WORK.
 
   ENDMETHOD.
 
@@ -2444,7 +2460,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       lr_screen = REF #( mt_screen[ 1 ] ).
       ms_db-screen = lr_screen->name.
     ELSE.
-      lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
+      TRY.
+          lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
+        CATCH cx_root.
+          RAISE EXCEPTION TYPE _
+            exporting
+                val = `View not found - Check name ` && ms_db-screen.
+      ENDTRY.
     ENDIF.
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).

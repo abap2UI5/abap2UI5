@@ -67,7 +67,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
              )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'
-                )->code_editor(
+                )->scroll_container( '75%' )->code_editor(
                         type  = mv_type
                         editable = mv_check_editable
                         value = view->_bind( mv_editor ) ).

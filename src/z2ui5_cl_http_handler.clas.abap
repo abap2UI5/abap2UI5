@@ -55,6 +55,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+    z2ui5_lcl_db=>cleanup( ).
+
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
                `    <meta charset="utf-8">` && |\n| &&
