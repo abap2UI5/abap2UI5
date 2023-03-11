@@ -163,7 +163,7 @@ CLASS lcl_db IMPLEMENTATION.
 
   METHOD get_csv_by_table.
 
-    LOOP AT app->st_db INTO DATA(ls_row).
+    LOOP AT val INTO DATA(ls_row).
 
       DATA(lv_index) = 1.
       DO.
@@ -195,7 +195,7 @@ CLASS lcl_db IMPLEMENTATION.
 *               numc_as_string   =
 *               name_mappings    =
 *               conversion_exits =
-              format_output    = abap_true
+           "   format_output    = abap_true
 *               hex_as_base64    =
              ).
 
