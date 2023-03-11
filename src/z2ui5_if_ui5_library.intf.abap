@@ -462,7 +462,7 @@ INTERFACE z2ui5_if_ui5_library
     IMPORTING
       name          TYPE string
       ns            TYPE string OPTIONAL
-      t_prop        TYPE z2ui5_if_ui5_library=>ty_t_name_value OPTIONAL
+      t_prop        TYPE ty_t_name_value OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_ui5_library.
 
