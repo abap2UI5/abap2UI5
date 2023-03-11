@@ -55,12 +55,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+    z2ui5_lcl_db=>cleanup( ).
+
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
                `    <meta charset="utf-8">` && |\n| &&
                `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
                `    <script src="` && cs_config-repository && `" ` &&
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
+            "   `  data-sap-ui-resourceroots='{ "z2ui5.project1": "./" }' ` && |\n| &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n| &&
                `        data-sap-ui-preload="async">` && |\n| &&
                `     </script>` && |\n|.
@@ -70,97 +73,221 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                  `        <div id="content"></div>` && |\n| &&
                  `    </body>` && |\n| &&
                  `</html>` && |\n| &&
-                 `<script>` && |\n| &&
-                 `    sap.ui.getCore().attachInit(function() {` && |\n| &&
-                 `        "use strict";` && |\n| &&
-                 `        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function(Controller, ODataModel, JSONModel, MessageBox, Fragment) {` &&
-                 `            "use strict";` && |\n| &&
-                 `            return Controller.extend("MyController", {` && |\n| &&
-                 `                onEvent: function(oEvent, oEvent2, oEvent3, oEvent4) {` && |\n| &&
-                 `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n| &&
-                 `                    this.oBody.oEvent = oEvent;` && |\n| &&
-                 `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
-                 `                        console.log('Request Object:');` && |\n| &&
-                 `                        console.log(this.oBody);` && |\n| &&
-                 `                    }` && |\n| &&
-                 `                    this.Roundtrip();` && |\n| &&
-                 `                },` && |\n| &&
-                 `                Roundtrip: function() {` && |\n| &&
-                 `                    this.oView.destroy();` && |\n| &&
-                 `                    sap.ui.core.BusyIndicator.show();` && |\n| &&
-                 `                    if (this.getView().oPopup) {` && |\n| &&
-                 `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n| &&
-                 `                        this.getView().oPopup.destroy();` && |\n| &&
-                 `                    }` && |\n| &&
-                 `                    var xhr = new XMLHttpRequest();` && |\n| &&
+                    `<script>` && |\n|  &&
+                    `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
+                    `        "use strict";` && |\n|  &&
+`        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function (Controller, ODataModel, JSONModel, MessageBox, Fragment) {` && |\n|  &&
+                    `            "use strict";` && |\n|  &&
+                    `            return Controller.extend("MyController", {` && |\n|  &&
+                    `                onEvent: function (oEvent, oEvent2, oEvent3, oEvent4) {` && |\n|  &&
+                    `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
+                    `                    this.oBody.oEvent = oEvent;` && |\n|  &&
+                    `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                    `                        console.log('Request Object:');` && |\n|  &&
+                    `                        console.log(this.oBody);` && |\n|  &&
+                    `                    }` && |\n|  &&
+                    |\n|  &&
+                    `                    if (!window.navigator.onLine) {` && |\n|  &&
+                    `                        sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
+                    `                        return;` && |\n|  &&
+                    `                    }` && |\n|  &&
+                    `                    this.Roundtrip();` && |\n|  &&
+                    `                },` && |\n|  &&
+                    `                Roundtrip: function () {` && |\n|  &&
+                    `                    this.oView.destroy();` && |\n|  &&
+                    `                    sap.ui.core.BusyIndicator.show();` && |\n|  &&
+                    `                    if (this.getView().oPopup) {` && |\n|  &&
+                    `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&
+                    `                        this.getView().oPopup.destroy();` && |\n|  &&
+                    `                    }` && |\n|  &&
+                    `                    var xhr = new XMLHttpRequest();` && |\n|  &&
                  `                    var url = '` && lv_url && `';` && |\n| &&
-                 `                    xhr.open("POST", url, true);` && |\n| &&
-                 `                    xhr.onload = function(that) {` && |\n| &&
-                 `                        if (that.target.status == 500) {` && |\n| &&
-                 `                            document.write(that.target.response);` && |\n| &&
-                 `                            return;` && |\n| &&
-                 `                        }` && |\n| &&
-                 `                        var oResponse = JSON.parse(that.target.response);` && |\n| &&
-                 `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
-                 `                            console.log('Response Object:');` && |\n| &&
-                 `                            console.log(oResponse);` && |\n| &&
-                 `                            console.log('UI5-XML-View:');` && |\n| &&
-                 `                            console.log(oResponse.vView);` && |\n| &&
-                 `                        }` && |\n| &&
-                 |\n| &&
-                 `                        if (oResponse.oAfter) {` && |\n| &&
-                 `                            oResponse.oAfter.forEach(item=>sap.m[item[0]][item[1]](item[2]));` && |\n| &&
-                 `                        }` && |\n| &&
-                 `                        oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n| &&
-                 `                        var oModel = new JSONModel(oResponse.oViewModel);` && |\n| &&
-                 |\n| &&
-                 `                        if (oResponse.vViewPopup) {` && |\n| &&
-                 `                            const popup = new sap.ui.core.Fragment.load({` && |\n| &&
-                 `                                definition: oResponse.vViewPopup,` && |\n| &&
-                 `                                controller: this,` && |\n| &&
-                 `                            }).then(function(oFragment) {` && |\n| &&
-                 |\n| &&
-                 `                                //  oFragment.setModel(oModel);                                       ` && |\n| &&
-                 `                                this.getView().addDependent(oFragment);` && |\n| &&
-                 `                                oFragment.open();` && |\n| &&
-                 `                                this.getView().oPopup = oFragment;` && |\n| &&
-                 |\n| &&
-                 `                            }` && |\n| &&
-                 `                            .bind(this));` && |\n| &&
-                 `                        }` && |\n| &&
-                 `                        //  this.oView.destroy();                                                     ` && |\n| &&
-                 `                        if (oResponse.vView) {` && |\n| &&
-                 |\n| &&
-                 `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n| &&
-                 `                                viewContent: oResponse.vView,` && |\n| &&
-                 `                                definition: oResponse.vView,` && |\n| &&
-                 `                                preprocessors: {` && |\n| &&
-                 `                                    xml: {` && |\n| &&
-                 `                                        models: {` && |\n| &&
-                 `                                            meta: oModel` && |\n| &&
-                 `                                        }` && |\n| &&
-                 `                                    }` && |\n| &&
-                 `                                },` && |\n| &&
-                 `                            }).then(oView=>{` && |\n| &&
-                 `                                oView.setModel(oModel);` && |\n| &&
-                 `                                oView.placeAt("content");` && |\n| &&
-                 `                                this.oView = oView;` && |\n| &&
-                 `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
-                 `                            }` && |\n| &&
-                 `                            );` && |\n| &&
-                 `                        }` && |\n| &&
-                 `                    }` && |\n| &&
-                 `                    .bind(this);` && |\n| &&
-                 `                    xhr.send(JSON.stringify(this.oBody));` && |\n| &&
-                 `                },` && |\n| &&
-                 `            });` && |\n| &&
-                 `        });` && |\n| &&
-                 `        var oView = sap.ui.xmlview({` && |\n| &&
-                 `            viewContent: "<mvc:View controllerName='MyController' xmlns:mvc='sap.ui.core.mvc' />"` && |\n| &&
-                 `        });` && |\n| &&
-                 `        oView.getController().Roundtrip();` && |\n| &&
-                 `    });` && |\n| &&
-                 `</script>` && |\n| &&
+                    `                    xhr.open("POST", url, true);` && |\n|  &&
+                    `                    xhr.onload = function (that) {` && |\n|  &&
+                    `                        if (that.target.status !== 200) {` && |\n|  &&
+                    `                            document.write(that.target.response);` && |\n|  &&
+                    `                            return;` && |\n|  &&
+                    `                        }` && |\n|  &&
+                    `                        var oResponse = JSON.parse(that.target.response);` && |\n|  &&
+                    `                        if (oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                    `                            console.log('Response Object:');` && |\n|  &&
+                    `                            console.log(oResponse);` && |\n|  &&
+                    `                            console.log('UI5-XML-View:');` && |\n|  &&
+                    `                            console.log(oResponse.vView);` && |\n|  &&
+                    `                        }` && |\n|  &&
+                    |\n|  &&
+                    `                        if (oResponse.oAfter) {` && |\n|  &&
+                    `                            oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
+                    `                        }` && |\n|  &&
+                    `                        oResponse.oViewModel.oUpdate.oSystem = oResponse.oSystem;` && |\n|  &&
+                    `                        var oModel = new JSONModel(oResponse.oViewModel);` && |\n|  &&
+                    |\n|  &&
+                    `                        if (oResponse.vViewPopup) {` && |\n|  &&
+                    `                            const popup = new sap.ui.core.Fragment.load({` && |\n|  &&
+                    `                                definition: oResponse.vViewPopup,` && |\n|  &&
+                    `                                controller: this,` && |\n|  &&
+                    `                            }).then(function (oFragment) {` && |\n|  &&
+                    |\n|  &&
+                    `                                //  oFragment.setModel(oModel);                                       ` && |\n|  &&
+                    `                                this.getView().addDependent(oFragment);` && |\n|  &&
+                    `                                oFragment.open();` && |\n|  &&
+                    `                                this.getView().oPopup = oFragment;` && |\n|  &&
+                    |\n|  &&
+                    `                            }` && |\n|  &&
+                    `                                .bind(this));` && |\n|  &&
+                    `                        }                                                 ` && |\n|  &&
+                    `                        if (oResponse.vView) {` && |\n|  &&
+                    |\n|  &&
+                    `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
+                    `                                viewContent: oResponse.vView,` && |\n|  &&
+                    `                                definition: oResponse.vView,` && |\n|  &&
+                    `                                preprocessors: {` && |\n|  &&
+                    `                                    xml: {` && |\n|  &&
+                    `                                        models: {` && |\n|  &&
+                    `                                            meta: oModel` && |\n|  &&
+                    `                                        }` && |\n|  &&
+                    `                                    }` && |\n|  &&
+                    `                                },` && |\n|  &&
+                    `                            }).then(oView => {` && |\n|  &&
+                    `                                oView.setModel(oModel);` && |\n|  &&
+                    `                                oView.placeAt("content");` && |\n|  &&
+                    `                                this.oView = oView;` && |\n|  &&
+                    `                                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
+                    `                            }` && |\n|  &&
+                    `                            );` && |\n|  &&
+                    `                        }` && |\n|  &&
+                    `                    }` && |\n|  &&
+                    `                        .bind(this);` && |\n|  &&
+                    `                    xhr.send(JSON.stringify(this.oBody));` && |\n|  &&
+                    `                },` && |\n|  &&
+                    `            });` && |\n|  &&
+                    `        });` && |\n|  &&
+                    `        var oView = sap.ui.xmlview({` && |\n|  &&
+                    `            viewContent: "<mvc:View controllerName='MyController' xmlns:mvc='sap.ui.core.mvc' />"` && |\n|  &&
+                    `        });` && |\n|  &&
+                    `        oView.getController().Roundtrip();` && |\n|  &&
+                    `        jQuery.sap.declare("my.library");` && |\n|  &&
+                    `        jQuery.sap.require("sap.ui.core.Core");` && |\n|  &&
+                    `        jQuery.sap.require("sap.ui.core.library");` && |\n|  &&
+                    |\n|  &&
+                    `        sap.ui.getCore().initLibrary({` && |\n|  &&
+                    `            name: "z2ui5",` && |\n|  &&
+                    `            dependencies: ["sap.ui.core"],` && |\n|  &&
+                    `            types: [],` && |\n|  &&
+                    `            interfaces: [],` && |\n|  &&
+                    `            controls: ["z2ui5.FileUploader"],` && |\n|  &&
+                    `            elements: [],` && |\n|  &&
+                    `            version: "0.0.1-SNAPSHOT"` && |\n|  &&
+                    `        });` && |\n|  &&
+                    |\n|  &&
+                    `        jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
+                    |\n|  &&
+                    `        sap.ui.define([` && |\n|  &&
+                    `            "sap/ui/core/Control",` && |\n|  &&
+                    `            "sap/m/Button",` && |\n|  &&
+                    `            "sap/ui/unified/FileUploader"` && |\n|  &&
+                    `        ], function (Control, Button, FileUploader) {` && |\n|  &&
+                    `            "use strict";` && |\n|  &&
+                    |\n|  &&
+                    `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
+                    |\n|  &&
+                    `                metadata: {` && |\n|  &&
+                    `                    properties: {` && |\n|  &&
+                    `                        value: {` && |\n|  &&
+                    `                            type: "string",` && |\n|  &&
+                    `                            defaultValue: ""` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        path: {` && |\n|  &&
+                    `                            type: "string",` && |\n|  &&
+                    `                            defaultValue: ""` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        tooltip: {` && |\n|  &&
+                    `                            type: "string",` && |\n|  &&
+                    `                            defaultValue: ""` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        fileType: {` && |\n|  &&
+                    `                            type: "string",` && |\n|  &&
+                    `                            defaultValue: ""` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        placeholder: {` && |\n|  &&
+                    `                            type: "string",` && |\n|  &&
+                    `                            defaultValue: ""` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        buttonText: {` && |\n|  &&
+                    `                            type: "string",` && |\n|  &&
+                    `                            defaultValue: "Upload"` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        enabled: {` && |\n|  &&
+                    `                            type: "boolean",` && |\n|  &&
+                    `                            defaultValue: true` && |\n|  &&
+                    `                        },` && |\n|  &&
+                    `                        multiple: {` && |\n|  &&
+                    `                            type: "boolean",` && |\n|  &&
+                    `                            defaultValue: false` && |\n|  &&
+                    `                        }` && |\n|  &&
+                    `                    },` && |\n|  &&
+                    |\n|  &&
+                    |\n|  &&
+                    `                    aggregations: {` && |\n|  &&
+                    `                    },` && |\n|  &&
+                    `                    events: {` && |\n|  &&
+                    `                        "upload": {` && |\n|  &&
+                    `                            allowPreventDefault: true,` && |\n|  &&
+                    `                            parameters: {}` && |\n|  &&
+                    `                        }` && |\n|  &&
+                    `                    },` && |\n|  &&
+                    `                    renderer: null` && |\n|  &&
+                    `                },` && |\n|  &&
+                    |\n|  &&
+                    `                renderer: function (oRm, oControl) {` && |\n|  &&
+                    |\n|  &&
+                    `                    oControl.oUploadButton = new Button({` && |\n|  &&
+                    `                        text: oControl.getProperty("buttonText"),` && |\n|  &&
+                    `                        enabled: oControl.getProperty("path") !== "",` && |\n|  &&
+                    `                        press: function (oEvent) {` && |\n|  &&
+                    |\n|  &&
+                    `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
+                    |\n|  &&
+                    `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n|  &&
+                    `                            var reader = new FileReader();` && |\n|  &&
+                    |\n|  &&
+                    `                            reader.onload = function (evt) {` && |\n|  &&
+                    `                                var vContent = evt.currentTarget.result;` && |\n|  &&
+                    `                                this.setProperty("value", vContent);` && |\n|  &&
+                    `                                this.fireUpload();` && |\n|  &&
+                    `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n|  &&
+                    `                            }.bind(this)` && |\n|  &&
+                    |\n|  &&
+                    `                            reader.readAsDataURL(file);` && |\n|  &&
+                    `                        }.bind(oControl)` && |\n|  &&
+                    `                    });` && |\n|  &&
+                    |\n|  &&
+                    `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
+                    `                        icon: "sap-icon://browse-folder",` && |\n|  &&
+                    `                        iconOnly: true,` && |\n|  &&
+                    `                        value: oControl.getProperty("path"),` && |\n|  &&
+                    `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
+                    `                        change: function (oEvent) {` && |\n|  &&
+                    `                            var value = oEvent.getSource().getProperty("value");` && |\n|  &&
+                    `                            this.setProperty("path", value);` && |\n|  &&
+                    `                            if (value) {` && |\n|  &&
+                    `                                this.oUploadButton.setEnabled();` && |\n|  &&
+                    `                            } else {` && |\n|  &&
+                    `                                this.oUploadButton.setEnabled(false);` && |\n|  &&
+                    `                            }` && |\n|  &&
+                    `                            this.oUploadButton.rerender();` && |\n|  &&
+                    `                        }.bind(oControl)` && |\n|  &&
+                    `                    });` && |\n|  &&
+                    |\n|  &&
+                    `                    var hbox = new sap.m.HBox();` && |\n|  &&
+                    `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
+                    `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
+                    `                    oRm.renderControl(hbox);` && |\n|  &&
+                    `                }` && |\n|  &&
+                    `            });` && |\n|  &&
+                    `        });` && |\n|  &&
+                    `    });` && |\n|  &&
+                    `</script>` &&
                  `</html>`.
 
   ENDMETHOD.
@@ -223,6 +350,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
       EXIT.
     ENDDO.
+
+  "  raise EXCEPTION new _( 'Error happend' ).
 
     result = lo_runtime->execute_finish( ).
     z2ui5_lcl_db=>create(
