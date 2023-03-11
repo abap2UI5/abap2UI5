@@ -163,7 +163,7 @@ CLASS lcl_db IMPLEMENTATION.
 
   METHOD get_csv_by_table.
 
-    LOOP AT app->st_db INTO DATA(ls_row).
+    LOOP AT val INTO DATA(ls_row).
 
       DATA(lv_index) = 1.
       DO.
