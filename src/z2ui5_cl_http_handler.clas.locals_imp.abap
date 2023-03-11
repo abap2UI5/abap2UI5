@@ -210,7 +210,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
     ELSE.
       r_result = |"{ CONV string( val ) }"|.
-      r_result = |"{ escape( val = CONV string( val ) format = cl_abap_format=>e_json_string ) }"|.
     ENDIF.
 
   ENDMETHOD.
@@ -268,8 +267,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <field> TYPE data.
 
     ASSIGN o->(n) TO <field>.
-    DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
-
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
     GET REFERENCE OF <field> INTO result.
 
   ENDMETHOD.
@@ -385,7 +387,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     FIELD-SYMBOLS <object> TYPE any.
     ASSIGN object->* TO <object>.
- DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
 
     CALL TRANSFORMATION id
        SOURCE data = <object>
@@ -403,7 +409,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <comp_ui5> TYPE REF TO data.
 
     ASSIGN ir_tab_from->* TO <tab_ui5>.
- DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
 
     READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
     IF sy-subrc = 0.
@@ -416,7 +426,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       DATA lr_row_ui5 TYPE LINE OF ty_t_ref.
       lr_row_ui5 = <tab_ui5>[ sy-tabix ].
       ASSIGN lr_row_ui5->* TO FIELD-SYMBOL(<ui5_row>).
-      x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_lcl_utility
+          EXPORTING
+            val = 'CX_SY_SUBRC'.
+      ENDIF.
 
       LOOP AT lt_components REFERENCE INTO DATA(ls_comp).
 
@@ -454,7 +468,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     DATA(lv_name) = |IO_APP->{ to_upper( ir_attri ) }|.
     ASSIGN (lv_name) TO <attribute>.
-   DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
 
     DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
     DATA(lt_comp2) = lo_struct->get_components( ).
@@ -467,8 +485,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       TRY.
           lv_name = |IO_APP->{ to_upper( lv_element ) }|.
           ASSIGN (lv_name) TO <attribute>.
-        x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
-
+          IF sy-subrc <> 0.
+            RAISE EXCEPTION TYPE z2ui5_lcl_utility
+              EXPORTING
+                val = 'CX_SY_SUBRC'.
+          ENDIF.
           lo_struct ?= cl_abap_structdescr=>describe_by_data( <attribute> ).
 
           DATA(lt_comp3) = lo_struct->get_components( ).
@@ -782,7 +803,10 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD get_attribute.
 
-     DATA(x) = COND i( WHEN mr_actual IS INITIAL THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
+    IF mr_actual IS INITIAL.
+      RAISE EXCEPTION TYPE _.
+    ENDIF.
+
 
     DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json( ).
     lo_attri->mo_root = mo_root.
@@ -818,14 +842,14 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD get_data.
 
-*    FIELD-SYMBOLS <attribute> TYPE any.
-*    IF sy-subrc <> 0.
-*      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-*        EXPORTING
-*          val = 'CX_SY_SUBRC'.
-*    ENDIF.
-*
-*    r_result = <attribute>.
+    FIELD-SYMBOLS <attribute> TYPE any.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
+
+    r_result = <attribute>.
 
   ENDMETHOD.
 
@@ -1008,6 +1032,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    "DATA lr_in TYPE REF TO data.
     DATA lr_in TYPE REF TO data.
     GET REFERENCE OF value INTO lr_in.
 
@@ -1028,6 +1053,13 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
         r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+
+        "  DATA temp25 TYPE string.
+        "  IF type = cs-bind_type-two_way.
+        "   r_result = '/oUpdate/' && lr_attri->name.
+        "  ELSE.
+        "    r_result = '/' && lr_attri->name.
+        "  ENDIF.
         RETURN.
       ENDIF.
 
@@ -1145,7 +1177,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
           ( n = 'text'    v = text )
           ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
           ( n = 'icon'    v = icon )
-          ( n = 'type'    v = type )
+          ( n = 'type'    v = type  )
        ) ).
 
   ENDMETHOD.
@@ -1209,8 +1241,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
         WHEN 'g' OR 'D' OR 'P' OR 'T' OR 'C'.
 
           lo_actual->add_attribute( n = lr_attri->name
-                                   v = _=>get_abap_2_json( <attribute> )
-                                   " v =  escape( val = _=>get_abap_2_json( <attribute> ) format = cl_abap_format=>e_json_string )
+                                    v = _=>get_abap_2_json( <attribute> )
                                     apos_active = abap_false ).
 
         WHEN 'I'.
@@ -2143,7 +2174,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
       view->message_page(
-          text = 'Error Page - 500'
+          text = 'Error Page - Code 500'
           description = ms_error-x_error->get_text( )
         )->buttons(
         )->button( text = 'HOME' press = view->_event( 'BUTTON_HOME' )
@@ -2252,8 +2283,8 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
   METHOD cleanup.
 
     DATA(lv_date) = sy-datum - 2.
-
-    DATA(lv_timestampl) = lv_date.
+    DATA lv_timestampl TYPE timestampl.
+    lv_timestampl = lv_date.
 
     CONVERT DATE lv_date
          INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
@@ -2418,9 +2449,12 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
 
   METHOD execute_finish.
-
-    DATA(x) = COND i( WHEN lines( mt_screen ) = 0 THEN THROW z2ui5_lcl_utility( 'no view defined in method set_view' ) ).
-
+    " DATA(x) = COND i( WHEN lines( mt_screen ) = 0 THEN THROW _( 'no view defined in method set_view' ) ).
+    IF lines( mt_screen ) = 0.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_SY_SUBRC'.
+    ENDIF.
     IF ms_db-screen IS INITIAL.
       DATA lr_screen TYPE REF TO s_screen.
       lr_screen = REF #( mt_screen[ 1 ] ).
@@ -2429,7 +2463,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       TRY.
           lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
         CATCH cx_root.
-          RAISE EXCEPTION NEW z2ui5_lcl_utility( `View with the name ` && ms_db-screen && ` not found - check name in rendering` ).
+          RAISE EXCEPTION TYPE _
+            exporting
+                val = `View with the name ` && ms_db-screen && ` not found - check the rendering`.
       ENDTRY.
     ENDIF.
 
@@ -2480,7 +2516,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
       ASSIGN (lv_name) TO <attribute>.
 
-      DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_lcl_utility
+          EXPORTING
+            val = 'CX_SY_SUBRC'.
+      ENDIF.
 
       CASE lr_attri->kind.
 
@@ -2640,8 +2680,13 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     " DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _('CX_STACK_EMPTY - NO CALLING APP FOUND') ).
 
-    DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL
-       THEN THROW z2ui5_lcl_utility( 'CX_STACK_EMPTY - NO CALLING APP FOUND' ) ).
+    IF mo_server->ms_db-id_prev_app IS INITIAL.
+
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = 'CX_STACK_EMPTY - NO CALLING APP FOUND'.
+
+    ENDIF.
 
     result ?= z2ui5_lcl_db=>load_app( mo_server->ms_db-id_prev_app )-o_app.
 
