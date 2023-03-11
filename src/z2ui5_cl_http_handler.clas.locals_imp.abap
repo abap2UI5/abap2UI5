@@ -210,7 +210,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
     ELSE.
       r_result = |"{ CONV string( val ) }"|.
-      r_result = |"{  escape( val = CONV string( val ) format = cl_abap_format=>e_json_string ) }"|.
+      r_result = |"{ escape( val = CONV string( val ) format = cl_abap_format=>e_json_string ) }"|.
     ENDIF.
 
   ENDMETHOD.
@@ -268,7 +268,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <field> TYPE data.
 
     ASSIGN o->(n) TO <field>.
-    DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+    DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
     GET REFERENCE OF <field> INTO result.
 
@@ -385,7 +385,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     FIELD-SYMBOLS <object> TYPE any.
     ASSIGN object->* TO <object>.
- DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+ DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
     CALL TRANSFORMATION id
        SOURCE data = <object>
@@ -403,7 +403,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <comp_ui5> TYPE REF TO data.
 
     ASSIGN ir_tab_from->* TO <tab_ui5>.
- DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+ DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
     READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
     IF sy-subrc = 0.
@@ -416,7 +416,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       DATA lr_row_ui5 TYPE LINE OF ty_t_ref.
       lr_row_ui5 = <tab_ui5>[ sy-tabix ].
       ASSIGN lr_row_ui5->* TO FIELD-SYMBOL(<ui5_row>).
-      x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+      x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
       LOOP AT lt_components REFERENCE INTO DATA(ls_comp).
 
@@ -454,7 +454,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     DATA(lv_name) = |IO_APP->{ to_upper( ir_attri ) }|.
     ASSIGN (lv_name) TO <attribute>.
-   DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+   DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
     DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
     DATA(lt_comp2) = lo_struct->get_components( ).
@@ -467,7 +467,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       TRY.
           lv_name = |IO_APP->{ to_upper( lv_element ) }|.
           ASSIGN (lv_name) TO <attribute>.
-        x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+        x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
           lo_struct ?= cl_abap_structdescr=>describe_by_data( <attribute> ).
 
@@ -782,7 +782,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD get_attribute.
 
-     DATA(x) = COND i( WHEN mr_actual IS INITIAL THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC' ) ).
+     DATA(x) = COND i( WHEN mr_actual IS INITIAL THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC' ) ).
 
     DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json( ).
     lo_attri->mo_root = mo_root.
@@ -1145,7 +1145,7 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
           ( n = 'text'    v = text )
           ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
           ( n = 'icon'    v = icon )
-          ( n = 'type'    v = type  )
+          ( n = 'type'    v = type )
        ) ).
 
   ENDMETHOD.
@@ -2252,8 +2252,8 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
   METHOD cleanup.
 
     DATA(lv_date) = sy-datum - 2.
-    DATA lv_timestampl TYPE timestampl.
-    lv_timestampl = lv_date.
+
+    DATA(lv_timestampl) = lv_date.
 
     CONVERT DATE lv_date
          INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
@@ -2480,7 +2480,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
       ASSIGN (lv_name) TO <attribute>.
 
-      DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+      DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility( 'CX_SY_SUBRC_NOT_NULL' ) ).
 
       CASE lr_attri->kind.
 

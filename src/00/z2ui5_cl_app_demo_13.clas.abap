@@ -156,7 +156,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
     page->sub_header( )->overflow_toolbar(
     )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' ) enabled = abap_false
     )->button( text = '(2) Edit Data'   press = view->_event( 'BTN_EDIT' )
-    )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' )  ).
+    )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' ) ).
 
     DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
 
