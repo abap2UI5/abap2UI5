@@ -268,11 +268,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <field> TYPE data.
 
     ASSIGN o->(n) TO <field>.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
+    DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+
     GET REFERENCE OF <field> INTO result.
 
   ENDMETHOD.
@@ -388,11 +385,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     FIELD-SYMBOLS <object> TYPE any.
     ASSIGN object->* TO <object>.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
+ DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
 
     CALL TRANSFORMATION id
        SOURCE data = <object>
@@ -410,11 +403,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <comp_ui5> TYPE REF TO data.
 
     ASSIGN ir_tab_from->* TO <tab_ui5>.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
+ DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
 
     READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
     IF sy-subrc = 0.
@@ -427,11 +416,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       DATA lr_row_ui5 TYPE LINE OF ty_t_ref.
       lr_row_ui5 = <tab_ui5>[ sy-tabix ].
       ASSIGN lr_row_ui5->* TO FIELD-SYMBOL(<ui5_row>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_lcl_utility
-          EXPORTING
-            val = 'CX_SY_SUBRC'.
-      ENDIF.
+      x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
 
       LOOP AT lt_components REFERENCE INTO DATA(ls_comp).
 
@@ -469,11 +454,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     DATA(lv_name) = |IO_APP->{ to_upper( ir_attri ) }|.
     ASSIGN (lv_name) TO <attribute>.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
+   DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
 
     DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <attribute> ) ).
     DATA(lt_comp2) = lo_struct->get_components( ).
@@ -486,11 +467,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       TRY.
           lv_name = |IO_APP->{ to_upper( lv_element ) }|.
           ASSIGN (lv_name) TO <attribute>.
-          IF sy-subrc <> 0.
-            RAISE EXCEPTION TYPE z2ui5_lcl_utility
-              EXPORTING
-                val = 'CX_SY_SUBRC'.
-          ENDIF.
+        x = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
+
           lo_struct ?= cl_abap_structdescr=>describe_by_data( <attribute> ).
 
           DATA(lt_comp3) = lo_struct->get_components( ).
@@ -804,10 +782,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD get_attribute.
 
-    IF mr_actual IS INITIAL.
-      RAISE EXCEPTION TYPE _.
-    ENDIF.
-
+     DATA(x) = COND i( WHEN mr_actual IS INITIAL THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC' ) ).
 
     DATA(lo_attri) = NEW z2ui5_lcl_utility_tree_json( ).
     lo_attri->mo_root = mo_root.
@@ -843,14 +818,14 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD get_data.
 
-    FIELD-SYMBOLS <attribute> TYPE any.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
-
-    r_result = <attribute>.
+*    FIELD-SYMBOLS <attribute> TYPE any.
+*    IF sy-subrc <> 0.
+*      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+*        EXPORTING
+*          val = 'CX_SY_SUBRC'.
+*    ENDIF.
+*
+*    r_result = <attribute>.
 
   ENDMETHOD.
 
@@ -2444,12 +2419,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD execute_finish.
 
-    DATA(x) = COND i( WHEN lines( mt_screen ) = 0 THEN THROW _( 'no view defined in method set_view' ) ).
-    "  IF lines( mt_screen ) = 0.
-    "    RAISE EXCEPTION TYPE z2ui5_lcl_utility
-    "      EXPORTING
-    "       val = 'CX_SY_SUBRC'.
-    "  ENDIF.
+    DATA(x) = COND i( WHEN lines( mt_screen ) = 0 THEN THROW z2ui5_lcl_utility( 'no view defined in method set_view' ) ).
+
     IF ms_db-screen IS INITIAL.
       DATA lr_screen TYPE REF TO s_screen.
       lr_screen = REF #( mt_screen[ 1 ] ).
@@ -2458,7 +2429,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       TRY.
           lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
         CATCH cx_root.
-          RAISE EXCEPTION NEW _( `View with the name ` && ms_db-screen && ` not found - check name in rendering` ).
+          RAISE EXCEPTION NEW z2ui5_lcl_utility( `View with the name ` && ms_db-screen && ` not found - check name in rendering` ).
       ENDTRY.
     ENDIF.
 
@@ -2509,11 +2480,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       DATA(lv_name) = |MS_DB-O_APP->{ to_upper( lr_attri->name ) }|.
       ASSIGN (lv_name) TO <attribute>.
 
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_lcl_utility
-          EXPORTING
-            val = 'CX_SY_SUBRC'.
-      ENDIF.
+      DATA(x) = COND i( WHEN sy-subrc <> 0 THEN THROW z2ui5_lcl_utility(  'CX_SY_SUBRC_NOT_NULL' ) ).
 
       CASE lr_attri->kind.
 
@@ -2673,13 +2640,8 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     " DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL THEN THROW _('CX_STACK_EMPTY - NO CALLING APP FOUND') ).
 
-    IF mo_server->ms_db-id_prev_app IS INITIAL.
-
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_STACK_EMPTY - NO CALLING APP FOUND'.
-
-    ENDIF.
+    DATA(x) = COND i( WHEN mo_server->ms_db-id_prev_app IS INITIAL
+       THEN THROW z2ui5_lcl_utility( 'CX_STACK_EMPTY - NO CALLING APP FOUND' ) ).
 
     result ?= z2ui5_lcl_db=>load_app( mo_server->ms_db-id_prev_app )-o_app.
 
