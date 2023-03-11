@@ -195,7 +195,7 @@ CLASS lcl_db IMPLEMENTATION.
 *               numc_as_string   =
 *               name_mappings    =
 *               conversion_exits =
-              format_output    = abap_true
+           "   format_output    = abap_true
 *               hex_as_base64    =
              ).
 
