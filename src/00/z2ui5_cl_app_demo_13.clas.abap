@@ -66,7 +66,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -79,7 +79,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         ms_import-segment_key = 'json'.
         ms_import-editor = lcl_db=>get_test_data_json( ).
         ms_export-segment_key = 'json'.
-        client->display_view( 'IMPORT_TABLE' ).
+        client->display_view( 'IMPORT_TABLE2' ).
 
       WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).
@@ -92,6 +92,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_on_event.
 
@@ -156,7 +157,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
     page->sub_header( )->overflow_toolbar(
     )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' ) enabled = abap_false
     )->button( text = '(2) Edit Data'   press = view->_event( 'BTN_EDIT' )
-    )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' )  ).
+    )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' ) ).
 
     DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
 
@@ -179,8 +180,6 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         )->button( text = 'Clear' press = view->_event( 'IMPORT_CLEAR' ) icon  = 'sap-icon://delete'
         )->toolbar_spacer(
         )->button( text  = 'Import' press = view->_event( 'IMPORT_DB' ) type  = 'Emphasized' icon = 'sap-icon://upload-to-cloud' ).
-
-    ms_import-editor = escape( val = ms_import-editor format = cl_abap_format=>e_json_string ).
 
   ENDMETHOD.
 
@@ -230,6 +229,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_render_view_export.
 
     DATA(view) = client->factory_view( 'EXPORT_TABLE' ).
@@ -261,8 +261,5 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         )->toolbar_spacer(
         )->button( text  = 'Export' press = view->_event( 'EXPORT_DB' ) type  = 'Emphasized' icon = 'sap-icon://download-from-cloud' ).
 
-    ms_export-editor = escape( val = ms_export-editor format = cl_abap_format=>e_json_string ).
-
   ENDMETHOD.
-
 ENDCLASS.

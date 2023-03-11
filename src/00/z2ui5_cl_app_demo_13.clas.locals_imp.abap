@@ -6,7 +6,7 @@ CLASS lcl_db DEFINITION.
 
     TYPES ty_t_table TYPE z2ui5_cl_app_demo_13=>ty_T_table.
 
-    CLASS-DATA app TYPE REF TO  z2ui5_cl_app_demo_13.
+    CLASS-DATA app TYPE REF TO z2ui5_cl_app_demo_13.
     "CLASS-DATA st_table TYPE ty_t_table.
 
     CLASS-METHODS generate_test_data.
@@ -210,7 +210,7 @@ CLASS lcl_db IMPLEMENTATION.
 
   METHOD get_fieldlist_by_table.
 
-    DATA(lo_tab) = CAST cl_abap_tabledescr(  cl_abap_datadescr=>describe_by_data( it_table ) ).
+    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( it_table ) ).
     DATA(lo_struc) = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
 
     DATA(lt_comp) = lo_struc->get_components( ).
@@ -224,87 +224,87 @@ CLASS lcl_db IMPLEMENTATION.
 
   METHOD get_test_data_json.
 
-    result = `[` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  },` && |\n|  &&
-             `  {` && |\n|  &&
-             `    "CARRID": "DL",` && |\n|  &&
-             `    "CONNID": 106,` && |\n|  &&
-             `    "COUNTRYFR": "US",` && |\n|  &&
-             `    "CITYFROM": "NEW YORK",` && |\n|  &&
-             `    "AIRPFROM": "JFK",` && |\n|  &&
-             `    "COUNTRYTO": "DE",` && |\n|  &&
-             `    "CITYTO": "FRANKFURT",` && |\n|  &&
-             `    "AIRPTO": "FR"` && |\n|  &&
-             `  }` && |\n|  &&
+    result = `[` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  },` && |\n| &&
+             `  {` && |\n| &&
+             `    "CARRID": "DL",` && |\n| &&
+             `    "CONNID": 106,` && |\n| &&
+             `    "COUNTRYFR": "US",` && |\n| &&
+             `    "CITYFROM": "NEW YORK",` && |\n| &&
+             `    "AIRPFROM": "JFK",` && |\n| &&
+             `    "COUNTRYTO": "DE",` && |\n| &&
+             `    "CITYTO": "FRANKFURT",` && |\n| &&
+             `    "AIRPTO": "FR"` && |\n| &&
+             `  }` && |\n| &&
              `]`.
 
   ENDMETHOD.

@@ -2174,7 +2174,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
       view->message_page(
-          text = ms_error-classname
+          text = 'Error Page - Code 500'
           description = ms_error-x_error->get_text( )
         )->buttons(
         )->button( text = 'HOME' press = view->_event( 'BUTTON_HOME' )
@@ -2465,7 +2465,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CATCH cx_root.
           RAISE EXCEPTION TYPE _
             exporting
-                val = `View not found - Check name ` && ms_db-screen.
+                val = `View with the name ` && ms_db-screen && ` not found - check the rendering`.
       ENDTRY.
     ENDIF.
 
