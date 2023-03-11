@@ -180,8 +180,6 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         )->toolbar_spacer(
         )->button( text  = 'Import' press = view->_event( 'IMPORT_DB' ) type  = 'Emphasized' icon = 'sap-icon://upload-to-cloud' ).
 
-    ms_import-editor = escape( val = ms_import-editor format = cl_abap_format=>e_json_string ).
-
   ENDMETHOD.
 
 
@@ -260,8 +258,6 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
     page->footer( )->overflow_toolbar(
         )->toolbar_spacer(
         )->button( text  = 'Export' press = view->_event( 'EXPORT_DB' ) type  = 'Emphasized' icon = 'sap-icon://download-from-cloud' ).
-
-    ms_export-editor = escape( val = ms_export-editor format = cl_abap_format=>e_json_string ).
 
   ENDMETHOD.
 

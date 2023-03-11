@@ -43,7 +43,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD main_index_html.
@@ -343,22 +343,24 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
+
+          result = lo_runtime->execute_finish( ).
+          z2ui5_lcl_db=>create(
+            id       = lo_runtime->ms_db-id
+            response = result
+            db       = lo_runtime->ms_db
+          ).
+
+          exit.
+
         CATCH cx_root INTO cx.
-          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_SCREEN' ix = cx ).
+          lo_runtime_error = lo_runtime->factory_new_error( kind = 'ON_RENDERING' ix = cx ).
+          lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id_prev_app.
+          lo_runtime = lo_runtime_error.
           CONTINUE.
       ENDTRY.
 
-      EXIT.
     ENDDO.
-
-  "  raise EXCEPTION new _( 'Error happend' ).
-
-    result = lo_runtime->execute_finish( ).
-    z2ui5_lcl_db=>create(
-      id       = lo_runtime->ms_db-id
-      response = result
-      db       = lo_runtime->ms_db
-    ).
     " lo_runtime->db_save( result ).
 
   ENDMETHOD.

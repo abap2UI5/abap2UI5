@@ -210,6 +210,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
     ELSE.
       r_result = |"{ CONV string( val ) }"|.
+      r_result = |"{  escape( val = CONV string( val ) format = cl_abap_format=>e_json_string ) }"|.
     ENDIF.
 
   ENDMETHOD.
@@ -1032,7 +1033,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    "DATA lr_in TYPE REF TO data.
     DATA lr_in TYPE REF TO data.
     GET REFERENCE OF value INTO lr_in.
 
@@ -1053,13 +1053,6 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
         r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
-
-        "  DATA temp25 TYPE string.
-        "  IF type = cs-bind_type-two_way.
-        "   r_result = '/oUpdate/' && lr_attri->name.
-        "  ELSE.
-        "    r_result = '/' && lr_attri->name.
-        "  ENDIF.
         RETURN.
       ENDIF.
 
@@ -1241,7 +1234,8 @@ CLASS z2ui5_lcl_if_ui5_library IMPLEMENTATION.
         WHEN 'g' OR 'D' OR 'P' OR 'T' OR 'C'.
 
           lo_actual->add_attribute( n = lr_attri->name
-                                    v = _=>get_abap_2_json( <attribute> )
+                                   v = _=>get_abap_2_json( <attribute> )
+                                   " v =  escape( val = _=>get_abap_2_json( <attribute> ) format = cl_abap_format=>e_json_string )
                                     apos_active = abap_false ).
 
         WHEN 'I'.
@@ -2174,7 +2168,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
       view->message_page(
-          text = ms_error-classname
+          text = 'Error Page - 500'
           description = ms_error-x_error->get_text( )
         )->buttons(
         )->button( text = 'HOME' press = view->_event( 'BUTTON_HOME' )
@@ -2449,12 +2443,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
 
   METHOD execute_finish.
-    " DATA(x) = COND i( WHEN lines( mt_screen ) = 0 THEN THROW _( 'no view defined in method set_view' ) ).
-    IF lines( mt_screen ) = 0.
-      RAISE EXCEPTION TYPE z2ui5_lcl_utility
-        EXPORTING
-          val = 'CX_SY_SUBRC'.
-    ENDIF.
+
+    DATA(x) = COND i( WHEN lines( mt_screen ) = 0 THEN THROW _( 'no view defined in method set_view' ) ).
+    "  IF lines( mt_screen ) = 0.
+    "    RAISE EXCEPTION TYPE z2ui5_lcl_utility
+    "      EXPORTING
+    "       val = 'CX_SY_SUBRC'.
+    "  ENDIF.
     IF ms_db-screen IS INITIAL.
       DATA lr_screen TYPE REF TO s_screen.
       lr_screen = REF #( mt_screen[ 1 ] ).
@@ -2463,9 +2458,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       TRY.
           lr_screen = REF #( mt_screen[ name = ms_db-screen ] ).
         CATCH cx_root.
-          RAISE EXCEPTION TYPE _
-            exporting
-                val = `View not found - Check name ` && ms_db-screen.
+          RAISE EXCEPTION NEW _( `View with the name ` && ms_db-screen && ` not found - check name in rendering` ).
       ENDTRY.
     ENDIF.
 

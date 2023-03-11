@@ -90,7 +90,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                 enabled = xsdbool( mv_editor IS NOT INITIAL ) ).
 
 
-        mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
+    "    mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
 
     ENDCASE.
 
