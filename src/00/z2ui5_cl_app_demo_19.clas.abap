@@ -14,7 +14,6 @@ CLASS z2ui5_cl_app_demo_19 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     DATA t_tab_sel TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
     DATA mv_sel_mode TYPE string.
 
   PROTECTED SECTION.
@@ -31,16 +30,13 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
-
         mv_sel_mode = 'None'.
-
         t_tab = VALUE #( descr = 'this is a description'
             (  title = 'title_01'  value = 'value_01'  )
             (  title = 'title_02'  value = 'value_02'  )
             (  title = 'title_03'  value = 'value_03'  )
             (  title = 'title_04'  value = 'value_04'  )
-            (  title = 'title_05'  value = 'value_05'  )
-          ).
+            (  title = 'title_05'  value = 'value_05'  )  ).
 
       WHEN client->cs-lifecycle_method-on_event.
 
@@ -50,7 +46,7 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
 
           WHEN 'BUTTON_READ_SEL'.
             t_tab_sel = t_tab.
-            delete t_tab_sel where selkz <> abap_true.
+            DELETE t_tab_sel WHERE selkz <> abap_true.
 
         ENDCASE.
 
@@ -86,13 +82,11 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
            )->text( '{VALUE}'
            )->text( '{DESCR}' ).
 
-        DATA(tab2) = page->table(
-            items = view->_bind_one_way( t_tab_sel ) ).
+        DATA(tab2) = page->table( view->_bind_one_way( t_tab_sel ) ).
 
         tab2->header_toolbar( )->overflow_toolbar(
             )->title( 'Selected Entries'
-         "    )->toolbar_spacer(
-             )->button( icon = 'sap-icon://pull-down' text = 'copy selected entries' press = view->_event( 'BUTTON_READ_SEL' )
+            )->button( icon = 'sap-icon://pull-down' text = 'copy selected entries' press = view->_event( 'BUTTON_READ_SEL' )
           ).
 
         tab2->columns(

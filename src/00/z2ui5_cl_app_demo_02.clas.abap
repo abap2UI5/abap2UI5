@@ -44,12 +44,12 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         client TYPE REF TO z2ui5_if_client.
     METHODS z2ui5_on_init.
 
-PRIVATE SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -73,7 +73,8 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_02' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+    DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen Example' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+    page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
     DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
 
@@ -136,9 +137,6 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
 
     page->footer( )->overflow_toolbar(
-         )->link(
-             text = 'Go to Source Code'
-             href = client->get( )-s_request-url_source_code
          )->toolbar_spacer(
          )->button(
              text  = 'Clear'

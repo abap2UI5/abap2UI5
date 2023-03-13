@@ -79,7 +79,8 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
         "Definition of View Main
         DATA(view) = client->factory_view( 'MAIN' ).
 
-        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        view->page( title = 'abap2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+           )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
            )->simple_form( 'Controller' )->content( 'f'
