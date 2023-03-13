@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
         ms_import-segment_key = 'json'.
         ms_import-editor = lcl_db=>get_test_data_json( ).
         ms_export-segment_key = 'json'.
-        client->display_view( 'IMPORT_TABLE2' ).
+        client->display_view( 'IMPORT_TABLE' ).
 
       WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).

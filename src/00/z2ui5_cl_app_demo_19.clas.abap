@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_19 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -16,15 +16,13 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    data mv_value type string value 'button'.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -33,25 +31,25 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10000 NEXT
+        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10 NEXT
              ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
+
+        case client->get( )-event.
+
+        when 'BUTTON_TAB'.
+
+        data(lv_test) = `test`.
         "implement event handling here
 
-       client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
-
+        endcase.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
-
-
-        page->input( value = view->_bind( mv_value ) ).
-
-        client->set( focus = mv_value ).
 
         DATA(tab) = page->table(
             header_text = 'Table with 100 entries'
@@ -70,7 +68,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
         tab->items( )->column_list_item(
             selected = '{SELKZ}'
              )->cells(
-           )->text( '{TITLE}'
+           )->button( text = '{TITLE}' press = `onEvent( { 'EVENT' : '` && `BUTTON_TAB` && `', 'METHOD' : 'UPDATE' } )`
            )->text( '{VALUE}'
            )->text( '{INFO}'
            )->text( '{DESCR}'

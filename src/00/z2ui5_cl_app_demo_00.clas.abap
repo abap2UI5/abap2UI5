@@ -22,40 +22,40 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN '0101'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_01( ) ).
 
           WHEN '0102'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_04( ) ).
 
           WHEN '0103'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_08( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_08( ) ).
 
           WHEN '0104'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_10( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_10( ) ).
 
           WHEN '0201'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_02( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_02( ) ).
 
           WHEN '0202'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_05( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_05( ) ).
 
           WHEN '0301'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_03( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_03( ) ).
 
           WHEN '0302'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_07( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_07( ) ).
 
           WHEN '0303'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_06( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_06( ) ).
 
           WHEN '0304'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_11( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_11( ) ).
 
           WHEN 'MIME_EDITOR'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_14( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_14( ) ).
 
           WHEN 'TABLE_MAINTENANCE'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_13( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_13( ) ).
 
         ENDCASE.
 
@@ -72,32 +72,34 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
             )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
-        DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
-        grid = page->grid( default_span  = 'L3 M6 S12' )->content( 'l' ).
+        data(grid) = page->grid( default_span  = 'L3 M6 S12' )->content( 'l' ).
 
         grid->simple_form( 'HowTo - General' )->content( 'f'
             )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )
             )->button( text = 'Events & Navigation' press = view->_event( '0102' )
             )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
-            )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' ) ).
 
-*        grid->simple_form( 'HowTo - General II' )->content( 'f'
-*            )->button( text = 'Popups I' press = view->_event( '0101' )
-*            )->button( text = 'Popups II (F4 Help)' press = view->_event( '0101' )
-*            )->button( text = 'Side Effects, Expression Binding' press = view->_event( '0102' )
-*            )->button( text = 'Preprocessor' press = view->_event( '0103' )
-*          ).
+             ).
+
+        grid->simple_form( 'HowTo - General II' )->content( 'f'
+            )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' )
+            )->button( text = 'List' press = view->_event( '0301' )
+         "   )->button( text = 'Popups I' press = view->_event( '0101' )
+          "  )->button( text = 'Popups II (F4 Help)' press = view->_event( '0101' )
+           " )->button( text = 'Side Effects, Expression Binding' press = view->_event( '0102' )
+          "  )->button( text = 'Preprocessor' press = view->_event( '0103' )
+          ).
 
         grid->simple_form( 'HowTo - Selection-Screen' )->content( 'f'
             )->button( text = 'Basic' press = view->_event( '0201' )
             )->button( text = 'More Controls' press = view->_event( '0202' ) ).
 
-
-        grid->simple_form( 'HowTo - List and Tables' )->content( 'f'
-            )->button( text = 'List' press = view->_event( '0301' )
-            )->button( text = 'Table' press = view->_event( '0302' )
-            )->button( text = 'Table with Toolbar and Container' press = view->_event( '0303' )
-            )->button( text = 'Table Editable' press = view->_event( '0304' ) ).
+        grid->simple_form( 'HowTo - Tables' )->content( 'f'
+            )->button( text = 'Toolbar, Scroll Container' press = view->_event( '0303' )
+            )->button( text = 'Selection Mode' press = view->_event( '0302' )
+            )->button( text = 'Editable' press = view->_event( '0304' )
+        "    )->button( text = 'Cell changes' press = view->_event( '0304' )
+             ).
 
         grid = page->grid( default_span  = 'L12 M12 S12' ).
 

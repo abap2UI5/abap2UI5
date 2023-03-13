@@ -55,10 +55,10 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
             client->display_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
 
           WHEN 'BUTTON_RESTART'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_04( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_04( ) ).
 
           WHEN 'BUTTON_CHANGE_APP'.
-            client->nav_to_app( NEW z2ui5_cl_app_demo_01( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_01( ) ).
 
           WHEN 'BUTTON_CHANGE_VIEW'.
 

@@ -1,13 +1,14 @@
 INTERFACE z2ui5_if_client
   PUBLIC .
 
-  CONSTANTS cs LIKE z2ui5_if_ui5_library=>cs VALUE z2ui5_if_ui5_library=>cs.
+  CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
 
   TYPES:
     BEGIN OF ty_S_get,
       view_active        TYPE string,
       check_previous_app TYPE abap_bool,
       event              TYPE string,
+      page_scroll_pos    TYPE string,
       lifecycle_method   TYPE string,
       id                 TYPE string,
       id_prev            TYPE string,
@@ -15,7 +16,7 @@ INTERFACE z2ui5_if_client
       BEGIN OF s_request,
         tenant          TYPE string,
         url_app         TYPE string,
-        url_app_gen     type string,
+        url_app_gen     TYPE string,
         origin          TYPE string,
         url_source_code TYPE string,
       END OF s_request,
@@ -25,15 +26,22 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE ty_S_get.
 
-  METHODS nav_to_app
+  METHODS set
+    IMPORTING
+      event           TYPE clike OPTIONAL
+      focus           TYPE clike OPTIONAL
+      focus_pos       TYPE clike OPTIONAL
+      page_scroll_pos TYPE clike OPTIONAL.
+
+  METHODS nav_to_id
+    IMPORTING
+      id TYPE clike.
+
+  METHODS nav_to_app_new
     IMPORTING
       app TYPE REF TO z2ui5_if_app.
 
   METHODS nav_to_home.
-
-  METHODS get_app_previous
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_app.
 
   METHODS display_message_box
     IMPORTING
@@ -54,7 +62,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       name          TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_ui5_library.
+      VALUE(result) TYPE REF TO z2ui5_if_view.
 
   METHODS display_popup
     IMPORTING
