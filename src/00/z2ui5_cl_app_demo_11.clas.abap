@@ -22,6 +22,7 @@ CLASS z2ui5_cl_app_demo_11 DEFINITION PUBLIC.
 ENDCLASS.
 
 
+
 CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
 
 
@@ -50,7 +51,11 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_11' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Tables and editable' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+
+   page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+
+
 
         DATA(tab) = page->table( view->_bind( t_tab ) ).
 
@@ -59,6 +64,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
             )->title( 'title of the table'
              )->toolbar_spacer(
              )->button(
+                    icon = 'sap-icon://edit'
                     text = SWITCH #( check_editable_active WHEN abap_true THEN 'display' ELSE 'edit' )
                     press = view->_event( 'BUTTON_EDIT' ) ).
 
