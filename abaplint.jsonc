@@ -34,7 +34,10 @@
       "skipNames": []
     },
     "check_abstract": true,
-    "check_comments": true,
+    "check_comments": {
+         "exclude": [],
+         "severity": "Warning"
+     },
     "check_ddic": true,
     "check_include": true,
     "check_subrc": true,
@@ -218,7 +221,10 @@
     "prefer_returning_to_exporting": false,
     "prefer_xsdbool": true,
     "preferred_compare_operator": true,
-    "prefix_is_current_class": true,
+    "prefix_is_current_class": {
+         "exclude": [],
+         "severity": "Warning"
+     },
     "reduce_string_templates": true,
     "release_idoc": true,
     "remove_descriptions": {
@@ -231,7 +237,10 @@
     "select_add_order_by": true,
     "select_performance": true,
     "selection_screen_naming": true,
-    "sequential_blank": true,
+    "sequential_blank": {
+         "exclude": [],
+         "severity": "Warning"
+     },
     "short_case": false,
     "sicf_consistency": true,
     "slow_parameter_passing": true,
@@ -267,7 +276,7 @@
     },
     "unused_variables": {
       "exclude": [ ],
-      "severity": "Error",
+      "severity": "Warning",
       "skipNames": [ "lv_dummy" ]
     },
     "use_bool_expression": true,
