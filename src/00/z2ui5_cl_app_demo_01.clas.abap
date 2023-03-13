@@ -7,11 +7,14 @@ CLASS z2ui5_cl_app_demo_01 DEFINITION PUBLIC.
     DATA product TYPE string.
     DATA quantity TYPE string.
 
-PROTECTED SECTION.
-PRIVATE SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
-CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
+
+
+CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
+
 
   METHOD z2ui5_if_app~controller.
 
@@ -36,8 +39,11 @@ CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        view->page( title = 'Page title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
-           )->simple_form( 'Form Title'
+        DATA(page) = view->page( title = 'abap2UI5 - First Example' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+
+        page->simple_form( 'Form Title'
              )->content( 'f'
                 )->title( 'Input'
                 )->label( 'quantity'

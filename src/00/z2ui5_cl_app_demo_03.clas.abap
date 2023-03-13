@@ -16,13 +16,13 @@ CLASS z2ui5_cl_app_demo_03 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-PROTECTED SECTION.
-PRIVATE SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -49,7 +49,9 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_03' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - List' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         page->list(
            header_text = 'List Ouput'

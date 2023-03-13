@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -16,15 +16,15 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    data mv_value type string value 'button'.
-
+    DATA mv_value TYPE string VALUE 'button'.
+    DATA  mv_scroll_pos TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -40,7 +40,33 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_event.
         "implement event handling here
 
-       client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
+        CASE client->get( )-event.
+
+          WHEN 'BUTTON_SEND'.
+            mv_scroll_pos = client->get( )-page_scroll_pos.
+
+            client->nav_to_app_new( z2ui5_cl_app_demo_20=>factory(
+                   i_text          = 'Do really want to continue?'
+                   i_cancel_text   =  'No'
+                   i_cancel_event  = 'POPUP_CONFIRM_NO'
+                   i_confirm_text  =  'Yes'
+                   i_confirm_event =  'POPUP_CONFIRM_YES'   )
+               ).
+
+          WHEN 'POPUP_CONFIRM_YES'.
+            client->display_message_box( 'confirm yes' ).
+            client->set( page_scroll_pos = mv_scroll_pos ).
+            mv_Scroll_pos = ''.
+
+          WHEN 'POPUP_CONFIRM_NO'.
+            client->display_message_box( 'confirm no' ).
+            client->set( page_scroll_pos = mv_scroll_pos ).
+            mv_Scroll_pos = ''.
+
+          WHEN OTHERS.
+            client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
+        ENDCASE.
+
 
 
       WHEN client->cs-lifecycle_method-on_rendering.

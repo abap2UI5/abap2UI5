@@ -34,12 +34,15 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'header title' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Demo Layout' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
         page->header_content(
           )->button( text = 'button'
           )->text( 'text'
-          )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+          )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
+          )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code
+          ).
+
 
         page->sub_header( )->overflow_toolbar(
             )->button( text = 'button'

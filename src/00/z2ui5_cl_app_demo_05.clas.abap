@@ -55,9 +55,6 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
         "user event handling
         CASE client->get( )-event.
 
-          WHEN 'BUTTON_BACK'.
-            client->nav_to_app( client->get_app_previous( ) ).
-
           WHEN 'BUTTON_ROUNDTRIP'.
             DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
 
@@ -72,7 +69,8 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'App Title - Header' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen more Controls' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         page->message_strip( text = 'this is a success message strip' type = 'Success' ).
 
