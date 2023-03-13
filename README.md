@@ -5,7 +5,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 ### Project Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development in 100% ABAP source code (no JavaScript, EML, DDL or Customizing)
-* low system footprint - based on a plain http handler (no BSP, OData, SEGW, BOPF, CDS, FE or RAP)
+* low system footprint - based on a plain http handler (no BSP, OData, BOPF, CDS, FE or RAP)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
 * high system compatibility – runs on all available ABAP stacks (NW 7.02 to ABAP 2302)
 * easy installation – abapGit project, no additional app deployment needed
@@ -18,7 +18,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 
 ##### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Static Analysis & Continuous Integration of abap2UI5 with abaplint [(abaplint.app)](https://abaplint.app/stats/oblomov-dev/abap2UI5)
+* Static Analysis & Continuous Integration with abaplint [(abaplint.app/abap2UI5)](https://abaplint.app/stats/oblomov-dev/abap2UI5)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave) 
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Development of UI5 Selection-Screens in pure ABAP (former version) [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
