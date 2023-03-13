@@ -68,6 +68,7 @@
 
     METHOD display.
       "out->write( ).
+      RETURN.
     ENDMETHOD.
 
   ENDCLASS.
@@ -413,8 +414,8 @@
 
       CLASS-DATA chunksize TYPE tv_int VALUE 16.
       CLASS-DATA dchunksize TYPE tv_int VALUE 32.
-      CLASS-DATA chunkmod TYPE tv_chunk VALUE `1e16`.      "#EC NOTEXT.
-      CLASS-DATA dchunkmod TYPE tv_chunk VALUE `1e32`.     "#EC NOTEXT.
+      CLASS-DATA chunkmod TYPE tv_chunk VALUE `1e16`.      "#EC NOTEXT
+      CLASS-DATA dchunkmod TYPE tv_chunk VALUE `1e32`.     "#EC NOTEXT
 
       DATA sign TYPE tv_sign.
       DATA dat TYPE tt_chunk.
@@ -1637,7 +1638,7 @@
 
     METHOD polygon.
       DATA(point_data) = REDUCE string(
-        INIT res = ||
+        INIT res = ``
         FOR point IN params-points
         NEXT res = res && |{ point-x },{ point-y } | ).
 
@@ -1649,7 +1650,7 @@
 
     METHOD polyline.
       DATA(point_data) = REDUCE string(
-        INIT res = ||
+        INIT res = ``
         FOR point IN params-points
         NEXT res = res && |{ point-x },{ point-y } | ).
 
@@ -1832,6 +1833,7 @@
   CLASS lcl_port_dummy IMPLEMENTATION.
 
     METHOD write.
+      RETURN.
     ENDMETHOD.
 
     METHOD read.
@@ -2056,9 +2058,9 @@
       METHODS get IMPORTING list          TYPE REF TO lcl_lisp
                   RETURNING VALUE(result) TYPE REF TO lcl_lisp
                   RAISING   lcx_lisp_exception.
-      METHODS insert IMPORTING list          TYPE REF TO lcl_lisp
-                     RETURNING VALUE(result) TYPE REF TO lcl_lisp
-                     RAISING   lcx_lisp_exception.
+      METHODS put IMPORTING list          TYPE REF TO lcl_lisp
+                  RETURNING VALUE(result) TYPE REF TO lcl_lisp
+                  RAISING   lcx_lisp_exception.
       METHODS delete IMPORTING list          TYPE REF TO lcl_lisp
                      RETURNING VALUE(result) TYPE REF TO lcl_lisp
                      RAISING   lcx_lisp_exception.
@@ -3670,7 +3672,7 @@
           lv_symbol = lo_head->car->value.
 
         WHEN OTHERS.
-          lo_head->raise( | cannot be a variable identifier| ).
+          lo_head->raise( ` cannot be a variable identifier` ).
       ENDCASE.
 
 *     Add function to the environment with symbol
@@ -3765,7 +3767,7 @@
                                                        element = eval( element = element->cdr->car
                                                                        environment = environment ) ).
         WHEN OTHERS.
-          result->raise( | is not a bound symbol| ).
+          result->raise( ` is not a bound symbol` ).
       ENDCASE.
     ENDMETHOD.                    "re_assign_symbol
 
@@ -4117,6 +4119,7 @@
     ENDMETHOD.
 
     METHOD extract_parameter_objects.
+      CONSTANTS c_missing_param_object TYPE string VALUE `missing parameter object in parameterize`.
       DATA lo_val TYPE REF TO lcl_lisp.
       DATA lo_values TYPE REF TO lcl_lisp.
       DATA lv_parameter_object TYPE abap_boolean VALUE abap_false.
@@ -4140,7 +4143,7 @@
         lv_parameter_object = CAST lcl_lisp_lambda( lo_param )->parameter_object.
       ENDIF.
       IF lv_parameter_object EQ abap_false.
-        throw( |missing parameter object in parameterize| ).
+        throw( c_missing_param_object ).
       ENDIF.
 
       DATA(lo_par) = lcl_lisp_new=>cons( io_car = lo_param ).
@@ -4164,7 +4167,7 @@
             lv_parameter_object = CAST lcl_lisp_lambda( lo_param )->parameter_object.
           ENDIF.
           IF lv_parameter_object EQ abap_false.
-            throw( |missing parameter object in parameterize| ).
+            throw( c_missing_param_object ).
           ENDIF.
 
           lo_par = lo_par->cdr = lcl_lisp_new=>cons( io_car = lo_param ).
@@ -4549,13 +4552,13 @@
 
                   WHEN c_eval_quote. " Literal expression: Return the argument to quote unevaluated
                     IF lo_tail->cdr NE nil.
-                      throw( |quote can only take a single argument| ).
+                      throw( `quote can only take a single argument` ).
                     ENDIF.
                     result = lo_tail->car.
 
                   WHEN c_eval_quasiquote.
                     IF lo_tail->cdr NE nil.
-                      throw( |quasiquote can only take a single argument| ).
+                      throw( `quasiquote can only take a single argument` ).
                     ENDIF.
                     lo_elem = quasiquote( exp = lo_tail->car
                                           nesting = 0
@@ -5147,7 +5150,7 @@
 *  first-class, then we would need to revisit evaluating the whole of ELEMENT in one shot
 *                        result = proc_abap_function_call( lcl_lisp_new=>cons( io_car = lo_proc
 *                                                                              io_cdr = lr_tail ) ).
-                        throw( |Function calls not supported in SAP Cloud ABAP environment| ).
+                        throw( `Function calls not supported in SAP Cloud ABAP environment` ).
 *              << TEST
 *                      WHEN lcl_lisp=>type_abap_method.
 *              >> TEST: Support evaluation of ABAP methods directly
@@ -5430,8 +5433,8 @@
         "_validate_tail lo_arg first `append`.
         IF lo_arg NE nil.
 *         if the last element in the list is not a cons cell, we cannot append
-          first->raise( context = |append: |
-                        message = | is not a proper list| ) ##NO_TEXT.
+          first->raise( context = `append: `
+                        message = ` is not a proper list` ) ##NO_TEXT.
         ENDIF.
 
         first = lo_arg = lo_iter->next( ).
@@ -5534,8 +5537,8 @@
         DATA(lo_last) = list->car.
         IF lo_last->type NE pair.
           "_error_no_list list `append!`.
-          list->raise( context = |append: |
-                       message = | is not a proper list| ) ##NO_TEXT.
+          list->raise( context = `append: `
+                       message = ` is not a proper list` ) ##NO_TEXT.
         ENDIF.
 
         WHILE lo_last->cdr IS BOUND AND lo_last->cdr NE nil.
@@ -5545,9 +5548,8 @@
         "TO DO - replace with _validate_tail lo_last (?) list->car.
         IF lo_last->type NE pair.
 *         If the last item is not a cons cell, return an error
-          "_error_no_list list->car  `append!`.
-          list->car->raise( context = |append: |
-                            message = | is not a proper list| ) ##NO_TEXT.
+          list->car->raise( context = `append: `
+                            message = ` is not a proper list` ) ##NO_TEXT.
         ENDIF.
 
 *       Last item is a cons cell; tack on the new value
@@ -5584,7 +5586,7 @@
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
       IF lo_arg->mutable EQ abap_false.
-        throw( |constant list in set-car! cannot be changed| ) ##NO_TEXT.
+        throw( `constant list in set-car! cannot be changed` ) ##NO_TEXT.
       ENDIF.
 
       lo_arg->car = list->cdr->car.
@@ -5606,7 +5608,7 @@
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
       IF lo_arg->mutable EQ abap_false.
-        throw( |constant list in set-cdr! cannot be changed| ) ##NO_TEXT.
+        throw( `constant list in set-cdr! cannot be changed` ) ##NO_TEXT.
       ENDIF.
 
       lo_arg->cdr = list->cdr->car.
@@ -6534,7 +6536,7 @@
       ENDIF.
 
       IF list->cdr NE nil.
-        throw( |length takes only one argument| ).
+        throw( `length takes only one argument` ).
       ENDIF.
 
       result = lcl_lisp_new=>integer( list_length( list->car ) ).
@@ -6550,7 +6552,7 @@
       ENDIF.
 
       IF list->cdr NE nil.
-        throw( |list-copy takes only one argument| ).
+        throw( `list-copy takes only one argument` ).
       ENDIF.
 
       IF list->car IS NOT BOUND.
@@ -6572,7 +6574,7 @@
         lo_new = lo_new->cdr = lcl_lisp_new=>cons( io_car = lo_ptr->car ).
         lo_ptr = lo_ptr->cdr.
         CHECK lo_ptr = lo_slow.
-        throw( |list-copy: circular list| ).
+        throw( `list-copy: circular list` ).
       ENDWHILE.
       lo_new->cdr = lo_ptr.
     ENDMETHOD.                    "proc_length
@@ -7331,7 +7333,7 @@
 *            WHEN bigint.
 
           WHEN OTHERS.
-            cell->raise_nan( |+| ).
+            cell->raise_nan( `+` ).
         ENDCASE.
       ENDWHILE.
 
@@ -7449,7 +7451,7 @@
 
 *          WHEN bigint.
           WHEN OTHERS.
-            cell->raise_nan( |*| ).
+            cell->raise_nan( `*` ).
         ENDCASE.
 
       ENDWHILE.
@@ -7467,7 +7469,7 @@
 
       DATA(iter) = list->new_iterator( ).
       IF iter->has_next( ) EQ abap_false.
-        throw( |no number in [-]| ).
+        throw( `no number in [-]` ).
       ENDIF.
 
       DATA(cell) = iter->next( ).
@@ -7573,7 +7575,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |-| ).
+          cell->raise_nan( `-` ).
       ENDCASE.
 
       IF iter->has_next( ) EQ abap_false.
@@ -7681,7 +7683,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |-| ).
+              cell->raise_nan( `-` ).
           ENDCASE.
 
         ENDWHILE.
@@ -7700,7 +7702,7 @@
 
       DATA(iter) = list->new_iterator( ).
       IF iter->has_next( ) EQ abap_false.
-        throw( |no number in [/]| ).
+        throw( `no number in [/]` ).
       ENDIF.
       DATA(cell) = iter->next( ).
       IF cell->type EQ values.
@@ -7803,7 +7805,7 @@
 *          WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |/| ).
+          cell->raise_nan( `/` ).
       ENDCASE.
 
       TRY.
@@ -7925,7 +7927,7 @@
 *                   WHEN bigint.
 
                 WHEN OTHERS.
-                  cell->raise_nan( |/| ).
+                  cell->raise_nan( `/` ).
               ENDCASE.
 
             ENDWHILE.
@@ -7972,7 +7974,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |>| ).
+          cell->raise_nan( `>` ).
       ENDCASE.
 
       cell = list->cdr.
@@ -8019,7 +8021,7 @@
 *          WHEN bigint.
 
           WHEN OTHERS.
-            cell->car->raise_nan( |>| ).
+            cell->car->raise_nan( `>` ).
         ENDCASE.
         cell = cell->cdr.
       ENDWHILE.
@@ -8059,7 +8061,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |>=| ).
+          cell->raise_nan( `>=` ).
       ENDCASE.
 
       cell = list->cdr.
@@ -8105,7 +8107,7 @@
 *          WHEN bigint.
 
           WHEN OTHERS.
-            cell->car->raise_nan( |>=| ).
+            cell->car->raise_nan( `>=` ).
         ENDCASE.
         cell = cell->cdr.
       ENDWHILE.
@@ -8146,7 +8148,7 @@
 
 
         WHEN OTHERS.
-          cell->raise_nan( |<| ).
+          cell->raise_nan( `<` ).
       ENDCASE.
 
       cell = list->cdr.
@@ -8192,7 +8194,7 @@
 *          WHEN bigint.
 
           WHEN OTHERS.
-            cell->car->raise_nan( |<| ).
+            cell->car->raise_nan( `<` ).
         ENDCASE.
         cell = cell->cdr.
       ENDWHILE.
@@ -8232,7 +8234,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |<=| ).
+          cell->raise_nan( `<=` ).
       ENDCASE.
 
       cell = list->cdr.
@@ -8278,7 +8280,7 @@
 *          WHEN bigint.
 
           WHEN OTHERS.
-            cell->car->raise_nan( |<=| ).
+            cell->car->raise_nan( `<=` ).
         ENDCASE.
         cell = cell->cdr.
       ENDWHILE.
@@ -8326,7 +8328,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |zero?| ).
+          cell->raise_nan( `zero?` ).
       ENDCASE.
 
       IF sign( carry ) NE 0.
@@ -8390,7 +8392,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |positive?| ).
+          cell->raise_nan( `positive?` ).
       ENDCASE.
 
       IF sign( carry ) NE 1.
@@ -8439,7 +8441,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |negative?| ).
+          cell->raise_nan( `negative?` ).
       ENDCASE.
 
       IF sign( carry ) NE -1.
@@ -8507,7 +8509,7 @@
             OR complex
             OR bigint.
           WHEN OTHERS.
-            lo_ptr->car->raise_nan( |=| ) ##NO_TEXT.
+            lo_ptr->car->raise_nan( `=` ) ##NO_TEXT.
         ENDCASE.
         "_validate_number lo_ptr->cdr->car '[=]'.
         IF lo_ptr->cdr->car IS NOT BOUND.
@@ -8519,7 +8521,7 @@
             OR rational
             OR complex.
           WHEN OTHERS.
-            lo_ptr->cdr->car->raise_nan( |=| ) ##NO_TEXT.
+            lo_ptr->cdr->car->raise_nan( `=` ) ##NO_TEXT.
         ENDCASE.
 
         CASE lo_ptr->car->type.
@@ -8804,7 +8806,7 @@
 *   Insert an element into a hash
     METHOD proc_hash_insert.
       result = lcl_lisp_hash=>from_list( list = list
-                                         msg = 'HASH-INSERT' )->insert( list->cdr ).
+                                         msg = 'HASH-INSERT' )->put( list->cdr ).
     ENDMETHOD.                    "proc_hash_insert
 
 *   Remove an element from a hash
@@ -8986,7 +8988,7 @@
       ENDIF.
 
       IF list->cdr NE nil.
-        throw( |list? takes only one argument| ).
+        throw( `list? takes only one argument` ).
       ENDIF.
 
       result = false.
@@ -9095,7 +9097,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              list->car->raise_nan( |abs| ).
+              list->car->raise_nan( `abs` ).
           ENDCASE.
 
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
@@ -9144,7 +9146,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |sin| ).
+              cell->raise_nan( `sin` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9196,7 +9198,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |cos| ).
+              cell->raise_nan( `cos` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9247,7 +9249,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |tan| ).
+              cell->raise_nan( `tan` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9298,7 +9300,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |asin| ).
+              cell->raise_nan( `asin` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9349,7 +9351,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |acos| ).
+              cell->raise_nan( `acos` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9400,7 +9402,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |atan| ).
+              cell->raise_nan( `atan` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9451,7 +9453,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |sinh| ).
+              cell->raise_nan( `sinh` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9502,7 +9504,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |cosh| ).
+              cell->raise_nan( `cosh` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9553,7 +9555,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |tanh| ).
+              cell->raise_nan( `tanh` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9603,7 +9605,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |asinh| ).
+              cell->raise_nan( `asinh` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -9653,7 +9655,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |acosh| ).
+              cell->raise_nan( `acosh` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -9703,7 +9705,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |atanh| ).
+              cell->raise_nan( `atanh` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -9757,7 +9759,7 @@
 *          WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |expt| ).
+          cell->raise_nan( `expt` ).
       ENDCASE.
       TRY.
 *          _get_number exp1 list->cdr->car '[expt]'.
@@ -9797,7 +9799,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |expt| ).
+              cell->raise_nan( `expt` ).
           ENDCASE.
 
         CATCH cx_sy_arithmetic_error cx_sy_conversion_no_number INTO DATA(lx_error).
@@ -9845,7 +9847,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |exp| ).
+              cell->raise_nan( `exp` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -9896,7 +9898,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |log| ).
+              cell->raise_nan( `log` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -9946,7 +9948,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |sqrt| ).
+              cell->raise_nan( `sqrt` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -9996,7 +9998,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |square| ).
+              cell->raise_nan( `square` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -10047,7 +10049,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |floor| ).
+              cell->raise_nan( `floor` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -10085,10 +10087,10 @@
                   n1 = EXACT #( lo_real->float ).
                   exact = lo_real->exact.
                 CATCH cx_sy_conversion_error.
-                  throw( lo_real->to_string( ) && | is not an integer in [floor/]| ).
+                  throw( lo_real->to_string( ) && ` is not an integer in [floor/]` ).
               ENDTRY.
             WHEN OTHERS.
-              throw( list->car->to_string( ) && | is not an integer in [floor/]| ).
+              throw( list->car->to_string( ) && ` is not an integer in [floor/]` ).
           ENDCASE.
 
           CASE list->cdr->car->type.
@@ -10096,13 +10098,13 @@
               lo_int = CAST lcl_lisp_integer( list->cdr->car ).
               n2 = lo_int->int.
               IF n2 EQ 0.
-                throw( | second parameter cannot be zero in [floor/]| ).
+                throw( ` second parameter cannot be zero in [floor/]` ).
               ENDIF.
               IF exact EQ abap_true.
                 exact = lo_int->exact.
               ENDIF.
             WHEN OTHERS.
-              throw( list->cdr->car->to_string( ) && | is not an integer in [floor/]| ).
+              throw( list->cdr->car->to_string( ) && ` is not an integer in [floor/]` ).
           ENDCASE.
 
           list->cdr->assert_last_param( ).
@@ -10164,7 +10166,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |ceil| ).
+              cell->raise_nan( `ceil` ).
           ENDCASE.
           list->assert_last_param( ).
 
@@ -10215,7 +10217,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |truncate| ).
+              cell->raise_nan( `truncate` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -10265,7 +10267,7 @@
 *         WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |round| ).
+          cell->raise_nan( `round` ).
       ENDCASE.
       list->assert_last_param( ).
 
@@ -10306,7 +10308,7 @@
 *         WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |numerator| ).
+          cell->raise_nan( `numerator` ).
       ENDCASE.
     ENDMETHOD.
 
@@ -10344,7 +10346,7 @@
 *         WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |denominator| ).
+          cell->raise_nan( `denominator` ).
       ENDCASE.
     ENDMETHOD.
 
@@ -10387,7 +10389,7 @@
 *         WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |remainder| ).
+          cell->raise_nan( `remainder` ).
       ENDCASE.
       "_get_number denominator list->cdr->car '[remainder]'.
       IF list->cdr->car IS NOT BOUND.
@@ -10422,7 +10424,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |remainder| ).
+          cell->raise_nan( `remainder` ).
       ENDCASE.
 
       list->cdr->assert_last_param( ).
@@ -10473,7 +10475,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |quotient| ).
+          cell->raise_nan( `quotient` ).
       ENDCASE.
 
       "_get_number denominator list->cdr->car '[quotient]'.
@@ -10509,7 +10511,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |quotient| ).
+          cell->raise_nan( `quotient` ).
       ENDCASE.
       list->cdr->assert_last_param( ).
 
@@ -10560,7 +10562,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |modulo| ).
+          cell->raise_nan( `modulo` ).
       ENDCASE.
 
       "_get_number base list->cdr->car '[modulo]'.
@@ -10596,7 +10598,7 @@
 *        WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |modulo| ).
+          cell->raise_nan( `modulo` ).
       ENDCASE.
       list->cdr->assert_last_param( ).
 
@@ -10646,14 +10648,14 @@
           OR rational
           OR complex.
         WHEN OTHERS.
-          list->car->raise_nan( |exact?| ) ##NO_TEXT.
+          list->car->raise_nan( `exact?` ) ##NO_TEXT.
       ENDCASE.
 
       result = CAST lcl_lisp_number( list->car )->is_exact( ).
     ENDMETHOD.
 
     METHOD proc_is_inexact.
-      DATA lo_number TYPE REF TO lcl_lisp_number.
+      "DATA lo_number TYPE REF TO lcl_lisp_number.
       IF list IS NOT BOUND OR list->car IS NOT BOUND.
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
@@ -10665,7 +10667,7 @@
           OR rational
           OR complex.
         WHEN OTHERS.
-          list->car->raise_nan( |inexact?| ) ##NO_TEXT.
+          list->car->raise_nan( `inexact?` ) ##NO_TEXT.
       ENDCASE.
       result = CAST lcl_lisp_number( list->car )->is_inexact( ).
     ENDMETHOD.
@@ -10682,7 +10684,7 @@
           OR rational
           OR complex.
         WHEN OTHERS.
-          list->car->raise_nan( |exact| ) ##NO_TEXT.
+          list->car->raise_nan( `exact` ) ##NO_TEXT.
       ENDCASE.
 
       DATA(lo_number) = CAST lcl_lisp_number( list->car ).
@@ -10711,7 +10713,7 @@
             "RAISING   cx_sy_conversion_no_number.
 
           WHEN OTHERS.
-            throw( |no exact representation of { lo_number->to_string( ) }| ).
+            throw( `no exact representation of ` && lo_number->to_string( ) ).
         ENDCASE.
       ENDIF.
     ENDMETHOD.
@@ -10730,7 +10732,7 @@
           OR rational
           OR complex.
         WHEN OTHERS.
-          list->car->raise_nan( |inexact| ) ##NO_TEXT.
+          list->car->raise_nan( `inexact` ) ##NO_TEXT.
       ENDCASE.
 
       DATA(lo_number) = CAST lcl_lisp_number( list->car ).
@@ -10746,7 +10748,7 @@
             result = lcl_lisp_new=>real( value = lv_real
                                          exact = abap_false ).
           WHEN OTHERS.
-            throw( |no inexact representation of { lo_number->to_string( ) }| ).
+            throw( `no inexact representation of ` && lo_number->to_string( ) ).
         ENDCASE.
       ELSE.
         result = lo_number.
@@ -10811,7 +10813,7 @@
           result = lcl_lisp_new=>string( lv_text ).
 
         WHEN OTHERS.
-          list->car->raise_nan( |number->string| ) ##NO_TEXT.
+          list->car->raise_nan( `number->string` ) ##NO_TEXT.
       ENDCASE.
       IF lv_radix_error EQ abap_true.
         throw( |{ list->car->to_string( ) } radix { lv_radix } not supported in number->string| ) ##NO_TEXT.
@@ -10877,7 +10879,7 @@
     ENDMETHOD.
 
     METHOD proc_write.
-      IF list IS NOT BOUND OR list->car IS NOT BOUND. .
+      IF list IS NOT BOUND OR list->car IS NOT BOUND.
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
 
@@ -10994,7 +10996,7 @@
         lo_ptr = lo_ptr->cdr.
       ENDWHILE.
       IF lo_ptr NE nil.
-        lo_ptr->raise( | is not a list of char | ).
+        lo_ptr->raise( ` is not a list of char ` ).
       ENDIF.
 
       result = lcl_lisp_new=>string( lv_text ).
@@ -11238,7 +11240,7 @@
       "_validate_mutable lo_string `in string-set!`.
       DATA(lo_string) = CAST lcl_lisp_string( list->car ).
       IF lo_string->mutable EQ abap_false.
-        throw( |constant list in string-set! cannot be changed| ) ##NO_TEXT.
+        throw( `constant list in string-set! cannot be changed` ) ##NO_TEXT.
       ENDIF.
 *     lo_string->value+lv_index(1) = lv_char.  "Not allowed so split in (left, new char, right)
 
@@ -11268,7 +11270,7 @@
         lo_ptr = lo_ptr->cdr.
       ENDWHILE.
       IF lo_ptr NE nil.
-        lo_ptr->raise( | is not a list of char| ).
+        lo_ptr->raise( ` is not a list of char` ).
       ENDIF.
       result = lcl_lisp_new=>string( lv_text ).
     ENDMETHOD.
@@ -11282,7 +11284,7 @@
         result = lcl_lisp_new=>string( value = list->car->value
                                        iv_mutable = abap_false ).
       ELSE.
-        list->car->raise( | is not a symbol| ).
+        list->car->raise( ` is not a symbol` ).
       ENDIF.
     ENDMETHOD.
 
@@ -11294,7 +11296,7 @@
       IF list->car->type = string.
         result = lcl_lisp_new=>symbol( list->car->value ).
       ELSE.
-        list->car->raise( | is not a string| ).
+        list->car->raise( ` is not a string` ).
       ENDIF.
     ENDMETHOD.
 
@@ -11311,7 +11313,7 @@
         lo_ptr = lo_ptr->cdr.
       ENDWHILE.
       IF lo_ptr NE nil.
-        lo_ptr->car->raise( | is not a string| ).
+        lo_ptr->car->raise( ` is not a string` ).
       ENDIF.
       result = lcl_lisp_new=>string( lv_text ).
     ENDMETHOD.
@@ -11355,7 +11357,7 @@
 *         WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |max| ).
+          cell->raise_nan( `max` ).
       ENDCASE.
 
       DATA(lo_ptr) = list->cdr.
@@ -11393,7 +11395,7 @@
 *         WHEN bigint.
 
           WHEN OTHERS.
-            cell->raise_nan( |max| ).
+            cell->raise_nan( `max` ).
         ENDCASE.
 
         lv_max = nmax( val1 = carry val2 = lv_max ).
@@ -11439,7 +11441,7 @@
 *         WHEN bigint.
 
         WHEN OTHERS.
-          cell->raise_nan( |min| ).
+          cell->raise_nan( `min` ).
       ENDCASE.
 
       DATA(lo_ptr) = list->cdr.
@@ -11477,7 +11479,7 @@
 *          WHEN bigint.
 
           WHEN OTHERS.
-            cell->raise_nan( |min| ).
+            cell->raise_nan( `min` ).
         ENDCASE.
 
         lv_min = nmin( val1 = carry val2 = lv_min ).
@@ -11530,7 +11532,7 @@
 *         WHEN bigint.
 
           WHEN OTHERS.
-            cell->raise_nan( |gcd| ).
+            cell->raise_nan( `gcd` ).
         ENDCASE.
 
 
@@ -11569,7 +11571,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |gcd| ).
+              cell->raise_nan( `gcd` ).
           ENDCASE.
 
           lv_gcd = lcl_lisp_rational=>gcd( n = carry d = lv_gcd ).
@@ -11608,7 +11610,7 @@
 *         WHEN bigint.
 
           WHEN OTHERS.
-            cell->raise_nan( |lcm| ).
+            cell->raise_nan( `lcm` ).
         ENDCASE.
 
         DATA(lo_ptr) = list->cdr.
@@ -11631,7 +11633,7 @@
 *            WHEN bigint.
 
             WHEN OTHERS.
-              cell->raise_nan( |lcm| ).
+              cell->raise_nan( `lcm` ).
           ENDCASE.
 
           lv_lcm = lv_lcm * carry / lcl_lisp_rational=>gcd( n = carry d = lv_lcm ).
@@ -11864,7 +11866,7 @@
 
         DATA(lo_converter) = lo_ptr->car.
         IF NOT lo_converter->is_procedure( ).
-          lo_converter->raise( | is not a procedure in make-parameter| ).
+          lo_converter->raise( ` is not a procedure in make-parameter` ).
         ENDIF.
 
         lo_value = eval( element = lcl_lisp_new=>box( io_proc = lo_converter
@@ -11923,7 +11925,7 @@
       DATA ls_digit TYPE ts_digit.
       DATA lv_xdigit TYPE ts_digit-zero.
       DATA lv_zero TYPE i.
-      DATA lv_index TYPE tv_int.
+      "DATA lv_index TYPE tv_int.
       DATA lv_int TYPE tv_int.
 
       rv_digit = -1.
@@ -13000,7 +13002,7 @@
 
       IF list->car = nil OR ( list->car->type NE string
                             AND list->car->type NE symbol ).
-        throw( |ab-data: String or symbol required as name of type| ).
+        throw( `ab-data: String or symbol required as name of type` ).
       ENDIF.
 
       cl_abap_typedescr=>describe_by_name( EXPORTING p_name = list->car->value
@@ -13069,7 +13071,7 @@
 
       DATA(lo_ref) = list->car.
       IF lo_ref->type NE abap_table.
-        throw( |ab-append-row requires ABAP table as parameter| ).
+        throw( `ab-append-row requires ABAP table as parameter` ).
       ENDIF.
       throw( `ab-append-row not implemented yet` ).
     ENDMETHOD.                    "proc_abap_append_row
@@ -13081,7 +13083,7 @@
 
       DATA(lo_ref) = list->car.
       IF lo_ref->type NE abap_table.
-        throw( |ab-delete-row requires ABAP table as parameter| ).
+        throw( `ab-delete-row requires ABAP table as parameter` ).
       ENDIF.
       throw( `ab-delete-row not implemented yet` ).
     ENDMETHOD.                    "proc_abap_delete_row
@@ -13093,7 +13095,7 @@
 
       DATA(lo_ref) = list->car.
       IF lo_ref->type NE abap_table.
-        throw( |ab-get-row requires ABAP table as parameter| ).
+        throw( `ab-get-row requires ABAP table as parameter` ).
       ENDIF.
       throw( `ab-get-row not implemented yet` ).
     ENDMETHOD.                    "proc_abap_get_row
@@ -13107,14 +13109,14 @@
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
       IF list->car->type NE abap_data AND list->car->type NE abap_table.
-        throw( |ab-get-value requires ABAP data or table as parameter| ).
+        throw( `ab-get-value requires ABAP data or table as parameter` ).
       ENDIF.
       lo_ref ?= list->car.
       TRY.
           ASSIGN lo_ref->data->* TO <data>.
           result = data_to_element( <data> ).
         CATCH cx_root INTO DATA(lx_root).
-          throw( |Mapping error: { lx_root->get_text( ) }| ).
+          throw( `Mapping error: ` && lx_root->get_text( ) ).
       ENDTRY.
     ENDMETHOD.                    "proc_abap_get_value
 
@@ -13127,7 +13129,7 @@
 
       IF list->car->type NE abap_data AND
          list->car->type NE abap_table.
-        throw( |ab-set-value requires ABAP data or table as first parameter| ).
+        throw( `ab-set-value requires ABAP data or table as first parameter` ).
       ENDIF.
       DATA(lo_ref) = CAST lcl_lisp_data( list->car ).
       TRY.
@@ -13138,7 +13140,7 @@
             CHANGING
               data    = <data> ).
         CATCH cx_root INTO DATA(lx_root).
-          throw( |Mapping error: { lx_root->get_text( ) }| ).
+          throw( `Mapping error: ` && lx_root->get_text( ) ).
       ENDTRY.
       result = nil. "TODO: What should we return here?
     ENDMETHOD.                    "proc_abap_set_value
@@ -13158,7 +13160,7 @@
 *          lo_func ?= list->car.
 *          result = lo_func->call( list->car ).
 *        CATCH cx_root INTO DATA(lx_root).
-*          throw( |Function call error: { lx_root->get_text( ) }| ).
+*          throw( `Function call error: ` && lx_root->get_text( ) ).
 *      ENDTRY.
 *    ENDMETHOD.                    "proc_abap_function_call
 
@@ -13192,7 +13194,7 @@
       IF list->car->type NE abap_data
         AND list->car->type NE abap_function
         AND list->car->type NE abap_table.
-        throw( |ab-get: First parameter must be ABAP data or table or a function| ).
+        throw( `ab-get: First parameter must be ABAP data or table or a function` ).
       ENDIF.
       lo_ref ?= list->car.
 
@@ -13203,7 +13205,7 @@
         DATA(lr_data) = lo_ref->data.
       ELSEIF list->cdr = nil.
 *       Could short-cut here and provide the value right away
-        throw( |ab-get: Complex type requires identifier for lookup| ).
+        throw( `ab-get: Complex type requires identifier for lookup` ).
       ELSE.
         lr_data = get_element( list ).
       ENDIF.
@@ -13225,7 +13227,7 @@
       IF list->car->type NE abap_data
         AND list->car->type NE abap_function
         AND list->car->type NE abap_table.
-        throw( |ab-set: First parameter must be ABAP data or table or a function| ).
+        throw( `ab-set: First parameter must be ABAP data or table or a function` ).
       ENDIF.
       DATA(lo_ref) = CAST lcl_lisp_data( list->car ).
 
@@ -13236,7 +13238,7 @@
         lr_target = lo_ref->data.
         DATA(lo_source) = list->cdr->car.  "Value to set is data ref from second argument
       ELSEIF list->cdr = nil.
-        throw( |ab-set: Complex type requires identifier for lookup| ).
+        throw( `ab-set: Complex type requires identifier for lookup` ).
       ELSE.
         lr_target = get_element( list ).
         lo_source = list->cdr->cdr->car.  "Value to set is data ref from third argument
@@ -13352,7 +13354,7 @@
         WHEN cl_abap_typedescr=>kind_table.
 *         For this mapping to happen, the element must be a cons cell
           IF element->type NE pair.
-            throw( |Mapping failed: Non-cell to table| ).
+            throw( `Mapping failed: Non-cell to table` ).
           ENDIF.
 *         Provide reference to table and line
           table = REF #( data ).
@@ -13384,7 +13386,7 @@
         WHEN cl_abap_typedescr=>kind_struct.
 *         Structure
           IF element->type NE pair.
-            throw( |Mapping failed: Non-cell to structure| ).
+            throw( `Mapping failed: Non-cell to structure` ).
           ENDIF.
 
           lr_conscell = element. "Set pointer to start of list
@@ -13418,7 +13420,7 @@
           ENDCASE.
         WHEN OTHERS.
 *          Not supported yet
-          throw( |Mapping failed: unsupported type| ).
+          throw( `Mapping failed: unsupported type` ).
       ENDCASE.
     ENDMETHOD.                    "element_to_data
 
@@ -13433,7 +13435,7 @@
       ASSIGN element->data->* TO <struct>.
       ASSIGN COMPONENT identifier->value OF STRUCTURE <struct> TO <value>.
       IF sy-subrc NE 0.
-        throw( |ab-get: Structure has no component { identifier->value }| ).
+        throw( `ab-get: Structure has no component ` && identifier->value ).
       ENDIF.
       rdata = REF #( <value> ).
     ENDMETHOD.                    "get_structure_field
@@ -13546,7 +13548,7 @@
 
           result = CAST lcl_lisp_query( lcl_lisp_new=>query( value = lv_value ) )->execute( lv_value ).
         CATCH cx_root INTO DATA(lx_error).
-          throw( |SQL query { lx_error->get_text( ) }| ).
+          throw( `SQL query ` && lx_error->get_text( ) ).
       ENDTRY.
     ENDMETHOD.
 
@@ -13612,7 +13614,7 @@
 *             WHEN bigint.
 
               WHEN OTHERS.
-                cell->raise( | is not a number in turtles| ).
+                cell->raise( ` is not a number in turtles` ).
             ENDCASE.
           ENDIF.
         ENDIF.
@@ -13878,7 +13880,7 @@
           OR rational
           OR complex.
         WHEN OTHERS.
-          list->car->raise_nan( |turtles turn| ) ##NO_TEXT.
+          list->car->raise_nan( `turtles turn` ) ##NO_TEXT.
       ENDCASE.
 
       DATA lo_theta TYPE REF TO lcl_lisp_real.
@@ -13916,7 +13918,7 @@
           OR rational
           OR complex.
         WHEN OTHERS.
-          list->car->raise_nan( |turn/radians theta| ) ##NO_TEXT.
+          list->car->raise_nan( `turn/radians theta` ) ##NO_TEXT.
       ENDCASE.
 
       DATA lo_theta TYPE REF TO lcl_lisp_real.
@@ -14154,7 +14156,7 @@
     ENDMETHOD.
 
     METHOD define_values.
-
+      RETURN.
     ENDMETHOD.
 
 
@@ -14674,13 +14676,13 @@
               lo_int = CAST lcl_lisp_integer( list->cdr->car ).
               n2 = lo_int->int.
               IF n2 EQ 0.
-                throw( | second parameter cannot be zero in [floor-quotient]| ).
+                throw( ` second parameter cannot be zero in [floor-quotient]` ).
               ENDIF.
               IF exact EQ abap_true.
                 exact = lo_int->exact.
               ENDIF.
             WHEN OTHERS.
-              throw( list->cdr->car->to_string( ) && | is not an integer in [floor-quotient]| ).
+              throw( list->cdr->car->to_string( ) && ` is not an integer in [floor-quotient]` ).
           ENDCASE.
 
           list->cdr->assert_last_param( ).
@@ -14722,10 +14724,10 @@
                   n1 = EXACT #( lo_real->float ).
                   exact = lo_real->exact.
                 CATCH cx_sy_conversion_error.
-                  throw( lo_real->to_string( ) && | is not an integer in [floor-remainder]| ).
+                  throw( lo_real->to_string( ) && ` is not an integer in [floor-remainder]` ).
               ENDTRY.
             WHEN OTHERS.
-              throw( list->car->to_string( ) && | is not an integer in [floor-remainder]| ).
+              throw( list->car->to_string( ) && ` is not an integer in [floor-remainder]` ).
           ENDCASE.
 
           CASE list->cdr->car->type.
@@ -14733,7 +14735,7 @@
               lo_int = CAST lcl_lisp_integer( list->cdr->car ).
               n2 = lo_int->int.
               IF n2 EQ 0.
-                throw( | second parameter cannot be zero in [floor-remainder]| ).
+                throw( ` second parameter cannot be zero in [floor-remainder]` ).
               ENDIF.
               IF exact EQ abap_true.
                 exact = lo_int->exact.
@@ -14773,17 +14775,17 @@
             WHEN integer.
               lo_int = CAST lcl_lisp_integer( list->car ).
               IF lo_int->exact EQ abap_false.
-                throw( list->car->to_string( ) && | is a not an exact integer in [exact-integer-sqrt]| ).
+                throw( list->car->to_string( ) && ` is a not an exact integer in [exact-integer-sqrt]` ).
               ENDIF.
               lv_int = lo_int->int.
               IF lv_int LT 0.
-                throw( list->car->to_string( ) && | is a negative integer in [exact-integer-sqrt]| ).
+                throw( list->car->to_string( ) && ` is a negative integer in [exact-integer-sqrt]` ).
               ELSEIF lv_int GT 1.
                 lv_int = trunc( sqrt( lo_int->int ) ).
               ENDIF.
               lv_rest = lo_int->int - lv_int * lv_int.
             WHEN OTHERS.
-              throw( list->car->to_string( ) && | is not an integer in [exact-integer-sqrt]| ).
+              throw( list->car->to_string( ) && ` is not an integer in [exact-integer-sqrt]` ).
           ENDCASE.
 
           list->assert_last_param( ).
@@ -14830,10 +14832,10 @@
                   n1 = EXACT #( lo_real->float ).
                   exact = lo_real->exact.
                 CATCH cx_sy_conversion_error.
-                  throw( lo_real->to_string( ) && | is not an integer in [truncate/]| ).
+                  throw( lo_real->to_string( ) && ` is not an integer in [truncate/]` ).
               ENDTRY.
             WHEN OTHERS.
-              throw( list->car->to_string( ) && | is not an integer in [truncate/]| ).
+              throw( list->car->to_string( ) && ` is not an integer in [truncate/]` ).
           ENDCASE.
 
           CASE list->cdr->car->type.
@@ -14841,13 +14843,13 @@
               lo_int = CAST lcl_lisp_integer( list->cdr->car ).
               n2 = lo_int->int.
               IF n2 EQ 0.
-                throw( | second parameter cannot be zero in [truncate/]| ).
+                throw( ` second parameter cannot be zero in [truncate/]` ).
               ENDIF.
               IF exact EQ abap_true.
                 exact = lo_int->exact.
               ENDIF.
             WHEN OTHERS.
-              throw( list->cdr->car->to_string( ) && | is not an integer in [truncate/]| ).
+              throw( list->cdr->car->to_string( ) && ` is not an integer in [truncate/]` ).
           ENDCASE.
 
           list->cdr->assert_last_param( ).
@@ -14894,10 +14896,10 @@
                   n1 = EXACT #( lo_real->float ).
                   exact = lo_real->exact.
                 CATCH cx_sy_conversion_error.
-                  throw( lo_real->to_string( ) && | is not an integer in [truncate-quotient]| ).
+                  throw( lo_real->to_string( ) && ` is not an integer in [truncate-quotient]` ).
               ENDTRY.
             WHEN OTHERS.
-              throw( list->car->to_string( ) && | is not an integer in [truncate-quotient]| ).
+              throw( list->car->to_string( ) && ` is not an integer in [truncate-quotient]` ).
           ENDCASE.
 
           CASE list->cdr->car->type.
@@ -14905,13 +14907,13 @@
               lo_int = CAST lcl_lisp_integer( list->cdr->car ).
               n2 = lo_int->int.
               IF n2 EQ 0.
-                throw( | second parameter cannot be zero in [truncate-quotient]| ).
+                throw( ` second parameter cannot be zero in [truncate-quotient]` ).
               ENDIF.
               IF exact EQ abap_true.
                 exact = lo_int->exact.
               ENDIF.
             WHEN OTHERS.
-              throw( list->cdr->car->to_string( ) && | is not an integer in [truncate-quotient]| ).
+              throw( list->cdr->car->to_string( ) && ` is not an integer in [truncate-quotient]` ).
           ENDCASE.
 
           list->cdr->assert_last_param( ).
@@ -14952,10 +14954,10 @@
                   n1 = EXACT #( lo_real->float ).
                   exact = lo_real->exact.
                 CATCH cx_sy_conversion_error.
-                  throw( lo_real->to_string( ) && | is not an integer in [truncate-remainder/]| ).
+                  throw( lo_real->to_string( ) && ` is not an integer in [truncate-remainder/]` ).
               ENDTRY.
             WHEN OTHERS.
-              throw( list->car->to_string( ) && | is not an integer in [truncate-remainder/]| ).
+              throw( list->car->to_string( ) && ` is not an integer in [truncate-remainder/]` ).
           ENDCASE.
 
           CASE list->cdr->car->type.
@@ -14963,13 +14965,13 @@
               lo_int = CAST lcl_lisp_integer( list->cdr->car ).
               n2 = lo_int->int.
               IF n2 EQ 0.
-                throw( | second parameter cannot be zero in [truncate-remainder/]| ).
+                throw( ` second parameter cannot be zero in [truncate-remainder/]` ).
               ENDIF.
               IF exact EQ abap_true.
                 exact = lo_int->exact.
               ENDIF.
             WHEN OTHERS.
-              throw( list->cdr->car->to_string( ) && | is not an integer in [truncate-remainder/]| ).
+              throw( list->cdr->car->to_string( ) && ` is not an integer in [truncate-remainder/]` ).
           ENDCASE.
 
           list->cdr->assert_last_param( ).
@@ -15661,6 +15663,10 @@
   CLASS lcl_lisp_profiler DEFINITION INHERITING FROM lcl_lisp_interpreter.
     PUBLIC SECTION.
       INTERFACES if_serializable_object.
+      CLASS-METHODS new_profiler IMPORTING io_port       TYPE REF TO lcl_lisp_port
+                                           ii_log        TYPE REF TO lif_log
+                                           io_env        TYPE REF TO object
+                                 RETURNING VALUE(ro_int) TYPE REF TO lcl_lisp_profiler.
       METHODS eval_repl REDEFINITION.
       DATA runtime TYPE tv_int READ-ONLY.
   ENDCLASS.                    "lcl_lisp_profiler DEFINITION
@@ -15669,6 +15675,14 @@
 *       CLASS lcl_lisp_profiler IMPLEMENTATION
 *----------------------------------------------------------------------*
   CLASS lcl_lisp_profiler IMPLEMENTATION.
+
+    METHOD new_profiler.
+      ro_int = NEW lcl_lisp_profiler( io_port = io_port
+                                      ii_log  = ii_log ).
+      IF io_env IS BOUND.
+        ro_int->env ?= io_env.
+      ENDIF.
+    ENDMETHOD.
 
     METHOD eval_repl.
       CONSTANTS c_sec_to_micro TYPE i VALUE 1000000.
@@ -16102,16 +16116,16 @@
 *        WHEN type_abap_method.
 *          str = |<ABAP method { car->value }->{ cdr->value }( ) >|.
         WHEN abap_data.
-          str = |<ABAP Data>|.
+          str = `<ABAP Data>`.
         WHEN abap_table.
-          str = |<ABAP Table>|.
+          str = `<ABAP Table>`.
         WHEN abap_query.
-          str = |<ABAP Query>|.
+          str = `<ABAP Query>`.
         WHEN abap_sql_set.
-          str = |<ABAP Query Result Set>|.
+          str = `<ABAP Query Result Set>`.
 
         WHEN abap_turtle.
-          str = |<ABAP turtle>|.
+          str = `<ABAP turtle>`.
       ENDCASE.
     ENDMETHOD.                    "to_string
 
@@ -16150,7 +16164,7 @@
 
     METHOD assert_last_param.
       CHECK cdr NE nil.
-      throw( to_string( ) && | Parameter mismatch| ).
+      throw( to_string( ) && ` Parameter mismatch` ).
     ENDMETHOD.
 
     METHOD error_not_a_pair.
@@ -16205,7 +16219,7 @@
         first = abap_false.
       ELSE.
         IF elem->cdr->type NE pair.
-          elem->raise( | is not a proper list| ).
+          elem->raise( ` is not a proper list` ).
         ENDIF.
         elem = elem->cdr.
       ENDIF.
@@ -16763,7 +16777,7 @@
       WHILE lo_iter->has_next( ).
         DATA(lo_key) = lo_iter->next( ).
         IF lo_key->type NE symbol AND lo_key->type NE string.
-          throw( |make-hash: Use only symbol or string as a key| ).
+          throw( `make-hash: Use only symbol or string as a key` ).
         ENDIF.
         CHECK lo_iter->has_next( ).
         INSERT VALUE #( key = lo_key->value
@@ -16777,14 +16791,14 @@
       ENDIF.
 
       IF list->car = nil.
-        throw( |hash-get requires a key to access an element| ).
+        throw( `hash-get requires a key to access an element` ).
       ENDIF.
 
 *      TODO: Additional check for key type
       result = VALUE #( mt_hash[ key = list->car->value ]-element DEFAULT nil ).
     ENDMETHOD.                    "get
 
-    METHOD insert.
+    METHOD put.
       IF list IS NOT BOUND OR list->car IS NOT BOUND OR list->cdr IS NOT BOUND.
         lcl_lisp=>throw( c_error_incorrect_input ).
       ENDIF.
@@ -16870,7 +16884,7 @@
       DATA(lv_start) = from + 1.         " start is Inclusive
 
       IF lv_end LT 1 OR lv_start GT lv_end.
-        throw( |vector-ref: out-of-bound range| ).
+        throw( `vector-ref: out-of-bound range` ).
       ENDIF.
 
       CHECK lv_start BETWEEN 1 AND lv_end.
@@ -16895,7 +16909,7 @@
 
     METHOD set.
       IF me->mutable EQ abap_false.      "_validate_mutable me `vector`.
-        throw( |constant list in vector cannot be changed| ) ##NO_TEXT.
+        throw( `constant list in vector cannot be changed` ) ##NO_TEXT.
       ENDIF.
 
       DATA(lv_start) = index + 1.
@@ -16912,7 +16926,7 @@
       "_validate_mutable me `vector`.
       "_validate me. cannot fail here
       IF me->mutable EQ abap_false.
-        throw( |constant list in vector cannot be changed| ) ##NO_TEXT.
+        throw( `constant list in vector cannot be changed` ) ##NO_TEXT.
       ENDIF.
 
       ro_elem = me.
@@ -16923,7 +16937,7 @@
                                            ELSE lv_size ). " End of vector
 
       IF lv_end LT 1 OR lv_end GT lv_size OR lv_start GT lv_end.
-        throw( |vector-fill!: out-of-bound range| ).
+        throw( `vector-fill!: out-of-bound range` ).
       ENDIF.
 
       LOOP AT array FROM lv_start TO lv_end ASSIGNING FIELD-SYMBOL(<vec>).
@@ -16938,9 +16952,9 @@
     METHOD to_string.
       DATA(lo_list) = to_list( ).
       IF lo_list EQ nil.
-        str = |#()|.
+        str = `#()`.
       ELSE.
-        str = |#{ lo_list->to_string( ) }|.
+        str = `#` && lo_list->to_string( ).
       ENDIF.
     ENDMETHOD.
 
@@ -16951,8 +16965,8 @@
       DATA(lo_vec) = CAST lcl_lisp_vector( io_elem ).
       CHECK lines( array ) = lines( lo_vec->array ).
 
-      LOOP AT lo_vec->array INTO DATA(lo_elem).
-        CHECK array[ sy-tabix ]->is_equal( io_elem = lo_elem
+      LOOP AT lo_vec->array ASSIGNING FIELD-SYMBOL(<lo_elem>).
+        CHECK array[ sy-tabix ]->is_equal( io_elem = <lo_elem>
                                            comp = comp
                                            interpreter = interpreter ) EQ false.
         RETURN.
@@ -17025,7 +17039,7 @@
       CONSTANTS c_high_byte TYPE x VALUE 'F0'.
       DATA lv_str TYPE string.
       DATA lv_char1 TYPE tv_char.
-      DATA lv_char2 TYPE c LENGTH 2.
+      "DATA lv_char2 TYPE c LENGTH 2.
       DATA lv_hex TYPE x.
       DATA lv_idx TYPE x.
       FIELD-SYMBOLS <byte> TYPE tv_byte.
@@ -17113,7 +17127,7 @@
     METHOD set.
       "_validate me.
       IF me->mutable EQ abap_false.
-        throw( |constant bytevector cannot be changed| ) ##NO_TEXT.
+        throw( `constant bytevector cannot be changed` ) ##NO_TEXT.
       ENDIF.
 
       DATA(lv_start) = index + 1.
