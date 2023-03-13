@@ -6,21 +6,19 @@ CLASS z2ui5_cl_app_demo_22 DEFINITION PUBLIC.
 
     TYPES:
       BEGIN OF ty_row,
-        selkz    TYPE abap_bool,
         title    TYPE string,
         value    TYPE string,
         descr    TYPE string,
         info     TYPE string,
-        checkbox TYPE abap_bool,
       END OF ty_row.
-
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
     DATA mv_value1 TYPE string.
     DATA mv_value2 TYPE string.
-    DATA  mv_scroll_pos TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -36,14 +34,13 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
 
         mv_value1 = 'value1'.
         mv_value2 = 'this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text ' &&
-                       ' long text this is a long text this is a long text this is a long text this is a long text this is a long text.'.
+                     ' long text this is a long text this is a long text this is a long text this is a long text this is a long text.'.
 
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 100 NEXT
-             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
+             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description'  ) ) ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
-        "implement event handling here
 
         CASE client->get( )-event.
 
@@ -54,45 +51,30 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
             client->set( page_scroll_pos = '99999999' ).
 
           WHEN 'BUTTON_SCROLL_UP'.
-                      TRY.
-                DATA(lv_pos) = client->get( )-page_scroll_pos.
-                DATA(lv_pos_i) = CONV i( lv_pos ).
-              CATCH cx_sy_conversion_no_number.
-                replace '.' in lv_pos with ''.
-                 lv_pos = lv_pos(4).
-                 lv_pos_i = CONV i( lv_pos ).
-            ENDTRY.
-            client->set( page_scroll_pos = CONV string( lv_pos_i - 500 ) ).
+            data(lv_pos) = client->get( )-page_scroll_pos - 500.
+            client->set( page_scroll_pos = cond #( when lv_pos < 0 then 0 else lv_pos ) ).
 
           WHEN 'BUTTON_SCROLL_DOWN'.
-            TRY.
-                lv_pos = client->get( )-page_scroll_pos.
-                lv_pos_i = CONV i( lv_pos ).
-              CATCH cx_sy_conversion_no_number.
-                replace '.' in lv_pos with ''.
-                 lv_pos = lv_pos(4).
-                 lv_pos_i = CONV i( lv_pos ).
-            ENDTRY.
-            client->set( page_scroll_pos = CONV string( lv_pos_i + 500 ) ).
+            client->set( page_scroll_pos = client->get( )-page_scroll_pos + 500 ).
 
           WHEN 'BUTTON_SCROLL_HOLD'.
             client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
 
           WHEN 'BUTTON_FOCUS_FIRST'.
-            client->set( focus = mv_value1 ).
-            client->set( focus_pos = '3' ).
+            client->set( focus = mv_value1 focus_pos = '3' ).
 
           WHEN 'BUTTON_FOCUS_SECOND'.
-            client->set( focus = mv_value2 ).
-            client->set( focus_pos = '20' ).
-        ENDCASE.
+            client->set( focus = mv_value2 focus_pos = '20' ).
 
+        ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2ui5 - Scrolling and Focus' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         page->input( value = view->_bind( mv_value1 ) ).
         page->text_area(  width = '100%' height = '20%' value = view->_bind( mv_value2 ) ).
@@ -100,46 +82,27 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
         page->button( text = 'focus input pos 3'  press = view->_event( 'BUTTON_FOCUS_FIRST' ) ).
         page->button( text = 'focus text area pos 20'  press = view->_event( 'BUTTON_FOCUS_SECOND' ) ).
 
-        DATA(tab) = page->table(
-            header_text = 'Table with some entries'
-            items = view->_bind_one_way( t_tab ) ).
+        DATA(tab) = page->table( sticky = 'ColumnHeaders,HeaderToolbar' header_text = 'Table with some entries' items = view->_bind_one_way( t_tab ) ).
 
-        "set header
         tab->columns(
             )->column( )->text( 'Title' )->get_parent(
             )->column( )->text( 'Color' )->get_parent(
             )->column( )->text( 'Info' )->get_parent(
             )->column( )->text( 'Description' ).
 
-        "set content
         tab->items( )->column_list_item( )->cells(
            )->text( '{TITLE}'
            )->text( '{VALUE}'
            )->text( '{INFO}'
            )->text( '{DESCR}' ).
 
-
         page->footer( )->overflow_toolbar(
-              )->button(
-                  text  = 'Scroll Top'
-                  press = view->_event( 'BUTTON_SCROLL_TOP' )
-              )->button(
-                  text  = 'Scroll 500 up'
-                  press = view->_event( 'BUTTON_SCROLL_UP' )
-             )->button(
-                  text  = 'Scroll 500 down'
-                  press = view->_event( 'BUTTON_SCROLL_DOWN' )
-             )->button(
-                  text  = 'Scroll Bottom'
-                  press = view->_event( 'BUTTON_SCROLL_BOTTOM' )
-             )->button(
-                  text  = 'Scroll hold position'
-                  press = view->_event( 'BUTTON_SCROLL_HOLD' )
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'Send to Server'
-                  press = view->_event( 'BUTTON_SEND' )
-                  type  = 'Success' ).
+              )->button( text = 'Scroll Top'     press = view->_event( 'BUTTON_SCROLL_TOP' )
+             )->button( text = 'Scroll 500 up'   press = view->_event( 'BUTTON_SCROLL_UP' )
+             )->button( text = 'Scroll 500 down' press = view->_event( 'BUTTON_SCROLL_DOWN' )
+             )->button( text = 'Scroll Bottom'   press = view->_event( 'BUTTON_SCROLL_BOTTOM' )
+             )->toolbar_spacer(
+             )->button( text = 'Scroll hold position' press = view->_event( 'BUTTON_SCROLL_HOLD' ) ).
     ENDCASE.
 
   ENDMETHOD.

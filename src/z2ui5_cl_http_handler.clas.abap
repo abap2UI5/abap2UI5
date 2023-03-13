@@ -98,6 +98,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                onEvent: function (oEvent, oEvent2, oEvent3, oEvent4) {` && |\n|  &&
                            `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
+                  `                    try {                                                           ` && |\n| &&
+                     `                     this.oBody.scrollPos =  parseInt( this.oView.getContent()[ 0 ].getApp().getScrollDelegate().getScrollTop() );  ` && |\n| &&
+                     `                      } catch (exceptionVar) { };  ` && |\n|  &&
                            `                    if (!window.navigator.onLine) {` && |\n|  &&
                            `                        sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
                            `                        return;` && |\n|  &&

@@ -538,7 +538,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD raise.
-
+    IF when = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_lcl_utility
+        EXPORTING
+          val = v.
+    ENDIF.
   ENDMETHOD.
 
 ENDCLASS.
@@ -1091,7 +1095,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
     "  types
 
     DATA mt_after TYPE _=>ty_tt_string.
-    DATA page_scroll_pos TYPE string.
+    DATA page_scroll_pos TYPE i.
     DATA mv_focus TYPE string.
     DATA mv_focus_cursor_pos TYPE string.
     DATA mv_focus_sel_start TYPE string.
@@ -1632,7 +1636,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     z2ui5_if_view~_generic(
        name  = 'SegmentedButton'
        t_prop = VALUE #(
-        ( n = 'selectedKey' v = selected_key )
+           ( n = 'selectedKey'     v = selected_key     )
+           ( n = 'selectionChange' v = selection_Change )
       ) ).
 
   ENDMETHOD.
@@ -2296,6 +2301,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         ).
     TRY.
         DATA li_app TYPE REF TO z2ui5_if_app.
+
         CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
         client->nav_to_app_new( li_app ).
         DATA(lv_check_demo_active) = abap_true.
@@ -2312,8 +2318,14 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
       view->message_page(
-          text = 'Error Page - Code 500'
+          text = 'Internal Server Error - Code 500' "Uff your glamorous abap code...'
+          enable_Formatted_Text = abap_true
+      "    show_Header = abap_true
+
+          "description = ms_error-x_error->get_text( )
           description = ms_error-x_error->get_text( )
+           icon = 'sap-icon://message-error'
+      "  )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code
         )->buttons(
         )->button( text = 'HOME' press = view->_event( 'BUTTON_HOME' )
         )->button(
@@ -2545,7 +2557,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
 
     IF page_scroll_pos IS NOT INITIAL.
-      lo_ui5_model->add_attribute( n = 'PAGE_SCROLL_POS' v = page_scroll_pos ).
+      lo_ui5_model->add_attribute( n = 'PAGE_SCROLL_POS' v = CONV string( page_scroll_pos ) apos_active = abap_false ).
     ENDIF.
 
     IF mv_focus_cursor_pos IS NOT INITIAL.
@@ -2785,6 +2797,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   METHOD z2ui5_if_client~set.
 
     IF page_scroll_pos IS SUPPLIED.
+      _=>raise( when = xsdbool( page_scroll_pos < 0 ) v = `Scroll position ` && page_scroll_pos && ` / values lower 0 not allowed` ).
       mo_server->page_scroll_pos = page_scroll_pos.
     ENDIF.
 
@@ -2811,7 +2824,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
         IF lr_in = lr_ref.
           mo_server->mv_focus = to_upper( lr_attri->name ).
-          RETURN.
+          EXIT.
         ENDIF.
 
       ENDLOOP.

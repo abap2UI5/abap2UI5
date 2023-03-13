@@ -6,15 +6,16 @@ CLASS z2ui5_cl_app_demo_19 DEFINITION PUBLIC.
 
     TYPES:
       BEGIN OF ty_row,
-        selkz    TYPE abap_bool,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        info     TYPE string,
-        checkbox TYPE abap_bool,
+        selkz TYPE abap_bool,
+        title TYPE string,
+        value TYPE string,
+        descr TYPE string,
       END OF ty_row.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA t_tab_sel TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    DATA mv_sel_mode TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -31,56 +32,79 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10 NEXT
-             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
+        mv_sel_mode = 'None'.
 
+        t_tab = VALUE #( descr = 'this is a description'
+            (  title = 'title_01'  value = 'value_01'  )
+            (  title = 'title_02'  value = 'value_02'  )
+            (  title = 'title_03'  value = 'value_03'  )
+            (  title = 'title_04'  value = 'value_04'  )
+            (  title = 'title_05'  value = 'value_05'  )
+          ).
 
       WHEN client->cs-lifecycle_method-on_event.
 
-        case client->get( )-event.
+        CASE client->get( )-event.
+          WHEN 'BUTTON_SEGMENT_CHANGE'.
+            client->display_message_toast( `Selection Mode changed` ).
 
-        when 'BUTTON_TAB'.
+          WHEN 'BUTTON_READ_SEL'.
+            t_tab_sel = t_tab.
+            delete t_tab_sel where selkz <> abap_true.
 
-        data(lv_test) = `test`.
-        "implement event handling here
-
-        endcase.
+        ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2ui5 - Table with different Selection-Modes' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+
+        page->segmented_button(
+           selected_key = view->_bind( mv_sel_mode )
+           selection_change = view->_event( 'BUTTON_SEGMENT_CHANGE' )
+          )->get( )->items( )->get(
+                )->segmented_button_item( key = 'None'  text = 'None'
+                )->segmented_button_item( key = 'SingleSelect' text = 'SingleSelect'
+                )->segmented_button_item( key = 'SingleSelectLeft' text = 'SingleSelectLeft'
+                )->segmented_button_item( key = 'SingleSelectMaster' text = 'SingleSelectMaster'
+                )->segmented_button_item( key = 'MultiSelect' text = 'MultiSelect' ).
 
         DATA(tab) = page->table(
-            header_text = 'Table with 100 entries'
-            mode =  'MultiSelect' " 'SingleSelectMaster' "'MultiSelect'
+            header_text = 'Table'
+            mode =  mv_sel_mode
             items = view->_bind( t_tab ) ).
 
-        "set header
         tab->columns(
             )->column( )->text( 'Title' )->get_parent(
-            )->column( )->text( 'Color' )->get_parent(
-            )->column( )->text( 'Info' )->get_parent(
-            )->column( )->text( 'Description' )->get_parent(
-            )->column( )->text( 'Checkbox' ).
+            )->column( )->text( 'Value' )->get_parent(
+            )->column( )->text( 'Description' ).
 
-        "set content
-        tab->items( )->column_list_item(
-            selected = '{SELKZ}'
-             )->cells(
-           )->button( text = '{TITLE}' press = `onEvent( { 'EVENT' : '` && `BUTTON_TAB` && `', 'METHOD' : 'UPDATE' } )`
+        tab->items( )->column_list_item( selected = '{SELKZ}' )->cells(
+           )->text( '{TITLE}'
            )->text( '{VALUE}'
-           )->text( '{INFO}'
-           )->text( '{DESCR}'
-           )->checkbox( selected = '{CHECKBOX}' enabled = abap_false ).
+           )->text( '{DESCR}' ).
 
+        DATA(tab2) = page->table(
+            items = view->_bind_one_way( t_tab_sel ) ).
 
-        page->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'Send to Server'
-                  press = view->_event( 'BUTTON_SEND' )
-                  type  = 'Success' ).
+        tab2->header_toolbar( )->overflow_toolbar(
+            )->title( 'Selected Entries'
+         "    )->toolbar_spacer(
+             )->button( icon = 'sap-icon://pull-down' text = 'copy selected entries' press = view->_event( 'BUTTON_READ_SEL' )
+          ).
+
+        tab2->columns(
+            )->column( )->text( 'Title' )->get_parent(
+            )->column( )->text( 'Value' )->get_parent(
+            )->column( )->text( 'Description' ).
+
+        tab2->items( )->column_list_item( )->cells(
+           )->text( '{TITLE}'
+           )->text( '{VALUE}'
+           )->text( '{DESCR}' ).
+
     ENDCASE.
 
   ENDMETHOD.

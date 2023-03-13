@@ -43,13 +43,16 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             client->nav_to_app_new( NEW z2ui5_cl_app_demo_03( ) ).
 
           WHEN '0302'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_07( ) ).
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_19( ) ).
 
           WHEN '0303'.
             client->nav_to_app_new( NEW z2ui5_cl_app_demo_06( ) ).
 
           WHEN '0304'.
             client->nav_to_app_new( NEW z2ui5_cl_app_demo_11( ) ).
+
+          WHEN '0100'.
+            client->nav_to_app_new( NEW z2ui5_cl_app_demo_22( ) ).
 
           WHEN 'MIME_EDITOR'.
             client->nav_to_app_new( NEW z2ui5_cl_app_demo_14( ) ).
@@ -83,11 +86,9 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         grid->simple_form( 'HowTo - General II' )->content( 'f'
             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' )
-            )->button( text = 'List' press = view->_event( '0301' )
+            )->button( text = 'Scrolling & Focus' press = view->_event( '0100' )
          "   )->button( text = 'Popups I' press = view->_event( '0101' )
           "  )->button( text = 'Popups II (F4 Help)' press = view->_event( '0101' )
-           " )->button( text = 'Side Effects, Expression Binding' press = view->_event( '0102' )
-          "  )->button( text = 'Preprocessor' press = view->_event( '0103' )
           ).
 
         grid->simple_form( 'HowTo - Selection-Screen' )->content( 'f'
@@ -95,8 +96,9 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             )->button( text = 'More Controls' press = view->_event( '0202' ) ).
 
         grid->simple_form( 'HowTo - Tables' )->content( 'f'
+            )->button( text = 'List' press = view->_event( '0301' )
             )->button( text = 'Toolbar, Scroll Container' press = view->_event( '0303' )
-            )->button( text = 'Selection Mode' press = view->_event( '0302' )
+            )->button( text = 'Selection Modes' press = view->_event( '0302' )
             )->button( text = 'Editable' press = view->_event( '0304' )
         "    )->button( text = 'Cell changes' press = view->_event( '0304' )
              ).

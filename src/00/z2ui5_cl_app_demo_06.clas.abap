@@ -52,6 +52,8 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_06' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
+         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+
         "set table and container
         DATA(tab) = page->scroll_container( '70%' )->table(
             items = view->_bind_one_way( t_tab )

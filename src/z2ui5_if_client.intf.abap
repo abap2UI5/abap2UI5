@@ -8,7 +8,7 @@ INTERFACE z2ui5_if_client
       view_active        TYPE string,
       check_previous_app TYPE abap_bool,
       event              TYPE string,
-      page_scroll_pos    TYPE string,
+      page_scroll_pos    TYPE i,
       lifecycle_method   TYPE string,
       id                 TYPE string,
       id_prev            TYPE string,
@@ -31,7 +31,7 @@ INTERFACE z2ui5_if_client
       event           TYPE clike OPTIONAL
       focus           TYPE clike OPTIONAL
       focus_pos       TYPE clike OPTIONAL
-      page_scroll_pos TYPE clike OPTIONAL.
+      page_scroll_pos TYPE i OPTIONAL.
 
   METHODS nav_to_id
     IMPORTING

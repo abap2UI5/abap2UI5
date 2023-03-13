@@ -438,7 +438,8 @@ INTERFACE z2ui5_if_view
 
   METHODS segmented_button
     IMPORTING
-      selected_key  TYPE string
+      selected_key     TYPE string
+      selection_Change  type string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
