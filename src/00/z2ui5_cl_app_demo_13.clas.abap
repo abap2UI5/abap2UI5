@@ -120,7 +120,6 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
         CLEAR ms_import-editor.
 
       WHEN 'EDIT_DB_READ'.
-        " lcl_db=>generate_test_data( ).
         ms_edit-t_table = lcl_db=>db_read( ).
         client->display_message_box( 'Table read successfully' ).
 
@@ -225,7 +224,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
     ENDLOOP.
 
     page->footer( )->overflow_toolbar(
-        )->button( text = 'Edit' press = view->_event( 'EDIT_CHANGE_MODE' ) icon = 'sap-icon://delete'
+        )->button( text = 'Edit' press = view->_event( 'EDIT_CHANGE_MODE' ) icon = 'sap-icon://edit'
         )->toolbar_spacer(
         )->button( text = 'Save' press = view->_event( 'EDIT_DB_SAVE' ) type = 'Emphasized' icon = 'sap-icon://upload-to-cloud' ).
 

@@ -4,22 +4,12 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    TYPES:
-      BEGIN OF ty_row,
-        selkz    TYPE abap_bool,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        info     TYPE string,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
+    DATA mv_value TYPE string VALUE 'value'.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    DATA mv_value TYPE string VALUE 'button'.
-    DATA  mv_scroll_pos TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
+    DATA mv_id_popup_select TYPE string.
 ENDCLASS.
 
 
@@ -33,17 +23,13 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10000 NEXT
-             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
-
 
       WHEN client->cs-lifecycle_method-on_event.
         "implement event handling here
 
         CASE client->get( )-event.
 
-          WHEN 'BUTTON_SEND'.
-            mv_scroll_pos = client->get( )-page_scroll_pos.
+          WHEN 'BUTTON_POPUP_COMFIRM'.
 
             client->nav_to_app_new( z2ui5_cl_app_demo_20=>factory(
                    i_text          = 'Do really want to continue?'
@@ -53,18 +39,30 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
                    i_confirm_event =  'POPUP_CONFIRM_YES'   )
                ).
 
+          WHEN 'BUTTON_POPUP_SELECT'.
+            DATA(lo_popup_select) = z2ui5_cl_app_demo_23=>factory(
+                 event_return = 'POPUP_SELECT_RETURN'
+                 i_tab = VALUE #( descr = 'this is a description'
+                                     (  title = 'title_01'  value = 'value_01'  )
+                                     (  title = 'title_02'  value = 'value_02'  )
+                                     (  title = 'title_03'  value = 'value_03'  )
+                                     (  title = 'title_04'  value = 'value_04'  ) ) ).
+            client->nav_to_app_new( lo_popup_select ).
+
+          WHEN 'POPUP_SELECT_RETURN'.
+            lo_popup_select = CAST z2ui5_cl_app_demo_23( client->get_app_by_id( mv_id_popup_select ) ).
+            DELETE lo_popup_select->t_tab WHERE selkz <> abap_true.
+            client->display_message_box( 'Entry selected: ' && lo_popup_select->t_tab[ 1 ]-title ).
+
           WHEN 'POPUP_CONFIRM_YES'.
             client->display_message_box( 'confirm yes' ).
-            client->set( page_scroll_pos = mv_scroll_pos ).
-            mv_Scroll_pos = ''.
 
           WHEN 'POPUP_CONFIRM_NO'.
             client->display_message_box( 'confirm no' ).
-            client->set( page_scroll_pos = mv_scroll_pos ).
-            mv_Scroll_pos = ''.
 
-          WHEN OTHERS.
-            client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
+          WHEN 'F4HELP'.
+            client->display_message_box( 'F4HELP' ).
+
         ENDCASE.
 
 
@@ -75,33 +73,24 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
 
 
-        page->input( value = view->_bind( mv_value ) ).
+        page->input(
+            value = view->_bind( mv_value )
+            showvaluehelp = abap_true
+            valuehelprequest = view->_event( 'F4HELP' )
+             ).
+
+        page->button(
+             text    = 'Popup confirm'
+             press   = 'BUTTON_POPUP_CONFIRM'
+        ).
+
+        page->button(
+            text    = 'Popup select'
+            press   = 'BUTTON_POPUP_SELECT'
+       ).
+
 
         client->set( focus = mv_value ).
-
-        DATA(tab) = page->table(
-            header_text = 'Table with 100 entries'
-            mode =  'MultiSelect' " 'SingleSelectMaster' "'MultiSelect'
-            items = view->_bind( t_tab ) ).
-
-        "set header
-        tab->columns(
-            )->column( )->text( 'Title' )->get_parent(
-            )->column( )->text( 'Color' )->get_parent(
-            )->column( )->text( 'Info' )->get_parent(
-            )->column( )->text( 'Description' )->get_parent(
-            )->column( )->text( 'Checkbox' ).
-
-        "set content
-        tab->items( )->column_list_item(
-            selected = '{SELKZ}'
-             )->cells(
-           )->text( '{TITLE}'
-           )->text( '{VALUE}'
-           )->text( '{INFO}'
-           )->text( '{DESCR}'
-           )->checkbox( selected = '{CHECKBOX}' enabled = abap_false ).
-
 
         page->footer( )->overflow_toolbar(
               )->toolbar_spacer(

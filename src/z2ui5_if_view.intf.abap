@@ -104,13 +104,15 @@ INTERFACE z2ui5_if_view
       value            TYPE clike OPTIONAL
       placeholder      TYPE clike OPTIONAL
       type             TYPE clike OPTIONAL
-      show_clear_icon  TYPE abap_bool DEFAULT abap_false
+      show_clear_icon  TYPE abap_bool optional
       value_state      TYPE clike OPTIONAL
       value_state_text TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE abap_bool DEFAULT abap_true
       suggestion_items TYPE string OPTIONAL
       showsuggestion   TYPE abap_bool DEFAULT abap_true
+      showValueHelp    type abap_bool optional
+      valueHelpRequest type string optional
         PREFERRED PARAMETER value
     RETURNING
       VALUE(result)    TYPE REF TO  z2ui5_if_view.
