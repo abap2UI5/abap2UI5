@@ -17,7 +17,7 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
     DATA mv_value TYPE string VALUE 'button'.
-    DATA  mv_scroll_pos TYPE string.
+    DATA  mv_scroll_pos TYPE i.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
