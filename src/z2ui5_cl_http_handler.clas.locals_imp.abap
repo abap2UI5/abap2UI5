@@ -993,8 +993,8 @@ CLASS z2ui5_lcl_db DEFINITION.
     CLASS-METHODS create
       IMPORTING
         id       TYPE string
-        response TYPE string OPTIONAL
-        db       TYPE ty_S_db.
+        response TYPE clike OPTIONAL
+        db       TYPE ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING
@@ -1041,8 +1041,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     DATA ms_get TYPE z2ui5_if_client=>ty_s_get.
 
-    "  types
-
     DATA mt_after TYPE _=>ty_tt_string.
     DATA page_scroll_pos TYPE i.
     DATA mv_focus TYPE string.
@@ -1063,7 +1061,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS set_get.
+    METHODS init_before_app.
 
     METHODS execute_finish
       RETURNING
@@ -1083,6 +1081,16 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
     METHODS factory_new
       IMPORTING
         i_app           TYPE REF TO z2ui5_if_app
+      RETURNING
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+
+    METHODS db_save
+      IMPORTING
+        response TYPE clike OPTIONAL.
+
+    METHODS factory_id
+      IMPORTING
+        id              TYPE clike
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
 
@@ -1262,6 +1270,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
            ( n = 'value'           v = value )
            ( n = 'suggestionItems' v = suggestion_items )
            ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
+           ( n = 'valueHelpRequest'  v = valueHelpRequest )
+           ( n = 'showValueHelp'     v = _=>get_abap_2_json( showValueHelp ) )
         ) ).
 
 
@@ -2303,12 +2313,14 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(lv_date) = sy-datum - 2.
     DATA lv_timestampl TYPE timestampl.
-    lv_timestampl = lv_date.
+    DATA lv_time TYPE t.
 
-    CONVERT DATE lv_date
-         INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
+    lv_time = sy-uzeit.
+    lv_time = lv_time - ( 60 * 60 * 4 ).
+
+    CONVERT DATE sy-datum TIME lv_time
+       INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
 
     DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_timestampl.
     COMMIT WORK.
@@ -2376,7 +2388,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
           li_app ?= ms_db-o_app.
 
-          set_get( ).
+          init_before_app( ).
 
           ROLLBACK WORK.
           li_app->controller( NEW z2ui5_lcl_if_client( me ) ).
@@ -2527,6 +2539,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     r_result->ms_db-o_app = i_app.
     r_result->ms_db-app = _=>get_classname_by_ref( i_app ).
 
+    r_result->ms_db-id_prev_app = ms_db-id.
+    r_result->ms_db-screen = ms_leave_to_app-screen.
+    r_result->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
+
     CLEAR client-o_body.
     r_result->mt_after = mt_after.
     r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
@@ -2540,10 +2556,12 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
                 error = ix app = ms_db-o_app
                 kind = kind ) ).
 
+    r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
+
   ENDMETHOD.
 
-  METHOD set_get.
+  METHOD init_before_app.
 
     ms_get = VALUE #(
         lifecycle_method = ms_control-event_type
@@ -2579,6 +2597,30 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+
+
+    mv_event = ''.
+    mv_nav_id = ``.
+
+  ENDMETHOD.
+
+
+  METHOD db_save.
+
+    z2ui5_lcl_db=>create(
+            id = ms_db-id
+            response = response
+            db = ms_db ).
+
+  ENDMETHOD.
+
+
+  METHOD factory_id.
+
+    r_result = NEW z2ui5_lcl_system_runtime( ).
+    r_result->ms_db = z2ui5_lcl_db=>load_app( id ).
+    r_result->mv_event_custom = mv_event.
+    r_result->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
 
   ENDMETHOD.
@@ -2717,6 +2759,12 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nav_to_id.
 
     mo_server->mv_nav_id = id.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~get_app_by_id.
+
+    result = CAST #( z2ui5_lcl_db=>load_app( id )-o_app ).
 
   ENDMETHOD.
 

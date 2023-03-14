@@ -335,9 +335,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
       TRY.
 
-          lo_runtime->mv_event = ''.
-
-          lo_runtime->set_get( ).
+          lo_runtime->init_before_app( ).
 
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
@@ -346,65 +344,37 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           lo_runtime->mv_event_custom = ''.
 
         CATCH cx_root INTO DATA(cx).
-          DATA(lo_runtime_error) = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
-          z2ui5_lcl_db=>create(
-                id = lo_runtime->ms_db-id
-                db = lo_runtime->ms_db
-                ).
-          lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id.
-          lo_runtime = lo_runtime_error.
+          lo_runtime->db_save( ).
+          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_EVENT' ix = cx ).
           CONTINUE.
       ENDTRY.
 
       IF lo_runtime->ms_leave_to_app IS NOT INITIAL.
-        z2ui5_lcl_db=>create(
-                id = lo_runtime->ms_db-id
-                db = lo_runtime->ms_db ).
-        DATA lo_runtime_new TYPE REF TO z2ui5_lcl_system_runtime.
-        lo_runtime_new = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
-        lo_runtime_new->ms_db-id_prev_app = lo_runtime->ms_db-id.
-        lo_runtime_new->ms_db-screen = lo_runtime->ms_leave_to_app-screen.
-        lo_runtime = lo_runtime_new.
-        lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_init.
+        lo_runtime->db_save( ).
+        lo_runtime = lo_runtime->factory_new( CAST #( lo_runtime->ms_leave_to_app-o_app ) ).
         CONTINUE.
       ENDIF.
 
       IF lo_runtime->mv_nav_id IS NOT INITIAL.
-        DATA(ls_db) = z2ui5_lcl_db=>load_app( lo_runtime->mv_nav_id ).
-        lo_runtime->mv_nav_id = ``.
-        DATA(Lv_event) = lo_runtime->mv_event.
-
-        z2ui5_lcl_db=>create(
-               id = lo_runtime->ms_db-id
-               db = lo_runtime->ms_db ).
-
-        lo_runtime = NEW #( ).
-        lo_runtime->ms_db = ls_db.
-        lo_runtime->mv_event_custom = lv_event.
-        lo_runtime->ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_event.
+        lo_runtime->db_save( ).
+        lo_runtime = lo_runtime->factory_id( lo_runtime->mv_nav_id ).
         CONTINUE.
       ENDIF.
 
       TRY.
+
           ROLLBACK WORK.
           lo_runtime->ms_get-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
-
           result = lo_runtime->execute_finish( ).
-          z2ui5_lcl_db=>create(
-            id       = lo_runtime->ms_db-id
-            response = result
-            db       = lo_runtime->ms_db
-          ).
-
+          lo_runtime->db_save( result ).
           EXIT.
 
         CATCH cx_root INTO cx.
-          lo_runtime_error = lo_runtime->factory_new_error( kind = 'ON_RENDERING' ix = cx ).
-          lo_runtime_error->ms_db-id_prev_app = lo_runtime->ms_db-id_prev_app.
-          lo_runtime = lo_runtime_error.
+          lo_runtime->db_save( ).
+          lo_runtime = lo_runtime->factory_new_error( kind = 'ON_RENDERING' ix = cx ).
           CONTINUE.
       ENDTRY.
 

@@ -33,6 +33,12 @@ INTERFACE z2ui5_if_client
       focus_pos       TYPE clike OPTIONAL
       page_scroll_pos TYPE i OPTIONAL.
 
+  METHODS get_app_by_id
+    IMPORTING
+      id            TYPE clike
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_app.
+
   METHODS nav_to_id
     IMPORTING
       id TYPE clike.
