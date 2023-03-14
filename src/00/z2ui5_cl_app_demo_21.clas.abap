@@ -3,9 +3,8 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
-
+    
     DATA mv_value TYPE string VALUE 'value'.
-
 
   PROTECTED SECTION.
   PRIVATE SECTION.

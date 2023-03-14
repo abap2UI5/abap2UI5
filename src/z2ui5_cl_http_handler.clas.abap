@@ -43,7 +43,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD main_index_html.
@@ -321,9 +321,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-    z2ui5_lcl_system_runtime=>client-t_header = client-t_header.
-    z2ui5_lcl_system_runtime=>client-t_param  = client-t_param.
-    z2ui5_lcl_system_runtime=>client-o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ).
+    z2ui5_lcl_system_runtime=>client = VALUE #( t_header = client-t_header
+                                                t_param  = client-t_param
+                                                o_body   = z2ui5_lcl_utility_tree_json=>factory( client-body ) ).
 
     DATA(lo_runtime) = NEW z2ui5_lcl_system_runtime( ).
     result = lo_runtime->execute_init( ).
