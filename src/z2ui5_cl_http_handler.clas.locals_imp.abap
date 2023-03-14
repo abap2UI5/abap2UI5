@@ -1037,7 +1037,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         event_type TYPE string,
       END OF ms_control.
 
-    DATA ms_db TYPE z2ui5_lcl_db=>ty_S_db.
+    DATA ms_db TYPE z2ui5_lcl_db=>ty_S_Db.
 
     DATA ms_get TYPE z2ui5_if_client=>ty_s_get.
 
@@ -2373,7 +2373,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
                   data   = ms_db
               ).
 
-          ROLLBACK WORK.
           ms_control-event_type = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
           li_app ?= ms_db-o_app.
 
