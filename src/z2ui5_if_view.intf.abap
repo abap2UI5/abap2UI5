@@ -1,8 +1,6 @@
 INTERFACE z2ui5_if_view
   PUBLIC .
 
-"test
-
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF lifecycle_method,

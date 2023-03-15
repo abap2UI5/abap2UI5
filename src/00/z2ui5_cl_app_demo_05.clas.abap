@@ -59,7 +59,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
             DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
 
           WHEN 'BUTTON_MSG_BOX'.
-            client->show_popup_message_box(
+            client->popup_message_box(
               text = 'this is a message box with a custom text'
               type = 'success' ).
 

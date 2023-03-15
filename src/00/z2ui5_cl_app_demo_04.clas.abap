@@ -42,8 +42,8 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
 
         "set init values or view here
-        client->display_view( 'MAIN' ).
-        client->display_message_box( 'method on_init of the abap controller was called' ).
+        client->view_show( 'MAIN' ).
+        client->popup_message_box( 'method on_init of the abap controller was called' ).
 
 
         "every event raised by an ui5 control , is send to this part
@@ -52,22 +52,22 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_ROUNDTRIP'.
-            client->display_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
+            client->popup_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
 
           WHEN 'BUTTON_RESTART'.
-            client->nav_app_call_new( NEW z2ui5_cl_app_demo_04( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_04( ) ).
 
           WHEN 'BUTTON_CHANGE_APP'.
-            client->nav_app_call_new( NEW z2ui5_cl_app_demo_01( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_01( ) ).
 
           WHEN 'BUTTON_CHANGE_VIEW'.
 
             "read the active view
             CASE client->get( )-view_active.
               WHEN 'MAIN'.
-                client->display_view( 'SECOND' ).
+                client->view_show( 'SECOND' ).
               WHEN 'SECOND'.
-                client->display_view( 'MAIN' ).
+                client->view_show( 'MAIN' ).
             ENDCASE.
 
         ENDCASE.
