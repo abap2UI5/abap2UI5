@@ -54,7 +54,7 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
           WHEN 'BUTTON_SEND'.
             client->set( event = mv_event_return ).
-            client->nav_to_id( client->get( )-id_prev_app ).
+            client->nav_app_leave_to_id( client->get( )-id_prev_app ).
 
         ENDCASE.
 

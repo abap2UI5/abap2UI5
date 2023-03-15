@@ -43,7 +43,7 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
             SORT t_tab BY value.
 
           WHEN 'BUTTON_POST'.
-            client->display_message_box( 'button post was pressed' ).
+            client->show_popup_message_box( 'button post was pressed' ).
         ENDCASE.
 
 

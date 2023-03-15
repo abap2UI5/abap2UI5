@@ -42,7 +42,7 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
 
         CASE client->get( )-event.
           WHEN 'BUTTON_SEGMENT_CHANGE'.
-            client->display_message_toast( `Selection Mode changed` ).
+            client->popup_message_toast( `Selection Mode changed` ).
 
           WHEN 'BUTTON_READ_SEL'.
             t_tab_sel = t_tab.

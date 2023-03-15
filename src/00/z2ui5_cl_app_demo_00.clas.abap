@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -22,43 +22,43 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN '0101'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_01( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_01( ) ).
 
           WHEN '0102'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_04( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_04( ) ).
 
           WHEN '0103'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_08( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_08( ) ).
 
           WHEN '0104'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_10( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_10( ) ).
 
           WHEN '0201'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_02( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_02( ) ).
 
           WHEN '0202'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_05( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_05( ) ).
 
           WHEN '0301'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_03( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_03( ) ).
 
           WHEN '0302'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_19( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_19( ) ).
 
           WHEN '0303'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_06( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_06( ) ).
 
           WHEN '0304'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_11( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_11( ) ).
 
           WHEN '0100'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_22( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_22( ) ).
 
           WHEN 'MIME_EDITOR'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_14( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_14( ) ).
 
           WHEN 'TABLE_MAINTENANCE'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_13( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_13( ) ).
 
         ENDCASE.
 
@@ -139,7 +139,28 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
               grow_Factor = '3'
         style_class = 'sapUiTinyMargin'
        ).
-
+*
+*        form->flex_box( class = 'columns'
+*             )->button( text = 'File Upload/Download'  press = view->_event( 'TABLE_MAINTENANCE' ) )->get(
+*             )->layout_data(
+*             )->flex_item_data( grow_Factor = '1' style_class = 'sapUiTinyMargin' )->get_parent( )->get_parent(
+*             )->text( text = 'Use the sap.ui.fileuploader to develop file transfer apps - upload files of jpeg/pdf/zip, display the content or download the data again'
+*             )->get(  )->layout_data( )->flex_item_data( grow_Factor = '3' style_class = 'sapUiTinyMargin' ).
+*
+*        form->flex_box( class = 'columns'
+*             )->button( text = 'Visualisation 1'  press = view->_event( 'TABLE_MAINTENANCE' ) )->get(
+*             )->layout_data(
+*             )->flex_item_data( grow_Factor = '1' style_class = 'sapUiTinyMargin' )->get_parent( )->get_parent(
+*             )->text( text = 'Use the sap.ui.fileuploader to develop file transfer apps - upload files of jpeg/pdf/zip, display the content or download the data again'
+*             )->get(  )->layout_data( )->flex_item_data( grow_Factor = '3' style_class = 'sapUiTinyMargin' ).
+*
+*         form->flex_box( class = 'columns'
+*             )->button( text = 'Visualisation 2'  press = view->_event( 'TABLE_MAINTENANCE' ) )->get(
+*             )->layout_data(
+*             )->flex_item_data( grow_Factor = '1' style_class = 'sapUiTinyMargin' )->get_parent( )->get_parent(
+*             )->text( text = 'Use the sap.ui.fileuploader to develop file transfer apps - upload files of jpeg/pdf/zip, display the content or download the data again'
+*             )->get(  )->layout_data( )->flex_item_data( grow_Factor = '3' style_class = 'sapUiTinyMargin' ).
+*
 
     ENDCASE.
 

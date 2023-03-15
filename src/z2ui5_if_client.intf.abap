@@ -22,10 +22,6 @@ INTERFACE z2ui5_if_client
       END OF s_request,
     END OF ty_s_get.
 
-  METHODS get
-    RETURNING
-      VALUE(result) TYPE ty_S_get.
-
   METHODS set
     IMPORTING
       event           TYPE clike OPTIONAL
@@ -33,45 +29,53 @@ INTERFACE z2ui5_if_client
       focus_pos       TYPE clike OPTIONAL
       page_scroll_pos TYPE i OPTIONAL.
 
+  METHODS get
+    RETURNING
+      VALUE(result) TYPE ty_S_get.
+
   METHODS get_app_by_id
     IMPORTING
       id            TYPE clike
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
 
-  METHODS nav_to_id
+
+  METHODS nav_app_leave
     IMPORTING
       id TYPE clike.
 
-  METHODS nav_to_app_new
+  METHODS nav_app_call
     IMPORTING
       app TYPE REF TO z2ui5_if_app.
 
-  METHODS nav_to_home.
+  METHODS nav_app_home.
 
-  METHODS display_message_box
+
+  METHODS popup_message_box
     IMPORTING
       text TYPE string
       type TYPE string DEFAULT 'information'.
 
-  METHODS display_message_toast
+  METHODS popup_message_toast
     IMPORTING
       text TYPE string.
 
-  METHODS display_view
+
+  METHODS view_show
     IMPORTING
       val               TYPE clike OPTIONAL
       check_no_rerender TYPE abap_bool DEFAULT abap_false
         PREFERRED PARAMETER val.
+
+  METHODS view_popup
+    IMPORTING
+      name TYPE clike.
+
 
   METHODS factory_view
     IMPORTING
       name          TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
-
-  METHODS display_popup
-    IMPORTING
-      name TYPE clike.
 
 ENDINTERFACE.

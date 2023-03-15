@@ -25,19 +25,19 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_MESSAGE_BOX'.
-            client->display_message_box( 'this is a message box' ).
+            client->popup_message_box( 'this is a message box' ).
 
           WHEN 'BUTTON_MESSAGE_BOX_ERROR'.
-            client->display_message_box( text = 'this is a message box' type = 'error' ).
+            client->popup_message_box( text = 'this is a message box' type = 'error' ).
 
           WHEN 'BUTTON_MESSAGE_BOX_SUCCESS'.
-            client->display_message_box( text = 'this is a message box' type = 'success' ).
+            client->popup_message_box( text = 'this is a message box' type = 'success' ).
 
           WHEN 'BUTTON_MESSAGE_BOX_WARNING'.
-            client->display_message_box( text = 'this is a message box' type = 'warning' ).
+            client->popup_message_box( text = 'this is a message box' type = 'warning' ).
 
           WHEN 'BUTTON_MESSAGE_TOAST'.
-            client->display_message_toast( 'this is a message toast' ).
+            client->popup_message_toast( 'this is a message toast' ).
 
           WHEN 'BUTTON_MESSAGE_STRIP_INFO'.
             check_strip_active = xsdbool( check_strip_active = abap_false ).

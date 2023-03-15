@@ -52,7 +52,7 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
           WHEN mv_cancel_event OR mv_confirm_event.
             client->set( event = client->get( )-event ).
-            client->nav_to_id( client->get( )-id_prev_app ).
+            client->nav_app_leave_to_id( client->get( )-id_prev_app ).
 
         ENDCASE.
 

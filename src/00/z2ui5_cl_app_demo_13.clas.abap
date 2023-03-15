@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
         ms_import-segment_key = 'json'.
         ms_import-editor = lcl_db=>get_test_data_json( ).
         ms_export-segment_key = 'json'.
-        client->display_view( 'IMPORT_TABLE' ).
+        client->view_show( 'IMPORT_TABLE' ).
 
       WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).
@@ -105,7 +105,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
           WHEN 'xml'  THEN lcl_db=>get_table_by_xml( ms_import-editor ) ).
 
         lcl_db=>db_save( ms_import-t_table ).
-        client->display_message_box( 'Table data imported successfully' ).
+        client->popup_message_box( 'Table data imported successfully' ).
 
       WHEN 'EXPORT_DB'.
         ms_export-t_table = lcl_db=>db_read( ).
@@ -114,18 +114,18 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
           WHEN 'csv'  THEN lcl_db=>get_csv_by_table( ms_export-t_table )
           WHEN 'xml'  THEN lcl_db=>get_xml_by_table( ms_export-t_table ) ).
 
-        client->display_message_box( 'Table data exported successfully' ).
+        client->popup_message_box( 'Table data exported successfully' ).
 
       WHEN 'IMPORT_CLEAR'.
         CLEAR ms_import-editor.
 
       WHEN 'EDIT_DB_READ'.
         ms_edit-t_table = lcl_db=>db_read( ).
-        client->display_message_box( 'Table read successfully' ).
+        client->popup_message_box( 'Table read successfully' ).
 
       WHEN 'EDIT_DB_SAVE'.
         lcl_db=>db_save( ms_edit-t_table ).
-        client->display_message_box( 'Table data saved to database successfully' ).
+        client->popup_message_box( 'Table data saved to database successfully' ).
 
       WHEN 'EDIT_ROW_DELETE'.
         DELETE ms_edit-t_table INDEX ms_edit-delete_index + 1.
@@ -137,11 +137,11 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
         INSERT VALUE #( ) INTO TABLE ms_edit-t_table.
 
       WHEN 'BTN_IMPORT'.
-        client->display_view( 'IMPORT_TABLE' ).
+        client->view_show( 'IMPORT_TABLE' ).
       WHEN 'BTN_EDIT'.
-        client->display_view( 'EDIT_TABLE' ).
+        client->view_show( 'EDIT_TABLE' ).
       WHEN 'BTN_EXPORT'.
-        client->display_view( 'EXPORT_TABLE' ).
+        client->view_show( 'EXPORT_TABLE' ).
 
     ENDCASE.
 

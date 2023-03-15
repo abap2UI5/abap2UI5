@@ -156,10 +156,10 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'BUTTON_SEND'.
-        client->display_message_box( 'Values were send to the server successfully' ).
+        client->show_popup_message_box( 'Values were send to the server successfully' ).
       WHEN 'BUTTON_CLEAR'.
         CLEAR screen.
-        client->display_message_toast( 'View initialized' ).
+        client->popup_message_toast( 'View initialized' ).
 
     ENDCASE.
 
