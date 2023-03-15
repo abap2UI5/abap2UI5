@@ -100,6 +100,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                            `                onEvent: function (oEvent, oEvent2, oEvent3, oEvent4) {` && |\n|  &&
                            `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
+                           `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                   `                    try {                                                           ` && |\n| &&
                      `                     this.oBody.scrollPos =  parseInt( this.oView.getContent()[ 0 ].getApp().getScrollDelegate().getScrollTop() );  ` && |\n| &&
@@ -115,8 +116,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    this.Roundtrip();` && |\n|  &&
                            `                },` && |\n|  &&
                            `                Roundtrip: function () {` && |\n|  &&
+                           `             sap.ui.core.BusyIndicator.show();` && |\n|  &&
                            `                    this.oView.destroy();` && |\n|  &&
-                           `                    sap.ui.core.BusyIndicator.show();` && |\n|  &&
+                           `                   ` && |\n|  &&
                            `                    if (this.getView().oPopup) {` && |\n|  &&
                            `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&
                            `                        this.getView().oPopup.destroy();` && |\n|  &&
@@ -137,6 +139,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            console.log(oResponse.vView);` && |\n|  &&
                            `                        }` && |\n|  &&
                            |\n|  &&
+                           `                       ` && |\n|  &&
                            `                        if (oResponse.oAfter) {` && |\n|  &&
                            `                            oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
                            `                        }` && |\n|  &&
