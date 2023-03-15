@@ -34,7 +34,7 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'abap2UI5 - Demo Layout' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Demo Layout' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
         page->header_content(
           )->button( text = 'button'

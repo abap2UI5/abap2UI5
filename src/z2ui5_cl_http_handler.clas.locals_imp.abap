@@ -356,6 +356,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _get_t_attri.
+
     CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
     FIELD-SYMBOLS <attribute> TYPE any.
 
@@ -807,7 +808,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
 
   METHOD get_val.
-    "r_result = mr_actual->*. "v_value.
+
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
     _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
@@ -856,11 +857,15 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD quote_json.
-    IF iv_cond = abap_true.
-      r_result = `"` && iv_text && `"`.  " escape_json( iv_text )
-    ELSE.
-      r_result = iv_text.
-    ENDIF.
+
+    r_result = COND #( WHEN iv_cond = abap_true THEN `"` && iv_text && `"` ELSE  iv_text ).
+
+*    IF iv_cond = abap_true.
+*      r_result = `"` && iv_text && `"`.
+*    ELSE.
+*      r_result = iv_text.
+*    ENDIF.
+
   ENDMETHOD.
 
   METHOD write_result.
@@ -976,11 +981,11 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
   PUBLIC SECTION.
 
     CLASS-DATA:
-      BEGIN OF client,
+      BEGIN OF ss_client,
         o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
         t_header TYPE z2ui5_cl_http_handler=>ty_t_name_value,
         t_param  TYPE z2ui5_cl_http_handler=>ty_t_name_value,
-      END OF client.
+      END OF ss_client.
 
     TYPES:
       BEGIN OF ty_S_db,
@@ -1025,13 +1030,13 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
-    DATA ms_next TYPE ty_s_next.
+    DATA ms_next   TYPE ty_s_next.
 
     METHODS constructor.
 
-    METHODS execute_init
+    CLASS-METHODS execute_init
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
 
     METHODS execute_before_app
       IMPORTING
@@ -1043,13 +1048,13 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(r_result) TYPE string.
 
-    METHODS set_app_client_update.
-    METHODS set_app_start.
+    CLASS-METHODS set_app_start
+      RETURNING
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS set_app_system_error
+    CLASS-METHODS set_app_client_update
       IMPORTING
-        kind            TYPE string
-        ix              TYPE REF TO cx_root
+        id_prev         TYPE clike
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
 
@@ -1061,9 +1066,12 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS set_app_client_display_id
+    METHODS set_app_system_error
+      IMPORTING
+        kind            TYPE string
+        ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
 
   PRIVATE SECTION.
 
@@ -1099,7 +1107,7 @@ ENDCLASS.
 CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD _get_name_by_ref.
-    " CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_APP->`.
+
     CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_RUNTIME->MS_DB-O_APP->`.
 
     IF type = cs-bind_type-one_time.
@@ -1247,8 +1255,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result->m_root = result.
     result->m_parent = result.
     result->mo_runtime = runtime.
-    "   result->mt_attri = t_attri.
-    " result->mo_app = o_app.
 
   ENDMETHOD.
 
@@ -1293,7 +1299,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_view.
-    "CONSTANTS c_prefix TYPE string VALUE `M_PARENT->MO_APP->`.
     CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_RUNTIME->MS_DB-O_APP->`.
 
     result-xml = m_root->xml_get( check_popup_active = check_popup_active
@@ -2277,7 +2282,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
               press = view->_event( 'BUTTON_HOME' )
         )->button(
               text = 'BACK'
-              press = view->_event_display_id( client->get( )-id_prev_app )
+              press = view->_event_display_id( client->get( )-id_prev_app_stack )
               type = 'Emphasized'
         ).
     ENDIF.
@@ -2374,23 +2379,18 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD execute_init.
 
-    client = VALUE #( t_header = z2ui5_cl_http_handler=>client-t_header
+    ss_client = VALUE #( t_header = z2ui5_cl_http_handler=>client-t_header
                       t_param  = z2ui5_cl_http_handler=>client-t_param
                       o_body   = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ) ).
 
     TRY.
-        ms_db-id_prev = client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'ID' )->get_val( ).
+        DATA(lv_id_prev) = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'ID' )->get_val( ).
       CATCH cx_root.
-        set_app_start( ).
+        r_result = set_app_start( ).
         RETURN.
     ENDTRY.
 
-    result = set_app_client_display_id( ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
-
-    set_app_client_update( ).
+    r_result = set_app_client_update( lv_id_prev ).
 
   ENDMETHOD.
 
@@ -2399,33 +2399,28 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     _=>raise( when = xsdbool( lines( ms_next-t_screen ) = 0 ) v = 'CX_SY_SUBRC' ).
 
-    IF ms_db-screen IS INITIAL.
-      DATA(lr_screen) = REF #( ms_next-t_screen[ 1 ] ).
-      ms_db-screen = lr_screen->name.
-    ELSE.
+    IF ms_db-screen IS NOT INITIAL.
       TRY.
-          lr_screen = REF #( ms_next-t_screen[ name = ms_db-screen ] ).
+          DATA(lr_screen) = REF #( ms_next-t_screen[ name = ms_db-screen ] ).
         CATCH cx_root.
-          RAISE EXCEPTION TYPE _
-            EXPORTING
-              val = `View with the name ` && ms_db-screen && ` not found - check the rendering`.
+          _=>raise( `View with the name ` && ms_db-screen && ` not found - check the rendering` ).
       ENDTRY.
+    ELSE.
+      lr_screen = REF #( ms_next-t_screen[ 1 ] ).
+      ms_db-screen = lr_screen->name.
     ENDIF.
 
-    DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
-
     DATA(ls_view) = lr_screen->o_parser->get_view( ).
-    " runtime = me ).
-    "
     ms_db-t_attri = ls_view-t_attri.
+
+    DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
     lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
     ls_view-o_model->mv_name = 'oViewModel'.
     lo_ui5_model->add_attribute_instance( ls_view-o_model ).
 
     DATA(lo_system) = lo_ui5_model->add_attribute_object( 'oSystem' ).
     lo_system->add_attribute( n = 'ID' v = ms_db-id ).
-    " lo_system->add_attribute( n = 'ID_PREV' v = ms_db-id_prev ).
-    " lo_system->add_attribute( n = 'ID_PREV_APP' v = ms_db-id_prev_app ).
+
     "    lo_ui5_model->add_attribute( n = 'CHECK_POPUP_ACTIVE' v = ''  apos_active = abap_false ).
     lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode )  apos_active = abap_false ).
 
@@ -2444,31 +2439,31 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     IF ms_next-page_scroll_pos IS NOT INITIAL.
       lo_ui5_model->add_attribute( n = 'PAGE_SCROLL_POS' v = CONV string( ms_next-page_scroll_pos ) apos_active = abap_false ).
     ENDIF.
-
     IF ms_next-focus_cursor_pos IS NOT INITIAL.
       lo_ui5_model->add_attribute( n = 'FOCUS_POS' v = CONV string( ms_next-focus_cursor_pos ) apos_active = abap_false ).
     ENDIF.
-
     r_result = lo_ui5_model->get_root( )->write_result( ).
 
     z2ui5_lcl_db=>create(
         id = ms_db-id
         response = r_result
         db = ms_db ).
+
   ENDMETHOD.
 
 
   METHOD set_app_client_update.
-    CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
 
-    DATA(ls_db_tmp) = ms_db.
-    ms_db = z2ui5_lcl_db=>load_app( ms_db-id_prev ).
-    ms_db-id = ls_db_tmp-id.
-    ms_db-id_prev = ls_db_tmp-id_prev.
+    CONSTANTS c_prefix TYPE string VALUE `R_RESULT->MS_DB-O_APP->`.
 
-    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+    r_result = NEW #( ).
+    DATA(lv_id) = r_result->ms_db-id.
+    r_result->ms_db = z2ui5_lcl_db=>load_app( id_prev ).
+    r_result->ms_db-id = lv_id.
+    r_result->ms_db-id_prev = id_prev.
+
+    LOOP AT r_result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
-
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
@@ -2478,12 +2473,12 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       CASE lr_attri->type_kind.
 
         WHEN 'g' OR 'I' OR 'C'.
-          DATA(lv_value) = client-o_body->get_attribute( lr_attri->name )->get_val( ).
+          DATA(lv_value) = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
           <attribute> = lv_value.
 
         WHEN 'h'.
           _=>trans_ref_tab_2_tab(
-               EXPORTING ir_tab_from = client-o_body->get_attribute( lr_attri->name )->mr_actual
+               EXPORTING ir_tab_from = ss_client-o_body->get_attribute( lr_attri->name )->mr_actual
                CHANGING ct_to   = <attribute> ).
 
       ENDCASE.
@@ -2491,65 +2486,61 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDLOOP.
 
     TRY.
-        ms_next-event = z2ui5_lcl_system_runtime=>client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
+        r_result->ms_next-event = z2ui5_lcl_system_runtime=>ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
     TRY.
-        ms_next-page_scroll_pos = z2ui5_lcl_system_runtime=>client-o_body->get_attribute( 'scrollPos' )->get_val( ).
-
+        r_result->ms_next-page_scroll_pos = z2ui5_lcl_system_runtime=>ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
-    ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+
   ENDMETHOD.
 
 
   METHOD set_app_start.
+
+    r_result = NEW #( ).
     DO.
       TRY.
+          r_result->ms_db-app_classname = ss_client-t_param[ name = 'app' ]-value.
 
-          client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
-                                    ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
+        CATCH cx_root ##CATCH_ALL.
+          r_result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+          EXIT.
+      ENDTRY.
 
-          TRY.
-              ms_db-app_classname = client-t_param[ name = 'APP' ]-value.
-            CATCH cx_root ##CATCH_ALL.
-              ms_db-o_app = NEW z2ui5_lcl_system_app( ).
-              EXIT.
-          ENDTRY.
-
-          CREATE OBJECT ms_db-o_app TYPE (ms_db-app_classname).
+      TRY.
+          CREATE OBJECT r_result->ms_db-o_app TYPE (r_result->ms_db-app_classname).
           EXIT.
 
         CATCH cx_root ##CATCH_ALL.
           DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
-            val = `Class with name ` && ms_db-app_classname && ` not found. Please check your repository.` ).
-          ms_db-o_app = CAST #( lo_error ).
+            val = `Class with name ` && r_result->ms_db-app_classname && ` not found. Please check your repository.` ).
+          r_result->ms_db-o_app = CAST #( lo_error ).
           EXIT.
       ENDTRY.
     ENDDO.
 
-    ms_db-app_classname     = _=>get_classname_by_ref( ms_db-o_app ).
-    ms_db-t_attri = _=>get_t_attri_by_ref( ms_db-o_app ).
-
-    ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    r_result->ms_db-app_classname      = _=>get_classname_by_ref( r_result->ms_db-o_app ).
+    r_result->ms_db-t_attri            = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
+    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
   ENDMETHOD.
 
   METHOD set_app_leave_to_id.
 
-    DATA(lo_runtime2) = NEW z2ui5_lcl_system_runtime( ).
-    lo_runtime2->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
-    "ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+    r_result = NEW z2ui5_lcl_system_runtime( ).
+    r_result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
     ms_next-nav_app_leave_to_id = ''.
-    lo_runtime2->ms_next = ms_next.
-    lo_runtime2->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+    r_result->ms_db-id_prev_app = ms_db-id.
+    r_result->ms_db-id_prev     = ms_db-id.
+    r_result->ms_next = ms_next.
+    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
     CLEAR ms_next.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
-
-    lo_runtime2->ms_db-id_prev_app_stack = ms_db-id_prev_app.
-    r_result = lo_runtime2.
 
   ENDMETHOD.
 
@@ -2564,17 +2555,14 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-id_prev_app_stack = ms_db-id.
     r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
-    " r_result->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
-    CLEAR client-o_body.
     r_result->ms_next-t_after = ms_next-t_after.
     r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
 
   ENDMETHOD.
 
   METHOD set_app_system_error.
-
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
     r_result = NEW #( ).
@@ -2586,23 +2574,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-id_prev_app_stack = ms_db-id.
     r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
-    " r_result->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
-    CLEAR client-o_body.
     r_result->ms_next-t_after = ms_next-t_after.
     r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
-
-
-
-
-
-
-
-*    r_result = factory_new(
-*             z2ui5_lcl_system_app=>factory_error(
-*                error = ix app = ms_db-o_app
-*                kind = kind ) ).
 
     r_result->ms_db-id_prev_app = ms_db-id.
     ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
@@ -2619,70 +2594,32 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
 
     CLEAR ms_actual.
+    DATA(lv_url) = ss_client-t_header[ name = 'referer' ]-value.
 
     ms_actual = VALUE #(
-         lifecycle_method = ms_next-lifecycle_method
-        check_previous_app = xsdbool( ms_db-id_prev_app IS NOT INITIAL )
-        view_active = ms_db-screen
-        id = ms_db-id
-        id_prev_app = ms_db-id_prev_app_stack
+        lifecycle_method = ms_next-lifecycle_method
+
+        id                = ms_db-id
+        id_prev_app       = ms_db-id_prev_app
+        id_prev_app_stack = ms_db-id_prev_app_stack
+
+        event           = ms_next-event
+        view_active     = ms_db-screen
+        page_scroll_pos = ms_next-page_scroll_pos
+
+        s_request = VALUE #(
+             tenant = sy-mandt
+             url_app = lv_url && '?sap-client=' && ms_actual-s_request-tenant && '&app=' && ms_db-app_classname
+             url_app_gen = lv_url && '?sap-client=' && ms_actual-s_request-tenant && '&app='
+             origin = ss_client-t_header[ name = 'origin' ]-value
+             url_source_code = ms_actual-s_request-origin && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
+        )
     ).
-
-    DATA(lv_url) = client-t_header[ name = 'referer' ]-value.
-
-    ms_actual-s_request-tenant = sy-mandt.
-    ms_actual-s_request-url_app = lv_url && '?sap-client=' && ms_actual-s_request-tenant && '&app=' && ms_db-app_classname.
-    ms_actual-s_request-url_app_gen = lv_url && '?sap-client=' && ms_actual-s_request-tenant && '&app='.
-    ms_actual-s_request-origin = client-t_header[ name = 'origin' ]-value.
-    ms_actual-s_request-url_source_code = ms_actual-s_request-origin && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`.
-
-    ms_actual-lifecycle_method = ms_next-lifecycle_method.
-    ms_actual-event = ms_next-event.
-    ms_actual-page_scroll_pos = ms_next-page_scroll_pos.
 
     CLEAR ms_next.
 
   ENDMETHOD.
 
-
-
-  METHOD set_app_client_display_id.
-
-    TRY.
-        DATA(lv_method_event) = client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'METHOD' )->get_val( ).
-        IF lv_method_event <> 'DISPLAY_ID'.
-          RETURN.
-        ENDIF.
-
-        DATA(lv_uuid) = client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'ID' )->get_val( ).
-
-        DATA(ls_db2) = z2ui5_lcl_db=>read( lv_uuid ).
-
-        IF ls_db2-response IS NOT INITIAL.
-          r_result = ls_db2-response.
-          RETURN.
-        ENDIF.
-
-        _=>trans_xml_2_object(
-            EXPORTING
-                xml    = ls_db2-data
-            IMPORTING
-                data   = ms_db
-            ).
-
-        ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-
-        ROLLBACK WORK.
-        CAST z2ui5_if_app( ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( me ) ).
-        ROLLBACK WORK.
-
-        r_result = execute_finish( ).
-
-
-      CATCH cx_root.
-    ENDTRY.
-
-  ENDMETHOD.
 
 ENDCLASS.
 
@@ -2749,6 +2686,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~set.
+
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     IF page_scroll_pos IS SUPPLIED.
@@ -2794,6 +2732,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_leave.
 
+    _=>raise( when = xsdbool( id = '' ) v = 'NAV_APP_LEAVE_ID_EMPTY' ).
     mo_runtime->ms_next-nav_app_leave_to_id = id.
 
   ENDMETHOD.

@@ -48,9 +48,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
+    client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
+                                 ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
+
     DATA(lv_url) = client-t_header[ name = '~path' ]-value.
     TRY.
-        DATA(lv_app) = client-t_param[ name = 'app' ]-value.
+        DATA(lv_app) = client-t_param[ name = 'APP' ]-value.
         lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
@@ -321,41 +324,43 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-    DATA(lo_runtime) = NEW z2ui5_lcl_system_runtime( ).
-    result = lo_runtime->execute_init( ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
+    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>execute_init( ).
 
     DO.
       TRY.
+
           DATA(li_client) = lo_runtime->execute_before_app( ).
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
+
 
         CATCH cx_root INTO DATA(cx).
           lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
           CONTINUE.
       ENDTRY.
 
+
       IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_call_new(  ).
+        lo_runtime = lo_runtime->set_app_call_new( ).
         CONTINUE.
       ENDIF.
 
       IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_leave_to_id(  ).
+        lo_runtime = lo_runtime->set_app_leave_to_id( ).
         CONTINUE.
       ENDIF.
 
+
       TRY.
+
           li_client = lo_runtime->execute_before_app( z2ui5_if_client=>cs-lifecycle_method-on_rendering ).
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
 
           result = lo_runtime->execute_finish( ).
+
 
         CATCH cx_root INTO cx.
           lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).

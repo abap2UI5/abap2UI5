@@ -68,7 +68,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
 
         page->input(
@@ -84,7 +84,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
         page->button(
             text    = 'Popup select'
-            press   = 'BUTTON_POPUP_SELECT'
+            press   = view->_event( 'BUTTON_POPUP_SELECT' )
        ).
 
 

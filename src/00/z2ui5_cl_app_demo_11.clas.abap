@@ -51,7 +51,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2UI5 - Tables and editable' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Tables and editable' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
    page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 

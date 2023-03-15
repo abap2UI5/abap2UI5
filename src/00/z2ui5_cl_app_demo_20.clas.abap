@@ -52,14 +52,14 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
           WHEN mv_cancel_event OR mv_confirm_event.
             client->set( event = client->get( )-event ).
-            client->nav_app_leave_to_id( client->get( )-id_prev_app ).
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
         page->text( text = mv_text ).
         page->button( text = mv_cancel_text press = view->_event( mv_cancel_event ) ).

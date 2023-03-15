@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -60,6 +60,9 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
           WHEN 'TABLE_MAINTENANCE'.
             client->nav_app_call( NEW z2ui5_cl_app_demo_13( ) ).
 
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
         ENDCASE.
 
 
@@ -67,15 +70,16 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'abap2UI5 - Demo Section' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
-            ).
+        DATA(page) = view->page( title = 'abap2UI5 - Demo Section'
+            nav_button_tap = view->_event( 'BACK' ) ). "view->_event_display_id( client->get( )-id_prev_app_stack )
+
 
         page->header_content(
             )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
             )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
-        data(grid) = page->grid( default_span  = 'L3 M6 S12' )->content( 'l' ).
+        DATA(grid) = page->grid( default_span  = 'L3 M6 S12' )->content( 'l' ).
 
         grid->simple_form( 'HowTo - General' )->content( 'f'
             )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )

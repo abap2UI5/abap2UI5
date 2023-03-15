@@ -151,7 +151,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
   METHOD z2ui5_on_render_view_import.
 
     DATA(view) = client->factory_view( 'IMPORT_TABLE' ).
-    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
    page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
@@ -188,7 +188,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
   METHOD z2ui5_on_render_view_edit.
 
     DATA(view) = client->factory_view( 'EDIT_TABLE' ).
-    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
     page->sub_header( )->overflow_toolbar(
        )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' )
@@ -234,7 +234,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
   METHOD z2ui5_on_render_view_export.
 
     DATA(view) = client->factory_view( 'EXPORT_TABLE' ).
-    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
     page->sub_header( )->overflow_toolbar(
     )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' )

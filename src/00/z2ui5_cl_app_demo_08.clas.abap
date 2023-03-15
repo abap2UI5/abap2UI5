@@ -60,7 +60,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         "Definition of View Main
         DATA(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Messages' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Messages' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
          page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         IF check_strip_active = abap_true.

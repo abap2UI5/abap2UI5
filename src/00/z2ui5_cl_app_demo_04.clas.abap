@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
         "Definition of View Main
         DATA(view) = client->factory_view( 'MAIN' ).
 
-        view->page( title = 'abap2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        view->page( title = 'abap2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack )
            )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
@@ -101,7 +101,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
         "Definition of View Second
         view = client->factory_view( 'SECOND' ).
         view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                THEN view->_event_display_id( client->get( )-id_prev_app ) )
+                THEN view->_event_display_id( client->get( )-id_prev_app_stack ) )
 
           )->grid( default_span  = 'L12 M12 S12' )->content( 'l'
           )->simple_form( 'View Second' )->content( 'f'

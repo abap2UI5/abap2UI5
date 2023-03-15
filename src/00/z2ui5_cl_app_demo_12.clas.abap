@@ -47,7 +47,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example ABAP2UI5 - Table SPFLI' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'Example ABAP2UI5 - Table SPFLI' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
         page->list(
            header_text = 'Flights Alitalia'
