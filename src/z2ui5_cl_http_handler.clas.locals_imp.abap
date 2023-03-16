@@ -124,7 +124,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
-        io_app   TYPE REF TO object
+        io_app          TYPE REF TO object
       RETURNING
         VALUE(r_result) TYPE ty-t-attri.
 
@@ -136,8 +136,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_params_by_url
       IMPORTING
-        url      TYPE string
-        name     TYPE string
+        url             TYPE string
+        name            TYPE string
       RETURNING
         VALUE(r_result) TYPE string.
 
@@ -1061,7 +1061,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         focus_sel_start     TYPE i,
         focus_sel_end       TYPE i,
 
-        t_screen            TYPE STANDARD TABLE OF s_screen WITH empty KEY,
+        t_screen            TYPE STANDARD TABLE OF s_screen WITH EMPTY KEY,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -1509,7 +1509,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     SPLIT val AT '<' INTO TABLE DATA(lt_table).
 
-    DATA(lv_html) = VALUE #( lt_table[ 1 ] OPTIONAL ).
+    data(lv_html) = ``.
+    lv_html = VALUE #( lt_table[ 1 ] OPTIONAL ).
+
     LOOP AT lt_table REFERENCE INTO DATA(lr_line) FROM 2.
 
       IF lr_line->*(1) = '/'.
@@ -2231,9 +2233,12 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
           WHEN 'DEMOS'.
             DATA li_app TYPE REF TO z2ui5_if_app.
-            CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
-            client->nav_app_call( li_app ).
-
+            TRY.
+                CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
+                client->nav_app_call( li_app ).
+              CATCH cx_root.
+                client->popup_message_box( `Demos not available. Check the demo folder or you release is lower v750` ).
+            ENDTRY.
         ENDCASE.
 
       WHEN 'ERROR'.
@@ -2293,19 +2298,10 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
             href = lv_link
              enabled = xsdbool( ms_home-class_editable = abap_false )
         ).
-    TRY.
-        DATA li_app TYPE REF TO z2ui5_if_app.
-        CREATE OBJECT li_app TYPE ('Z2UI5_CL_APP_DEMO_00').
-        client->nav_app_call( li_app ).
-        DATA(lv_check_demo_active) = abap_true.
-        DATA(lv_text) = `Press to continue..`.
-      CATCH cx_root.
-        lv_check_demo_active = abap_false.
-        lv_text = `Press to continue... (only available with Netweaver v7.50 or higher)`.
-    ENDTRY.
+
     grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
     grid->simple_form( 'Applications and Examples' )->content( 'f'
-      )->button( text = lv_text press = view->_event( 'DEMOS' ) enabled = lv_check_demo_active ).
+      )->button( text = `Press to continue..` press = view->_event( 'DEMOS' ) ).
 
     IF ms_error-x_error IS BOUND.
       view = client->factory_view( 'ERROR' ).
@@ -2628,7 +2624,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
             val = `Class with name ` && r_result->ms_db-app_classname && ` not found. Please check your repository.` ).
-          r_result->ms_db-o_app = CAST #( lo_error ).
+          r_result->ms_db-o_app = lo_error.
           EXIT.
       ENDTRY.
     ENDDO.
