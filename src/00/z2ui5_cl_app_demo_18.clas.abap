@@ -46,7 +46,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 *            mv_editor = ``.
 
           WHEN 'UPLOAD'.
-            DATA(dummy) = ''.
+            DATA(lv_dummy) = ''.
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
@@ -59,7 +59,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
         "  DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         page->zz_file_uploader(
-            value       = view->_bind( mv_value  )
+            value       = view->_bind( mv_value )
             path        = view->_bind( mv_path )
             placeholder = 'filepath here...'
             upload      = view->_event( 'UPLOAD' )

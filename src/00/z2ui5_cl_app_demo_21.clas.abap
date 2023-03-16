@@ -49,17 +49,17 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
                    i_cancel_text   = 'No'
                    i_cancel_event  = 'POPUP_CONFIRM_NO'
                    i_confirm_text  = 'Yes'
-                   i_confirm_event = 'POPUP_CONFIRM_YES'   )
+                   i_confirm_event = 'POPUP_CONFIRM_YES' )
                ).
 
           WHEN 'BUTTON_POPUP_SELECT'.
             DATA(lo_popup_select) = z2ui5_cl_app_demo_23=>factory(
                  event_callback = 'POPUP_SELECT_RETURN'
                  i_tab = VALUE #( descr = 'this is a description'
-                                     (  title = 'title_01'  value = 'value_01'  )
-                                     (  title = 'title_02'  value = 'value_02'  )
-                                     (  title = 'title_03'  value = 'value_03'  )
-                                     (  title = 'title_04'  value = 'value_04'  ) ) ).
+                                     (  title = 'title_01'  value = 'value_01' )
+                                     (  title = 'title_02'  value = 'value_02' )
+                                     (  title = 'title_03'  value = 'value_03' )
+                                     (  title = 'title_04'  value = 'value_04' ) ) ).
             client->nav_app_call( lo_popup_select ).
 
           WHEN 'POPUP_SELECT_RETURN'.
@@ -98,7 +98,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
               i_cancel_text   = 'No'
               i_cancel_event  = 'POPUP_CONFIRM_NO'
               i_confirm_text  = 'Yes'
-              i_confirm_event = 'POPUP_CONFIRM_YES'   )
+              i_confirm_event = 'POPUP_CONFIRM_YES' )
           ).
 
           WHEN 'BUTTON_POPUP_06'.

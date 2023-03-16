@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'CALL_NEW_APP'.
-            client->nav_app_call( NEW z2ui5_cl_app_demo_25( )  ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_25( ) ).
 
           WHEN 'CALL_NEW_APP_VIEW'.
             client->nav_app_call( NEW z2ui5_cl_app_demo_25( ) ).

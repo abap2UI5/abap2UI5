@@ -15,8 +15,6 @@ CLASS z2ui5_lcl_unit_test IMPLEMENTATION.
     z2ui5_cl_http_handler=>client = VALUE #(
       t_header = VALUE #( ( name = `~path` value = `/sap/bc/http/sap/zz99test` ) ) ).
 
-      data(test) = 'aaa2'.
-
     DATA(lv_index_html) = z2ui5_cl_http_handler=>main_index_html( ).
 
     IF lv_index_html IS INITIAL.

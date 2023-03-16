@@ -74,7 +74,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
 
         DATA(page) = view->page( title = 'abap2UI5 - Demo Section'
-            nav_button_tap = view->_event( 'BACK' ) ). "view->_event_display_id( client->get( )-id_prev_app_stack )
+            nav_button_tap = view->_event( 'BACK' ) ).
 
 
         page->header_content(

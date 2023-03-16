@@ -38,7 +38,7 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
                      ' long text this is a long text this is a long text this is a long text this is a long text this is a long text.'.
         mv_value3 = mv_value2.
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 100 NEXT
-             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description'  ) ) ).
+             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' ) ) ).
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -85,7 +85,7 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         page->input( value = view->_bind( mv_value1 ) ).
-        page->text_area(  width = '100%' height = '20%' value = view->_bind( mv_value2 ) ).
+        page->text_area( width = '100%' height = '20%' value = view->_bind( mv_value2 ) ).
 
         page->button( text = 'focus input pos 3'  press = view->_event( 'BUTTON_FOCUS_FIRST' ) ).
         page->button( text = 'focus text area pos 20'  press = view->_event( 'BUTTON_FOCUS_SECOND' ) ).
@@ -105,7 +105,7 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
            )->text( '{INFO}'
            )->text( '{DESCR}' ).
 
-        page->text_area(  width = '100%' height = '20%' value = view->_bind( mv_value3 ) ).
+        page->text_area( width = '100%' height = '20%' value = view->_bind( mv_value3 ) ).
 
         page->footer( )->overflow_toolbar(
               )->button( text = 'Scroll Top'     press = view->_event( 'BUTTON_SCROLL_TOP' )

@@ -32,11 +32,11 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
         mv_sel_mode = 'None'.
         t_tab = VALUE #( descr = 'this is a description'
-            (  title = 'title_01'  value = 'value_01'  )
-            (  title = 'title_02'  value = 'value_02'  )
-            (  title = 'title_03'  value = 'value_03'  )
-            (  title = 'title_04'  value = 'value_04'  )
-            (  title = 'title_05'  value = 'value_05'  )  ).
+            (  title = 'title_01'  value = 'value_01' )
+            (  title = 'title_02'  value = 'value_02' )
+            (  title = 'title_03'  value = 'value_03' )
+            (  title = 'title_04'  value = 'value_04' )
+            (  title = 'title_05'  value = 'value_05' ) ).
 
       WHEN client->cs-lifecycle_method-on_event.
 
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
 
         DATA(tab) = page->table(
             header_text = 'Table'
-            mode =  mv_sel_mode
+            mode = mv_sel_mode
             items = view->_bind( t_tab ) ).
 
         tab->columns(

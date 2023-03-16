@@ -36,7 +36,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
                 WHEN mv_path CS 'json' THEN lcl_mime_api=>read_json( )
                 WHEN mv_path CS 'yaml' THEN lcl_mime_api=>read_yaml( )
                 WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( ) ).
-            client->popup_message_toast( 'Download successfull').
+            client->popup_message_toast( 'Download successfull' ).
 
           WHEN 'DB_SAVE'.
             lcl_mime_api=>save_data( mv_editor ).

@@ -40,8 +40,6 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
   ENDMETHOD.
 
 
-
-
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
@@ -69,7 +67,7 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
         DATA(tab) = page->table(
             header_text = 'Table'
-            mode =  'SingleSelectLeft'
+            mode = 'SingleSelectLeft'
             items = view->_bind( t_tab ) ).
 
         tab->columns(

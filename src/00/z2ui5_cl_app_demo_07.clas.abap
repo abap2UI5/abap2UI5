@@ -61,7 +61,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
         DATA(tab) = page->table(
             header_text = 'Table with 100 entries'
-            mode =  'MultiSelect' " 'SingleSelectMaster' "'MultiSelect'
+            mode = 'MultiSelect'
             items = view->_bind( t_tab ) ).
 
         "set header
