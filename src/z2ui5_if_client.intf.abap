@@ -6,6 +6,7 @@ INTERFACE z2ui5_if_client
   TYPES:
     BEGIN OF ty_S_get,
       view_active        TYPE string,
+      popup_active       type string,
       check_previous_app TYPE abap_bool,
       event              TYPE string,
       page_scroll_pos    TYPE i,
@@ -28,7 +29,8 @@ INTERFACE z2ui5_if_client
       event           TYPE clike OPTIONAL
       focus           TYPE clike OPTIONAL
       focus_pos       TYPE clike OPTIONAL
-      page_scroll_pos TYPE i OPTIONAL.
+      page_scroll_pos TYPE i OPTIONAL
+      set_prev_view   type abap_bool optional.
 
   METHODS get
     RETURNING
