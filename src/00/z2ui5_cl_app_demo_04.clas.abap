@@ -14,13 +14,13 @@ CLASS z2ui5_cl_app_demo_04 DEFINITION PUBLIC.
     DATA mo_app TYPE REF TO z2ui5_if_app.
     DATA mv_name_attri TYPE string.
 
-PROTECTED SECTION.
-PRIVATE SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
 
 
   METHOD factory.
@@ -42,8 +42,8 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
 
         "set init values or view here
-        client->display_view( 'MAIN' ).
-        client->display_message_box( 'method on_init of the abap controller was called' ).
+        client->view_show( 'MAIN' ).
+        client->popup_message_box( 'method on_init of the abap controller was called' ).
 
 
         "every event raised by an ui5 control , is send to this part
@@ -52,23 +52,29 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_ROUNDTRIP'.
-            client->display_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
+            client->popup_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
 
           WHEN 'BUTTON_RESTART'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_04( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_04( ) ).
 
           WHEN 'BUTTON_CHANGE_APP'.
-            client->nav_to_app_new( NEW z2ui5_cl_app_demo_01( ) ).
+            client->nav_app_call( NEW z2ui5_cl_app_demo_01( ) ).
 
           WHEN 'BUTTON_CHANGE_VIEW'.
 
             "read the active view
             CASE client->get( )-view_active.
               WHEN 'MAIN'.
-                client->display_view( 'SECOND' ).
+                client->view_show( 'SECOND' ).
               WHEN 'SECOND'.
-                client->display_view( 'MAIN' ).
+                client->view_show( 'MAIN' ).
             ENDCASE.
+
+          WHEN 'BUTTON_ERROR'.
+            DATA(lv_dummy) = 1 / 0.
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
 
@@ -79,7 +85,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
         "Definition of View Main
         DATA(view) = client->factory_view( 'MAIN' ).
 
-        view->page( title = 'abap2UI5 - Controller' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app )
+        view->page( title = 'abap2UI5 - Controller' nav_button_tap = view->_event( 'BACK' )
            )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
@@ -94,14 +100,15 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
              )->label( 'Change View'
              )->button( text = 'Display View SECOND' press = view->_event( 'BUTTON_CHANGE_VIEW' )
 
-             )->label( 'Change App'
-             )->button( text = 'Display APP_DEMO_01' press = view->_event( 'BUTTON_CHANGE_APP' ) ).
+             )->label( 'CX_SY_ZERO_DIVIDE'
+             )->button( text = 'Error not catched by the user' press = view->_event( 'BUTTON_ERROR' )
+             ).
+
 
 
         "Definition of View Second
         view = client->factory_view( 'SECOND' ).
-        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = COND #( WHEN client->get( )-check_previous_app IS NOT INITIAL
-                THEN view->_event_display_id( client->get( )-id_prev_app ) )
+        view->page( title = 'ABAP2UI5 - Controller' nav_button_tap = view->_event( 'BACK' )
 
           )->grid( default_span  = 'L12 M12 S12' )->content( 'l'
           )->simple_form( 'View Second' )->content( 'f'

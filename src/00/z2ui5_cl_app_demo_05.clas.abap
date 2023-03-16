@@ -23,13 +23,13 @@ CLASS z2ui5_cl_app_demo_05 DEFINITION PUBLIC.
         text_area         TYPE string,
       END OF screen.
 
-PROTECTED SECTION.
-PRIVATE SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_05 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -59,9 +59,12 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
             DATA(lv_dummy) = 'user pressed a button, your custom implementation can be called here'.
 
           WHEN 'BUTTON_MSG_BOX'.
-            client->display_message_box(
+            client->popup_message_box(
               text = 'this is a message box with a custom text'
               type = 'success' ).
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
 
@@ -69,7 +72,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen more Controls' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen more Controls' nav_button_tap = view->_event( 'BACK' ) ).
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         page->message_strip( text = 'this is a success message strip' type = 'Success' ).

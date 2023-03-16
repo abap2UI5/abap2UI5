@@ -45,11 +45,11 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE string.
 
-  METHODS _event_display_id
-    IMPORTING
-      val           TYPE string
+
+  METHODS _event_frontend_close_popup
     RETURNING
       VALUE(result) TYPE string.
+
 
   METHODS layout_data
     RETURNING
@@ -104,15 +104,15 @@ INTERFACE z2ui5_if_view
       value            TYPE clike OPTIONAL
       placeholder      TYPE clike OPTIONAL
       type             TYPE clike OPTIONAL
-      show_clear_icon  TYPE abap_bool optional
+      show_clear_icon  TYPE abap_bool OPTIONAL
       value_state      TYPE clike OPTIONAL
       value_state_text TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE abap_bool DEFAULT abap_true
       suggestion_items TYPE string OPTIONAL
       showsuggestion   TYPE abap_bool DEFAULT abap_true
-      showValueHelp    type abap_bool optional
-      valueHelpRequest type string optional
+      showValueHelp    TYPE abap_bool OPTIONAL
+      valueHelpRequest TYPE string OPTIONAL
         PREFERRED PARAMETER value
     RETURNING
       VALUE(result)    TYPE REF TO  z2ui5_if_view.
@@ -162,7 +162,7 @@ INTERFACE z2ui5_if_view
       growing_threshold TYPE string DEFAULT ''
       header_text       TYPE string OPTIONAL
       sticky            TYPE string OPTIONAL
-      mode              type string optional
+      mode              TYPE string OPTIONAL
         PREFERRED PARAMETER items
     RETURNING
       VALUE(result)     TYPE REF TO  z2ui5_if_view.
@@ -231,7 +231,7 @@ INTERFACE z2ui5_if_view
   METHODS column_list_item
     IMPORTING
       valign        TYPE string DEFAULT 'Middle'
-      selected      type string optional
+      selected      TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
@@ -441,9 +441,9 @@ INTERFACE z2ui5_if_view
   METHODS segmented_button
     IMPORTING
       selected_key     TYPE string
-      selection_Change  type string OPTIONAL
+      selection_Change TYPE string OPTIONAL
     RETURNING
-      VALUE(result) TYPE REF TO  z2ui5_if_view.
+      VALUE(result)    TYPE REF TO  z2ui5_if_view.
 
   METHODS checkbox
     IMPORTING
@@ -476,7 +476,7 @@ INTERFACE z2ui5_if_view
       value         TYPE clike OPTIONAL
       path          TYPE clike OPTIONAL
       placeholder   TYPE clike OPTIONAL
-      upload        type clike optional
+      upload        TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 

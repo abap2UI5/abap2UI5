@@ -43,14 +43,18 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
             SORT t_tab BY value.
 
           WHEN 'BUTTON_POST'.
-            client->display_message_box( 'button post was pressed' ).
+            client->popup_message_box( 'button post was pressed' ).
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
         ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2UI5 - Scroll Container with Table and Toolbar' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Scroll Container with Table and Toolbar' nav_button_tap = view->_event( 'BACK' ) ).
 
          page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 

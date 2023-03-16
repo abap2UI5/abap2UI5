@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_14 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_17 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -14,8 +14,7 @@ CLASS z2ui5_cl_app_demo_14 DEFINITION PUBLIC.
 ENDCLASS.
 
 
-
-CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_17 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -36,13 +35,11 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
                 WHEN mv_path CS 'abap' THEN lcl_mime_api=>read_abap( )
                 WHEN mv_path CS 'json' THEN lcl_mime_api=>read_json( )
                 WHEN mv_path CS 'yaml' THEN lcl_mime_api=>read_yaml( )
-                WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( )
-                WHEN mv_path CS 'js'   THEN lcl_mime_api=>read_js( )
-                ).
+                WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( ) ).
             client->popup_message_toast( 'Download successfull' ).
 
           WHEN 'DB_SAVE'.
-            lcl_mime_api=>save_data( ).
+            lcl_mime_api=>save_data( mv_editor ).
             client->popup_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
 
           WHEN 'EDIT'.
@@ -57,9 +54,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
-
+        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
@@ -72,7 +67,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
              )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'
-                )->scroll_container( '75%' )->code_editor(
+                )->code_editor(
                         type  = mv_type
                         editable = mv_check_editable
                         value = view->_bind( mv_editor ) ).
@@ -93,6 +88,8 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
                 type  = 'Emphasized'
                 icon = 'sap-icon://upload-to-cloud'
                 enabled = xsdbool( mv_editor IS NOT INITIAL ) ).
+
+        mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
 
     ENDCASE.
 

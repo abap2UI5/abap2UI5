@@ -5,19 +5,22 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
     CLASS-METHODS factory
       IMPORTING
-        i_text TYPE string
-        i_cancel_text TYPE string
-        i_cancel_event TYPE string
-        i_confirm_text TYPE string
+        i_text          TYPE string
+        i_cancel_text   TYPE string
+        i_cancel_event  TYPE string
+        i_confirm_text  TYPE string
         i_confirm_event TYPE string
+        i_check_show_previous_view type abap_bool optional
       RETURNING
-        value(r_result) TYPE REF TO z2ui5_cl_app_demo_20.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_app_demo_20.
 
     DATA mv_text TYPE string.
     DATA mv_cancel_text TYPE string.
     DATA mv_cancel_event TYPE string.
     DATA mv_confirm_text TYPE string.
     DATA mv_confirm_event TYPE string.
+
+    data mv_check_show_previous_view type abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -36,6 +39,7 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
     r_result->mv_cancel_event = i_cancel_event.
     r_result->mv_confirm_text = i_confirm_text.
     r_result->mv_confirm_event = i_confirm_event.
+    r_result->mv_check_show_previous_view = i_check_show_previous_view.
 
   ENDMETHOD.
 
@@ -45,6 +49,10 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
+      if mv_check_show_previous_view = abap_true.
+      client->set( set_prev_view = abap_true ).
+      endif.
+        client->view_popup( 'POPUP_DECIDE' ).
 
       WHEN client->cs-lifecycle_method-on_event.
 
@@ -52,14 +60,15 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
           WHEN mv_cancel_event OR mv_confirm_event.
             client->set( event = client->get( )-event ).
-            client->nav_to_id( client->get( )-id_prev_app ).
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app ) ).
+        DATA(view) = client->factory_view( 'POPUP_DECIDE' ).
+
+        DATA(page) = view->dialog( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' ).
 
         page->text( text = mv_text ).
         page->button( text = mv_cancel_text press = view->_event( mv_cancel_event ) ).

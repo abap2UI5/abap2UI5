@@ -6,13 +6,15 @@ INTERFACE z2ui5_if_client
   TYPES:
     BEGIN OF ty_S_get,
       view_active        TYPE string,
+      popup_active       type string,
       check_previous_app TYPE abap_bool,
       event              TYPE string,
       page_scroll_pos    TYPE i,
       lifecycle_method   TYPE string,
       id                 TYPE string,
       id_prev            TYPE string,
-      id_prev_app        TYPE string,
+      id_prev_app        type string,
+      id_prev_app_stack  TYPE string,
       BEGIN OF s_request,
         tenant          TYPE string,
         url_app         TYPE string,
@@ -22,16 +24,17 @@ INTERFACE z2ui5_if_client
       END OF s_request,
     END OF ty_s_get.
 
-  METHODS get
-    RETURNING
-      VALUE(result) TYPE ty_S_get.
-
   METHODS set
     IMPORTING
       event           TYPE clike OPTIONAL
       focus           TYPE clike OPTIONAL
       focus_pos       TYPE clike OPTIONAL
-      page_scroll_pos TYPE i OPTIONAL.
+      page_scroll_pos TYPE i OPTIONAL
+      set_prev_view   type abap_bool optional.
+
+  METHODS get
+    RETURNING
+      VALUE(result) TYPE ty_S_get.
 
   METHODS get_app_by_id
     IMPORTING
@@ -39,39 +42,43 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
 
-  METHODS nav_to_id
+
+  METHODS nav_app_leave
     IMPORTING
       id TYPE clike.
 
-  METHODS nav_to_app_new
+  METHODS nav_app_call
     IMPORTING
       app TYPE REF TO z2ui5_if_app.
 
-  METHODS nav_to_home.
+  METHODS nav_app_home.
 
-  METHODS display_message_box
+
+  METHODS popup_message_box
     IMPORTING
       text TYPE string
       type TYPE string DEFAULT 'information'.
 
-  METHODS display_message_toast
+  METHODS popup_message_toast
     IMPORTING
       text TYPE string.
 
-  METHODS display_view
+
+  METHODS view_show
     IMPORTING
       val               TYPE clike OPTIONAL
       check_no_rerender TYPE abap_bool DEFAULT abap_false
         PREFERRED PARAMETER val.
+
+  METHODS view_popup
+    IMPORTING
+      name TYPE clike.
+
 
   METHODS factory_view
     IMPORTING
       name          TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
-
-  METHODS display_popup
-    IMPORTING
-      name TYPE clike.
 
 ENDINTERFACE.
