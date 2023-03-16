@@ -2635,10 +2635,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-id_prev_app_stack = ms_db-id.
-    "   r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
-    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
+    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
     r_result->ms_next-t_after = ms_next-t_after.
+    r_result->ms_next-view    = ms_next-view.
+    r_result->ms_next-event   = ms_next-event.
+
+
     r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
 
   ENDMETHOD.
@@ -2701,6 +2704,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ).
 
     CLEAR ms_next.
+
+    IF ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+      "case call new app with view
+      ms_next-view = ms_actual-view_active.
+    ENDIF.
 
   ENDMETHOD.
 

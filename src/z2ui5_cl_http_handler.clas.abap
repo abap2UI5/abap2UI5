@@ -334,10 +334,17 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       TRY.
 
           DATA(li_client) = lo_runtime->execute_before_app( ).
+
+          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+            ROLLBACK WORK.
+            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+            ROLLBACK WORK.
+            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+          ENDIF.
+
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
-
 
         CATCH cx_root INTO DATA(cx).
           lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
