@@ -10,6 +10,7 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
         i_cancel_event  TYPE string
         i_confirm_text  TYPE string
         i_confirm_event TYPE string
+        i_check_show_previous_view type abap_bool optional
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_app_demo_20.
 
@@ -18,6 +19,8 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
     DATA mv_cancel_event TYPE string.
     DATA mv_confirm_text TYPE string.
     DATA mv_confirm_event TYPE string.
+
+    data mv_check_show_previous_view type abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -36,6 +39,7 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
     r_result->mv_cancel_event = i_cancel_event.
     r_result->mv_confirm_text = i_confirm_text.
     r_result->mv_confirm_event = i_confirm_event.
+    r_result->mv_check_show_previous_view = i_check_show_previous_view.
 
   ENDMETHOD.
 
@@ -45,6 +49,9 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
+      if mv_check_show_previous_view = abap_true.
+      client->set( set_prev_view = abap_true ).
+      endif.
         client->view_popup( 'POPUP_DECIDE' ).
 
       WHEN client->cs-lifecycle_method-on_event.

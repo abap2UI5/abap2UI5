@@ -54,6 +54,9 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
           WHEN '0100'.
             client->nav_app_call( NEW z2ui5_cl_app_demo_22( ) ).
 
+          WHEN '2400'.
+            client->nav_app_call( NEW z2ui5_cl_app_demo_24( ) ).
+
           WHEN 'MIME_EDITOR'.
             client->nav_app_call( NEW z2ui5_cl_app_demo_14( ) ).
 
@@ -83,7 +86,8 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         grid->simple_form( 'HowTo - General' )->content( 'f'
             )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )
-            )->button( text = 'Events & Navigation' press = view->_event( '0102' )
+            )->button( text = 'Events, Error & Change View' press = view->_event( '0102' )
+            )->button( text = 'Call new app and go back' press = view->_event( '2400' )
             )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
 
              ).

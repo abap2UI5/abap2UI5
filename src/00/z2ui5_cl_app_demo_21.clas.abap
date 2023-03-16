@@ -4,6 +4,19 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        descr    TYPE string,
+        icon     TYPE string,
+        info     TYPE string,
+        checkbox TYPE abap_bool,
+      END OF ty_row.
+
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
     DATA mv_value TYPE string VALUE 'value'.
 
   PROTECTED SECTION.
@@ -20,10 +33,12 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
+        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 11 NEXT ret =
+      VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
+
 
 
       WHEN client->cs-lifecycle_method-on_event.
-        "implement event handling here
 
         CASE client->get( )-event.
 
@@ -68,17 +83,30 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
             client->view_show( 'MAIN' ).
             client->view_popup( 'BAL_POPUP' ).
 
-       WHEN 'BUTTON_POPUP_03'.
+          WHEN 'BUTTON_POPUP_03'.
             client->view_show( 'MAIN' ).
             client->view_popup( 'BAL_POPUP2' ).
 
-        WHEN 'BUTTON_POPUP_04'.
+          WHEN 'BUTTON_POPUP_04'.
             client->set( set_prev_view = abap_true ).
             client->view_popup( 'BAL_POPUP2' ).
 
-       WHEN 'BUTTON_POPUP_05'.
-            client->set( set_prev_view = abap_true ).
-            client->view_popup( 'BAL_POPUP2' ).
+          WHEN 'BUTTON_POPUP_05'.
+            client->nav_app_call( z2ui5_cl_app_demo_20=>factory(
+
+              i_text          = 'Do really want to continue?'
+              i_cancel_text   = 'No'
+              i_cancel_event  = 'POPUP_CONFIRM_NO'
+              i_confirm_text  = 'Yes'
+              i_confirm_event = 'POPUP_CONFIRM_YES'   )
+          ).
+
+          WHEN 'BUTTON_POPUP_06'.
+            " client->set( set_prev_view = abap_true ).
+            client->view_popup( 'POPUP_TABLE' ).
+
+          WHEN 'POPUP_TABLE_SEND'.
+            client->popup_message_box( 'entries edited' ).
 
         ENDCASE.
 
@@ -128,7 +156,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
         page->button(
             text    = 'Popup select'
-            press   = view->_event( 'BUTTON_POPUP_SELECT' )
+            press   = view->_event( 'BUTTON_POPUP_06' )
        ).
 
 
@@ -172,6 +200,40 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
                   press = view->_event_frontend_close_popup( )
                   type  = 'Success' ).
 
+
+
+
+        view = client->factory_view( 'POPUP_TABLE' ).
+
+        popup = view->dialog( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' ).
+
+        DATA(tab) = popup->table( view->_bind( t_tab ) ).
+
+        "set toolbar
+        tab->header_toolbar( )->overflow_toolbar(
+            )->title( 'title of the table' ).
+
+        "set header
+        tab->columns(
+            )->column( )->text( 'Title' )->get_parent(
+            )->column( )->text( 'Color' )->get_parent(
+            )->column( )->text( 'Info' )->get_parent(
+            )->column( )->text( 'Description' )->get_parent(
+            )->column( )->text( 'Checkbox' ).
+
+        tab->items( )->column_list_item( )->cells(
+            )->input( '{TITLE}'
+            )->input( '{VALUE}'
+            )->input( '{INFO}'
+            )->input( '{DESCR}'
+            )->checkbox( selected = '{CHECKBOX}' enabled = abap_true ).
+
+        popup->footer( )->overflow_toolbar(
+                    )->toolbar_spacer(
+                    )->button(
+                        text  = 'Commit'
+                        press = view->_event( 'POPUP_TABLE_SEND' )
+                        type  = 'Success' ).
     ENDCASE.
 
   ENDMETHOD.

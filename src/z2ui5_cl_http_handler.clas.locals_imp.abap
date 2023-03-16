@@ -2500,28 +2500,65 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     r_result->ms_db-id = lv_id.
     r_result->ms_db-id_prev = id_prev.
 
-    LOOP AT r_result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+
+    TRY.
+        r_result->ms_next-view_popup =  ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_POPUP' )->get_val( ).
+        DATA(lo_popup_model) = ss_client-o_body->get_attribute( 'OPOPUP' ).
+
+        LOOP AT r_result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
 
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+          FIELD-SYMBOLS <attribute> TYPE any.
+          DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
+          ASSIGN (lv_name) TO <attribute>.
+          _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-      CASE lr_attri->type_kind.
+          CASE lr_attri->type_kind.
 
-        WHEN 'g' OR 'I' OR 'C'.
-          DATA(lv_value) = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
-          <attribute> = lv_value.
+            WHEN 'g' OR 'I' OR 'C'.
+              DATA(lv_value) = lo_popup_model->get_attribute( lr_attri->name )->get_val( ).
+              <attribute> = lv_value.
 
-        WHEN 'h'.
-          _=>trans_ref_tab_2_tab(
-               EXPORTING ir_tab_from = ss_client-o_body->get_attribute( lr_attri->name )->mr_actual
-               CHANGING ct_to   = <attribute> ).
+            WHEN 'h'.
+              _=>trans_ref_tab_2_tab(
+                   EXPORTING ir_tab_from = lo_popup_model->get_attribute( lr_attri->name )->mr_actual
+                   CHANGING ct_to   = <attribute> ).
 
-      ENDCASE.
+          ENDCASE.
 
-    ENDLOOP.
+        ENDLOOP.
+
+
+      CATCH cx_root.
+
+        LOOP AT r_result->ms_db-t_attri REFERENCE INTO lr_attri
+      WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
+
+          " FIELD-SYMBOLS <attribute> TYPE any.
+          lv_name = c_prefix && to_upper( lr_attri->name ).
+          ASSIGN (lv_name) TO <attribute>.
+          _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+          CASE lr_attri->type_kind.
+
+            WHEN 'g' OR 'I' OR 'C'.
+              lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
+              <attribute> = lv_value.
+
+            WHEN 'h'.
+              _=>trans_ref_tab_2_tab(
+                   EXPORTING ir_tab_from = ss_client-o_body->get_attribute( lr_attri->name )->mr_actual
+                   CHANGING ct_to   = <attribute> ).
+
+          ENDCASE.
+
+        ENDLOOP.
+
+
+    ENDTRY.
+
+
+
 
     TRY.
         r_result->ms_next-event = z2ui5_lcl_system_runtime=>ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
@@ -2535,10 +2572,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
-    TRY.
-        r_result->ms_next-view_popup =  ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_POPUP' )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
+
 
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 

@@ -7,13 +7,13 @@ CLASS z2ui5_cl_app_demo_08 DEFINITION PUBLIC.
     DATA check_strip_active TYPE abap_bool.
     DATA strip_type TYPE string.
 
-PROTECTED SECTION.
-PRIVATE SECTION.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_08 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -51,8 +51,9 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
             check_strip_active = xsdbool( check_strip_active = abap_false ).
             strip_type = 'Success'.
 
-          WHEN 'BUTTON_ERROR'.
-            DATA(lv_dummy) = 1 / 0.
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
 
         ENDCASE.
 
@@ -60,8 +61,8 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         "Definition of View Main
         DATA(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Messages' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
-         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        DATA(page) = view->page( title = 'abap2UI5 - Messages' nav_button_tap = view->_event( 'BACK' ) ).
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         IF check_strip_active = abap_true.
           page->message_strip( text = 'This is a Message Strip' type = strip_type ).
@@ -82,8 +83,8 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         page->grid( 'L6 M12 S12' )->content( 'l'
               )->simple_form( 'Display' )->content( 'f'
-                )->button( text = 'Message Toast'   press = view->_event( 'BUTTON_MESSAGE_TOAST' )
-                )->button( text = 'Error'           press = view->_event( 'BUTTON_ERROR' ) ).
+                )->button( text = 'Message Toast'   press = view->_event( 'BUTTON_MESSAGE_TOAST' ) ).
+
 
     ENDCASE.
 

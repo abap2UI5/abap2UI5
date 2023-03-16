@@ -30,7 +30,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_POST'.
-            client->popup_message_toast( |{ product } { quantity } ST - GR successful| ).
+            client->popup_message_toast( |{ product } { quantity } ST - send to the server| ).
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
