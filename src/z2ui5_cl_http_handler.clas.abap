@@ -99,7 +99,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                },` && |\n|  &&
                            |\n|  &&
                            `                onEvent: function (oEvent, oEvent2, oEvent3, oEvent4) {` && |\n|  &&
-                           `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
+                           `                   sap.ui.core.BusyIndicator.show();` && |\n|  &&
+                           `                    this.oView.destroy();` && |\n|  &&
                            `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                   `                    try {                                                           ` && |\n| &&
@@ -116,8 +117,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    this.Roundtrip();` && |\n|  &&
                            `                },` && |\n|  &&
                            `                Roundtrip: function () {` && |\n|  &&
-                           `             sap.ui.core.BusyIndicator.show();` && |\n|  &&
-                           `                    this.oView.destroy();` && |\n|  &&
+                           `             ` && |\n|  &&
+                           `                   ` && |\n|  &&
                            `                   ` && |\n|  &&
                            `                    if (this.getView().oPopup) {` && |\n|  &&
                            `                        //    if (this.getView( ).oPopup){ this.getView( ).oPopup.close(); }` && |\n|  &&

@@ -68,9 +68,9 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS raise
       IMPORTING
+        v    TYPE clike DEFAULT 'CX_SY_SUBRC'
         when TYPE abap_bool DEFAULT abap_true
-        v    TYPE clike OPTIONAL
-          PREFERRED PARAMETER when.
+          PREFERRED PARAMETER v.
 
     CLASS-METHODS get_classname_by_ref
       IMPORTING
@@ -776,13 +776,12 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_attribute.
-    CONSTANTS c_prefix TYPE string VALUE `MR_ACTUAL->`.
 
+    CONSTANTS c_prefix TYPE string VALUE `MR_ACTUAL->`.
 
     _=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
 
-    DATA(lo_attri) = z2ui5_lcl_utility_tree_json=>new( io_root = mo_root
-                                                       iv_name = name ).
+    DATA(lo_attri) = z2ui5_lcl_utility_tree_json=>new( io_root = mo_root iv_name = name ).
 
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = c_prefix && replace( val = name sub = '-' with = '_' occ = 0 ).
@@ -994,9 +993,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
 
-        screen            TYPE string,
-        screen_popup      TYPE string,
-
         t_attri           TYPE _=>ty-t-attri,
         o_app             TYPE REF TO object,
         app_classname     TYPE string,
@@ -1020,6 +1016,11 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
         t_after             TYPE _=>ty_tt_string,
         page_scroll_pos     TYPE i,
+
+        view                TYPE string,
+        view_popup          TYPE string,
+
+        check_set_prev_view TYPE abap_bool,
 
         focus               TYPE string,
         focus_cursor_pos    TYPE i,
@@ -1192,7 +1193,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       result = xml_get_begin( check_popup_active ).
 
       LOOP AT t_child INTO DATA(lr_child).
-        result = result && lr_child->xml_get(  ). "runtime ).
+        result = result && lr_child->xml_get(  ).
       ENDLOOP.
 
       result = result && xml_get_end( check_popup_active ).
@@ -1301,9 +1302,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD get_view.
     CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_RUNTIME->MS_DB-O_APP->`.
 
-    result-xml = m_root->xml_get( check_popup_active = check_popup_active
-                             "     runtime = runtime
-                                   ).
+    result-xml = m_root->xml_get( check_popup_active = check_popup_active ).
 
     DATA(m_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
     DATA(lo_update) = m_view_model->add_attribute_object( 'oUpdate' ).
@@ -1326,7 +1325,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
-      _=>raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
       CASE lr_attri->type_kind.
 
@@ -1895,6 +1894,12 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_view~_event_frontend_close_popup.
+
+    result = `onEventFrontend( 'POPUP_CLOSE' )`.
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_view~_event_display_id.
 
     result = `onEvent( { 'ID' : '` && val && `', 'METHOD' : 'DISPLAY_ID' } )`.
@@ -2206,7 +2211,11 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_HOME'.
-            client->nav_app_call( NEW z2ui5_lcl_system_app( ) ).
+            client->nav_app_home(  ). "NEW z2ui5_lcl_system_app( ) ).
+
+          WHEN 'BUTTON_BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app ).
+
         ENDCASE.
     ENDCASE.
 
@@ -2282,7 +2291,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
               press = view->_event( 'BUTTON_HOME' )
         )->button(
               text = 'BACK'
-              press = view->_event_display_id( client->get( )-id_prev_app_stack )
+              press = view->_event( 'BUTTON_BACK' )
               type = 'Emphasized'
         ).
     ENDIF.
@@ -2318,7 +2327,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       data  = _=>trans_object_2_xml( REF #( db ) ) ).
 
     MODIFY z2ui5_t_draft FROM @ls_db.
-    _=>raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+    _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     COMMIT WORK AND WAIT.
 
@@ -2331,7 +2340,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
      WHERE uuid = @id
     INTO @result.
 
-    _=>raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+    _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
 
@@ -2397,29 +2406,55 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD execute_finish.
 
-    _=>raise( when = xsdbool( lines( ms_next-t_screen ) = 0 ) v = 'CX_SY_SUBRC' ).
+    _=>raise( when = xsdbool( lines( ms_next-t_screen ) = 0 ) ).
 
-    IF ms_db-screen IS NOT INITIAL.
+    IF ms_next-view IS NOT INITIAL.
+      IF ms_next-check_set_prev_view = abap_true.
+        _=>raise( `New view_show called and set_prev_view active - both not possible` ).
+      ENDIF.
       TRY.
-          DATA(lr_screen) = REF #( ms_next-t_screen[ name = ms_db-screen ] ).
+          DATA(lr_screen) = REF #( ms_next-t_screen[ name = ms_next-view ] ).
         CATCH cx_root.
-          _=>raise( `View with the name ` && ms_db-screen && ` not found - check the rendering` ).
+          _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
       ENDTRY.
-    ELSE.
+    ELSEIF ms_next-view_popup IS INITIAL.
       lr_screen = REF #( ms_next-t_screen[ 1 ] ).
-      ms_db-screen = lr_screen->name.
+      ms_next-view = lr_screen->name.
     ENDIF.
 
-    DATA(ls_view) = lr_screen->o_parser->get_view( ).
-    ms_db-t_attri = ls_view-t_attri.
-
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
-    lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
-    ls_view-o_model->mv_name = 'oViewModel'.
-    lo_ui5_model->add_attribute_instance( ls_view-o_model ).
+
+    IF lr_screen IS BOUND.
+      DATA(ls_view) = lr_screen->o_parser->get_view( ).
+      lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
+      ls_view-o_model->mv_name = 'oViewModel'.
+      lo_ui5_model->add_attribute_instance( ls_view-o_model ).
+    ENDIF.
+
+    IF ms_next-view_popup IS NOT INITIAL.
+      TRY.
+          DATA(lr_screen_popup) = REF #( ms_next-t_screen[ name = ms_next-view_popup ] ).
+        CATCH cx_root.
+          _=>raise( `Popup with the name ` && ms_next-view_popup && ` not found` ).
+      ENDTRY.
+
+      DATA(ls_view_popup) = lr_screen_popup->o_parser->get_view( check_popup_active = abap_true ).
+
+      lo_ui5_model->add_attribute( n = `vViewPopup` v = ls_view_popup-xml ).
+      ls_view_popup-o_model->mv_name = 'oViewModelPopup'.
+      lo_ui5_model->add_attribute_instance( ls_view_popup-o_model ).
+    ENDIF.
+
 
     DATA(lo_system) = lo_ui5_model->add_attribute_object( 'oSystem' ).
     lo_system->add_attribute( n = 'ID' v = ms_db-id ).
+    IF lr_screen IS BOUND.
+      lo_system->add_attribute( n = 'VIEW' v = lr_screen->name ).
+    ENDIF.
+    IF lr_screen_popup IS BOUND.
+      lo_system->add_attribute( n = 'VIEW_POPUP' v = lr_screen_popup->name ).
+    ENDIF.
+
 
     "    lo_ui5_model->add_attribute( n = 'CHECK_POPUP_ACTIVE' v = ''  apos_active = abap_false ).
     lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode )  apos_active = abap_false ).
@@ -2441,6 +2476,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
     IF ms_next-focus_cursor_pos IS NOT INITIAL.
       lo_ui5_model->add_attribute( n = 'FOCUS_POS' v = CONV string( ms_next-focus_cursor_pos ) apos_active = abap_false ).
+    ENDIF.
+    IF ms_next-check_set_prev_view = abap_true.
+      lo_ui5_model->add_attribute( n = 'SET_PREV_VIEW' v = 'true' apos_active = abap_false ).
     ENDIF.
     r_result = lo_ui5_model->get_root( )->write_result( ).
 
@@ -2468,7 +2506,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
-      _=>raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
       CASE lr_attri->type_kind.
 
@@ -2493,6 +2531,15 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         r_result->ms_next-page_scroll_pos = z2ui5_lcl_system_runtime=>ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
+    TRY.
+        r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW' )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+    TRY.
+        r_result->ms_next-view_popup =  ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_POPUP' )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
   ENDMETHOD.
@@ -2503,7 +2550,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     r_result = NEW #( ).
     DO.
       TRY.
-          r_result->ms_db-app_classname = ss_client-t_param[ name = 'app' ]-value.
+          r_result->ms_db-app_classname = to_upper( ss_client-t_param[ name = 'app' ]-value ).
 
         CATCH cx_root ##CATCH_ALL.
           r_result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
@@ -2554,7 +2601,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-id_prev_app_stack = ms_db-id.
-    r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
+    "   r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
     r_result->ms_next-t_after = ms_next-t_after.
@@ -2573,7 +2620,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-id_prev_app_stack = ms_db-id.
-    r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
+    "   r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
     r_result->ms_next-t_after = ms_next-t_after.
@@ -2604,7 +2651,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         id_prev_app_stack = ms_db-id_prev_app_stack
 
         event           = ms_next-event
-        view_active     = ms_db-screen
+
+        view_active     = ms_next-view
+        popup_active    = ms_next-view_popup
+
         page_scroll_pos = ms_next-page_scroll_pos
 
         s_request = VALUE #(
@@ -2648,7 +2698,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_show.
 
-    mo_runtime->ms_db-screen = val.
+    mo_runtime->ms_next-view = val.
     "   mo_server->ms_db-check_no_rerender = check_no_rerender.
 
   ENDMETHOD.
@@ -2680,8 +2730,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_popup.
 
-    "coming soon
-    " mo_server->ms_db-screen_popup = name.
+    mo_runtime->ms_next-view_popup = name.
 
   ENDMETHOD.
 
@@ -2722,6 +2771,10 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
       ENDLOOP.
 
+    ENDIF.
+
+    IF set_prev_view IS SUPPLIED.
+      mo_runtime->ms_next-check_set_prev_view = set_prev_view.
     ENDIF.
 
     IF focus_pos IS SUPPLIED.

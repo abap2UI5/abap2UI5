@@ -12,7 +12,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -61,13 +61,31 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
           WHEN 'F4HELP'.
             client->popup_message_box( 'F4HELP' ).
 
-        ENDCASE.
+          WHEN 'BUTTON_POPUP_01'.
+            client->view_popup( 'BAL_POPUP' ).
 
+          WHEN 'BUTTON_POPUP_02'.
+            client->view_show( 'MAIN' ).
+            client->view_popup( 'BAL_POPUP' ).
+
+       WHEN 'BUTTON_POPUP_03'.
+            client->view_show( 'MAIN' ).
+            client->view_popup( 'BAL_POPUP2' ).
+
+        WHEN 'BUTTON_POPUP_04'.
+            client->set( set_prev_view = abap_true ).
+            client->view_popup( 'BAL_POPUP2' ).
+
+       WHEN 'BUTTON_POPUP_05'.
+            client->set( set_prev_view = abap_true ).
+            client->view_popup( 'BAL_POPUP2' ).
+
+        ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
+        DATA(view) = client->factory_view( 'MAIN' ).
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
 
 
@@ -78,8 +96,34 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
              ).
 
         page->button(
-             text    = 'Popup decide'
+             text    = 'Popup new app - popup renderung, no view'
              press   = view->_event( 'BUTTON_POPUP_DECIDE' )
+        ).
+
+        page->button(
+             text    = 'Popup same app - popup rendering, no view rendering'
+             press   = view->_event( 'BUTTON_POPUP_01' )
+        ).
+
+        page->button(
+             text    = 'Popup same app - popup rendering, view rendering'
+             press   = view->_event( 'BUTTON_POPUP_02' )
+        ).
+
+        page->button(
+             text    = 'Popup same app - popup rendering, view rendering - frontend close'
+             press   = view->_event( 'BUTTON_POPUP_03' )
+        ).
+
+        page->button(
+             text    = 'Popup same app - popup rendering, view previous'
+             press   = view->_event( 'BUTTON_POPUP_04' )
+        ).
+
+
+        page->button(
+             text    = 'Popup next app - popup rendering, view previous'
+             press   = view->_event( 'BUTTON_POPUP_05' )
         ).
 
         page->button(
@@ -96,6 +140,38 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
                   text  = 'Send to Server'
                   press = view->_event( 'BUTTON_SEND' )
                   type  = 'Success' ).
+
+
+        view = client->factory_view( 'BAL_POPUP' ).
+
+        DATA(popup) = view->dialog( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' ).
+
+        popup->text( text = 'this is a message' ).
+        popup->button( text = 'YES' press = view->_event( 'POPUP_CONFIRM_YES' ) ).
+        popup->button( text = 'NO'  press = view->_event( 'POPUP_CONFIRM_NO' ) ).
+
+        popup->footer( )->overflow_toolbar(
+              )->toolbar_spacer(
+              )->button(
+                  text  = 'Send to Server'
+                  press = view->_event( 'BUTTON_SEND' )
+                  type  = 'Success' ).
+
+        view = client->factory_view( 'BAL_POPUP2' ).
+
+        popup = view->dialog( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' ).
+
+        popup->text( text = 'this popup frontend close' ).
+        popup->button( text = 'YES' press = view->_event( 'POPUP_CONFIRM_YES' ) ).
+        popup->button( text = 'NO'  press = view->_event( 'POPUP_CONFIRM_NO' ) ).
+
+        popup->footer( )->overflow_toolbar(
+              )->toolbar_spacer(
+              )->button(
+                  text  = 'frontend close'
+                  press = view->_event_frontend_close_popup( )
+                  type  = 'Success' ).
+
     ENDCASE.
 
   ENDMETHOD.

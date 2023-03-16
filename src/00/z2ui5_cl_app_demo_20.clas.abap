@@ -5,13 +5,13 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
     CLASS-METHODS factory
       IMPORTING
-        i_text TYPE string
-        i_cancel_text TYPE string
-        i_cancel_event TYPE string
-        i_confirm_text TYPE string
+        i_text          TYPE string
+        i_cancel_text   TYPE string
+        i_cancel_event  TYPE string
+        i_confirm_text  TYPE string
         i_confirm_event TYPE string
       RETURNING
-        value(r_result) TYPE REF TO z2ui5_cl_app_demo_20.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_app_demo_20.
 
     DATA mv_text TYPE string.
     DATA mv_cancel_text TYPE string.
@@ -45,6 +45,7 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
+        client->view_popup( 'POPUP_DECIDE' ).
 
       WHEN client->cs-lifecycle_method-on_event.
 
@@ -58,8 +59,9 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
+        DATA(view) = client->factory_view( 'POPUP_DECIDE' ).
+
+        DATA(page) = view->dialog( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' ).
 
         page->text( text = mv_text ).
         page->button( text = mv_cancel_text press = view->_event( mv_cancel_event ) ).
