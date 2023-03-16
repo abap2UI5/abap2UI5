@@ -114,6 +114,14 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       EXPORTING
         data TYPE data.
 
+    CLASS-METHODS get_attri_name_by_ref
+      IMPORTING
+        i_focus         TYPE data
+        io_app          TYPE REF TO object
+        t_attri         TYPE ty-t-attri
+      RETURNING
+        VALUE(r_result) TYPE string.
+
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
         VALUE(io_app)   TYPE REF TO object
@@ -326,6 +334,31 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_attri_name_by_ref.
+
+    CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
+
+    DATA lr_in TYPE REF TO data.
+    GET REFERENCE OF i_focus INTO lr_in.
+
+    LOOP AT t_attri REFERENCE INTO DATA(lr_attri).
+
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
+      ASSIGN (lv_name) TO <attribute>.
+      raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
+
+      DATA lr_ref TYPE REF TO data.
+      GET REFERENCE OF <attribute> INTO lr_ref.
+
+      IF lr_in = lr_ref.
+        r_result = to_upper( lr_attri->name ).
+        EXIT.
+      ENDIF.
+
+    ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
     " retrieves public attributes of a class instance referred to by io_app,
@@ -2773,7 +2806,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set.
 
-    CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
+
 
     IF page_scroll_pos IS SUPPLIED.
       _=>raise( when = xsdbool( page_scroll_pos < 0 ) v = `Scroll position ` && page_scroll_pos && ` / values lower 0 not allowed` ).
@@ -2786,27 +2819,11 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     IF focus IS SUPPLIED.
 
-      DATA(lo_app) = CAST object( mo_runtime->ms_db-o_app  ).
-
-      DATA lr_in TYPE REF TO data.
-      GET REFERENCE OF focus INTO lr_in.
-
-      LOOP AT mo_runtime->ms_db-t_attri REFERENCE INTO DATA(lr_attri).
-
-        FIELD-SYMBOLS <attribute> TYPE any.
-        DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-        ASSIGN (lv_name) TO <attribute>.
-        _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
-
-        DATA lr_ref TYPE REF TO data.
-        GET REFERENCE OF <attribute> INTO lr_ref.
-
-        IF lr_in = lr_ref.
-          mo_runtime->ms_next-focus = to_upper( lr_attri->name ).
-          EXIT.
-        ENDIF.
-
-      ENDLOOP.
+      mo_runtime->ms_next-focus = _=>get_attri_name_by_ref(
+           i_focus  = focus
+           io_app   = mo_runtime->ms_db-o_app
+           t_attri  = mo_runtime->ms_db-t_attri
+       ).
 
     ENDIF.
 
@@ -2832,5 +2849,8 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
     result = CAST #( z2ui5_lcl_db=>load_app( id )-o_app ).
 
   ENDMETHOD.
+
+
+
 
 ENDCLASS.

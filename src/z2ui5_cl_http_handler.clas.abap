@@ -94,7 +94,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        oView.byId('focus').applyFocusInfo(ofocus);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
                            `                    try {` && |\n|  &&
-                           `                        oView.getContent()[0].getApp().scrollTo(sap.z2ui5.PAGE_SCROLL_POS);` && |\n|  &&
+                           `                        oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
                            |\n|  &&
                            `                },` && |\n|  &&
@@ -118,7 +118,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            |\n|  &&
                            `                    sap.ui.core.BusyIndicator.show();` && |\n|  &&
-                           `                    this.oView.destroy();` && |\n|  &&
                            |\n|  &&
                            `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n|  &&
@@ -140,6 +139,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                            `                    sap.z2ui5.oResponse = {};` && |\n|  &&
+                           `                    this.oView.destroy();` && |\n| && |\n|  &&
                            `                    this.Roundtrip();` && |\n|  &&
                            `                },` && |\n|  &&
                            `                Roundtrip: function () {` && |\n|  &&
