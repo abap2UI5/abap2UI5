@@ -1192,7 +1192,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = result && ` xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `xmlns="sap.m" xmlns:z2ui5="z2ui5"  xmlns:text="sap.ui.richtexteditor" > `.
+                     `xmlns="sap.m" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
     result = result && COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
@@ -1290,6 +1290,22 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result->m_root = result.
     result->m_parent = result.
     result->mo_runtime = runtime.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~Overflow_Toolbar_Button.
+
+    result = me.
+
+    _generic(
+       name   = 'OverflowToolbarButton'
+       t_prop = VALUE #(
+          ( n = 'press'   v = press )
+          ( n = 'text'    v = text )
+          ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
+          ( n = 'icon'    v = icon )
+          ( n = 'type'    v = type )
+       ) ).
 
   ENDMETHOD.
 
@@ -1509,7 +1525,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     SPLIT val AT '<' INTO TABLE DATA(lt_table).
 
-    data(lv_html) = ``.
+    DATA(lv_html) = ``.
     lv_html = VALUE #( lt_table[ 1 ] OPTIONAL ).
 
     LOOP AT lt_table REFERENCE INTO DATA(lr_line) FROM 2.
@@ -2100,6 +2116,160 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
            name = 'layoutData'
        ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~tab.
+
+   result = _generic(
+        name = 'Tab'
+        ns = 'webc'
+        t_prop = VALUE #(
+            ( n = 'text'  v = text )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~tab_container.
+
+    result = _generic(
+           name = 'TabContainer'
+           ns = 'webc'
+           ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~bars.
+
+   result = _generic(
+        name = 'Bars'
+        ns = 'mchart'
+        t_prop = VALUE #(
+
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~interact_bar_chart.
+
+   result = _generic(
+        name = 'InteractiveBarChart'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'selectionChanged'  v = selection_Changed )
+            ( n = 'showError'  v = _=>get_abap_2_json( show_error ) )
+            ( n = 'press'  v = press )
+            ( n = 'labelWidth'  v = label_width )
+            ( n = 'errorMessageTitle'  v = error_message_title )
+            ( n = 'errorMessage'  v = error_message )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~interact_bar_chart_bar.
+
+   result = _generic(
+        name = 'InteractiveBarChartBar'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'label'  v = label )
+            ( n = 'displayedValue'  v = displayed_value )
+            ( n = 'value'  v = value )
+        ) ).
+
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~interact_donut_chart.
+
+   result = _generic(
+        name = 'InteractiveDonutChart'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'selectionChanged'  v = selection_Changed )
+            ( n = 'showError' v = _=>get_abap_2_json( show_error ) )
+            ( n = 'errorMessageTitle'  v = error_message_title )
+            ( n = 'errorMessage'  v = error_message )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~interact_donut_chart_segment.
+
+   result = _generic(
+        name = 'InteractiveDonutChartSegment'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'label'  v = label )
+            ( n = 'displayedValue'  v = displayed_value )
+            ( n = 'value'  v = value )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~interact_line_chart.
+
+   result = _generic(
+        name = 'InteractiveLineChart'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'selectionChanged'  v = selection_Changed )
+            ( n = 'showError'  v = _=>get_abap_2_json( show_error ) )
+            ( n = 'press'  v = press )
+            ( n = 'errorMessageTitle'  v = error_message_title )
+            ( n = 'errorMessage'  v = error_message )
+            ( n = 'precedingPoint'  v = preceding_point )
+            ( n = 'succeedingPoint'  v = succedding_point )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~interact_line_chart_point.
+
+   result = _generic(
+        name = 'InteractiveLineChartPoint'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'label'  v = label )
+            ( n = 'secondaryLabel'  v = secondary_label )
+            ( n = 'value'  v = value )
+        ) ).
+
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~points.
+
+   result = _generic(
+        name = 'Points'
+        ns = 'mchart'
+        t_prop = VALUE #(
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~radial_micro_chart.
+
+   result = _generic(
+        name = 'RadialMicorChart'
+        ns = 'mchart'
+        t_prop = VALUE #(
+            ( n = 'percentage'  v = percentage )
+            ( n = 'press'  v = press )
+            ( n = 'sice'  v = sice )
+            ( n = 'valueColor'  v = value_color )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~segments.
+
+   result = _generic(
+        name = 'Segments'
+        ns = 'mchart'
+        t_prop = VALUE #(
+
+        ) ).
 
   ENDMETHOD.
 

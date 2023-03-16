@@ -305,7 +305,27 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
+  METHODS tab_container
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS tab
+    IMPORTING
+      text          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
   METHODS overflow_toolbar
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS overflow_toolbar_button
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      enabled       TYPE abap_bool DEFAULT abap_true
+      press         TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 

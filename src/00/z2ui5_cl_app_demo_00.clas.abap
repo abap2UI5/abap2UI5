@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )
             )->button( text = 'Events, Error & Change View' press = view->_event( '0102' )
             )->button( text = 'Call new app and go back' press = view->_event( '2400' )
-            )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
+            )->button( text = 'Messages (Toast, Box, Strip)' press = view->_event( '0103' )
 
              ).
 
@@ -106,7 +106,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         grid->simple_form( 'HowTo - Tables' )->content( 'f'
             )->button( text = 'List' press = view->_event( '0301' )
             )->button( text = 'Toolbar, Scroll Container' press = view->_event( '0303' )
-            )->button( text = 'Selection Modes' press = view->_event( '0302' )
+         "   )->button( text = 'Selection Modes' press = view->_event( '0302' )
             )->button( text = 'Editable' press = view->_event( '0304' )
         "    )->button( text = 'Cell changes' press = view->_event( '0304' )
              ).

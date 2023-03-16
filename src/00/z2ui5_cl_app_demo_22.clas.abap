@@ -37,6 +37,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         mv_value2 = 'this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text ' &&
                      ' long text this is a long text this is a long text this is a long text this is a long text this is a long text.'.
         mv_value3 = mv_value2.
+
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 100 NEXT
              ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' ) ) ).
 

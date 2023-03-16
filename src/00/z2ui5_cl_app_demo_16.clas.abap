@@ -15,7 +15,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -55,8 +55,18 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
-        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        DATA(page) = view->page( title = 'abap2UI5 - Visualization with Charts' nav_button_tap = view->_event( 'BACK' ) ).
+            page->header_content(
+                ")->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+                )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+                ).
+
+
+        DATA(container) = page->tab_container( ).
+
+        DATA(tab) = container->tab( 'Donut Chart' ).
+
+        DATA(grid) = tab->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
              )->label( 'path'
@@ -73,24 +83,23 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
                         editable = mv_check_editable
                         value = view->_bind( mv_editor ) ).
 
+      tab = container->tab( 'Bar Chart' ).
+      tab = container->tab( 'Interactive Line Chart' ).
+      tab = container->tab( 'Radial Micro Chart' ).
+
+
         page->footer( )->overflow_toolbar(
-            )->button(
-                 text = 'Clear'
-                 press = view->_event( 'CLEAR' )
+            )->overflow_toolbar_button(
+                 text = 'Delete'
                  icon  = 'sap-icon://delete'
             )->toolbar_spacer(
-            )->button(
+            )->overflow_toolbar_button(
                 text  = 'Edit'
-                press = view->_event( 'EDIT' )
                 icon = 'sap-icon://edit'
-            )->button(
+            )->overflow_toolbar_button(
                 text  = 'Upload'
-                press = view->_event( 'DB_SAVE' )
                 type  = 'Emphasized'
-                icon = 'sap-icon://upload-to-cloud'
-                enabled = xsdbool( mv_editor IS NOT INITIAL ) ).
-
-        mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
+                icon = 'sap-icon://upload-to-cloud' ).
 
     ENDCASE.
 

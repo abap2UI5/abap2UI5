@@ -155,7 +155,8 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
     DATA(view) = client->factory_view( 'IMPORT_TABLE' ).
     DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' nav_button_tap = view->_event( 'BACK' ) ).
 
-    page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+    page->header_content( )->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+         )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
 
     page->sub_header( )->overflow_toolbar(
     )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' ) enabled = abap_false
