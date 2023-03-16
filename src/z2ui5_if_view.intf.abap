@@ -45,15 +45,11 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE string.
 
+
   METHODS _event_frontend_close_popup
     RETURNING
       VALUE(result) TYPE string.
 
-  METHODS _event_display_id
-    IMPORTING
-      val           TYPE string
-    RETURNING
-      VALUE(result) TYPE string.
 
   METHODS layout_data
     RETURNING

@@ -241,7 +241,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     " - the URL parameters are always in the format name=value,
     " - that there are no nested or duplicate parameters, and
     " - the input URL is well-formed and contains at most one `?` symbol
-    DATA lt_url_params TYPE ty-t-name_value. "if_web_http_request=>name_value_pairs.
+    DATA lt_url_params TYPE ty-t-name_value.
 
     DATA(url_segments) = segment( val = get_trim_upper( url ) index = 2 sep = `?` ).
     SPLIT url_segments AT `&` INTO TABLE DATA(lt_params).
@@ -259,10 +259,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   METHOD get_prev_when_no_handler.
 
-    DATA lx_no_handler TYPE REF TO cx_sy_no_handler.
     TRY.
-        lx_no_handler ?= val.
-        r_result = lx_no_handler->previous.
+        r_result = CAST cx_sy_no_handler( val )->previous.
       CATCH cx_root.
     ENDTRY.
 
@@ -394,7 +392,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     CLEAR ev_result.
 
-    CHECK iv_json IS NOT INITIAL.
+    IF iv_json IS INITIAL.
+      RETURN.
+    ENDIF.
 
     /ui2/cl_json=>deserialize(
         EXPORTING
