@@ -23,7 +23,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -45,15 +45,18 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
           WHEN 'BUTTON_EDIT'.
             check_editable_active = xsdbool( check_editable_active = abap_false ).
 
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
         ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2UI5 - Tables and editable' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Tables and editable' nav_button_tap = view->_event( 'BACK' ) ).
 
-   page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
 
 

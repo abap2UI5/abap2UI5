@@ -46,12 +46,15 @@ CLASS z2ui5_cl_app_demo_17 IMPLEMENTATION.
             mv_check_editable = xsdbool( mv_check_editable = abap_False ).
           WHEN 'CLEAR'.
             mv_editor = ``.
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
+        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'

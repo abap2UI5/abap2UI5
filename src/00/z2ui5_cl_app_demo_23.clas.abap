@@ -56,12 +56,14 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
             client->set( event = mv_event_return ).
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
+        WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
         ENDCASE.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2ui5 - Table with different Selection-Modes' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
+        DATA(page) = view->page( title = 'abap2ui5 - Table with different Selection-Modes' nav_button_tap = view->_event( 'BACK' ) ).
 
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 

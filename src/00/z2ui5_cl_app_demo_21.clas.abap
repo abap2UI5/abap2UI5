@@ -108,13 +108,16 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
           WHEN 'POPUP_TABLE_SEND'.
             client->popup_message_box( 'entries edited' ).
 
+        WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
         ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event( 'BACK' ) ).
 
 
         page->input(

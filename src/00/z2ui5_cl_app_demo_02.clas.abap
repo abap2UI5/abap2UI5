@@ -73,7 +73,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen Example' nav_button_tap = view->_event_display_id( client->get( )-id_prev_app_stack ) ).
+    DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen Example' nav_button_tap = view->_event( 'BACK' ) ).
     page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
     DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
@@ -160,6 +160,8 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
       WHEN 'BUTTON_CLEAR'.
         CLEAR screen.
         client->popup_message_toast( 'View initialized' ).
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
     ENDCASE.
 

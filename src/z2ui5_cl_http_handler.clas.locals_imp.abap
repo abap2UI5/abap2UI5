@@ -1900,11 +1900,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~_event_display_id.
-
-    result = `onEvent( { 'ID' : '` && val && `', 'METHOD' : 'DISPLAY_ID' } )`.
-
-  ENDMETHOD.
 
   METHOD z2ui5_if_view~list_item.
 
