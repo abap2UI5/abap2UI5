@@ -111,7 +111,6 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
                )->button( text = 'show view main' press = view->_event( 'SHOW_VIEW_MAIN' )
         ).
 
-
     ENDCASE.
 
   ENDMETHOD.
