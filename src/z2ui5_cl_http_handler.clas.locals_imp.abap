@@ -160,6 +160,12 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(r_result) TYPE string.
 
+    CLASS-METHODS get_json_boolean
+      IMPORTING
+        val             TYPE any
+      RETURNING
+        VALUE(r_result) TYPE string.
+
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING ir_tab_from TYPE REF TO data
       CHANGING  ct_to       TYPE STANDARD TABLE.
@@ -232,10 +238,23 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
       WHEN OTHERS.
         r_result = |"{ CONV string( escape_json( val ) ) }"|.
+        "  r_result = conv string( val ).
     ENDCASE.
 
   ENDMETHOD.
 
+  METHOD get_json_boolean.
+
+    DATA lo_ele TYPE REF TO cl_abap_elemdescr.
+    lo_ele ?= cl_abap_elemdescr=>describe_by_data( val ).
+    CASE lo_ele->get_relative_name( ).
+      WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN'.
+        r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
+      WHEN OTHERS.
+        r_result = val.
+    ENDCASE.
+
+  ENDMETHOD.
 
   METHOD get_classname_by_ref.
 
@@ -1233,7 +1252,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     DATA(lv_tmp2) = COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ).
     DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> '' )
                           NEXT val = |{ val } { row-n }="{ escape(
-                                        val = cond string( when row-v = abap_true then 'true' else row-v )
+                                        val = COND string( WHEN row-v = abap_true THEN 'true' ELSE row-v )
                                       "  val = row-v
                                         format = cl_abap_format=>e_xml_attr ) }" \n | ).
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
@@ -1286,9 +1305,48 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = 'press'   v = press )
           ( n = 'text'    v = text )
-          ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
+          ( n = 'enabled' v = _=>get_json_boolean( enabled ) )
           ( n = 'icon'    v = icon )
           ( n = 'type'    v = type )
+       ) ).
+
+  ENDMETHOD.
+
+ METHOD z2ui5_if_view~custom_data.
+
+    result = _generic(
+       name   = 'customData'
+        ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~badge_custom_data.
+
+    result = me.
+
+    _generic(
+       name   = 'BadgeCustomData'
+       t_prop = VALUE #(
+          ( n = 'key'   v = key )
+          ( n = 'value'    v = value )
+          ( n = 'visible' v = _=>get_abap_2_json( visible ) )
+       ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~toggle_button.
+
+    result = me.
+
+    _generic(
+       name   = 'ToggleButton'
+       t_prop = VALUE #(
+          ( n = 'press'   v = press )
+          ( n = 'text'    v = text )
+          ( n = 'enabled' v = _=>get_json_boolean( enabled ) )
+          ( n = 'icon'    v = icon )
+          ( n = 'type'    v = type )
+          ( n = 'class'   v = class )
        ) ).
 
   ENDMETHOD.
@@ -1302,9 +1360,10 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = 'press'   v = press )
           ( n = 'text'    v = text )
-          ( n = 'enabled' v = _=>get_abap_2_json( enabled ) )
+          ( n = 'enabled' v = _=>get_json_boolean( enabled ) )
           ( n = 'icon'    v = icon )
           ( n = 'type'    v = type )
+          ( n = 'class'   v = class )
        ) ).
 
   ENDMETHOD.
@@ -1400,8 +1459,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         name   = 'Page'
          t_prop = VALUE #(
              ( n = 'title' v = title )
-             ( n = 'showNavButton' v = COND #( WHEN nav_button_tap = '' THEN 'false' ELSE 'true' ) )
-             ( n = 'navButtonTap' v = nav_button_tap )
+             ( n = 'showNavButton' v = COND #( WHEN navbuttontap = '' THEN 'false' ELSE 'true' ) )
+             ( n = 'navButtonTap' v = navbuttontap )
              ( n = 'id' v = id )
          ) ).
 
@@ -1437,18 +1496,18 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         ( n = 'title' v = title )
         ( n = 'editable' v = 'true' )
         ( n = 'layout' v = 'ResponsiveGridLayout' )
-        ( n = 'labelSpanXL' v = '4' )
-        ( n = 'labelSpanL' v = '3' )
-        ( n = 'labelSpanM' v = '4' )
-        ( n = 'labelSpanS' v = '12' )
-        ( n = 'emptySpanXL' v = '0' )
-        ( n = 'emptySpanL' v = '4' )
-        ( n = 'emptySpanM' v = '0' )
-        ( n = 'emptySpanS' v = '0' )
-        ( n = 'columnsL' v = '1' )
-        ( n = 'columnsM' v = '1' )
-        ( n = 'singleContainerFullSize' v = 'false' )
-        ( n = 'adjustLabelSpan' v = 'false' )
+*        ( n = 'labelSpanXL' v = '4' )
+*        ( n = 'labelSpanL' v = '3' )
+*        ( n = 'labelSpanM' v = '4' )
+*        ( n = 'labelSpanS' v = '12' )
+*        ( n = 'emptySpanXL' v = '0' )
+*        ( n = 'emptySpanL' v = '4' )
+*        ( n = 'emptySpanM' v = '0' )
+*        ( n = 'emptySpanS' v = '0' )
+*        ( n = 'columnsL' v = '1' )
+*        ( n = 'columnsM' v = '1' )
+*        ( n = 'singleContainerFullSize' v = 'false' )
+*        ( n = 'adjustLabelSpan' v = 'false' )
       ) ).
 
   ENDMETHOD.
@@ -1638,6 +1697,12 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_view~_conv.
+
+    result = _=>get_json_boolean( v  ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_view~switch.
 
     result = me.
@@ -1646,10 +1711,61 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
           name  = 'Switch'
           t_prop = VALUE #(
              ( n = 'type'           v = type )
-             ( n = 'enabled'        v = _=>get_abap_2_json( enabled ) )
+             ( n = 'enabled'        v = _=>get_json_boolean( enabled  ) )
              ( n = 'state'          v = state )
              ( n = 'customTextOff'  v = customtextoff )
              ( n = 'customTextOn'   v = customtexton )
+      ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~range_slider.
+
+    result = me.
+
+    _generic(
+          name  = 'RangeSlider'
+          ns    = 'webc'
+          t_prop = VALUE #(
+             ( n = 'class'           v = class )
+             ( n = 'endValue'        v = endvalue )
+             ( n = 'id'          v = id )
+             ( n = 'labelInterval'  v = labelinterval )
+             ( n = 'max'   v = max )
+             ( n = 'min'   v = min )
+             ( n = 'showTickmarks'   v = _=>get_json_boolean( showtickmarks  ) )
+             ( n = 'startValue'   v = startvalue )
+             ( n = 'step'   v = step )
+             ( n = 'width'   v = width )
+      ) ).
+
+  ENDMETHOD.
+
+    METHOD z2ui5_if_view~generic_tag.
+
+   result = _generic(
+          name  = 'GenericTag'
+          t_prop = VALUE #(
+             ( n = 'ariaLabelledBy'           v = arialabelledby )
+             ( n = 'class'        v = class )
+             ( n = 'design'          v = design )
+             ( n = 'status'  v = status )
+             ( n = 'text'   v = text )
+      ) ).
+
+  ENDMETHOD.
+
+    METHOD z2ui5_if_view~object_number.
+
+   result = me.
+
+      _generic(
+          name  = 'ObjectNumber'
+          t_prop = VALUE #(
+             ( n = 'emphasized'           v = _=>get_json_boolean( emphasized ) )
+             ( n = 'number'        v = number )
+             ( n = 'state'          v = state )
+             ( n = 'unit'  v = unit )
       ) ).
 
   ENDMETHOD.
@@ -1666,7 +1782,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
               ( n = 'height' v = height )
               ( n = 'width' v = width )
               ( n = 'id' v = id )
-              ( n = 'growing' v = _=>get_abap_2_json( growing ) )
+              ( n = 'growing' v = _=>get_json_boolean( growing ) )
+              ( n = 'growingMaxLines' v = growingMaxLines )
        ) ).
 
   ENDMETHOD.
@@ -1732,9 +1849,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         name  = 'Table'
         t_prop = VALUE #(
            ( n = 'items'            v = items )
-           ( n = 'headerText'       v = header_text )
-           ( n = 'growing'          v = _=>get_abap_2_json( growing ) )
-           ( n = 'growingThreshold' v = growing_threshold )
+           ( n = 'headerText'       v = headertext )
+           ( n = 'growing'          v = growing )
+           ( n = 'growingThreshold' v = growingthreshold )
            ( n = 'sticky'           v = sticky )
            ( n = 'mode'             v = mode )
      ) ).

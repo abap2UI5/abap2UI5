@@ -39,21 +39,26 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE string.
 
+
   METHODS _event
     IMPORTING
       val           TYPE string
     RETURNING
       VALUE(result) TYPE string.
 
-
   METHODS _event_frontend_close_popup
     RETURNING
       VALUE(result) TYPE string.
 
+  METHODS _conv
+    IMPORTING
+      v             TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS layout_data
-    importing
-        ns type clike optional
+    IMPORTING
+      ns            TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
@@ -163,15 +168,15 @@ INTERFACE z2ui5_if_view
 
   METHODS table
     IMPORTING
-      items             TYPE data OPTIONAL
-      growing           TYPE abap_bool DEFAULT abap_false
-      growing_threshold TYPE string DEFAULT ''
-      header_text       TYPE string OPTIONAL
-      sticky            TYPE string OPTIONAL
-      mode              TYPE string OPTIONAL
+      items            TYPE clike OPTIONAL
+      growing          TYPE clike OPTIONAL
+      growingthreshold TYPE clike OPTIONAL
+      headertext       TYPE clike OPTIONAL
+      sticky           TYPE clike OPTIONAL
+      mode             TYPE clike OPTIONAL
         PREFERRED PARAMETER items
     RETURNING
-      VALUE(result)     TYPE REF TO  z2ui5_if_view.
+      VALUE(result)    TYPE REF TO  z2ui5_if_view.
 
   METHODS footer
     RETURNING
@@ -254,7 +259,7 @@ INTERFACE z2ui5_if_view
       label          TYPE clike OPTIONAL
       value          TYPE clike OPTIONAL
       displayedvalue TYPE clike OPTIONAL
-      selected       type clike optional
+      selected       TYPE clike OPTIONAL
     RETURNING
       VALUE(result)  TYPE REF TO  z2ui5_if_view.
 
@@ -334,24 +339,48 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
+  METHODS custom_data
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+        METHODS badge_custom_data
+        importing
+           key          TYPE clike OPTIONAL
+      value          TYPE clike OPTIONAL
+      visible          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS toggle_button
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      enabled       TYPE clike optional
+      press         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
   METHODS button
     IMPORTING
       text          TYPE clike OPTIONAL
       icon          TYPE clike OPTIONAL
       type          TYPE clike OPTIONAL
-      enabled       TYPE abap_bool DEFAULT abap_true
-      press         TYPE string OPTIONAL
+      enabled       TYPE clike optional
+      press         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
   METHODS page
     IMPORTING
-      title          TYPE string OPTIONAL
-      nav_button_tap TYPE string OPTIONAL
-      id             TYPE string OPTIONAL
+      title         TYPE clike OPTIONAL
+      navbuttontap  TYPE clike OPTIONAL
+      id            TYPE clike OPTIONAL
         PREFERRED PARAMETER title
     RETURNING
-      VALUE(result)  TYPE REF TO  z2ui5_if_view.
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
 
   METHODS vbox
     RETURNING
@@ -518,23 +547,58 @@ INTERFACE z2ui5_if_view
 
   METHODS text_area
     IMPORTING
-      value         TYPE string OPTIONAL
-      rows          TYPE string OPTIONAL
-      height        TYPE string OPTIONAL
-      width         TYPE string OPTIONAL
-      growing       TYPE abap_bool OPTIONAL
-      id            TYPE string OPTIONAL
-        PREFERRED PARAMETER value
+      value           TYPE clike OPTIONAL
+      rows            TYPE clike OPTIONAL
+      height          TYPE clike OPTIONAL
+      width           TYPE clike OPTIONAL
+      growing         TYPE clike OPTIONAL
+      growingMaxLines TYPE clike OPTIONAL
+      id              TYPE clike OPTIONAL
+    PREFERRED PARAMETER value
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS range_slider
+    IMPORTING
+      max           TYPE clike OPTIONAL
+      min           TYPE clike OPTIONAL
+      step          TYPE clike OPTIONAL
+      startvalue    TYPE clike OPTIONAL
+      endvalue      TYPE clike OPTIONAL
+      showTickmarks TYPE clike OPTIONAL
+      labelInterval TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+      id            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS generic_tag
+    IMPORTING
+      ariaLabelledBy TYPE clike OPTIONAL
+      text            TYPE clike OPTIONAL
+      design          TYPE clike OPTIONAL
+      status    TYPE clike OPTIONAL
+      class      TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS object_number
+    IMPORTING
+      state       TYPE clike OPTIONAL
+      emphasized  TYPE clike OPTIONAL
+      number      TYPE clike OPTIONAL
+      unit        TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
   METHODS switch
     IMPORTING
-      state         TYPE string OPTIONAL
-      customtexton  TYPE string OPTIONAL
-      customtextoff TYPE string OPTIONAL
-      enabled       TYPE abap_bool DEFAULT abap_true
-      type          TYPE string DEFAULT 'Default'
+      state         TYPE clike OPTIONAL
+      customtexton  TYPE clike OPTIONAL
+      customtextoff TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 

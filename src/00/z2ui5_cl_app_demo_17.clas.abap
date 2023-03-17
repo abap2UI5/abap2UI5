@@ -55,7 +55,7 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' navbuttontap = view->_event( 'BACK' ) ).
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'

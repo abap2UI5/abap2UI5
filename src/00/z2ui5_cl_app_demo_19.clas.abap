@@ -56,7 +56,7 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2ui5 - Table with different Selection-Modes' nav_button_tap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'abap2ui5 - Table with different Selection-Modes' navbuttontap = view->_event( 'BACK' ) ).
 
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
@@ -71,7 +71,7 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
                 )->segmented_button_item( key = 'MultiSelect' text = 'MultiSelect' ).
 
         DATA(tab) = page->table(
-            header_text = 'Table'
+            headertext = 'Table'
             mode = mv_sel_mode
             items = view->_bind( t_tab ) ).
 

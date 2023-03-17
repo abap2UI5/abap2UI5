@@ -117,7 +117,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' nav_button_tap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' navbuttontap = view->_event( 'BACK' ) ).
 
 
         page->input(
