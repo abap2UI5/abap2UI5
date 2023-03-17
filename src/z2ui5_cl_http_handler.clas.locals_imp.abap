@@ -117,7 +117,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     CLASS-METHODS get_attri_name_by_ref
       IMPORTING
         i_focus         TYPE data
-        io_app          TYPE REF TO object 
+        io_app          TYPE REF TO object
         t_attri         TYPE ty-t-attri
       RETURNING
         VALUE(r_result) TYPE string ##NEEDED.
