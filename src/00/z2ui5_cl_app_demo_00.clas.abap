@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -74,7 +74,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
 
         DATA(page) = view->page( title = 'abap2UI5 - Demo Section'
-            nav_button_tap = view->_event( 'BACK' ) ).
+            navbuttontap = view->_event( 'BACK' ) ).
 
 
         page->header_content(
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )
             )->button( text = 'Events, Error & Change View' press = view->_event( '0102' )
             )->button( text = 'Call new app and go back' press = view->_event( '2400' )
-            )->button( text = 'Messages (Toast, Box, Strip, Error)' press = view->_event( '0103' )
+            )->button( text = 'Messages (Toast, Box, Strip)' press = view->_event( '0103' )
 
              ).
 
@@ -106,7 +106,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         grid->simple_form( 'HowTo - Tables' )->content( 'f'
             )->button( text = 'List' press = view->_event( '0301' )
             )->button( text = 'Toolbar, Scroll Container' press = view->_event( '0303' )
-            )->button( text = 'Selection Modes' press = view->_event( '0302' )
+         "   )->button( text = 'Selection Modes' press = view->_event( '0302' )
             )->button( text = 'Editable' press = view->_event( '0304' )
         "    )->button( text = 'Cell changes' press = view->_event( '0304' )
              ).
@@ -121,15 +121,15 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
            )->get(
               )->layout_data(
           )->flex_item_data(
-                 grow_Factor = '1'
-              style_class = 'sapUiTinyMargin'
+                 growFactor = '1'
+              styleclass = 'sapUiTinyMargin'
          )->get_parent( )->get_parent(
      )->text( text = 'Use the sap.ui.codeeditor to develop editor apps - for instance edit files form the MIME Repository'
          )->get(
          )->layout_data(
           )->flex_item_data(
-                 grow_Factor = '3'
-           style_class = 'sapUiTinyMargin'
+                 growFactor = '3'
+           styleclass = 'sapUiTinyMargin'
           ).
 
         form->flex_box( class = 'columns'
@@ -137,15 +137,15 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         )->get(
            )->layout_data(
        )->flex_item_data(
-              grow_Factor = '1'
-           style_class = 'sapUiTinyMargin'
+              growFactor = '1'
+           styleclass = 'sapUiTinyMargin'
       )->get_parent( )->get_parent(
   )->text( text = 'Use the sap.ui.table to develop table maintenance apps - import/export data in csv/json/xml, edit entries in the table control and save it to database'
       )->get(
       )->layout_data(
        )->flex_item_data(
-              grow_Factor = '3'
-        style_class = 'sapUiTinyMargin'
+              growFactor = '3'
+        styleclass = 'sapUiTinyMargin'
        ).
 *
 *        form->flex_box( class = 'columns'

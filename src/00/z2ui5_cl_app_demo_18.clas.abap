@@ -55,7 +55,7 @@ CLASS Z2UI5_CL_APP_DEMO_18 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Upload/Download Files' nav_button_tap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Upload/Download Files' navbuttontap = view->_event( 'BACK' ) ).
         "  DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         page->zz_file_uploader(

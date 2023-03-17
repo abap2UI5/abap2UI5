@@ -79,7 +79,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'MAIN' ).
-        view->page( title = 'abap2UI5 - flow logic 2' nav_button_tap = view->_event( 'BACK' )
+        view->page( title = 'abap2UI5 - flow logic 2' navbuttontap = view->_event( 'BACK' )
            )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
         ).
 
         view = client->factory_view( 'SECOND' ).
-        view->page( title = 'abap2UI5 - flow logic 2' nav_button_tap = view->_event( 'BACK' )
+        view->page( title = 'abap2UI5 - flow logic 2' navbuttontap = view->_event( 'BACK' )
            )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'

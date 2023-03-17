@@ -55,16 +55,16 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'ABAP2UI5 - MIME Editor' navbuttontap = view->_event( 'BACK' ) ).
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
              )->label( 'path'
              )->input( view->_bind( mv_path )
              )->label( 'Option'
-             )->input( value = view->_bind( mv_type ) suggestion_items = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
+             )->input( value = view->_bind( mv_type ) suggestionitems = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
                    )->get( )->suggestion_items( )->get(
-                                 )->list_item( text = '{NAME}' additional_text = '{VALUE}' )->get_parent( )->get_parent(
+                                 )->list_item( text = '{NAME}' additionalText = '{VALUE}' )->get_parent( )->get_parent(
              )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'

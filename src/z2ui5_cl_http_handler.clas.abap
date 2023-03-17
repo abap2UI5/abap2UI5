@@ -46,6 +46,64 @@ ENDCLASS.
 CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
+  METHOD main_roundtrip.
+
+    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>execute_init( ).
+
+    DO.
+      TRY.
+
+          DATA(li_client) = lo_runtime->execute_before_app( ).
+
+          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+            ROLLBACK WORK.
+            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+            ROLLBACK WORK.
+            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+          ENDIF.
+
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+
+        CATCH cx_root INTO DATA(cx).
+          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
+          CONTINUE.
+      ENDTRY.
+
+
+      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_call_new( ).
+        CONTINUE.
+      ENDIF.
+
+      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_leave_to_id( ).
+        CONTINUE.
+      ENDIF.
+
+
+      TRY.
+
+          li_client = lo_runtime->execute_before_app( z2ui5_if_client=>cs-lifecycle_method-on_rendering ).
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+
+          result = lo_runtime->execute_finish( ).
+
+
+        CATCH cx_root INTO cx.
+          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
+          CONTINUE.
+      ENDTRY.
+
+      RETURN.
+    ENDDO.
+
+  ENDMETHOD.
+
+
   METHOD main_index_html.
 
     client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
@@ -85,18 +143,28 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                onAfterRendering: function () {` && |\n| &&
                            `                    var oView = this.getView();` && |\n| &&
                            `                    try {` && |\n| &&
-                           `                        var ofocus = oView.byId('focus').getFocusInfo();` && |\n| &&
-                           `                        if (sap.z2ui5.oResponse.FOCUS_POS) {` && |\n| &&
-                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.FOCUS_POS;` && |\n| &&
-                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.FOCUS_POS;` && |\n| &&
-                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.FOCUS_POS;` && |\n| &&
+
+                           `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n| &&
+                        `                        var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.id).getFocusInfo();` && |\n| &&
+                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.oCursor.cursorPos;` && |\n| &&
+                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.oCursor.selectionStart;` && |\n| &&
+                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.oCursor.selectionEnd;` && |\n| &&
                            `                        }` && |\n| &&
-                           `                        oView.byId('focus').applyFocusInfo(ofocus);` && |\n| &&
+                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.id).applyFocusInfo(ofocus);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
                            `                    try {` && |\n| &&
-                           `                        oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
+                           `                   //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
-                           |\n| &&
+                           `     //todo` && |\n| &&
+                           `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
+                           `     sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n| &&
+                           `   try {` && |\n| &&
+                           `   oView.byId( key ).scrollTo( item[ key ] );` && |\n| &&
+                           `  }catch( e ){  ` && |\n| &&
+                           `    var ele = '#' + oView.byId( key ).getId( ) + '-inner'; ` && |\n| &&
+                           `   $(ele).scrollTop( item[ key ] );  }  ` && |\n| &&
+                           `    // index: the ordinal position of the key within the object ` && |\n| &&
+                           `})); }` && |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
                            `                onEventFrontend: function (vAction) {` && |\n| &&
@@ -128,6 +196,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
                            `                        this.oBody.oPopup = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
                            `                    }` && |\n| &&
+                           |\n| &&
+                         `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
+                           `     var oScrollNew = [];` && |\n| &&
+                            ` sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) { ` &&
+                                `   try {` && |\n| &&
+                           ` //  oScrollNew.push( { 'n' = key  'v' = this.oView.byId( key ).getScrollDelegate().getScrollTop() } );` && |\n| &&
+                           `  }catch( e ){ } ` &&
+                           ` }.bind(this))); ` &&
+                           `   this.oBody.oScroll = oScrollNew;         }` && |\n| &&
                            |\n| &&
                            `                    try {` && |\n| &&
                            `                        this.oBody.scrollPos = parseInt(this.oView.getContent()[0].getApp().getScrollDelegate().getScrollTop());` && |\n| &&
@@ -355,63 +432,5 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `</script>` && |\n| &&
                            |\n| &&
                            `</html>`.
-  ENDMETHOD.
-
-
-  METHOD main_roundtrip.
-
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>execute_init( ).
-
-    DO.
-      TRY.
-
-          DATA(li_client) = lo_runtime->execute_before_app( ).
-
-          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-            ROLLBACK WORK.
-            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-            ROLLBACK WORK.
-            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
-          ENDIF.
-
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-
-        CATCH cx_root INTO DATA(cx).
-          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
-          CONTINUE.
-      ENDTRY.
-
-
-      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_call_new( ).
-        CONTINUE.
-      ENDIF.
-
-      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_leave_to_id( ).
-        CONTINUE.
-      ENDIF.
-
-
-      TRY.
-
-          li_client = lo_runtime->execute_before_app( z2ui5_if_client=>cs-lifecycle_method-on_rendering ).
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-
-          result = lo_runtime->execute_finish( ).
-
-
-        CATCH cx_root INTO cx.
-          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
-          CONTINUE.
-      ENDTRY.
-
-      RETURN.
-    ENDDO.
-
   ENDMETHOD.
 ENDCLASS.

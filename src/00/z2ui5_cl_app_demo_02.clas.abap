@@ -34,6 +34,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
 
     DATA mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH EMPTY KEY.
 
+
   PROTECTED SECTION.
 
     METHODS z2ui5_on_rendering
@@ -73,7 +74,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen Example' nav_button_tap = view->_event( 'BACK' ) ).
+    DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen Example' navbuttontap = view->_event( 'BACK' ) ).
     page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
     DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
@@ -81,11 +82,14 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     grid->simple_form( 'Input' )->content( 'f'
         )->label( 'Input with value help'
         )->input(
-            value       = view->_bind( screen-colour )
-            placeholder = 'fill in your favorite colour'
-            suggestion_items = view->_bind_one_way( mt_suggestion ) )->get(
+           value       = view->_bind( screen-colour )
+          placeholder = 'fill in your favorite colour'
+            suggestionitems = view->_bind_one_way( mt_suggestion )
+            showsuggestion = abap_true
+             )->get(
             )->suggestion_items( )->get(
-                )->list_item( text = '{VALUE}' additional_text = '{DESCR}' ).
+               )->list_item( text = '{VALUE}' additionalText = '{DESCR}'
+                ).
 
 
     grid->simple_form( 'Time Inputs' )->content( 'f'
@@ -100,10 +104,10 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
         )->time_picker( view->_bind( screen-time_end ) ).
 
 
-    page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-       )->simple_form( 'Input with select options' )->content( 'f'
+   data(form) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
+       )->simple_form( 'Input with select options' )->content( 'f' ).
 
-    )->label( 'Checkbox'
+    form->label( 'Checkbox'
     )->checkbox(
          selected = view->_bind( screen-check_is_active )
          text     = 'this is a checkbox'
@@ -126,14 +130,15 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
              )->segmented_button_item( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue'
              )->segmented_button_item( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green'
              )->segmented_button_item( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black'
-       )->get_parent( )->get_parent(
+       )->get_parent( )->get_parent( ).
 
-    )->label( 'Switch disabled'
-    )->switch( enabled = abap_false   customtexton = 'A' customtextoff = 'B'
-    )->label( 'Switch accept/reject'
-    )->switch( state = view->_bind( screen-check_switch_01 ) customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject'
-    )->label( 'Switch normal'
-    )->switch( state = view->_bind( screen-check_switch_02 ) customtexton = 'YES' customtextoff = 'NO' ).
+    form->label( 'Switch disabled' ).
+    form->switch( enabled = abap_false customtexton = 'A' customtextoff = 'B' ).
+
+    form->label( 'Switch accept/reject' ).
+    form->switch( state = view->_bind( screen-check_switch_01 ) customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject' ).
+    form->label( 'Switch normal' ).
+    form->switch( state = view->_bind( screen-check_switch_02 ) customtexton = 'YES' customtextoff = 'NO' ).
 
 
     page->footer( )->overflow_toolbar(

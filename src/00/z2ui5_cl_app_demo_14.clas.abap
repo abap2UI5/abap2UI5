@@ -57,8 +57,10 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' nav_button_tap = view->_event( 'BACK' ) ).
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' navbuttontap = view->_event( 'BACK' ) ).
+
+        page->header_content( )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1631562906570575875'
+                              )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
 
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
@@ -66,9 +68,9 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
              )->label( 'path'
              )->input( view->_bind( mv_path )
              )->label( 'Option'
-             )->input( value = view->_bind( mv_type ) suggestion_items = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
+             )->input( value = view->_bind( mv_type ) suggestionitems = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
                    )->get( )->suggestion_items( )->get(
-                                 )->list_item( text = '{NAME}' additional_text = '{VALUE}' )->get_parent( )->get_parent(
+                                 )->list_item( text = '{NAME}' additionalText = '{VALUE}' )->get_parent( )->get_parent(
              )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'
