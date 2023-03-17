@@ -120,7 +120,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         io_app          TYPE REF TO object
         t_attri         TYPE ty-t-attri
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(r_result) TYPE string ##NEEDED.
 
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
