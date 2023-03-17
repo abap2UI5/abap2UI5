@@ -36,6 +36,10 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         mv_value1 = 'value1'.
         mv_value2 = 'this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text ' &&
                      ' long text this is a long text this is a long text this is a long text this is a long text this is a long text.'.
+        do 5 times.
+        mv_value2 = mv_value2 && mv_value2.
+        enddo.
+
         mv_value3 = mv_value2.
 
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 100 NEXT
@@ -81,32 +85,41 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2ui5 - Scrolling and Focus' nav_button_tap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( id = 'test2' title = 'abap2ui5 - Scrolling and Focus' nav_button_tap = view->_event( 'BACK' ) ).
 
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
+
         page->input( value = view->_bind( mv_value1 ) ).
-        page->text_area( width = '100%' height = '20%' value = view->_bind( mv_value2 ) ).
+        page->text_area(
+            width = '100%'
+            height = '20%'
+            id = 'test'
+             value = view->_bind( mv_value2 ) ).
 
         page->button( text = 'focus input pos 3'  press = view->_event( 'BUTTON_FOCUS_FIRST' ) ).
         page->button( text = 'focus text area pos 20'  press = view->_event( 'BUTTON_FOCUS_SECOND' ) ).
         page->button( text = 'scroll end + focus end'  press = view->_event( 'BUTTON_FOCUS_END' ) ).
 
-        DATA(tab) = page->table( sticky = 'ColumnHeaders,HeaderToolbar' header_text = 'Table with some entries' items = view->_bind_one_way( t_tab ) ).
+*        DATA(tab) = page->table( sticky = 'ColumnHeaders,HeaderToolbar' header_text = 'Table with some entries' items = view->_bind_one_way( t_tab ) ).
+*
+*        tab->columns(
+*            )->column( )->text( 'Title' )->get_parent(
+*            )->column( )->text( 'Color' )->get_parent(
+*            )->column( )->text( 'Info' )->get_parent(
+*            )->column( )->text( 'Description' ).
+*
+*        tab->items( )->column_list_item( )->cells(
+*           )->text( '{TITLE}'
+*           )->text( '{VALUE}'
+*           )->text( '{INFO}'
+*          )->text( '{DESCR}' ).
 
-        tab->columns(
-            )->column( )->text( 'Title' )->get_parent(
-            )->column( )->text( 'Color' )->get_parent(
-            )->column( )->text( 'Info' )->get_parent(
-            )->column( )->text( 'Description' ).
-
-        tab->items( )->column_list_item( )->cells(
-           )->text( '{TITLE}'
-           )->text( '{VALUE}'
-           )->text( '{INFO}'
-           )->text( '{DESCR}' ).
-
-        page->text_area( width = '100%' height = '20%' value = view->_bind( mv_value3 ) ).
+*       page->text_area(
+*            width = '100%'
+*          "  rows = '1'
+*            growing = abap_true
+*            value = view->_bind( mv_value3 ) ).
 
         page->footer( )->overflow_toolbar(
               )->button( text = 'Scroll Top'     press = view->_event( 'BUTTON_SCROLL_TOP' )

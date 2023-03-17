@@ -46,6 +46,63 @@ ENDCLASS.
 CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
+  METHOD main_roundtrip.
+
+    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>execute_init( ).
+
+    DO.
+      TRY.
+
+          DATA(li_client) = lo_runtime->execute_before_app( ).
+
+          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+            ROLLBACK WORK.
+            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+            ROLLBACK WORK.
+            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+          ENDIF.
+
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+
+        CATCH cx_root INTO DATA(cx).
+          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
+          CONTINUE.
+      ENDTRY.
+
+
+      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_call_new( ).
+        CONTINUE.
+      ENDIF.
+
+      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_leave_to_id( ).
+        CONTINUE.
+      ENDIF.
+
+
+      TRY.
+
+          li_client = lo_runtime->execute_before_app( z2ui5_if_client=>cs-lifecycle_method-on_rendering ).
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+
+          result = lo_runtime->execute_finish( ).
+
+
+        CATCH cx_root INTO cx.
+          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
+          CONTINUE.
+      ENDTRY.
+
+      RETURN.
+    ENDDO.
+
+  ENDMETHOD.
+
   METHOD main_index_html.
 
     client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
@@ -94,9 +151,13 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        oView.byId('focus').applyFocusInfo(ofocus);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
                            `                    try {` && |\n| &&
-                           `                        oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
+                           `                   //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
-                           |\n| &&
+                           `     sap.z2ui5.oResponse.oFocus.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n|  &&
+                           `  //  oView.byId( key ).scrollTo( parseInt( item[ key ]));` && |\n|  &&
+                           `  $('#__xmlview1--test').scrollTop( 1000 );  ` && |\n|  &&
+                           `    // index: the ordinal position of the key within the object ` && |\n|  &&
+                           `})); ` && |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
                            `                onEventFrontend: function (vAction) {` && |\n| &&
@@ -358,60 +419,4 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD main_roundtrip.
-
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>execute_init( ).
-
-    DO.
-      TRY.
-
-          DATA(li_client) = lo_runtime->execute_before_app( ).
-
-          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-            ROLLBACK WORK.
-            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-            ROLLBACK WORK.
-            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
-          ENDIF.
-
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-
-        CATCH cx_root INTO DATA(cx).
-          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
-          CONTINUE.
-      ENDTRY.
-
-
-      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_call_new( ).
-        CONTINUE.
-      ENDIF.
-
-      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_leave_to_id( ).
-        CONTINUE.
-      ENDIF.
-
-
-      TRY.
-
-          li_client = lo_runtime->execute_before_app( z2ui5_if_client=>cs-lifecycle_method-on_rendering ).
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-
-          result = lo_runtime->execute_finish( ).
-
-
-        CATCH cx_root INTO cx.
-          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
-          CONTINUE.
-      ENDTRY.
-
-      RETURN.
-    ENDDO.
-
-  ENDMETHOD.
 ENDCLASS.
