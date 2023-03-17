@@ -46,7 +46,7 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE string.
 
-  METHODS _event_frontend_close_popup
+  METHODS _event_close_popup
     RETURNING
       VALUE(result) TYPE string.
 
@@ -194,15 +194,6 @@ INTERFACE z2ui5_if_view
       icon                TYPE clike OPTIONAL
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_if_view.
-
-  METHODS table_select_dialog
-    IMPORTING
-      title          TYPE clike OPTIONAL
-      eventidconfirm TYPE clike OPTIONAL
-      eventidcancel  TYPE clike OPTIONAL
-      items          TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result)  TYPE REF TO z2ui5_if_view.
 
   METHODS get_parent
     RETURNING

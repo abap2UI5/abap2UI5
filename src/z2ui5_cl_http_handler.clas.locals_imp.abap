@@ -1211,7 +1211,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     "case - normal
     CASE m_name.
-
       WHEN 'ZZHTML'.
         result = mt_prop[ n = 'VALUE' ]-v.
         RETURN.
@@ -1274,7 +1273,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~Overflow_Toolbar_Button.
 
     result = me.
-
     _generic(
        name   = 'OverflowToolbarButton'
        t_prop = VALUE #(
@@ -1298,7 +1296,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~badge_custom_data.
 
     result = me.
-
     _generic(
        name   = 'BadgeCustomData'
        t_prop = VALUE #(
@@ -1312,7 +1309,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~toggle_button.
 
     result = me.
-
     _generic(
        name   = 'ToggleButton'
        t_prop = VALUE #(
@@ -1329,7 +1325,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~button.
 
     result = me.
-
     _generic(
        name   = 'Button'
        t_prop = VALUE #(
@@ -1346,7 +1341,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~input.
 
     result = me.
-
     _generic(
        name   = 'Input'
        t_prop = VALUE #(
@@ -1485,7 +1479,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~title.
 
     result = me.
-
     _generic(
          name  = 'Title'
          t_prop = VALUE #(
@@ -1497,7 +1490,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~code_editor.
 
     result = me.
-
     _generic(
         name  = 'CodeEditor'
         ns = 'editor'
@@ -1514,7 +1506,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~zz_file_uploader.
 
     result = me.
-
     _generic(
       name   = 'FileUploader'
       ns     = 'z2ui5'
@@ -1894,19 +1885,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~table_select_dialog.
-
-*    result = _generic(
-*         name = 'TableSelectDialog'
-*        t_prop = VALUE #(
-*          ( n = 'title' v = title )
-*          ( n = 'confirm'      v = _get_event_method( ` $event , { 'ID' : '` && event_id_confirm && `' } )` ) )
-*          ( n = 'cancel'       v = _get_event_method( `{ 'ID' : '` && event_id_cancel && `' }` ) )
-*          ( n = 'items' v = '{' && _get_name_by_ref( value = items ) && '}' )
-*          ) ).
-
-  ENDMETHOD.
-
   METHOD z2ui5_if_view~list.
 
     result = _generic(
@@ -1989,7 +1967,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~_event_frontend_close_popup.
+  METHOD z2ui5_if_view~_event_close_popup.
 
     result = `onEventFrontend( 'POPUP_CLOSE' )`.
 
@@ -2770,8 +2748,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     r_result->ms_db-id = lv_id.
     r_result->ms_db-id_prev = id_prev.
 
+    DATA(lo_system) = ss_client-o_body->get_attribute( 'OSYSTEM' ).
+
     TRY.
-        r_result->ms_next-view_popup = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_POPUP' )->get_val( ).
+        r_result->ms_next-view_popup = lo_system->get_attribute( 'VIEW_POPUP' )->get_val( ).
         DATA(lo_popup_model) = ss_client-o_body->get_attribute( 'OPOPUP' ).
 
         LOOP AT r_result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
@@ -2825,20 +2805,20 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         r_result->ms_next-event = ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
+*    TRY.
+*        r_result->ms_next-page_scroll_pos = ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
+*      CATCH cx_root.
+*    ENDTRY.
     TRY.
-        r_result->ms_next-page_scroll_pos = ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
+        r_result->ms_next-view = lo_system->get_attribute( 'VIEW' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
     TRY.
-        r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW' )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-    TRY.
-        r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_NAME' )->get_val( ).
+        r_result->ms_next-view = lo_system->get_attribute( 'VIEW_NAME' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 *    TRY.
-*        r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_POPUP_NAME' )->get_val( ).
+*        r_result->ms_next-view = lo_system->get_attribute( 'VIEW_POPUP_NAME' )->get_val( ).
 *      CATCH cx_root.
 *    ENDTRY.
 
@@ -2866,7 +2846,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CATCH cx_root ##CATCH_ALL.
           DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
-            val = `Class with name ` && r_result->ms_db-app_classname && ` not found. Please check your repository.` ).
+            val = `class with name ` && r_result->ms_db-app_classname && ` not found, app call not possible` ).
           r_result->ms_db-o_app = lo_error.
           EXIT.
       ENDTRY.
@@ -2880,14 +2860,15 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD set_app_leave_to_id.
 
-    r_result = NEW z2ui5_lcl_system_runtime( ).
+    r_result = NEW #( ).
     r_result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
-    ms_next-nav_app_leave_to_id = ''.
-    r_result->ms_db-id_prev_app = ms_db-id.
-    r_result->ms_db-id_prev     = ms_db-id.
+
     r_result->ms_next = ms_next.
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
     CLEAR ms_next.
+
+    r_result->ms_db-id_prev_app = ms_db-id.
+    r_result->ms_db-id_prev     = ms_db-id.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
@@ -2917,14 +2898,12 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
     r_result = NEW #( ).
-    r_result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error(
-                error = ix app = ms_db-o_app
-                kind = kind ).
+    r_result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app kind = kind ).
     r_result->ms_db-app_classname = _=>get_classname_by_ref( r_result->ms_db-o_app ).
 
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-id_prev_app_stack = ms_db-id.
-    "   r_result->ms_db-screen = ms_next-s_nav_app_call_new-screen.
+
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
     r_result->ms_next-t_after = ms_next-t_after.
@@ -3045,7 +3024,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   METHOD z2ui5_if_client~set.
 
     IF page_scroll_pos IS SUPPLIED.
-      _=>raise( when = xsdbool( page_scroll_pos < 0 ) v = `Scroll position ` && page_scroll_pos && ` / values lower 0 not allowed` ).
+      _=>raise( when = xsdbool( page_scroll_pos < 0 ) v = `scroll position ` && page_scroll_pos && ` / values lower 0 not allowed` ).
       mo_runtime->ms_next-page_scroll_pos = page_scroll_pos.
     ENDIF.
 
@@ -3069,7 +3048,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_leave.
 
-    _=>raise( when = xsdbool( id = '' ) v = 'NAV_APP_LEAVE_ID_EMPTY' ).
+    _=>raise( when = xsdbool( id = '' ) v = 'app not found, please check if calling app exists, pervious_app_id is empty' ).
     mo_runtime->ms_next-nav_app_leave_to_id = id.
 
   ENDMETHOD.

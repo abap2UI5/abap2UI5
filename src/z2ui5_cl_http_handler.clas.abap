@@ -92,7 +92,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
           result = lo_runtime->execute_finish( ).
 
-
         CATCH cx_root INTO cx.
           lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
           CONTINUE.
