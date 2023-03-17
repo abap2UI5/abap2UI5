@@ -71,19 +71,17 @@
     "definitions_top": false,
     "description_empty": true,
     "double_space": {
-  "exclude": [],
-  "severity": "Warning",
-  "keywords": true,
-  "startParen": true,
-  "endParen": true,
-  "afterColon": true
-},
+      "exclude": [],
+      "severity": "Warning",
+      "keywords": true,
+      "startParen": true,
+      "endParen": true,
+      "afterColon": true
+    },
     "downport": true,
     "empty_line_in_statement": false,
     "empty_statement": true,
     "empty_structure": {
-        "exclude": [],
-        "severity": "Error",
         "loop": true,
         "if": true,
         "while": true,
@@ -106,21 +104,13 @@
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false
     },
-    "forbidden_void_type": {
-      "exclude": [],
-      "severity": "Error",
-      "check": []
-    },
+    "forbidden_void_type": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
-      "exclude": [],
-      "severity": "Error",
       "checkData": true
     },
     "function_module_recommendations": true,
     "functional_writing": {
-      "exclude": [],
-      "severity": "Error",
       "ignoreExceptions": true
     },
     "global_class": true,
@@ -133,11 +123,7 @@
     "in_statement_indentation": false,
     "indentation": false,
     "inline_data_old_versions": true,
-    "intf_referencing_clas": {
-      "exclude": [],
-      "severity": "Error",
-      "allow": []
-    },
+    "intf_referencing_clas": true,
     "keep_single_parameter_on_one_line": false,
     "keyword_case": false,
     "line_break_multiple_parameters": false,
@@ -158,16 +144,12 @@
     "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
-      "exclude": [],
-      "severity": "Error",
       "reportDynamic": true,
       "ownTables": "^[yz]"
     },
     "msag_consistency": true,
     "names_no_dash": true,
     "nesting": {
-      "exclude": [],
-      "severity": "Error",
       "depth": 5
     },
     "newline_between_methods": true,
@@ -213,7 +195,6 @@
     "pragma_style": true,
     "prefer_corresponding": true,
     "prefer_inline": {
-         "exclude": [],
          "severity": "Warning"
      },
     "prefer_is_not": true,
@@ -222,7 +203,6 @@
     "prefer_xsdbool": true,
     "preferred_compare_operator": true,
     "prefix_is_current_class": {
-         "exclude": [],
          "severity": "Warning"
      },
     "reduce_string_templates": true,
@@ -238,7 +218,6 @@
     "select_performance": true,
     "selection_screen_naming": true,
     "sequential_blank": {
-         "exclude": [],
          "severity": "Warning"
      },
     "short_case": false,
@@ -249,8 +228,6 @@
     "sql_escape_host_variables": true,
     "start_at_tab": false,
     "static_call_via_instance": {
-      "exclude": [],
-      "severity": "Error",
       "allowInTestclassIncludes": false
     },
     "superclass_final": true,
@@ -269,15 +246,10 @@
     "unsecure_fae": true,
     "unused_ddic": true,
     "unused_methods": true,
-    "unused_types": {
-      "exclude": [],
-      "severity": "Error",
-      "skipNames": []
-    },
+    "unused_types": true,
     "unused_variables": {
-      "exclude": [ ],
       "severity": "Warning",
-      "skipNames": [ "lv_dummy" ]
+      "skipNames": [ "lv_dummy", "i_mv_editor" ]
     },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
