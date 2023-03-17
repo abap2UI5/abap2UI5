@@ -238,7 +238,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
       WHEN OTHERS.
         r_result = |"{ CONV string( escape_json( val ) ) }"|.
-        "  r_result = conv string( val ).
     ENDCASE.
 
   ENDMETHOD.
@@ -304,7 +303,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <field> TYPE data.
 
     ASSIGN o->(n) TO <field>.
-    raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     result = REF #( <field> ).
 
@@ -413,7 +412,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     DATA(lv_name) = c_prefix && to_upper( iv_attri ).
     ASSIGN (lv_name) TO <attribute>.
-    raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
     DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
@@ -463,7 +462,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     FIELD-SYMBOLS <object> TYPE any.
     ASSIGN object->* TO <object>.
-    raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     CALL TRANSFORMATION id
        SOURCE data = <object>
@@ -483,7 +482,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     FIELD-SYMBOLS <lt_from> TYPE ty_t_ref.
 
     ASSIGN ir_tab_from->* TO <lt_from>.
-    raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
     IF sy-subrc = 0.
@@ -494,10 +493,10 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     LOOP AT <lt_from> INTO DATA(lr_from).
 
       ASSIGN ct_to[ sy-tabix ] TO <back>.
-      raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+      raise( when = xsdbool( sy-subrc <> 0 ) ).
 
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
-      raise( when = xsdbool( sy-subrc <> 0 ) v = 'CX_SY_SUBRC' ).
+      raise( when = xsdbool( sy-subrc <> 0 ) ).
 
       LOOP AT lt_components INTO DATA(ls_comp).
 
@@ -548,10 +547,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     IF when = abap_false.
       RETURN.
     ENDIF.
-
-    RAISE EXCEPTION TYPE z2ui5_lcl_utility
-      EXPORTING
-        val = v.
+    RAISE EXCEPTION NEW z2ui5_lcl_utility( v ).
 
   ENDMETHOD.
 ENDCLASS.
@@ -2817,13 +2813,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       lo_list->add_list_object( )->add_attribute( n = lr_focus->n v = lr_focus->v apos_active = abap_false ).
     ENDLOOP.
 
-    if ms_next-s_cursor_pos is not INITIAL.
-    lo_list = lo_ui5_model->add_attribute_object( 'oCursor' ).
-    lo_list->add_attribute( n = 'cursorPos'  v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false ).
-    lo_list->add_attribute( n = 'id'        v = ms_next-s_cursor_pos-id ).
-    lo_list->add_attribute( n = 'selectionEnd'  v = ms_next-s_cursor_pos-selectionend apos_active = abap_false ).
-    lo_list->add_attribute( n = 'selectionStart'  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false ).
-    endif.
+    IF ms_next-s_cursor_pos IS NOT INITIAL.
+      lo_list = lo_ui5_model->add_attribute_object( 'oCursor' ).
+      lo_list->add_attribute( n = 'cursorPos'  v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false ).
+      lo_list->add_attribute( n = 'id'        v = ms_next-s_cursor_pos-id ).
+      lo_list->add_attribute( n = 'selectionEnd'  v = ms_next-s_cursor_pos-selectionend apos_active = abap_false ).
+      lo_list->add_attribute( n = 'selectionStart'  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false ).
+    ENDIF.
 
 
     IF ms_next-focus_cursor_pos IS NOT INITIAL.
