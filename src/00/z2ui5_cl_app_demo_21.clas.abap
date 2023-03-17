@@ -200,7 +200,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
               )->toolbar_spacer(
               )->button(
                   text  = 'frontend close'
-                  press = view->_event_frontend_close_popup( )
+                  press = view->_event_close_popup( )
                   type  = 'Success' ).
 
 
