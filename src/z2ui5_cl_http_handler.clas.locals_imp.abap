@@ -531,7 +531,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     IF when = abap_false.
       RETURN.
     ENDIF.
-    RAISE EXCEPTION NEW z2ui5_lcl_utility( v ).
+    RAISE EXCEPTION type z2ui5_lcl_utility exporting val = v.
 
   ENDMETHOD.
 ENDCLASS.
