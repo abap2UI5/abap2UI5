@@ -126,7 +126,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         io_app          TYPE REF TO object
       RETURNING
-        VALUE(r_result) TYPE ty-t-attri.
+        VALUE(r_result) TYPE ty-t-attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
       IMPORTING
