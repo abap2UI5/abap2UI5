@@ -103,6 +103,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD main_index_html.
 
     client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
@@ -432,6 +433,4 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n| &&
                            `</html>`.
   ENDMETHOD.
-
-
 ENDCLASS.
