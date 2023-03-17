@@ -940,7 +940,6 @@ CLASS z2ui5_lcl_if_view DEFINITION.
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_view.
-    ALIASES _generic FOR z2ui5_if_view~_generic.
 
     CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
 
@@ -967,6 +966,14 @@ CLASS z2ui5_lcl_if_view DEFINITION.
         runtime       TYPE REF TO z2ui5_lcl_system_runtime
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_if_view.
+
+    METHODS _generic
+      IMPORTING
+        name          TYPE clike
+        ns            TYPE clike OPTIONAL
+        t_prop        TYPE z2ui5_if_view=>ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_view.
 
     METHODS get_view
       IMPORTING
@@ -1057,6 +1064,8 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
         check_set_prev_view TYPE abap_bool,
 
+        t_scroll_pos        TYPE z2ui5_if_view=>ty_t_name_value,
+        s_cursor_pos        TYPE z2ui5_if_client=>ty_s_cursor,
         focus               TYPE string,
         focus_cursor_pos    TYPE i,
         focus_sel_start     TYPE i,
@@ -1272,7 +1281,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~_generic.
+  METHOD _generic.
 
     DATA(result2) = NEW z2ui5_lcl_if_view( ).
     result2->m_name = name.
@@ -1284,6 +1293,17 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     m_root->m_last = result2.
     result = result2.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~_generic.
+
+    result = _generic(
+       EXPORTING
+         name   = name
+         ns     = ns
+         t_prop = t_prop
+     ).
 
   ENDMETHOD.
 
@@ -2440,7 +2460,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
-
       WHEN client->cs-lifecycle_method-on_init.
         z2ui5_on_init( client ).
       WHEN client->cs-lifecycle_method-on_event.
@@ -2448,6 +2467,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
         z2ui5_on_rendering( client ).
     ENDCASE.
+
   ENDMETHOD.
 
   METHOD factory_error.
@@ -2539,11 +2559,21 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     IF ms_error-x_error IS BOUND.
+
+      ms_error-x_error->get_source_position(
+        IMPORTING
+          program_name = DATA(lv_prog)
+          include_name = DATA(lv_incl)
+          source_line  = DATA(lv_line)
+      ).
+
       DATA(view) = client->factory_view( 'ERROR' ).
       view->message_page(
           text = '500 Internal Server Error'
           enableformattedtext = abap_true
-          description = ms_error-x_error->get_text( )
+          description =  ms_error-x_error->get_text( ) &&
+            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
+            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `
           icon = 'sap-icon://message-error'
         )->buttons(
         )->button(
@@ -2723,13 +2753,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CATCH cx_root.
           _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
       ENDTRY.
-    ELSEIF ms_actual-view_active is not INITIAL.
-         TRY.
+    ELSEIF ms_actual-view_active IS NOT INITIAL.
+      TRY.
           lr_screen = REF #( ms_next-t_screen[ name = ms_actual-view_active ] ).
         CATCH cx_root.
           _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
       ENDTRY.
-    elseif ms_next-view_popup IS INITIAL.
+    ELSEIF ms_next-view_popup IS INITIAL.
       lr_screen = REF #( ms_next-t_screen[ 1 ] ).
       ms_next-view = lr_screen->name.
     ENDIF.
@@ -2782,13 +2812,20 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDLOOP.
     ENDIF.
 
-    IF ms_next-page_scroll_pos IS NOT INITIAL.
-      lo_ui5_model->add_attribute( n = 'PAGE_SCROLL_POS' v = CONV string( ms_next-page_scroll_pos ) apos_active = abap_false ).
-    ENDIF.
 
-    lo_list = lo_ui5_model->add_attribute_list( 'oFocus' ).
-    lo_list->add_list_object( )->add_attribute(  n = 'test' v = '500' ).
-    lo_list->add_list_object( )->add_attribute(  n = 'test2' v = '500' ).
+    lo_list = lo_ui5_model->add_attribute_list( 'oScroll' ).
+    LOOP AT ms_next-t_scroll_pos REFERENCE INTO DATA(lr_focus).
+      lo_list->add_list_object( )->add_attribute(  n = lr_focus->n v = lr_focus->v apos_active = abap_false ).
+    ENDLOOP.
+
+    if ms_next-s_cursor_pos is not INITIAL.
+    lo_list = lo_ui5_model->add_attribute_object( 'oCursor' ).
+    lo_list->add_attribute( n = 'cursorPos'  v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false ).
+    lo_list->add_attribute( n = 'id'        v = ms_next-s_cursor_pos-id  ).
+    lo_list->add_attribute( n = 'selectionEnd'  v = ms_next-s_cursor_pos-selectionend apos_active = abap_false  ).
+    lo_list->add_attribute( n = 'selectionStart'  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false  ).
+    endif.
+
 
     IF ms_next-focus_cursor_pos IS NOT INITIAL.
       lo_ui5_model->add_attribute( n = 'FOCUS_POS' v = CONV string( ms_next-focus_cursor_pos ) apos_active = abap_false ).
@@ -3099,22 +3136,30 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
       mo_runtime->ms_next-event = event.
     ENDIF.
 
-    IF focus IS SUPPLIED.
-
-      mo_runtime->ms_next-focus = _=>get_attri_name_by_ref(
-           i_focus  = focus
-           io_app   = mo_runtime->ms_db-o_app
-           t_attri  = mo_runtime->ms_db-t_attri
-       ).
-
-    ENDIF.
+*    IF focus IS SUPPLIED.
+*
+*      mo_runtime->ms_next-focus = _=>get_attri_name_by_ref(
+*           i_focus  = focus
+*           io_app   = mo_runtime->ms_db-o_app
+*           t_attri  = mo_runtime->ms_db-t_attri
+*       ).
+*
+*    ENDIF.
 
     IF set_prev_view IS SUPPLIED.
       mo_runtime->ms_next-check_set_prev_view = set_prev_view.
     ENDIF.
 
-    IF focus_pos IS SUPPLIED.
-      mo_runtime->ms_next-focus_cursor_pos = focus_pos.
+*    IF focus_pos IS SUPPLIED.
+*      mo_runtime->ms_next-focus_cursor_pos = focus_pos.
+*    ENDIF.
+
+    IF t_scroll_pos IS SUPPLIED.
+      mo_runtime->ms_next-t_scroll_pos = t_scroll_pos.
+    ENDIF.
+
+    IF s_cursor_pos IS SUPPLIED.
+      mo_runtime->ms_next-s_cursor_pos = s_cursor_pos.
     ENDIF.
 
   ENDMETHOD.

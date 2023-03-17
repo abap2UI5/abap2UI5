@@ -34,13 +34,20 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
 
         mv_value1 = 'value1'.
-        mv_value2 = 'this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text this is a long text ' &&
-                     ' long text this is a long text this is a long text this is a long text this is a long text this is a long text.'.
-        do 5 times.
+        mv_value2 = 'this is a long text this is a long text this is a long text tis is a long text.'.
+        do 4 times.
         mv_value2 = mv_value2 && mv_value2.
         enddo.
 
         mv_value3 = mv_value2.
+
+        client->set( t_scroll_pos = value #(
+            ( n = 'id_page' v = '500' )
+            ( n = 'id_text' v = '100' )
+
+            ) ).
+
+        client->set( s_cursor_pos = value #( id = 'id_text'  cursorpos = '5' selectionstart = '5' selectionend = '5' ) ).
 
         t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 100 NEXT
              ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' ) ) ).
@@ -54,7 +61,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
             "nothing to do, default mode
 
           WHEN 'BUTTON_SCROLL_BOTTOM'.
-            client->set( page_scroll_pos = '99999999' ).
+             client->set( t_scroll_pos = value #( ( n = 'id_page' v = '99999' ) ) ).
 
           WHEN 'BUTTON_SCROLL_UP'.
             DATA(lv_pos) = client->get( )-page_scroll_pos - 500.
@@ -85,7 +92,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( id = 'test2' title = 'abap2ui5 - Scrolling and Focus' navbuttontap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( id = 'id_page' title = 'abap2ui5 - Scrolling and Focus' navbuttontap = view->_event( 'BACK' ) ).
 
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
@@ -93,33 +100,32 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         page->input( value = view->_bind( mv_value1 ) ).
         page->text_area(
             width = '100%'
-            height = '20%'
-            id = 'test'
+            height = '10%'
+            id = 'id_text'
              value = view->_bind( mv_value2 ) ).
 
         page->button( text = 'focus input pos 3'  press = view->_event( 'BUTTON_FOCUS_FIRST' ) ).
         page->button( text = 'focus text area pos 20'  press = view->_event( 'BUTTON_FOCUS_SECOND' ) ).
         page->button( text = 'scroll end + focus end'  press = view->_event( 'BUTTON_FOCUS_END' ) ).
 
-*        DATA(tab) = page->table( sticky = 'ColumnHeaders,HeaderToolbar' header_text = 'Table with some entries' items = view->_bind_one_way( t_tab ) ).
-*
-*        tab->columns(
-*            )->column( )->text( 'Title' )->get_parent(
-*            )->column( )->text( 'Color' )->get_parent(
-*            )->column( )->text( 'Info' )->get_parent(
-*            )->column( )->text( 'Description' ).
-*
-*        tab->items( )->column_list_item( )->cells(
-*           )->text( '{TITLE}'
-*           )->text( '{VALUE}'
-*           )->text( '{INFO}'
-*          )->text( '{DESCR}' ).
+        DATA(tab) = page->table( sticky = 'ColumnHeaders,HeaderToolbar' headertext = 'Table with some entries' items = view->_bind_one_way( t_tab ) ).
 
-*       page->text_area(
-*            width = '100%'
-*          "  rows = '1'
-*            growing = abap_true
-*            value = view->_bind( mv_value3 ) ).
+        tab->columns(
+            )->column( )->text( 'Title' )->get_parent(
+            )->column( )->text( 'Color' )->get_parent(
+            )->column( )->text( 'Info' )->get_parent(
+            )->column( )->text( 'Description' ).
+
+        tab->items( )->column_list_item( )->cells(
+           )->text( '{TITLE}'
+           )->text( '{VALUE}'
+           )->text( '{INFO}'
+          )->text( '{DESCR}' ).
+
+       page->text_area(
+            width = '100%'
+            growing = abap_true
+            value = view->_bind( mv_value3 ) ).
 
         page->footer( )->overflow_toolbar(
               )->button( text = 'Scroll Top'     press = view->_event( 'BUTTON_SCROLL_TOP' )

@@ -142,22 +142,28 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                onAfterRendering: function () {` && |\n| &&
                            `                    var oView = this.getView();` && |\n| &&
                            `                    try {` && |\n| &&
-                           `                        var ofocus = oView.byId('focus').getFocusInfo();` && |\n| &&
-                           `                        if (sap.z2ui5.oResponse.FOCUS_POS) {` && |\n| &&
-                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.FOCUS_POS;` && |\n| &&
-                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.FOCUS_POS;` && |\n| &&
-                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.FOCUS_POS;` && |\n| &&
+
+                           `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n| &&
+                        `                        var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.id).getFocusInfo();` && |\n| &&
+                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.oCursor.cursorPos;` && |\n| &&
+                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.oCursor.selectionStart;` && |\n| &&
+                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.oCursor.selectionEnd;` && |\n| &&
                            `                        }` && |\n| &&
-                           `                        oView.byId('focus').applyFocusInfo(ofocus);` && |\n| &&
+                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.id).applyFocusInfo(ofocus);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
                            `                    try {` && |\n| &&
                            `                   //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
-                           `     sap.z2ui5.oResponse.oFocus.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n|  &&
-                           `  //  oView.byId( key ).scrollTo( parseInt( item[ key ]));` && |\n|  &&
-                           `  $('#__xmlview1--test').scrollTop( 1000 );  ` && |\n|  &&
+                           `     //todo` && |\n|  &&
+                           `    if (sap.z2ui5.oResponse.oScroll){` && |\n|  &&
+                           `     sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n|  &&
+                           `   try {` && |\n|  &&
+                           `   oView.byId( key ).scrollTo( item[ key ] );` && |\n|  &&
+                           `  }catch( e ){  ` && |\n|  &&
+                           `    var ele = '#' + oView.byId( key ).getId( ) + '-inner'; ` && |\n|  &&
+                           `   $(ele).scrollTop( item[ key ] );  }  ` && |\n|  &&
                            `    // index: the ordinal position of the key within the object ` && |\n|  &&
-                           `})); ` && |\n| &&
+                           `})); }` && |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
                            `                onEventFrontend: function (vAction) {` && |\n| &&
@@ -189,6 +195,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
                            `                        this.oBody.oPopup = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
                            `                    }` && |\n| &&
+                           |\n| &&
+                         `    if (sap.z2ui5.oResponse.oScroll){` && |\n|  &&
+                           `     var oScrollNew = [];` && |\n|  &&
+                            ` sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) { ` &&
+                                `   try {` && |\n|  &&
+                           ` //  oScrollNew.push( { 'n' = key  'v' = this.oView.byId( key ).getScrollDelegate().getScrollTop() } );` && |\n|  &&
+                           `  }catch( e ){ } ` &&
+                           ` }.bind(this))); ` &&
+                           `   this.oBody.oScroll = oScrollNew;         }` && |\n| &&
                            |\n| &&
                            `                    try {` && |\n| &&
                            `                        this.oBody.scrollPos = parseInt(this.oView.getContent()[0].getApp().getScrollDelegate().getScrollTop());` && |\n| &&
