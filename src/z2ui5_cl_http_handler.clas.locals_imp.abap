@@ -13,12 +13,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
-      BEGIN OF ty_name_value,
-        name  TYPE string,
-        value TYPE string,
-      END OF ty_name_value.
-
-    TYPES:
       BEGIN OF ty,
         BEGIN OF s,
           BEGIN OF msg,
@@ -39,8 +33,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
           END OF msg_result,
         END OF s,
         BEGIN OF t,
-          attri      TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
-          name_value TYPE STANDARD TABLE OF ty_name_value WITH EMPTY KEY,
+          attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
         END OF t,
         BEGIN OF o,
           me TYPE REF TO z2ui5_lcl_utility,
@@ -208,7 +201,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     TRY.
         ms_error-x_root ?= val.
       CATCH cx_root ##CATCH_ALL.
-        ms_error-s_msg-message = val.
+       ms_error-s_msg-message = val.
     ENDTRY.
 
     ms_error-kind = kind.
@@ -258,18 +251,18 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     " - the URL parameters are always in the format name=value,
     " - that there are no nested or duplicate parameters, and
     " - the input URL is well-formed and contains at most one `?` symbol
-    DATA lt_url_params TYPE ty-t-name_value.
+    DATA lt_url_params TYPE z2ui5_if_view=>ty_t_name_value.
 
     DATA(url_segments) = segment( val = get_trim_upper( url ) index = 2 sep = `?` ).
     SPLIT url_segments AT `&` INTO TABLE DATA(lt_params).
 
     LOOP AT lt_params INTO DATA(lv_param).
       SPLIT lv_param AT `=` INTO DATA(lv_name) DATA(lv_value) DATA(lv_dummy).
-      INSERT VALUE #( name = lv_name
-                      value = lv_value ) INTO TABLE lt_url_params.
+      INSERT VALUE #( n = lv_name
+                      v = lv_value ) INTO TABLE lt_url_params.
     ENDLOOP.
 
-    r_result = lt_url_params[ name = get_trim_upper( name ) ]-value.
+    r_result = lt_url_params[ n = get_trim_upper( name ) ]-v.
 
   ENDMETHOD.
 
@@ -523,8 +516,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       result = ms_error-x_root->get_text( ).
       DATA(error) = abap_true.
     ELSEIF ms_error-s_msg-message IS NOT INITIAL.
-      result = ms_error-s_msg-message.
-      error = abap_true.
+     result = ms_error-s_msg-message.
+     error = abap_true.
     ENDIF.
 
     IF error = abap_true AND result IS INITIAL.
@@ -941,12 +934,12 @@ CLASS z2ui5_lcl_if_view DEFINITION.
     DATA m_ns   TYPE string.
     DATA mt_prop TYPE z2ui5_if_view=>ty_t_name_value.
 
-    DATA mo_runtime TYPE REF TO z2ui5_lcl_system_runtime.
-
     DATA m_root    TYPE REF TO z2ui5_lcl_if_view.
     DATA m_last    TYPE REF TO z2ui5_lcl_if_view.
     DATA m_parent  TYPE REF TO z2ui5_lcl_if_view.
     DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_lcl_if_view WITH EMPTY KEY.
+
+    DATA mo_runtime TYPE REF TO z2ui5_lcl_system_runtime.
 
     CLASS-METHODS factory
       IMPORTING
@@ -1357,7 +1350,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
            ( n = 'valueHelpRequest'  v = valueHelpRequest )
            ( n = 'showValueHelp'     v = _=>get_json_boolean( showValueHelp ) )
         ) ).
-
 
   ENDMETHOD.
 
@@ -2372,7 +2364,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD factory_error.
 
     r_result = NEW #( ).
-
     r_result->ms_error-x_error = error.
     r_result->ms_error-app     ?= app.
     r_result->ms_error-kind    = kind.
@@ -2424,10 +2415,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
               CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
                 ms_home-class_value_state_text = lx->get_text( ).
                 ms_home-class_value_state = 'Warning'.
-                client->popup_message_box(
-                    text = ms_home-class_value_state_text
-                    type = 'error'
-                     ).
+                client->popup_message_box( text = ms_home-class_value_state_text type = 'error' ).
             ENDTRY.
 
           WHEN 'DEMOS'.
@@ -2532,8 +2520,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     grid->simple_form( 'Applications and Examples' )->content( 'f'
       )->button( text = `Press to continue..` press = view->_event( 'DEMOS' ) ).
 
-
-
   ENDMETHOD.
 
 ENDCLASS.
@@ -2575,7 +2561,6 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       FROM z2ui5_t_draft
      WHERE uuid = @id
     INTO @result.
-
     _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
