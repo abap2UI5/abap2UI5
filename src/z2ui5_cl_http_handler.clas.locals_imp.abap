@@ -1312,7 +1312,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
- METHOD z2ui5_if_view~custom_data.
+  METHOD z2ui5_if_view~custom_data.
 
     result = _generic(
        name   = 'customData'
@@ -1377,16 +1377,16 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        t_prop = VALUE #(
            ( n = 'placeholder'     v = placeholder )
            ( n = 'type'            v = type )
-           ( n = 'showClearIcon'   v = _=>get_abap_2_json( show_clear_icon ) )
+           ( n = 'showClearIcon'   v = _=>get_json_boolean( show_clear_icon ) )
            ( n = 'description'     v = description )
-           ( n = 'editable'        v = _=>get_abap_2_json( editable ) )
+           ( n = 'editable'        v = _=>get_json_boolean( editable ) )
            ( n = 'valueState'      v = value_state )
            ( n = 'valueStateText'  v = value_state_text )
            ( n = 'value'           v = value )
            ( n = 'suggestionItems' v = suggestion_items )
-           ( n = 'showSuggestion'  v = _=>get_abap_2_json( showsuggestion ) )
+           ( n = 'showSuggestion'  v = _=>get_json_boolean( showsuggestion ) )
            ( n = 'valueHelpRequest'  v = valueHelpRequest )
-           ( n = 'showValueHelp'     v = _=>get_abap_2_json( showValueHelp ) )
+           ( n = 'showValueHelp'     v = _=>get_json_boolean( showValueHelp ) )
         ) ).
 
 
@@ -1542,7 +1542,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         t_prop = VALUE #(
             ( n = 'value'   v = value )
             ( n = 'type'    v = type )
-            ( n = 'editable'   v = _=>get_abap_2_json( editable ) )
+            ( n = 'editable'   v = _=>get_json_boolean( editable ) )
             ( n = 'height' v = height )
             ( n = 'width'  v = width )
        ) ).
@@ -1609,7 +1609,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
        name  = 'ComboBox'
        t_prop = VALUE #(
-          (  n = 'showClearIcon' v = _=>get_abap_2_json( show_clear_icon ) )
+          (  n = 'showClearIcon' v = _=>get_json_boolean( show_clear_icon ) )
           (  n = 'selectedKey'   v = selectedkey )
           (  n = 'items'         v = items )
       ) ).
@@ -1664,7 +1664,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
          ( n = 'text'   v = text )
          ( n = 'target' v = '_blank' )
          ( n = 'href'   v = href )
-         ( n = 'enabled'   v = _=>get_abap_2_json( enabled ) )
+         ( n = 'enabled'   v = _=>get_json_boolean( enabled ) )
        ) ).
 
   ENDMETHOD.
@@ -1694,12 +1694,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
             ( n = 'step' v = step )
             ( n = 'value' v = value )
      ) ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~_conv.
-
-    result = _=>get_json_boolean( v  ).
 
   ENDMETHOD.
 
@@ -1741,32 +1735,32 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD z2ui5_if_view~generic_tag.
+  METHOD z2ui5_if_view~generic_tag.
 
-   result = _generic(
-          name  = 'GenericTag'
-          t_prop = VALUE #(
-             ( n = 'ariaLabelledBy'           v = arialabelledby )
-             ( n = 'class'        v = class )
-             ( n = 'design'          v = design )
-             ( n = 'status'  v = status )
-             ( n = 'text'   v = text )
-      ) ).
+    result = _generic(
+           name  = 'GenericTag'
+           t_prop = VALUE #(
+              ( n = 'ariaLabelledBy'           v = arialabelledby )
+              ( n = 'class'        v = class )
+              ( n = 'design'          v = design )
+              ( n = 'status'  v = status )
+              ( n = 'text'   v = text )
+       ) ).
 
   ENDMETHOD.
 
-    METHOD z2ui5_if_view~object_number.
+  METHOD z2ui5_if_view~object_number.
 
-   result = me.
+    result = me.
 
-      _generic(
-          name  = 'ObjectNumber'
-          t_prop = VALUE #(
-             ( n = 'emphasized'           v = _=>get_json_boolean( emphasized ) )
-             ( n = 'number'        v = number )
-             ( n = 'state'          v = state )
-             ( n = 'unit'  v = unit )
-      ) ).
+    _generic(
+        name  = 'ObjectNumber'
+        t_prop = VALUE #(
+           ( n = 'emphasized'           v = _=>get_json_boolean( emphasized ) )
+           ( n = 'number'        v = number )
+           ( n = 'state'          v = state )
+           ( n = 'unit'  v = unit )
+    ) ).
 
   ENDMETHOD.
 
@@ -1810,7 +1804,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = 'text'     v = text )
           ( n = 'selected' v = selected )
-          ( n = 'enabled'  v = _=>get_abap_2_json( enabled ) )
+          ( n = 'enabled'  v = _=>get_json_boolean( enabled ) )
       ) ).
 
   ENDMETHOD.
@@ -1822,9 +1816,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
          name  = 'ProgressIndicator'
          t_prop = VALUE #(
-            ( n = 'percentValue' v = _get_name_by_ref( percent_value ) )
+            ( n = 'percentValue' v = percent_value  )
             ( n = 'displayValue' v = display_value )
-            ( n = 'showValue'    v = _=>get_abap_2_json( show_value ) )
+            ( n = 'showValue'    v = _=>get_json_boolean(  show_value ) )
             ( n = 'state'        v = state )
      ) ).
 
@@ -1999,11 +1993,11 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
         name   = 'MessagePage'
         t_prop = VALUE #(
-           ( n = 'showHeader' v = _=>get_abap_2_json( show_header ) )
+           ( n = 'showHeader' v = _=>get_json_boolean(  show_header ) )
            ( n = 'description' v = description )
            ( n = 'icon' v = icon )
            ( n = 'text' v = text )
-           ( n = 'enableFormattedText' v = _=>get_abap_2_json( enable_formatted_text ) )
+           ( n = 'enableFormattedText' v = _=>get_json_boolean( enable_formatted_text ) )
       ) ).
 
   ENDMETHOD.
@@ -2039,6 +2033,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
      t_prop = VALUE #(
        ( n = 'text' v = text )
        ( n = 'type' v = type )
+       ( n = 'showIcon' v = _=>get_json_boolean( show_Icon ) )
        ( n = 'class' v = class )
       ) ).
 
@@ -2301,7 +2296,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
          ns = 'mchart'
          t_prop = VALUE #(
              ( n = 'selectionChanged'  v = selectionChanged )
-             ( n = 'showError' v = _=>get_abap_2_json( showerror ) )
+             ( n = 'showError' v = _=>get_json_boolean( showerror ) )
              ( n = 'errorMessageTitle'  v = errormessagetitle )
              ( n = 'errorMessage'  v = errormessage )
              ( n = 'displayedSegments'  v = displayedsegments )
@@ -2331,7 +2326,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
          ns = 'mchart'
          t_prop = VALUE #(
              ( n = 'selectionChanged'  v = selectionChanged )
-             ( n = 'showError'  v = _=>get_abap_2_json( showerror ) )
+             ( n = 'showError'  v = _=>get_json_boolean( showerror ) )
              ( n = 'press'  v = press )
              ( n = 'errorMessageTitle'  v = errormessagetitle )
              ( n = 'errorMessage'  v = errormessage )
@@ -2728,7 +2723,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CATCH cx_root.
           _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
       ENDTRY.
-    ELSEIF ms_next-view_popup IS INITIAL.
+    ELSEIF ms_actual-view_active is not INITIAL.
+         TRY.
+          lr_screen = REF #( ms_next-t_screen[ name = ms_actual-view_active ] ).
+        CATCH cx_root.
+          _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
+      ENDTRY.
+    elseif ms_next-view_popup IS INITIAL.
       lr_screen = REF #( ms_next-t_screen[ 1 ] ).
       ms_next-view = lr_screen->name.
     ENDIF.
@@ -2759,6 +2760,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     DATA(lo_system) = lo_ui5_model->add_attribute_object( 'oSystem' ).
     lo_system->add_attribute( n = 'ID' v = ms_db-id ).
+    lo_system->add_attribute( n = 'VIEW_NAME' v = ms_next-view ).
+    lo_system->add_attribute( n = 'VIEW_POPUP_NAME' v = ms_next-view_popup ).
     IF lr_screen IS BOUND.
       lo_system->add_attribute( n = 'VIEW' v = lr_screen->name ).
     ENDIF.
@@ -2876,6 +2879,14 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
+    TRY.
+        r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_NAME' )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+*    TRY.
+*        r_result->ms_next-view = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'VIEW_POPUP_NAME' )->get_val( ).
+*      CATCH cx_root.
+*    ENDTRY.
 
     r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
