@@ -24,7 +24,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -52,10 +52,10 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
             check_editable_active = xsdbool( check_editable_active = abap_false ).
 
           WHEN 'BUTTON_DELETE'.
-            delete t_tab where selkz = abap_true.
+            DELETE t_tab WHERE selkz = abap_true.
 
           WHEN 'BUTTON_ADD'.
-            insert value #( ) into table t_tab.
+            INSERT VALUE #( ) INTO TABLE t_tab.
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
@@ -113,7 +113,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
               )->input( '{VALUE}'
               )->input( '{INFO}'
               )->input( '{DESCR}'
-              )->checkbox( selected = '{CHECKBOX}' enabled = abap_true ).
+              )->checkbox( selected = '{CHECKBOX}' ).
 
         ELSE.
 
@@ -122,7 +122,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
              )->text( '{VALUE}'
              )->text( '{INFO}'
              )->text( '{DESCR}'
-             )->checkbox( '{CHECKBOX}' ).
+             )->checkbox( selected = '{CHECKBOX}' enabled = abap_false ).
 
         ENDIF.
 
