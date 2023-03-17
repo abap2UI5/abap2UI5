@@ -108,7 +108,7 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
         "set toolbar
         IF check_editable_active = abap_true.
 
-          tab->items( )->column_list_item( selected = '{SELKZ}'  )->cells(
+          tab->items( )->column_list_item( selected = '{SELKZ}' )->cells(
               )->input( '{TITLE}'
               )->input( '{VALUE}'
               )->input( '{INFO}'
@@ -117,7 +117,7 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
 
         ELSE.
 
-          tab->items( )->column_list_item( selected = '{SELKZ}'  )->cells(
+          tab->items( )->column_list_item( selected = '{SELKZ}' )->cells(
              )->text( '{TITLE}'
              )->text( '{VALUE}'
              )->text( '{INFO}'

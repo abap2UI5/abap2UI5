@@ -210,12 +210,12 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
                     selectionchanged = view->_event( 'BAR_CHANGED' )
                     press = view->_event( 'BAR_PRESS' )
       )->bars( ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedValue = '10%').
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedValue = '20%').
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedValue = '70%').
+    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedValue = '10%' ).
+    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedValue = '20%' ).
+    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedValue = '70%' ).
 
 
-    DATA(layout) = grid->vertical_layout(  )->layout_data( ns = 'l' )->grid_data( span = 'XL12 L12 M12 S12' )->get_parent( )->get_parent( ).
+    DATA(layout) = grid->vertical_layout( )->layout_data( ns = 'l' )->grid_data( span = 'XL12 L12 M12 S12' )->get_parent( )->get_parent( ).
 
     layout->text( text = 'Positive and Negative values' class = 'sapUiSmallMargin' ).
     bar = layout->flex_box( width = '20rem' height = '10rem' alignitems = 'Center' class = 'sapUiSmallMargin'
@@ -225,7 +225,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
                     labelwidth = '25%'
       )->bars( ).
     bar->interact_bar_chart_bar( label = 'Product 1' value = '25' ).
-    bar->interact_bar_chart_bar(  label = 'Product 2' value = '-50' ).
+    bar->interact_bar_chart_bar( label = 'Product 2' value = '-50' ).
     bar->interact_bar_chart_bar( label = 'Product 3' value = '-100' ).
 
   ENDMETHOD.

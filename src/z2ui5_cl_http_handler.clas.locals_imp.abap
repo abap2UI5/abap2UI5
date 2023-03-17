@@ -117,7 +117,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     CLASS-METHODS get_attri_name_by_ref
       IMPORTING
         i_focus         TYPE data
-        io_app          TYPE REF TO object
+        io_app          TYPE REF TO object ##NEEDED.
         t_attri         TYPE ty-t-attri
       RETURNING
         VALUE(r_result) TYPE string.
@@ -1299,8 +1299,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~_generic.
 
     result = _generic(
-       EXPORTING
-         name   = name
+       name   = name
          ns     = ns
          t_prop = t_prop
      ).
@@ -1725,7 +1724,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
           name  = 'Switch'
           t_prop = VALUE #(
              ( n = 'type'           v = type )
-             ( n = 'enabled'        v = _=>get_json_boolean( enabled  ) )
+             ( n = 'enabled'        v = _=>get_json_boolean( enabled ) )
              ( n = 'state'          v = state )
              ( n = 'customTextOff'  v = customtextoff )
              ( n = 'customTextOn'   v = customtexton )
@@ -1747,7 +1746,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
              ( n = 'labelInterval'  v = labelinterval )
              ( n = 'max'   v = max )
              ( n = 'min'   v = min )
-             ( n = 'showTickmarks'   v = _=>get_json_boolean( showtickmarks  ) )
+             ( n = 'showTickmarks'   v = _=>get_json_boolean( showtickmarks ) )
              ( n = 'startValue'   v = startvalue )
              ( n = 'step'   v = step )
              ( n = 'width'   v = width )
@@ -1836,9 +1835,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
          name  = 'ProgressIndicator'
          t_prop = VALUE #(
-            ( n = 'percentValue' v = percentvalue  )
+            ( n = 'percentValue' v = percentvalue )
             ( n = 'displayValue' v = displayvalue )
-            ( n = 'showValue'    v = _=>get_json_boolean(  showvalue ) )
+            ( n = 'showValue'    v = _=>get_json_boolean( showvalue ) )
             ( n = 'state'        v = state )
      ) ).
 
@@ -1853,7 +1852,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       t_prop = VALUE #(
         ( n = 'text'  v = text )
         ( n = 'class' v = class )
-        )  ).
+        ) ).
 
   ENDMETHOD.
 
@@ -2013,7 +2012,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
         name   = 'MessagePage'
         t_prop = VALUE #(
-           ( n = 'showHeader' v = _=>get_json_boolean(  show_header ) )
+           ( n = 'showHeader' v = _=>get_json_boolean( show_header ) )
            ( n = 'description' v = description )
            ( n = 'icon' v = icon )
            ( n = 'text' v = text )
@@ -2571,7 +2570,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       view->message_page(
           text = '500 Internal Server Error'
           enableformattedtext = abap_true
-          description =  ms_error-x_error->get_text( ) &&
+          description = ms_error-x_error->get_text( ) &&
             ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
             lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `
           icon = 'sap-icon://message-error'
@@ -2815,15 +2814,15 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     lo_list = lo_ui5_model->add_attribute_list( 'oScroll' ).
     LOOP AT ms_next-t_scroll_pos REFERENCE INTO DATA(lr_focus).
-      lo_list->add_list_object( )->add_attribute(  n = lr_focus->n v = lr_focus->v apos_active = abap_false ).
+      lo_list->add_list_object( )->add_attribute( n = lr_focus->n v = lr_focus->v apos_active = abap_false ).
     ENDLOOP.
 
     if ms_next-s_cursor_pos is not INITIAL.
     lo_list = lo_ui5_model->add_attribute_object( 'oCursor' ).
     lo_list->add_attribute( n = 'cursorPos'  v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false ).
-    lo_list->add_attribute( n = 'id'        v = ms_next-s_cursor_pos-id  ).
-    lo_list->add_attribute( n = 'selectionEnd'  v = ms_next-s_cursor_pos-selectionend apos_active = abap_false  ).
-    lo_list->add_attribute( n = 'selectionStart'  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false  ).
+    lo_list->add_attribute( n = 'id'        v = ms_next-s_cursor_pos-id ).
+    lo_list->add_attribute( n = 'selectionEnd'  v = ms_next-s_cursor_pos-selectionend apos_active = abap_false ).
+    lo_list->add_attribute( n = 'selectionStart'  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false ).
     endif.
 
 

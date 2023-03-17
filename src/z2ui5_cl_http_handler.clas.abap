@@ -154,15 +154,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    try {` && |\n| &&
                            `                   //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
                            `                    } catch (error) { };` && |\n| &&
-                           `     //todo` && |\n|  &&
-                           `    if (sap.z2ui5.oResponse.oScroll){` && |\n|  &&
-                           `     sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n|  &&
-                           `   try {` && |\n|  &&
-                           `   oView.byId( key ).scrollTo( item[ key ] );` && |\n|  &&
-                           `  }catch( e ){  ` && |\n|  &&
-                           `    var ele = '#' + oView.byId( key ).getId( ) + '-inner'; ` && |\n|  &&
-                           `   $(ele).scrollTop( item[ key ] );  }  ` && |\n|  &&
-                           `    // index: the ordinal position of the key within the object ` && |\n|  &&
+                           `     //todo` && |\n| &&
+                           `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
+                           `     sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n| &&
+                           `   try {` && |\n| &&
+                           `   oView.byId( key ).scrollTo( item[ key ] );` && |\n| &&
+                           `  }catch( e ){  ` && |\n| &&
+                           `    var ele = '#' + oView.byId( key ).getId( ) + '-inner'; ` && |\n| &&
+                           `   $(ele).scrollTop( item[ key ] );  }  ` && |\n| &&
+                           `    // index: the ordinal position of the key within the object ` && |\n| &&
                            `})); }` && |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
@@ -196,11 +196,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        this.oBody.oPopup = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
                            `                    }` && |\n| &&
                            |\n| &&
-                         `    if (sap.z2ui5.oResponse.oScroll){` && |\n|  &&
-                           `     var oScrollNew = [];` && |\n|  &&
+                         `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
+                           `     var oScrollNew = [];` && |\n| &&
                             ` sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) { ` &&
-                                `   try {` && |\n|  &&
-                           ` //  oScrollNew.push( { 'n' = key  'v' = this.oView.byId( key ).getScrollDelegate().getScrollTop() } );` && |\n|  &&
+                                `   try {` && |\n| &&
+                           ` //  oScrollNew.push( { 'n' = key  'v' = this.oView.byId( key ).getScrollDelegate().getScrollTop() } );` && |\n| &&
                            `  }catch( e ){ } ` &&
                            ` }.bind(this))); ` &&
                            `   this.oBody.oScroll = oScrollNew;         }` && |\n| &&
