@@ -68,9 +68,9 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
              )->label( 'path'
              )->input( view->_bind( mv_path )
              )->label( 'Option'
-             )->input( value = view->_bind( mv_type ) suggestion_items = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
+             )->input( value = view->_bind( mv_type ) suggestionitems = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
                    )->get( )->suggestion_items( )->get(
-                                 )->list_item( text = '{NAME}' additional_text = '{VALUE}' )->get_parent( )->get_parent(
+                                 )->list_item( text = '{NAME}' additionalText = '{VALUE}' )->get_parent( )->get_parent(
              )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'

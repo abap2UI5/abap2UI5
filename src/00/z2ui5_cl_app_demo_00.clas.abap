@@ -121,15 +121,15 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
            )->get(
               )->layout_data(
           )->flex_item_data(
-                 grow_Factor = '1'
-              style_class = 'sapUiTinyMargin'
+                 growFactor = '1'
+              styleclass = 'sapUiTinyMargin'
          )->get_parent( )->get_parent(
      )->text( text = 'Use the sap.ui.codeeditor to develop editor apps - for instance edit files form the MIME Repository'
          )->get(
          )->layout_data(
           )->flex_item_data(
-                 grow_Factor = '3'
-           style_class = 'sapUiTinyMargin'
+                 growFactor = '3'
+           styleclass = 'sapUiTinyMargin'
           ).
 
         form->flex_box( class = 'columns'
@@ -137,15 +137,15 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         )->get(
            )->layout_data(
        )->flex_item_data(
-              grow_Factor = '1'
-           style_class = 'sapUiTinyMargin'
+              growFactor = '1'
+           styleclass = 'sapUiTinyMargin'
       )->get_parent( )->get_parent(
   )->text( text = 'Use the sap.ui.table to develop table maintenance apps - import/export data in csv/json/xml, edit entries in the table control and save it to database'
       )->get(
       )->layout_data(
        )->flex_item_data(
-              grow_Factor = '3'
-        style_class = 'sapUiTinyMargin'
+              growFactor = '3'
+        styleclass = 'sapUiTinyMargin'
        ).
 *
 *        form->flex_box( class = 'columns'

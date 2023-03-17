@@ -1377,13 +1377,13 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        t_prop = VALUE #(
            ( n = 'placeholder'     v = placeholder )
            ( n = 'type'            v = type )
-           ( n = 'showClearIcon'   v = _=>get_json_boolean( show_clear_icon ) )
+           ( n = 'showClearIcon'   v = _=>get_json_boolean( showclearicon ) )
            ( n = 'description'     v = description )
            ( n = 'editable'        v = _=>get_json_boolean( editable ) )
-           ( n = 'valueState'      v = value_state )
-           ( n = 'valueStateText'  v = value_state_text )
+           ( n = 'valueState'      v = valuestate )
+           ( n = 'valueStateText'  v = valuestatetext )
            ( n = 'value'           v = value )
-           ( n = 'suggestionItems' v = suggestion_items )
+           ( n = 'suggestionItems' v = suggestionitems )
            ( n = 'showSuggestion'  v = _=>get_json_boolean( showsuggestion ) )
            ( n = 'valueHelpRequest'  v = valueHelpRequest )
            ( n = 'showValueHelp'     v = _=>get_json_boolean( showValueHelp ) )
@@ -1609,7 +1609,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
        name  = 'ComboBox'
        t_prop = VALUE #(
-          (  n = 'showClearIcon' v = _=>get_json_boolean( show_clear_icon ) )
+          (  n = 'showClearIcon' v = _=>get_json_boolean( showclearicon ) )
           (  n = 'selectedKey'   v = selectedkey )
           (  n = 'items'         v = items )
       ) ).
@@ -1816,9 +1816,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
          name  = 'ProgressIndicator'
          t_prop = VALUE #(
-            ( n = 'percentValue' v = percent_value  )
-            ( n = 'displayValue' v = display_value )
-            ( n = 'showValue'    v = _=>get_json_boolean(  show_value ) )
+            ( n = 'percentValue' v = percentvalue  )
+            ( n = 'displayValue' v = displayvalue )
+            ( n = 'showValue'    v = _=>get_json_boolean(  showvalue ) )
             ( n = 'state'        v = state )
      ) ).
 
@@ -1966,7 +1966,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
         name = 'List'
         t_prop = VALUE #(
-          ( n = 'headerText' v = header_text )
+          ( n = 'headerText' v = headertext )
           ( n = 'items' v = items )
       ) ).
 
@@ -1997,7 +1997,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
            ( n = 'description' v = description )
            ( n = 'icon' v = icon )
            ( n = 'text' v = text )
-           ( n = 'enableFormattedText' v = _=>get_json_boolean( enable_formatted_text ) )
+           ( n = 'enableFormattedText' v = _=>get_json_boolean( enableformattedtext ) )
       ) ).
 
   ENDMETHOD.
@@ -2033,7 +2033,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
      t_prop = VALUE #(
        ( n = 'text' v = text )
        ( n = 'type' v = type )
-       ( n = 'showIcon' v = _=>get_json_boolean( show_Icon ) )
+       ( n = 'showIcon' v = _=>get_json_boolean( showicon ) )
        ( n = 'class' v = class )
       ) ).
 
@@ -2061,7 +2061,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
                ns     = 'core'
                t_prop = VALUE #(
                       ( n = 'text' v = text )
-                      ( n = 'additionalText' v = additional_text ) ) ).
+                      ( n = 'additionalText' v = additionalText ) ) ).
 
   ENDMETHOD.
 
@@ -2171,7 +2171,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
           name = 'FlexBox'
         t_prop = VALUE #(
             ( n = 'class'  v = class )
-            ( n = 'renderType'  v = render_type )
+            ( n = 'renderType'  v = rendertype )
             ( n = 'width'  v = width )
             ( n = 'height'  v = height )
             ( n = 'alignItems'  v = alignItems )
@@ -2200,10 +2200,10 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
           name = 'FlexItemData'
         t_prop = VALUE #(
-            ( n = 'growFactor'  v = grow_factor )
-            ( n = 'baseSize'   v = base_size )
-            ( n = 'backgroundDesign'   v = background_design )
-            ( n = 'styleClass'   v = style_class )
+            ( n = 'growFactor'  v = growfactor )
+            ( n = 'baseSize'   v = basesize )
+            ( n = 'backgroundDesign'   v = backgrounddesign )
+            ( n = 'styleClass'   v = styleClass )
         ) ).
 
   ENDMETHOD.
@@ -2542,7 +2542,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       DATA(view) = client->factory_view( 'ERROR' ).
       view->message_page(
           text = '500 Internal Server Error'
-          enable_formatted_text = abap_true
+          enableformattedtext = abap_true
           description = ms_error-x_error->get_text( )
           icon = 'sap-icon://message-error'
         )->buttons(
@@ -2582,8 +2582,8 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       form->input(
            value            = form->_bind( ms_home-classname )
            placeholder      = 'fill in the classname and press check'
-           value_state      = ms_home-class_value_state
-           value_state_text = ms_home-class_value_state_text
+           valuestate      = ms_home-class_value_state
+           valuestatetext = ms_home-class_value_state_text
            editable         = ms_home-class_editable
        ).
     ELSE.

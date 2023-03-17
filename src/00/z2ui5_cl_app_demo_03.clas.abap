@@ -57,7 +57,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         page->list(
-           header_text = 'List Ouput'
+           headertext = 'List Ouput'
            items       = view->_bind_one_way( t_tab )
         )->standard_list_item(
            title       = '{TITLE}'

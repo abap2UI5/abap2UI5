@@ -119,7 +119,7 @@ CLASS z2ui5_cl_app_demo_05 IMPLEMENTATION.
 
 
              )->label( 'ProgressIndicator'
-             )->progress_indicator( percent_value = screen-progress_value display_value = '0,44GB of 32GB used' show_value = abap_true state = 'Success'
+             )->progress_indicator( percentvalue = screen-progress_value displayvalue = '0,44GB of 32GB used' showvalue = abap_true state = 'Success'
 
              )->label( 'StepInput'
              )->step_input( value = view->_bind( screen-step_val_01 ) step = '2'  min = '0' max = '20'
