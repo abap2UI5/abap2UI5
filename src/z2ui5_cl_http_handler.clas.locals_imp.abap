@@ -201,7 +201,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     TRY.
         ms_error-x_root ?= val.
       CATCH cx_root ##CATCH_ALL.
-       ms_error-s_msg-message = val.
+        ms_error-s_msg-message = val.
     ENDTRY.
 
     ms_error-kind = kind.
@@ -516,8 +516,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       result = ms_error-x_root->get_text( ).
       DATA(error) = abap_true.
     ELSEIF ms_error-s_msg-message IS NOT INITIAL.
-     result = ms_error-s_msg-message.
-     error = abap_true.
+      result = ms_error-s_msg-message.
+      error = abap_true.
     ENDIF.
 
     IF error = abap_true AND result IS INITIAL.
@@ -531,7 +531,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     IF when = abap_false.
       RETURN.
     ENDIF.
-    RAISE EXCEPTION type z2ui5_lcl_utility exporting val = v.
+    RAISE EXCEPTION TYPE z2ui5_lcl_utility EXPORTING val = v.
 
   ENDMETHOD.
 ENDCLASS.
@@ -552,39 +552,39 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name.
 
-    DATA mo_root TYPE ref to z2ui5_lcl_utility_tree_json.
-    DATA mo_parent TYPE ref to z2ui5_lcl_utility_tree_json.
+    DATA mo_root TYPE REF TO z2ui5_lcl_utility_tree_json.
+    DATA mo_parent TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mv_name   TYPE string.
     DATA mv_value  TYPE string.
-    DATA mt_values TYPE STANDARD TABLE OF ref to z2ui5_lcl_utility_tree_json with empty key. "ty_t_me.
+    DATA mt_values TYPE STANDARD TABLE OF REF TO z2ui5_lcl_utility_tree_json WITH EMPTY KEY.
     DATA mv_check_list TYPE abap_bool.
     DATA mr_actual TYPE REF TO data.
     DATA mv_apost_active TYPE abap_bool.
 
     CLASS-METHODS new
       IMPORTING
-        io_root         TYPE ref to z2ui5_lcl_utility_tree_json
+        io_root         TYPE REF TO z2ui5_lcl_utility_tree_json
         iv_name         TYPE simple
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     CLASS-METHODS factory
       IMPORTING
         iv_json         TYPE clike OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS constructor.
 
     METHODS get_root
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS get_attribute
       IMPORTING
         name            TYPE string
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS get_val
       RETURNING
@@ -592,13 +592,13 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     METHODS get_parent
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_list_val
       IMPORTING
         v               TYPE string
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute
       IMPORTING
@@ -606,39 +606,39 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
         v               TYPE clike
         apos_active     TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attributes_name_value_tab
       IMPORTING
         it_name_value   TYPE ty_T_name_value
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_object
       IMPORTING
         name            TYPE clike
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_list_object
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_list_list
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_list
       IMPORTING
         name            TYPE clike
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_instance
       IMPORTING
-        val             TYPE ref to z2ui5_lcl_utility_tree_json
+        val             TYPE REF TO z2ui5_lcl_utility_tree_json
       RETURNING
-        VALUE(r_result) TYPE ref to z2ui5_lcl_utility_tree_json.
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS write_result
       RETURNING
@@ -810,14 +810,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     r_result = lo_attri.
 
   ENDMETHOD.
-
-*
-*  METHOD get_attribute_all.
-*
-*    r_result = mt_values.
-*
-*  ENDMETHOD.
-
 
   METHOD get_val.
 
