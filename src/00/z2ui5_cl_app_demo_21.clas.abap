@@ -163,7 +163,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
        ).
 
 
-        client->set( focus = mv_value ).
+     "   client->set( focus = mv_value ).
 
         page->footer( )->overflow_toolbar(
               )->toolbar_spacer(
