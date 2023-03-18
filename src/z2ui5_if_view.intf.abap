@@ -180,6 +180,11 @@ INTERFACE z2ui5_if_view
   METHODS dialog
     IMPORTING
       title         TYPE clike OPTIONAL
+      icon         TYPE clike OPTIONAL
+      showHeader         TYPE clike OPTIONAL
+      stretch         TYPE clike OPTIONAL
+      contentHeight         TYPE clike OPTIONAL
+      contentWidth         TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -369,6 +374,8 @@ INTERFACE z2ui5_if_view
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
   METHODS vbox
+    importing
+     class type clike optional
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 

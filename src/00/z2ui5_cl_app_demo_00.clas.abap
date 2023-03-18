@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -66,6 +66,18 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
+          WHEN OTHERS.
+          try.
+            DATA(lv_classname) = client->get( )-event.
+            IF lv_classname(5) <> 'Z2UI5'.
+              RETURN.
+            ENDIF.
+            DATA li_app TYPE REF TO z2ui5_if_app.
+
+            CREATE OBJECT li_app TYPE (lv_classname).
+            client->nav_app_call( li_app ).
+        catch cx_root.
+        endtry.
         ENDCASE.
 
 
@@ -87,7 +99,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         grid->simple_form( 'HowTo - General' )->content( 'f'
             )->button( text = 'Communication & Data Binding' press = view->_event( '0101' )
             )->button( text = 'Events, Error & Change View' press = view->_event( '0102' )
-            )->button( text = 'Call new app and go back' press = view->_event( '2400' )
+            )->button( text = 'Flow Logic' press = view->_event( '2400' )
             )->button( text = 'Messages (Toast, Box, Strip)' press = view->_event( '0103' )
 
              ).
@@ -95,7 +107,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         grid->simple_form( 'HowTo - General II' )->content( 'f'
             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( '0104' )
             )->button( text = 'Scrolling & Focus' press = view->_event( '0100' )
-         "   )->button( text = 'Popups I' press = view->_event( '0101' )
+            )->button( text = 'Popups' press = view->_event( 'Z2UI5_CL_APP_DEMO_21' )
           "  )->button( text = 'Popups II (F4 Help)' press = view->_event( '0101' )
           ).
 
@@ -111,8 +123,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         "    )->button( text = 'Cell changes' press = view->_event( '0304' )
              ).
 
-        grid = page->grid( default_span  = 'L12 M12 S12' ).
-
+        grid = page->grid( default_span  = 'XL9 L9 M12 S12' )->content( 'l' ).
 
         DATA(form) = grid->simple_form( 'Applications and Examples' )->vbox( ).
 

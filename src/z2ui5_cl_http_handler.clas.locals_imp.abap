@@ -1417,7 +1417,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
          name   = 'VBox'
          t_prop = VALUE #(
-            ( n = 'class' v = 'sapUiSmallMargin' )
+            ( n = 'class' v = class )
          ) ).
 
   ENDMETHOD.
@@ -1860,6 +1860,11 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
          name = 'Dialog'
         t_prop = VALUE #(
           ( n = 'title'  v = title )
+          ( n = 'icon'  v = icon )
+          ( n = 'stretch'  v = stretch )
+          ( n = 'showHeader'  v = showheader )
+          ( n = 'contentWidth'  v = contentWidth )
+          ( n = 'contentHeight'  v = contentHeight )
           ) ).
 
   ENDMETHOD.
@@ -2469,7 +2474,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
         )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
 
-    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'XL8 L8 M12 S12' )->content( 'l' ).
     DATA(form) = grid->simple_form( 'Quick Start' )->content( 'f' ).
 
     form->label( 'Step 1'
@@ -2500,8 +2505,8 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
     form->link( text = 'Link to the Application' href = lv_link enabled = xsdbool( ms_home-class_editable = abap_false ) ).
 
-    grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-            )->simple_form( 'Applications and Examples' )->content( 'f'
+   " grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
+    grid->simple_form( 'Applications and Examples' )->content( 'f'
                 )->button( text = `Press to continue..` press = view->_event( 'DEMOS' ) ).
 
   ENDMETHOD.
