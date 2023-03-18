@@ -44,7 +44,6 @@ CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
         ENDCASE.
 
-        client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
@@ -53,11 +52,7 @@ CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
         DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' navbuttontap = view->_event( 'BACK' ) ).
         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
-
-
         page->input( value = view->_bind( mv_value ) ).
-
-        client->set( focus = mv_value ).
 
         DATA(tab) = page->table(
             headertext = 'Table with 100 entries'
