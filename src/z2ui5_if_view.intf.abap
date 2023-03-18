@@ -106,6 +106,7 @@ INTERFACE z2ui5_if_view
 
   METHODS input
     IMPORTING
+      id               type clike optional
       value            TYPE clike OPTIONAL
       placeholder      TYPE clike OPTIONAL
       type             TYPE clike OPTIONAL
