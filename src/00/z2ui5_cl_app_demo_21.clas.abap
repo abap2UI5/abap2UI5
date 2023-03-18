@@ -5,14 +5,6 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     TYPES:
-      BEGIN OF s_combobox,
-        key  TYPE string,
-        text TYPE string,
-      END OF s_combobox.
-
-    TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
-
-    TYPES:
       BEGIN OF ty_row,
         selkz    TYPE abap_bool,
         title    TYPE string,
@@ -24,9 +16,6 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
       END OF ty_row.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA mv_value TYPE string VALUE 'value'.
-
 
     DATA mv_textarea TYPE string.
     DATA mv_stretch_active TYPE abap_bool.
