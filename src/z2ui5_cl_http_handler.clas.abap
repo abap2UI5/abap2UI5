@@ -232,8 +232,14 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        if (sap.z2ui5.oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
                            `                            console.log('Response Object:');` && |\n| &&
                            `                            console.log(sap.z2ui5.oResponse);` && |\n| &&
+                           `                            if (sap.z2ui5.oResponse.vView){` && |\n| &&
                            `                            console.log('UI5-XML-View:');` && |\n| &&
                            `                            console.log(sap.z2ui5.oResponse.vView);` && |\n| &&
+                           `                            }` && |\n| &&
+                                       `               if (sap.z2ui5.oResponse.vViewPopup){` && |\n| &&
+                           `                            console.log('UI5-XML-Popup:');` && |\n| &&
+                           `                            console.log(sap.z2ui5.oResponse.vViewPopup);` && |\n| &&
+                           `                            }` && |\n| &&
                            `                        }` && |\n| &&
                            |\n| &&
                            `                        if (sap.z2ui5.oResponse.oAfter) {` && |\n| &&
