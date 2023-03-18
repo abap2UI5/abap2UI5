@@ -22,7 +22,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -31,8 +31,10 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_init.
 
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 101 NEXT ret =
-            VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
+        DO 1000 TIMES.
+          DATA(ls_row) = VALUE ty_Row(  title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
+          INSERT ls_row INTO TABLE t_tab.
+        ENDDO.
 
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -56,13 +58,16 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'abap2UI5 - Scroll Container with Table and Toolbar' navbuttontap = view->_event( 'BACK' ) ).
 
-         page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
 
         "set table and container
         DATA(tab) = page->scroll_container( '70%' )->table(
+            growing = abap_true
+            growingThreshold = '20'
+            growingScrollToLoad = abap_true
             items = view->_bind_one_way( t_tab )
-             sticky = 'ColumnHeaders,HeaderToolbar'
-             ).
+            sticky = 'ColumnHeaders,HeaderToolbar'
+          ).
 
         "set toolbar
         tab->header_toolbar( )->overflow_toolbar(
