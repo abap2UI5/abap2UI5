@@ -1761,6 +1761,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
            ( n = 'headerText'       v = headertext )
            ( n = 'growing'          v = growing )
            ( n = 'growingThreshold' v = growingthreshold )
+           ( n = 'growingScrollToLoad' v = growingScrollToLoad )
            ( n = 'sticky'           v = sticky )
            ( n = 'mode'             v = mode )
      ) ).
