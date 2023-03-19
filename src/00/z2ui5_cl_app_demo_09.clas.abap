@@ -230,14 +230,14 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         IF lines( mt_employees_sel ) = 1.
           screen-name = mt_employees_sel[ 1 ]-name.
           screen-lastname = mt_employees_sel[ 1 ]-lastname.
-          client->popup_message_toast( 'f4 value selected').
+          client->popup_message_toast( 'f4 value selected' ).
         ENDIF.
 
       WHEN 'POPUP_TABLE_F4_CONTINUE'.
         DELETE mt_suggestion_sel WHERE selkz = abap_false.
         IF lines( mt_suggestion_sel ) = 1.
           screen-color_02 = mt_suggestion_sel[ 1 ]-value.
-          client->popup_message_toast( 'f4 value selected').
+          client->popup_message_toast( 'f4 value selected' ).
         ENDIF.
 
       WHEN 'BUTTON_SEND'.
