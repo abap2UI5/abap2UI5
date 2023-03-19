@@ -101,21 +101,21 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
             client->view_popup( 'POPUP_TO_TEXTAREA_SIZE' ).
 
           WHEN 'BUTTON_TEXTAREA_CONFIRM'.
-       "     client->popup_message_box( mv_textarea ).
+            "     client->popup_message_box( mv_textarea ).
 
           WHEN 'BUTTON_TEXTAREA_CANCEL'.
             client->popup_message_toast( 'textarea deleted' ).
             CLEAR mv_textarea.
 
           WHEN 'POPUP_TO_INPUT'.
-          ms_popup_input-value1 = 'value1'.
+            ms_popup_input-value1 = 'value1'.
             client->view_popup( 'POPUP_TO_INPUT' ).
 
           WHEN 'POPUP_BAL'.
             client->view_popup( 'POPUP_BAL' ).
 
           WHEN 'POPUP_TABLE'.
-            clear t_tab.
+            CLEAR t_tab.
             DO 10 TIMES.
               DATA(ls_row) = VALUE ty_row( title = 'entry_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' ).
               INSERT ls_row INTO TABLE t_tab.
@@ -123,13 +123,15 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
             client->view_popup( 'POPUP_TABLE' ).
 
           WHEN 'POPUP_TABLE_CONTINUE'.
-            delete t_tab where selkz = abap_false.
-            client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title ).
+            DELETE t_tab WHERE selkz = abap_false.
+            client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title  ).
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
+
+        client->view_show( 'MAIN' ).
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
@@ -148,7 +150,10 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
     DATA(view)  = i_client->factory_view( 'MAIN' ).
     DATA(page) = view->page( title = 'abap2UI5 - Popups' navbuttontap = view->_event( 'BACK' ) ).
-    page->header_content( )->link( text = 'Go to Source Code' href = i_client->get( )-s_request-url_source_code ).
+    page->header_content(
+            )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
+            )->link( text = 'Source_Code' href = i_client->get( )-s_request-url_source_code
+            ).
 
     DATA(grid) = page->grid( 'XL8 L8 M12 S12' )->content( 'l' ).
 
@@ -181,9 +186,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
   METHOD view_popup_decide.
 
     DATA(view) = i_client->factory_view( 'POPUP_TO_DECIDE' ).
-    DATA(popup)  = view->dialog(
-   title = 'Title'
-   icon = 'sap-icon://question-mark' ).
+    DATA(popup)  = view->dialog( title = 'Title' icon = 'sap-icon://question-mark'  ).
 
     popup->content( )->vbox( class = 'sapUiMediumMargin'
          )->text( text = 'This is a question, you have to make a decision now, cancel or confirm?' ).
@@ -204,10 +207,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
   METHOD view_popup_textarea.
 
     DATA(view) = i_client->factory_view( 'POPUP_TO_TEXTAREA' ).
-    DATA(popup) = view->dialog(
-    stretch = mv_stretch_active
-    title = 'Title'
-    icon = 'sap-icon://edit' ).
+    DATA(popup) = view->dialog( stretch = mv_stretch_active title = 'Title' icon = 'sap-icon://edit' ).
 
     popup->content(
          )->text_area(
@@ -231,7 +231,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
     contentheight = '100px'
     contentwidth  = '1200px'
     title = 'Title'
-    icon = 'sap-icon://edit' ).
+    icon = 'sap-icon://edit'  ).
 
     popup->content(
          )->text_area(
@@ -263,9 +263,9 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
     popup->content(
         )->simple_form(
         )->label( 'Input1'
-        )->input( view->_bind( ms_popup_input-value1 )
+        )->input(  view->_bind( ms_popup_input-value1 )
         )->label( 'Input2'
-        )->input( view->_bind( ms_popup_input-value2 )
+        )->input(  view->_bind( ms_popup_input-value2 )
         )->label( 'Checkbox'
               )->checkbox(
          selected = view->_bind( ms_popup_input-check_is_active )
@@ -288,13 +288,13 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
   METHOD view_popup_table.
 
     DATA(view) = i_client->factory_view( 'POPUP_BAL' ).
-    DATA(popup) = view->dialog( title = 'abap2ui5 - Popup Message Log:' ).
+    DATA(popup) = view->dialog( title = 'abap2ui5 - Popup Message Log' ).
     DATA(tab) = popup->table( view->_bind( t_bapiret ) ).
 
     tab->columns(
         )->column( width = '5rem' )->text( 'Type' )->get_parent(
         )->column( width = '5rem' )->text( 'Number' )->get_parent(
-        )->column( width = '5rem' )->text( 'ID' )->get_parent(
+        )->column( width = '5rem'  )->text( 'ID' )->get_parent(
         )->column( )->text( 'Message' )->get_parent( ).
 
     tab->items( )->column_list_item( )->cells(

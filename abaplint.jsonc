@@ -184,7 +184,7 @@
     "omit_receiving": true,
     "parser_702_chaining": true,
     "parser_error": true,
-    "parser_missing_space": true,
+    "parser_missing_space": false,
     "pragma_style": true,
     "prefer_corresponding": true,
     "prefer_inline": {
