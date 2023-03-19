@@ -203,11 +203,8 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
   METHOD view_popup_textarea.
 
-    DATA view TYPE REF TO z2ui5_if_view.
-    DATA popup TYPE REF TO z2ui5_if_view.
-
-    view = i_client->factory_view( 'POPUP_TO_TEXTAREA' ).
-    popup = view->dialog(
+    DATA(view) = i_client->factory_view( 'POPUP_TO_TEXTAREA' ).
+    DATA(popup) = view->dialog(
     stretch = mv_stretch_active
     title = 'Title'
     icon = 'sap-icon://edit' ).
@@ -257,13 +254,8 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
   METHOD view_popup_input.
 
-
-
-    DATA popup TYPE REF TO z2ui5_if_view.
-    DATA view TYPE REF TO z2ui5_if_view.
-
-    view = i_client->factory_view( 'POPUP_TO_INPUT' ).
-    popup = view->dialog(
+    DATA(view) = i_client->factory_view( 'POPUP_TO_INPUT' ).
+    DATA(popup) = view->dialog(
                     contentheight = '500px'
                     contentwidth  = '500px'
                     title = 'Title' ).
