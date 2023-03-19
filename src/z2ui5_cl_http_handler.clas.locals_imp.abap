@@ -69,25 +69,25 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         in              TYPE REF TO object
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS get_uuid
       RETURNING
-        VALUE(r_result) TYPE string
+        VALUE(result) TYPE string
       RAISING
         cx_uuid_error.
 
     CLASS-METHODS get_uuid_session
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS get_user_tech
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS get_timestampl
       RETURNING
-        VALUE(r_result) TYPE timestampl.
+        VALUE(result) TYPE timestampl.
 
     CLASS-METHODS trans_json_2_data
       IMPORTING
@@ -113,13 +113,13 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         io_app          TYPE REF TO object
         t_attri         TYPE ty-t-attri
       RETURNING
-        VALUE(r_result) TYPE string ##NEEDED.
+        VALUE(result) TYPE string ##NEEDED.
 
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
         io_app          TYPE REF TO object
       RETURNING
-        VALUE(r_result) TYPE ty-t-attri ##NEEDED.
+        VALUE(result) TYPE ty-t-attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
       IMPORTING
@@ -132,13 +132,13 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         url             TYPE string
         name            TYPE string
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS get_prev_when_no_handler
       IMPORTING
         val             TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO cx_root.
+        VALUE(result) TYPE REF TO cx_root.
 
     CLASS-METHODS get_ref_data
       IMPORTING
@@ -151,13 +151,19 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         val             TYPE any
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS check_is_boolean
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS get_json_boolean
       IMPORTING
         val             TYPE any
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING ir_tab_from TYPE REF TO data
@@ -167,7 +173,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         val             TYPE clike
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -178,7 +184,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         io_app          TYPE REF TO object
         iv_attri        TYPE csequence
       RETURNING
-        VALUE(r_result) TYPE abap_attrdescr_tab.
+        VALUE(result) TYPE abap_attrdescr_tab.
 
   PRIVATE SECTION.
 
@@ -188,8 +194,8 @@ ENDCLASS.
 CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   METHOD get_trim_upper.
-    r_result = val.
-    r_result = to_upper( shift_left( shift_right( r_result ) ) ).
+    result = val.
+    result = to_upper( shift_left( shift_right( result ) ) ).
   ENDMETHOD.
 
 
@@ -214,34 +220,59 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   METHOD get_abap_2_json.
 
-    DATA lo_ele TYPE REF TO cl_abap_elemdescr.
-    lo_ele ?= cl_abap_elemdescr=>describe_by_data( val ).
-    CASE lo_ele->get_relative_name( ).
-      WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN'.
-        r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
-      WHEN OTHERS.
-        r_result = |"{ escape( val = val  format = cl_abap_format=>e_json_string ) }"|.
-    ENDCASE.
+*    DATA lo_ele TYPE REF TO cl_abap_elemdescr.
+*    lo_ele ?= cl_abap_elemdescr=>describe_by_data( val ).
+*    CASE lo_ele->get_relative_name( ).
+*      WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN' OR 'XSDBOOLEAN'.
+*        result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
+*      WHEN OTHERS.
+*        result = |"{ escape( val = val  format = cl_abap_format=>e_json_string  ) }"|.
+*    ENDCASE.
+
+    IF check_is_boolean( val ).
+      result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
+    ELSE.
+      result = |"{ escape( val = val  format = cl_abap_format=>e_json_string  ) }"|.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD check_is_boolean.
+
+    TRY.
+        DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
+        CASE lo_ele->get_relative_name( ).
+          WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN' OR 'XSDBOOLEAN'.
+            result = abap_true.
+        ENDCASE.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD get_json_boolean.
 
-    DATA lo_ele TYPE REF TO cl_abap_elemdescr.
-    lo_ele ?= cl_abap_elemdescr=>describe_by_data( val ).
-    CASE lo_ele->get_relative_name( ).
-      WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN'.
-        r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
-      WHEN OTHERS.
-        r_result = val.
-    ENDCASE.
+*    DATA lo_ele TYPE REF TO cl_abap_elemdescr.
+*    lo_ele ?= cl_abap_elemdescr=>describe_by_data( val ).
+*    CASE lo_ele->get_relative_name( ).
+*      WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN' OR 'XSDBOOLEAN'.
+*        result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
+*      WHEN OTHERS.
+*        result = val.
+*    ENDCASE.
+
+    IF check_is_boolean( val ).
+      result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
+    ELSE.
+      result = val.
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD get_classname_by_ref.
 
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
-    r_result = substring_after( val = lv_classname sub = '\CLASS=' ).
+    result = substring_after( val = lv_classname sub = '\CLASS=' ).
 
   ENDMETHOD.
 
@@ -262,7 +293,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
                       v = lv_value ) INTO TABLE lt_url_params.
     ENDLOOP.
 
-    r_result = lt_url_params[ n = get_trim_upper( name ) ]-v.
+    result = lt_url_params[ n = get_trim_upper( name ) ]-v.
 
   ENDMETHOD.
 
@@ -270,12 +301,12 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   METHOD get_prev_when_no_handler.
 
     TRY.
-        r_result = CAST cx_sy_no_handler( val )->previous.
+        result = CAST cx_sy_no_handler( val )->previous.
       CATCH cx_root.
     ENDTRY.
 
-    IF r_result IS NOT BOUND.
-      r_result = val.
+    IF result IS NOT BOUND.
+      result = val.
     ENDIF.
 
   ENDMETHOD.
@@ -295,14 +326,14 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   METHOD get_timestampl.
 
-    GET TIME STAMP FIELD r_result.
+    GET TIME STAMP FIELD result.
 
   ENDMETHOD.
 
 
   METHOD get_user_tech.
 
-    r_result = sy-uname.
+    result = sy-uname.
 
   ENDMETHOD.
 
@@ -325,14 +356,14 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     ENDTRY.
 
-    r_result = uuid.
+    result = uuid.
 
   ENDMETHOD.
 
   METHOD get_uuid_session.
 
     mv_counter = mv_counter + 1.
-    r_result = shift_left( shift_right( CONV string( mv_counter ) ) ).
+    result = shift_left( shift_right( CONV string( mv_counter ) ) ).
 
   ENDMETHOD.
 
@@ -354,7 +385,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
       IF lr_in = lr_ref.
-        r_result = to_upper( lr_attri->name ).
+        result = to_upper( lr_attri->name ).
         EXIT.
       ENDIF.
 
@@ -384,7 +415,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     ENDLOOP.
 
-    r_result = CORRESPONDING #( lt_attri ).
+    result = CORRESPONDING #( lt_attri ).
 
   ENDMETHOD.
 
@@ -406,11 +437,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
       IF lr_comp->as_include = abap_true.
         INSERT LINES OF _get_t_attri( io_app   = io_app
-                                      iv_attri = lv_element ) INTO TABLE r_result.
+                                      iv_attri = lv_element ) INTO TABLE result.
 
       ELSE.
         INSERT VALUE #( name = lv_element
-                        type_kind = lr_comp->type->type_kind ) INTO TABLE r_result.
+                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
       ENDIF.
 
     ENDLOOP.
@@ -566,39 +597,39 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
         io_root         TYPE REF TO z2ui5_lcl_utility_tree_json
         iv_name         TYPE simple
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     CLASS-METHODS factory
       IMPORTING
         iv_json         TYPE clike OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS constructor.
 
     METHODS get_root
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS get_attribute
       IMPORTING
         name            TYPE string
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS get_val
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS get_parent
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_list_val
       IMPORTING
         v               TYPE string
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute
       IMPORTING
@@ -606,47 +637,47 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
         v               TYPE clike
         apos_active     TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attributes_name_value_tab
       IMPORTING
         it_name_value   TYPE ty_T_name_value
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_object
       IMPORTING
         name            TYPE clike
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_list_object
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_list_list
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_list
       IMPORTING
         name            TYPE clike
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_instance
       IMPORTING
         val             TYPE REF TO z2ui5_lcl_utility_tree_json
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS write_result
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS get_name
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -654,14 +685,14 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       IMPORTING
         iv_text         TYPE string
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS quote_json
       IMPORTING
         iv_text         TYPE string
         iv_cond         TYPE abap_bool
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
 ENDCLASS.
 
@@ -683,7 +714,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     lo_attri->mo_parent = me.
 
     INSERT lo_attri INTO TABLE mt_values.
-    r_result = me.
+    result = me.
 
   ENDMETHOD.
 
@@ -697,7 +728,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
            apos_active = xsdbool( ls_value-no_apos = abap_false ) ).
     ENDLOOP.
 
-    r_result = me.
+    result = me.
 
   ENDMETHOD.
 
@@ -707,15 +738,15 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     val->mo_root = mo_root.
     val->mo_parent = me.
     INSERT val INTO TABLE mt_values.
-    r_result = val.
+    result = val.
 
   ENDMETHOD.
 
 
   METHOD add_attribute_list.
 
-    r_result = add_attribute_object( name = name ).
-    r_result->mv_check_list = abap_true.
+    result = add_attribute_object( name = name ).
+    result->mv_check_list = abap_true.
 
   ENDMETHOD.
 
@@ -725,21 +756,21 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     DATA(lo_attri) = new( io_root = mo_root iv_name = name ).
     mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
     lo_attri->mo_parent = me.
-    r_result = lo_attri.
+    result = lo_attri.
 
   ENDMETHOD.
 
 
   METHOD add_list_list.
 
-    r_result = add_attribute_list( name = CONV string( lines( mt_values ) ) ).
+    result = add_attribute_list( name = CONV string( lines( mt_values ) ) ).
 
   ENDMETHOD.
 
 
   METHOD add_list_object.
 
-    r_result = add_attribute_object( name = CONV string( lines( mt_values ) ) ).
+    result = add_attribute_object( name = CONV string( lines( mt_values ) ) ).
 
   ENDMETHOD.
 
@@ -752,8 +783,8 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
     lo_attri->mo_parent = me.
-    r_result = lo_attri.
-    r_result = me.
+    result = lo_attri.
+    result = me.
 
   ENDMETHOD.
 
@@ -767,24 +798,24 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
-    r_result->mo_root = r_result.
+    result = NEW #( ).
+    result->mo_root = result.
 
     /ui2/cl_json=>deserialize(
         EXPORTING
             json         = CONV string( iv_json )
             assoc_arrays = abap_true
         CHANGING
-         data            = r_result->mr_actual
+         data            = result->mr_actual
         ).
 
   ENDMETHOD.
 
   METHOD new.
 
-    r_result = NEW #( ).
-    r_result->mo_root = io_root.
-    r_result->mv_name = CONV string( iv_name ).
+    result = NEW #( ).
+    result->mo_root = io_root.
+    result->mv_name = CONV string( iv_name ).
 
   ENDMETHOD.
 
@@ -807,7 +838,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     INSERT lo_attri INTO TABLE mt_values.
 
-    r_result = lo_attri.
+    result = lo_attri.
 
   ENDMETHOD.
 
@@ -817,35 +848,35 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     ASSIGN mr_actual->* TO <attribute>.
     _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
 
-    r_result = <attribute>.
+    result = <attribute>.
 
   ENDMETHOD.
 
   METHOD get_name.
 
-    r_result = mv_name.
+    result = mv_name.
 
   ENDMETHOD.
 
 
   METHOD get_parent.
 
-    r_result = COND #( WHEN mo_parent IS NOT BOUND THEN me ELSE mo_parent ).
+    result = COND #( WHEN mo_parent IS NOT BOUND THEN me ELSE mo_parent ).
 
   ENDMETHOD.
 
 
   METHOD get_root.
 
-    r_result = mo_root.
+    result = mo_root.
 
   ENDMETHOD.
 
 
   METHOD wrap_json.
     " Wrap the input text string with the opening and closing characters
-    " and assign the result to r_result
-    r_result = iv_text.
+    " and assign the result to result
+    result = iv_text.
 
     CASE mv_check_list.
       WHEN abap_true.
@@ -857,13 +888,13 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
       WHEN OTHERS.
         RETURN.
     ENDCASE.
-    r_result = open_char && r_result && close_char.
+    result = open_char && result && close_char.
 
   ENDMETHOD.
 
   METHOD quote_json.
 
-    r_result = COND #( WHEN iv_cond = abap_true THEN `"` && iv_text && `"` ELSE iv_text ).
+    result = COND #( WHEN iv_cond = abap_true THEN `"` && iv_text && `"` ELSE iv_text ).
 
   ENDMETHOD.
 
@@ -872,28 +903,28 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     LOOP AT mt_values INTO DATA(lo_attri).
 
       IF sy-tabix > 1.
-        r_result = r_result && |,|.
+        result = result && |,|.
       ENDIF.
 
       IF mv_check_list = abap_false.
-        r_result = r_result && |"{ lo_attri->mv_name }":|.
+        result = result && |"{ lo_attri->mv_name }":|.
       ENDIF.
 
 
       IF lo_attri->mt_values IS NOT INITIAL.
 
-        r_result = r_result && lo_attri->write_result( ).
+        result = result && lo_attri->write_result( ).
 
       ELSE.
 
-        r_result = r_result &&
+        result = result &&
            quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
                        iv_text = lo_attri->mv_value ).
       ENDIF.
 
     ENDLOOP.
 
-    r_result = wrap_json( r_result ).
+    result = wrap_json( result ).
   ENDMETHOD.
 
 ENDCLASS.
@@ -951,7 +982,7 @@ CLASS z2ui5_lcl_if_view DEFINITION.
         value           TYPE data
         type            TYPE string DEFAULT cs-bind_type-two_way
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -1038,7 +1069,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     CLASS-METHODS execute_init
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
     METHODS execute_before_app
       IMPORTING
@@ -1048,32 +1079,32 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS execute_finish
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS set_app_start
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
     CLASS-METHODS set_app_client_update
       IMPORTING
         id_prev         TYPE clike
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
     METHODS set_app_leave_to_id
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
     METHODS set_app_call_new
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
     METHODS set_app_system_error
       IMPORTING
         kind            TYPE string
         ix              TYPE REF TO cx_root
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_system_runtime.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
   PRIVATE SECTION.
 
@@ -1119,7 +1150,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         data_stringify = _=>trans_any_2_json( value )
         bind_type = type
        ) INTO TABLE m_root->mo_runtime->ms_db-t_attri.
-      r_result = '/' && lv_id && ''.
+      result = '/' && lv_id && ''.
       RETURN.
     ENDIF.
 
@@ -1136,7 +1167,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        r_result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
+        result = COND #( WHEN type = cs-bind_type-two_way THEN '/oUpdate/' ELSE '/' ) && lr_attri->name.
         RETURN.
       ENDIF.
 
@@ -1149,7 +1180,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       data_stringify = _=>trans_any_2_json( value )
       bind_type = cs-bind_type-one_time
      ) INTO TABLE m_root->mo_runtime->ms_db-t_attri.
-    r_result = '/' && lv_id && ''.
+    result = '/' && lv_id && ''.
 
   ENDMETHOD.
 
@@ -1268,6 +1299,17 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
        name   = 'customData'
         ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~formatted_text.
+
+    result = me.
+    _generic(
+       name   = 'FormattedText'
+       t_prop = VALUE #(
+          ( n = 'htmlText'   v = htmlText )
+       ) ).
 
   ENDMETHOD.
 
@@ -1407,6 +1449,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
              ( n = 'title' v = title )
              ( n = 'showNavButton' v = COND #( WHEN navbuttontap = '' THEN 'false' ELSE 'true' ) )
              ( n = 'navButtonTap' v = navbuttontap )
+             ( n = 'class' v = class )
              ( n = 'id' v = id )
          ) ).
 
@@ -2320,7 +2363,7 @@ CLASS z2ui5_lcl_system_app DEFINITION.
         app             TYPE REF TO object OPTIONAL
         kind            TYPE string OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE REF TO  z2ui5_lcl_system_app.
+        VALUE(result) TYPE REF TO  z2ui5_lcl_system_app.
 
   PROTECTED SECTION.
 
@@ -2355,10 +2398,10 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
   METHOD factory_error.
 
-    r_result = NEW #( ).
-    r_result->ms_error-x_error = error.
-    r_result->ms_error-app     ?= app.
-    r_result->ms_error-kind    = kind.
+    result = NEW #( ).
+    result->ms_error-x_error = error.
+    result->ms_error-app     ?= app.
+    result->ms_error-kind    = kind.
 
   ENDMETHOD.
 
@@ -2468,7 +2511,9 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     ENDIF.
 
     view = client->factory_view( 'HOME' ).
-    DATA(page) = view->page( 'abap2UI5 - Development of UI5 Apps in pure ABAP' ).
+    DATA(page) = view->page(
+         class = 'sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer'
+        title = 'abap2UI5 - Development of UI5 Apps in pure ABAP' ).
     page->header_content(
         )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
@@ -2505,7 +2550,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
     form->link( text = 'Link to the Application' href = lv_link enabled = xsdbool( ms_home-class_editable = abap_false ) ).
 
-   " grid = page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
     grid->simple_form( 'Applications and Examples' )->content( 'f'
                 )->button( text = `Press to continue..` press = view->_event( 'DEMOS' ) ).
 
@@ -2604,11 +2648,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     TRY.
         DATA(lv_id_prev) = ss_client-o_body->get_attribute( 'OSYSTEM' )->get_attribute( 'ID' )->get_val( ).
       CATCH cx_root.
-        r_result = set_app_start( ).
+        result = set_app_start( ).
         RETURN.
     ENDTRY.
 
-    r_result = set_app_client_update( lv_id_prev ).
+    result = set_app_client_update( lv_id_prev ).
 
   ENDMETHOD.
 
@@ -2629,6 +2673,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ELSEIF ms_actual-view_active IS NOT INITIAL.
       TRY.
           lr_screen = REF #( ms_next-t_screen[ name = ms_actual-view_active ] ).
+          ms_next-view = ms_actual-view_active.
         CATCH cx_root.
           _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
       ENDTRY.
@@ -2701,11 +2746,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     IF ms_next-check_set_prev_view = abap_true.
       lo_ui5_model->add_attribute( n = 'SET_PREV_VIEW' v = 'true' apos_active = abap_false ).
     ENDIF.
-    r_result = lo_ui5_model->get_root( )->write_result( ).
+    result = lo_ui5_model->get_root( )->write_result( ).
 
     z2ui5_lcl_db=>create(
         id = ms_db-id
-        response = r_result
+        response = result
         db = ms_db ).
 
   ENDMETHOD.
@@ -2713,21 +2758,21 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD set_app_client_update.
 
-    CONSTANTS c_prefix TYPE string VALUE `R_RESULT->MS_DB-O_APP->`.
+    CONSTANTS c_prefix TYPE string VALUE `result->MS_DB-O_APP->`.
 
-    r_result = NEW #( ).
-    DATA(lv_id) = r_result->ms_db-id.
-    r_result->ms_db = z2ui5_lcl_db=>load_app( id_prev ).
-    r_result->ms_db-id = lv_id.
-    r_result->ms_db-id_prev = id_prev.
+    result = NEW #( ).
+    DATA(lv_id) = result->ms_db-id.
+    result->ms_db = z2ui5_lcl_db=>load_app( id_prev ).
+    result->ms_db-id = lv_id.
+    result->ms_db-id_prev = id_prev.
 
     DATA(lo_system) = ss_client-o_body->get_attribute( 'OSYSTEM' ).
 
     TRY.
-        r_result->ms_next-view_popup = lo_system->get_attribute( 'VIEW_POPUP' )->get_val( ).
+        result->ms_next-view_popup = lo_system->get_attribute( 'VIEW_POPUP' )->get_val( ).
         DATA(lo_popup_model) = ss_client-o_body->get_attribute( 'OPOPUP' ).
 
-        LOOP AT r_result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+        LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
 
           FIELD-SYMBOLS <attribute> TYPE any.
@@ -2751,7 +2796,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       CATCH cx_root.
 
-        LOOP AT r_result->ms_db-t_attri REFERENCE INTO lr_attri
+        LOOP AT result->ms_db-t_attri REFERENCE INTO lr_attri
                     WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
 
           lv_name = c_prefix && to_upper( lr_attri->name ).
@@ -2777,73 +2822,75 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
 
     TRY.
-        r_result->ms_next-event = ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
+        result->ms_next-event = ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 *    TRY.
-*        r_result->ms_next-page_scroll_pos = ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
+*        result->ms_next-page_scroll_pos = ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
 *      CATCH cx_root.
 *    ENDTRY.
     TRY.
-        r_result->ms_next-view = lo_system->get_attribute( 'VIEW' )->get_val( ).
+        result->ms_next-view = lo_system->get_attribute( 'VIEW' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
     TRY.
-        r_result->ms_next-view = lo_system->get_attribute( 'VIEW_NAME' )->get_val( ).
+        result->ms_next-view = lo_system->get_attribute( 'VIEW_NAME' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 *    TRY.
-*        r_result->ms_next-view = lo_system->get_attribute( 'VIEW_POPUP_NAME' )->get_val( ).
+*        result->ms_next-view = lo_system->get_attribute( 'VIEW_POPUP_NAME' )->get_val( ).
 *      CATCH cx_root.
 *    ENDTRY.
 
-    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+    result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
   ENDMETHOD.
 
 
   METHOD set_app_start.
 
-    r_result = NEW #( ).
+    result = NEW #( ).
     DO.
       TRY.
-          r_result->ms_db-app_classname = to_upper( ss_client-t_param[ name = 'app' ]-value ).
+          result->ms_db-app_classname = to_upper( ss_client-t_param[ name = 'app' ]-value ).
 
         CATCH cx_root ##CATCH_ALL.
-          r_result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+          result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
           EXIT.
       ENDTRY.
 
       TRY.
-          CREATE OBJECT r_result->ms_db-o_app TYPE (r_result->ms_db-app_classname).
+          CREATE OBJECT result->ms_db-o_app TYPE (result->ms_db-app_classname).
           EXIT.
 
         CATCH cx_root ##CATCH_ALL.
           DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
-            val = `class with name ` && r_result->ms_db-app_classname && ` not found, app call not possible` ).
-          r_result->ms_db-o_app = lo_error.
+            val = `class with name ` && result->ms_db-app_classname && ` not found, app call not possible` ).
+          result->ms_db-o_app = lo_error.
           EXIT.
       ENDTRY.
     ENDDO.
 
-    r_result->ms_db-app_classname      = _=>get_classname_by_ref( r_result->ms_db-o_app ).
-    r_result->ms_db-t_attri            = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
-    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    result->ms_db-app_classname      = _=>get_classname_by_ref( result->ms_db-o_app ).
+    result->ms_db-t_attri            = _=>get_t_attri_by_ref( result->ms_db-o_app ).
+    result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
   ENDMETHOD.
 
   METHOD set_app_leave_to_id.
 
-    r_result = NEW #( ).
-    r_result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
+    result = NEW #( ).
+    result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
 
-    r_result->ms_next = ms_next.
-    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+    result->ms_next = ms_next.
+    result->ms_next-view = ''.
+    result->ms_next-view_popup = ''.
+    result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
     CLEAR ms_next.
 
-    r_result->ms_db-id_prev_app = ms_db-id.
-    r_result->ms_db-id_prev     = ms_db-id.
+    result->ms_db-id_prev_app = ms_db-id.
+    result->ms_db-id_prev     = ms_db-id.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
@@ -2853,38 +2900,38 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
-    r_result = NEW #( ).
-    r_result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
-    r_result->ms_db-app_classname = _=>get_classname_by_ref( r_result->ms_db-o_app ).
+    result = NEW #( ).
+    result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
+    result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
-    r_result->ms_db-id_prev_app = ms_db-id.
-    r_result->ms_db-id_prev_app_stack = ms_db-id.
+    result->ms_db-id_prev_app = ms_db-id.
+    result->ms_db-id_prev_app_stack = ms_db-id.
 
-    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-    r_result->ms_next-t_after = ms_next-t_after.
-    r_result->ms_next-view    = ms_next-view.
-    r_result->ms_next-event   = ms_next-event.
+    result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    result->ms_next-t_after = ms_next-t_after.
+    result->ms_next-view    = ms_next-view.
+    result->ms_next-event   = ms_next-event.
 
-    r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
+    result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
   ENDMETHOD.
 
   METHOD set_app_system_error.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
-    r_result = NEW #( ).
-    r_result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app kind = kind ).
-    r_result->ms_db-app_classname = _=>get_classname_by_ref( r_result->ms_db-o_app ).
+    result = NEW #( ).
+    result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app kind = kind ).
+    result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
-    r_result->ms_db-id_prev_app = ms_db-id.
-    r_result->ms_db-id_prev_app_stack = ms_db-id.
+    result->ms_db-id_prev_app = ms_db-id.
+    result->ms_db-id_prev_app_stack = ms_db-id.
 
-    r_result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
-    r_result->ms_next-t_after = ms_next-t_after.
-    r_result->ms_db-t_attri = _=>get_t_attri_by_ref( r_result->ms_db-o_app ).
+    result->ms_next-t_after = ms_next-t_after.
+    result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
-    r_result->ms_db-id_prev_app = ms_db-id.
+    result->ms_db-id_prev_app = ms_db-id.
     ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
   ENDMETHOD.
