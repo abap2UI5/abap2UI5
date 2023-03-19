@@ -220,7 +220,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       WHEN 'ABAP_BOOL' OR 'ABAP_BOOLEAN'.
         r_result = COND #( WHEN val = abap_true THEN 'true' ELSE 'false' ).
       WHEN OTHERS.
-        r_result = |"{ escape( val = val  format = cl_abap_format=>e_json_string  ) }"|.
+        r_result = |"{ escape( val = val  format = cl_abap_format=>e_json_string ) }"|.
     ENDCASE.
 
   ENDMETHOD.

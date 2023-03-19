@@ -35,9 +35,9 @@
     },
     "check_abstract": true,
     "check_comments": {
-         "exclude": [],
-         "severity": "Warning"
-     },
+      "exclude": [],
+      "severity": "Warning"
+    },
     "check_ddic": true,
     "check_include": true,
     "check_subrc": true,
@@ -82,15 +82,15 @@
     "empty_line_in_statement": false,
     "empty_statement": true,
     "empty_structure": {
-        "loop": true,
-        "if": true,
-        "while": true,
-        "case": true,
-        "select": true,
-        "do": true,
-        "at": true,
-        "try": true,
-        "when": false
+      "loop": true,
+      "if": true,
+      "while": true,
+      "case": true,
+      "select": true,
+      "do": true,
+      "at": true,
+      "try": true,
+      "when": false
     },
     "exit_or_check": true,
     "expand_macros": true,
@@ -195,16 +195,16 @@
     "pragma_style": true,
     "prefer_corresponding": true,
     "prefer_inline": {
-         "severity": "Warning"
-     },
+      "severity": "Warning"
+    },
     "prefer_is_not": true,
     "prefer_raise_exception_new": true,
     "prefer_returning_to_exporting": false,
     "prefer_xsdbool": true,
     "preferred_compare_operator": true,
     "prefix_is_current_class": {
-         "severity": "Warning"
-     },
+      "severity": "Warning"
+    },
     "reduce_string_templates": true,
     "release_idoc": true,
     "remove_descriptions": {
@@ -218,8 +218,8 @@
     "select_performance": true,
     "selection_screen_naming": true,
     "sequential_blank": {
-         "severity": "Warning"
-     },
+      "severity": "Warning"
+    },
     "short_case": false,
     "sicf_consistency": true,
     "slow_parameter_passing": true,
@@ -249,7 +249,7 @@
     "unused_types": true,
     "unused_variables": {
       "severity": "Warning",
-      "skipNames": [ "lv_dummy", "i_mv_editor" ]
+      "skipNames": ["lv_dummy", "i_mv_editor"]
     },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
