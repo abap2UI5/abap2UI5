@@ -32,7 +32,7 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_init.
 
         DO 1000 TIMES.
-          DATA(ls_row) = VALUE ty_Row(  title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
+          DATA(ls_row) = VALUE ty_Row( title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
           INSERT ls_row INTO TABLE t_tab.
         ENDDO.
 
