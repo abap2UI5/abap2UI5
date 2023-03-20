@@ -68,7 +68,10 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'abap2UI5 - Tables and editable' navbuttontap = view->_event( 'BACK' ) ).
 
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        page->header_content(
+        )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1630240894581608448'
+        )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+         ).
 
 
 

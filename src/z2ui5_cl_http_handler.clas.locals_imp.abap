@@ -67,7 +67,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_classname_by_ref
       IMPORTING
-        in              TYPE REF TO object
+        in            TYPE REF TO object
       RETURNING
         VALUE(result) TYPE string.
 
@@ -109,15 +109,15 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_attri_name_by_ref
       IMPORTING
-        i_focus         TYPE data
-        io_app          TYPE REF TO object
-        t_attri         TYPE ty-t-attri
+        i_focus       TYPE data
+        io_app        TYPE REF TO object
+        t_attri       TYPE ty-t-attri
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
-        io_app          TYPE REF TO object
+        io_app        TYPE REF TO object
       RETURNING
         VALUE(result) TYPE ty-t-attri ##NEEDED.
 
@@ -129,14 +129,14 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_params_by_url
       IMPORTING
-        url             TYPE string
-        name            TYPE string
+        url           TYPE string
+        name          TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS get_prev_when_no_handler
       IMPORTING
-        val             TYPE REF TO cx_root
+        val           TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE REF TO cx_root.
 
@@ -149,7 +149,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_abap_2_json
       IMPORTING
-        val             TYPE any
+        val           TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
@@ -161,7 +161,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_json_boolean
       IMPORTING
-        val             TYPE any
+        val           TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
@@ -171,7 +171,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_trim_upper
       IMPORTING
-        val             TYPE clike
+        val           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
 
@@ -181,8 +181,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS _get_t_attri
       IMPORTING
-        io_app          TYPE REF TO object
-        iv_attri        TYPE csequence
+        io_app        TYPE REF TO object
+        iv_attri      TYPE csequence
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
@@ -594,14 +594,14 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     CLASS-METHODS new
       IMPORTING
-        io_root         TYPE REF TO z2ui5_lcl_utility_tree_json
-        iv_name         TYPE simple
+        io_root       TYPE REF TO z2ui5_lcl_utility_tree_json
+        iv_name       TYPE simple
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     CLASS-METHODS factory
       IMPORTING
-        iv_json         TYPE clike OPTIONAL
+        iv_json       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
@@ -613,7 +613,7 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     METHODS get_attribute
       IMPORTING
-        name            TYPE string
+        name          TYPE string
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
@@ -627,27 +627,27 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     METHODS add_list_val
       IMPORTING
-        v               TYPE string
+        v             TYPE string
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute
       IMPORTING
-        n               TYPE clike
-        v               TYPE clike
-        apos_active     TYPE abap_bool DEFAULT abap_true
+        n             TYPE clike
+        v             TYPE clike
+        apos_active   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attributes_name_value_tab
       IMPORTING
-        it_name_value   TYPE ty_T_name_value
+        it_name_value TYPE ty_T_name_value
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_object
       IMPORTING
-        name            TYPE clike
+        name          TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
@@ -661,13 +661,13 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     METHODS add_attribute_list
       IMPORTING
-        name            TYPE clike
+        name          TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     METHODS add_attribute_instance
       IMPORTING
-        val             TYPE REF TO z2ui5_lcl_utility_tree_json
+        val           TYPE REF TO z2ui5_lcl_utility_tree_json
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
@@ -683,14 +683,14 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
     METHODS wrap_json
       IMPORTING
-        iv_text         TYPE string
+        iv_text       TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
     METHODS quote_json
       IMPORTING
-        iv_text         TYPE string
-        iv_cond         TYPE abap_bool
+        iv_text       TYPE string
+        iv_cond       TYPE abap_bool
       RETURNING
         VALUE(result) TYPE string.
 
@@ -979,8 +979,8 @@ CLASS z2ui5_lcl_if_view DEFINITION.
 
     METHODS _get_name_by_ref
       IMPORTING
-        value           TYPE data
-        type            TYPE string DEFAULT cs-bind_type-two_way
+        value         TYPE data
+        type          TYPE string DEFAULT cs-bind_type-two_way
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1027,6 +1027,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
 
+        view_active       TYPE string,
         t_attri           TYPE _=>ty-t-attri,
         o_app             TYPE REF TO object,
         app_classname     TYPE string,
@@ -1085,9 +1086,9 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    CLASS-METHODS set_app_client_update
+    CLASS-METHODS set_app_update_by_client
       IMPORTING
-        id_prev         TYPE clike
+        id_prev       TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
@@ -1101,8 +1102,8 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS set_app_system_error
       IMPORTING
-        kind            TYPE string
-        ix              TYPE REF TO cx_root
+        kind          TYPE string
+        ix            TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
@@ -2363,9 +2364,9 @@ CLASS z2ui5_lcl_system_app DEFINITION.
 
     CLASS-METHODS factory_error
       IMPORTING
-        error           TYPE REF TO cx_root
-        app             TYPE REF TO object OPTIONAL
-        kind            TYPE string OPTIONAL
+        error         TYPE REF TO cx_root
+        app           TYPE REF TO object OPTIONAL
+        kind          TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO  z2ui5_lcl_system_app.
 
@@ -2516,9 +2517,13 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     view = client->factory_view( 'HOME' ).
     DATA(page) = view->page(
-         class = 'sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer'
-        title = 'abap2UI5 - Development of UI5 Apps in pure ABAP' ).
+        class = 'sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer'
+      " title = 'abap2UI5 - Development of UI5 Apps in pure ABAP'
+        ).
     page->header_content(
+      )->title( ''
+      )->title( 'abap2UI5 - Development of UI5 Apps in pure ABAP'
+      )->toolbar_spacer(
         )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
         )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
         )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
@@ -2656,7 +2661,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         RETURN.
     ENDTRY.
 
-    result = set_app_client_update( lv_id_prev ).
+    result = set_app_update_by_client( lv_id_prev ).
 
   ENDMETHOD.
 
@@ -2674,7 +2679,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CATCH cx_root.
           _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
       ENDTRY.
-    ELSEIF ms_actual-view_active IS NOT INITIAL.
+    ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
       TRY.
           lr_screen = REF #( ms_next-t_screen[ name = ms_actual-view_active ] ).
           ms_next-view = ms_actual-view_active.
@@ -2691,6 +2696,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     IF lr_screen IS BOUND.
       DATA(ls_view) = lr_screen->o_parser->get_view( ).
       lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
+      ms_db-view_active = lr_screen->name.
       ls_view-o_model->mv_name = 'oViewModel'.
       lo_ui5_model->add_attribute_instance( ls_view-o_model ).
     ENDIF.
@@ -2712,14 +2718,14 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     DATA(lo_system) = lo_ui5_model->add_attribute_object( 'oSystem' ).
     lo_system->add_attribute( n = 'ID' v = ms_db-id ).
-    lo_system->add_attribute( n = 'VIEW_NAME' v = ms_next-view ).
-    lo_system->add_attribute( n = 'VIEW_POPUP_NAME' v = ms_next-view_popup ).
-    IF lr_screen IS BOUND.
-      lo_system->add_attribute( n = 'VIEW' v = lr_screen->name ).
-    ENDIF.
-    IF lr_screen_popup IS BOUND.
-      lo_system->add_attribute( n = 'VIEW_POPUP' v = lr_screen_popup->name ).
-    ENDIF.
+*    lo_system->add_attribute( n = 'VIEW_NAME' v = ms_next-view ).
+*    lo_system->add_attribute( n = 'VIEW_POPUP_NAME' v = ms_next-view_popup ).
+*    IF lr_screen IS BOUND.
+*      lo_system->add_attribute( n = 'VIEW' v = lr_screen->name ).
+*    ENDIF.
+*    IF lr_screen_popup IS BOUND.
+*      lo_system->add_attribute( n = 'VIEW_POPUP' v = lr_screen_popup->name ).
+*    ENDIF.
 
     lo_system->add_attribute( n = 'CHECK_DEBUG_ACTIVE' v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode )  apos_active = abap_false ).
 
@@ -2760,7 +2766,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD set_app_client_update.
+  METHOD set_app_update_by_client.
 
     CONSTANTS c_prefix TYPE string VALUE `result->MS_DB-O_APP->`.
 
@@ -2773,7 +2779,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DATA(lo_system) = ss_client-o_body->get_attribute( 'OSYSTEM' ).
 
     TRY.
-        result->ms_next-view_popup = lo_system->get_attribute( 'VIEW_POPUP' )->get_val( ).
+*        result->ms_next-view_popup = lo_system->get_attribute( 'VIEW_POPUP' )->get_val( ).
         DATA(lo_popup_model) = ss_client-o_body->get_attribute( 'OPOPUP' ).
 
         LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
@@ -2829,16 +2835,19 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         result->ms_next-event = ss_client-o_body->get_attribute( 'OEVENT' )->get_attribute( 'EVENT' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
+
+    result->ms_next-view = result->ms_db-view_active.
+    CLEAR result->ms_db-view_active..
 *    TRY.
 *        result->ms_next-page_scroll_pos = ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
 *      CATCH cx_root.
 *    ENDTRY.
     TRY.
-        result->ms_next-view = lo_system->get_attribute( 'VIEW' )->get_val( ).
+*        result->ms_next-view = lo_system->get_attribute( 'VIEW' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
     TRY.
-        result->ms_next-view = lo_system->get_attribute( 'VIEW_NAME' )->get_val( ).
+*        result->ms_next-view = lo_system->get_attribute( 'VIEW_NAME' )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 *    TRY.

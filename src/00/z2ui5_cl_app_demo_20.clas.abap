@@ -5,22 +5,21 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
     CLASS-METHODS factory
       IMPORTING
-        i_text          TYPE string
-        i_cancel_text   TYPE string
-        i_cancel_event  TYPE string
-        i_confirm_text  TYPE string
-        i_confirm_event TYPE string
-        i_check_show_previous_view type abap_bool optional
+        i_text                     TYPE string
+        i_cancel_text              TYPE string
+        i_cancel_event             TYPE string
+        i_confirm_text             TYPE string
+        i_confirm_event            TYPE string
+        i_check_show_previous_view TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_cl_app_demo_20.
+        VALUE(r_result)            TYPE REF TO z2ui5_cl_app_demo_20.
 
     DATA mv_text TYPE string.
     DATA mv_cancel_text TYPE string.
     DATA mv_cancel_event TYPE string.
     DATA mv_confirm_text TYPE string.
     DATA mv_confirm_event TYPE string.
-
-    data mv_check_show_previous_view type abap_bool.
+    DATA mv_check_show_previous_view TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -49,9 +48,9 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
     CASE client->get( )-lifecycle_method.
 
       WHEN client->cs-lifecycle_method-on_init.
-      if mv_check_show_previous_view = abap_true.
-      client->set( set_prev_view = abap_true ).
-      endif.
+        IF mv_check_show_previous_view = abap_true.
+          client->set( set_prev_view = abap_true ).
+        ENDIF.
         client->view_popup( 'POPUP_DECIDE' ).
 
       WHEN client->cs-lifecycle_method-on_event.
@@ -67,20 +66,18 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'POPUP_DECIDE' ).
+        DATA(page) = view->dialog( title = 'abap2UI5 - Popup to decide'
+         )->vbox( )->text( text = mv_text )->get_parent(
+          )->footer( )->overflow_toolbar(
+               )->toolbar_spacer(
+               )->button(
+                   text  = mv_cancel_text
+                   press = view->_event( mv_cancel_event )
+               )->button(
+                   text  = mv_confirm_text
+                   press = view->_event( mv_confirm_event )
+                   type  = 'Emphasized' ).
 
-        DATA(page) = view->dialog( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' ).
-
-        page->text( text = mv_text ).
-        page->button( text = mv_cancel_text press = view->_event( mv_cancel_event ) ).
-        page->button( text = mv_confirm_text press = view->_event( mv_confirm_event ) ).
-
-
-        page->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'Send to Server'
-                  press = view->_event( 'BUTTON_SEND' )
-                  type  = 'Success' ).
     ENDCASE.
 
   ENDMETHOD.
