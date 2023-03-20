@@ -82,7 +82,10 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
     DATA(view) = client->factory_view( 'MAIN' ).
     DATA(page) = view->page( title = 'abap2UI5 - Value Help Examples' navbuttontap = view->_event( 'BACK' ) ).
-    page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+    page->header_content(
+        )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1637470531136921600'
+        )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+        ).
 
     DATA(grid) = page->grid( 'XL12 L12 M12 S12' )->content( 'l' ).
 

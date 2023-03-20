@@ -77,7 +77,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         grid->simple_form( 'HowTo - Tables' )->content( 'f'
             )->button( text = 'List' press = view->_event( 'z2ui5_cl_app_demo_03' )
             )->button( text = 'Toolbar, Scroll Container' press = view->_event( 'z2ui5_cl_app_demo_06' )
-         "   )->button( text = 'Selection Modes' press = view->_event( 'z2ui5_cl_app_demo_19' )
+            )->button( text = 'Selection Modes' press = view->_event( 'z2ui5_cl_app_demo_19' )
             )->button( text = 'Editable' press = view->_event( 'z2ui5_cl_app_demo_11' )
              ).
 
@@ -86,7 +86,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(form) = grid->simple_form( 'Applications and Examples' )->vbox( ).
 
         form->flex_box( class = 'columns'
-        )->button( text = 'MIME Editor'  press = view->_event( 'MIME_EDITOR' )
+        )->button( text = 'MIME Editor'  press = view->_event( 'Z2UI5_CL_APP_DEMO_14' )
            )->get(
               )->layout_data(
           )->flex_item_data(
@@ -102,7 +102,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
           ).
 
         form->flex_box( class = 'columns'
-     )->button( text = 'Table Maintenance'  press = view->_event( 'TABLE_MAINTENANCE' )
+     )->button( text = 'Table Maintenance'  press = view->_event( 'Z2UI5_CL_APP_DEMO_13' )
         )->get(
            )->layout_data(
        )->flex_item_data(

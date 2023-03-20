@@ -45,7 +45,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                 )->label( 'quantity'
                 )->input( view->_bind( quantity )
                 )->label( 'product'
-                )->input( value = product editable = abap_False
+                )->input( value = product enabled = abap_False
                 )->button( text = 'post' press = view->_event( 'BUTTON_POST' ) ).
 
     ENDCASE.

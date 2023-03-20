@@ -1370,6 +1370,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
            ( n = 'showClearIcon'    v = _=>get_json_boolean( showclearicon ) )
            ( n = 'description'      v = description )
            ( n = 'editable'         v = _=>get_json_boolean( editable ) )
+           ( n = 'enabled'         v = _=>get_json_boolean( enabled ) )
            ( n = 'valueState'       v = valuestate )
            ( n = 'valueStateText'   v = valuestatetext )
            ( n = 'value'            v = value )
@@ -1460,7 +1461,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
          name   = 'VBox'
          t_prop = VALUE #(
-            ( n = 'class' v = class )
+            ( n = 'height' v = height )
+            ( n = 'class'  v = class )
          ) ).
 
   ENDMETHOD.
@@ -1737,6 +1739,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
               ( n = 'rows' v = rows )
               ( n = 'height' v = height )
               ( n = 'width' v = width )
+              ( n = 'editable' v = _=>get_json_boolean( editable ) )
+              ( n = 'enabled' v = _=>get_json_boolean( enabled  ) )
               ( n = 'id' v = id )
               ( n = 'growing' v = _=>get_json_boolean( growing ) )
               ( n = 'growingMaxLines' v = growingMaxLines )
