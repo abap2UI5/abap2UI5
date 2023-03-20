@@ -32,7 +32,7 @@ CLASS Z2UI5_CL_APP_DEMO_24 IMPLEMENTATION.
 
           WHEN 'CALL_NEW_APP_VIEW'.
             client->nav_app_call( NEW z2ui5_cl_app_demo_25( ) ).
-            client->view_show( 'SECOND' ).
+            client->show_view( 'SECOND' ).
 
           WHEN 'CALL_NEW_APP_READ'.
             DATA(lo_app_next) = NEW z2ui5_cl_app_demo_25( ).

@@ -55,12 +55,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
           DATA(li_client) = lo_runtime->execute_before_app( ).
 
-          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-            ROLLBACK WORK.
-            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-            ROLLBACK WORK.
-            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
-          ENDIF.
+*          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+*            ROLLBACK WORK.
+*            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+*            ROLLBACK WORK.
+*            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+*          ENDIF.
 
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).

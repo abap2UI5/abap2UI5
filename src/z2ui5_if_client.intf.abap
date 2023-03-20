@@ -32,6 +32,7 @@ types:
       END OF s_request,
     END OF ty_s_get.
 
+
   METHODS set
     IMPORTING
       event           TYPE clike OPTIONAL
@@ -71,13 +72,13 @@ types:
       text TYPE string.
 
 
-  METHODS view_show
+  METHODS show_view
     IMPORTING
       val               TYPE clike OPTIONAL
       check_no_rerender TYPE abap_bool DEFAULT abap_false
         PREFERRED PARAMETER val.
 
-  METHODS view_popup
+  METHODS popup_view
     IMPORTING
       name TYPE clike.
 
@@ -88,4 +89,26 @@ types:
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
+  METHODS _bind
+    IMPORTING
+      val           TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
+
+  METHODS _bind_one_way
+    IMPORTING
+      val           TYPE data
+    RETURNING
+      VALUE(result) TYPE string.
+
+
+  METHODS _event
+    IMPORTING
+      val           TYPE clike
+    RETURNING
+      VALUE(result) TYPE string.
+
+  METHODS _event_close_popup
+    RETURNING
+      VALUE(result) TYPE string.
 ENDINTERFACE.

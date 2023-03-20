@@ -4,7 +4,7 @@ INTERFACE z2ui5_if_view
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF lifecycle_method,
-        on_init      TYPE string VALUE 'INIT',
+*        on_init      TYPE string VALUE 'INIT',
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
       END OF lifecycle_method,

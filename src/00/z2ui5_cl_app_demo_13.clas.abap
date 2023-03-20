@@ -79,7 +79,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         ms_import-segment_key = 'json'.
         ms_import-editor = lcl_db=>get_test_data_json( ).
         ms_export-segment_key = 'json'.
-        client->view_show( 'IMPORT_TABLE' ).
+        client->show_view( 'IMPORT_TABLE' ).
 
       WHEN client->cs-lifecycle_method-on_event.
         z2ui5_on_event( client ).
@@ -137,11 +137,11 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         INSERT VALUE #( ) INTO TABLE ms_edit-t_table.
 
       WHEN 'BTN_IMPORT'.
-        client->view_show( 'IMPORT_TABLE' ).
+        client->show_view( 'IMPORT_TABLE' ).
       WHEN 'BTN_EDIT'.
-        client->view_show( 'EDIT_TABLE' ).
+        client->show_view( 'EDIT_TABLE' ).
       WHEN 'BTN_EXPORT'.
-        client->view_show( 'EXPORT_TABLE' ).
+        client->show_view( 'EXPORT_TABLE' ).
       WHEN 'BACK'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
 

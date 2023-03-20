@@ -65,7 +65,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
             client->popup_message_box( 'new app called and event NEW_APP_EVENT raised' ).
 
           WHEN 'SHOW_VIEW_MAIN'.
-            client->view_show( 'MAIN' ).
+            client->show_view( 'MAIN' ).
 
           WHEN 'BACK_WITH_EVENT'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).

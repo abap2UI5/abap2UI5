@@ -52,11 +52,11 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
           WHEN 'POPUP_DESCR'.
             ms_file = mt_file[ selkz = abap_true ].
-            client->view_popup( 'POPUP_DESCR' ).
+            client->popup_view( 'POPUP_DESCR' ).
 
           WHEN 'POPUP_DATA'.
             ms_file = mt_file[ selkz = abap_true ].
-            client->view_popup( 'POPUP_DATA' ).
+            client->popup_view( 'POPUP_DATA' ).
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).

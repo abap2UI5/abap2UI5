@@ -43,10 +43,10 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( ).
 
-        DATA(page) = view->page( title = 'abap2UI5 - Demo Section'
-          class = 'sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer'
-            navbuttontap = view->_event( 'BACK' ) ).
-
+        DATA(page) = view->page(
+            title = 'abap2UI5 - Demo Section'
+            class = 'sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer'
+            navbuttontap = client->_event( 'BACK' ) ).
 
         page->header_content(
             )->toolbar_spacer(
@@ -57,30 +57,30 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(grid) = page->grid( default_span  = 'L3 M6 S12' )->content( 'l' ).
 
         grid->simple_form( 'HowTo - General' )->content( 'f'
-            )->button( text = 'Communication & Data Binding' press = view->_event( 'z2ui5_cl_app_demo_01' )
-            )->button( text = 'Events, Error & Change View' press = view->_event( 'z2ui5_cl_app_demo_04' )
-            )->button( text = 'Flow Logic' press = view->_event( 'z2ui5_cl_app_demo_24' )
-            )->button( text = 'Messages (Toast, Box, Strip)' press = view->_event( 'z2ui5_cl_app_demo_08' )
+            )->button( text = 'Communication & Data Binding' press = client->_event( 'z2ui5_cl_app_demo_01' )
+            )->button( text = 'Events, Error & Change View' press = client->_event( 'z2ui5_cl_app_demo_04' )
+            )->button( text = 'Flow Logic' press = client->_event( 'z2ui5_cl_app_demo_24' )
+            )->button( text = 'Messages (Toast, Box, Strip)' press = client->_event( 'z2ui5_cl_app_demo_08' )
              ).
 
         grid->simple_form( 'HowTo - General II' )->content( 'f'
-            )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( 'z2ui5_cl_app_demo_10' )
-            )->button( text = 'Scrolling & Focus' press = view->_event( 'z2ui5_cl_app_demo_22' )
-            )->button( text = 'Popups' press = view->_event( 'Z2UI5_CL_APP_DEMO_21' )
-            )->button( text = 'Popups & Flow Logic' press = view->_event( 'z2ui5_cl_app_demo_12' )
+            )->button( text = 'Layout (Header, Footer, Grid)' press = client->_event( 'z2ui5_cl_app_demo_10' )
+            )->button( text = 'Scrolling & Focus' press = client->_event( 'z2ui5_cl_app_demo_22' )
+            )->button( text = 'Popups' press = client->_event( 'Z2UI5_CL_APP_DEMO_21' )
+            )->button( text = 'Popups & Flow Logic' press = client->_event( 'z2ui5_cl_app_demo_12' )
           ).
 
         grid->simple_form( 'HowTo - Selection-Screen' )->content( 'f'
-            )->button( text = 'Basic' press = view->_event( 'z2ui5_cl_app_demo_02' )
-            )->button( text = 'More Controls' press = view->_event( 'z2ui5_cl_app_demo_05' )
-            )->button( text = 'Formatted Text' press = view->_event( 'Z2UI5_CL_APP_DEMO_15' )
-            )->button( text = 'F4-Value-Help' press = view->_event( 'Z2UI5_CL_APP_DEMO_09' ) ).
+            )->button( text = 'Basic' press = client->_event( 'z2ui5_cl_app_demo_02' )
+            )->button( text = 'More Controls' press = client->_event( 'z2ui5_cl_app_demo_05' )
+            )->button( text = 'Formatted Text' press = client->_event( 'Z2UI5_CL_APP_DEMO_15' )
+            )->button( text = 'F4-Value-Help' press = client->_event( 'Z2UI5_CL_APP_DEMO_09' ) ).
 
         grid->simple_form( 'HowTo - Tables' )->content( 'f'
-            )->button( text = 'List' press = view->_event( 'z2ui5_cl_app_demo_03' )
-            )->button( text = 'Toolbar, Scroll Container' press = view->_event( 'z2ui5_cl_app_demo_06' )
-            )->button( text = 'Selection Modes' press = view->_event( 'z2ui5_cl_app_demo_19' )
-            )->button( text = 'Editable' press = view->_event( 'z2ui5_cl_app_demo_11' )
+            )->button( text = 'List' press = client->_event( 'z2ui5_cl_app_demo_03' )
+            )->button( text = 'Toolbar, Scroll Container' press = client->_event( 'z2ui5_cl_app_demo_06' )
+            )->button( text = 'Selection Modes' press = client->_event( 'z2ui5_cl_app_demo_19' )
+            )->button( text = 'Editable' press = client->_event( 'z2ui5_cl_app_demo_11' )
              ).
 
         grid = page->grid( default_span  = 'XL9 L9 M12 S12' )->content( 'l' ).
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(form) = grid->simple_form( 'Applications and Examples' )->vbox( ).
 
         form->flex_box( class = 'columns'
-        )->button( text = 'MIME Editor'  press = view->_event( 'Z2UI5_CL_APP_DEMO_14' )
+        )->button( text = 'MIME Editor'  press = client->_event( 'Z2UI5_CL_APP_DEMO_14' )
            )->get(
               )->layout_data(
           )->flex_item_data(
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
           ).
 
         form->flex_box( class = 'columns'
-     )->button( text = 'Table Maintenance'  press = view->_event( 'Z2UI5_CL_APP_DEMO_13' )
+     )->button( text = 'Table Maintenance'  press = client->_event( 'Z2UI5_CL_APP_DEMO_13' )
         )->get(
            )->layout_data(
        )->flex_item_data(
@@ -120,26 +120,20 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
        ).
 *
 *        form->flex_box( class = 'columns'
-*             )->button( text = 'File Upload/Download'  press = view->_event( 'TABLE_MAINTENANCE' ) )->get(
+*             )->button( text = 'File Upload/Download'  press = client->_event( 'TABLE_MAINTENANCE' ) )->get(
 *             )->layout_data(
 *             )->flex_item_data( grow_Factor = '1' style_class = 'sapUiTinyMargin' )->get_parent( )->get_parent(
 *             )->text( text = 'Use the sap.ui.fileuploader to develop file transfer apps - upload files of jpeg/pdf/zip, display the content or download the data again'
 *             )->get(  )->layout_data( )->flex_item_data( grow_Factor = '3' style_class = 'sapUiTinyMargin' ).
 *
 *        form->flex_box( class = 'columns'
-*             )->button( text = 'Visualisation 1'  press = view->_event( 'TABLE_MAINTENANCE' ) )->get(
+*             )->button( text = 'Visualisation 1'  press = client->_event( 'TABLE_MAINTENANCE' ) )->get(
 *             )->layout_data(
 *             )->flex_item_data( grow_Factor = '1' style_class = 'sapUiTinyMargin' )->get_parent( )->get_parent(
 *             )->text( text = 'Use the sap.ui.fileuploader to develop file transfer apps - upload files of jpeg/pdf/zip, display the content or download the data again'
 *             )->get(  )->layout_data( )->flex_item_data( grow_Factor = '3' style_class = 'sapUiTinyMargin' ).
 *
-*         form->flex_box( class = 'columns'
-*             )->button( text = 'Visualisation 2'  press = view->_event( 'TABLE_MAINTENANCE' ) )->get(
-*             )->layout_data(
-*             )->flex_item_data( grow_Factor = '1' style_class = 'sapUiTinyMargin' )->get_parent( )->get_parent(
-*             )->text( text = 'Use the sap.ui.fileuploader to develop file transfer apps - upload files of jpeg/pdf/zip, display the content or download the data again'
-*             )->get(  )->layout_data( )->flex_item_data( grow_Factor = '3' style_class = 'sapUiTinyMargin' ).
-*
+
 
     ENDCASE.
 

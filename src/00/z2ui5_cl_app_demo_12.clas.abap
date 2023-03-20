@@ -12,7 +12,6 @@ ENDCLASS.
 
 CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
 
-
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
@@ -22,7 +21,7 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_POPUP_01'.
-            client->view_popup( 'POPUP_DECIDE' ).
+            client->popup_view( 'POPUP_DECIDE' ).
 
           WHEN 'POPUP_DECIDE_CONTINUE'.
             client->popup_message_toast( 'continue pressed' ).
@@ -31,16 +30,16 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
             client->popup_message_toast( 'cancel pressed' ).
 
           WHEN 'BUTTON_POPUP_02'.
-            client->view_show( 'MAIN' ).
-            client->view_popup( 'POPUP_DECIDE' ).
+            client->show_view( 'MAIN' ).
+            client->popup_view( 'POPUP_DECIDE' ).
 
           WHEN 'BUTTON_POPUP_03'.
-            client->view_show( 'MAIN' ).
-            client->view_popup( 'POPUP_DECIDE_FRONTEND_CLOSE' ).
+            client->show_view( 'MAIN' ).
+            client->popup_view( 'POPUP_DECIDE_FRONTEND_CLOSE' ).
 
           WHEN 'BUTTON_POPUP_04'.
             client->set( set_prev_view = abap_true ).
-            client->view_popup( 'POPUP_DECIDE' ).
+            client->popup_view( 'POPUP_DECIDE' ).
 
           WHEN 'BUTTON_POPUP_05'.
             client->nav_app_call( z2ui5_cl_app_demo_20=>factory(

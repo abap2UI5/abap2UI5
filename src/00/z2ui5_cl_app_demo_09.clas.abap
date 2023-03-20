@@ -214,19 +214,19 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
       WHEN 'POPUP_TABLE_F4'.
         mt_suggestion_sel = mt_suggestion.
-        client->view_popup( 'POPUP_TABLE_F4' ).
+        client->popup_view( 'POPUP_TABLE_F4' ).
 
       WHEN 'POPUP_TABLE_F4_CUSTOM'.
         mt_employees_sel = VALUE #( ).
         mt_employees_sel = VALUE #( ).
-        client->view_popup( 'POPUP_TABLE_F4_CUSTOM' ).
+        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
 
       WHEN 'SEARCH'.
         mt_employees_sel = mt_employees.
         IF screen-city IS NOT INITIAL.
           DELETE mt_employees_sel WHERE city <> screen-city.
         ENDIF.
-        client->view_popup( 'POPUP_TABLE_F4_CUSTOM' ).
+        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
 
       WHEN 'POPUP_TABLE_F4_CUSTOM_CONTINUE'.
         DELETE mt_employees_sel WHERE selkz = abap_false.
@@ -253,7 +253,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
     ENDCASE.
 
-    client->view_show( 'MAIN' ).
+    client->show_view( 'MAIN' ).
 
   ENDMETHOD.
 

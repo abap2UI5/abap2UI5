@@ -34,6 +34,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
 
     DATA mt_suggestion TYPE STANDARD TABLE OF s_suggestion_items WITH EMPTY KEY.
 
+    DATA check_initialized TYPE abap_bool.
 
   PROTECTED SECTION.
 
@@ -57,10 +58,11 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-        z2ui5_on_init( ).
-
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          z2ui5_on_init( ).
+        ENDIF.
         z2ui5_on_event( client ).
 
       WHEN client->cs-lifecycle_method-on_rendering.
@@ -73,84 +75,111 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_rendering.
 
-    DATA(view) = client->factory_view( ).
-    DATA(page) = view->page( title = 'abap2UI5 - Selection-Screen Example' navbuttontap = view->_event( 'BACK' ) ).
-    page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+    DATA(page) = client->factory_view(
+        )->page(
+            title        = 'abap2UI5 - Selection-Screen Example'
+            navbuttontap = client->_event( 'BACK' )
+            )->header_content(
+                )->link(
+                    text = 'Source_Code'
+                    href = client->get( )-s_request-url_source_code
+            )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L6 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L6 M12 S12'
+        )->content( 'l' ).
 
-    grid->simple_form( 'Input' )->content( 'f'
-        )->label( 'Input with value help'
-        )->input(
-           value       = view->_bind( screen-colour )
-          placeholder = 'fill in your favorite colour'
-            suggestionitems = view->_bind_one_way( mt_suggestion )
-            showsuggestion = abap_true
-             )->get(
-            )->suggestion_items( )->get(
-               )->list_item( text = '{VALUE}' additionalText = '{DESCR}'
-                ).
+    grid->simple_form( 'Input'
+        )->content( 'f'
+            )->label( 'Input with value help'
+            )->input(
+                value           = client->_bind( screen-colour )
+                placeholder     = 'fill in your favorite colour'
+                suggestionitems = client->_bind_one_way( mt_suggestion )
+                showsuggestion  = abap_true )->get(
+                )->suggestion_items( )->get(
+                    )->list_item(
+                        text = '{VALUE}'
+                        additionalText = '{DESCR}' ).
+
+    grid->simple_form( 'Time Inputs'
+        )->content( 'f'
+            )->label( 'Date'
+            )->date_picker( client->_bind( screen-date )
+            )->label( 'Date and Time'
+            )->date_time_picker( client->_bind( screen-date_time )
+            )->label( 'Time Begin/End'
+            )->time_picker( client->_bind( screen-time_start )
+            )->time_picker( client->_bind( screen-time_end ) ).
 
 
-    grid->simple_form( 'Time Inputs' )->content( 'f'
-        )->label( 'Date'
-        )->date_picker( view->_bind( screen-date )
-
-        )->label( 'Date and Time'
-        )->date_time_picker( view->_bind( screen-date_time )
-
-        )->label( 'Time Begin/End'
-        )->time_picker( view->_bind( screen-time_start )
-        )->time_picker( view->_bind( screen-time_end ) ).
-
-
-   data(form) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l'
-       )->simple_form( 'Input with select options' )->content( 'f' ).
+    DATA(form) = grid->get_parent( )->get_parent( )->grid( 'L12 M12 S12'
+        )->content( 'l'
+            )->simple_form( 'Input with select options'
+                )->content( 'f' ).
 
     form->label( 'Checkbox'
-    )->checkbox(
-         selected = view->_bind( screen-check_is_active )
-         text     = 'this is a checkbox'
-         enabled  = abap_true
+        )->checkbox(
+            selected = client->_bind( screen-check_is_active )
+            text     = 'this is a checkbox'
+            enabled  = abap_true
 
-    )->label( 'Combobox'
-    )->combobox(
-         selectedkey = view->_bind( screen-combo_key )
-         items      = view->_bind_one_way( VALUE ty_t_combo(
-             ( key = 'BLUE'  text = 'green' )
-             ( key = 'GREEN' text = 'blue' )
-             ( key = 'BLACK' text = 'red' )
-             ( key = 'GRAY'  text = 'gray' ) )
-         ) )->get( )->item( key = '{KEY}' text = '{TEXT}'
+        )->label( 'Combobox'
+        )->combobox(
+            selectedkey = client->_bind( screen-combo_key )
+            items       = client->_bind_one_way( VALUE ty_t_combo(
+                ( key = 'BLUE'  text = 'green' )
+                ( key = 'GREEN' text = 'blue' )
+                ( key = 'BLACK' text = 'red' )
+                ( key = 'GRAY'  text = 'gray' ) ) ) )->get(
+                )->item(
+                    key = '{KEY}'
+                    text = '{TEXT}'
         )->get_parent( )->get_parent(
 
-    )->label( 'Segmented Button'
-    )->segmented_button( view->_bind( screen-segment_key ) )->get(
-        )->items( )->get(
-             )->segmented_button_item( key = 'BLUE'  icon = 'sap-icon://accept'       text = 'blue'
-             )->segmented_button_item( key = 'GREEN' icon = 'sap-icon://add-favorite' text = 'green'
-             )->segmented_button_item( key = 'BLACK' icon = 'sap-icon://attachment'   text = 'black'
-       )->get_parent( )->get_parent( ).
+        )->label( 'Segmented Button'
+        )->segmented_button( client->_bind( screen-segment_key ) )->get(
+            )->items( )->get(
+                )->segmented_button_item(
+                    key = 'BLUE'
+                    icon = 'sap-icon://accept'
+                    text = 'blue'
+                )->segmented_button_item(
+                    key = 'GREEN'
+                    icon = 'sap-icon://add-favorite'
+                    text = 'green'
+                )->segmented_button_item(
+                    key = 'BLACK'
+                    icon = 'sap-icon://attachment'
+                    text = 'black'
+       )->get_parent( )->get_parent(
 
-    form->label( 'Switch disabled' ).
-    form->switch( enabled = abap_false customtexton = 'A' customtextoff = 'B' ).
-
-    form->label( 'Switch accept/reject' ).
-    form->switch( state = view->_bind( screen-check_switch_01 ) customtexton = 'on'  customtextoff = 'off' type = 'AcceptReject' ).
-    form->label( 'Switch normal' ).
-    form->switch( state = view->_bind( screen-check_switch_02 ) customtexton = 'YES' customtextoff = 'NO' ).
-
+       )->label( 'Switch disabled'
+       )->switch(
+            enabled       = abap_false
+            customtexton  = 'A'
+            customtextoff = 'B'
+       )->label( 'Switch accept/reject'
+       )->switch(
+            state         = client->_bind( screen-check_switch_01 )
+            customtexton  = 'on'
+            customtextoff = 'off'
+            type = 'AcceptReject'
+       )->label( 'Switch normal'
+       )->switch(
+            state         = client->_bind( screen-check_switch_02 )
+            customtexton  = 'YES'
+            customtextoff = 'NO' ).
 
     page->footer( )->overflow_toolbar(
          )->toolbar_spacer(
          )->button(
              text  = 'Clear'
-             press = view->_event( 'BUTTON_CLEAR' )
+             press = client->_event( 'BUTTON_CLEAR' )
              type  = 'Reject'
              icon  = 'sap-icon://delete'
          )->button(
              text  = 'Send to Server'
-             press = view->_event( 'BUTTON_SEND' )
+             press = client->_event( 'BUTTON_SEND' )
              type  = 'Success' ).
 
   ENDMETHOD.
@@ -174,6 +203,8 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_init.
+
+    check_initialized = abap_true.
 
     screen = VALUE #(
           check_is_active   = abap_true

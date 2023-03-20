@@ -81,7 +81,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'POPUP_TO_DECIDE'.
-            client->view_popup( 'POPUP_TO_DECIDE' ).
+            client->popup_view( 'POPUP_TO_DECIDE' ).
 
           WHEN 'BUTTON_CONFIRM'.
             client->popup_message_toast( 'confirm pressed' ).
@@ -91,14 +91,14 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
           WHEN 'POPUP_TO_TEXTAREA'.
             mv_stretch_active = abap_false.
-            client->view_popup( 'POPUP_TO_TEXTAREA' ).
+            client->popup_view( 'POPUP_TO_TEXTAREA' ).
 
           WHEN 'POPUP_TO_TEXTAREA_STRETCH'.
-            client->view_popup( 'POPUP_TO_TEXTAREA' ).
+            client->popup_view( 'POPUP_TO_TEXTAREA' ).
             mv_stretch_active = abap_true.
 
           WHEN 'POPUP_TO_TEXTAREA_SIZE'.
-            client->view_popup( 'POPUP_TO_TEXTAREA_SIZE' ).
+            client->popup_view( 'POPUP_TO_TEXTAREA_SIZE' ).
 
           WHEN 'BUTTON_TEXTAREA_CONFIRM'.
             "     client->popup_message_box( mv_textarea ).
@@ -109,10 +109,10 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
           WHEN 'POPUP_TO_INPUT'.
             ms_popup_input-value1 = 'value1'.
-            client->view_popup( 'POPUP_TO_INPUT' ).
+            client->popup_view( 'POPUP_TO_INPUT' ).
 
           WHEN 'POPUP_BAL'.
-            client->view_popup( 'POPUP_BAL' ).
+            client->popup_view( 'POPUP_BAL' ).
 
           WHEN 'POPUP_TABLE'.
             CLEAR t_tab.
@@ -120,7 +120,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
               DATA(ls_row) = VALUE ty_row( title = 'entry_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' ).
               INSERT ls_row INTO TABLE t_tab.
             ENDDO.
-            client->view_popup( 'POPUP_TABLE' ).
+            client->popup_view( 'POPUP_TABLE' ).
 
           WHEN 'POPUP_TABLE_CONTINUE'.
             DELETE t_tab WHERE selkz = abap_false.
@@ -131,7 +131,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
         ENDCASE.
 
-        client->view_show( 'MAIN' ).
+        client->show_view( 'MAIN' ).
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
