@@ -10,8 +10,7 @@
     "type": "git",
     "url": "git+https://github.com/oblomov-dev/abap2UI5.git"
   },
-  "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/oblomov-dev/abap2UI5/issues"
   },
