@@ -1,0 +1,21 @@
+{
+  "name": "abap2ui5",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://twitter.com/OblomovDev) to keep up to date!",
+  "scripts": {
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix abaplint-downport.jsonc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/oblomov-dev/abap2UI5.git"
+  },
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/oblomov-dev/abap2UI5/issues"
+  },
+  "homepage": "https://github.com/oblomov-dev/abap2UI5#readme",
+  "devDependencies": {
+    "@abaplint/cli": "^2.95.47"
+  }
+}
