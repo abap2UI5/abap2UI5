@@ -16,6 +16,6 @@
   },
   "homepage": "https://github.com/oblomov-dev/abap2UI5#readme",
   "devDependencies": {
-    "@abaplint/cli": "^2.95.46"
+    "@abaplint/cli": "^2.95.47"
   }
 }
