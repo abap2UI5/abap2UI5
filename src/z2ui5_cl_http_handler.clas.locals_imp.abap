@@ -2837,23 +2837,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
 
     result->ms_next-view = result->ms_db-view_active.
-    CLEAR result->ms_db-view_active..
-*    TRY.
-*        result->ms_next-page_scroll_pos = ss_client-o_body->get_attribute( 'scrollPos' )->get_val( ).
-*      CATCH cx_root.
-*    ENDTRY.
-    TRY.
-*        result->ms_next-view = lo_system->get_attribute( 'VIEW' )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-    TRY.
-*        result->ms_next-view = lo_system->get_attribute( 'VIEW_NAME' )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-*    TRY.
-*        result->ms_next-view = lo_system->get_attribute( 'VIEW_POPUP_NAME' )->get_val( ).
-*      CATCH cx_root.
-*    ENDTRY.
+    CLEAR result->ms_db-view_active.
 
     result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
