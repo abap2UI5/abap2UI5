@@ -24,8 +24,8 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_event.
 
         IF check_initialized = abap_false.
-
           check_initialized = abap_true.
+
           product  = 'tomato'.
           quantity = '500'.
           RETURN.
@@ -48,8 +48,8 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
         client->factory_view(
             )->page(
-                title        = 'abap2UI5 - First Example'
-                navbuttontap = client->_event( 'BACK' )
+                title          = 'abap2UI5 - First Example'
+                navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
                         text = 'Go to Source Code'

@@ -77,8 +77,8 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
     DATA(page) = client->factory_view(
         )->page(
-            title        = 'abap2UI5 - Selection-Screen Example'
-            navbuttontap = client->_event( 'BACK' )
+            title          = 'abap2UI5 - Selection-Screen Example'
+            navbuttonpress = client->_event( 'BACK' )
             )->header_content(
                 )->link(
                     text = 'Source_Code'

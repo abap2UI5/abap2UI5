@@ -1068,17 +1068,19 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS constructor.
 
-    CLASS-METHODS execute_init
+    CLASS-METHODS request_begin
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS execute_before_app
-      IMPORTING
-        event         TYPE string OPTIONAL
+    METHODS app_before_rendering
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_client.
 
-    METHODS execute_finish
+    METHODS app_before_event
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_client.
+
+    METHODS request_end
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1457,9 +1459,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         name   = 'Page'
          t_prop = VALUE #(
              ( n = 'title' v = title )
-             ( n = 'showNavButton' v = COND #( WHEN navbuttontap = '' THEN 'false' ELSE 'true' ) )
-           "  ( n = 'navButtonTap' v = navbuttontap )
-             ( n = 'navButtonPress' v = navbuttontap )
+             ( n = 'showNavButton' v = COND #( WHEN navbuttonpress = '' THEN 'false' ELSE 'true' ) )
+             ( n = 'navButtonPress' v = navbuttonpress )
              ( n = 'class' v = class )
              ( n = 'id' v = id )
          ) ).
@@ -2664,7 +2665,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
-  METHOD execute_init.
+  METHOD request_begin.
 
     ss_client = VALUE #( t_header = z2ui5_cl_http_handler=>client-t_header
                          t_param  = z2ui5_cl_http_handler=>client-t_param
@@ -2682,7 +2683,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD execute_finish.
+  METHOD request_end.
 
     _=>raise( when = xsdbool( lines( ms_next-t_view ) = 0 ) ).
 
@@ -2695,7 +2696,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CATCH cx_root.
           _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
       ENDTRY.
-   ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
+    ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
       TRY.
           lr_view = REF #( ms_next-t_view[ name = ms_actual-view_active ] ).
           ms_next-view = ms_actual-view_active.
@@ -2878,7 +2879,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     result->ms_db-app_classname      = _=>get_classname_by_ref( result->ms_db-o_app ).
     result->ms_db-t_attri            = _=>get_t_attri_by_ref( result->ms_db-o_app ).
- "   result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    "   result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
     result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
   ENDMETHOD.
@@ -2912,7 +2913,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
-  "  result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    "  result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
     result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
     result->ms_next-t_after = ms_next-t_after.
     result->ms_next-view    = ms_next-view.
@@ -2922,7 +2923,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
-METHOD _create_binding.
+  METHOD _create_binding.
 
     CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
 
@@ -2978,25 +2979,27 @@ METHOD _create_binding.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
-   " result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-   result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
+    " result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
 
     result->ms_next-t_after = ms_next-t_after.
     result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
- "   ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
+    "   ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
 
   ENDMETHOD.
 
-  METHOD execute_before_app.
+  METHOD app_before_rendering.
 
     result = NEW z2ui5_lcl_if_client( me ).
+    ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
 
-    IF event = z2ui5_if_client=>cs-lifecycle_method-on_rendering.
-      ms_actual-lifecycle_method = event.
-      RETURN.
-    ENDIF.
+  ENDMETHOD.
+
+  METHOD app_before_event.
+
+    result = NEW z2ui5_lcl_if_client( me ).
 
     CLEAR ms_actual.
     DATA(lv_url) = ss_client-t_header[ name = 'referer' ]-value.
@@ -3133,7 +3136,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD z2ui5_if_client~_event.
+  METHOD z2ui5_if_client~_event.
 
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
 

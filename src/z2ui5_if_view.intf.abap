@@ -106,7 +106,7 @@ INTERFACE z2ui5_if_view
 
   METHODS input
     IMPORTING
-      id               type clike optional
+      id               TYPE clike OPTIONAL
       value            TYPE clike OPTIONAL
       placeholder      TYPE clike OPTIONAL
       type             TYPE clike OPTIONAL
@@ -172,7 +172,7 @@ INTERFACE z2ui5_if_view
       mode                TYPE clike OPTIONAL
         PREFERRED PARAMETER items
     RETURNING
-      VALUE(result)    TYPE REF TO z2ui5_if_view.
+      VALUE(result)       TYPE REF TO z2ui5_if_view.
 
   METHODS footer
     RETURNING
@@ -181,11 +181,11 @@ INTERFACE z2ui5_if_view
   METHODS dialog
     IMPORTING
       title         TYPE clike OPTIONAL
-      icon         TYPE clike OPTIONAL
-      showHeader         TYPE clike OPTIONAL
-      stretch         TYPE clike OPTIONAL
-      contentHeight         TYPE clike OPTIONAL
-      contentWidth         TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      showHeader    TYPE clike OPTIONAL
+      stretch       TYPE clike OPTIONAL
+      contentHeight TYPE clike OPTIONAL
+      contentWidth  TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -367,19 +367,19 @@ INTERFACE z2ui5_if_view
 
   METHODS page
     IMPORTING
-      title         TYPE clike OPTIONAL
-      navbuttontap  TYPE clike OPTIONAL
-      id            TYPE clike OPTIONAL
-      class         type clike optional
+      title          TYPE clike OPTIONAL
+      navbuttonpress TYPE clike OPTIONAL
+      id             TYPE clike OPTIONAL
+      class          TYPE clike OPTIONAL
         PREFERRED PARAMETER title
     RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_view.
+      VALUE(result)  TYPE REF TO z2ui5_if_view.
 
   METHODS vbox
-    importing
-     height type clike optional
-     class  type clike optional
-     PREFERRED PARAMETER class
+    IMPORTING
+      height        TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+        PREFERRED PARAMETER class
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -649,7 +649,7 @@ INTERFACE z2ui5_if_view
 
   METHODS formatted_text
     IMPORTING
-      htmlText      TYPE clike optional
+      htmlText      TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
