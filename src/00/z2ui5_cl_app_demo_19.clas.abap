@@ -58,7 +58,10 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
         DATA(page) = view->page( title = 'abap2ui5 - Table with different Selection-Modes' navbuttontap = view->_event( 'BACK' ) ).
 
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        page->header_content(
+             )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1637852441671528448'
+             )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+             ).
 
         page->segmented_button(
            selected_key = view->_bind( mv_sel_mode )
