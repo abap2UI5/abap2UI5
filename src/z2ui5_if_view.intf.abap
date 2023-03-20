@@ -115,6 +115,7 @@ INTERFACE z2ui5_if_view
       valueStateText   TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE clike OPTIONAL
+      enabled          TYPE clike OPTIONAL
       suggestionItems  TYPE clike OPTIONAL
       showSuggestion   TYPE clike OPTIONAL
       showValueHelp    TYPE clike OPTIONAL
@@ -376,7 +377,9 @@ INTERFACE z2ui5_if_view
 
   METHODS vbox
     importing
-     class type clike optional
+     height type clike optional
+     class  type clike optional
+     PREFERRED PARAMETER class
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -545,6 +548,8 @@ INTERFACE z2ui5_if_view
       rows            TYPE clike OPTIONAL
       height          TYPE clike OPTIONAL
       width           TYPE clike OPTIONAL
+      editable        TYPE clike OPTIONAL
+      enabled         TYPE clike OPTIONAL
       growing         TYPE clike OPTIONAL
       growingMaxLines TYPE clike OPTIONAL
       id              TYPE clike OPTIONAL

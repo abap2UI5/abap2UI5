@@ -44,10 +44,12 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(view) = client->factory_view( ).
 
         DATA(page) = view->page( title = 'abap2UI5 - Demo Section'
+          class = 'sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer'
             navbuttontap = view->_event( 'BACK' ) ).
 
 
         page->header_content(
+            )->toolbar_spacer(
             )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
             )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
             )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5' ).
@@ -65,7 +67,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
             )->button( text = 'Layout (Header, Footer, Grid)' press = view->_event( 'z2ui5_cl_app_demo_10' )
             )->button( text = 'Scrolling & Focus' press = view->_event( 'z2ui5_cl_app_demo_22' )
             )->button( text = 'Popups' press = view->_event( 'Z2UI5_CL_APP_DEMO_21' )
-          "  )->button( text = 'Popups II (F4 Help)' press = view->_event( '0101' )
+            )->button( text = 'Popups & Flow Logic' press = view->_event( 'z2ui5_cl_app_demo_12' )
           ).
 
         grid->simple_form( 'HowTo - Selection-Screen' )->content( 'f'
@@ -77,7 +79,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         grid->simple_form( 'HowTo - Tables' )->content( 'f'
             )->button( text = 'List' press = view->_event( 'z2ui5_cl_app_demo_03' )
             )->button( text = 'Toolbar, Scroll Container' press = view->_event( 'z2ui5_cl_app_demo_06' )
-         "   )->button( text = 'Selection Modes' press = view->_event( 'z2ui5_cl_app_demo_19' )
+            )->button( text = 'Selection Modes' press = view->_event( 'z2ui5_cl_app_demo_19' )
             )->button( text = 'Editable' press = view->_event( 'z2ui5_cl_app_demo_11' )
              ).
 
@@ -86,7 +88,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         DATA(form) = grid->simple_form( 'Applications and Examples' )->vbox( ).
 
         form->flex_box( class = 'columns'
-        )->button( text = 'MIME Editor'  press = view->_event( 'MIME_EDITOR' )
+        )->button( text = 'MIME Editor'  press = view->_event( 'Z2UI5_CL_APP_DEMO_14' )
            )->get(
               )->layout_data(
           )->flex_item_data(
@@ -102,7 +104,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
           ).
 
         form->flex_box( class = 'columns'
-     )->button( text = 'Table Maintenance'  press = view->_event( 'TABLE_MAINTENANCE' )
+     )->button( text = 'Table Maintenance'  press = view->_event( 'Z2UI5_CL_APP_DEMO_13' )
         )->get(
            )->layout_data(
        )->flex_item_data(

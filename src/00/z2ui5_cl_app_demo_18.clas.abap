@@ -6,6 +6,19 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
 
     DATA mv_path TYPE string.
     DATA mv_value TYPE string.
+
+    TYPES:
+      BEGIN OF ty_file,
+        selkz  TYPE abap_bool,
+        name   TYPE string,
+        format TYPE string,
+        size   TYPE string,
+        descr  TYPE string,
+        data   TYPE string,
+      END OF ty_file.
+
+    DATA mt_file TYPE STANDARD TABLE OF ty_file WITH EMPTY KEY.
+    DATA ms_file TYPE ty_file.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -26,27 +39,25 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_event.
 *
         CASE client->get( )-event.
-*
-*          WHEN 'DB_LOAD'.
-*
-*            mv_editor = COND #(
-*                WHEN mv_path CS 'abap' THEN lcl_mime_api=>read_abap( )
-*                WHEN mv_path CS 'json' THEN lcl_mime_api=>read_json( )
-*                WHEN mv_path CS 'yaml' THEN lcl_mime_api=>read_yaml( )
-*                WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( ) ).
-*            client->display_message_toast( 'Download successfull').
-*
-*          WHEN 'DB_SAVE'.
-*            lcl_mime_api=>save_data( mv_editor ).
-*            client->display_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
-*
-*          WHEN 'EDIT'.
-*            mv_check_editable = xsdbool( mv_check_editable = abap_False ).
-*          WHEN 'CLEAR'.
-*            mv_editor = ``.
+
+          WHEN 'DISPLAY'.
+            ms_file = mt_file[ selkz = abap_true ].
 
           WHEN 'UPLOAD'.
-            DATA(lv_dummy) = ''.
+            INSERT VALUE #( name = mv_path data = mv_value size = strlen( mv_value ) format = mv_value+5(5) )   INTO TABLE mt_file.
+
+          WHEN 'TEXTAREA_CONFIRM'.
+            mt_file[ name = ms_file-name ] = ms_file.
+            CLEAR ms_file.
+
+          WHEN 'POPUP_DESCR'.
+            ms_file = mt_file[ selkz = abap_true ].
+            client->view_popup( 'POPUP_DESCR' ).
+
+          WHEN 'POPUP_DATA'.
+            ms_file = mt_file[ selkz = abap_true ].
+            client->view_popup( 'POPUP_DATA' ).
+
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
@@ -56,28 +67,91 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
         DATA(page) = view->page( title = 'abap2UI5 - Upload/Download Files' navbuttontap = view->_event( 'BACK' ) ).
-        "  DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
-
-      DATA(lv_html_text) = `<h3>subheader</h3><p>link: <a href="//www.sap.com" style="color:green; font-weight:600;">link to sap.com</a> - links open in a new window.</p><p>paragraph: <strong>strong</strong> and <em>emphasized</em>.</p><p>list:</p><ul` &&
-  `><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a reference to a source</cite></p>` &&
-  `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
-
-        page->vbox( 'sapUiSmallMargin' )->formatted_text( htmltext = lv_html_text ).
 
         page->zz_file_uploader(
             value       = view->_bind( mv_value )
             path        = view->_bind( mv_path )
             placeholder = 'filepath here...'
-            upload      = view->_event( 'UPLOAD' )
-        ).
+            upload      = view->_event( 'UPLOAD' ) ).
 
-        IF mv_value IS NOT INITIAL.
-          page->zz_html( '<iframe src="' && mv_value && '" height="90%" width="98%"/>' ).
+
+        DATA(tab) = page->table(
+                 headertext = 'Table'
+                 mode = 'SingleSelectLeft'
+                 items = view->_bind( mt_file ) ).
+
+        "set toolbar
+        tab->header_toolbar( )->overflow_toolbar(
+            )->title( 'Files'
+             )->toolbar_spacer(
+             )->button( text = 'Edit Description' press = view->_event( 'POPUP_DESCR' )
+             )->button( text = 'Show Base64' press = view->_event( 'POPUP_DATA' )
+             )->button( text = 'display' press = view->_event( 'DISPLAY' )
+             ).
+
+        tab->columns(
+            )->column( width = '10%'
+              "  )->text( 'Title'
+                 )->get_parent(
+            )->column( width = '10%'
+               "  )->text( 'Value'
+                  )->get_parent(
+            )->column( width = '10%'
+               "  )->text( 'Value'
+                  )->get_parent(
+            )->column(
+               "  )->text( 'Description'
+                 ).
+
+        tab->items( )->column_list_item( selected = '{SELKZ}' )->cells(
+           )->text( '{NAME}'
+           )->text( '{FORMAT}'
+           )->text( '{SIZE}'
+           )->text( '{DESCR}' ).
+
+
+        IF ms_file-data IS NOT INITIAL.
+          page->zz_html( '<iframe src="' && ms_file-data && '" height="75%" width="98%"/>' ).
           CLEAR mv_value.
         ENDIF.
-        RETURN.
 
-        " mv_editor = escape( val = mv_editor format = cl_abap_format=>e_json_string ).
+
+        view = client->factory_view( 'POPUP_DESCR' ).
+        DATA(popup) = view->dialog( title = 'Edit Description' icon = 'sap-icon://edit' ).
+
+        popup->content(
+             )->text_area(
+                height = '100%'
+                width = '100%'
+                value = view->_bind( ms_file-descr ) ).
+
+        popup->footer( )->overflow_toolbar(
+              )->toolbar_spacer(
+              )->button(
+                  text  = 'Cancel'
+                  press = view->_event( 'TEXTAREA_CANCEL' )
+              )->button(
+                  text  = 'Confirm'
+                  press = view->_event( 'TEXTAREA_CONFIRM' )
+                  type  = 'Emphasized' ).
+
+        view = client->factory_view( 'POPUP_DATA' ).
+        popup = view->dialog( stretch = abaP_true title = 'Data:'  ).
+
+        popup->content(
+             )->text_area(
+                height = '99%'
+                width = '99%'
+                enabled = abap_false
+                value = view->_bind( ms_file-data ) ).
+
+        popup->footer( )->overflow_toolbar(
+              )->toolbar_spacer(
+              )->button(
+                  text  = 'close'
+                  press = view->_event( 'TEXTAREA_CONFIRM' )
+                  type  = 'Emphasized' ).
+
 
     ENDCASE.
 
