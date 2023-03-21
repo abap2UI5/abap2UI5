@@ -27,29 +27,6 @@ INTERFACE z2ui5_if_view
 
   TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name_value WITH EMPTY KEY.
 
-  METHODS _bind
-    IMPORTING
-      val           TYPE data
-    RETURNING
-      VALUE(result) TYPE string.
-
-  METHODS _bind_one_way
-    IMPORTING
-      val           TYPE data
-    RETURNING
-      VALUE(result) TYPE string.
-
-
-  METHODS _event
-    IMPORTING
-      val           TYPE clike
-    RETURNING
-      VALUE(result) TYPE string.
-
-  METHODS _event_close_popup
-    RETURNING
-      VALUE(result) TYPE string.
-
   METHODS layout_data
     IMPORTING
       ns            TYPE clike OPTIONAL

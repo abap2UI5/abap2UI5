@@ -15,6 +15,7 @@ CLASS z2ui5_cl_app_demo_06 DEFINITION PUBLIC.
       END OF ty_row.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA check_initialized TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -22,22 +23,27 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-
-        DO 1000 TIMES.
-          DATA(ls_row) = VALUE ty_Row( title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
-          INSERT ls_row INTO TABLE t_tab.
-        ENDDO.
-
 
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          DO 1000 TIMES.
+            DATA(ls_row) = VALUE ty_Row( title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
+            INSERT ls_row INTO TABLE t_tab.
+          ENDDO.
+
+          RETURN.
+        ENDIF.
+
 
         CASE client->get( )-event.
 
@@ -55,37 +61,47 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2UI5 - Scroll Container with Table and Toolbar' navbuttontap = view->_event( 'BACK' ) ).
+        DATA(page) = client->factory_view(
+            )->page(
+                title          = 'abap2UI5 - Scroll Container with Table and Toolbar'
+                navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link(
+                        text = 'Source_Code'
+                        href = client->get( )-s_request-url_source_code
+            )->get_parent( ).
 
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        DATA(tab) = page->scroll_container( '70%'
+            )->table(
+                growing             = abap_true
+                growingThreshold    = '20'
+                growingScrollToLoad = abap_true
+                items               = client->_bind_one_way( t_tab )
+                sticky              = 'ColumnHeaders,HeaderToolbar' ).
 
-        "set table and container
-        DATA(tab) = page->scroll_container( '70%' )->table(
-            growing = abap_true
-            growingThreshold = '20'
-            growingScrollToLoad = abap_true
-            items = view->_bind_one_way( t_tab )
-            sticky = 'ColumnHeaders,HeaderToolbar'
-          ).
+        tab->header_toolbar(
+            )->overflow_toolbar(
+                )->title( 'title of the table'
+                )->toolbar_spacer(
+                )->button(
+                    text  = 'Sort'
+                    press = client->_event( 'BUTTON_SORT' )
+                )->button(
+                    text  = 'Post'
+                    press = client->_event( 'BUTTON_POST' ) ).
 
-        "set toolbar
-        tab->header_toolbar( )->overflow_toolbar(
-            )->title( 'title of the table'
-             )->toolbar_spacer(
-             )->button( text = 'Sort' press = view->_event( 'BUTTON_SORT' )
-             )->button( text = 'Post' press = view->_event( 'BUTTON_POST' )
-          ).
-
-        "set header
         tab->columns(
-            )->column( )->text( 'Title' )->get_parent(
-            )->column( )->text( 'Color' )->get_parent(
-            )->column( )->text( 'Info' )->get_parent(
-            )->column( )->text( 'Description' )->get_parent(
-            )->column( )->text( 'Checkbox' ).
+            )->column(
+                )->text( 'Title' )->get_parent(
+            )->column(
+                )->text( 'Color' )->get_parent(
+            )->column(
+                )->text( 'Info' )->get_parent(
+            )->column(
+                )->text( 'Description' )->get_parent(
+            )->column(
+                )->text( 'Checkbox' ).
 
-        "set content
         tab->items( )->column_list_item( )->cells(
            )->text( '{TITLE}'
            )->text( '{VALUE}'

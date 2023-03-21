@@ -73,9 +73,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_uuid
       RETURNING
-        VALUE(result) TYPE string
-      RAISING
-        cx_uuid_error.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS get_uuid_session
       RETURNING
@@ -339,25 +337,29 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
 
   METHOD get_uuid.
-
-    DATA uuid TYPE c LENGTH 32.
-
     TRY.
-        CALL METHOD ('CL_SYSTEM_UUID')=>create_uuid_c32_static
-          RECEIVING
-            uuid = uuid.
 
-      CATCH cx_sy_dyn_call_illegal_class.
+        DATA uuid TYPE c LENGTH 32.
 
-        DATA(lv_fm) = 'GUID_CREATE'.
-        CALL FUNCTION lv_fm
-          IMPORTING
-            ev_guid_32 = uuid.
+        TRY.
+            CALL METHOD ('CL_SYSTEM_UUID')=>create_uuid_c32_static
+              RECEIVING
+                uuid = uuid.
 
+          CATCH cx_sy_dyn_call_illegal_class.
+
+            DATA(lv_fm) = 'GUID_CREATE'.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_32 = uuid.
+
+        ENDTRY.
+
+        result = uuid.
+
+      CATCH cx_root.
+        ASSERT 1 = 0.
     ENDTRY.
-
-    result = uuid.
-
   ENDMETHOD.
 
   METHOD get_uuid_session.
@@ -1065,8 +1067,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
-
-    METHODS constructor.
 
     CLASS-METHODS request_begin
       RETURNING
@@ -1973,18 +1973,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~_bind.
-
-    result = '{' && _get_name_by_ref( value = val  type = cs-bind_type-two_way ) && '}'.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~_bind_one_way.
-
-    result = '{' && _get_name_by_ref( value = val  type = cs-bind_type-one_way ) && '}'.
-
-  ENDMETHOD.
-
   METHOD z2ui5_if_view~get_parent.
     result = m_parent.
   ENDMETHOD.
@@ -2003,28 +1991,15 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~_event.
-
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~_event_close_popup.
-
-    result = `onEventFrontend( 'POPUP_CLOSE' )`.
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_view~list_item.
 
     result = me.
     _generic(
-         name   = 'ListItem'
-         ns     = 'core'
-         t_prop = VALUE #(
-                    ( n = 'text' v = text )
-                    ( n = 'additionalText' v = additionalText ) ) ).
+        name   = 'ListItem'
+        ns     = 'core'
+        t_prop = VALUE #(
+            ( n = 'text' v = text )
+            ( n = 'additionalText' v = additionalText ) ) ).
 
   ENDMETHOD.
 
@@ -2522,10 +2497,10 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         )->buttons(
         )->button(
               text  = 'HOME'
-              press = view->_event( 'BUTTON_HOME' )
+              press = client->_event( 'BUTTON_HOME' )
         )->button(
               text = 'BACK'
-              press = view->_event( 'BUTTON_BACK' )
+              press = client->_event( 'BUTTON_BACK' )
               type = 'Emphasized'
         ).
 
@@ -2560,7 +2535,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     IF ms_home-class_editable = abap_true.
       form->input(
-           value            = form->_bind( ms_home-classname )
+           value            = client->_bind( ms_home-classname )
            placeholder      = 'fill in the classname and press check'
            valuestate      = ms_home-class_value_state
            valuestatetext = ms_home-class_value_state_text
@@ -2570,14 +2545,14 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       form->text( ms_home-classname ).
     ENDIF.
 
-    form->button( text = ms_home-btn_text press = view->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
+    form->button( text = ms_home-btn_text press = client->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
        )->label( 'Step 5' ).
 
     DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
     form->link( text = 'Link to the Application' href = lv_link enabled = xsdbool( ms_home-class_editable = abap_false ) ).
 
     grid->simple_form( 'Applications and Examples' )->content( 'f'
-                )->button( text = `Press to continue..` press = view->_event( 'DEMOS' ) ).
+                )->button( text = `Press to continue..` press = client->_event( 'DEMOS' ) ).
 
   ENDMETHOD.
 
@@ -2656,14 +2631,6 @@ CLASS z2ui5_lcl_if_client DEFINITION.
 ENDCLASS.
 
 CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
-
-  METHOD constructor.
-    TRY.
-        ms_db-id = _=>get_uuid( ).
-      CATCH cx_root.
-        ASSERT 1 = 0.
-    ENDTRY.
-  ENDMETHOD.
 
   METHOD request_begin.
 
@@ -2779,6 +2746,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     CONSTANTS c_prefix TYPE string VALUE `result->MS_DB-O_APP->`.
 
     result = NEW #( ).
+    result->ms_db-id = _=>get_uuid( ).
     DATA(lv_id) = result->ms_db-id.
     result->ms_db = z2ui5_lcl_db=>load_app( id_prev ).
     result->ms_db-id = lv_id.
@@ -2855,6 +2823,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   METHOD set_app_start.
 
     result = NEW #( ).
+    result->ms_db-id = _=>get_uuid( ).
     DO.
       TRY.
           result->ms_db-app_classname = to_upper( ss_client-t_param[ name = 'app' ]-value ).
@@ -2887,6 +2856,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   METHOD set_app_leave_to_id.
 
     result = NEW #( ).
+    result->ms_db-id = _=>get_uuid( ).
     result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
 
     result->ms_next = ms_next.
@@ -2907,6 +2877,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
     result = NEW #( ).
+    result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
     result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
@@ -2973,6 +2944,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
     result = NEW #( ).
+    result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app kind = kind ).
     result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 

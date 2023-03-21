@@ -54,36 +54,60 @@ CLASS z2ui5_cl_app_demo_08 IMPLEMENTATION.
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
-
         ENDCASE.
+
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        "Definition of View Main
-        DATA(view) = client->factory_view( 'MAIN' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Messages' navbuttontap = view->_event( 'BACK' ) ).
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        DATA(page) = client->factory_view( 'MAIN'
+            )->page(
+                title          = 'abap2UI5 - Messages'
+                navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link(
+                        text = 'Go to Source Code'
+                        href = client->get( )-s_request-url_source_code
+                )->get_parent( ).
 
         IF check_strip_active = abap_true.
           page->message_strip( text = 'This is a Message Strip' type = strip_type ).
         ENDIF.
 
-        page->grid( 'L6 M12 S12' )->content( 'l'
-         )->simple_form( 'Message Box' )->content( 'f'
-           )->button( text = 'information'  press = view->_event( 'BUTTON_MESSAGE_BOX' )
-           )->button( text = 'success'      press = view->_event( 'BUTTON_MESSAGE_BOX_SUCCESS' )
-           )->button( text = 'error'        press = view->_event( 'BUTTON_MESSAGE_BOX_ERROR' )
-           )->button( text = 'warning'      press = view->_event( 'BUTTON_MESSAGE_BOX_WARNING' ) ).
+        page->grid( 'L6 M12 S12'
+            )->content( 'l'
+                )->simple_form( 'Message Box' )->content( 'f'
+                    )->button(
+                        text  = 'information'
+                        press = client->_event( 'BUTTON_MESSAGE_BOX' )
+                    )->button(
+                        text  = 'success'
+                        press = client->_event( 'BUTTON_MESSAGE_BOX_SUCCESS' )
+                    )->button(
+                        text  = 'error'
+                        press = client->_event( 'BUTTON_MESSAGE_BOX_ERROR' )
+                    )->button(
+                        text  = 'warning'
+                        press = client->_event( 'BUTTON_MESSAGE_BOX_WARNING' ) ).
 
-        page->grid( 'L6 M12 S12' )->content( 'l'
-          )->simple_form( 'Message Strip' )->content( 'f'
-            )->button( text = 'success'       press = view->_event( 'BUTTON_MESSAGE_STRIP_SUCCESS' )
-            )->button( text = 'error'         press = view->_event( 'BUTTON_MESSAGE_STRIP_ERROR' )
-            )->button( text = 'information'   press = view->_event( 'BUTTON_MESSAGE_STRIP_INFO' ) ).
+        page->grid( 'L6 M12 S12'
+            )->content( 'l'
+                )->simple_form( 'Message Strip' )->content( 'f'
+                    )->button(
+                        text = 'success'
+                        press = client->_event( 'BUTTON_MESSAGE_STRIP_SUCCESS' )
+                    )->button(
+                        text = 'error'
+                        press = client->_event( 'BUTTON_MESSAGE_STRIP_ERROR' )
+                    )->button(
+                        text = 'information'
+                        press = client->_event( 'BUTTON_MESSAGE_STRIP_INFO' ) ).
 
-        page->grid( 'L6 M12 S12' )->content( 'l'
-              )->simple_form( 'Display' )->content( 'f'
-                )->button( text = 'Message Toast'   press = view->_event( 'BUTTON_MESSAGE_TOAST' ) ).
+        page->grid( 'L6 M12 S12'
+            )->content( 'l'
+                )->simple_form( 'Display' )->content( 'f'
+                    )->button(
+                        text = 'Message Toast'
+                        press = client->_event( 'BUTTON_MESSAGE_TOAST' ) ).
 
 
     ENDCASE.

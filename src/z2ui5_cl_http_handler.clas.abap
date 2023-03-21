@@ -54,7 +54,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       TRY.
 
           DATA(li_client) = lo_runtime->app_before_event( ).
-
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
