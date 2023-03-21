@@ -15,11 +15,11 @@ CLASS z2ui5_cl_http_handler DEFINITION
       END OF cs_config.
 
     TYPES:
-      BEGIN OF ty_S_name_value,
+      BEGIN OF ty_s_name_value,
         name  TYPE string,
         value TYPE string,
-      END OF ty_S_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_S_name_value.
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value.
 
     CLASS-DATA:
       BEGIN OF client,

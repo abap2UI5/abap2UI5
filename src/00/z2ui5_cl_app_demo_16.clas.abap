@@ -4,7 +4,7 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    data check_initialized type abap_bool.
+    DATA check_initialized TYPE abap_bool.
 
     DATA mv_type TYPE string.
     DATA mv_path TYPE string.
@@ -51,7 +51,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
   METHOD render_tab_bar.
 
     DATA(tab) = container->tab( text = 'Bar Chart' selected = client->_bind( mv_tab_bar_active ) ).
-    DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
+    DATA(grid) = tab->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
       text    = 'Go to the SAP Demos for Interactive bar Charts here...'
@@ -59,7 +59,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
  ).
 
     grid->text( text = 'Absolute and Percentage value' class = 'sapUiSmallMargin'
-     )->get( )->layout_data( )->grid_data( span = 'XL12 L12 M12 S12' ).
+     )->get( )->layout_data( )->grid_data( 'XL12 L12 M12 S12' ).
 
 
     "Example with absolute and percentage values
@@ -78,12 +78,12 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
                     selectionchanged = client->_event( 'BAR_CHANGED' )
                     press = client->_event( 'BAR_PRESS' )
       )->bars( ).
-    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedValue = '10%' ).
-    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedValue = '20%' ).
-    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedValue = '70%' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedvalue = '10%' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedvalue = '20%' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedvalue = '70%' ).
 
 
-    DATA(layout) = grid->vertical_layout( )->layout_data( ns = 'l' )->grid_data( span = 'XL12 L12 M12 S12' )->get_parent( )->get_parent( ).
+    DATA(layout) = grid->vertical_layout( )->layout_data( 'l' )->grid_data( 'XL12 L12 M12 S12' )->get_parent( )->get_parent( ).
 
     layout->text( text = 'Positive and Negative values' class = 'sapUiSmallMargin' ).
     bar = layout->flex_box( width = '20rem' height = '10rem' alignitems = 'Center' class = 'sapUiSmallMargin'
@@ -102,14 +102,14 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
   METHOD render_tab_donut.
 
     DATA(tab) = container->tab( text = 'Donut Chart' selected = client->_bind( mv_tab_donut_active ) ).
-    DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
+    DATA(grid) = tab->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
          text    = 'Go to the SAP Demos for Interactive Donut Charts here...'
          href    = 'https://sapui5.hana.ondemand.com/#/entity/sap.suite.ui.microchart.InteractiveDonutChart/sample/sap.suite.ui.microchart.sample.InteractiveDonutChart'
     ).
     grid->text( text = 'Three segments' class = 'sapUiSmallMargin'
-         )->get( )->layout_data( )->grid_data( span = 'XL12 L12 M12 S12' ).
+         )->get( )->layout_data( )->grid_data( 'XL12 L12 M12 S12' ).
 
     DATA(seg) = grid->flex_box(
                         width = '22rem' height = '13rem' alignitems = 'Start' justifycontent = 'SpaceBetween'
@@ -125,7 +125,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
 
     grid->text( text = 'Four segments' class = 'sapUiSmallMargin'
-         )->get( )->layout_data( )->grid_data( span = 'XL12 L12 M12 S12' ).
+         )->get( )->layout_data( )->grid_data( 'XL12 L12 M12 S12' ).
 
     seg = grid->flex_box( width = '22rem' height = '13rem' alignitems = 'Start' justifycontent = 'SpaceBetween'
          )->items(
@@ -141,7 +141,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
 
     grid->text( text = 'Error Messages' class = 'sapUiSmallMargin'
-         )->get( )->layout_data( )->grid_data( span = 'XL12 L12 M12 S12' ).
+         )->get( )->layout_data( )->grid_data( 'XL12 L12 M12 S12' ).
 
     seg = grid->flex_box( width = '22rem' height = '13rem' alignitems = 'Start' justifycontent = 'SpaceBetween'
               )->items( )->interact_donut_chart(
@@ -162,7 +162,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
   METHOD render_tab_line.
 
     DATA(tab) = container->tab( text = 'Line Chart' selected = client->_bind( mv_tab_line_active ) ).
-    DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
+    DATA(grid) = tab->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
       text    = 'Go to the SAP Demos for Interactive Line Charts here...'
@@ -176,7 +176,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
   METHOD render_tab_radial.
 
     DATA(tab) = container->tab( text = 'Radial Chart' selected = client->_bind( mv_tab_radial_active ) ).
-    DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
+    DATA(grid) = tab->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
       text    = 'Go to the SAP Demos for Radial Charts here...'
@@ -222,7 +222,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
             client->popup_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
 
           WHEN 'EDIT'.
-            mv_check_editable = xsdbool( mv_check_editable = abap_False ).
+            mv_check_editable = xsdbool( mv_check_editable = abap_false ).
           WHEN 'CLEAR'.
             mv_editor = ``.
           WHEN 'BACK'.

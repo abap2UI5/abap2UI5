@@ -50,7 +50,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
             client->popup_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
 
           WHEN 'EDIT'.
-            mv_check_editable = xsdbool( mv_check_editable = abap_False ).
+            mv_check_editable = xsdbool( mv_check_editable = abap_false ).
           WHEN 'CLEAR'.
             mv_editor = ``.
           WHEN 'BACK'.
@@ -76,7 +76,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
                     value           = client->_bind( mv_type )
                     suggestionitems = client->_bind_one_way( lcl_mime_api=>get_editor_type( ) ) )->get(
                 )->suggestion_items(
-                    )->list_item( text = '{NAME}' additionalText = '{VALUE}'
+                    )->list_item( text = '{NAME}' additionaltext = '{VALUE}'
              )->get_parent( )->get_parent(
              )->button(
                     text  = 'Download'

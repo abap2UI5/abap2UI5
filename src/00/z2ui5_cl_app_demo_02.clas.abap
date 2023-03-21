@@ -99,7 +99,7 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
                 )->suggestion_items( )->get(
                     )->list_item(
                         text = '{VALUE}'
-                        additionalText = '{DESCR}' ).
+                        additionaltext = '{DESCR}' ).
 
     grid->simple_form( 'Time Inputs'
         )->content( 'f'

@@ -41,7 +41,7 @@ CLASS z2ui5_cl_app_demo_13 DEFINITION PUBLIC.
 
     DATA check_initialized TYPE abap_bool.
     "dummy helper - not needed when using db
-    DATA st_db TYPE ty_T_table.
+    DATA st_db TYPE ty_t_table.
 
   PROTECTED SECTION.
 
@@ -282,7 +282,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
       DATA(templ) = columns->ui_column( )->label( lv_field )->ui_template( ).
 
       IF ms_edit-check_active = abap_true.
-        templ->input( value = `{` && lv_field && `}` ).
+        templ->input( `{` && lv_field && `}` ).
       ELSE.
         templ->text( `{` && lv_field && `}` ).
       ENDIF.

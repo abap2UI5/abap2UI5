@@ -114,7 +114,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
             )->suggestion_items( )->get(
                 )->list_item(
                     text           = '{VALUE}'
-                    additionalText = '{DESCR}' ).
+                    additionaltext = '{DESCR}' ).
 
     form->label( 'Input only numbers allowed'
         )->input(
@@ -165,7 +165,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         items = client->_bind( mt_suggestion_sel ) ).
 
     tab->columns(
-        )->column( width = '20rem'
+        )->column( '20rem'
             )->text( 'Color' )->get_parent(
         )->column( )->text( 'Description' ).
 
@@ -195,8 +195,8 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
             )->suggestion_items( )->get(
                 )->list_item(
                     text            = '{VALUE}'
-                    additionalText  = '{DESCR}'
-        )->get_parent(  )->get_parent(
+                    additionaltext  = '{DESCR}'
+        )->get_parent( )->get_parent(
         )->button(
             text  = 'search...'
             press = client->_event( 'SEARCH' ) ).
@@ -207,13 +207,13 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         items      = client->_bind( mt_employees_sel ) ).
 
     tab->columns(
-        )->column( width = '10rem'
+        )->column( '10rem'
             )->text( 'City' )->get_parent(
-        )->column( width = '10rem'
+        )->column( '10rem'
             )->text( 'Nr' )->get_parent(
-        )->column( width = '15rem'
+        )->column( '15rem'
             )->text( 'Name' )->get_parent(
-        )->column( width = '30rem'
+        )->column( '30rem'
             )->text( 'Lastname' )->get_parent( ).
 
     tab->items( )->column_list_item( selected = '{SELKZ}'

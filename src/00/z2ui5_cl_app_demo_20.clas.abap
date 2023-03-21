@@ -74,7 +74,7 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         client->factory_view( 'POPUP_DECIDE'
-            )->dialog( title = 'abap2UI5 - Popup to decide'
+            )->dialog( 'abap2UI5 - Popup to decide'
                 )->vbox(
                     )->text( mv_text )->get_parent(
                 )->footer(

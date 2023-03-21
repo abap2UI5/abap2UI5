@@ -122,7 +122,7 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
                 )->input( '{VALUE}'
                 )->input( '{INFO}'
                 )->input( '{DESCR}'
-                )->checkbox( selected = '{CHECKBOX}' ).
+                )->checkbox( '{CHECKBOX}' ).
 
         ELSE.
 

@@ -72,7 +72,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
                 title       = '{TITLE}'
                 description = '{DESCR}'
                 icon        = '{ICON}'
-                info        = '{INFO}').
+                info        = '{INFO}' ).
 
     ENDCASE.
 

@@ -126,7 +126,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
           WHEN 'POPUP_TABLE_CONTINUE'.
             DELETE t_tab WHERE selkz = abap_false.
-            client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title  ).
+            client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title ).
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
@@ -284,9 +284,9 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
         )->content(
             )->simple_form(
                 )->label( 'Input1'
-                )->input(  client->_bind( ms_popup_input-value1 )
+                )->input( client->_bind( ms_popup_input-value1 )
                 )->label( 'Input2'
-                )->input(  client->_bind( ms_popup_input-value2 )
+                )->input( client->_bind( ms_popup_input-value2 )
                 )->label( 'Checkbox'
                 )->checkbox(
                     selected = client->_bind( ms_popup_input-check_is_active )
@@ -312,11 +312,11 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
         )->dialog( 'abap2ui5 - Popup Message Log'
             )->table( client->_bind( t_bapiret )
                 )->columns(
-                    )->column( width = '5rem'
+                    )->column( '5rem'
                         )->text( 'Type' )->get_parent(
-                    )->column( width = '5rem'
+                    )->column( '5rem'
                         )->text( 'Number' )->get_parent(
-                    )->column( width = '5rem'
+                    )->column( '5rem'
                         )->text( 'ID' )->get_parent(
                     )->column(
                         )->text( 'Message' )->get_parent(
@@ -327,7 +327,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
                         )->text( '{NUMBER}'
                         )->text( '{ID}'
                         )->text( '{MESSAGE}'
-            )->get_parent( )->get_parent( )->get_PARENT(
+            )->get_parent( )->get_parent( )->get_parent(
             )->footer( )->overflow_toolbar(
                 )->toolbar_spacer(
                 )->button(
@@ -351,7 +351,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
                     )->text( '{VALUE}'
                     )->text( '{INFO}'
                     )->text( '{DESCR}'
-            )->get_parent( )->get_parent( )->get_PARENT(
+            )->get_parent( )->get_parent( )->get_parent(
             )->footer( )->overflow_toolbar(
                 )->toolbar_spacer(
                 )->button(

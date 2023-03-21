@@ -85,7 +85,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
             )->simple_form( 'MAIN View' )->content( 'f'
 
              )->label( 'Input set by previous app'
-             )->input( value = mv_input_previous_set
+             )->input( mv_input_previous_set
 
              )->label( 'Data of previous app'
              )->input( mv_input_previous

@@ -37,7 +37,7 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
           check_initialized = abap_true.
 
           DO 1000 TIMES.
-            DATA(ls_row) = VALUE ty_Row( title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
+            DATA(ls_row) = VALUE ty_row( title = 'row_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ).
             INSERT ls_row INTO TABLE t_tab.
           ENDDO.
 
@@ -74,8 +74,8 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
         DATA(tab) = page->scroll_container( '70%'
             )->table(
                 growing             = abap_true
-                growingThreshold    = '20'
-                growingScrollToLoad = abap_true
+                growingthreshold    = '20'
+                growingscrolltoload = abap_true
                 items               = client->_bind_one_way( t_tab )
                 sticky              = 'ColumnHeaders,HeaderToolbar' ).
 

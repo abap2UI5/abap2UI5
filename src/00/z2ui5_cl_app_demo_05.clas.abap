@@ -160,7 +160,7 @@ CLASS z2ui5_cl_app_demo_05 IMPLEMENTATION.
                   `  et, consetetur sadipscing elitr, sed diam nonumy eirm sed diam voluptua. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam no ` &&
                         `numy eirmod tempor invidunt ut labore et dolore magna aliquyam erat.`
                 growing = abap_true
-                growingMaxLines = '7'
+                growingmaxlines = '7'
                 width = '100%' ).
 
         page->footer(

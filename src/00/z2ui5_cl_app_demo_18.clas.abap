@@ -86,13 +86,13 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
              ).
 
         tab->columns(
-            )->column( width = '10%'
+            )->column( '10%'
               "  )->text( 'Title'
                  )->get_parent(
-            )->column( width = '10%'
+            )->column( '10%'
                "  )->text( 'Value'
                   )->get_parent(
-            )->column( width = '10%'
+            )->column( '10%'
                "  )->text( 'Value'
                   )->get_parent(
             )->column(
@@ -132,7 +132,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                   type  = 'Emphasized' ).
 
         view = client->factory_view( 'POPUP_DATA' ).
-        popup = view->dialog( stretch = abaP_true title = 'Data:'  ).
+        popup = view->dialog( stretch = abap_true title = 'Data:' ).
 
         popup->content(
              )->text_area(

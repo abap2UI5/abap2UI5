@@ -109,7 +109,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
 
         client->factory_view( 'POPUP_DECIDE'
-            )->dialog( title = 'Popup - Decide'
+            )->dialog( 'Popup - Decide'
                 )->vbox(
                     )->text( 'this is a popup to decide, you have to make a decision now...'
                 )->get_parent(
@@ -124,10 +124,10 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                         type  = 'Emphasized' ).
 
 
-        DATA(view) = client->factory_view( 'POPUP_DECIDE_FRONTEND_CLOSE'
-            )->dialog( title = 'Popup - Info'
+        client->factory_view( 'POPUP_DECIDE_FRONTEND_CLOSE'
+            )->dialog( 'Popup - Info'
                 )->vbox(
-                    )->text( text = 'this is an information, press close to go back to the main view without a server roundtrip'
+                    )->text( 'this is an information, press close to go back to the main view without a server roundtrip'
                 )->get_parent(
                 )->footer( )->overflow_toolbar(
                     )->toolbar_spacer(

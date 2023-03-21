@@ -3,25 +3,25 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
 
-types:
-    begin of ty_S_cursor,
-       id             type string,
-       cursorPos      type string,
-       selectionStart type string,
-       selectionEnd   type string,
-    end of ty_S_cursor.
+TYPES:
+    BEGIN OF ty_s_cursor,
+       id             TYPE string,
+       cursorpos      TYPE string,
+       selectionstart TYPE string,
+       selectionend   TYPE string,
+    END OF ty_s_cursor.
 
   TYPES:
-    BEGIN OF ty_S_get,
+    BEGIN OF ty_s_get,
       view_active        TYPE string,
-      popup_active       type string,
+      popup_active       TYPE string,
       check_previous_app TYPE abap_bool,
       event              TYPE string,
       page_scroll_pos    TYPE i,
       lifecycle_method   TYPE string,
       id                 TYPE string,
       id_prev            TYPE string,
-      id_prev_app        type string,
+      id_prev_app        TYPE string,
       id_prev_app_stack  TYPE string,
       BEGIN OF s_request,
         tenant          TYPE string,
@@ -36,13 +36,13 @@ types:
   METHODS set
     IMPORTING
       event           TYPE clike OPTIONAL
-      t_scroll_pos    type z2ui5_if_view=>ty_t_name_value optional
-      s_cursor_pos    type ty_s_cursor optional
-      set_prev_view   type abap_bool optional.
+      t_scroll_pos    TYPE z2ui5_if_view=>ty_t_name_value OPTIONAL
+      s_cursor_pos    TYPE ty_s_cursor OPTIONAL
+      set_prev_view   TYPE abap_bool OPTIONAL.
 
   METHODS get
     RETURNING
-      VALUE(result) TYPE ty_S_get.
+      VALUE(result) TYPE ty_s_get.
 
   METHODS get_app_by_id
     IMPORTING
