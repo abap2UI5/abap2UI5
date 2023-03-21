@@ -28,15 +28,15 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
           product  = 'tomato'.
           quantity = '500'.
-          RETURN.
 
+          RETURN.
         ENDIF.
 
 
         CASE client->get( )-event.
 
           WHEN 'BUTTON_POST'.
-            client->popup_message_toast( |{ product } { quantity } ST - send to the server| ).
+            client->popup_message_toast( |{ product } { quantity } - send to the server| ).
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
@@ -48,8 +48,8 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
         client->factory_view(
             )->page(
-                title          = 'abap2UI5 - First Example'
-                navbuttonpress = client->_event( 'BACK' )
+                    title          = 'abap2UI5 - First Example'
+                    navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
@@ -63,7 +63,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                     )->label( 'product'
                     )->input(
                         value   = product
-                        enabled = abap_False
+                        enabled = abap_false
                     )->button(
                         text  = 'post'
                         press = client->_event( 'BUTTON_POST' ) ).

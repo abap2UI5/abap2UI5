@@ -70,8 +70,8 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
 
         DATA(page) = client->factory_view(
             )->page(
-                title          = 'abap2UI5 - Tables and editable'
-                navbuttonpress = client->_event( 'BACK' )
+                    title          = 'abap2UI5 - Tables and editable'
+                    navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
                         text = 'Demo'
@@ -82,8 +82,8 @@ CLASS z2ui5_cl_app_demo_11 IMPLEMENTATION.
             )->get_parent( ).
 
         DATA(tab) = page->table(
-            items = client->_bind( t_tab )
-            mode  = 'MultiSelect'
+                items = client->_bind( t_tab )
+                mode  = 'MultiSelect'
             )->header_toolbar(
                 )->overflow_toolbar(
                     )->title( 'title of the table'
