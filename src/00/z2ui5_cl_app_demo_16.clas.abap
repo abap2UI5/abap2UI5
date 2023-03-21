@@ -4,6 +4,8 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
+    data check_initialized type abap_bool.
+
     DATA mv_type TYPE string.
     DATA mv_path TYPE string.
     DATA mv_editor TYPE string.
@@ -20,22 +22,22 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
 
     METHODS render_tab_bar
       IMPORTING
-        view      TYPE REF TO z2ui5_if_view
+        client    TYPE REF TO z2ui5_if_client
         container TYPE REF TO z2ui5_if_view.
 
     METHODS render_tab_donut
       IMPORTING
-        view      TYPE REF TO z2ui5_if_view
+        client    TYPE REF TO z2ui5_if_client
         container TYPE REF TO z2ui5_if_view.
 
     METHODS render_tab_line
       IMPORTING
-        view      TYPE REF TO z2ui5_if_view
+        client    TYPE REF TO z2ui5_if_client
         container TYPE REF TO z2ui5_if_view.
 
     METHODS render_tab_radial
       IMPORTING
-        view      TYPE REF TO z2ui5_if_view
+        client    TYPE REF TO z2ui5_if_client
         container TYPE REF TO z2ui5_if_view.
 
 
@@ -43,12 +45,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
 
   METHOD render_tab_bar.
 
-    DATA(tab) = container->tab( text = 'Bar Chart' selected = view->_bind( mv_tab_bar_active ) ).
+    DATA(tab) = container->tab( text = 'Bar Chart' selected = client->_bind( mv_tab_bar_active ) ).
     DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
 
     grid->link(
@@ -63,22 +65,22 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
     "Example with absolute and percentage values
     DATA(bar) = grid->flex_box( width = '22rem' height = '13rem' alignitems = 'Center' class = 'sapUiSmallMargin'
      )->items( )->interact_bar_chart(
-                    selectionchanged = view->_event( 'BAR_CHANGED' )
-                    press = view->_event( 'BAR_PRESS' )
+                    selectionchanged = client->_event( 'BAR_CHANGED' )
+                    press = client->_event( 'BAR_PRESS' )
       )->bars( ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel1 ) label = 'Product 1' value = '10' ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel2 ) label = 'Product 2' value = '20' ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel3 ) label = 'Product 3' value = '70' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel1 ) label = 'Product 1' value = '10' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel2 ) label = 'Product 2' value = '20' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel3 ) label = 'Product 3' value = '70' ).
 
 
     bar = grid->flex_box( width = '22rem' height = '13rem' alignitems = 'Center' class = 'sapUiSmallMargin'
      )->items( )->interact_bar_chart(
-                    selectionchanged = view->_event( 'BAR_CHANGED' )
-                    press = view->_event( 'BAR_PRESS' )
+                    selectionchanged = client->_event( 'BAR_CHANGED' )
+                    press = client->_event( 'BAR_PRESS' )
       )->bars( ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedValue = '10%' ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedValue = '20%' ).
-    bar->interact_bar_chart_bar( selected = view->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedValue = '70%' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedValue = '10%' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedValue = '20%' ).
+    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedValue = '70%' ).
 
 
     DATA(layout) = grid->vertical_layout( )->layout_data( ns = 'l' )->grid_data( span = 'XL12 L12 M12 S12' )->get_parent( )->get_parent( ).
@@ -86,8 +88,8 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
     layout->text( text = 'Positive and Negative values' class = 'sapUiSmallMargin' ).
     bar = layout->flex_box( width = '20rem' height = '10rem' alignitems = 'Center' class = 'sapUiSmallMargin'
      )->items( )->interact_bar_chart(
-                    selectionchanged = view->_event( 'BAR_CHANGED' )
-                    press = view->_event( 'BAR_PRESS' )
+                    selectionchanged = client->_event( 'BAR_CHANGED' )
+                    press = client->_event( 'BAR_PRESS' )
                     labelwidth = '25%'
       )->bars( ).
     bar->interact_bar_chart_bar( label = 'Product 1' value = '25' ).
@@ -99,7 +101,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
   METHOD render_tab_donut.
 
-    DATA(tab) = container->tab( text = 'Donut Chart' selected = view->_bind( mv_tab_donut_active ) ).
+    DATA(tab) = container->tab( text = 'Donut Chart' selected = client->_bind( mv_tab_donut_active ) ).
     DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
 
     grid->link(
@@ -113,12 +115,12 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
                         width = '22rem' height = '13rem' alignitems = 'Start' justifycontent = 'SpaceBetween'
      )->items(
               )->interact_donut_chart(
-                    selectionchanged = view->_event( 'DONUT_CHANGED' )
+                    selectionchanged = client->_event( 'DONUT_CHANGED' )
               )->segments( ).
-    seg->interact_donut_chart_segment( selected = view->_bind( mv_sel1 ) label = 'Implementation Phase' value = '40.0' displayedvalue = '40.0%' ).
-    seg->interact_donut_chart_segment( selected = view->_bind( mv_sel2 )
+    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel1 ) label = 'Implementation Phase' value = '40.0' displayedvalue = '40.0%' ).
+    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel2 )
         label = 'Design Phase' value = '21.5' displayedvalue = '21.5%' ).
-    seg->interact_donut_chart_segment( selected = view->_bind( mv_sel3 )
+    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel3 )
     label = 'Test Phase' value = '38.5' displayedvalue = '38.5%' ).
 
 
@@ -128,8 +130,8 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
     seg = grid->flex_box( width = '22rem' height = '13rem' alignitems = 'Start' justifycontent = 'SpaceBetween'
          )->items(
              )->interact_donut_chart(
-                    selectionchanged  = view->_event( 'DONUT_CHANGED' )
-                    press             = view->_event( 'DONUT_PRESS' )
+                    selectionchanged  = client->_event( 'DONUT_CHANGED' )
+                    press             = client->_event( 'DONUT_PRESS' )
                     displayedsegments = '4'
              )->segments( ).
     seg->interact_donut_chart_segment( label = 'Design Phase' value = '32.0' displayedvalue = '32.0%' ).
@@ -143,7 +145,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
     seg = grid->flex_box( width = '22rem' height = '13rem' alignitems = 'Start' justifycontent = 'SpaceBetween'
               )->items( )->interact_donut_chart(
-                    selectionchanged   = view->_event( 'DONUT_CHANGED' )
+                    selectionchanged   = client->_event( 'DONUT_CHANGED' )
                     showerror          = abap_true
                     errormessagetitle = 'No data'
                     errormessage       = 'Currently no data is available'
@@ -159,7 +161,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
   METHOD render_tab_line.
 
-    DATA(tab) = container->tab( text = 'Line Chart' selected = view->_bind( mv_tab_line_active ) ).
+    DATA(tab) = container->tab( text = 'Line Chart' selected = client->_bind( mv_tab_line_active ) ).
     DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
 
     grid->link(
@@ -173,7 +175,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
   METHOD render_tab_radial.
 
-    DATA(tab) = container->tab( text = 'Radial Chart' selected = view->_bind( mv_tab_radial_active ) ).
+    DATA(tab) = container->tab( text = 'Radial Chart' selected = client->_bind( mv_tab_radial_active ) ).
     DATA(grid) = tab->grid( default_span = 'XL6 L6 M6 S12' ).
 
     grid->link(
@@ -189,12 +191,17 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-        mv_path = '../../demo/text'.
-        mv_type = 'plain_text'.
-        mv_sel1 = abap_true.
-
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          mv_path = '../../demo/text'.
+          mv_type = 'plain_text'.
+          mv_sel1 = abap_true.
+
+          RETURN.
+        ENDIF.
 
         CASE client->get( )-event.
 
@@ -226,7 +233,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Visualization with Charts' navbuttontap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Visualization with Charts' navbuttonpress = client->_event( 'BACK' ) ).
         page->header_content(
             ")->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
             )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
@@ -234,10 +241,10 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
         DATA(container) = page->tab_container( ).
 
-        render_tab_donut( view = view container = container ).
-        render_tab_bar( view = view container = container ).
-        render_tab_line( view = view container = container ).
-        render_tab_radial( view = view container = container ).
+        render_tab_donut( client = client container = container ).
+        render_tab_bar( client = client container = container ).
+        render_tab_line( client = client container = container ).
+        render_tab_radial( client = client container = container ).
 
         "  tab = container->tab( 'Interactive Line Chart' ).
         "  tab = container->tab( 'Radial Micro Chart' ).

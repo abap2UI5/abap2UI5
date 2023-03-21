@@ -183,7 +183,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                 type  = 'Emphasized' ).
 
 
-    page = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
+    popup = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
         )->dialog( title = 'abap2UI5 - F4 Value Help' ).
 
     popup->simple_form(
@@ -238,11 +238,13 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
       WHEN 'POPUP_TABLE_F4'.
         mt_suggestion_sel = mt_suggestion.
         client->popup_view( 'POPUP_TABLE_F4' ).
+        client->show_view( 'MAIN' ).
 
       WHEN 'POPUP_TABLE_F4_CUSTOM'.
         mt_employees_sel = VALUE #( ).
         mt_employees_sel = VALUE #( ).
         client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
+        client->show_view( 'MAIN' ).
 
       WHEN 'SEARCH'.
         mt_employees_sel = mt_employees.
@@ -250,6 +252,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
           DELETE mt_employees_sel WHERE city <> screen-city.
         ENDIF.
         client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
+        client->show_view( 'MAIN' ).
 
       WHEN 'POPUP_TABLE_F4_CUSTOM_CONTINUE'.
         DELETE mt_employees_sel WHERE selkz = abap_false.
@@ -275,8 +278,6 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
     ENDCASE.
-
-    client->show_view( 'MAIN' ).
 
   ENDMETHOD.
 
