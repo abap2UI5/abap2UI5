@@ -61,7 +61,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -81,6 +81,130 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         z2ui5_on_rendering( client ).
 
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_event.
+
+    CASE client->get( )-event.
+
+      WHEN 'POPUP_TABLE_F4'.
+        mt_suggestion_sel = mt_suggestion.
+        client->popup_view( 'POPUP_TABLE_F4' ).
+        client->show_view( 'MAIN' ).
+
+      WHEN 'POPUP_TABLE_F4_CUSTOM'.
+        mt_employees_sel = VALUE #( ).
+        mt_employees_sel = VALUE #( ).
+        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
+        client->show_view( 'MAIN' ).
+
+      WHEN 'SEARCH'.
+        mt_employees_sel = mt_employees.
+        IF screen-city IS NOT INITIAL.
+          DELETE mt_employees_sel WHERE city <> screen-city.
+        ENDIF.
+        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
+        client->show_view( 'MAIN' ).
+
+      WHEN 'POPUP_TABLE_F4_CUSTOM_CONTINUE'.
+        DELETE mt_employees_sel WHERE selkz = abap_false.
+        IF lines( mt_employees_sel ) = 1.
+          screen-name = mt_employees_sel[ 1 ]-name.
+          screen-lastname = mt_employees_sel[ 1 ]-lastname.
+          client->popup_message_toast( 'f4 value selected' ).
+        ENDIF.
+
+      WHEN 'POPUP_TABLE_F4_CONTINUE'.
+        DELETE mt_suggestion_sel WHERE selkz = abap_false.
+        IF lines( mt_suggestion_sel ) = 1.
+          screen-color_02 = mt_suggestion_sel[ 1 ]-value.
+          client->popup_message_toast( 'f4 value selected' ).
+        ENDIF.
+
+      WHEN 'BUTTON_SEND'.
+        client->popup_message_box( 'success - values send to the server' ).
+      WHEN 'BUTTON_CLEAR'.
+        CLEAR screen.
+        client->popup_message_toast( 'View initialized' ).
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_init.
+
+    mt_suggestion = VALUE #(
+        ( descr = 'this is the color Green'  value = 'GREEN' )
+        ( descr = 'this is the color Blue'   value = 'BLUE' )
+        ( descr = 'this is the color Black'  value = 'BLACK' )
+        ( descr = 'this is the color Grey'   value = 'GREY' )
+        ( descr = 'this is the color Blue2'  value = 'BLUE2' )
+        ( descr = 'this is the color Blue3'  value = 'BLUE3' ) ).
+
+    mt_suggestion_city = VALUE #(
+        ( value = 'London' descr = 'London' )
+        ( value = 'Paris' descr = 'Paris' )
+        ( value = 'Rome' descr = 'Rome' ) ).
+
+    mt_employees = VALUE #(
+        ( city = 'London' name = 'Tom'       lastname = 'lastname1' nr = '00001' )
+        ( city = 'London' name = 'Tom2'      lastname = 'lastname2' nr = '00002' )
+        ( city = 'London' name = 'Tom3'      lastname = 'lastname3' nr = '00003' )
+        ( city = 'London' name = 'Tom4'      lastname = 'lastname4' nr = '00004' )
+        ( city = 'Rome'   name = 'Michaela1' lastname = 'lastname5' nr = '00005' )
+        ( city = 'Rome'   name = 'Michaela2' lastname = 'lastname6' nr = '00006' )
+        ( city = 'Rome'   name = 'Michaela3' lastname = 'lastname7' nr = '00007' )
+        ( city = 'Rome'   name = 'Michaela4' lastname = 'lastname8' nr = '00008' )
+        ( city = 'Paris'  name = 'Hermine1'  lastname = 'lastname9' nr = '00009' )
+        ( city = 'Paris'  name = 'Hermine2'  lastname = 'lastname10' nr = '00010' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
+        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' ) ).
 
   ENDMETHOD.
 
@@ -230,130 +354,6 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                     text  = 'continue'
                     press = client->_event( 'POPUP_TABLE_F4_CUSTOM_CONTINUE' )
                     type  = 'Emphasized' ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_event.
-
-    CASE client->get( )-event.
-
-      WHEN 'POPUP_TABLE_F4'.
-        mt_suggestion_sel = mt_suggestion.
-        client->popup_view( 'POPUP_TABLE_F4' ).
-        client->show_view( 'MAIN' ).
-
-      WHEN 'POPUP_TABLE_F4_CUSTOM'.
-        mt_employees_sel = VALUE #( ).
-        mt_employees_sel = VALUE #( ).
-        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
-        client->show_view( 'MAIN' ).
-
-      WHEN 'SEARCH'.
-        mt_employees_sel = mt_employees.
-        IF screen-city IS NOT INITIAL.
-          DELETE mt_employees_sel WHERE city <> screen-city.
-        ENDIF.
-        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
-        client->show_view( 'MAIN' ).
-
-      WHEN 'POPUP_TABLE_F4_CUSTOM_CONTINUE'.
-        DELETE mt_employees_sel WHERE selkz = abap_false.
-        IF lines( mt_employees_sel ) = 1.
-          screen-name = mt_employees_sel[ 1 ]-name.
-          screen-lastname = mt_employees_sel[ 1 ]-lastname.
-          client->popup_message_toast( 'f4 value selected' ).
-        ENDIF.
-
-      WHEN 'POPUP_TABLE_F4_CONTINUE'.
-        DELETE mt_suggestion_sel WHERE selkz = abap_false.
-        IF lines( mt_suggestion_sel ) = 1.
-          screen-color_02 = mt_suggestion_sel[ 1 ]-value.
-          client->popup_message_toast( 'f4 value selected' ).
-        ENDIF.
-
-      WHEN 'BUTTON_SEND'.
-        client->popup_message_box( 'success - values send to the server' ).
-      WHEN 'BUTTON_CLEAR'.
-        CLEAR screen.
-        client->popup_message_toast( 'View initialized' ).
-      WHEN 'BACK'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_init.
-
-    mt_suggestion = VALUE #(
-        ( descr = 'this is the color Green'  value = 'GREEN' )
-        ( descr = 'this is the color Blue'   value = 'BLUE' )
-        ( descr = 'this is the color Black'  value = 'BLACK' )
-        ( descr = 'this is the color Grey'   value = 'GREY' )
-        ( descr = 'this is the color Blue2'  value = 'BLUE2' )
-        ( descr = 'this is the color Blue3'  value = 'BLUE3' ) ).
-
-    mt_suggestion_city = VALUE #(
-        ( value = 'London' descr = 'London' )
-        ( value = 'Paris' descr = 'Paris' )
-        ( value = 'Rome' descr = 'Rome' ) ).
-
-    mt_employees = VALUE #(
-        ( city = 'London' name = 'Tom'       lastname = 'lastname1' nr = '00001' )
-        ( city = 'London' name = 'Tom2'      lastname = 'lastname2' nr = '00002' )
-        ( city = 'London' name = 'Tom3'      lastname = 'lastname3' nr = '00003' )
-        ( city = 'London' name = 'Tom4'      lastname = 'lastname4' nr = '00004' )
-        ( city = 'Rome'   name = 'Michaela1' lastname = 'lastname5' nr = '00005' )
-        ( city = 'Rome'   name = 'Michaela2' lastname = 'lastname6' nr = '00006' )
-        ( city = 'Rome'   name = 'Michaela3' lastname = 'lastname7' nr = '00007' )
-        ( city = 'Rome'   name = 'Michaela4' lastname = 'lastname8' nr = '00008' )
-        ( city = 'Paris'  name = 'Hermine1'  lastname = 'lastname9' nr = '00009' )
-        ( city = 'Paris'  name = 'Hermine2'  lastname = 'lastname10' nr = '00010' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' )
-        ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' ) ).
 
   ENDMETHOD.
 ENDCLASS.

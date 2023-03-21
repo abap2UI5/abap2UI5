@@ -51,7 +51,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -69,6 +69,49 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
         z2ui5_on_rendering( client ).
 
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_event.
+
+    CASE client->get( )-event.
+
+      WHEN 'BUTTON_SEND'.
+        client->popup_message_box( 'success - values send to the server' ).
+      WHEN 'BUTTON_CLEAR'.
+        CLEAR screen.
+        client->popup_message_toast( 'View initialized' ).
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_init.
+
+    check_initialized = abap_true.
+
+    screen = VALUE #(
+        check_is_active = abap_true
+        colour          = 'BLUE'
+        combo_key       = 'GRAY'
+        segment_key     = 'GREEN'
+        date            = '07.12.22'
+        date_time       = '23.12.2022, 19:27:20'
+        time_start      = '05:24:00'
+        time_end        = '17:23:57'
+     ).
+
+    mt_suggestion = VALUE #(
+        ( descr = 'Green'  value = 'GREEN' )
+        ( descr = 'Blue'   value = 'BLUE' )
+        ( descr = 'Black'  value = 'BLACK' )
+        ( descr = 'Grey'   value = 'GREY' )
+        ( descr = 'Blue2'  value = 'BLUE2' )
+        ( descr = 'Blue3'  value = 'BLUE3' ) ).
 
   ENDMETHOD.
 
@@ -181,49 +224,6 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
              text  = 'Send to Server'
              press = client->_event( 'BUTTON_SEND' )
              type  = 'Success' ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_event.
-
-    CASE client->get( )-event.
-
-      WHEN 'BUTTON_SEND'.
-        client->popup_message_box( 'success - values send to the server' ).
-      WHEN 'BUTTON_CLEAR'.
-        CLEAR screen.
-        client->popup_message_toast( 'View initialized' ).
-      WHEN 'BACK'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_init.
-
-    check_initialized = abap_true.
-
-    screen = VALUE #(
-        check_is_active = abap_true
-        colour          = 'BLUE'
-        combo_key       = 'GRAY'
-        segment_key     = 'GREEN'
-        date            = '07.12.22'
-        date_time       = '23.12.2022, 19:27:20'
-        time_start      = '05:24:00'
-        time_end        = '17:23:57'
-     ).
-
-    mt_suggestion = VALUE #(
-        ( descr = 'Green'  value = 'GREEN' )
-        ( descr = 'Blue'   value = 'BLUE' )
-        ( descr = 'Black'  value = 'BLACK' )
-        ( descr = 'Grey'   value = 'GREY' )
-        ( descr = 'Blue2'  value = 'BLUE2' )
-        ( descr = 'Blue3'  value = 'BLUE3' ) ).
 
   ENDMETHOD.
 ENDCLASS.
