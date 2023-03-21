@@ -41,8 +41,6 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-
       WHEN client->cs-lifecycle_method-on_event.
 
         CASE client->get( )-event.
@@ -79,7 +77,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'MAIN' ).
-        view->page( title = 'abap2UI5 - flow logic 2' navbuttontap = view->_event( 'BACK' )
+        view->page( title = 'abap2UI5 - flow logic 2' navbuttonpress = client->_event( 'BACK' )
            )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
@@ -91,24 +89,24 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
              )->label( 'Data of previous app'
              )->input( mv_input_previous
-             )->button( text = 'read' press = view->_event( 'BUTTON_READ_PREVIOUS' )
+             )->button( text = 'read' press = client->_event( 'BUTTON_READ_PREVIOUS' )
 
              )->label( 'Call previous app and show data of this app'
-             )->input( view->_bind( mv_input )
-             )->button( text = 'back' press = view->_event( 'BACK_WITH_EVENT' )
+             )->input( client->_bind( mv_input )
+             )->button( text = 'back' press = client->_event( 'BACK_WITH_EVENT' )
         ).
 
         view = client->factory_view( 'SECOND' ).
-        view->page( title = 'abap2UI5 - flow logic 2' navbuttontap = view->_event( 'BACK' )
+        view->page( title = 'abap2UI5 - flow logic 2' navbuttonpress = client->_event( 'BACK' )
            )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
 
              )->simple_form( 'second view set by previous app' )->content( 'f'
                )->label( 'Demo'
-               )->button( text = 'leave to previous app' press = view->_event( 'BACK' )
+               )->button( text = 'leave to previous app' press = client->_event( 'BACK' )
                )->label( 'Demo'
-               )->button( text = 'show view main' press = view->_event( 'SHOW_VIEW_MAIN' )
+               )->button( text = 'show view main' press = client->_event( 'SHOW_VIEW_MAIN' )
         ).
 
     ENDCASE.

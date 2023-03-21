@@ -163,6 +163,7 @@ INTERFACE z2ui5_if_view
       stretch       TYPE clike OPTIONAL
       contentHeight TYPE clike OPTIONAL
       contentWidth  TYPE clike OPTIONAL
+      PREFERRED PARAMETER title
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 

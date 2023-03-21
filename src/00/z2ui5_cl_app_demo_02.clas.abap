@@ -92,10 +92,10 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
         )->content( 'f'
             )->label( 'Input with value help'
             )->input(
-                value           = client->_bind( screen-colour )
-                placeholder     = 'fill in your favorite colour'
-                suggestionitems = client->_bind_one_way( mt_suggestion )
-                showsuggestion  = abap_true )->get(
+                    value           = client->_bind( screen-colour )
+                    placeholder     = 'fill in your favorite colour'
+                    suggestionitems = client->_bind_one_way( mt_suggestion )
+                    showsuggestion  = abap_true )->get(
                 )->suggestion_items( )->get(
                     )->list_item(
                         text = '{VALUE}'
@@ -127,18 +127,18 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
         )->combobox(
             selectedkey = client->_bind( screen-combo_key )
             items       = client->_bind_one_way( VALUE ty_t_combo(
-                ( key = 'BLUE'  text = 'green' )
-                ( key = 'GREEN' text = 'blue' )
-                ( key = 'BLACK' text = 'red' )
-                ( key = 'GRAY'  text = 'gray' ) ) ) )->get(
+                    ( key = 'BLUE'  text = 'green' )
+                    ( key = 'GREEN' text = 'blue' )
+                    ( key = 'BLACK' text = 'red' )
+                    ( key = 'GRAY'  text = 'gray' ) ) )
                 )->item(
                     key = '{KEY}'
                     text = '{TEXT}'
         )->get_parent( )->get_parent(
 
         )->label( 'Segmented Button'
-        )->segmented_button( client->_bind( screen-segment_key ) )->get(
-            )->items( )->get(
+        )->segmented_button( client->_bind( screen-segment_key )
+            )->items(
                 )->segmented_button_item(
                     key = 'BLUE'
                     icon = 'sap-icon://accept'
@@ -207,23 +207,23 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
     check_initialized = abap_true.
 
     screen = VALUE #(
-          check_is_active   = abap_true
-          colour            = 'BLUE'
-          combo_key         = 'GRAY'
-          segment_key       = 'GREEN'
-          date              = '07.12.22'
-          date_time         = '23.12.2022, 19:27:20'
-          time_start        = '05:24:00'
-          time_end          = '17:23:57'
+        check_is_active = abap_true
+        colour          = 'BLUE'
+        combo_key       = 'GRAY'
+        segment_key     = 'GREEN'
+        date            = '07.12.22'
+        date_time       = '23.12.2022, 19:27:20'
+        time_start      = '05:24:00'
+        time_end        = '17:23:57'
      ).
 
     mt_suggestion = VALUE #(
-               ( descr = 'Green'  value = 'GREEN' )
-               ( descr = 'Blue'   value = 'BLUE' )
-               ( descr = 'Black'  value = 'BLACK' )
-               ( descr = 'Grey'   value = 'GREY' )
-               ( descr = 'Blue2'  value = 'BLUE2' )
-               ( descr = 'Blue3'  value = 'BLUE3' ) ).
+        ( descr = 'Green'  value = 'GREEN' )
+        ( descr = 'Blue'   value = 'BLUE' )
+        ( descr = 'Black'  value = 'BLACK' )
+        ( descr = 'Grey'   value = 'GREY' )
+        ( descr = 'Blue2'  value = 'BLUE2' )
+        ( descr = 'Blue3'  value = 'BLUE3' ) ).
 
   ENDMETHOD.
 ENDCLASS.

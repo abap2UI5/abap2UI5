@@ -40,15 +40,15 @@ CLASS z2ui5_cl_app_demo_08 IMPLEMENTATION.
             client->popup_message_toast( 'this is a message toast' ).
 
           WHEN 'BUTTON_MESSAGE_STRIP_INFO'.
-            check_strip_active = xsdbool( check_strip_active = abap_false ).
+            check_strip_active = abap_true.
             strip_type = 'Information'.
 
           WHEN 'BUTTON_MESSAGE_STRIP_ERROR'.
-            check_strip_active = xsdbool( check_strip_active = abap_false ).
+            check_strip_active = abap_true.
             strip_type = 'Error'.
 
           WHEN 'BUTTON_MESSAGE_STRIP_SUCCESS'.
-            check_strip_active = xsdbool( check_strip_active = abap_false ).
+            check_strip_active = abap_true.
             strip_type = 'Success'.
 
           WHEN 'BACK'.
@@ -65,7 +65,7 @@ CLASS z2ui5_cl_app_demo_08 IMPLEMENTATION.
                 navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
-                        text = 'Go to Source Code'
+                        text = 'Source_Code'
                         href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 

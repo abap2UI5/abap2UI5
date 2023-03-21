@@ -136,10 +136,10 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
             showvaluehelp    = abap_true
             valuehelprequest = client->_event( 'POPUP_TABLE_F4_CUSTOM' )
         )->input(
-            value               = client->_bind( screen-lastname )
-            placeholder         = 'lastname'
-            showvaluehelp       = abap_true
-            valuehelprequest    = client->_event( 'POPUP_TABLE_F4_CUSTOM' ) ).
+            value            = client->_bind( screen-lastname )
+            placeholder      = 'lastname'
+            showvaluehelp    = abap_true
+            valuehelprequest = client->_event( 'POPUP_TABLE_F4_CUSTOM' ) ).
 
     page->footer(
         )->overflow_toolbar(
@@ -158,11 +158,11 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
 
     DATA(popup) = client->factory_view( 'POPUP_TABLE_F4'
-        )->dialog( title = 'abap2UI5 - F4 Value Help' ).
+        )->dialog( 'abap2UI5 - F4 Value Help' ).
 
     DATA(tab) = popup->table(
-        mode    = 'SingleSelectLeft'
-        items   = client->_bind( mt_suggestion_sel ) ).
+        mode  = 'SingleSelectLeft'
+        items = client->_bind( mt_suggestion_sel ) ).
 
     tab->columns(
         )->column( width = '20rem'
@@ -184,24 +184,27 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
 
     popup = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
-        )->dialog( title = 'abap2UI5 - F4 Value Help' ).
+        )->dialog( 'abap2UI5 - F4 Value Help' ).
 
     popup->simple_form(
-         )->label( 'Location'
-         )->input(
-            value = client->_bind( screen-city )
-            suggestionitems = client->_bind_one_way( mt_suggestion_city )
-            showsuggestion = abap_true )->get(
+        )->label( 'Location'
+        )->input(
+                value           = client->_bind( screen-city )
+                suggestionitems = client->_bind_one_way( mt_suggestion_city )
+                showsuggestion  = abap_true )->get(
             )->suggestion_items( )->get(
-                )->list_item( text = '{VALUE}' additionalText = '{DESCR}'
-         )->get_parent(  )->get_parent(
-         )->button( text = 'search...' press = client->_event( 'SEARCH' )
-       ).
+                )->list_item(
+                    text            = '{VALUE}'
+                    additionalText  = '{DESCR}'
+        )->get_parent(  )->get_parent(
+        )->button(
+            text  = 'search...'
+            press = client->_event( 'SEARCH' ) ).
 
     tab = popup->table(
-        headertext  = 'Employees'
-        mode        = 'SingleSelectLeft'
-        items       = client->_bind( mt_employees_sel ) ).
+        headertext = 'Employees'
+        mode       = 'SingleSelectLeft'
+        items      = client->_bind( mt_employees_sel ) ).
 
     tab->columns(
         )->column( width = '10rem'

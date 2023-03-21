@@ -80,14 +80,13 @@ CLASS z2ui5_cl_app_demo_04 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-
         DATA(page) = client->factory_view( 'MAIN'
             )->page(
                 title          = 'abap2UI5 - Controller'
                 navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
-                        text = 'Go to Source Code'
+                        text = 'Source_Code'
                         href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 

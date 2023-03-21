@@ -32,12 +32,8 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-*        mv_path = '../../demo/text'.
-*        mv_type = 'plain_text'.
-*
       WHEN client->cs-lifecycle_method-on_event.
-*
+
         CASE client->get( )-event.
 
           WHEN 'DISPLAY'.
@@ -66,27 +62,27 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Upload/Download Files' navbuttontap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - Upload/Download Files' navbuttonpress = client->_event( 'BACK' ) ).
 
         page->zz_file_uploader(
-            value       = view->_bind( mv_value )
-            path        = view->_bind( mv_path )
+            value       = client->_bind( mv_value )
+            path        = client->_bind( mv_path )
             placeholder = 'filepath here...'
-            upload      = view->_event( 'UPLOAD' ) ).
+            upload      = client->_event( 'UPLOAD' ) ).
 
 
         DATA(tab) = page->table(
                  headertext = 'Table'
                  mode = 'SingleSelectLeft'
-                 items = view->_bind( mt_file ) ).
+                 items = client->_bind( mt_file ) ).
 
         "set toolbar
         tab->header_toolbar( )->overflow_toolbar(
             )->title( 'Files'
              )->toolbar_spacer(
-             )->button( text = 'Edit Description' press = view->_event( 'POPUP_DESCR' )
-             )->button( text = 'Show Base64' press = view->_event( 'POPUP_DATA' )
-             )->button( text = 'display' press = view->_event( 'DISPLAY' )
+             )->button( text = 'Edit Description' press = client->_event( 'POPUP_DESCR' )
+             )->button( text = 'Show Base64' press = client->_event( 'POPUP_DATA' )
+             )->button( text = 'display' press = client->_event( 'DISPLAY' )
              ).
 
         tab->columns(
@@ -123,16 +119,16 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
              )->text_area(
                 height = '100%'
                 width = '100%'
-                value = view->_bind( ms_file-descr ) ).
+                value = client->_bind( ms_file-descr ) ).
 
         popup->footer( )->overflow_toolbar(
               )->toolbar_spacer(
               )->button(
                   text  = 'Cancel'
-                  press = view->_event( 'TEXTAREA_CANCEL' )
+                  press = client->_event( 'TEXTAREA_CANCEL' )
               )->button(
                   text  = 'Confirm'
-                  press = view->_event( 'TEXTAREA_CONFIRM' )
+                  press = client->_event( 'TEXTAREA_CONFIRM' )
                   type  = 'Emphasized' ).
 
         view = client->factory_view( 'POPUP_DATA' ).
@@ -143,15 +139,14 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                 height = '99%'
                 width = '99%'
                 enabled = abap_false
-                value = view->_bind( ms_file-data ) ).
+                value = client->_bind( ms_file-data ) ).
 
         popup->footer( )->overflow_toolbar(
               )->toolbar_spacer(
               )->button(
                   text  = 'close'
-                  press = view->_event( 'TEXTAREA_CONFIRM' )
+                  press = client->_event( 'TEXTAREA_CONFIRM' )
                   type  = 'Emphasized' ).
-
 
     ENDCASE.
 

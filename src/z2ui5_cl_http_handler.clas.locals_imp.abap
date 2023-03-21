@@ -1590,8 +1590,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~combobox.
 
-    result = me.
-    _generic(
+    result = _generic(
        name  = 'ComboBox'
        t_prop = VALUE #(
           (  n = 'showClearIcon' v = _=>get_json_boolean( showclearicon ) )
@@ -1652,8 +1651,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~segmented_button.
 
-    result = me.
-    _generic(
+    result = _generic(
        name  = 'SegmentedButton'
        t_prop = VALUE #(
         ( n = 'selectedKey' v = selected_key )
@@ -2524,11 +2522,11 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     DATA(form) = grid->simple_form( 'Quick Start' )->content( 'f' ).
 
     form->label( 'Step 1'
-       )->text( 'Create a new global class in the abap system'
+       )->text( 'Create a global class in your abap system'
        )->label( 'Step 2'
-       )->text( 'Add the interface Z2UI5_IF_APP'
+       )->text( `Add the interface: Z2UI5_IF_APP`
        )->label( 'Step 3'
-       )->text( 'Implement the view and the behaviour'
+       )->text( 'Define view, implement behaviour'
        )->link( text = '(Example)' href = 'https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap'
        )->label( 'Step 4'
     ).
@@ -2536,7 +2534,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
       form->input(
            value            = client->_bind( ms_home-classname )
-           placeholder      = 'fill in the classname and press check'
+           placeholder      = `fill in the class name and press 'check' `
            valuestate      = ms_home-class_value_state
            valuestatetext = ms_home-class_value_state_text
            editable         = ms_home-class_editable
@@ -2552,7 +2550,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     form->link( text = 'Link to the Application' href = lv_link enabled = xsdbool( ms_home-class_editable = abap_false ) ).
 
     grid->simple_form( 'Applications and Examples' )->content( 'f'
-                )->button( text = `Press to continue..` press = client->_event( 'DEMOS' ) ).
+                )->button( text = `Continue...` press = client->_event( 'DEMOS' ) ).
 
   ENDMETHOD.
 

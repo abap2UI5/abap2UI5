@@ -61,7 +61,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
                 navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
-                        text = 'Go to Source Code'
+                        text = 'Source_Code'
                         href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 
