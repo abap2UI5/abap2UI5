@@ -51,7 +51,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -61,7 +61,9 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_event.
 
         IF check_initialized = abap_false.
+          check_initialized = abap_true.
           z2ui5_on_init( ).
+          RETURN.
         ENDIF.
         z2ui5_on_event( client ).
 
@@ -92,8 +94,6 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    check_initialized = abap_true.
-
     screen = VALUE #(
         check_is_active = abap_true
         colour          = 'BLUE'
@@ -102,8 +102,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
         date            = '07.12.22'
         date_time       = '23.12.2022, 19:27:20'
         time_start      = '05:24:00'
-        time_end        = '17:23:57'
-     ).
+        time_end        = '17:23:57').
 
     mt_suggestion = VALUE #(
         ( descr = 'Green'  value = 'GREEN' )

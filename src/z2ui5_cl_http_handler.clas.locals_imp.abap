@@ -1081,7 +1081,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS set_app_system_error
       IMPORTING
-        kind          TYPE string
         ix            TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
@@ -2274,9 +2273,8 @@ CLASS z2ui5_lcl_system_app DEFINITION.
       IMPORTING
         error         TYPE REF TO cx_root
         app           TYPE REF TO object OPTIONAL
-        kind          TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_lcl_system_app.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_app.
 
   PROTECTED SECTION.
 
@@ -2301,8 +2299,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
-*      WHEN client->cs-lifecycle_method-on_init.
-*        z2ui5_on_init( client ).
       WHEN client->cs-lifecycle_method-on_event.
         IF mv_is_initialized = abap_false.
           mv_is_initialized = abap_true.
@@ -2320,8 +2316,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_error-x_error = error.
-    result->ms_error-app     ?= app.
-    result->ms_error-kind    = kind.
+    result->ms_error-app     = cast #( app ).
 
   ENDMETHOD.
 
@@ -2863,7 +2858,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
-    result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app kind = kind ).
+    result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app ).
     result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
@@ -2889,7 +2884,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     result = NEW z2ui5_lcl_if_client( me ).
 
-    CLEAR ms_actual.
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
 
     ms_actual = VALUE #(
@@ -2912,15 +2906,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
              url_app_gen = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=`
              origin = ss_client-t_header[ name = `origin` ]-value
              url_source_code = ms_actual-s_request-origin && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
-        )
-    ).
+        ) ).
 
     CLEAR ms_next.
-
-*    IF ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-*      "call new app with view
-*      ms_next-view = ms_actual-view_active.
-*    ENDIF.
 
   ENDMETHOD.
 
