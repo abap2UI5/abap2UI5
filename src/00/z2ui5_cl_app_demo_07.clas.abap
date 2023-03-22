@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
                 navbuttonpress = client->_event( 'BACK' )
             )->header_content(
                 )->toolbar_spacer(
-                )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
+                )->link( text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
                 )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
             )->get_parent( ).
 
