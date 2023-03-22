@@ -43,7 +43,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD main_roundtrip.
@@ -52,7 +52,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
     DO.
       TRY.
-
           DATA(li_client) = lo_runtime->app_before_event( ).
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
@@ -62,7 +61,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           lo_runtime = lo_runtime->set_app_system_error( x ).
           CONTINUE.
       ENDTRY.
-
 
       IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
         lo_runtime = lo_runtime->set_app_call_new( ).
@@ -74,14 +72,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-
       TRY.
-
           li_client = lo_runtime->app_before_rendering( ).
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
-
           result = lo_runtime->request_end( ).
 
         CATCH cx_root INTO x.

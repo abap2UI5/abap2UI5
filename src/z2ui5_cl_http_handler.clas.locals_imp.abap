@@ -164,8 +164,10 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         VALUE(result) TYPE string.
 
     CLASS-METHODS trans_ref_tab_2_tab
-      IMPORTING ir_tab_from TYPE REF TO data
-      CHANGING  ct_to       TYPE STANDARD TABLE.
+      IMPORTING
+        ir_tab_from TYPE REF TO data
+      CHANGING
+        ct_to       TYPE STANDARD TABLE.
 
     CLASS-METHODS get_trim_upper
       IMPORTING
@@ -809,9 +811,8 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
     ASSIGN (lv_name) TO <attribute>.
-    IF sy-subrc <> 0.
-      RETURN.
-    ENDIF.
+    _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
     lo_attri->mr_actual = <attribute>.
     lo_attri->mo_parent = me.
 
@@ -2316,7 +2317,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_error-x_error = error.
-    result->ms_error-app     = cast #( app ).
+    result->ms_error-app     = CAST #( app ).
 
   ENDMETHOD.
 
@@ -2620,7 +2621,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     DATA(lo_system) = lo_ui5_model->add_attribute_object( `oSystem` ).
     lo_system->add_attribute( n = `ID` v = ms_db-id ).
-    lo_system->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode )  apos_active = abap_false ).
+    lo_system->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
 
     IF ms_next-t_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
@@ -2670,55 +2671,32 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        DATA(lo_popup_model) = ss_client-o_body->get_attribute( `OPOPUP` ).
-
-        LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
-
-          FIELD-SYMBOLS <attribute> TYPE any.
-          DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-          ASSIGN (lv_name) TO <attribute>.
-          _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-          CASE lr_attri->type_kind.
-
-            WHEN `g` OR `I` OR `C`.
-              DATA(lv_value) = lo_popup_model->get_attribute( lr_attri->name )->get_val( ).
-              <attribute> = lv_value.
-
-            WHEN `h`.
-              _=>trans_ref_tab_2_tab(
-                   EXPORTING ir_tab_from = lo_popup_model->get_attribute( lr_attri->name )->mr_actual
-                   CHANGING ct_to   = <attribute> ).
-
-          ENDCASE.
-        ENDLOOP.
-
+        DATA(lo_model) = ss_client-o_body->get_attribute( `OPOPUP` ).
       CATCH cx_root.
-
-        LOOP AT result->ms_db-t_attri REFERENCE INTO lr_attri
-                    WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
-
-          lv_name = c_prefix && to_upper( lr_attri->name ).
-          ASSIGN (lv_name) TO <attribute>.
-          _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-          CASE lr_attri->type_kind.
-
-            WHEN `g` OR `I` OR `C`.
-              lv_value = ss_client-o_body->get_attribute( lr_attri->name )->get_val( ).
-              <attribute> = lv_value.
-
-            WHEN `h`.
-              _=>trans_ref_tab_2_tab(
-                   EXPORTING
-                      ir_tab_from = ss_client-o_body->get_attribute( lr_attri->name )->mr_actual
-                   CHANGING
-                      ct_to   = <attribute> ).
-
-          ENDCASE.
-        ENDLOOP.
+        lo_model = ss_client-o_body.
     ENDTRY.
+
+    LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+    WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
+
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
+      ASSIGN (lv_name) TO <attribute>.
+      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+      CASE lr_attri->type_kind.
+
+        WHEN `g` OR `I` OR `C`.
+          DATA(lv_value) = lo_model->get_attribute( lr_attri->name )->get_val( ).
+          <attribute> = lv_value.
+
+        WHEN `h`.
+          _=>trans_ref_tab_2_tab(
+               EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
+               CHANGING ct_to   = <attribute> ).
+
+      ENDCASE.
+    ENDLOOP.
 
 
     TRY.
@@ -3002,13 +2980,13 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = `{` && mo_runtime->_create_binding( value = val  type = z2ui5_if_view=>cs-bind_type-two_way ) && `}`.
+    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_if_view=>cs-bind_type-two_way ) && `}`.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_one_way.
 
-    result = `{` && mo_runtime->_create_binding( value = val  type = z2ui5_if_view=>cs-bind_type-one_way ) && `}`.
+    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_if_view=>cs-bind_type-one_way ) && `}`.
 
   ENDMETHOD.
 
@@ -3026,7 +3004,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_leave.
 
-    _=>raise( when = xsdbool( id = `` ) v = `app not found, please check if calling app exists, pervious_app_id is empty` ).
+    _=>raise( when = xsdbool( id = `` ) v = `app not found, please check if calling app exists, pervious app_id is empty` ).
     mo_runtime->ms_next-nav_app_leave_to_id = id.
 
   ENDMETHOD.
