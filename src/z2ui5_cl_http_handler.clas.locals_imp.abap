@@ -61,7 +61,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS raise
       IMPORTING
-        v    TYPE clike DEFAULT 'CX_SY_SUBRC'
+        v    TYPE clike     DEFAULT 'CX_SY_SUBRC'
         when TYPE abap_bool DEFAULT abap_true
           PREFERRED PARAMETER v.
 
@@ -1252,7 +1252,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       result = result && lr_child->xml_get( ).
     ENDLOOP.
 
-    result = result && |</{ COND #( WHEN m_ns <> '' THEN |{ m_ns }:| ) }{ m_name }>|.
+    data(lv_ns) = COND string( WHEN m_ns <> '' THEN |{ m_ns }:| ).
+    result = result && |</{ lv_ns }{ m_name }>|.
 
   ENDMETHOD.
 

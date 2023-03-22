@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_APP_DEMO_15</CLSNAME>
+    <CLSNAME>Z2UI5_CL_APP_DEMO_07</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>selscreen - formatted text</DESCRIPT>
+    <DESCRIPT>demo - file upload/download</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

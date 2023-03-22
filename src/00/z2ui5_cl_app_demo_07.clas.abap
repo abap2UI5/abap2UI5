@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -42,6 +42,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
           WHEN 'UPLOAD'.
             INSERT VALUE #( name = mv_path data = mv_value size = strlen( mv_value ) format = mv_value+5(5) )   INTO TABLE mt_file.
+            clear ms_file_prev.
             CLEAR ms_file_edit.
             CLEAR mv_value.
             CLEAR mv_path.
@@ -56,10 +57,12 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
           WHEN 'POPUP_DESCR'.
             ms_file_edit = mt_file[ selkz = abap_true ].
             client->popup_view( 'POPUP_DESCR' ).
+            client->set( set_prev_view = abap_true ).
 
           WHEN 'POPUP_DATA'.
             ms_file_edit = mt_file[ selkz = abap_true ].
             client->popup_view( 'POPUP_DATA' ).
+            client->set( set_prev_view = abap_true ).
 
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).

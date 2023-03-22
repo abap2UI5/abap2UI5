@@ -94,8 +94,8 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                         growfactor = '1'
                         styleclass = 'sapUiTinyMargin'
             )->get_parent( )->get_parent(
-            )->text( `Use the sap.ui.codeeditor to develop editor apps - `
-                                && 'for instance edit files form the MIME Repository' )->get(
+            )->text( `Use the sap.ui.codeeditor to develop editor apps, a lot of formats are possible (json, xml, abap, js, yaml...) - `
+                                && 'for instance edit files from the MIME Repository' )->get(
                 )->layout_data(
                     )->flex_item_data(
                         growfactor = '3'
@@ -117,6 +117,21 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                          growfactor = '3'
                          styleclass = 'sapUiTinyMargin' ).
 
+        form->flex_box( class = 'columns'
+             )->button(
+                 text = 'File Upload/Download'
+                 press = client->_event( 'Z2UI5_CL_APP_DEMO_07' ) )->get(
+                 )->layout_data(
+                     )->flex_item_data(
+                         growfactor = '1'
+                         styleclass = 'sapUiTinyMargin'
+             )->get_parent( )->get_parent(
+             )->text( `Use the upload control to transfer files - `
+                                 && 'every format is possible (pdf, zip, jpg...) and display it again in a html iframe' )->get(
+                 )->layout_data(
+                     )->flex_item_data(
+                         growfactor = '3'
+                         styleclass = 'sapUiTinyMargin' ).
     ENDCASE.
 
   ENDMETHOD.
