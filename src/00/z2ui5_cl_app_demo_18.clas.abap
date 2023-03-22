@@ -121,7 +121,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
         ENDIF.
 
 
-        DATA(popup) = client->factory_view( 'POPUP_DESCR'
+        client->factory_view( 'POPUP_DESCR'
             )->dialog(
                     title = 'Edit Description'
                     icon = 'sap-icon://edit'
