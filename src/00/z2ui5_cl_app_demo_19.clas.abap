@@ -64,7 +64,7 @@ CLASS z2ui5_cl_app_demo_19 IMPLEMENTATION.
 
         DATA(page) = client->factory_view(
             )->page(
-                title          = 'abap2ui5 - Table with different Selection-Modes'
+                title          = 'abap2UI5 - Table with different Selection-Modes'
                 navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(

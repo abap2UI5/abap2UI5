@@ -78,6 +78,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
             )->page(
                 title          = 'abap2UI5 - Selection-Screen more Controls'
                 navbuttonpress = client->_event( 'BACK' )
+                class = `class="sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer"`
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
