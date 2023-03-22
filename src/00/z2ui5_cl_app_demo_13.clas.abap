@@ -200,7 +200,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
     grid->scroll_container( '75%'
         )->code_editor(
-            type     = COND #( WHEN ms_import-segment_key = 'csv' THEN 'plain_text' ELSE ms_import-segment_key )
+            type     = COND #( WHEN ms_import-segment_key = 'csv' THEN |plain_text| ELSE ms_import-segment_key )
             value    = client->_bind( ms_import-editor )
             editable = abap_true ).
 
@@ -348,7 +348,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
     grid->scroll_container( '75%'
         )->code_editor(
-             type     = COND #( WHEN ms_export-segment_key = 'csv' THEN 'plain_text' ELSE ms_import-segment_key )
+             type     = COND #( WHEN ms_export-segment_key = 'csv' THEN |plain_text| ELSE ms_import-segment_key )
              value    = client->_bind( ms_export-editor )
              editable = abap_false ).
 
