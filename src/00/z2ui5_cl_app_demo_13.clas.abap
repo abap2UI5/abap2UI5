@@ -39,8 +39,9 @@ CLASS z2ui5_cl_app_demo_13 DEFINITION PUBLIC.
         check_active TYPE abap_bool,
       END OF ms_edit.
 
+    DATA check_initialized TYPE abap_bool.
     "dummy helper - not needed when using db
-    DATA st_db TYPE ty_T_table.
+    DATA st_db TYPE ty_t_table.
 
   PROTECTED SECTION.
 
@@ -66,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -75,13 +76,19 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-        ms_import-segment_key = 'json'.
-        ms_import-editor = lcl_db=>get_test_data_json( ).
-        ms_export-segment_key = 'json'.
-        client->view_show( 'IMPORT_TABLE' ).
-
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          ms_import-segment_key = 'json'.
+          ms_import-editor = lcl_db=>get_test_data_json( ).
+          ms_export-segment_key = 'json'.
+          client->show_view( 'IMPORT_TABLE' ).
+
+          RETURN.
+        ENDIF.
+
         z2ui5_on_event( client ).
 
       WHEN client->cs-lifecycle_method-on_rendering.
@@ -137,11 +144,11 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         INSERT VALUE #( ) INTO TABLE ms_edit-t_table.
 
       WHEN 'BTN_IMPORT'.
-        client->view_show( 'IMPORT_TABLE' ).
+        client->show_view( 'IMPORT_TABLE' ).
       WHEN 'BTN_EDIT'.
-        client->view_show( 'EDIT_TABLE' ).
+        client->show_view( 'EDIT_TABLE' ).
       WHEN 'BTN_EXPORT'.
-        client->view_show( 'EXPORT_TABLE' ).
+        client->show_view( 'EXPORT_TABLE' ).
       WHEN 'BACK'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
@@ -152,118 +159,207 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_view_import.
 
-    DATA(view) = client->factory_view( 'IMPORT_TABLE' ).
-    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' navbuttontap = view->_event( 'BACK' ) ).
+    DATA(page) = client->factory_view( 'IMPORT_TABLE'
+        )->page(
+                title          = 'abap2ui5 - Table Maintenance'
+                navbuttonpress = client->_event( 'BACK' )
+            )->header_content(
+                )->link(
+                    text = 'Demo'
+                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+                )->link(
+                    text = 'Source_Code'
+                    href = client->get( )-s_request-url_source_code
+            )->get_parent(
+            )->sub_header(
+                )->overflow_toolbar(
+                    )->button(
+                        text    = '(1) Import Data'
+                        press   = client->_event( 'BTN_IMPORT' )
+                        enabled = abap_false
+                    )->button(
+                        text  = '(2) Edit Data'
+                        press = client->_event( 'BTN_EDIT' )
+                    )->button(
+                        text  = '(3) Export Data'
+                        press = client->_event( 'BTN_EXPORT' )
+            )->get_parent( )->get_parent( ).
 
-    page->header_content( )->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
-         )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
-
-    page->sub_header( )->overflow_toolbar(
-    )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' ) enabled = abap_false
-    )->button( text = '(2) Edit Data'   press = view->_event( 'BTN_EDIT' )
-    )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' ) ).
-
-    DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     grid->simple_form( '1. Import Data'
          )->content( 'f'
-            )->label( 'Table' )->input( 'SPFLI'
+            )->label( 'Table'
+            )->input( 'SPFLI'
             )->label( 'Format'
-            )->segmented_button( view->_bind( ms_import-segment_key ) )->get(
-              )->items( )->get(
+            )->segmented_button( client->_bind( ms_import-segment_key ) )->get(
+                )->items( )->get(
                     )->segmented_button_item( key = 'json' text = 'json'
-                    )->segmented_button_item( key = 'csv'   text = 'csv'
-                    )->segmented_button_item( key = 'xml'   text = 'xml' ).
+                    )->segmented_button_item( key = 'csv'  text = 'csv'
+                    )->segmented_button_item( key = 'xml'  text = 'xml' ).
 
-    grid->scroll_container( '75%' )->code_editor(
-                    type  = COND #( WHEN ms_import-segment_key = 'csv' THEN 'plain_text' ELSE ms_import-segment_key )
-                    value = view->_bind( ms_import-editor )
-                    editable = abap_true ).
+    grid->scroll_container( '75%'
+        )->code_editor(
+            type     = COND #( WHEN ms_import-segment_key = 'csv' THEN 'plain_text' ELSE ms_import-segment_key )
+            value    = client->_bind( ms_import-editor )
+            editable = abap_true ).
 
     page->footer( )->overflow_toolbar(
-        )->button( text = 'Clear' press = view->_event( 'IMPORT_CLEAR' ) icon  = 'sap-icon://delete'
+        )->button(
+            text  = 'Clear'
+            press = client->_event( 'IMPORT_CLEAR' )
+            icon  = 'sap-icon://delete'
         )->toolbar_spacer(
-        )->button( text  = 'Import' press = view->_event( 'IMPORT_DB' ) type  = 'Emphasized' icon = 'sap-icon://upload-to-cloud' ).
+        )->button(
+            text  = 'Import'
+            press = client->_event( 'IMPORT_DB' )
+            type  = 'Emphasized'
+            icon  = 'sap-icon://upload-to-cloud' ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_render_view_edit.
 
-    DATA(view) = client->factory_view( 'EDIT_TABLE' ).
-    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' navbuttontap = view->_event( 'BACK' ) ).
+    DATA(page) = client->factory_view( 'EDIT_TABLE'
+       )->page(
+               title          = 'abap2ui5 - Table Maintenance'
+               navbuttonpress = client->_event( 'BACK' )
+           )->header_content(
+               )->link(
+                   text = 'Demo'
+                   href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+               )->link(
+                   text = 'Source_Code'
+                   href = client->get( )-s_request-url_source_code
+           )->get_parent(
+           )->sub_header(
+               )->overflow_toolbar(
+                   )->button(
+                       text    = '(1) Import Data'
+                       press   = client->_event( 'BTN_IMPORT' )
+                   )->button(
+                       text    = '(2) Edit Data'
+                       press   = client->_event( 'BTN_EDIT' )
+                       enabled = abap_false
+                   )->button(
+                       text    = '(3) Export Data'
+                       press   = client->_event( 'BTN_EXPORT' )
+           )->get_parent( )->get_parent( ).
 
-    page->sub_header( )->overflow_toolbar(
-       )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' )
-       )->button( text = '(2) Edit Data'   press = view->_event( 'BTN_EDIT' )  enabled = abap_false
-       )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' ) ).
-
-    DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     grid->simple_form( '2. Edit Data'
-         )->content( 'f' )->label( 'Table' )->input( 'SPFLI' ).
+         )->content( 'f'
+            )->label( 'Table'
+            )->input( 'SPFLI' ).
 
     DATA(table) = grid->ui_table(
-        rows          = view->_bind( ms_edit-t_table )
+        rows          = client->_bind( ms_edit-t_table )
         selectionmode = 'Single'
-        selectedindex = view->_bind( ms_edit-delete_index ) ).
+        selectedindex = client->_bind( ms_edit-delete_index ) ).
 
-    table->ui_extension( )->overflow_toolbar(
-       )->toolbar_spacer(
-       )->button( text = 'Reload'     icon  = 'sap-icon://refresh' press = view->_event( 'EDIT_DB_READ' )
-       )->button( text = 'Delete Row' icon  = 'sap-icon://delete'  press = view->_event( 'EDIT_ROW_DELETE' )
-       )->button( text = 'Add Row'    icon  = 'sap-icon://add'     press = view->_event( 'EDIT_ROW_ADD' ) ).
+    table->ui_extension(
+        )->overflow_toolbar(
+            )->toolbar_spacer(
+            )->button(
+                text  = 'Reload'
+                icon  = 'sap-icon://refresh'
+                press = client->_event( 'EDIT_DB_READ' )
+            )->button(
+                text  = 'Delete Row'
+                icon  = 'sap-icon://delete'
+                press = client->_event( 'EDIT_ROW_DELETE' )
+            )->button(
+                text  = 'Add Row'
+                icon  = 'sap-icon://add'
+                press = client->_event( 'EDIT_ROW_ADD' ) ).
 
     DATA(columns) = table->ui_columns( ).
     DATA(lt_fields) = lcl_db=>get_fieldlist_by_table( ms_edit-t_table ).
 
     LOOP AT lt_fields INTO DATA(lv_field).
       DATA(templ) = columns->ui_column( )->label( lv_field )->ui_template( ).
+
       IF ms_edit-check_active = abap_true.
-        templ->input( value = `{` && lv_field && `}` ).
+        templ->input( `{` && lv_field && `}` ).
       ELSE.
         templ->text( `{` && lv_field && `}` ).
       ENDIF.
+
     ENDLOOP.
 
-    page->footer( )->overflow_toolbar(
-        )->button( text = 'Edit' press = view->_event( 'EDIT_CHANGE_MODE' ) icon = 'sap-icon://edit'
-        )->toolbar_spacer(
-        )->button( text = 'Save' press = view->_event( 'EDIT_DB_SAVE' ) type = 'Emphasized' icon = 'sap-icon://upload-to-cloud' ).
+    page->footer(
+        )->overflow_toolbar(
+            )->button(
+                text  = 'Edit'
+                press = client->_event( 'EDIT_CHANGE_MODE' )
+                icon  = 'sap-icon://edit'
+            )->toolbar_spacer(
+            )->button(
+                text = 'Save'
+                press = client->_event( 'EDIT_DB_SAVE' )
+                type = 'Emphasized'
+                icon = 'sap-icon://upload-to-cloud' ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_render_view_export.
 
-    DATA(view) = client->factory_view( 'EXPORT_TABLE' ).
-    DATA(page) = view->page( title = 'abap2ui5 - Table Maintenance' navbuttontap = view->_event( 'BACK' ) ).
+    DATA(page) = client->factory_view( 'EXPORT_TABLE'
+        )->page(
+                title          = 'abap2ui5 - Table Maintenance'
+                navbuttonpress = client->_event( 'BACK' )
+            )->header_content(
+                )->link(
+                    text = 'Demo'
+                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+                )->link(
+                    text = 'Source_Code'
+                    href = client->get( )-s_request-url_source_code
+            )->get_parent(
+            )->sub_header(
+                )->overflow_toolbar(
+                    )->button(
+                        text  = '(1) Import Data'
+                        press = client->_event( 'BTN_IMPORT' )
+                    )->button(
+                        text  = '(2) Edit Data'
+                        press = client->_event( 'BTN_EDIT' )
+                    )->button(
+                        text    = '(3) Export Data'
+                        press   = client->_event( 'BTN_EXPORT' )
+                        enabled = abap_false
+            )->get_parent( )->get_parent( ).
 
-    page->sub_header( )->overflow_toolbar(
-    )->button( text = '(1) Import Data' press = view->_event( 'BTN_IMPORT' )
-    )->button( text = '(2) Edit Data'   press = view->_event( 'BTN_EDIT' )
-    )->button( text = '(3) Export Data' press = view->_event( 'BTN_EXPORT' ) enabled = abap_false ).
-
-    DATA(grid) = page->grid( default_span  = 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     grid->simple_form( '3. Export Data'
          )->content( 'f'
-            )->label( 'Table' )->input( 'SPFLI'
+            )->label( 'Table'
+            )->input( 'SPFLI'
             )->label( 'Format'
-            )->segmented_button( view->_bind( ms_export-segment_key ) )->get(
-              )->items( )->get(
+            )->segmented_button( client->_bind( ms_export-segment_key )
+                )->items(
                     )->segmented_button_item( key = 'json' text = 'json'
                     )->segmented_button_item( key = 'csv'  text = 'csv'
                     )->segmented_button_item( key = 'xml'  text = 'xml' ).
 
-    grid->scroll_container( '75%' )->code_editor(
-             type  = COND #( WHEN ms_export-segment_key = 'csv' THEN 'plain_text' ELSE ms_import-segment_key )
-             value = view->_bind( ms_export-editor )
+    grid->scroll_container( '75%'
+        )->code_editor(
+             type     = COND #( WHEN ms_export-segment_key = 'csv' THEN 'plain_text' ELSE ms_import-segment_key )
+             value    = client->_bind( ms_export-editor )
              editable = abap_false ).
 
-    page->footer( )->overflow_toolbar(
-        )->toolbar_spacer(
-        )->button( text  = 'Export' press = view->_event( 'EXPORT_DB' ) type  = 'Emphasized' icon = 'sap-icon://download-from-cloud' ).
+    page->footer(
+        )->overflow_toolbar(
+            )->toolbar_spacer(
+            )->button(
+                text  = 'Export'
+                press = client->_event( 'EXPORT_DB' )
+                type  = 'Emphasized'
+                icon  = 'sap-icon://download-from-cloud' ).
 
   ENDMETHOD.
 ENDCLASS.

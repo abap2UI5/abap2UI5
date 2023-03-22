@@ -15,6 +15,7 @@ CLASS z2ui5_cl_app_demo_03 DEFINITION PUBLIC.
       END OF ty_row.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA check_initialized TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -22,49 +23,56 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
 
-
-      WHEN client->cs-lifecycle_method-on_init.
-
-        t_tab = VALUE #(
-          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Hans'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ).
-
-
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          t_tab = VALUE #(
+          ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Peter'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+          ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+          ).
+
+          RETURN.
+        ENDIF.
 
         CASE client->get( )-event.
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
         ENDCASE.
 
+
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'abap2UI5 - List' navbuttontap = view->_event( 'BACK' ) ).
-
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        DATA(page) = client->factory_view(
+            )->page(
+                title          = 'abap2UI5 - List'
+                navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link(
+                        text = 'Source_Code'
+                        href = client->get( )-s_request-url_source_code
+                )->get_parent( ).
 
         page->list(
-           headertext = 'List Ouput'
-           items       = view->_bind_one_way( t_tab )
-        )->standard_list_item(
-           title       = '{TITLE}'
-           description = '{DESCR}'
-           icon        = '{ICON}'
-           info        = '{INFO}'
-       ).
+            headertext = 'List Ouput'
+            items       = client->_bind_one_way( t_tab )
+            )->standard_list_item(
+                title       = '{TITLE}'
+                description = '{DESCR}'
+                icon        = '{ICON}'
+                info        = '{INFO}' ).
 
     ENDCASE.
 

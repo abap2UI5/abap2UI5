@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -22,7 +22,7 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_POPUP_01'.
-            client->view_popup( 'POPUP_DECIDE' ).
+            client->popup_view( 'POPUP_DECIDE' ).
 
           WHEN 'POPUP_DECIDE_CONTINUE'.
             client->popup_message_toast( 'continue pressed' ).
@@ -31,16 +31,16 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
             client->popup_message_toast( 'cancel pressed' ).
 
           WHEN 'BUTTON_POPUP_02'.
-            client->view_show( 'MAIN' ).
-            client->view_popup( 'POPUP_DECIDE' ).
+            client->show_view( 'MAIN' ).
+            client->popup_view( 'POPUP_DECIDE' ).
 
           WHEN 'BUTTON_POPUP_03'.
-            client->view_show( 'MAIN' ).
-            client->view_popup( 'POPUP_DECIDE_FRONTEND_CLOSE' ).
+            client->show_view( 'MAIN' ).
+            client->popup_view( 'POPUP_DECIDE_FRONTEND_CLOSE' ).
 
           WHEN 'BUTTON_POPUP_04'.
             client->set( set_prev_view = abap_true ).
-            client->view_popup( 'POPUP_DECIDE' ).
+            client->popup_view( 'POPUP_DECIDE' ).
 
           WHEN 'BUTTON_POPUP_05'.
             client->nav_app_call( z2ui5_cl_app_demo_20=>factory(
@@ -67,65 +67,74 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( name = 'MAIN' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Popups' navbuttontap = view->_event( 'BACK' ) ).
-        page->header_content( )->link( text = 'Go to Source_Code' href = client->get( )-s_request-url_source_code ).
+        DATA(page) = client->factory_view( 'MAIN'
+            )->page(
+                title           = 'abap2UI5 - Popups'
+                navbuttonpress  = client->_event( 'BACK' )
+                )->header_content(
+                    )->link(
+                        text = 'Source_Code'
+                        href = client->get( )-s_request-url_source_code
+                )->get_parent( ).
 
-        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
-        grid->simple_form( 'Popup in same App' )->content( 'f'
-         )->label( 'Demo'
-         )->button(
-             text    = 'popup rendering, no background rendering'
-             press   = view->_event( 'BUTTON_POPUP_01' )
-        )->label( 'Demo'
-        )->button(
-             text    = 'popup rendering, background rendering'
-             press   = view->_event( 'BUTTON_POPUP_02' )
-              )->label( 'Demo'
-        )->button(
-             text    = 'popup rendering, background rendering - close (no roundtrip)'
-             press   = view->_event( 'BUTTON_POPUP_03' )
-         )->label( 'Demo'
-        )->button(
-             text    = 'popup rendering, background rendering (previous view)'
-             press   = view->_event( 'BUTTON_POPUP_04' )  ).
+        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l'
+            )->simple_form( 'Popup in same App' )->content( 'f'
+                )->label( 'Demo'
+                )->button(
+                    text  = 'popup rendering, no background rendering'
+                    press = client->_event( 'BUTTON_POPUP_01' )
+                )->label( 'Demo'
+                )->button(
+                    text  = 'popup rendering, background rendering'
+                    press = client->_event( 'BUTTON_POPUP_02' )
+                )->label( 'Demo'
+                )->button(
+                    text  = 'popup rendering, background rendering - close (no roundtrip)'
+                    press = client->_event( 'BUTTON_POPUP_03' )
+                )->label( 'Demo'
+                )->button(
+                    text  = 'popup rendering, background rendering (previous view)'
+                    press = client->_event( 'BUTTON_POPUP_04' )
+            )->get_parent( )->get_parent( ).
+
         grid->simple_form( 'Popup in new App' )->content( 'f'
-          )->label( 'Demo'
-          )->button( text  = 'popup rendering, no background'
-              press   = view->_event( 'BUTTON_POPUP_05' )
-          )->label( 'Demo'
-          )->button(
-              text    = 'popup rendering, background rendering (previous view)'
-              press   = view->_event( 'BUTTON_POPUP_06' ) ).
+            )->label( 'Demo'
+            )->button(
+                text  = 'popup rendering, no background'
+                press = client->_event( 'BUTTON_POPUP_05' )
+            )->label( 'Demo'
+            )->button(
+                text  = 'popup rendering, background rendering (previous view)'
+                press = client->_event( 'BUTTON_POPUP_06' ) ).
 
 
-        view = client->factory_view( 'POPUP_DECIDE' ).
+        client->factory_view( 'POPUP_DECIDE'
+            )->dialog( 'Popup - Decide'
+                )->vbox(
+                    )->text( 'this is a popup to decide, you have to make a decision now...'
+                )->get_parent(
+                )->footer( )->overflow_toolbar(
+                    )->toolbar_spacer(
+                    )->button(
+                        text  = 'Cancel'
+                        press = client->_event( 'POPUP_DECIDE_CANCEL' )
+                    )->button(
+                        text  = 'Continue'
+                        press = client->_event( 'POPUP_DECIDE_CONTINUE' )
+                        type  = 'Emphasized' ).
 
-        DATA(popup) = view->dialog( title = 'Popup - Decide'
-        )->vbox( )->text( text = 'this is a popup to decide, you have to make a decision now...'
-        )->get_parent(
-         )->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'Cancel'
-                  press = view->_event( 'POPUP_DECIDE_CANCEL' )
-              )->button(
-                  text  = 'Continue'
-                  press = view->_event( 'POPUP_DECIDE_CONTINUE' )
-                  type  = 'Emphasized' ).
 
-
-        view = client->factory_view( 'POPUP_DECIDE_FRONTEND_CLOSE' ).
-
-        popup = view->dialog( title = 'Popup - Info'
-        )->vbox( )->text( text = 'this is an information, press close to go back to the main view without a server roundtrip'
-        )->get_parent(
-         )->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'close'
-                  press = view->_event_close_popup( )
-                  type  = 'Emphasized' ).
+        client->factory_view( 'POPUP_DECIDE_FRONTEND_CLOSE'
+            )->dialog( 'Popup - Info'
+                )->vbox(
+                    )->text( 'this is an information, press close to go back to the main view without a server roundtrip'
+                )->get_parent(
+                )->footer( )->overflow_toolbar(
+                    )->toolbar_spacer(
+                    )->button(
+                        text  = 'close'
+                        press = client->_event_close_popup( )
+                        type  = 'Emphasized' ).
 
     ENDCASE.
 

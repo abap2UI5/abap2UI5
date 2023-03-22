@@ -3,6 +3,7 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
+
     CLASS-METHODS factory
       IMPORTING
         i_text                     TYPE string
@@ -12,7 +13,9 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
         i_confirm_event            TYPE string
         i_check_show_previous_view TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(r_result)            TYPE REF TO z2ui5_cl_app_demo_20.
+        VALUE(result)              TYPE REF TO z2ui5_cl_app_demo_20.
+
+    DATA check_initialized TYPE abap_bool.
 
     DATA mv_text TYPE string.
     DATA mv_cancel_text TYPE string.
@@ -27,18 +30,19 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
+
 
   METHOD factory.
 
-    r_result = NEW #( ).
+    result = NEW #( ).
 
-    r_result->mv_text = i_text.
-    r_result->mv_cancel_text = i_cancel_text.
-    r_result->mv_cancel_event = i_cancel_event.
-    r_result->mv_confirm_text = i_confirm_text.
-    r_result->mv_confirm_event = i_confirm_event.
-    r_result->mv_check_show_previous_view = i_check_show_previous_view.
+    result->mv_text = i_text.
+    result->mv_cancel_text = i_cancel_text.
+    result->mv_cancel_event = i_cancel_event.
+    result->mv_confirm_text = i_confirm_text.
+    result->mv_confirm_event = i_confirm_event.
+    result->mv_check_show_previous_view = i_check_show_previous_view.
 
   ENDMETHOD.
 
@@ -47,36 +51,43 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-        IF mv_check_show_previous_view = abap_true.
-          client->set( set_prev_view = abap_true ).
-        ENDIF.
-        client->view_popup( 'POPUP_DECIDE' ).
-
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+
+          check_initialized = abap_true.
+          client->set( set_prev_view = mv_check_show_previous_view ).
+          client->popup_view( 'POPUP_DECIDE' ).
+
+        ENDIF.
+
 
         CASE client->get( )-event.
 
           WHEN mv_cancel_event OR mv_confirm_event.
+
             client->set( event = client->get( )-event ).
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
 
+
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( 'POPUP_DECIDE' ).
-        DATA(page) = view->dialog( title = 'abap2UI5 - Popup to decide'
-         )->vbox( )->text( text = mv_text )->get_parent(
-          )->footer( )->overflow_toolbar(
-               )->toolbar_spacer(
-               )->button(
-                   text  = mv_cancel_text
-                   press = view->_event( mv_cancel_event )
-               )->button(
-                   text  = mv_confirm_text
-                   press = view->_event( mv_confirm_event )
-                   type  = 'Emphasized' ).
+        client->factory_view( 'POPUP_DECIDE'
+            )->dialog( 'abap2UI5 - Popup to decide'
+                )->vbox(
+                    )->text( mv_text )->get_parent(
+                )->footer(
+                    )->overflow_toolbar(
+                        )->toolbar_spacer(
+                        )->button(
+                            text  = mv_cancel_text
+                            press = client->_event( mv_cancel_event )
+                        )->button(
+                            text  = mv_confirm_text
+                            press = client->_event( mv_confirm_event )
+                            type  = 'Emphasized' ).
 
     ENDCASE.
 

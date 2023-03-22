@@ -4,7 +4,7 @@ CLASS lcl_db DEFINITION.
   PUBLIC SECTION.
 
 
-    TYPES ty_t_table TYPE z2ui5_cl_app_demo_13=>ty_T_table.
+    TYPES ty_t_table TYPE z2ui5_cl_app_demo_13=>ty_t_table.
 
     CLASS-DATA app TYPE REF TO z2ui5_cl_app_demo_13.
     "CLASS-DATA st_table TYPE ty_t_table.
@@ -15,54 +15,54 @@ CLASS lcl_db DEFINITION.
       IMPORTING
         val           TYPE string
       RETURNING
-        VALUE(result) TYPE ty_T_table.
+        VALUE(result) TYPE ty_t_table.
 
     CLASS-METHODS get_table_by_xml
       IMPORTING
         val           TYPE string
       RETURNING
-        VALUE(result) TYPE ty_T_table.
+        VALUE(result) TYPE ty_t_table.
 
     CLASS-METHODS get_table_by_csv
       IMPORTING
         val           TYPE string
       RETURNING
-        VALUE(result) TYPE ty_T_table.
+        VALUE(result) TYPE ty_t_table.
 
     CLASS-METHODS get_csv_by_table
       IMPORTING
-        val           TYPE ty_T_table
+        val           TYPE ty_t_table
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS get_xml_by_table
       IMPORTING
-        val           TYPE ty_T_table
+        val           TYPE ty_t_table
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS get_json_by_table
       IMPORTING
-        val           TYPE ty_T_table
+        val           TYPE ty_t_table
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS get_fieldlist_by_table
       IMPORTING
-        it_table      TYPE ty_T_table
+        it_table      TYPE ty_t_table
       RETURNING
         VALUE(result) TYPE string_table.
 
     CLASS-METHODS db_save
       IMPORTING
-        value TYPE ty_T_table.
+        value TYPE ty_t_table.
 
     CLASS-METHODS db_read
       RETURNING
-        VALUE(result) TYPE ty_T_table.
+        VALUE(result) TYPE ty_t_table.
     CLASS-METHODS get_test_data_json
       RETURNING
-        value(result) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -89,7 +89,7 @@ CLASS lcl_db IMPLEMENTATION.
 
   METHOD get_table_by_json.
 
-    DATA lt_tab TYPE ty_T_table.
+    DATA lt_tab TYPE ty_t_table.
 
     /ui2/cl_json=>deserialize(
       EXPORTING
@@ -112,7 +112,7 @@ CLASS lcl_db IMPLEMENTATION.
 
   METHOD get_table_by_xml.
 
-    DATA lt_tab TYPE ty_T_table.
+    DATA lt_tab TYPE ty_t_table.
 
     CALL TRANSFORMATION id SOURCE xml = val RESULT data = lt_tab.
 
@@ -126,7 +126,7 @@ CLASS lcl_db IMPLEMENTATION.
 
     LOOP AT lt_cols INTO DATA(lv_field).
 
-      DATA(ls_row) = VALUE z2ui5_cl_app_demo_13=>ty_S_spfli( ).
+      DATA(ls_row) = VALUE z2ui5_cl_app_demo_13=>ty_s_spfli( ).
       DATA(lv_index) = 1.
       DO.
         ASSIGN COMPONENT lv_index OF STRUCTURE ls_row TO FIELD-SYMBOL(<field>).
@@ -174,7 +174,7 @@ CLASS lcl_db IMPLEMENTATION.
         lv_index = lv_index + 1.
         result = result && <field> && ';'.
       ENDDO.
-      result = result && CL_ABAP_CHAR_UTILITIES=>CR_LF.
+      result = result && cl_abap_char_utilities=>cr_lf.
     ENDLOOP.
 
 
@@ -183,7 +183,7 @@ CLASS lcl_db IMPLEMENTATION.
   METHOD get_json_by_table.
 
     result = /ui2/cl_json=>serialize(
-               data             = val
+               val
 *               compress         =
 *               name             =
 *               pretty_name      =
