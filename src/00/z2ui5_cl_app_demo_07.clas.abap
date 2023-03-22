@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -44,6 +44,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
             INSERT VALUE #( name = mv_path data = mv_value size = strlen( mv_value ) format = mv_value+5(5) )   INTO TABLE mt_file.
             clear ms_file_prev.
             CLEAR ms_file_edit.
+            "keep the traffic low, don't send it back to the frontend
             CLEAR mv_value.
             CLEAR mv_path.
 
@@ -78,6 +79,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
                 navbuttonpress = client->_event( 'BACK' )
             )->header_content(
                 )->toolbar_spacer(
+                )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
                 )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
             )->get_parent( ).
 
