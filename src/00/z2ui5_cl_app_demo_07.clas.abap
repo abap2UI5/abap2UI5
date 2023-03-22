@@ -4,86 +4,165 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
+    DATA mv_path TYPE string.
+    DATA mv_value TYPE string.
+
     TYPES:
-      BEGIN OF ty_row,
-        selkz    TYPE abap_bool,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        info     TYPE string,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
+      BEGIN OF ty_file,
+        selkz  TYPE abap_bool,
+        name   TYPE string,
+        format TYPE string,
+        size   TYPE string,
+        descr  TYPE string,
+        data   TYPE string,
+      END OF ty_file.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA mv_value TYPE string VALUE 'button'.
-
+    DATA mt_file      TYPE STANDARD TABLE OF ty_file WITH EMPTY KEY.
+    DATA ms_file_edit TYPE ty_file.
+    DATA ms_file_prev TYPE ty_file.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-
-        t_tab = REDUCE #( INIT ret = VALUE #( ) FOR n = 1 WHILE n < 10000 NEXT
-             ret = VALUE #( BASE ret ( title = 'Hans'  value = 'red' info = 'completed'  descr = 'this is a description' checkbox = abap_true ) ) ).
-
-
       WHEN client->cs-lifecycle_method-on_event.
 
         CASE client->get( )-event.
+
+          WHEN 'DISPLAY'.
+            ms_file_prev = mt_file[ selkz = abap_true ].
+
+          WHEN 'UPLOAD'.
+            INSERT VALUE #( name = mv_path data = mv_value size = strlen( mv_value ) format = mv_value+5(5) )   INTO TABLE mt_file.
+            clear ms_file_prev.
+            CLEAR ms_file_edit.
+            CLEAR mv_value.
+            CLEAR mv_path.
+
+          WHEN 'TEXTAREA_DESCR_CONFIRM'.
+            mt_file[ selkz = abap_true ] = ms_file_edit.
+            CLEAR ms_file_edit.
+
+          WHEN 'TEXTAREA_DATA_CONFIRM'.
+            CLEAR ms_file_edit.
+
+          WHEN 'POPUP_DESCR'.
+            ms_file_edit = mt_file[ selkz = abap_true ].
+            client->popup_view( 'POPUP_DESCR' ).
+            client->set( set_prev_view = abap_true ).
+
+          WHEN 'POPUP_DATA'.
+            ms_file_edit = mt_file[ selkz = abap_true ].
+            client->popup_view( 'POPUP_DATA' ).
+            client->set( set_prev_view = abap_true ).
+
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
-        ENDCASE.
 
+        ENDCASE.
 
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( title = 'Example - ZZ2UI5_CL_APP_DEMO_07' navbuttontap = view->_event( 'BACK' ) ).
-        page->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code ).
+        DATA(page) = client->factory_view( 'VIEW_INPUT'
+            )->page(
+                title = 'abap2UI5 - File Upload/Download'
+                navbuttonpress = client->_event( 'BACK' )
+            )->header_content(
+                )->toolbar_spacer(
+                )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+            )->get_parent( ).
 
-        page->input( value = view->_bind( mv_value ) ).
+        page->zz_file_uploader(
+            value       = client->_bind( mv_value )
+            path        = client->_bind( mv_path )
+            placeholder = 'filepath here...'
+            upload      = client->_event( 'UPLOAD' ) ).
 
         DATA(tab) = page->table(
-            headertext = 'Table with 100 entries'
-            mode = 'MultiSelect'
-            items = view->_bind( t_tab ) ).
+                headertext = 'Table'
+                mode = 'SingleSelectLeft'
+                items = client->_bind( mt_file )
+            )->header_toolbar(
+                )->overflow_toolbar(
+                    )->title( 'Files'
+                    )->toolbar_spacer(
+                    )->button(
+                        text = 'Edit Description'
+                        press = client->_event( 'POPUP_DESCR' )
+                    )->button(
+                        text = 'Show Base64'
+                        press = client->_event( 'POPUP_DATA' )
+                    )->button(
+                        text = 'display'
+                        press = client->_event( 'DISPLAY' )
+            )->get_parent( )->get_parent( ).
 
-        "set header
         tab->columns(
-            )->column( )->text( 'Title' )->get_parent(
-            )->column( )->text( 'Color' )->get_parent(
-            )->column( )->text( 'Info' )->get_parent(
-            )->column( )->text( 'Description' )->get_parent(
-            )->column( )->text( 'Checkbox' ).
+            )->column( '10%' )->get_parent(
+            )->column( '10%' )->get_parent(
+            )->column( '10%' )->get_parent(
+            )->column( ).
 
-        "set content
-        tab->items( )->column_list_item(
-            selected = '{SELKZ}'
-             )->cells(
-           )->text( '{TITLE}'
-           )->text( '{VALUE}'
-           )->text( '{INFO}'
-           )->text( '{DESCR}'
-           )->checkbox( selected = '{CHECKBOX}' enabled = abap_false ).
+        tab->items( )->column_list_item( selected = '{SELKZ}' )->cells(
+           )->text( '{NAME}'
+           )->text( '{FORMAT}'
+           )->text( '{SIZE}'
+           )->text( '{DESCR}' ).
+
+        IF ms_file_prev-data IS NOT INITIAL.
+          page->zz_html( '<iframe src="' && ms_file_prev-data && '" height="75%" width="98%"/>' ).
+          CLEAR mv_value.
+        ENDIF.
 
 
-        page->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'Send to Server'
-                  press = view->_event( 'BUTTON_SEND' )
-                  type  = 'Success' ).
+        DATA(popup) = client->factory_view( 'POPUP_DESCR'
+            )->dialog(
+                    title = 'Edit Description'
+                    icon = 'sap-icon://edit'
+                )->content(
+                    )->text_area(
+                        height = '99%'
+                        width = '99%'
+                        value = client->_bind( ms_file_edit-descr )
+                )->get_parent(
+                )->footer( )->overflow_toolbar(
+                    )->toolbar_spacer(
+                    )->button(
+                        text  = 'Cancel'
+                        press = client->_event( 'TEXTAREA_CANCEL' )
+                    )->button(
+                        text  = 'Confirm'
+                        press = client->_event( 'TEXTAREA_DESCR_CONFIRM' )
+                        type  = 'Emphasized' ).
+
+
+        client->factory_view( 'POPUP_DATA'
+            )->dialog(
+                    stretch = abap_true
+                    title = 'Data:'
+                )->content(
+                    )->text_area(
+                        height = '99%'
+                        width = '99%'
+                        enabled = abap_false
+                        value = client->_bind( ms_file_edit-data )
+                )->get_parent(
+                )->footer( )->overflow_toolbar(
+                    )->toolbar_spacer(
+                    )->button(
+                        text  = 'close'
+                        press = client->_event( 'TEXTAREA_DATA_CONFIRM' )
+                        type  = 'Emphasized' ).
+
     ENDCASE.
 
   ENDMETHOD.

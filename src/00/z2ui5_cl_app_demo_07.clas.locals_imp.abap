@@ -18,15 +18,16 @@ CLASS lcl_mime_api DEFINITION FINAL.
         VALUE(r_result) TYPE string.
 
     TYPES:
-      BEGIN OF ty_S_suggest,
+      BEGIN OF ty_s_suggest,
         name  TYPE string,
         value TYPE string,
       END OF ty_s_suggest.
-    TYPES ty_T_suggest TYPE STANDARD TABLE OF ty_s_suggest WITH EMPTY KEY.
+    TYPES ty_t_suggest TYPE STANDARD TABLE OF ty_s_suggest WITH EMPTY KEY.
 
     CLASS-METHODS get_editor_type
       RETURNING
         VALUE(r_result) TYPE ty_t_suggest.
+
     CLASS-METHODS save_data
       IMPORTING
         i_mv_editor TYPE string.

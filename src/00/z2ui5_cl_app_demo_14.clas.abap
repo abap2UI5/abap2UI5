@@ -8,6 +8,7 @@ CLASS z2ui5_cl_app_demo_14 DEFINITION PUBLIC.
     DATA mv_path TYPE string.
     DATA mv_editor TYPE string.
     DATA mv_check_editable TYPE abap_bool.
+    DATA check_initialized TYPE abap_bool.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -15,18 +16,21 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_init.
-        mv_path = '../../demo/text'.
-        mv_type = 'plain_text'.
-
       WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+          mv_path = '../../demo/text'.
+          mv_type = 'plain_text'.
+          RETURN.
+        ENDIF.
 
         CASE client->get( )-event.
 
@@ -46,7 +50,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
             client->popup_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
 
           WHEN 'EDIT'.
-            mv_check_editable = xsdbool( mv_check_editable = abap_False ).
+            mv_check_editable = xsdbool( mv_check_editable = abap_false ).
           WHEN 'CLEAR'.
             mv_editor = ``.
           WHEN 'BACK'.
@@ -57,7 +61,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' navbuttontap = view->_event( 'BACK' ) ).
+        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' navbuttonpress = client->_event( 'BACK' ) ).
 
         page->header_content( )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1631562906570575875'
                               )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
@@ -66,32 +70,39 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
 
         grid->simple_form( 'File' )->content( 'f'
              )->label( 'path'
-             )->input( view->_bind( mv_path )
+             )->input( client->_bind( mv_path )
              )->label( 'Option'
-             )->input( value = view->_bind( mv_type ) suggestionitems = view->_bind_one_way( lcl_mime_api=>get_editor_type( ) )
-                   )->get( )->suggestion_items( )->get(
-                                 )->list_item( text = '{NAME}' additionalText = '{VALUE}' )->get_parent( )->get_parent(
-             )->button( text = 'Download' press = view->_event( 'DB_LOAD' ) icon = 'sap-icon://download-from-cloud' ).
+             )->input(
+                    value           = client->_bind( mv_type )
+                    suggestionitems = client->_bind_one_way( lcl_mime_api=>get_editor_type( ) ) )->get(
+                )->suggestion_items(
+                    )->list_item( text = '{NAME}' additionaltext = '{VALUE}'
+             )->get_parent( )->get_parent(
+             )->button(
+                    text  = 'Download'
+                    press = client->_event( 'DB_LOAD' )
+                    icon  = 'sap-icon://download-from-cloud' ).
 
         grid->simple_form( 'Editor' )->content( 'f'
-                )->scroll_container( '75%' )->code_editor(
+                )->scroll_container( '75%'
+                    )->code_editor(
                         type  = mv_type
                         editable = mv_check_editable
-                        value = view->_bind( mv_editor ) ).
+                        value = client->_bind( mv_editor ) ).
 
         page->footer( )->overflow_toolbar(
             )->button(
                  text = 'Clear'
-                 press = view->_event( 'CLEAR' )
+                 press = client->_event( 'CLEAR' )
                  icon  = 'sap-icon://delete'
             )->toolbar_spacer(
             )->button(
                 text  = 'Edit'
-                press = view->_event( 'EDIT' )
+                press = client->_event( 'EDIT' )
                 icon = 'sap-icon://edit'
             )->button(
                 text  = 'Upload'
-                press = view->_event( 'DB_SAVE' )
+                press = client->_event( 'DB_SAVE' )
                 type  = 'Emphasized'
                 icon = 'sap-icon://upload-to-cloud'
                 enabled = xsdbool( mv_editor IS NOT INITIAL ) ).

@@ -4,7 +4,7 @@ INTERFACE z2ui5_if_view
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF lifecycle_method,
-        on_init      TYPE string VALUE 'INIT',
+*        on_init      TYPE string VALUE 'INIT',
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
       END OF lifecycle_method,
@@ -25,30 +25,7 @@ INTERFACE z2ui5_if_view
       v TYPE string,
     END OF ty_s_name_value.
 
-  TYPES ty_T_name_value TYPE STANDARD TABLE OF ty_S_name_value WITH EMPTY KEY.
-
-  METHODS _bind
-    IMPORTING
-      val           TYPE data
-    RETURNING
-      VALUE(result) TYPE string.
-
-  METHODS _bind_one_way
-    IMPORTING
-      val           TYPE data
-    RETURNING
-      VALUE(result) TYPE string.
-
-
-  METHODS _event
-    IMPORTING
-      val           TYPE clike
-    RETURNING
-      VALUE(result) TYPE string.
-
-  METHODS _event_close_popup
-    RETURNING
-      VALUE(result) TYPE string.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   METHODS layout_data
     IMPORTING
@@ -58,10 +35,10 @@ INTERFACE z2ui5_if_view
 
   METHODS flex_item_data
     IMPORTING
-      growFactor       TYPE clike OPTIONAL
-      baseSize         TYPE clike OPTIONAL
-      backgroundDesign TYPE clike OPTIONAL
-      styleClass       TYPE clike OPTIONAL
+      growfactor       TYPE clike OPTIONAL
+      basesize         TYPE clike OPTIONAL
+      backgrounddesign TYPE clike OPTIONAL
+      styleclass       TYPE clike OPTIONAL
     RETURNING
       VALUE(result)    TYPE REF TO z2ui5_if_view.
 
@@ -89,37 +66,37 @@ INTERFACE z2ui5_if_view
   METHODS flex_box
     IMPORTING
       class          TYPE clike OPTIONAL
-      renderType     TYPE clike OPTIONAL
+      rendertype     TYPE clike OPTIONAL
       width          TYPE clike OPTIONAL
       height         TYPE clike OPTIONAL
-      alignItems     TYPE clike OPTIONAL
-      justifyContent TYPE clike OPTIONAL
+      alignitems     TYPE clike OPTIONAL
+      justifycontent TYPE clike OPTIONAL
     RETURNING
       VALUE(result)  TYPE REF TO z2ui5_if_view.
 
   METHODS list_item
     IMPORTING
       text           TYPE clike OPTIONAL
-      additionalText TYPE clike OPTIONAL
+      additionaltext TYPE clike OPTIONAL
     RETURNING
       VALUE(result)  TYPE REF TO z2ui5_if_view.
 
   METHODS input
     IMPORTING
-      id               type clike optional
+      id               TYPE clike OPTIONAL
       value            TYPE clike OPTIONAL
       placeholder      TYPE clike OPTIONAL
       type             TYPE clike OPTIONAL
-      showClearIcon    TYPE clike OPTIONAL
-      valueState       TYPE clike OPTIONAL
-      valueStateText   TYPE clike OPTIONAL
+      showclearicon    TYPE clike OPTIONAL
+      valuestate       TYPE clike OPTIONAL
+      valuestatetext   TYPE clike OPTIONAL
       description      TYPE clike OPTIONAL
       editable         TYPE clike OPTIONAL
       enabled          TYPE clike OPTIONAL
-      suggestionItems  TYPE clike OPTIONAL
-      showSuggestion   TYPE clike OPTIONAL
-      showValueHelp    TYPE clike OPTIONAL
-      valueHelpRequest TYPE clike OPTIONAL
+      suggestionitems  TYPE clike OPTIONAL
+      showsuggestion   TYPE clike OPTIONAL
+      showvaluehelp    TYPE clike OPTIONAL
+      valuehelprequest TYPE clike OPTIONAL
         PREFERRED PARAMETER value
     RETURNING
       VALUE(result)    TYPE REF TO z2ui5_if_view.
@@ -128,7 +105,7 @@ INTERFACE z2ui5_if_view
     IMPORTING
       text          TYPE clike OPTIONAL
       type          TYPE clike OPTIONAL
-      showIcon      TYPE clike OPTIONAL
+      showicon      TYPE clike OPTIONAL
       class         TYPE clike OPTIONAL
         PREFERRED PARAMETER text
     RETURNING
@@ -137,9 +114,9 @@ INTERFACE z2ui5_if_view
   METHODS ui_table
     IMPORTING
       rows            TYPE clike OPTIONAL
-      selectionMode   TYPE clike OPTIONAL
-      visibleRowCount TYPE clike OPTIONAL
-      selectedIndex   TYPE clike OPTIONAL
+      selectionmode   TYPE clike OPTIONAL
+      visiblerowcount TYPE clike OPTIONAL
+      selectedindex   TYPE clike OPTIONAL
     RETURNING
       VALUE(result)   TYPE REF TO z2ui5_if_view.
 
@@ -165,14 +142,14 @@ INTERFACE z2ui5_if_view
     IMPORTING
       items               TYPE clike OPTIONAL
       growing             TYPE clike OPTIONAL
-      growingThreshold    TYPE clike OPTIONAL
-      growingScrollToLoad TYPE clike OPTIONAL
-      headerText          TYPE clike OPTIONAL
+      growingthreshold    TYPE clike OPTIONAL
+      growingscrolltoload TYPE clike OPTIONAL
+      headertext          TYPE clike OPTIONAL
       sticky              TYPE clike OPTIONAL
       mode                TYPE clike OPTIONAL
         PREFERRED PARAMETER items
     RETURNING
-      VALUE(result)    TYPE REF TO z2ui5_if_view.
+      VALUE(result)       TYPE REF TO z2ui5_if_view.
 
   METHODS footer
     RETURNING
@@ -181,11 +158,12 @@ INTERFACE z2ui5_if_view
   METHODS dialog
     IMPORTING
       title         TYPE clike OPTIONAL
-      icon         TYPE clike OPTIONAL
-      showHeader         TYPE clike OPTIONAL
-      stretch         TYPE clike OPTIONAL
-      contentHeight         TYPE clike OPTIONAL
-      contentWidth         TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      showheader    TYPE clike OPTIONAL
+      stretch       TYPE clike OPTIONAL
+      contentheight TYPE clike OPTIONAL
+      contentwidth  TYPE clike OPTIONAL
+      PREFERRED PARAMETER title
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -197,7 +175,7 @@ INTERFACE z2ui5_if_view
     IMPORTING
       show_header         TYPE clike OPTIONAL
       text                TYPE clike OPTIONAL
-      enableFormattedText TYPE clike OPTIONAL
+      enableformattedtext TYPE clike OPTIONAL
       description         TYPE clike OPTIONAL
       icon                TYPE clike OPTIONAL
     RETURNING
@@ -367,19 +345,19 @@ INTERFACE z2ui5_if_view
 
   METHODS page
     IMPORTING
-      title         TYPE clike OPTIONAL
-      navbuttontap  TYPE clike OPTIONAL
-      id            TYPE clike OPTIONAL
-      class         type clike optional
+      title          TYPE clike OPTIONAL
+      navbuttonpress TYPE clike OPTIONAL
+      id             TYPE clike OPTIONAL
+      class          TYPE clike OPTIONAL
         PREFERRED PARAMETER title
     RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_view.
+      VALUE(result)  TYPE REF TO z2ui5_if_view.
 
   METHODS vbox
-    importing
-     height type clike optional
-     class  type clike optional
-     PREFERRED PARAMETER class
+    IMPORTING
+      height        TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+        PREFERRED PARAMETER class
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -551,7 +529,7 @@ INTERFACE z2ui5_if_view
       editable        TYPE clike OPTIONAL
       enabled         TYPE clike OPTIONAL
       growing         TYPE clike OPTIONAL
-      growingMaxLines TYPE clike OPTIONAL
+      growingmaxlines TYPE clike OPTIONAL
       id              TYPE clike OPTIONAL
         PREFERRED PARAMETER value
     RETURNING
@@ -564,8 +542,8 @@ INTERFACE z2ui5_if_view
       step          TYPE clike OPTIONAL
       startvalue    TYPE clike OPTIONAL
       endvalue      TYPE clike OPTIONAL
-      showTickmarks TYPE clike OPTIONAL
-      labelInterval TYPE clike OPTIONAL
+      showtickmarks TYPE clike OPTIONAL
+      labelinterval TYPE clike OPTIONAL
       width         TYPE clike OPTIONAL
       class         TYPE clike OPTIONAL
       id            TYPE clike OPTIONAL
@@ -574,7 +552,7 @@ INTERFACE z2ui5_if_view
 
   METHODS generic_tag
     IMPORTING
-      ariaLabelledBy TYPE clike OPTIONAL
+      arialabelledby TYPE clike OPTIONAL
       text           TYPE clike OPTIONAL
       design         TYPE clike OPTIONAL
       status         TYPE clike OPTIONAL
@@ -622,7 +600,7 @@ INTERFACE z2ui5_if_view
   METHODS segmented_button
     IMPORTING
       selected_key     TYPE clike
-      selection_Change TYPE clike OPTIONAL
+      selection_change TYPE clike OPTIONAL
     RETURNING
       VALUE(result)    TYPE REF TO z2ui5_if_view.
 
@@ -649,7 +627,7 @@ INTERFACE z2ui5_if_view
 
   METHODS formatted_text
     IMPORTING
-      htmlText      TYPE clike optional
+      htmltext      TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 

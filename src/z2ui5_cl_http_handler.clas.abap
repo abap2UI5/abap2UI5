@@ -15,11 +15,11 @@ CLASS z2ui5_cl_http_handler DEFINITION
       END OF cs_config.
 
     TYPES:
-      BEGIN OF ty_S_name_value,
+      BEGIN OF ty_s_name_value,
         name  TYPE string,
         value TYPE string,
-      END OF ty_S_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_S_name_value.
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value.
 
     CLASS-DATA:
       BEGIN OF client,
@@ -48,20 +48,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>execute_init( ).
+    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
 
     DO.
       TRY.
 
-          DATA(li_client) = lo_runtime->execute_before_app( ).
-
-          IF lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-            ROLLBACK WORK.
-            CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-            ROLLBACK WORK.
-            lo_runtime->ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
-          ENDIF.
-
+          DATA(li_client) = lo_runtime->app_before_event( ).
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
@@ -85,12 +77,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
       TRY.
 
-          li_client = lo_runtime->execute_before_app( z2ui5_if_client=>cs-lifecycle_method-on_rendering ).
+          li_client = lo_runtime->app_before_rendering( ).
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
 
-          result = lo_runtime->execute_finish( ).
+          result = lo_runtime->request_end( ).
 
         CATCH cx_root INTO cx.
           lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
