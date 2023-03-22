@@ -886,7 +886,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
       ENDIF.
 
       IF mv_check_list = abap_false.
-        result = result && |"{ lo_attri->mv_name }":|.
+        result = |{ result }"{ lo_attri->mv_name }":|.
       ENDIF.
 
 
@@ -955,13 +955,6 @@ CLASS z2ui5_lcl_if_view DEFINITION.
         check_popup_active TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result)      TYPE ty_s_view.
-
-    METHODS _get_name_by_ref
-      IMPORTING
-        value         TYPE data
-        type          TYPE string DEFAULT cs-bind_type-two_way
-      RETURNING
-        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -1088,7 +1081,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS set_app_system_error
       IMPORTING
-        kind          TYPE string
         ix            TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
@@ -1126,56 +1118,11 @@ ENDCLASS.
 
 CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
-  METHOD _get_name_by_ref.
-
-    CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_RUNTIME->MS_DB-O_APP->`.
-
-    IF type = cs-bind_type-one_time.
-      DATA(lv_id) = _=>get_uuid_session( ).
-      INSERT VALUE #(
-        name = lv_id
-        data_stringify = _=>trans_any_2_json( value )
-        bind_type = type
-       ) INTO TABLE m_root->mo_runtime->ms_db-t_attri.
-      result = `/` && lv_id && ``.
-      RETURN.
-    ENDIF.
-
-    DATA(lr_in) = REF #( value ).
-
-    LOOP AT m_root->mo_runtime->ms_db-t_attri REFERENCE INTO DATA(lr_attri).
-
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
-
-      DATA(lr_ref) = REF #( <attribute> ).
-
-      IF lr_in = lr_ref.
-        lr_attri->bind_type = type.
-        result = COND #( WHEN type = cs-bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
-        RETURN.
-      ENDIF.
-
-    ENDLOOP.
-
-    "one time when not global class attribute
-    lv_id = _=>get_uuid_session( ).
-    INSERT VALUE #(
-      name = lv_id
-      data_stringify = _=>trans_any_2_json( value )
-      bind_type = cs-bind_type-one_time
-     ) INTO TABLE m_root->mo_runtime->ms_db-t_attri.
-    result = `/` && lv_id && ``.
-
-  ENDMETHOD.
-
   METHOD xml_get_begin.
 
     result = COND #( WHEN check_popup_active = abap_true THEN `<core:FragmentDefinition` ELSE `<mvc:View controllerName="MyController"` ).
 
-    result = result && ` xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
+    result = result && ` displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
                      `xmlns="sap.m" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
@@ -1219,18 +1166,18 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
 
     IF t_child IS INITIAL.
-      result = result && `/>`.
+      result = |{ result }/>|.
       RETURN.
     ENDIF.
 
-    result = result && `>`.
+    result = |{ result }>|.
 
     LOOP AT t_child INTO lr_child.
       result = result && lr_child->xml_get( ).
     ENDLOOP.
 
     DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
-    result = result && |</{ lv_ns }{ m_name }>|.
+    result = |{ result }</{ lv_ns }{ m_name }>|.
 
   ENDMETHOD.
 
@@ -2326,9 +2273,8 @@ CLASS z2ui5_lcl_system_app DEFINITION.
       IMPORTING
         error         TYPE REF TO cx_root
         app           TYPE REF TO object OPTIONAL
-        kind          TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_lcl_system_app.
+        VALUE(result) TYPE REF TO z2ui5_lcl_system_app.
 
   PROTECTED SECTION.
 
@@ -2353,8 +2299,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     CASE client->get( )-lifecycle_method.
-*      WHEN client->cs-lifecycle_method-on_init.
-*        z2ui5_on_init( client ).
       WHEN client->cs-lifecycle_method-on_event.
         IF mv_is_initialized = abap_false.
           mv_is_initialized = abap_true.
@@ -2372,8 +2316,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_error-x_error = error.
-    result->ms_error-app     ?= app.
-    result->ms_error-kind    = kind.
+    result->ms_error-app     = cast #( app ).
 
   ENDMETHOD.
 
@@ -2875,7 +2818,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         data_stringify = _=>trans_any_2_json( value )
         bind_type = type
        ) INTO TABLE ms_db-t_attri.
-      result = `/` && lv_id && ``.
+      result = |/{ lv_id }|.
       RETURN.
     ENDIF.
 
@@ -2905,7 +2848,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       data_stringify = _=>trans_any_2_json( value )
       bind_type = z2ui5_if_view=>cs-bind_type-one_time
      ) INTO TABLE ms_db-t_attri.
-    result = `/` && lv_id && ``.
+    result = |/{ lv_id }|.
 
   ENDMETHOD.
 
@@ -2915,7 +2858,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
-    result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app kind = kind ).
+    result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app ).
     result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
@@ -2941,7 +2884,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     result = NEW z2ui5_lcl_if_client( me ).
 
-    CLEAR ms_actual.
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
 
     ms_actual = VALUE #(
@@ -2964,15 +2906,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
              url_app_gen = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=`
              origin = ss_client-t_header[ name = `origin` ]-value
              url_source_code = ms_actual-s_request-origin && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
-        )
-    ).
+        ) ).
 
     CLEAR ms_next.
-
-*    IF ms_actual-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
-*      "call new app with view
-*      ms_next-view = ms_actual-view_active.
-*    ENDIF.
 
   ENDMETHOD.
 

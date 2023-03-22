@@ -58,8 +58,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
           ROLLBACK WORK.
 
-        CATCH cx_root INTO DATA(cx).
-          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_EVENT' ix = cx ).
+        CATCH cx_root INTO DATA(x).
+          lo_runtime = lo_runtime->set_app_system_error( x ).
           CONTINUE.
       ENDTRY.
 
@@ -84,8 +84,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
           result = lo_runtime->request_end( ).
 
-        CATCH cx_root INTO cx.
-          lo_runtime = lo_runtime->set_app_system_error( kind = 'ON_RENDERING' ix = cx ).
+        CATCH cx_root INTO x.
+          lo_runtime = lo_runtime->set_app_system_error( x ).
           CONTINUE.
       ENDTRY.
 
