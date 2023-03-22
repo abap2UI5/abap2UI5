@@ -886,7 +886,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
       ENDIF.
 
       IF mv_check_list = abap_false.
-        result = result && |"{ lo_attri->mv_name }":|.
+        result = |{ result }"{ lo_attri->mv_name }":|.
       ENDIF.
 
 
@@ -955,13 +955,6 @@ CLASS z2ui5_lcl_if_view DEFINITION.
         check_popup_active TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result)      TYPE ty_s_view.
-
-    METHODS _get_name_by_ref
-      IMPORTING
-        value         TYPE data
-        type          TYPE string DEFAULT cs-bind_type-two_way
-      RETURNING
-        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -1126,51 +1119,6 @@ ENDCLASS.
 
 CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
-  METHOD _get_name_by_ref.
-
-    CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_RUNTIME->MS_DB-O_APP->`.
-
-    IF type = cs-bind_type-one_time.
-      DATA(lv_id) = _=>get_uuid_session( ).
-      INSERT VALUE #(
-        name = lv_id
-        data_stringify = _=>trans_any_2_json( value )
-        bind_type = type
-       ) INTO TABLE m_root->mo_runtime->ms_db-t_attri.
-      result = `/` && lv_id && ``.
-      RETURN.
-    ENDIF.
-
-    DATA(lr_in) = REF #( value ).
-
-    LOOP AT m_root->mo_runtime->ms_db-t_attri REFERENCE INTO DATA(lr_attri).
-
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
-
-      DATA(lr_ref) = REF #( <attribute> ).
-
-      IF lr_in = lr_ref.
-        lr_attri->bind_type = type.
-        result = COND #( WHEN type = cs-bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
-        RETURN.
-      ENDIF.
-
-    ENDLOOP.
-
-    "one time when not global class attribute
-    lv_id = _=>get_uuid_session( ).
-    INSERT VALUE #(
-      name = lv_id
-      data_stringify = _=>trans_any_2_json( value )
-      bind_type = cs-bind_type-one_time
-     ) INTO TABLE m_root->mo_runtime->ms_db-t_attri.
-    result = `/` && lv_id && ``.
-
-  ENDMETHOD.
-
   METHOD xml_get_begin.
 
     result = COND #( WHEN check_popup_active = abap_true THEN `<core:FragmentDefinition` ELSE `<mvc:View controllerName="MyController"` ).
@@ -1219,18 +1167,18 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
 
     IF t_child IS INITIAL.
-      result = result && `/>`.
+      result = |{ result }/>|.
       RETURN.
     ENDIF.
 
-    result = result && `>`.
+    result = |{ result }>|.
 
     LOOP AT t_child INTO lr_child.
       result = result && lr_child->xml_get( ).
     ENDLOOP.
 
     DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
-    result = result && |</{ lv_ns }{ m_name }>|.
+    result = |{ result }</{ lv_ns }{ m_name }>|.
 
   ENDMETHOD.
 
@@ -2875,7 +2823,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         data_stringify = _=>trans_any_2_json( value )
         bind_type = type
        ) INTO TABLE ms_db-t_attri.
-      result = `/` && lv_id && ``.
+      result = |/{ lv_id }|.
       RETURN.
     ENDIF.
 
@@ -2905,7 +2853,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       data_stringify = _=>trans_any_2_json( value )
       bind_type = z2ui5_if_view=>cs-bind_type-one_time
      ) INTO TABLE ms_db-t_attri.
-    result = `/` && lv_id && ``.
+    result = |/{ lv_id }|.
 
   ENDMETHOD.
 
