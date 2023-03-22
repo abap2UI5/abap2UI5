@@ -384,8 +384,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
 
     LOOP AT lt_attri INTO DATA(ls_attri)
-      WHERE ( type_kind = cl_abap_classdescr=>typekind_struct2
-           OR type_kind = cl_abap_classdescr=>typekind_struct1 ).
+      WHERE type_kind = cl_abap_classdescr=>typekind_struct2
+         OR type_kind = cl_abap_classdescr=>typekind_struct1.
 
       DELETE lt_attri INDEX sy-tabix.
 
