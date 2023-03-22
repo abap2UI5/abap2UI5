@@ -98,7 +98,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
                         press = client->_event( 'BUTTON_ADD' )
                     )->button(
                         icon  = 'sap-icon://edit'
-                        text  = SWITCH #( check_editable_active WHEN abap_true THEN 'display' ELSE 'edit' )
+                        text  = SWITCH #( check_editable_active WHEN abap_true THEN |display| ELSE |edit| )
                         press = client->_event( 'BUTTON_EDIT' )
             )->get_parent( )->get_parent( ).
 
