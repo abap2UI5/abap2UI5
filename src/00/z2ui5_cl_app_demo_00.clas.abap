@@ -133,7 +133,6 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                          growfactor = '3'
                          styleclass = 'sapUiTinyMargin' ).
 
-
 *        form->flex_box( class = 'columns'
 *             )->button(
 *                 text = 'Visualization'

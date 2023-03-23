@@ -835,27 +835,14 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
 
   METHOD wrap_json.
-    " Wrap the input text string with the opening and closing characters
-    " and assign the result to result
-    result = iv_text.
 
-    CASE mv_check_list.
-      WHEN abap_true.
-        DATA(open_char) = `[`.
-        DATA(close_char) = `]`.
-      WHEN abap_false.
-        open_char = `{`.
-        close_char = `}`.
-      WHEN OTHERS.
-        RETURN.
-    ENDCASE.
-    result = open_char && result && close_char.
+    result = SWITCH #( mv_check_list WHEN abap_true  THEN |[ { iv_text }]| ELSE `{` && iv_text && `}` ).
 
   ENDMETHOD.
 
   METHOD quote_json.
 
-    result = COND #( WHEN iv_cond = abap_true THEN `"` && iv_text && `"` ELSE iv_text ).
+    result = SWITCH #( iv_cond WHEN abap_true THEN `"` && iv_text && `"` ELSE iv_text ).
 
   ENDMETHOD.
 
