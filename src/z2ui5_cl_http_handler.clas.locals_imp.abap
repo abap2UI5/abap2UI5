@@ -15,45 +15,26 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     TYPES:
       BEGIN OF ty,
         BEGIN OF s,
-          BEGIN OF msg,
-            id TYPE string,
-            ty TYPE string,
-            no TYPE string,
-            v1 TYPE string,
-            v2 TYPE string,
-            v3 TYPE string,
-            v4 TYPE string,
-          END OF msg,
           BEGIN OF msg_result,
-            message  TYPE string,
-            is_error TYPE abap_bool,
-            type     TYPE abap_bool,
-            t_bapi   TYPE bapirettab,
-            s_bapi   TYPE LINE OF bapirettab,
+            message TYPE string,
+            s_bapi  TYPE LINE OF bapirettab,
           END OF msg_result,
         END OF s,
         BEGIN OF t,
           attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
         END OF t,
-        BEGIN OF o,
-          me TYPE REF TO z2ui5_lcl_utility,
-        END OF o,
       END OF ty.
 
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
-        kind   TYPE string,
-        text   TYPE string,
         s_msg  TYPE ty-s-msg_result,
-        o_log  TYPE ty-o-me,
       END OF ms_error.
 
     METHODS constructor
       IMPORTING
         val      TYPE any OPTIONAL
-        kind     TYPE string OPTIONAL
         previous LIKE previous OPTIONAL
           PREFERRED PARAMETER val.
 
@@ -209,8 +190,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       CATCH cx_root ##CATCH_ALL.
         ms_error-s_msg-message = val.
     ENDTRY.
-
-    ms_error-kind = kind.
 
     TRY.
         ms_error-uuid = get_uuid( ).
@@ -2042,6 +2021,18 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_view~horizontal_layout.
+
+    result = _generic(
+        name   = `HorizontalLayout`
+        ns     = `l`
+        t_prop = VALUE #(
+                     ( n = `class`  v = class )
+                     ( n = `width`  v = width )
+        ) ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_if_view~vertical_layout.
 
     result = _generic(
@@ -2071,7 +2062,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~grid_data.
 
-    result = _generic(
+    result = me.
+    _generic(
            name = `GridData`
            ns = `l`
         t_prop = VALUE #(
@@ -2206,6 +2198,8 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
              ( n = `label`  v = label )
              ( n = `secondaryLabel`  v = secondarylabel )
              ( n = `value`  v = value )
+             ( n = `displayedValue`  v = displayedvalue )
+             ( n = `selected`  v = _=>get_json_boolean( selected ) )
          ) ).
 
   ENDMETHOD.
@@ -2213,7 +2207,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~points.
 
     result = _generic(
-         name = `Points`
+         name = `points`
          ns = `mchart`
          t_prop = VALUE #(
          ) ).
@@ -2222,15 +2216,16 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~radial_micro_chart.
 
-    result = _generic(
-         name = `RadialMicorChart`
-         ns = `mchart`
-         t_prop = VALUE #(
-             ( n = `percentage`  v = percentage )
-             ( n = `press`  v = press )
-             ( n = `sice`  v = sice )
-             ( n = `valueColor`  v = valuecolor )
-         ) ).
+    result = me.
+    _generic(
+        name = `RadialMicroChart`
+        ns = `mchart`
+        t_prop = VALUE #(
+            ( n = `percentage`  v = percentage )
+            ( n = `press`  v = press )
+            ( n = `sice`  v = sice )
+            ( n = `valueColor`  v = valuecolor )
+        ) ).
 
   ENDMETHOD.
 
@@ -2679,7 +2674,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-    WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
+        WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).

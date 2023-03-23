@@ -122,9 +122,8 @@ CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
             title          = 'abap2UI5 - Selection-Screen Example'
             navbuttonpress = client->_event( 'BACK' )
             )->header_content(
-                )->link(
-                    text = 'Source_Code'
-                    href = client->get( )-s_request-url_source_code
+                )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1628701535222865922`
+                )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
             )->get_parent( ).
 
     DATA(grid) = page->grid( 'L6 M12 S12'
