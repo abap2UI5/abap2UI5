@@ -1,0 +1,20 @@
+name: downport
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-and-merge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - run: npm ci
+    - run: npm run downport
+
