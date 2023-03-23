@@ -1938,33 +1938,30 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD z2ui5_if_view~ui_column.
 
     result = _generic(
-          name = `Column`
-          ns   = `ui`
-          t_prop = VALUE #(
-              ( n = `width`  v = width )
-          ) ).
+        name   = `Column`
+        ns     = `ui`
+        t_prop = VALUE #(
+            ( n = `width`  v = width )
+    ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~ui_columns.
 
     result = _generic(
-          name = `columns`
-          ns   = `ui`
-          ).
+        name = `columns`
+        ns   = `ui` ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~ui_extension.
 
     result = _generic(
-          name = `extension`
-          ns   = `ui`
-       ).
+        name = `extension`
+        ns   = `ui` ).
 
   ENDMETHOD.
 
@@ -2083,35 +2080,32 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~tab_container.
 
     result = _generic(
-           name = `TabContainer`
-           ns = `webc`
-       ).
+        name = `TabContainer`
+        ns   = `webc` ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~bars.
 
     result = _generic(
-         name = `bars`
-         ns = `mchart`
-         t_prop = VALUE #(
-         ) ).
+        name = `bars`
+        ns   = `mchart` ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~interact_bar_chart.
 
     result = _generic(
-         name = `InteractiveBarChart`
-         ns = `mchart`
-         t_prop = VALUE #(
+        name = `InteractiveBarChart`
+        ns   = `mchart`
+        t_prop = VALUE #(
              ( n = `selectionChanged`  v = selectionchanged )
-             ( n = `showError`  v = showerror )
-             ( n = `press`  v = press )
-             ( n = `labelWidth`  v = labelwidth )
-             ( n = `errorMessageTitle`  v = errormessagetitle )
-             ( n = `errorMessage`  v = errormessage )
-         ) ).
+             ( n = `showError`         v = showerror )
+             ( n = `press`             v = press )
+             ( n = `labelWidth`        v = labelwidth )
+             ( n = `errorMessageTitle` v = errormessagetitle )
+             ( n = `errorMessage`      v = errormessage )
+    ) ).
 
   ENDMETHOD.
 
@@ -2121,11 +2115,11 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
          name = `InteractiveBarChartBar`
          ns = `mchart`
          t_prop = VALUE #(
-             ( n = `label`    v = label )
+             ( n = `label`          v = label )
              ( n = `displayedValue` v = displayedvalue )
-             ( n = `value`    v = value )
-             ( n = `selected` v = selected )
-         ) ).
+             ( n = `value`          v = value )
+             ( n = `selected`       v = selected )
+    ) ).
 
   ENDMETHOD.
 
@@ -2133,15 +2127,15 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = _generic(
          name = `InteractiveDonutChart`
-         ns = `mchart`
+         ns   = `mchart`
          t_prop = VALUE #(
              ( n = `selectionChanged`  v = selectionchanged )
-             ( n = `showError` v = _=>get_json_boolean( showerror ) )
-             ( n = `errorMessageTitle`  v = errormessagetitle )
-             ( n = `errorMessage`  v = errormessage )
-             ( n = `displayedSegments`  v = displayedsegments )
-             ( n = `press`  v = press )
-         ) ).
+             ( n = `showError`         v = _=>get_json_boolean( showerror ) )
+             ( n = `errorMessageTitle` v = errormessagetitle )
+             ( n = `errorMessage`      v = errormessage )
+             ( n = `displayedSegments` v = displayedsegments )
+             ( n = `press`             v = press )
+    ) ).
 
   ENDMETHOD.
 
@@ -2149,13 +2143,13 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = _generic(
          name = `InteractiveDonutChartSegment`
-         ns = `mchart`
+         ns   = `mchart`
          t_prop = VALUE #(
-             ( n = `label`  v = label )
-             ( n = `displayedValue`  v = displayedvalue )
-             ( n = `value`     v = value )
-             ( n = `selected`  v = selected )
-         ) ).
+             ( n = `label`          v = label )
+             ( n = `displayedValue` v = displayedvalue )
+             ( n = `value`          v = value )
+             ( n = `selected`       v = selected )
+    ) ).
 
   ENDMETHOD.
 
@@ -2166,28 +2160,28 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
          ns = `mchart`
          t_prop = VALUE #(
              ( n = `selectionChanged`  v = selectionchanged )
-             ( n = `showError`  v = _=>get_json_boolean( showerror ) )
-             ( n = `press`  v = press )
-             ( n = `errorMessageTitle`  v = errormessagetitle )
-             ( n = `errorMessage`  v = errormessage )
-             ( n = `precedingPoint`  v = precedingpoint )
-             ( n = `succeedingPoint`  v = succeddingpoint )
-         ) ).
+             ( n = `showError`         v = _=>get_json_boolean( showerror ) )
+             ( n = `press`             v = press )
+             ( n = `errorMessageTitle` v = errormessagetitle )
+             ( n = `errorMessage`      v = errormessage )
+             ( n = `precedingPoint`    v = precedingpoint )
+             ( n = `succeedingPoint`   v = succeddingpoint )
+    ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~interact_line_chart_point.
 
     result = _generic(
-         name = `InteractiveLineChartPoint`
-         ns = `mchart`
+         name   = `InteractiveLineChartPoint`
+         ns     = `mchart`
          t_prop = VALUE #(
-             ( n = `label`  v = label )
-             ( n = `secondaryLabel`  v = secondarylabel )
-             ( n = `value`  v = value )
-             ( n = `displayedValue`  v = displayedvalue )
-             ( n = `selected`  v = _=>get_json_boolean( selected ) )
-         ) ).
+             ( n = `label`          v = label )
+             ( n = `secondaryLabel` v = secondarylabel )
+             ( n = `value`          v = value )
+             ( n = `displayedValue` v = displayedvalue )
+             ( n = `selected`       v = _=>get_json_boolean( selected ) )
+    ) ).
 
   ENDMETHOD.
 
@@ -2195,9 +2189,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = _generic(
          name = `points`
-         ns = `mchart`
-         t_prop = VALUE #(
-         ) ).
+         ns   = `mchart` ).
 
   ENDMETHOD.
 
@@ -2205,24 +2197,22 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = me.
     _generic(
-        name = `RadialMicroChart`
-        ns = `mchart`
+        name   = `RadialMicroChart`
+        ns     = `mchart`
         t_prop = VALUE #(
             ( n = `percentage`  v = percentage )
-            ( n = `press`  v = press )
-            ( n = `sice`  v = sice )
+            ( n = `press`       v = press )
+            ( n = `sice`        v = sice )
             ( n = `valueColor`  v = valuecolor )
-        ) ).
+    ) ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~segments.
 
     result = _generic(
-         name = `segments`
-         ns = `mchart`
-         t_prop = VALUE #(
-       ) ).
+        name = `segments`
+        ns   = `mchart` ).
 
   ENDMETHOD.
 
@@ -2413,7 +2403,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
     view = client->factory_view( `HOME` ).
     DATA(page) = view->page(
         class = `sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer`
-      " title = `abap2UI5 - Development of UI5 Apps in pure ABAP`
         ).
     page->header_content(
       )->title( ``
@@ -2477,14 +2466,11 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD create.
 
-    DATA ls_db TYPE z2ui5_t_draft.
-
-    ls_db = VALUE #(
-      uuid  = id
-      uname = _=>get_user_tech( )
-      timestampl = _=>get_timestampl( )
-   "   response = response
-      data  = _=>trans_object_2_xml( REF #( db ) ) ).
+    DATA(ls_db) = VALUE z2ui5_t_draft(
+        uuid       = id
+        uname      = _=>get_user_tech( )
+        timestampl = _=>get_timestampl( )
+        data       = _=>trans_object_2_xml( REF #( db ) ) ).
 
     MODIFY z2ui5_t_draft FROM @ls_db.
     _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -2602,7 +2588,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       lo_ui5_model->add_attribute_instance( ls_view_popup-o_model ).
     ENDIF.
 
-
     DATA(lo_system) = lo_ui5_model->add_attribute_object( `oSystem` ).
     lo_system->add_attribute( n = `ID` v = ms_db-id ).
     lo_system->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
@@ -2682,7 +2667,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDCASE.
     ENDLOOP.
 
-
     TRY.
         result->ms_next-event = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
       CATCH cx_root.
@@ -2759,7 +2743,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
-    "  result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_init.
     result->ms_next-lifecycle_method = z2ui5_if_client=>cs-lifecycle_method-on_event.
     result->ms_next-t_after = ms_next-t_after.
     result->ms_next-view    = ms_next-view.
@@ -2884,7 +2867,6 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
     mo_runtime = runtime.
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_client~popup_message_toast.
 
