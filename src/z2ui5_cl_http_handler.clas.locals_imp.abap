@@ -397,7 +397,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     ENDLOOP.
 
-    result = CORRESPONDING #( lt_attri ).
+    LOOP AT lt_attri INTO ls_attri.
+      APPEND CORRESPONDING #( ls_attri ) TO result.
+    ENDLOOP.
 
   ENDMETHOD.
 
