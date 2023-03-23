@@ -63,6 +63,13 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
+  METHODS horizontal_layout
+    IMPORTING
+      class         TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
   METHODS flex_box
     IMPORTING
       class          TYPE clike OPTIONAL
@@ -278,6 +285,8 @@ INTERFACE z2ui5_if_view
       label          TYPE clike OPTIONAL
       value          TYPE clike OPTIONAL
       secondarylabel TYPE clike OPTIONAL
+      displayedvalue TYPE clike OPTIONAL
+      selected       TYPE clike OPTIONAL
     RETURNING
       VALUE(result)  TYPE REF TO z2ui5_if_view.
 

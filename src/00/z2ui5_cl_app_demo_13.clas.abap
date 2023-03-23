@@ -161,7 +161,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
     DATA(page) = client->factory_view( 'IMPORT_TABLE'
         )->page(
-                title          = 'abap2ui5 - Table Maintenance'
+                title          = 'abap2UI5 - Table Maintenance'
                 navbuttonpress = client->_event( 'BACK' )
             )->header_content(
                 )->link(
