@@ -80,7 +80,7 @@ ENDMETHOD.
 ```
 
 ### Setup
-Change the theme, UI5 repository, browser title - check the [wiki.](https://github.com/oblomov-dev/abap2ui5/wiki)
+Check the [wiki.](https://github.com/oblomov-dev/abap2ui5/wiki) to change the theme, the UI5 repository or the browser title.
 
 ## FAQ
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
