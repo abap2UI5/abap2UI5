@@ -94,13 +94,14 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Visualization' navbuttonpress = client->_event( 'BACK' ) ).
-        page->header_content(
-            ")->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
-            )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
+        DATA(container) = client->factory_view( 'VIEW_INPUT'
+            )->page( title = 'abap2UI5 - Visualization' navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1639191954285113344`
+                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+            )->get_parent(
+            )->tab_container( ).
 
-        DATA(container) = page->tab_container( ).
         render_tab_donut(  client = client container = container ).
         render_tab_bar(    client = client container = container ).
         render_tab_line(   client = client container = container ).

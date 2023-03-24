@@ -16,7 +16,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -60,13 +60,14 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - MIME Editor' navbuttonpress = client->_event( 'BACK' ) ).
+        DATA(page) = client->factory_view( 'VIEW_INPUT'
+            )->page( title = 'abap2UI5 - MIME Editor' navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link( text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1631562906570575875'
+                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+            )->get_parent( ).
 
-        page->header_content( )->link( text = 'Demo' href = 'https://twitter.com/OblomovDev/status/1631562906570575875'
-                              )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
-
-        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
              )->label( 'path'
@@ -82,6 +83,8 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                     text  = 'Download'
                     press = client->_event( 'DB_LOAD' )
                     icon  = 'sap-icon://download-from-cloud' ).
+
+        grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'Editor' )->content( 'f'
                 )->scroll_container( '75%'
