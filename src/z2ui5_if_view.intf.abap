@@ -4,7 +4,6 @@ INTERFACE z2ui5_if_view
   CONSTANTS:
     BEGIN OF cs,
       BEGIN OF lifecycle_method,
-*        on_init      TYPE string VALUE 'INIT',
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
       END OF lifecycle_method,
@@ -144,7 +143,7 @@ INTERFACE z2ui5_if_view
       stretch       TYPE clike OPTIONAL
       contentheight TYPE clike OPTIONAL
       contentwidth  TYPE clike OPTIONAL
-      PREFERRED PARAMETER title
+        PREFERRED PARAMETER title
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -275,7 +274,7 @@ INTERFACE z2ui5_if_view
 
   METHODS column_list_item
     IMPORTING
-      valign        TYPE clike optional " 'Middle'
+      valign        TYPE clike OPTIONAL
       selected      TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
