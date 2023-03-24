@@ -135,7 +135,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         client->popup_message_box( 'Table data saved to database successfully' ).
 
       WHEN 'EDIT_ROW_DELETE'.
-        "   DELETE ms_edit-t_table INDEX ms_edit-delete_index + 1.
+        DELETE ms_edit-t_table WHERE selkz = abap_true.
 
       WHEN 'EDIT_CHANGE_MODE'.
         ms_edit-check_active = xsdbool( ms_edit-check_active = abap_false ).
