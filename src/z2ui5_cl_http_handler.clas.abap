@@ -9,7 +9,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
       BEGIN OF cs_config,
         theme            TYPE string    VALUE 'sap_horizon',
         browser_title    TYPE string    VALUE 'abap2UI5',
-        repository       TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
+       " repository       TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
+        repository       TYPE string    VALUE 'https://openui5.hana.ondemand.com/resources/sap-ui-core.js',
         letterboxing     TYPE abap_bool VALUE abap_true,
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
@@ -106,15 +107,22 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
-               `    <meta charset="utf-8">` && |\n| &&
+               `    <meta charset="UTF-8">` && |\n|  &&
+               `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n|  &&
+               `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
                `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
+               `    <style>` && |\n|  &&
+               `        html, body, body > div, #container, #container-uiarea {` && |\n|  &&
+               `            height: 100%;` && |\n|  &&
+               `        }` && |\n|  &&
+               `    </style> ` &&
                `    <script src="` && cs_config-repository && `" ` &&
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
-               `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-compatVersion="edge"` && |\n| &&
-               `        data-sap-ui-preload="async">` && |\n| &&
+               `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
+               `        >` && |\n| &&
                `     </script></head>` && |\n| &&
-               `<body class="sapUiBody">` && |\n| &&
-               `    <div id="content"></div>` && |\n| &&
+               `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
+               `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
                `</body>` && |\n| &&
                `</html>` && |\n|.
 
