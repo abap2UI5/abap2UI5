@@ -241,7 +241,7 @@
     "unused_methods": true,
     "unused_types": true,
     "unused_variables": {
-      "severity": "Warning",
+      "severity": "Error",
       "skipNames": ["lv_dummy", "i_mv_editor"]
     },
     "use_bool_expression": true,
