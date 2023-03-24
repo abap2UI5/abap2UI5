@@ -118,33 +118,6 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
-  METHODS ui_table
-    IMPORTING
-      rows            TYPE clike OPTIONAL
-      selectionmode   TYPE clike OPTIONAL
-      visiblerowcount TYPE clike OPTIONAL
-      selectedindex   TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result)   TYPE REF TO z2ui5_if_view.
-
-  METHODS ui_extension
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_view.
-
-  METHODS ui_columns
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_view.
-
-  METHODS ui_column
-    IMPORTING
-      width         TYPE clike DEFAULT '11rem'
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_view.
-
-  METHODS ui_template
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_view.
-
   METHODS table
     IMPORTING
       items               TYPE clike OPTIONAL
@@ -154,6 +127,7 @@ INTERFACE z2ui5_if_view
       headertext          TYPE clike OPTIONAL
       sticky              TYPE clike OPTIONAL
       mode                TYPE clike OPTIONAL
+      width               TYPE clike OPTIONAL
         PREFERRED PARAMETER items
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_if_view.
@@ -301,7 +275,7 @@ INTERFACE z2ui5_if_view
 
   METHODS column_list_item
     IMPORTING
-      valign        TYPE clike DEFAULT 'Middle'
+      valign        TYPE clike optional " 'Middle'
       selected      TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
@@ -376,8 +350,11 @@ INTERFACE z2ui5_if_view
 
   METHODS scroll_container
     IMPORTING
-      height        TYPE clike DEFAULT '100%'
-      width         TYPE clike DEFAULT '100%'
+      height        TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+      vertical      TYPE clike OPTIONAL
+      horizontal    TYPE clike OPTIONAL
+      focusable     TYPE clike OPTIONAL
         PREFERRED PARAMETER height
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.

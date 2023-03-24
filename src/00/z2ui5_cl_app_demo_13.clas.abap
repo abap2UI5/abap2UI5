@@ -6,6 +6,7 @@ CLASS z2ui5_cl_app_demo_13 DEFINITION PUBLIC.
 
     TYPES:
       BEGIN OF ty_s_spfli,
+        selkz     TYPE abap_bool,
         carrid    TYPE c LENGTH 3,
         connid    TYPE n LENGTH 4,
         countryfr TYPE c LENGTH 3,
@@ -35,7 +36,6 @@ CLASS z2ui5_cl_app_demo_13 DEFINITION PUBLIC.
     DATA:
       BEGIN OF ms_edit,
         t_table      TYPE ty_t_table,
-        delete_index TYPE i,
         check_active TYPE abap_bool,
       END OF ms_edit.
 
@@ -67,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -135,7 +135,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
         client->popup_message_box( 'Table data saved to database successfully' ).
 
       WHEN 'EDIT_ROW_DELETE'.
-        DELETE ms_edit-t_table INDEX ms_edit-delete_index + 1.
+        "   DELETE ms_edit-t_table INDEX ms_edit-delete_index + 1.
 
       WHEN 'EDIT_CHANGE_MODE'.
         ms_edit-check_active = xsdbool( ms_edit-check_active = abap_false ).
@@ -254,47 +254,44 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
             )->label( 'Table'
             )->input( 'SPFLI' ).
 
-    DATA(table) = grid->ui_table(
-        rows          = client->_bind( ms_edit-t_table )
-        selectionmode = 'Single'
-        selectedindex = client->_bind( ms_edit-delete_index ) ).
+    DATA(cont) = grid->simple_form(  )->content( 'f' ).
 
-    table->ui_extension(
-        )->overflow_toolbar(
-            )->toolbar_spacer(
-            )->button(
-                text  = 'Reload'
-                icon  = 'sap-icon://refresh'
-                press = client->_event( 'EDIT_DB_READ' )
-            )->button(
-                text  = 'Delete Row'
-                icon  = 'sap-icon://delete'
-                press = client->_event( 'EDIT_ROW_DELETE' )
-            )->button(
-                text  = 'Add Row'
-                icon  = 'sap-icon://add'
-                press = client->_event( 'EDIT_ROW_ADD' ) ).
+    cont->overflow_toolbar(
+                  )->button(
+                      text  = 'Reload'
+                      icon  = 'sap-icon://refresh'
+                      press = client->_event( 'EDIT_DB_READ' )
+                  )->toolbar_spacer(
+                  )->button(
+                      text  = 'Delete Row'
+                      icon  = 'sap-icon://delete'
+                      press = client->_event( 'EDIT_ROW_DELETE' )
+                  )->button(
+                      text  = 'Add Row'
+                      icon  = 'sap-icon://add'
+                      press = client->_event( 'EDIT_ROW_ADD' ) ).
 
-    DATA(columns) = table->ui_columns( ).
+    DATA(scroll) = cont->scroll_container( vertical = abap_true horizontal = abap_true ).
+
+    DATA(tab) = scroll->table(
+                  width = '100rem'
+                  items = client->_bind( ms_edit-t_table )
+                  mode  = 'MultiSelect' ).
+
     DATA(lt_fields) = lcl_db=>get_fieldlist_by_table( ms_edit-t_table ).
 
-    LOOP AT lt_fields INTO DATA(lv_field).
-      DATA(templ) = columns->ui_column( )->label( lv_field )->ui_template( ).
+    DATA(lo_columns) = tab->columns( ).
+    LOOP AT lt_fields INTO DATA(lv_field) FROM 2.
+      lo_columns->column( )->text( lv_field ).
+    ENDLOOP.
 
-      IF ms_edit-check_active = abap_true.
-        templ->input( `{` && lv_field && `}` ).
-      ELSE.
-        templ->text( `{` && lv_field && `}` ).
-      ENDIF.
-
+    DATA(lo_cells) = tab->items( )->column_list_item( selected = '{SELKZ}' )->cells( ).
+    LOOP AT lt_fields INTO lv_field FROM 2.
+      lo_cells->input( `{` && lv_field && `}` ).
     ENDLOOP.
 
     page->footer(
         )->overflow_toolbar(
-            )->button(
-                text  = 'Edit'
-                press = client->_event( 'EDIT_CHANGE_MODE' )
-                icon  = 'sap-icon://edit'
             )->toolbar_spacer(
             )->button(
                 text = 'Save'
