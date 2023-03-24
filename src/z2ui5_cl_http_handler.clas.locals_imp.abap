@@ -1710,6 +1710,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
            ( n = `growingScrollToLoad` v = growingscrolltoload )
            ( n = `sticky`           v = sticky )
            ( n = `mode`             v = mode )
+           ( n = `width`            v = width )
      ) ).
 
   ENDMETHOD.
@@ -1774,10 +1775,11 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
         name = `ScrollContainer`
         t_prop = VALUE #(
-          ( n = `height` v = height )
+          ( n = `height`      v = height )
           ( n = `width`       v = width )
-          ( n = `vertical`       v = `true` )
-          ( n = `focusable`       v = `true` )
+          ( n = `vertical`    v = _=>get_json_boolean( vertical ) )
+          ( n = `horizontal`  v = _=>get_json_boolean( horizontal ) )
+          ( n = `focusable`   v = _=>get_json_boolean( focusable  ) )
        ) ).
 
   ENDMETHOD.
@@ -1932,56 +1934,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~get.
 
     result = m_root->m_last.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~ui_column.
-
-    result = _generic(
-        name   = `Column`
-        ns     = `ui`
-        t_prop = VALUE #(
-            ( n = `width`  v = width )
-    ) ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~ui_columns.
-
-    result = _generic(
-        name = `columns`
-        ns   = `ui` ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~ui_extension.
-
-    result = _generic(
-        name = `extension`
-        ns   = `ui` ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~ui_table.
-
-    result = _generic(
-          name = `Table`
-          ns   = `ui`
-          t_prop = VALUE #(
-              ( n = `rows`  v = rows )
-              ( n = `selectionMode`   v = selectionmode )
-              ( n = `visibleRowCount` v = visiblerowcount )
-              ( n = `selectedIndex`   v = selectedindex )
-          ) ).
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_view~ui_template.
-
-    result = _generic(
-          name = `template`
-          ns   = `ui`
-       ).
 
   ENDMETHOD.
 
