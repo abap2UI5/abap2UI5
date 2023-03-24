@@ -2,7 +2,7 @@
 
 Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://twitter.com/OblomovDev) to keep up to date!
 
-### Project Features
+## Project Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development in 100% ABAP source code (no JavaScript, DDL, EML or Customizing)
 * low system footprint - based on a plain http handler (no BSP, OData, CDS, BOPF, FE or RAP)
@@ -26,7 +26,6 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 ### Demo [(Example)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap)
 ![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
 
-
 ## Installation
 Works with all available ABAP stacks and language versions:
 * BTP ABAP Environment (ABAP for Cloud)
@@ -35,9 +34,9 @@ Works with all available ABAP stacks and language versions:
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the low syntax [branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
 
-Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki).
+Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki):
 
-#### ABAP for Cloud:
+##### ABAP for Cloud:
 ```abap
 METHOD if_http_service_extension~handle_request.
 
@@ -55,7 +54,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 
-#### Standard ABAP:
+##### Standard ABAP:
 ```abap
 METHOD if_http_extension~handle_request.
 
@@ -79,6 +78,10 @@ METHOD if_http_extension~handle_request.
 
 ENDMETHOD.
 ```
+
+### Setup
+Check out the [wiki!](https://github.com/oblomov-dev/abap2ui5/wiki) It shows how to change the theme, the UI5 repository, the browser title etc.
+
 ## FAQ
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
 * running into problems with your app? see [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting)
