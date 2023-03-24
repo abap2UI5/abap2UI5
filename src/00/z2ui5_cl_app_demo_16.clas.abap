@@ -8,8 +8,6 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
 
     DATA mv_type TYPE string.
     DATA mv_path TYPE string.
-    DATA mv_editor TYPE string.
-    DATA mv_check_editable TYPE abap_bool.
 
     DATA mv_sel1 TYPE abap_bool.
     DATA mv_sel2 TYPE abap_bool.

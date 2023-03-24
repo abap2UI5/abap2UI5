@@ -135,7 +135,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         client->popup_message_box( 'Table data saved to database successfully' ).
 
       WHEN 'EDIT_ROW_DELETE'.
-        "   DELETE ms_edit-t_table INDEX ms_edit-delete_index + 1.
+        DELETE ms_edit-t_table WHERE selkz = abap_true.
 
       WHEN 'EDIT_CHANGE_MODE'.
         ms_edit-check_active = xsdbool( ms_edit-check_active = abap_false ).
@@ -185,7 +185,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                         press = client->_event( 'BTN_EXPORT' )
             )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
     grid->simple_form( '1. Import Data'
          )->content( 'f'
@@ -197,6 +197,8 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                     )->segmented_button_item( key = 'json' text = 'json'
                     )->segmented_button_item( key = 'csv'  text = 'csv'
                     )->segmented_button_item( key = 'xml'  text = 'xml' ).
+
+    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     grid->scroll_container( '75%'
         )->code_editor(
@@ -247,12 +249,14 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                        press   = client->_event( 'BTN_EXPORT' )
            )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
     grid->simple_form( '2. Edit Data'
          )->content( 'f'
             )->label( 'Table'
             )->input( 'SPFLI' ).
+
+                grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     DATA(cont) = grid->simple_form(  )->content( 'f' ).
 
@@ -330,7 +334,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                         enabled = abap_false
             )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
     grid->simple_form( '3. Export Data'
          )->content( 'f'
@@ -342,6 +346,8 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                     )->segmented_button_item( key = 'json' text = 'json'
                     )->segmented_button_item( key = 'csv'  text = 'csv'
                     )->segmented_button_item( key = 'xml'  text = 'xml' ).
+
+    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     grid->scroll_container( '75%'
         )->code_editor(

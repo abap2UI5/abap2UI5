@@ -2816,15 +2816,13 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_message_toast.
 
-    INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) )
-         INTO TABLE mo_runtime->ms_next-t_after.
+    INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) ) INTO TABLE mo_runtime->ms_next-t_after.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~popup_message_box.
 
-    INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) )
-      INTO TABLE mo_runtime->ms_next-t_after.
+    INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) ) INTO TABLE mo_runtime->ms_next-t_after.
 
   ENDMETHOD.
 
