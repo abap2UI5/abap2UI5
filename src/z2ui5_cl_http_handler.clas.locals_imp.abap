@@ -1937,18 +1937,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_view~ui_column.
-
-    result = _generic(
-        name   = `Column`
-        ns     = `ui`
-        t_prop = VALUE #(
-            ( n = `width`  v = width )
-    ) ).
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_view~flex_box.
 
 
