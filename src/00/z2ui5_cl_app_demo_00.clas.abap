@@ -133,21 +133,21 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                          growfactor = '3'
                          styleclass = 'sapUiTinyMargin' ).
 
-*        form->flex_box( class = 'columns'
-*             )->button(
-*                 text = 'Visualization'
-*                 press = client->_event( 'z2ui5_cl_app_demo_16' ) )->get(
-*                 )->layout_data(
-*                     )->flex_item_data(
-*                         growfactor = '1'
-*                         styleclass = 'sapUiTinyMargin'
-*             )->get_parent( )->get_parent(
-*             )->text( `Use the sap.suite.ui.microchart controls to visualize data - `
-*                                 && 'choose between bar charts, donut charts, line charts or radial charts and make your boring data beautiful' )->get(
-*                 )->layout_data(
-*                     )->flex_item_data(
-*                         growfactor = '3'
-*                         styleclass = 'sapUiTinyMargin' ).
+        form->flex_box( class = 'columns'
+             )->button(
+                 text  = 'Visualization'
+                 press = client->_event( 'z2ui5_cl_app_demo_16' ) )->get(
+                 )->layout_data(
+                     )->flex_item_data(
+                         growfactor = '1'
+                         styleclass = 'sapUiTinyMargin'
+             )->get_parent( )->get_parent(
+             )->text( `Use the sap.suite.ui.microchart controls to visualize data - `
+                                 && 'choose between bar charts, donut charts, line charts or radial charts and make your data beautiful' )->get(
+                 )->layout_data(
+                     )->flex_item_data(
+                         growfactor = '3'
+                         styleclass = 'sapUiTinyMargin' ).
     ENDCASE.
 
   ENDMETHOD.

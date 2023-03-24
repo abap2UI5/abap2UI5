@@ -860,11 +860,8 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
 
       IF lo_attri->mt_values IS NOT INITIAL.
-
         result = result && lo_attri->write_result( ).
-
       ELSE.
-
         result = result &&
            quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
                        iv_text = lo_attri->mv_value ).
@@ -2567,10 +2564,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
     IF lr_view IS BOUND.
-      DATA(ls_view) = lr_view->o_parser->get_view( ).
-      lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
       ms_db-view_active = lr_view->name.
+
+      DATA(ls_view) = lr_view->o_parser->get_view( ).
       ls_view-o_model->mv_name = `oViewModel`.
+      lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
       lo_ui5_model->add_attribute_instance( ls_view-o_model ).
     ENDIF.
 
@@ -2582,21 +2580,19 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDTRY.
 
       DATA(ls_view_popup) = lr_view_popup->o_parser->get_view( abap_true ).
-
-      lo_ui5_model->add_attribute( n = `vViewPopup` v = ls_view_popup-xml ).
       ls_view_popup-o_model->mv_name = `oViewModelPopup`.
+      lo_ui5_model->add_attribute( n = `vViewPopup` v = ls_view_popup-xml ).
       lo_ui5_model->add_attribute_instance( ls_view_popup-o_model ).
     ENDIF.
 
-    DATA(lo_system) = lo_ui5_model->add_attribute_object( `oSystem` ).
-    lo_system->add_attribute( n = `ID` v = ms_db-id ).
-    lo_system->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
+    lo_ui5_model->add_attribute_object( `oSystem`
+        )->add_attribute( n = `ID`                 v = ms_db-id
+        )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
 
     IF ms_next-t_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
       LOOP AT ms_next-t_after REFERENCE INTO DATA(lr_after).
         DATA(lo_list2) = lo_list->add_list_list( ).
-
         LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
           lo_list2->add_list_val( lr_con->* ).
         ENDLOOP.
@@ -2609,11 +2605,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDLOOP.
 
     IF ms_next-s_cursor_pos IS NOT INITIAL.
-      lo_list = lo_ui5_model->add_attribute_object( `oCursor` ).
-      lo_list->add_attribute( n = `cursorPos`  v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false ).
-      lo_list->add_attribute( n = `id`        v = ms_next-s_cursor_pos-id ).
-      lo_list->add_attribute( n = `selectionEnd`  v = ms_next-s_cursor_pos-selectionend apos_active = abap_false ).
-      lo_list->add_attribute( n = `selectionStart`  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false ).
+      lo_ui5_model->add_attribute_object( `oCursor`
+          )->add_attribute( n = `cursorPos`       v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false
+          )->add_attribute( n = `id`              v = ms_next-s_cursor_pos-id
+          )->add_attribute( n = `selectionEnd`    v = ms_next-s_cursor_pos-selectionend apos_active = abap_false
+          )->add_attribute( n = `selectionStart`  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false ).
     ENDIF.
 
     IF ms_next-check_set_prev_view = abap_true.
@@ -2621,9 +2617,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
     result = lo_ui5_model->get_root( )->write_result( ).
 
-    z2ui5_lcl_db=>create(
-        id = ms_db-id
-        db = ms_db ).
+    z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
 
