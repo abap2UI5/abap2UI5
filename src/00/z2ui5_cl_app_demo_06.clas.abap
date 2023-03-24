@@ -68,7 +68,7 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
                         href = client->get( )-s_request-url_source_code
             )->get_parent( ).
 
-        DATA(tab) = page->scroll_container( '70%'
+        DATA(tab) = page->scroll_container( height = '70%' vertical = abap_true
             )->table(
                 growing             = abap_true
                 growingthreshold    = '20'
