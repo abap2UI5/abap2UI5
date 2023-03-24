@@ -15,6 +15,16 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
     DATA mv_sel2 TYPE abap_bool.
     DATA mv_sel3 TYPE abap_bool.
 
+    DATA mv_sel4 TYPE abap_bool.
+    DATA mv_sel5 TYPE abap_bool.
+    DATA mv_sel6 TYPE abap_bool.
+    DATA mv_sel7 TYPE abap_bool.
+    DATA mv_sel8 TYPE abap_bool.
+    DATA mv_sel9 TYPE abap_bool.
+    DATA mv_sel10 TYPE abap_bool.
+    DATA mv_sel11 TYPE abap_bool.
+    DATA mv_sel12 TYPE abap_bool.
+
     DATA mv_tab_bar_active TYPE abap_bool.
     DATA mv_tab_donut_active TYPE abap_bool.
     DATA mv_tab_line_active TYPE abap_bool.
@@ -47,6 +57,58 @@ ENDCLASS.
 
 CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
+  METHOD z2ui5_if_app~controller.
+
+    CASE client->get( )-lifecycle_method.
+
+      WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          mv_path = '../../demo/text'.
+          mv_type = 'plain_text'.
+          mv_sel1 = abap_true.
+
+          RETURN.
+        ENDIF.
+
+        CASE client->get( )-event.
+
+          WHEN 'DONUT_CHANGED'.
+            client->popup_message_toast( 'Donut selection changed' ).
+
+          WHEN 'BAR_CHANGED'.
+            client->popup_message_toast( 'Bar selection changed' ).
+
+          WHEN 'LINE_CHANGED'.
+            client->popup_message_toast( 'Line selection changed' ).
+
+          WHEN 'DONUT_CHANGED'.
+            client->popup_message_toast( 'Donut selection changed' ).
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
+        ENDCASE.
+
+      WHEN client->cs-lifecycle_method-on_rendering.
+
+        DATA(view) = client->factory_view( 'VIEW_INPUT' ).
+        DATA(page) = view->page( title = 'abap2UI5 - Visualization' navbuttonpress = client->_event( 'BACK' ) ).
+        page->header_content(
+            ")->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+            )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
+
+        DATA(container) = page->tab_container( ).
+        render_tab_donut(  client = client container = container ).
+        render_tab_bar(    client = client container = container ).
+        render_tab_line(   client = client container = container ).
+        render_tab_radial( client = client container = container ).
+
+    ENDCASE.
+
+  ENDMETHOD.
 
   METHOD render_tab_bar.
 
@@ -71,7 +133,7 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
             class      = 'sapUiSmallMargin'
         )->items( )->interact_bar_chart(
                 selectionchanged = client->_event( 'BAR_CHANGED' )
-                press            = client->_event( 'BAR_PRESS' )
+                press            = client->_event( 'BAR_CHANGED' )
             )->bars( ).
     bar->interact_bar_chart_bar( selected = client->_bind( mv_sel1 ) label = 'Product 1' value = '10' ).
     bar->interact_bar_chart_bar( selected = client->_bind( mv_sel2 ) label = 'Product 2' value = '20' ).
@@ -84,11 +146,10 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
             class      = 'sapUiSmallMargin'
         )->items( )->interact_bar_chart(
                 selectionchanged = client->_event( 'BAR_CHANGED' )
-                press            = client->_event( 'BAR_PRESS' )
             )->bars( ).
-    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel1 ) label = 'Product 1' value = '10' displayedvalue = '10%' ).
-    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel2 ) label = 'Product 2' value = '20' displayedvalue = '20%' ).
-    bar->interact_bar_chart_bar( selected = client->_bind( mv_sel3 ) label = 'Product 3' value = '70' displayedvalue = '70%' ).
+    bar->interact_bar_chart_bar( label = 'Product 1' value = '10' displayedvalue = '10%' ).
+    bar->interact_bar_chart_bar( label = 'Product 2' value = '20' displayedvalue = '20%' ).
+    bar->interact_bar_chart_bar( label = 'Product 3' value = '70' displayedvalue = '70%' ).
 
     bar = grid->vertical_layout(
         )->layout_data( 'l'
@@ -139,9 +200,9 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
                     )->interact_donut_chart(
                             selectionchanged = client->_event( 'DONUT_CHANGED' )
                     )->segments( ).
-    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel1 ) label = 'Impl. Phase'  value = '40.0' displayedvalue = '40.0%' ).
-    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel2 ) label = 'Design Phase' value = '21.5' displayedvalue = '21.5%' ).
-    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel3 ) label = 'Test Phase'   value = '38.5' displayedvalue = '38.5%' ).
+    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel4 ) label = 'Impl. Phase'  value = '40.0' displayedvalue = '40.0%' ).
+    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel5 ) label = 'Design Phase' value = '21.5' displayedvalue = '21.5%' ).
+    seg->interact_donut_chart_segment( selected = client->_bind( mv_sel6 ) label = 'Test Phase'   value = '38.5' displayedvalue = '38.5%' ).
 
     grid->text(
             text  = 'Four segments'
@@ -185,8 +246,6 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
     seg->interact_donut_chart_segment( label = 'Design Phase'         value = '21.5' displayedvalue = '21.5%' ).
     seg->interact_donut_chart_segment( label = 'Test Phase'           value = '38.5' displayedvalue = '38.5%' ).
 
-
-
   ENDMETHOD.
 
 
@@ -216,12 +275,12 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
             precedingpoint   = '15'
             succeddingpoint  = '89'
         )->points( ).
-    point->interact_line_chart_point( label = 'May'  value = '33.1' secondarylabel = 'Q2' ).
-    point->interact_line_chart_point( label = 'June' value = '12'  ).
-    point->interact_line_chart_point( label = 'July' value = '51.4' secondarylabel = 'Q3' ).
-    point->interact_line_chart_point( label = 'Aug'  value = '52'  ).
-    point->interact_line_chart_point( label = 'Sep'  value = '69.9').
-    point->interact_line_chart_point( label = 'Oct'  value = '0.9' secondarylabel = 'Q4' ).
+    point->interact_line_chart_point( selected = client->_bind( mv_sel7  ) label = 'May'  value = '33.1' secondarylabel = 'Q2' ).
+    point->interact_line_chart_point( selected = client->_bind( mv_sel8  ) label = 'June' value = '12'  ).
+    point->interact_line_chart_point( selected = client->_bind( mv_sel9  ) label = 'July' value = '51.4' secondarylabel = 'Q3' ).
+    point->interact_line_chart_point( selected = client->_bind( mv_sel10 ) label = 'Aug'  value = '52'  ).
+    point->interact_line_chart_point( selected = client->_bind( mv_sel11 ) label = 'Sep'  value = '69.9').
+    point->interact_line_chart_point( selected = client->_bind( mv_sel12 ) label = 'Oct'  value = '0.9' secondarylabel = 'Q4' ).
 
     point = grid->flex_box(
             width      = '22rem'
@@ -324,72 +383,8 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
                 sice       = 'S'
                 percentage = '0.1'
                 press      = client->_event( 'RADIAL_PRESS' )
-                valueColor = 'Critical'
-       ).
+                valueColor = 'Critical' ).
 
   ENDMETHOD.
 
-
-  METHOD z2ui5_if_app~controller.
-
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-
-          mv_path = '../../demo/text'.
-          mv_type = 'plain_text'.
-          mv_sel1 = abap_true.
-
-          RETURN.
-        ENDIF.
-
-        CASE client->get( )-event.
-
-          WHEN 'DONUT_CHANGED'.
-            mv_type = 'plain_text'.
-
-          WHEN 'DB_LOAD'.
-
-            mv_editor = COND #(
-                WHEN mv_path CS 'abap' THEN lcl_mime_api=>read_abap( )
-                WHEN mv_path CS 'json' THEN lcl_mime_api=>read_json( )
-                WHEN mv_path CS 'yaml' THEN lcl_mime_api=>read_yaml( )
-                WHEN mv_path CS 'text' THEN lcl_mime_api=>read_text( ) ).
-            client->popup_message_toast( 'Download successfull' ).
-
-          WHEN 'DB_SAVE'.
-            lcl_mime_api=>save_data( mv_editor ).
-            client->popup_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
-
-          WHEN 'EDIT'.
-            mv_check_editable = xsdbool( mv_check_editable = abap_false ).
-          WHEN 'CLEAR'.
-            mv_editor = ``.
-          WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-        ENDCASE.
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(view) = client->factory_view( 'VIEW_INPUT' ).
-        DATA(page) = view->page( title = 'abap2UI5 - Visualization with Charts' navbuttonpress = client->_event( 'BACK' ) ).
-        page->header_content(
-            ")->link( text = 'Demo' href = `https://twitter.com/OblomovDev/status/1634206964291911682`
-            )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
-            ).
-
-        DATA(container) = page->tab_container( ).
-        render_tab_donut(  client = client container = container ).
-        render_tab_bar(    client = client container = container ).
-        render_tab_line(   client = client container = container ).
-        render_tab_radial( client = client container = container ).
-
-
-    ENDCASE.
-
-  ENDMETHOD.
 ENDCLASS.
