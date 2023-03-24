@@ -30,7 +30,6 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
     CASE client->get( )-lifecycle_method.
 
-
       WHEN client->cs-lifecycle_method-on_event.
 
         IF check_initialized = abap_false.
@@ -44,7 +43,6 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-
         CASE client->get( )-event.
 
           WHEN 'BUTTON_SORT'.
@@ -57,7 +55,6 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
         ENDCASE.
-
 
       WHEN client->cs-lifecycle_method-on_rendering.
 

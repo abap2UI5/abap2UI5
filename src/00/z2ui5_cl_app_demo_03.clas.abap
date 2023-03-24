@@ -23,7 +23,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -36,12 +36,12 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
           check_initialized = abap_true.
 
           t_tab = VALUE #(
-          ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Peter'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-          ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+            ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+            ( title = 'Peter'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
+            ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+            ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+            ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+            ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
           ).
 
           RETURN.
@@ -67,7 +67,7 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
 
         page->list(
             headertext = 'List Ouput'
-            items       = client->_bind_one_way( t_tab )
+            items      = client->_bind_one_way( t_tab )
             )->standard_list_item(
                 title       = '{TITLE}'
                 description = '{DESCR}'

@@ -24,13 +24,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
 
   METHOD factory.
 
     r_result = NEW #( ).
-
     r_result->mo_app = i_app.
     r_result->mv_name_attri = i_name_attri.
 
@@ -76,38 +75,47 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
       WHEN client->cs-lifecycle_method-on_rendering.
 
-        DATA(view) = client->factory_view( 'MAIN' ).
-        view->page( title = 'abap2UI5 - flow logic 2' navbuttonpress = client->_event( 'BACK' )
-           )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
+        DATA(page) = client->factory_view( 'MAIN'
+            )->page(
+                    title          = 'abap2UI5 - flow logic 2'
+                    navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link(
+                        text = 'Go to Source Code'
+                        href = client->get( )-s_request-url_source_code
+                )->get_parent( ).
 
-           )->grid( 'L6 M12 S12' )->content( 'l'
+        page->grid( 'L6 M12 S12' )->content( 'l'
 
-            )->simple_form( 'MAIN View' )->content( 'f'
+              )->simple_form( 'MAIN View' )->content( 'f'
 
-             )->label( 'Input set by previous app'
-             )->input( mv_input_previous_set
+               )->label( 'Input set by previous app'
+               )->input( mv_input_previous_set
 
-             )->label( 'Data of previous app'
-             )->input( mv_input_previous
-             )->button( text = 'read' press = client->_event( 'BUTTON_READ_PREVIOUS' )
+               )->label( 'Data of previous app'
+               )->input( mv_input_previous
+               )->button( text = 'read' press = client->_event( 'BUTTON_READ_PREVIOUS' )
 
-             )->label( 'Call previous app and show data of this app'
-             )->input( client->_bind( mv_input )
-             )->button( text = 'back' press = client->_event( 'BACK_WITH_EVENT' )
-        ).
+               )->label( 'Call previous app and show data of this app'
+               )->input( client->_bind( mv_input )
+               )->button( text = 'back' press = client->_event( 'BACK_WITH_EVENT' ) ).
 
-        view = client->factory_view( 'SECOND' ).
-        view->page( title = 'abap2UI5 - flow logic 2' navbuttonpress = client->_event( 'BACK' )
-           )->header_content( )->link( text = 'Go to Source Code' href = client->get( )-s_request-url_source_code )->get_parent(
+        page = client->factory_view( 'SECOND'
+            )->page(
+                    title          = 'abap2UI5 - flow logic 2'
+                    navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link(
+                        text = 'Source_Code'
+                        href = client->get( )-s_request-url_source_code
+                )->get_parent( ).
 
-           )->grid( 'L6 M12 S12' )->content( 'l'
-
-             )->simple_form( 'second view set by previous app' )->content( 'f'
-               )->label( 'Demo'
-               )->button( text = 'leave to previous app' press = client->_event( 'BACK' )
-               )->label( 'Demo'
-               )->button( text = 'show view main' press = client->_event( 'SHOW_VIEW_MAIN' )
-        ).
+        page->grid( 'L6 M12 S12' )->content( 'l'
+            )->simple_form( 'second view set by previous app' )->content( 'f'
+              )->label( 'Demo'
+              )->button( text = 'leave to previous app' press = client->_event( 'BACK' )
+              )->label( 'Demo'
+              )->button( text = 'show view main' press = client->_event( 'SHOW_VIEW_MAIN' ) ).
 
     ENDCASE.
 
