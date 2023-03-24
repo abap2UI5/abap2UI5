@@ -25,7 +25,9 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 
 ### Demo [(Example)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap)
 ![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
-For more Information, check the [wiki.](https://github.com/oblomov-dev/abap2ui5/wiki)
+
+### Setup
+Change the theme, ui5 repository, browser title - check the [wiki.](https://github.com/oblomov-dev/abap2ui5/wiki)
 
 ## Installation
 Works with all available ABAP stacks and language versions:
