@@ -26,7 +26,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 ### Demo [(Example)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap)
 ![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
 
-## Installation
+### Installation
 Works with all available ABAP stacks and language versions:
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
@@ -79,10 +79,10 @@ METHOD if_http_extension~handle_request.
 ENDMETHOD.
 ```
 
-## Setup
+### Setup
 Change the theme, UI5 repository, browser title - check the [wiki.](https://github.com/oblomov-dev/abap2ui5/wiki)
 
-## FAQ
+### FAQ
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
 * running into problems with your app? see [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
