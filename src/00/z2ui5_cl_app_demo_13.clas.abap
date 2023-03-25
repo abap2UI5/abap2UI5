@@ -185,7 +185,7 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                         press = client->_event( 'BTN_EXPORT' )
             )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
 
     grid->simple_form( '1. Import Data'
          )->content( 'f'
