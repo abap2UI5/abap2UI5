@@ -5,6 +5,6 @@
 * full functionality, only demos are not included
 * for problems with this version, create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
 
-#### This code was automatically downported and tested with [abaplint](https://abaplint.org/). Thanks for this great tool!
+#### This code was automatically downported and tested with [abaplint](https://abaplint.org/). Thank you for this great tool!
 
 
