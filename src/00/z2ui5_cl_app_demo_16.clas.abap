@@ -49,65 +49,14 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
         container TYPE REF TO z2ui5_if_view.
 
 
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
-  METHOD z2ui5_if_app~controller.
-
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-
-          mv_path = '../../demo/text'.
-          mv_type = 'plain_text'.
-          mv_sel1 = abap_true.
-
-          RETURN.
-        ENDIF.
-
-        CASE client->get( )-event.
-
-          WHEN 'DONUT_CHANGED'.
-            client->popup_message_toast( 'Donut selection changed' ).
-
-          WHEN 'BAR_CHANGED'.
-            client->popup_message_toast( 'Bar selection changed' ).
-
-          WHEN 'LINE_CHANGED'.
-            client->popup_message_toast( 'Line selection changed' ).
-
-          WHEN 'DONUT_CHANGED'.
-            client->popup_message_toast( 'Donut selection changed' ).
-
-          WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-        ENDCASE.
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(container) = client->factory_view( 'VIEW_INPUT'
-            )->page( title = 'abap2UI5 - Visualization' navbuttonpress = client->_event( 'BACK' )
-                )->header_content(
-                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1639191954285113344`
-                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
-            )->get_parent(
-            )->tab_container( ).
-
-        render_tab_donut(  client = client container = container ).
-        render_tab_bar(    client = client container = container ).
-        render_tab_line(   client = client container = container ).
-        render_tab_radial( client = client container = container ).
-
-    ENDCASE.
-
-  ENDMETHOD.
 
   METHOD render_tab_bar.
 
@@ -386,4 +335,58 @@ CLASS z2ui5_cl_app_demo_16 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD z2ui5_if_app~controller.
+
+    CASE client->get( )-lifecycle_method.
+
+      WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          mv_path = '../../demo/text'.
+          mv_type = 'plain_text'.
+          mv_sel1 = abap_true.
+
+          RETURN.
+        ENDIF.
+
+        CASE client->get( )-event.
+
+          WHEN 'DONUT_CHANGED'.
+            client->popup_message_toast( 'Donut selection changed' ).
+
+          WHEN 'BAR_CHANGED'.
+            client->popup_message_toast( 'Bar selection changed' ).
+
+          WHEN 'LINE_CHANGED'.
+            client->popup_message_toast( 'Line selection changed' ).
+
+          WHEN 'DONUT_CHANGED'.
+            client->popup_message_toast( 'Donut selection changed' ).
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
+        ENDCASE.
+
+      WHEN client->cs-lifecycle_method-on_rendering.
+
+        DATA(container) = client->factory_view( 'VIEW_INPUT'
+            )->page( title = 'abap2UI5 - Visualization' navbuttonpress = client->_event( 'BACK' )
+                )->header_content(
+                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1639191954285113344`
+                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+            )->get_parent(
+            )->tab_container( ).
+
+        render_tab_donut(  client = client container = container ).
+        render_tab_bar(    client = client container = container ).
+        render_tab_line(   client = client container = container ).
+        render_tab_radial( client = client container = container ).
+
+    ENDCASE.
+
+  ENDMETHOD.
 ENDCLASS.

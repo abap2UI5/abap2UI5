@@ -187,12 +187,13 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
                         )->text( 'Message' )->get_parent(
                 )->get_parent(
                 )->items(
-                    )->column_list_item( )->cells(
-                        )->text( '{TYPE}'
-                        )->text( '{NUMBER}'
-                        )->text( '{ID}'
-                        )->text( '{MESSAGE}'
-            )->get_parent( )->get_parent( )->get_parent(
+                    )->column_list_item(
+                        )->cells(
+                            )->text( '{TYPE}'
+                            )->text( '{NUMBER}'
+                            )->text( '{ID}'
+                            )->text( '{MESSAGE}'
+            )->get_parent( )->get_parent( )->get_parent( )->get_parent(
             )->footer( )->overflow_toolbar(
                 )->toolbar_spacer(
                 )->button(
@@ -211,12 +212,13 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
                     )->column( )->text( 'Info' )->get_parent(
                     )->column( )->text( 'Description' )->get_parent(
                 )->get_parent(
-                )->items( )->column_list_item( selected = '{SELKZ}' )->cells(
-                    )->text( '{TITLE}'
-                    )->text( '{VALUE}'
-                    )->text( '{INFO}'
-                    )->text( '{DESCR}'
-            )->get_parent( )->get_parent( )->get_parent(
+                )->items( )->column_list_item( selected = '{SELKZ}'
+                    )->cells(
+                        )->text( '{TITLE}'
+                        )->text( '{VALUE}'
+                        )->text( '{INFO}'
+                        )->text( '{DESCR}'
+            )->get_parent( )->get_parent( )->get_parent( )->get_parent(
             )->footer( )->overflow_toolbar(
                 )->toolbar_spacer(
                 )->button(

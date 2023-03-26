@@ -45,51 +45,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
-
-
-  METHOD main_roundtrip.
-
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
-
-    DO.
-      TRY.
-          DATA(li_client) = lo_runtime->app_before_event( ).
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-
-        CATCH cx_root INTO DATA(x).
-          lo_runtime = lo_runtime->set_app_system_error( x ).
-          CONTINUE.
-      ENDTRY.
-
-      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_call_new( ).
-        CONTINUE.
-      ENDIF.
-
-      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_leave_to_id( ).
-        CONTINUE.
-      ENDIF.
-
-      TRY.
-          li_client = lo_runtime->app_before_rendering( ).
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-          result = lo_runtime->request_end( ).
-
-        CATCH cx_root INTO x.
-          lo_runtime = lo_runtime->set_app_system_error( x ).
-          CONTINUE.
-      ENDTRY.
-
-      RETURN.
-    ENDDO.
-
-  ENDMETHOD.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD main_index_html.
@@ -433,5 +389,49 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `</script>` && |\n| &&
                            |\n| &&
                            `</html>`.
+  ENDMETHOD.
+
+
+  METHOD main_roundtrip.
+
+    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
+
+    DO.
+      TRY.
+          DATA(li_client) = lo_runtime->app_before_event( ).
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+
+        CATCH cx_root INTO DATA(x).
+          lo_runtime = lo_runtime->set_app_system_error( x ).
+          CONTINUE.
+      ENDTRY.
+
+      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_call_new( ).
+        CONTINUE.
+      ENDIF.
+
+      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_leave_to_id( ).
+        CONTINUE.
+      ENDIF.
+
+      TRY.
+          li_client = lo_runtime->app_before_rendering( ).
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+          result = lo_runtime->request_end( ).
+
+        CATCH cx_root INTO x.
+          lo_runtime = lo_runtime->set_app_system_error( x ).
+          CONTINUE.
+      ENDTRY.
+
+      RETURN.
+    ENDDO.
+
   ENDMETHOD.
 ENDCLASS.

@@ -67,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -153,70 +153,6 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
     ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_render_view_import.
-
-    DATA(page) = client->factory_view( 'IMPORT_TABLE'
-        )->page(
-                title          = 'abap2UI5 - Table Maintenance'
-                navbuttonpress = client->_event( 'BACK' )
-            )->header_content(
-                )->link(
-                    text = 'Demo'
-                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
-                )->link(
-                    text = 'Source_Code'
-                    href = client->get( )-s_request-url_source_code
-            )->get_parent(
-            )->sub_header(
-                )->overflow_toolbar(
-                    )->button(
-                        text    = '(1) Import Data'
-                        press   = client->_event( 'BTN_IMPORT' )
-                        enabled = abap_false
-                    )->button(
-                        text  = '(2) Edit Data'
-                        press = client->_event( 'BTN_EDIT' )
-                    )->button(
-                        text  = '(3) Export Data'
-                        press = client->_event( 'BTN_EXPORT' )
-            )->get_parent( )->get_parent( ).
-
-    DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
-
-    grid->simple_form( '1. Import Data'
-         )->content( 'f'
-            )->label( 'Table'
-            )->input( 'SPFLI'
-            )->label( 'Format'
-            )->segmented_button( client->_bind( ms_import-segment_key ) )->get(
-                )->items( )->get(
-                    )->segmented_button_item( key = 'json' text = 'json'
-                    )->segmented_button_item( key = 'csv'  text = 'csv'
-                    )->segmented_button_item( key = 'xml'  text = 'xml' ).
-
-    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
-
-    grid->scroll_container( '75%'
-        )->code_editor(
-            type     = COND #( WHEN ms_import-segment_key = 'csv' THEN |plain_text| ELSE ms_import-segment_key )
-            value    = client->_bind( ms_import-editor )
-            editable = abap_true ).
-
-    page->footer( )->overflow_toolbar(
-        )->button(
-            text  = 'Clear'
-            press = client->_event( 'IMPORT_CLEAR' )
-            icon  = 'sap-icon://delete'
-        )->toolbar_spacer(
-        )->button(
-            text  = 'Import'
-            press = client->_event( 'IMPORT_DB' )
-            type  = 'Emphasized'
-            icon  = 'sap-icon://upload-to-cloud' ).
 
   ENDMETHOD.
 
@@ -363,6 +299,70 @@ CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
                 press = client->_event( 'EXPORT_DB' )
                 type  = 'Emphasized'
                 icon  = 'sap-icon://download-from-cloud' ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_render_view_import.
+
+    DATA(page) = client->factory_view( 'IMPORT_TABLE'
+        )->page(
+                title          = 'abap2UI5 - Table Maintenance'
+                navbuttonpress = client->_event( 'BACK' )
+            )->header_content(
+                )->link(
+                    text = 'Demo'
+                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+                )->link(
+                    text = 'Source_Code'
+                    href = client->get( )-s_request-url_source_code
+            )->get_parent(
+            )->sub_header(
+                )->overflow_toolbar(
+                    )->button(
+                        text    = '(1) Import Data'
+                        press   = client->_event( 'BTN_IMPORT' )
+                        enabled = abap_false
+                    )->button(
+                        text  = '(2) Edit Data'
+                        press = client->_event( 'BTN_EDIT' )
+                    )->button(
+                        text  = '(3) Export Data'
+                        press = client->_event( 'BTN_EXPORT' )
+            )->get_parent( )->get_parent( ).
+
+    DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
+
+    grid->simple_form( '1. Import Data'
+         )->content( 'f'
+            )->label( 'Table'
+            )->input( 'SPFLI'
+            )->label( 'Format'
+            )->segmented_button( client->_bind( ms_import-segment_key ) )->get(
+                )->items( )->get(
+                    )->segmented_button_item( key = 'json' text = 'json'
+                    )->segmented_button_item( key = 'csv'  text = 'csv'
+                    )->segmented_button_item( key = 'xml'  text = 'xml' ).
+
+    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+
+    grid->scroll_container( '75%'
+        )->code_editor(
+            type     = COND #( WHEN ms_import-segment_key = 'csv' THEN |plain_text| ELSE ms_import-segment_key )
+            value    = client->_bind( ms_import-editor )
+            editable = abap_true ).
+
+    page->footer( )->overflow_toolbar(
+        )->button(
+            text  = 'Clear'
+            press = client->_event( 'IMPORT_CLEAR' )
+            icon  = 'sap-icon://delete'
+        )->toolbar_spacer(
+        )->button(
+            text  = 'Import'
+            press = client->_event( 'IMPORT_DB' )
+            type  = 'Emphasized'
+            icon  = 'sap-icon://upload-to-cloud' ).
 
   ENDMETHOD.
 ENDCLASS.
