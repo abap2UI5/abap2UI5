@@ -79,10 +79,6 @@ METHOD if_http_extension~handle_request.
 
 ENDMETHOD.
 ```
-
-### Setup
-Check out the [wiki](https://github.com/oblomov-dev/abap2ui5/wiki), it shows how to change the theme, UI5 repository, browser title and more.
-
 ## FAQ
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
 * running into problems with your app? see [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting)
