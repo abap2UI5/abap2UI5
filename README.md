@@ -82,5 +82,5 @@ ENDMETHOD.
 ## FAQ
 * read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
 * running into problems with your app? see [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting)
-* take a look to the [wiki](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting) to see how to set the theme, bootstrapping, title etc.
+* setup the theme, bootstrapping, title... - take a look to the [wiki](https://github.com/oblomov-dev/ABAP2UI5/wiki)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
