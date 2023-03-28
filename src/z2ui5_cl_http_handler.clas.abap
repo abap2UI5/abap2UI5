@@ -7,11 +7,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CONSTANTS:
       BEGIN OF cs_config,
-        theme            TYPE string    VALUE 'sap_horizon',
-        browser_title    TYPE string    VALUE 'abap2UI5',
-        " choose your ui5 library/license here, see sap note 3207822 and 2943781
-        " 'resources/sap-ui-core.js' or '/sap/public/bc/ui5_ui5/resources/sap-ui-core.js',
-        repository       TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
@@ -20,7 +15,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         name  TYPE string,
         value TYPE string,
       END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value with empty key.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     CLASS-DATA:
       BEGIN OF client,
@@ -29,7 +24,16 @@ CLASS z2ui5_cl_http_handler DEFINITION
         t_param  TYPE ty_t_name_value,
       END OF client.
 
+    "! loads the one page ui5 application
+    "! @parameter library_path | choose your ui5 license here, see sap note 3207822 and 2943781
+    "! @parameter theme | sap_horizon, sap_belize, ...
+    "! @parameter title | browser title
+    "! @parameter r_result | index.html
     CLASS-METHODS main_index_html
+      IMPORTING
+        library_path    TYPE string DEFAULT `https://ui5.sap.com/resources/sap-ui-core.js`
+        theme           TYPE string DEFAULT `sap_horizon`
+        title           TYPE string DEFAULT `abap2UI5`
       RETURNING
         VALUE(r_result) TYPE string.
 
@@ -44,7 +48,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD main_index_html.
@@ -66,14 +70,14 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `    <meta charset="UTF-8">` && |\n|  &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n|  &&
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
-               `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
+               `    <title>` && title && `</title>` && |\n| &&
                `    <style>` && |\n|  &&
                `        html, body, body > div, #container, #container-uiarea {` && |\n|  &&
                `            height: 100%;` && |\n|  &&
                `        }` && |\n|  &&
                `    </style> ` &&
-               `    <script src="` && cs_config-repository && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
+               `    <script src="` && library_path && `" ` &&
+               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && theme && `"` && |\n| &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
                `        >` && |\n| &&
                `     </script></head>` && |\n| &&
