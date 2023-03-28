@@ -2784,6 +2784,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW z2ui5_lcl_if_client( me ).
 
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
+    split lv_url at '?' into lv_url data(lv_dummy).
 
     ms_actual = VALUE #(
         lifecycle_method = ms_next-lifecycle_method
