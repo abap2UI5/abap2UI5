@@ -1,14 +1,6 @@
 INTERFACE z2ui5_if_view
   PUBLIC .
 
-  CONSTANTS:
-    BEGIN OF cs,
-      BEGIN OF lifecycle_method,
-        on_event     TYPE string VALUE 'EVENT',
-        on_rendering TYPE string VALUE 'RENDERING',
-      END OF lifecycle_method,
-    END OF cs.
-
   METHODS layout_data
     IMPORTING
       ns            TYPE clike OPTIONAL

@@ -1,7 +1,13 @@
 INTERFACE z2ui5_if_client
   PUBLIC .
 
-  CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
+  CONSTANTS:
+    BEGIN OF cs,
+      BEGIN OF lifecycle_method,
+        on_event     TYPE string VALUE 'EVENT',
+        on_rendering TYPE string VALUE 'RENDERING',
+      END OF lifecycle_method,
+    END OF cs.
 
   TYPES:
     BEGIN OF ty_s_cursor,
