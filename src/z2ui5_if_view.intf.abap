@@ -7,15 +7,6 @@ INTERFACE z2ui5_if_view
         on_event     TYPE string VALUE 'EVENT',
         on_rendering TYPE string VALUE 'RENDERING',
       END OF lifecycle_method,
-      BEGIN OF event_type,
-        server_function TYPE string VALUE 'SERVER_FUNCTION',
-        display_id      TYPE string VALUE 'CALL_PREVIOUS_APP',
-      END OF event_type,
-      BEGIN OF bind_type,
-        one_way  TYPE string VALUE 'ONE_WAY',
-        two_way  TYPE string VALUE 'TWO_WAY',
-        one_time TYPE string VALUE 'ONE_TIME',
-      END OF bind_type,
     END OF cs.
 
   METHODS layout_data

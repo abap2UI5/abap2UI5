@@ -12,13 +12,13 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
-  TYPES:
-    BEGIN OF ty_s_name_value,
-      n TYPE string,
-      v TYPE string,
-    END OF ty_s_name_value.
+    TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
 
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty,
@@ -892,6 +892,11 @@ CLASS z2ui5_lcl_if_view DEFINITION.
 
     CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
 
+    CONSTANTS:
+      BEGIN OF cs_config,
+        letterboxing TYPE abap_bool VALUE abap_true,
+      END OF cs_config.
+
     TYPES:
       BEGIN OF ty_s_view,
         xml     TYPE string,
@@ -958,6 +963,13 @@ ENDCLASS.
 CLASS z2ui5_lcl_system_runtime DEFINITION.
 
   PUBLIC SECTION.
+
+    CONSTANTS:
+      BEGIN OF cs_bind_type,
+        one_way  TYPE string VALUE 'ONE_WAY',
+        two_way  TYPE string VALUE 'TWO_WAY',
+        one_time TYPE string VALUE 'ONE_TIME',
+      END OF cs_bind_type.
 
     CLASS-DATA:
       BEGIN OF ss_client,
@@ -1031,7 +1043,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
     METHODS _create_binding
       IMPORTING
         value         TYPE data
-        type          TYPE string DEFAULT z2ui5_if_view=>cs-bind_type-two_way
+        type          TYPE string DEFAULT cs_bind_type-two_way
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1100,14 +1112,14 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
                      `xmlns="sap.m" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
-    result = result && COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
+    result = result && COND #( WHEN cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
   ENDMETHOD.
 
   METHOD xml_get_end.
 
     result = result && COND #( WHEN check_popup_active = abap_false
-              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
+              THEN COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
               ELSE `</core:FragmentDefinition>` ).
 
   ENDMETHOD.
@@ -1302,7 +1314,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     LOOP AT mo_runtime->ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-      IF lr_attri->bind_type = cs-bind_type-one_time.
+      IF lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
 
         m_view_model->add_attribute(
               n = lr_attri->name
@@ -1312,7 +1324,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs-bind_type-one_way THEN m_view_model
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way THEN m_view_model
                                  ELSE lo_update ).
 
       FIELD-SYMBOLS <attribute> TYPE any.
@@ -1346,7 +1358,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     ENDIF.
 
     result-o_model = m_view_model.
-    DELETE m_root->mo_runtime->ms_db-t_attri WHERE bind_type = cs-bind_type-one_time.
+    DELETE m_root->mo_runtime->ms_db-t_attri WHERE bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
     result-t_attri = m_root->mo_runtime->ms_db-t_attri.
 
   ENDMETHOD.
@@ -2600,7 +2612,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
+        WHERE bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
@@ -2710,7 +2722,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
 
-    IF type = z2ui5_if_view=>cs-bind_type-one_time.
+    IF type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
       DATA(lv_id) = _=>get_uuid_session( ).
       INSERT VALUE #(
         name = lv_id
@@ -2734,7 +2746,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        result = COND #( WHEN type = z2ui5_if_view=>cs-bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
+        result = COND #( WHEN type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
         RETURN.
       ENDIF.
 
@@ -2745,7 +2757,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     INSERT VALUE #(
       name = lv_id
       data_stringify = _=>trans_any_2_json( value )
-      bind_type = z2ui5_if_view=>cs-bind_type-one_time
+      bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time
      ) INTO TABLE ms_db-t_attri.
     result = |/{ lv_id }|.
 
@@ -2784,7 +2796,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW z2ui5_lcl_if_client( me ).
 
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
-    split lv_url at '?' into lv_url data(lv_dummy).
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
     ms_actual = VALUE #(
         lifecycle_method = ms_next-lifecycle_method
@@ -2899,13 +2911,13 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_if_view=>cs-bind_type-two_way ) && `}`.
+    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way ) && `}`.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_one_way.
 
-    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_if_view=>cs-bind_type-one_way ) && `}`.
+    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way ) && `}`.
 
   ENDMETHOD.
 

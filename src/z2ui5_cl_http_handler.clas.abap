@@ -12,7 +12,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
         " choose your ui5 library/license here, see sap note 3207822 and 2943781
         " 'resources/sap-ui-core.js' or '/sap/public/bc/ui5_ui5/resources/sap-ui-core.js',
         repository       TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
-        letterboxing     TYPE abap_bool VALUE abap_true,
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
