@@ -24,7 +24,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
 
   METHOD factory.
@@ -77,17 +77,17 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
         DATA(page) = client->factory_view( 'MAIN'
             )->page(
-                    title          = 'abap2UI5 - flow logic 2'
+                    title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
-                        text = 'Go to Source Code'
+                        text = 'Source_Code'
                         href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
 
-              )->simple_form( 'MAIN View' )->content( 'f'
+              )->simple_form( 'View: FIRST' )->content( 'f'
 
                )->label( 'Input set by previous app'
                )->input( mv_input_previous_set
@@ -102,7 +102,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
         page = client->factory_view( 'SECOND'
             )->page(
-                    title          = 'abap2UI5 - flow logic 2'
+                    title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
-            )->simple_form( 'second view set by previous app' )->content( 'f'
+            )->simple_form( 'View: SECOND' )->content( 'f'
               )->label( 'Demo'
               )->button( text = 'leave to previous app' press = client->_event( 'BACK' )
               )->label( 'Demo'

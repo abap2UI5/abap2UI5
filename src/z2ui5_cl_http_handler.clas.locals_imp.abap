@@ -13,6 +13,14 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
+
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+    TYPES:
       BEGIN OF ty,
         BEGIN OF s,
           BEGIN OF msg_result,
@@ -243,18 +251,18 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DATA(url_segments) = segment( val = get_trim_upper( url ) index = 2 sep = `?` ).
     SPLIT url_segments AT `&` INTO TABLE DATA(lt_params).
 
-    DATA lt_url_params TYPE z2ui5_if_view=>ty_t_name_value.
+    DATA lt_url_params TYPE z2ui5_cl_http_handler=>ty_t_name_value.
 
     LOOP AT lt_params INTO DATA(lv_param).
 
       SPLIT lv_param AT `=` INTO DATA(lv_name) DATA(lv_value) DATA(lv_dummy).
 
-      INSERT VALUE #( n = lv_name
-                      v = lv_value ) INTO TABLE lt_url_params.
+      INSERT VALUE #( name  = lv_name
+                      value = lv_value ) INTO TABLE lt_url_params.
 
     ENDLOOP.
 
-    result = lt_url_params[ n = get_trim_upper( name ) ]-v.
+    result = lt_url_params[ name = get_trim_upper( name ) ]-value.
 
   ENDMETHOD.
 
@@ -882,7 +890,10 @@ CLASS z2ui5_lcl_if_view DEFINITION.
 
     INTERFACES z2ui5_if_view.
 
-    CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
+    CONSTANTS:
+      BEGIN OF cs_config,
+        letterboxing TYPE abap_bool VALUE abap_true,
+      END OF cs_config.
 
     TYPES:
       BEGIN OF ty_s_view,
@@ -893,7 +904,7 @@ CLASS z2ui5_lcl_if_view DEFINITION.
 
     DATA m_name TYPE string.
     DATA m_ns   TYPE string.
-    DATA mt_prop TYPE z2ui5_if_view=>ty_t_name_value.
+    DATA mt_prop TYPE z2ui5_cl_http_handler=>ty_t_name_value.
 
     DATA m_root    TYPE REF TO z2ui5_lcl_if_view.
     DATA m_last    TYPE REF TO z2ui5_lcl_if_view.
@@ -912,7 +923,7 @@ CLASS z2ui5_lcl_if_view DEFINITION.
       IMPORTING
         name          TYPE clike
         ns            TYPE clike OPTIONAL
-        t_prop        TYPE z2ui5_if_view=>ty_t_name_value OPTIONAL
+        t_prop        TYPE _=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -950,6 +961,13 @@ ENDCLASS.
 CLASS z2ui5_lcl_system_runtime DEFINITION.
 
   PUBLIC SECTION.
+
+    CONSTANTS:
+      BEGIN OF cs_bind_type,
+        one_way  TYPE string VALUE 'ONE_WAY',
+        two_way  TYPE string VALUE 'TWO_WAY',
+        one_time TYPE string VALUE 'ONE_TIME',
+      END OF cs_bind_type.
 
     CLASS-DATA:
       BEGIN OF ss_client,
@@ -995,7 +1013,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
         check_set_prev_view TYPE abap_bool,
 
-        t_scroll_pos        TYPE z2ui5_if_view=>ty_t_name_value,
+        t_scroll_pos        TYPE z2ui5_cl_http_handler=>ty_t_name_value,
         s_cursor_pos        TYPE z2ui5_if_client=>ty_s_cursor,
 
         t_view              TYPE STANDARD TABLE OF s_view WITH EMPTY KEY,
@@ -1023,7 +1041,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
     METHODS _create_binding
       IMPORTING
         value         TYPE data
-        type          TYPE string DEFAULT z2ui5_if_view=>cs-bind_type-two_way
+        type          TYPE string DEFAULT cs_bind_type-two_way
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1092,14 +1110,14 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
                      `xmlns="sap.m" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
-    result = result && COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
+    result = result && COND #( WHEN cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
   ENDMETHOD.
 
   METHOD xml_get_end.
 
     result = result && COND #( WHEN check_popup_active = abap_false
-              THEN COND #( WHEN z2ui5_cl_http_handler=>cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
+              THEN COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
               ELSE `</core:FragmentDefinition>` ).
 
   ENDMETHOD.
@@ -1121,13 +1139,13 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     "case - normal
     CASE m_name.
       WHEN `ZZHTML`.
-        result = mt_prop[ n = `VALUE` ]-v.
+        result = mt_prop[ name = `VALUE` ]-value.
         RETURN.
     ENDCASE.
 
     DATA(lv_tmp2) = COND #( WHEN m_ns <> `` THEN |{ m_ns }:| ).
-    DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
-                          NEXT val = |{ val } { row-n }="{ escape( val = COND string( WHEN row-v = abap_true THEN `true` ELSE row-v ) format = cl_abap_format=>e_xml_attr ) }" \n | ).
+    DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( value <> `` )
+                          NEXT val = |{ val } { row-name }="{ escape( val = COND string( WHEN row-value = abap_true THEN `true` ELSE row-value ) format = cl_abap_format=>e_xml_attr ) }" \n | ).
 
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
 
@@ -1294,7 +1312,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     LOOP AT mo_runtime->ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-      IF lr_attri->bind_type = cs-bind_type-one_time.
+      IF lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
 
         m_view_model->add_attribute(
               n = lr_attri->name
@@ -1304,7 +1322,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs-bind_type-one_way THEN m_view_model
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way THEN m_view_model
                                  ELSE lo_update ).
 
       FIELD-SYMBOLS <attribute> TYPE any.
@@ -1338,7 +1356,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     ENDIF.
 
     result-o_model = m_view_model.
-    DELETE m_root->mo_runtime->ms_db-t_attri WHERE bind_type = cs-bind_type-one_time.
+    DELETE m_root->mo_runtime->ms_db-t_attri WHERE bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
     result-t_attri = m_root->mo_runtime->ms_db-t_attri.
 
   ENDMETHOD.
@@ -2361,7 +2379,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         )->link( text = `Twitter` href = `https://twitter.com/OblomovDev`
         )->link( text = `GitHub` href = `https://github.com/oblomov-dev/abap2ui5` ).
 
-    DATA(grid) = page->grid( `XL8 L8 M12 S12` )->content( `l` ).
+    DATA(grid) = page->grid( `XL7 L7 M12 S12` )->content( `l` ).
     DATA(form) = grid->simple_form( `Quick Start` )->content( `f` ).
 
     form->label( `Step 1`
@@ -2553,7 +2571,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     lo_list = lo_ui5_model->add_attribute_list( `oScroll` ).
     LOOP AT ms_next-t_scroll_pos REFERENCE INTO DATA(lr_focus).
-      lo_list->add_list_object( )->add_attribute( n = lr_focus->n v = lr_focus->v apos_active = abap_false ).
+      lo_list->add_list_object( )->add_attribute( n = lr_focus->name v = lr_focus->value apos_active = abap_false ).
     ENDLOOP.
 
     IF ms_next-s_cursor_pos IS NOT INITIAL.
@@ -2592,7 +2610,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_if_view=>cs-bind_type-two_way.
+        WHERE bind_type = cs_bind_type-two_way.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
@@ -2702,7 +2720,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
 
-    IF type = z2ui5_if_view=>cs-bind_type-one_time.
+    IF type = cs_bind_type-one_time.
       DATA(lv_id) = _=>get_uuid_session( ).
       INSERT VALUE #(
         name = lv_id
@@ -2726,7 +2744,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        result = COND #( WHEN type = z2ui5_if_view=>cs-bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
         RETURN.
       ENDIF.
 
@@ -2737,7 +2755,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     INSERT VALUE #(
       name = lv_id
       data_stringify = _=>trans_any_2_json( value )
-      bind_type = z2ui5_if_view=>cs-bind_type-one_time
+      bind_type = cs_bind_type-one_time
      ) INTO TABLE ms_db-t_attri.
     result = |/{ lv_id }|.
 
@@ -2776,6 +2794,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW z2ui5_lcl_if_client( me ).
 
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
     ms_actual = VALUE #(
         lifecycle_method = ms_next-lifecycle_method
@@ -2890,13 +2909,13 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_if_view=>cs-bind_type-two_way ) && `}`.
+    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way ) && `}`.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_one_way.
 
-    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_if_view=>cs-bind_type-one_way ) && `}`.
+    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way ) && `}`.
 
   ENDMETHOD.
 

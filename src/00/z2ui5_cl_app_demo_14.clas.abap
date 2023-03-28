@@ -16,7 +16,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -67,7 +67,7 @@ CLASS z2ui5_cl_app_demo_14 IMPLEMENTATION.
                     )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
             )->get_parent( ).
 
-        DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
+        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
 
         grid->simple_form( 'File' )->content( 'f'
              )->label( 'path'

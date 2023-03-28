@@ -16,6 +16,7 @@ CLASS z2ui5_cl_app_demo_06 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     DATA check_initialized TYPE abap_bool.
+    data mv_key type string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -46,6 +47,7 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN 'BUTTON_SORT'.
+            client->popup_message_box( 'button sort was pressed' ).
             SORT t_tab BY value.
 
           WHEN 'BUTTON_POST'.
@@ -79,12 +81,41 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         tab->header_toolbar(
             )->overflow_toolbar(
                 )->title( 'title of the table'
+                )->button(
+                    text  = 'letf side button'
+                    icon  = 'sap-icon://account'
+                    press = client->_event( 'BUTTON_SORT' )
+                )->segmented_button( selected_key = mv_key
+                    )->items(
+                        )->segmented_button_item(
+                            key = 'BLUE'
+                            icon = 'sap-icon://accept'
+                            text = 'blue'
+                        )->segmented_button_item(
+                            key = 'GREEN'
+                            icon = 'sap-icon://add-favorite'
+                            text = 'green'
+                )->get_parent( )->get_parent(
+                )->toolbar_spacer(
+                )->generic_tag(
+                        arialabelledby = 'genericTagLabel'
+                        text           = 'Project Cost'
+                        design         = 'StatusIconHidden'
+                        status         = 'Error'
+                        class          = 'sapUiSmallMarginBottom'
+                    )->object_number(
+                        state      = 'Error'
+                        emphasized = 'false'
+                        number     = '3.5M'
+                        unit       = 'EUR'
+                )->get_parent(
                 )->toolbar_spacer(
                 )->button(
                     text  = 'Sort'
+                    icon = 'sap-icon://sort-descending'
                     press = client->_event( 'BUTTON_SORT' )
                 )->button(
-                    text  = 'Post'
+                    icon  = 'sap-icon://edit'
                     press = client->_event( 'BUTTON_POST' ) ).
 
         tab->columns(
