@@ -9,6 +9,13 @@ INTERFACE z2ui5_if_client
       END OF lifecycle_method,
     END OF cs.
 
+    TYPES:
+      BEGIN OF ty_s_name_value,
+        name  TYPE string,
+        value TYPE string,
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
   TYPES:
     BEGIN OF ty_s_cursor,
       id             TYPE string,
@@ -42,7 +49,7 @@ INTERFACE z2ui5_if_client
   METHODS set
     IMPORTING
       event         TYPE clike OPTIONAL
-      t_scroll_pos  TYPE z2ui5_cl_http_handler=>ty_t_name_value OPTIONAL
+      t_scroll_pos  TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
       s_cursor_pos  TYPE ty_s_cursor OPTIONAL
       set_prev_view TYPE abap_bool OPTIONAL.
 

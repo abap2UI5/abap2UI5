@@ -595,7 +595,7 @@ INTERFACE z2ui5_if_view
     IMPORTING
       name          TYPE clike
       ns            TYPE clike OPTIONAL
-      t_prop        TYPE z2ui5_cl_http_handler=>ty_t_name_value OPTIONAL
+      t_prop        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
