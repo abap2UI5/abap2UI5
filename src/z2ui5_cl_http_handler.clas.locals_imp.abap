@@ -890,8 +890,6 @@ CLASS z2ui5_lcl_if_view DEFINITION.
 
     INTERFACES z2ui5_if_view.
 
-    CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
-
     CONSTANTS:
       BEGIN OF cs_config,
         letterboxing TYPE abap_bool VALUE abap_true,
@@ -2612,7 +2610,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDTRY.
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way.
+        WHERE bind_type = cs_bind_type-two_way.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
@@ -2722,7 +2720,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
 
-    IF type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
+    IF type = cs_bind_type-one_time.
       DATA(lv_id) = _=>get_uuid_session( ).
       INSERT VALUE #(
         name = lv_id
@@ -2746,7 +2744,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         lr_attri->bind_type = type.
-        result = COND #( WHEN type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
         RETURN.
       ENDIF.
 
@@ -2757,7 +2755,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     INSERT VALUE #(
       name = lv_id
       data_stringify = _=>trans_any_2_json( value )
-      bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time
+      bind_type = cs_bind_type-one_time
      ) INTO TABLE ms_db-t_attri.
     result = |/{ lv_id }|.
 

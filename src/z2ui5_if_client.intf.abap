@@ -3,12 +3,12 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS cs LIKE z2ui5_if_view=>cs VALUE z2ui5_if_view=>cs.
 
-TYPES:
+  TYPES:
     BEGIN OF ty_s_cursor,
-       id             TYPE string,
-       cursorpos      TYPE string,
-       selectionstart TYPE string,
-       selectionend   TYPE string,
+      id             TYPE string,
+      cursorpos      TYPE string,
+      selectionstart TYPE string,
+      selectionend   TYPE string,
     END OF ty_s_cursor.
 
   TYPES:
@@ -35,10 +35,10 @@ TYPES:
 
   METHODS set
     IMPORTING
-      event           TYPE clike OPTIONAL
-      t_scroll_pos    TYPE z2ui5_cl_http_handler=>ty_t_name_value OPTIONAL
-      s_cursor_pos    TYPE ty_s_cursor OPTIONAL
-      set_prev_view   TYPE abap_bool OPTIONAL.
+      event         TYPE clike OPTIONAL
+      t_scroll_pos  TYPE z2ui5_cl_http_handler=>ty_t_name_value OPTIONAL
+      s_cursor_pos  TYPE ty_s_cursor OPTIONAL
+      set_prev_view TYPE abap_bool OPTIONAL.
 
   METHODS get
     RETURNING
