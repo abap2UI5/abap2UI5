@@ -54,7 +54,7 @@ CLASS Z2UI5_CL_APP_DEMO_24 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        view->page( title = 'abap2UI5 - flow logic 1' navbuttonpress = client->_event( 'BACK' )
+        view->page( title = 'abap2UI5 - flow logic - APP 01' navbuttonpress = client->_event( 'BACK' )
            )->header_content( )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'

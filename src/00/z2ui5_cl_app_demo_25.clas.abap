@@ -77,11 +77,11 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
         DATA(page) = client->factory_view( 'MAIN'
             )->page(
-                    title          = 'abap2UI5 - flow logic 2'
+                    title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
-                        text = 'Go to Source Code'
+                        text = 'Source_Code'
                         href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 
