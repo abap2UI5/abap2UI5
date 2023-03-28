@@ -36,7 +36,7 @@ TYPES:
   METHODS set
     IMPORTING
       event           TYPE clike OPTIONAL
-      t_scroll_pos    TYPE z2ui5_if_view=>ty_t_name_value OPTIONAL
+      t_scroll_pos    TYPE z2ui5_cl_http_handler=>ty_t_name_value OPTIONAL
       s_cursor_pos    TYPE ty_s_cursor OPTIONAL
       set_prev_view   TYPE abap_bool OPTIONAL.
 

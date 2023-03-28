@@ -21,7 +21,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         name  TYPE string,
         value TYPE string,
       END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value with empty key.
 
     CLASS-DATA:
       BEGIN OF client,
@@ -116,6 +116,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `   $(ele).scrollTop( item[ key ] );  }  ` && |\n| &&
                            `    // index: the ordinal position of the key within the object ` && |\n| &&
                            `})); }` && |\n| &&
+                           `             sap.ui.core.BusyIndicator.hide();` && |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
                            `                onEventFrontend: function (vAction) {` && |\n| &&
@@ -230,7 +231,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                                oView.setModel(oModel);` && |\n| &&
                            `                                oView.placeAt("content");` && |\n| &&
                            `                                this.oView = oView;` && |\n| &&
-                           `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
+                           `                                ` && |\n| &&
                            `                            }` && |\n| &&
                            `                            );` && |\n| &&
                            `                        } else if ( sap.z2ui5.oResponse.SET_PREV_VIEW == true ){` && |\n| &&
