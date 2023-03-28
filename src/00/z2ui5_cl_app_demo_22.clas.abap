@@ -25,7 +25,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -58,7 +58,7 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
             "nothing to do, default mode
 
           WHEN 'BUTTON_SCROLL_BOTTOM'.
-            client->set( t_scroll_pos = VALUE #( ( n = 'id_page' v = '99999' ) ) ).
+            client->set( t_scroll_pos = VALUE #( ( name = 'id_page' value = '99999' ) ) ).
 
             " WHEN 'BUTTON_SCROLL_UP'.
             "    DATA(lv_pos) = client->get( )-page_scroll_pos - 500.
@@ -79,8 +79,8 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
           WHEN 'BUTTON_FOCUS_END'.
             client->set( s_cursor_pos = VALUE #( id = 'id_text3'  cursorpos = '99999' selectionstart = '99999' selectionend = '999999' ) ).
             client->set( t_scroll_pos = VALUE #(
-              ( n = 'id_page' v = '99999' )
-              ( n = 'id_text3' v = '99999' )
+              ( name = 'id_page'  value = '99999' )
+              ( name = 'id_text3' value = '99999' )
              ) ).
 
 

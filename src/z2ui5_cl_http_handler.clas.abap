@@ -7,12 +7,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CONSTANTS:
       BEGIN OF cs_config,
-        theme            TYPE string    VALUE 'sap_horizon',
-        browser_title    TYPE string    VALUE 'abap2UI5',
-        " choose your ui5 library/license here, see sap note 3207822 and 2943781
-        " 'resources/sap-ui-core.js' or '/sap/public/bc/ui5_ui5/resources/sap-ui-core.js',
-        repository       TYPE string    VALUE 'https://ui5.sap.com/resources/sap-ui-core.js',
-        letterboxing     TYPE abap_bool VALUE abap_true,
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
@@ -21,7 +15,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         name  TYPE string,
         value TYPE string,
       END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     CLASS-DATA:
       BEGIN OF client,
@@ -30,7 +24,16 @@ CLASS z2ui5_cl_http_handler DEFINITION
         t_param  TYPE ty_t_name_value,
       END OF client.
 
+    "! loads the one page ui5 application
+    "! @parameter library_path | choose your ui5 license here, see sap note 3207822 and 2943781
+    "! @parameter theme | sap_horizon, sap_belize, ...
+    "! @parameter title | browser title
+    "! @parameter r_result | index.html
     CLASS-METHODS main_index_html
+      IMPORTING
+        library_path    TYPE string DEFAULT `https://ui5.sap.com/resources/sap-ui-core.js`
+        theme           TYPE string DEFAULT `sap_horizon`
+        title           TYPE string DEFAULT `abap2UI5`
       RETURNING
         VALUE(r_result) TYPE string.
 
@@ -46,50 +49,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
-
-
-  METHOD main_roundtrip.
-
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
-
-    DO.
-      TRY.
-          DATA(li_client) = lo_runtime->app_before_event( ).
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-
-        CATCH cx_root INTO DATA(x).
-          lo_runtime = lo_runtime->set_app_system_error( x ).
-          CONTINUE.
-      ENDTRY.
-
-      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_call_new( ).
-        CONTINUE.
-      ENDIF.
-
-      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
-        lo_runtime = lo_runtime->set_app_leave_to_id( ).
-        CONTINUE.
-      ENDIF.
-
-      TRY.
-          li_client = lo_runtime->app_before_rendering( ).
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
-          ROLLBACK WORK.
-          result = lo_runtime->request_end( ).
-
-        CATCH cx_root INTO x.
-          lo_runtime = lo_runtime->set_app_system_error( x ).
-          CONTINUE.
-      ENDTRY.
-
-      RETURN.
-    ENDDO.
-
-  ENDMETHOD.
 
 
   METHOD main_index_html.
@@ -111,14 +70,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `    <meta charset="UTF-8">` && |\n|  &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n|  &&
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
-               `    <title>` && cs_config-browser_title && `</title>` && |\n| &&
+               `    <title>` && title && `</title>` && |\n| &&
                `    <style>` && |\n|  &&
                `        html, body, body > div, #container, #container-uiarea {` && |\n|  &&
                `            height: 100%;` && |\n|  &&
                `        }` && |\n|  &&
                `    </style> ` &&
-               `    <script src="` && cs_config-repository && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && cs_config-theme && `"` && |\n| &&
+               `    <script src="` && library_path && `" ` &&
+               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && theme && `"` && |\n| &&
                `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
                `        >` && |\n| &&
                `     </script></head>` && |\n| &&
@@ -160,6 +119,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `   $(ele).scrollTop( item[ key ] );  }  ` && |\n| &&
                            `    // index: the ordinal position of the key within the object ` && |\n| &&
                            `})); }` && |\n| &&
+                           `             sap.ui.core.BusyIndicator.hide();` && |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
                            `                onEventFrontend: function (vAction) {` && |\n| &&
@@ -274,7 +234,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                                oView.setModel(oModel);` && |\n| &&
                            `                                oView.placeAt("content");` && |\n| &&
                            `                                this.oView = oView;` && |\n| &&
-                           `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
+                           `                                ` && |\n| &&
                            `                            }` && |\n| &&
                            `                            );` && |\n| &&
                            `                        } else if ( sap.z2ui5.oResponse.SET_PREV_VIEW == true ){` && |\n| &&
@@ -433,5 +393,49 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `</script>` && |\n| &&
                            |\n| &&
                            `</html>`.
+  ENDMETHOD.
+
+
+  METHOD main_roundtrip.
+
+    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
+
+    DO.
+      TRY.
+          DATA(li_client) = lo_runtime->app_before_event( ).
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+
+        CATCH cx_root INTO DATA(x).
+          lo_runtime = lo_runtime->set_app_system_error( x ).
+          CONTINUE.
+      ENDTRY.
+
+      IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_call_new( ).
+        CONTINUE.
+      ENDIF.
+
+      IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
+        lo_runtime = lo_runtime->set_app_leave_to_id( ).
+        CONTINUE.
+      ENDIF.
+
+      TRY.
+          li_client = lo_runtime->app_before_rendering( ).
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          ROLLBACK WORK.
+          result = lo_runtime->request_end( ).
+
+        CATCH cx_root INTO x.
+          lo_runtime = lo_runtime->set_app_system_error( x ).
+          CONTINUE.
+      ENDTRY.
+
+      RETURN.
+    ENDDO.
+
   ENDMETHOD.
 ENDCLASS.

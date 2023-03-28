@@ -54,7 +54,7 @@ CLASS Z2UI5_CL_APP_DEMO_24 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        view->page( title = 'abap2UI5 - flow logic 1' navbuttonpress = client->_event( 'BACK' )
+        view->page( title = 'abap2UI5 - flow logic - APP 01' navbuttonpress = client->_event( 'BACK' )
            )->header_content( )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code )->get_parent(
 
            )->grid( 'L6 M12 S12' )->content( 'l'
@@ -62,14 +62,14 @@ CLASS Z2UI5_CL_APP_DEMO_24 IMPLEMENTATION.
            )->simple_form( 'Controller' )->content( 'f'
 
              )->label( 'Demo'
-             )->button( text = 'call new app (default View)' press = client->_event( 'CALL_NEW_APP' )
+             )->button( text = 'call new app (first View)' press = client->_event( 'CALL_NEW_APP' )
              )->label( 'Demo'
-             )->button( text = 'call new app with view SECOND' press = client->_event( 'CALL_NEW_APP_VIEW' )
+             )->button( text = 'call new app (second View)' press = client->_event( 'CALL_NEW_APP_VIEW' )
              )->label( 'Demo'
-             )->button( text = 'call new app and set event' press = client->_event( 'CALL_NEW_APP_EVENT' )
-             )->label( 'call new app and set this data'
+             )->button( text = 'call new app (set Event)' press = client->_event( 'CALL_NEW_APP_EVENT' )
+             )->label( 'Demo'
              )->input( client->_bind( mv_input )
-             )->button( text = 'call' press = client->_event( 'CALL_NEW_APP_READ' )
+             )->button( text = 'call new app (set data)' press = client->_event( 'CALL_NEW_APP_READ' )
                   )->label( 'some data, you can read it in the next app'
              )->input( client->_bind( mv_input2 )
         ).
