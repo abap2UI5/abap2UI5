@@ -87,7 +87,7 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
         page->grid( 'L6 M12 S12' )->content( 'l'
 
-              )->simple_form( 'MAIN View' )->content( 'f'
+              )->simple_form( 'View: FIRST' )->content( 'f'
 
                )->label( 'Input set by previous app'
                )->input( mv_input_previous_set
@@ -102,7 +102,7 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
         page = client->factory_view( 'SECOND'
             )->page(
-                    title          = 'abap2UI5 - flow logic 2'
+                    title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
@@ -111,7 +111,7 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
-            )->simple_form( 'second view set by previous app' )->content( 'f'
+            )->simple_form( 'View: SECOND' )->content( 'f'
               )->label( 'Demo'
               )->button( text = 'leave to previous app' press = client->_event( 'BACK' )
               )->label( 'Demo'

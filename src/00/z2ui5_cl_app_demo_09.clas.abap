@@ -61,7 +61,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -281,33 +281,33 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
                 type    = 'Success' ).
 
 
-    DATA(popup) = client->factory_view( 'POPUP_TABLE_F4'
-        )->dialog( 'abap2UI5 - F4 Value Help' ).
+    client->factory_view( 'POPUP_TABLE_F4'
+        )->dialog( 'abap2UI5 - F4 Value Help'
+        )->table(
+                mode  = 'SingleSelectLeft'
+                items = client->_bind( mt_suggestion_sel )
+            )->columns(
+                )->column( '20rem'
+                    )->text( 'Color' )->get_parent(
+                )->column(
+                    )->text( 'Description'
+            )->get_parent( )->get_parent(
+            )->items(
+                )->column_list_item( selected = '{SELKZ}'
+                    )->cells(
+                        )->text( '{VALUE}'
+                        )->text( '{DESCR}'
+        )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+        )->footer(
+            )->overflow_toolbar(
+                )->toolbar_spacer(
+                )->button(
+                    text  = 'continue'
+                    press = client->_event( 'POPUP_TABLE_F4_CONTINUE' )
+                    type  = 'Emphasized' ).
 
-    DATA(tab) = popup->table(
-        mode  = 'SingleSelectLeft'
-        items = client->_bind( mt_suggestion_sel ) ).
 
-    tab->columns(
-        )->column( '20rem'
-            )->text( 'Color' )->get_parent(
-        )->column( )->text( 'Description' ).
-
-    tab->items( )->column_list_item( selected = '{SELKZ}'
-        )->cells(
-            )->text( '{VALUE}'
-            )->text( '{DESCR}' ).
-
-    popup->footer(
-        )->overflow_toolbar(
-            )->toolbar_spacer(
-            )->button(
-                text  = 'continue'
-                press = client->_event( 'POPUP_TABLE_F4_CONTINUE' )
-                type  = 'Emphasized' ).
-
-
-    popup = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
+    data(popup) = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
         )->dialog( 'abap2UI5 - F4 Value Help' ).
 
     popup->simple_form(
@@ -325,7 +325,7 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
             text  = 'search...'
             press = client->_event( 'SEARCH' ) ).
 
-    tab = popup->table(
+    data(tab) = popup->table(
         headertext = 'Employees'
         mode       = 'SingleSelectLeft'
         items      = client->_bind( mt_employees_sel ) ).
