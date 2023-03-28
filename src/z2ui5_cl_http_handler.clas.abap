@@ -10,18 +10,11 @@ CLASS z2ui5_cl_http_handler DEFINITION
         check_debug_mode TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
-    TYPES:
-      BEGIN OF ty_s_name_value,
-        name  TYPE string,
-        value TYPE string,
-      END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
-        t_header TYPE ty_t_name_value,
-        t_param  TYPE ty_t_name_value,
+        t_header TYPE z2ui5_if_client=>ty_t_name_value,
+        t_param  TYPE z2ui5_if_client=>ty_t_name_value,
       END OF client.
 
     "! loads the one page ui5 application
@@ -31,9 +24,9 @@ CLASS z2ui5_cl_http_handler DEFINITION
     "! @parameter r_result | index.html
     CLASS-METHODS main_index_html
       IMPORTING
-        library_path    TYPE string DEFAULT `https://ui5.sap.com/resources/sap-ui-core.js`
-        theme           TYPE string DEFAULT `sap_horizon`
-        title           TYPE string DEFAULT `abap2UI5`
+        library_path    TYPE clike DEFAULT `https://ui5.sap.com/resources/sap-ui-core.js`
+        theme           TYPE clike DEFAULT `sap_horizon`
+        title           TYPE clike DEFAULT `abap2UI5`
       RETURNING
         VALUE(r_result) TYPE string.
 
