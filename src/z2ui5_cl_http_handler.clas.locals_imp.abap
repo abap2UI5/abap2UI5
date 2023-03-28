@@ -251,7 +251,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DATA(url_segments) = segment( val = get_trim_upper( url ) index = 2 sep = `?` ).
     SPLIT url_segments AT `&` INTO TABLE DATA(lt_params).
 
-    DATA lt_url_params TYPE z2ui5_cl_http_handler=>ty_t_name_value.
+    DATA lt_url_params TYPE z2ui5_if_client=>ty_t_name_value.
 
     LOOP AT lt_params INTO DATA(lv_param).
 
@@ -904,7 +904,7 @@ CLASS z2ui5_lcl_if_view DEFINITION.
 
     DATA m_name TYPE string.
     DATA m_ns   TYPE string.
-    DATA mt_prop TYPE z2ui5_cl_http_handler=>ty_t_name_value.
+    DATA mt_prop TYPE z2ui5_if_client=>ty_t_name_value.
 
     DATA m_root    TYPE REF TO z2ui5_lcl_if_view.
     DATA m_last    TYPE REF TO z2ui5_lcl_if_view.
@@ -972,8 +972,8 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
     CLASS-DATA:
       BEGIN OF ss_client,
         o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
-        t_header TYPE z2ui5_cl_http_handler=>ty_t_name_value,
-        t_param  TYPE z2ui5_cl_http_handler=>ty_t_name_value,
+        t_header TYPE z2ui5_if_client=>ty_t_name_value,
+        t_param  TYPE z2ui5_if_client=>ty_t_name_value,
       END OF ss_client.
 
     TYPES:
@@ -1013,7 +1013,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
         check_set_prev_view TYPE abap_bool,
 
-        t_scroll_pos        TYPE z2ui5_cl_http_handler=>ty_t_name_value,
+        t_scroll_pos        TYPE z2ui5_if_client=>ty_t_name_value,
         s_cursor_pos        TYPE z2ui5_if_client=>ty_s_cursor,
 
         t_view              TYPE STANDARD TABLE OF s_view WITH EMPTY KEY,

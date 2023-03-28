@@ -80,9 +80,8 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
                     title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
-                    )->link(
-                        text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1640743794206228480`
+                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
@@ -105,9 +104,8 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
                     title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
-                    )->link(
-                        text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1640743794206228480`
+                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
