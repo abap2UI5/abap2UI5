@@ -2361,7 +2361,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
         )->link( text = `Twitter` href = `https://twitter.com/OblomovDev`
         )->link( text = `GitHub` href = `https://github.com/oblomov-dev/abap2ui5` ).
 
-    DATA(grid) = page->grid( `XL8 L8 M12 S12` )->content( `l` ).
+    DATA(grid) = page->grid( `XL7 L7 M12 S12` )->content( `l` ).
     DATA(form) = grid->simple_form( `Quick Start` )->content( `f` ).
 
     form->label( `Step 1`

@@ -61,6 +61,93 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
 
+  METHOD z2ui5_if_app~controller.
+
+    CASE client->get( )-lifecycle_method.
+
+      WHEN client->cs-lifecycle_method-on_event.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          t_bapiret = VALUE #(
+            ( message = 'An empty Report field causes an empty XML Message to be sent' type = 'E' id = 'MSG1' number = '001' )
+            ( message = 'Check was executed for wrong Scenario' type = 'E' id = 'MSG1' number = '002' )
+            ( message = 'Request was handled without errors' type = 'S' id = 'MSG1' number = '003' )
+            ( message = 'product activated' type = 'S' id = 'MSG4' number = '375' )
+            ( message = 'check the input values' type = 'W' id = 'MSG2' number = '375' )
+            ( message = 'product already in use' type = 'I' id = 'MSG2' number = '375' )
+             ).
+
+          RETURN.
+        ENDIF.
+
+
+        CASE client->get( )-event.
+
+          WHEN 'POPUP_TO_DECIDE'.
+            client->popup_view( 'POPUP_TO_DECIDE' ).
+
+          WHEN 'BUTTON_CONFIRM'.
+            client->popup_message_toast( 'confirm pressed' ).
+
+          WHEN 'BUTTON_CANCEL'.
+            client->popup_message_toast( 'cancel pressed' ).
+
+          WHEN 'POPUP_TO_TEXTAREA'.
+            mv_stretch_active = abap_false.
+            client->popup_view( 'POPUP_TO_TEXTAREA' ).
+
+          WHEN 'POPUP_TO_TEXTAREA_STRETCH'.
+            client->popup_view( 'POPUP_TO_TEXTAREA' ).
+            mv_stretch_active = abap_true.
+
+          WHEN 'POPUP_TO_TEXTAREA_SIZE'.
+            client->popup_view( 'POPUP_TO_TEXTAREA_SIZE' ).
+
+          WHEN 'BUTTON_TEXTAREA_CANCEL'.
+            client->popup_message_toast( 'textarea deleted' ).
+            CLEAR mv_textarea.
+
+          WHEN 'POPUP_TO_INPUT'.
+            ms_popup_input-value1 = 'value1'.
+            client->popup_view( 'POPUP_TO_INPUT' ).
+
+          WHEN 'POPUP_BAL'.
+            client->popup_view( 'POPUP_BAL' ).
+
+          WHEN 'POPUP_TABLE'.
+            CLEAR t_tab.
+            DO 10 TIMES.
+              DATA(ls_row) = VALUE ty_row( title = 'entry_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' ).
+              INSERT ls_row INTO TABLE t_tab.
+            ENDDO.
+            client->popup_view( 'POPUP_TABLE' ).
+
+          WHEN 'POPUP_TABLE_CONTINUE'.
+            DELETE t_tab WHERE selkz = abap_false.
+            client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title ).
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
+        ENDCASE.
+
+        client->show_view( 'MAIN' ).
+
+
+      WHEN client->cs-lifecycle_method-on_rendering.
+
+        view_main( client ).
+        view_popup_decide( client ).
+        view_popup_textarea( client ).
+        view_popup_input( client ).
+        view_popup_table( client ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
   METHOD view_main.
 
     DATA(page) = client->factory_view( 'MAIN'
@@ -276,91 +363,4 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD z2ui5_if_app~controller.
-
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-
-          t_bapiret = VALUE #(
-            ( message = 'An empty Report field causes an empty XML Message to be sent' type = 'E' id = 'MSG1' number = '001' )
-            ( message = 'Check was executed for wrong Scenario' type = 'E' id = 'MSG1' number = '002' )
-            ( message = 'Request was handled without errors' type = 'S' id = 'MSG1' number = '003' )
-            ( message = 'product activated' type = 'S' id = 'MSG4' number = '375' )
-            ( message = 'check the input values' type = 'W' id = 'MSG2' number = '375' )
-            ( message = 'product already in use' type = 'I' id = 'MSG2' number = '375' )
-             ).
-
-          RETURN.
-        ENDIF.
-
-
-        CASE client->get( )-event.
-
-          WHEN 'POPUP_TO_DECIDE'.
-            client->popup_view( 'POPUP_TO_DECIDE' ).
-
-          WHEN 'BUTTON_CONFIRM'.
-            client->popup_message_toast( 'confirm pressed' ).
-
-          WHEN 'BUTTON_CANCEL'.
-            client->popup_message_toast( 'cancel pressed' ).
-
-          WHEN 'POPUP_TO_TEXTAREA'.
-            mv_stretch_active = abap_false.
-            client->popup_view( 'POPUP_TO_TEXTAREA' ).
-
-          WHEN 'POPUP_TO_TEXTAREA_STRETCH'.
-            client->popup_view( 'POPUP_TO_TEXTAREA' ).
-            mv_stretch_active = abap_true.
-
-          WHEN 'POPUP_TO_TEXTAREA_SIZE'.
-            client->popup_view( 'POPUP_TO_TEXTAREA_SIZE' ).
-
-          WHEN 'BUTTON_TEXTAREA_CANCEL'.
-            client->popup_message_toast( 'textarea deleted' ).
-            CLEAR mv_textarea.
-
-          WHEN 'POPUP_TO_INPUT'.
-            ms_popup_input-value1 = 'value1'.
-            client->popup_view( 'POPUP_TO_INPUT' ).
-
-          WHEN 'POPUP_BAL'.
-            client->popup_view( 'POPUP_BAL' ).
-
-          WHEN 'POPUP_TABLE'.
-            CLEAR t_tab.
-            DO 10 TIMES.
-              DATA(ls_row) = VALUE ty_row( title = 'entry_' && sy-index  value = 'red' info = 'completed'  descr = 'this is a description' ).
-              INSERT ls_row INTO TABLE t_tab.
-            ENDDO.
-            client->popup_view( 'POPUP_TABLE' ).
-
-          WHEN 'POPUP_TABLE_CONTINUE'.
-            DELETE t_tab WHERE selkz = abap_false.
-            client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title ).
-
-          WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-        ENDCASE.
-
-        client->show_view( 'MAIN' ).
-
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        view_main( client ).
-        view_popup_decide( client ).
-        view_popup_textarea( client ).
-        view_popup_input( client ).
-        view_popup_table( client ).
-
-    ENDCASE.
-
-  ENDMETHOD.
 ENDCLASS.
