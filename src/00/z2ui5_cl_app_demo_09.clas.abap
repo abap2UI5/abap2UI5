@@ -284,7 +284,6 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD z2ui5_on_init.
 
     mt_suggestion = VALUE #(

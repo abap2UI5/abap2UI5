@@ -506,7 +506,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       result = ms_error-x_root->get_text( ).
       DATA(error) = abap_true.
     ELSEIF ms_error-s_msg-message IS NOT INITIAL.
-      result = ms_error-s_msg-message .
+      result = ms_error-s_msg-message.
       error = abap_true.
     ENDIF.
 
