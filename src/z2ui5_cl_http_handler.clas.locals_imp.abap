@@ -10,6 +10,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
+    types ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
+
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
@@ -20,24 +22,11 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
-    TYPES:
-      BEGIN OF ty,
-        BEGIN OF s,
-          BEGIN OF msg_result,
-            message TYPE string,
-            s_bapi  TYPE LINE OF bapirettab,
-          END OF msg_result,
-        END OF s,
-        BEGIN OF t,
-          attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
-        END OF t,
-      END OF ty.
-
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
-        s_msg  TYPE ty-s-msg_result,
+        s_msg  TYPE LINE OF bapirettab,
       END OF ms_error.
 
     METHODS constructor
@@ -98,7 +87,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         i_focus       TYPE data
         io_app        TYPE REF TO object
-        t_attri       TYPE ty-t-attri
+        t_attri       TYPE ty_t_attri
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
@@ -106,7 +95,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         io_app        TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE ty-t-attri ##NEEDED.
+        VALUE(result) TYPE ty_t_attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
       IMPORTING
@@ -516,8 +505,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
       DATA(error) = abap_true.
-    ELSEIF ms_error-s_msg-message IS NOT INITIAL.
-      result = ms_error-s_msg-message.
+    ELSEIF ms_error-s_msg-message  IS NOT INITIAL.
+      result = ms_error-s_msg-message .
       error = abap_true.
     ENDIF.
 
@@ -899,7 +888,7 @@ CLASS z2ui5_lcl_if_view DEFINITION.
       BEGIN OF ty_s_view,
         xml     TYPE string,
         o_model TYPE REF TO z2ui5_lcl_utility_tree_json,
-        t_attri TYPE _=>ty-t-attri,
+        t_attri TYPE _=>ty_t_attri,
       END OF ty_s_view.
 
     DATA m_name TYPE string.
@@ -984,7 +973,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         id_prev_app_stack TYPE string,
 
         view_active       TYPE string,
-        t_attri           TYPE _=>ty-t-attri,
+        t_attri           TYPE _=>ty_t_attri,
         o_app             TYPE REF TO object,
         app_classname     TYPE string,
       END OF ty_s_db.
