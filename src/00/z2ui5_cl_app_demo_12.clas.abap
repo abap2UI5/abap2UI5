@@ -36,7 +36,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
           WHEN 'BUTTON_POPUP_03'.
             client->show_view( 'MAIN' ).
-            client->popup_view( 'POPUP_DECIDE_FRONTEND_CLOSE' ).
+            client->popup_view( 'POPUP_INFO_FRONTEND_CLOSE' ).
 
           WHEN 'BUTTON_POPUP_04'.
             client->set( set_prev_view = abap_true ).
@@ -124,7 +124,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                         type  = 'Emphasized' ).
 
 
-        client->factory_view( 'POPUP_DECIDE_FRONTEND_CLOSE'
+        client->factory_view( 'POPUP_INFO_FRONTEND_CLOSE'
             )->dialog( 'Popup - Info'
                 )->vbox(
                     )->text( 'this is an information, press close to go back to the main view without a server roundtrip'
