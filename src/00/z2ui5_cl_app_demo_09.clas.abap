@@ -233,7 +233,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                     type  = 'Emphasized' ).
 
 
-    data(popup) = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
+    DATA(popup) = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
         )->dialog( 'abap2UI5 - F4 Value Help' ).
 
     popup->simple_form(
@@ -251,7 +251,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
             text  = 'search...'
             press = client->_event( 'SEARCH' ) ).
 
-    data(tab) = popup->table(
+    DATA(tab) = popup->table(
         headertext = 'Employees'
         mode       = 'SingleSelectLeft'
         items      = client->_bind( mt_employees_sel ) ).
@@ -356,5 +356,6 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         ( city = 'Paris'  name = 'Hermine3'  lastname = 'lastname11' nr = '00011' ) ).
 
   ENDMETHOD.
+
 
 ENDCLASS.
