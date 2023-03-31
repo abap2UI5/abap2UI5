@@ -76,9 +76,8 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         DATA(page) = client->factory_view(
             )->page(
-                title          = 'abap2UI5 - Selection-Screen more Controls'
-                navbuttonpress = client->_event( 'BACK' )
-                class = `class="sapUiContentPadding sapUiResponsivePadding--header sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer"`
+                    title          = 'abap2UI5 - Selection-Screen more Controls'
+                    navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
@@ -86,11 +85,11 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                 )->get_parent( ).
 
         page->generic_tag(
-            arialabelledby = 'genericTagLabel'
-            text           = 'Project Cost'
-            design         = 'StatusIconHidden'
-            status         = 'Error'
-            class          = 'sapUiSmallMarginBottom'
+                arialabelledby = 'genericTagLabel'
+                text           = 'Project Cost'
+                design         = 'StatusIconHidden'
+                status         = 'Error'
+                class          = 'sapUiSmallMarginBottom'
             )->object_number(
                 state      = 'Error'
                 emphasized = 'false'
