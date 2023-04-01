@@ -93,7 +93,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
       WHEN client->cs-lifecycle_method-on_rendering.
 
         DATA(view) = client->factory_view( ).
-        DATA(page) = view->page( id = 'id_page' title = 'abap2ui5 - Scrolling and Cursor' navbuttonpress = client->_event( 'BACK' ) ).
+        DATA(page) = view->page( id = 'id_page' title = 'abap2ui5 - Scrolling and Cursor (use the browser Chrome to avoid incompatibilities)' navbuttonpress = client->_event( 'BACK' ) ).
 
         page->header_content( )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code ).
 
