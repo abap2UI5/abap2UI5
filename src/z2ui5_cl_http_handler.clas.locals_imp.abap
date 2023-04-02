@@ -2172,6 +2172,40 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_view~multi_input.
+
+    result = _generic(
+        name   = `MultiInput`
+        t_prop = VALUE #(
+            ( n = `tokens` v = tokens )
+            ( n = `showClearIcon` v = _=>get_json_boolean( showclearicon ) )
+            ( n = `showValueHelp` v = _=>get_json_boolean( showvaluehelp ) )
+            ( n = `suggestionItems` v = suggestionitems )
+            ( n = `width` v = width )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~token.
+
+    result = me.
+    _generic(
+        name   = `Token`
+        t_prop = VALUE #(
+            ( n = `key`      v = key )
+            ( n = `text`     v = text )
+            ( n = `selected` v = selected )
+            ( n = `visible`  v = visible )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~tokens.
+
+    result = _generic( `tokens` ).
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_system_app DEFINITION.

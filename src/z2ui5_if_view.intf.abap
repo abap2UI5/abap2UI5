@@ -37,6 +37,29 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
+  METHODS multi_input
+    IMPORTING
+      showclearicon   TYPE clike OPTIONAL
+      showValueHelp   TYPE clike OPTIONAL
+      suggestionitems TYPE clike OPTIONAL
+      width           TYPE clike OPTIONAL
+      tokens          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
+  METHODS tokens
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
+  METHODS token
+    IMPORTING
+      key      TYPE clike OPTIONAL
+      text     TYPE clike OPTIONAL
+      selected TYPE clike OPTIONAL
+      visible  TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
   METHODS horizontal_layout
     IMPORTING
       class         TYPE clike OPTIONAL
