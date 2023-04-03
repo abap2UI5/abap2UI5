@@ -10,7 +10,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
-    types ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
+    TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
@@ -1058,6 +1058,10 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
+    METHODS request_end_get_view
+      RETURNING
+        VALUE(rr_view) TYPE REF TO s_view.
+
 
   PRIVATE SECTION.
 
@@ -1093,11 +1097,11 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD xml_get_begin.
 
-    result = COND #( WHEN check_popup_active = abap_true THEN `<core:FragmentDefinition` ELSE `<mvc:View controllerName="MyController"` ).
+    result = COND #( WHEN check_popup_active = abap_true THEN `<core:FragmentDefinition` ELSE `<mvc:View controllerName="z2ui5_controller"` ).
 
     result = result && ` displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `xmlns="sap.m" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
+                     `xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
     result = result && COND #( WHEN cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
@@ -1198,6 +1202,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
           ( n = `enabled` v = _=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
+          ( n = `tooltip` v = tooltip )
        ) ).
 
   ENDMETHOD.
@@ -1381,7 +1386,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
           name   = `HBox`
           t_prop = VALUE #(
-             ( n = `class` v = `sapUiSmallMargin` )
+            ( n = `class` v = class )
         ) ).
 
   ENDMETHOD.
@@ -1393,8 +1398,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       ns     = `f`
       t_prop = VALUE #(
         ( n = `title` v = title )
-        ( n = `editable` v = `true` )
-        ( n = `layout` v = `ResponsiveGridLayout` )
+        ( n = `layout` v = layout )
       ) ).
 
   ENDMETHOD.
@@ -1413,8 +1417,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
          name  = `Title`
          t_prop = VALUE #(
-             ( n = `text` v = title ) )
-      ).
+             ( n = `text`     v = text )
+             ( n = `wrapping` v = _=>get_json_boolean( wrapping ) )
+      ) ).
 
   ENDMETHOD.
 
@@ -1528,6 +1533,17 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        name  = `Label`
        t_prop = VALUE #(
            ( n = `text` v = text )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~image.
+
+    result = me.
+    _generic(
+       name  = `Image`
+       t_prop = VALUE #(
+           ( n = `src` v = src )
         ) ).
 
   ENDMETHOD.
@@ -1793,7 +1809,10 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~header_content.
 
-    result = _generic( `headerContent` ).
+    result = _generic(
+        name = `headerContent`
+        ns   = ns
+         ).
 
   ENDMETHOD.
 
@@ -1946,7 +1965,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~flex_box.
 
-
     result = _generic(
           name   = `FlexBox`
           t_prop = VALUE #(
@@ -1955,6 +1973,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
                       ( n = `width`  v = width )
                       ( n = `height`  v = height )
                       ( n = `alignItems`  v = alignitems )
+                      ( n = `fitContainer`  v = _=>get_json_boolean( fitContainer ) )
                       ( n = `justifyContent`  v = justifycontent )
         ) ).
 
@@ -2169,6 +2188,198 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
         name = `segments`
         ns   = `mchart` ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~multi_input.
+
+    result = _generic(
+        name   = `MultiInput`
+        t_prop = VALUE #(
+            ( n = `tokens` v = tokens )
+            ( n = `showClearIcon` v = _=>get_json_boolean( showclearicon ) )
+            ( n = `showValueHelp` v = _=>get_json_boolean( showvaluehelp ) )
+            ( n = `suggestionItems` v = suggestionitems )
+            ( n = `width` v = width )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~token.
+
+    result = me.
+    _generic(
+        name   = `Token`
+        t_prop = VALUE #(
+            ( n = `key`      v = key )
+            ( n = `text`     v = text )
+            ( n = `selected` v = selected )
+            ( n = `visible`  v = visible )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~tokens.
+
+    result = _generic( `tokens` ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~actions.
+
+    result = _generic(
+        name   = `actions`
+        ns     = `uxap`
+      ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~avatar.
+
+    result = me.
+    _generic(
+        name   = `Avatar`
+        t_prop = VALUE #(
+            ( n = `src`      v = src )
+            ( n = `class`    v = class )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~blocks.
+
+    result = _generic(
+        name   = `blocks`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~expanded_heading.
+
+    result = _generic(
+        name   = `expandedHeading`
+        ns     = `uxap`
+    ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~heading.
+
+    result = me.
+    result = _generic(
+        name   = `heading`
+        ns     = `uxap`
+    ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_dyn_header_title.
+
+    result = _generic(
+        name   = `ObjectPageDynamicHeaderTitle`
+        ns     = `uxap`
+    ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_layout.
+
+    result = _generic(
+        name   = `ObjectPageLayout`
+        ns     = `uxap`
+        t_prop = VALUE #(
+            ( n = `showTitleInHeaderContent`  v = _=>get_json_boolean( showTitleInHeaderContent ) )
+            ( n = `showEditHeaderButton`      v = _=>get_json_boolean( showEditHeaderButton ) )
+            ( n = `editHeaderButtonPress`     v = editHeaderButtonPress )
+            ( n = `upperCaseAnchorBar`        v = upperCaseAnchorBar )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_section.
+
+    result = _generic(
+        name   = `ObjectPageSection`
+        ns     = `uxap`
+        t_prop = VALUE #(
+            ( n = `titleUppercase`  v = titleUppercase )
+            ( n = `title`           v = title )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_sub_section.
+
+    result = _generic(
+        name   = `ObjectPageSubSection`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~sections.
+
+    result = _generic(
+        name   = `sections`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~snapped_heading.
+
+    result = me.
+    result = _generic(
+        name   = `snappedHeading`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~sub_sections.
+
+    result = me.
+    result = _generic(
+        name   = `subSections`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~header_title.
+
+    result = _generic(
+        name   = `headerTitle`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~expanded_content.
+
+    result = _generic(
+         name   = `expandedContent`
+         ns     = `uxap`
+      ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~snapped_content.
+
+    result = _generic(
+         name   = `snappedContent`
+         ns     = `uxap`
+      ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~snapped_title_on_mobile.
+
+    result = _generic(
+         name   = `snappedTitleOnMobile`
+         ns     = `uxap`
+      ).
 
   ENDMETHOD.
 
@@ -2497,28 +2708,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_end.
 
-    _=>raise( when = xsdbool( lines( ms_next-t_view ) = 0 ) ).
-
-    IF ms_next-view IS NOT INITIAL.
-      IF ms_next-check_set_prev_view = abap_true.
-        _=>raise( `New view_show called and set_prev_view active - both not possible` ).
-      ENDIF.
-      TRY.
-          DATA(lr_view) = REF #( ms_next-t_view[ name = ms_next-view ] ).
-        CATCH cx_root.
-          _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
-      ENDTRY.
-    ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
-      TRY.
-          lr_view = REF #( ms_next-t_view[ name = ms_actual-view_active ] ).
-          ms_next-view = ms_actual-view_active.
-        CATCH cx_root.
-          _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
-      ENDTRY.
-    ELSEIF ms_next-view_popup IS INITIAL.
-      lr_view = REF #( ms_next-t_view[ 1 ] ).
-      ms_next-view = lr_view->name.
-    ENDIF.
+    DATA(lr_view) = request_end_get_view( ).
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
@@ -2811,6 +3001,33 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD request_end_get_view.
+
+    _=>raise( when = xsdbool( lines( ms_next-t_view ) = 0 ) ).
+
+    IF ms_next-view IS NOT INITIAL.
+      IF ms_next-check_set_prev_view = abap_true.
+        _=>raise( `New view_show called and set_prev_view active - both not possible` ).
+      ENDIF.
+      TRY.
+          rr_view  = REF #( ms_next-t_view[ name = ms_next-view ] ).
+        CATCH cx_root.
+          _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
+      ENDTRY.
+    ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
+      TRY.
+          rr_view = REF #( ms_next-t_view[ name = ms_actual-view_active ] ).
+          ms_next-view = ms_actual-view_active.
+        CATCH cx_root.
+          _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
+      ENDTRY.
+    ELSEIF ms_next-view_popup IS INITIAL.
+      rr_view = REF #( ms_next-t_view[ 1 ] ).
+      ms_next-view = rr_view->name.
+    ENDIF.
+
+  ENDMETHOD.
 
 ENDCLASS.
 
