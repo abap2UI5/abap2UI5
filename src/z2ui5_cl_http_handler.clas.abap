@@ -41,12 +41,40 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
-    client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
-                                 ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
+    DATA temp1 TYPE z2ui5_if_client=>ty_t_name_value.
+    CLEAR temp1.
+    DATA tab TYPE z2ui5_if_client=>ty_t_name_value.
+    tab = client-t_param.
+    DATA row LIKE LINE OF tab.
+    LOOP AT tab INTO row.
+      DATA temp2 LIKE LINE OF temp1.
+      temp2-name = to_upper( row-name ).
+      temp2-value = to_upper( row-value ).
+      APPEND temp2 TO temp1.
+    ENDLOOP.
+    client-t_param = temp1.
 
-    DATA(lv_url) = client-t_header[ name = '~path' ]-value.
+    DATA lv_url TYPE z2ui5_if_client=>ty_s_name_value-value.
+    DATA temp3 LIKE LINE OF client-t_header.
+    DATA temp4 LIKE sy-tabix.
+    temp4 = sy-tabix.
+    READ TABLE client-t_header WITH KEY name = '~path' INTO temp3.
+    sy-tabix = temp4.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+    ENDIF.
+    lv_url = temp3-value.
     TRY.
-        DATA(lv_app) = client-t_param[ name = 'APP' ]-value.
+        DATA lv_app TYPE z2ui5_if_client=>ty_s_name_value-value.
+        DATA temp5 LIKE LINE OF client-t_param.
+        DATA temp6 LIKE sy-tabix.
+        temp6 = sy-tabix.
+        READ TABLE client-t_param WITH KEY name = 'APP' INTO temp5.
+        sy-tabix = temp6.
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE cx_sy_itab_line_not_found.
+        ENDIF.
+        lv_app = temp5-value.
         lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
@@ -386,16 +414,21 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_roundtrip.
 
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
+    DATA lo_runtime TYPE REF TO z2ui5_lcl_system_runtime.
+    lo_runtime = z2ui5_lcl_system_runtime=>request_begin( ).
 
     DO.
       TRY.
-          DATA(li_client) = lo_runtime->app_before_event( ).
+          DATA li_client TYPE REF TO z2ui5_if_client.
+          li_client = lo_runtime->app_before_event( ).
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          DATA temp3 TYPE REF TO z2ui5_if_app.
+          temp3 ?= lo_runtime->ms_db-o_app.
+          temp3->controller( li_client ).
           ROLLBACK WORK.
 
-        CATCH cx_root INTO DATA(x).
+          DATA x TYPE REF TO cx_root.
+        CATCH cx_root INTO x.
           lo_runtime = lo_runtime->set_app_system_error( x ).
           CONTINUE.
       ENDTRY.
@@ -413,7 +446,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       TRY.
           li_client = lo_runtime->app_before_rendering( ).
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          DATA temp4 TYPE REF TO z2ui5_if_app.
+          temp4 ?= lo_runtime->ms_db-o_app.
+          temp4->controller( li_client ).
           ROLLBACK WORK.
           result = lo_runtime->request_end( ).
 
