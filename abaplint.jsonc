@@ -34,7 +34,10 @@
       "skipNames": []
     },
     "check_abstract": true,
-    "check_comments": true,
+    "check_comments": {
+      "exclude": [],
+      "severity": "Warning"
+    },
     "check_ddic": true,
     "check_include": true,
     "check_subrc": false,
@@ -67,22 +70,20 @@
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
-    "double_space": true,
+    "double_space": false,
     "downport": true,
     "empty_line_in_statement": false,
     "empty_statement": true,
     "empty_structure": {
-        "exclude": [],
-        "severity": "Error",
-        "loop": true,
-        "if": true,
-        "while": true,
-        "case": true,
-        "select": true,
-        "do": true,
-        "at": true,
-        "try": true,
-        "when": false
+      "loop": true,
+      "if": true,
+      "while": true,
+      "case": true,
+      "select": true,
+      "do": true,
+      "at": true,
+      "try": true,
+      "when": false
     },
     "exit_or_check": true,
     "expand_macros": true,
@@ -96,21 +97,13 @@
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false
     },
-    "forbidden_void_type": {
-      "exclude": [],
-      "severity": "Error",
-      "check": []
-    },
+    "forbidden_void_type": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
-      "exclude": [],
-      "severity": "Error",
       "checkData": true
     },
     "function_module_recommendations": true,
     "functional_writing": {
-      "exclude": [],
-      "severity": "Error",
       "ignoreExceptions": true
     },
     "global_class": true,
@@ -123,11 +116,7 @@
     "in_statement_indentation": false,
     "indentation": false,
     "inline_data_old_versions": true,
-    "intf_referencing_clas": {
-      "exclude": [],
-      "severity": "Error",
-      "allow": []
-    },
+    "intf_referencing_clas": true,
     "keep_single_parameter_on_one_line": false,
     "keyword_case": false,
     "line_break_multiple_parameters": false,
@@ -148,16 +137,12 @@
     "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
-      "exclude": [],
-      "severity": "Error",
       "reportDynamic": true,
       "ownTables": "^[yz]"
     },
     "msag_consistency": true,
     "names_no_dash": true,
     "nesting": {
-      "exclude": [],
-      "severity": "Error",
       "depth": 5
     },
     "newline_between_methods": true,
@@ -199,16 +184,20 @@
     "omit_receiving": true,
     "parser_702_chaining": true,
     "parser_error": true,
-    "parser_missing_space": true,
+    "parser_missing_space": false,
     "pragma_style": true,
     "prefer_corresponding": true,
-    "prefer_inline": true,
+    "prefer_inline": {
+      "severity": "Warning"
+    },
     "prefer_is_not": true,
     "prefer_raise_exception_new": true,
     "prefer_returning_to_exporting": false,
     "prefer_xsdbool": true,
     "preferred_compare_operator": true,
-    "prefix_is_current_class": true,
+    "prefix_is_current_class": {
+      "severity": "Warning"
+    },
     "reduce_string_templates": true,
     "release_idoc": true,
     "remove_descriptions": {
@@ -221,7 +210,9 @@
     "select_add_order_by": true,
     "select_performance": true,
     "selection_screen_naming": true,
-    "sequential_blank": true,
+    "sequential_blank": {
+      "severity": "Warning"
+    },
     "short_case": false,
     "sicf_consistency": true,
     "slow_parameter_passing": true,
@@ -230,8 +221,6 @@
     "sql_escape_host_variables": true,
     "start_at_tab": false,
     "static_call_via_instance": {
-      "exclude": [],
-      "severity": "Error",
       "allowInTestclassIncludes": false
     },
     "superclass_final": true,
@@ -250,15 +239,10 @@
     "unsecure_fae": true,
     "unused_ddic": true,
     "unused_methods": true,
-    "unused_types": {
-      "exclude": [],
-      "severity": "Error",
-      "skipNames": []
-    },
+    "unused_types": true,
     "unused_variables": {
-      "exclude": [ ],
       "severity": "Error",
-      "skipNames": [ "lv_dummy" ]
+      "skipNames": ["lv_dummy", "i_mv_editor"]
     },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
