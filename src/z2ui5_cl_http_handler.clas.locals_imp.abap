@@ -1097,7 +1097,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = result && ` displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `xmlns="sap.m" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
+                     `xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
     result = result && COND #( WHEN cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
 
@@ -1198,6 +1198,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
           ( n = `enabled` v = _=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
+          ( n = `tooltip` v = tooltip )
        ) ).
 
   ENDMETHOD.
@@ -1413,8 +1414,9 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     _generic(
          name  = `Title`
          t_prop = VALUE #(
-             ( n = `text` v = title ) )
-      ).
+             ( n = `text`     v = text )
+             ( n = `wrapping` v = _=>get_json_boolean( wrapping ) )
+      ) ).
 
   ENDMETHOD.
 
@@ -1946,7 +1948,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~flex_box.
 
-
     result = _generic(
           name   = `FlexBox`
           t_prop = VALUE #(
@@ -1955,6 +1956,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
                       ( n = `width`  v = width )
                       ( n = `height`  v = height )
                       ( n = `alignItems`  v = alignitems )
+                      ( n = `fitContainer`  v = _=>get_json_boolean( fitContainer ) )
                       ( n = `justifyContent`  v = justifycontent )
         ) ).
 
@@ -2203,6 +2205,164 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
   METHOD z2ui5_if_view~tokens.
 
     result = _generic( `tokens` ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~actions.
+
+    result = _generic(
+        name   = `actions`
+        ns     = `uxap`
+      ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~avatar.
+
+    result = me.
+    _generic(
+        name   = `Avatar`
+        t_prop = VALUE #(
+            ( n = `src`      v = src )
+            ( n = `class`    v = class )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~blocks.
+
+    result = _generic(
+        name   = `blocks`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~expanded_heading.
+
+    result = _generic(
+        name   = `expandedHeading`
+        ns     = `uxap`
+    ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~heading.
+
+    result = me.
+    result = _generic(
+        name   = `heading`
+        ns     = `uxap`
+    ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_dyn_header_title.
+
+    result = _generic(
+        name   = `ObjectPageDynamicHeaderTitle`
+        ns     = `uxap`
+    ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_layout.
+
+    result = _generic(
+        name   = `ObjectPageLayout`
+        ns     = `uxap`
+        t_prop = VALUE #(
+            ( n = `showTitleInHeaderContent`  v = _=>get_json_boolean( showTitleInHeaderContent ) )
+            ( n = `showEditHeaderButton`      v = _=>get_json_boolean( showEditHeaderButton ) )
+            ( n = `editHeaderButtonPress`     v = editHeaderButtonPress )
+            ( n = `upperCaseAnchorBar`        v = upperCaseAnchorBar )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_section.
+
+    result = _generic(
+        name   = `ObjectPageSection`
+        ns     = `uxap`
+        t_prop = VALUE #(
+            ( n = `titleUppercase`  v = titleUppercase )
+            ( n = `title`           v = title )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~object_page_sub_section.
+
+    result = _generic(
+        name   = `ObjectPageSubSection`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~sections.
+
+    result = _generic(
+        name   = `sections`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~snapped_heading.
+
+    result = me.
+    result = _generic(
+        name   = `snappedHeading`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~sub_sections.
+
+    result = me.
+    result = _generic(
+        name   = `subSections`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~header_title.
+
+    result = _generic(
+        name   = `headerTitle`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~expanded_content.
+
+   result = _generic(
+        name   = `expandedContent`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~snapped_content.
+
+   result = _generic(
+        name   = `snappedContent`
+        ns     = `uxap`
+     ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~snapped_title_on_mobile.
+
+   result = _generic(
+        name   = `snappedTitleOnMobile`
+        ns     = `uxap`
+     ).
 
   ENDMETHOD.
 
