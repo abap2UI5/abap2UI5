@@ -82,7 +82,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         DATA(form) = page->grid( 'L9 M12 S12'
             )->content( 'l'
-            )->simple_form( 'Demos'
+            )->simple_form( 'Demos I'
                 )->vbox( ).
 
         form->flex_box( class = 'columns'
@@ -135,7 +135,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
         form = page->grid( 'L9 M12 S12'
               )->content( 'l'
-              )->simple_form( 'Demos (more Controls)'
+              )->simple_form( 'Demos II'
                 )->vbox( ).
 
         form->text( `These demos are based on controls that are not part of openUI5. Please make sure to switch the bootstrapping to UI5 first.` ).

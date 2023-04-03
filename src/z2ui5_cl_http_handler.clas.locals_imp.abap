@@ -10,7 +10,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
-    types ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
+    TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
@@ -1060,7 +1060,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS request_end_get_view
       RETURNING
-        VALUE(rr_view) TYPE REF TO z2ui5_lcl_system_runtime=>s_view.
+        VALUE(rr_view) TYPE REF TO s_view.
 
 
   PRIVATE SECTION.
@@ -2358,28 +2358,28 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~expanded_content.
 
-   result = _generic(
-        name   = `expandedContent`
-        ns     = `uxap`
-     ).
+    result = _generic(
+         name   = `expandedContent`
+         ns     = `uxap`
+      ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~snapped_content.
 
-   result = _generic(
-        name   = `snappedContent`
-        ns     = `uxap`
-     ).
+    result = _generic(
+         name   = `snappedContent`
+         ns     = `uxap`
+      ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_view~snapped_title_on_mobile.
 
-   result = _generic(
-        name   = `snappedTitleOnMobile`
-        ns     = `uxap`
-     ).
+    result = _generic(
+         name   = `snappedTitleOnMobile`
+         ns     = `uxap`
+      ).
 
   ENDMETHOD.
 
@@ -2708,7 +2708,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_end.
 
-    data(lr_view) = request_end_get_view( ).
+    DATA(lr_view) = request_end_get_view( ).
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
@@ -3000,7 +3000,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     CLEAR ms_next.
 
   ENDMETHOD.
-
 
 
   METHOD request_end_get_view.
