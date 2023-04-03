@@ -45,7 +45,6 @@ INTERFACE z2ui5_if_client
       END OF s_request,
     END OF ty_s_get.
 
-
   METHODS set
     IMPORTING
       event         TYPE clike OPTIONAL
@@ -113,7 +112,6 @@ INTERFACE z2ui5_if_client
       val           TYPE data
     RETURNING
       VALUE(result) TYPE string.
-
 
   METHODS _event
     IMPORTING

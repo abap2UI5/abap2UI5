@@ -1058,6 +1058,10 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
+    METHODS request_end_get_view
+      RETURNING
+        VALUE(rr_view) TYPE REF TO z2ui5_lcl_system_runtime=>s_view.
+
 
   PRIVATE SECTION.
 
@@ -1382,7 +1386,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     result = _generic(
           name   = `HBox`
           t_prop = VALUE #(
-             ( n = `class` v = `sapUiSmallMargin` )
+            ( n = `class` v = class )
         ) ).
 
   ENDMETHOD.
@@ -1394,8 +1398,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       ns     = `f`
       t_prop = VALUE #(
         ( n = `title` v = title )
-        ( n = `editable` v = `true` )
-        ( n = `layout` v = `ResponsiveGridLayout` )
+        ( n = `layout` v = layout )
       ) ).
 
   ENDMETHOD.
@@ -1530,6 +1533,17 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
        name  = `Label`
        t_prop = VALUE #(
            ( n = `text` v = text )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~image.
+
+    result = me.
+    _generic(
+       name  = `Image`
+       t_prop = VALUE #(
+           ( n = `src` v = src )
         ) ).
 
   ENDMETHOD.
@@ -1795,7 +1809,10 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~header_content.
 
-    result = _generic( `headerContent` ).
+    result = _generic(
+        name = `headerContent`
+        ns   = ns
+         ).
 
   ENDMETHOD.
 
@@ -2691,28 +2708,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_end.
 
-    _=>raise( when = xsdbool( lines( ms_next-t_view ) = 0 ) ).
-
-    IF ms_next-view IS NOT INITIAL.
-      IF ms_next-check_set_prev_view = abap_true.
-        _=>raise( `New view_show called and set_prev_view active - both not possible` ).
-      ENDIF.
-      TRY.
-          DATA(lr_view) = REF #( ms_next-t_view[ name = ms_next-view ] ).
-        CATCH cx_root.
-          _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
-      ENDTRY.
-    ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
-      TRY.
-          lr_view = REF #( ms_next-t_view[ name = ms_actual-view_active ] ).
-          ms_next-view = ms_actual-view_active.
-        CATCH cx_root.
-          _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
-      ENDTRY.
-    ELSEIF ms_next-view_popup IS INITIAL.
-      lr_view = REF #( ms_next-t_view[ 1 ] ).
-      ms_next-view = lr_view->name.
-    ENDIF.
+    data(lr_view) = request_end_get_view( ).
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
@@ -3005,6 +3001,34 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+
+  METHOD request_end_get_view.
+
+    _=>raise( when = xsdbool( lines( ms_next-t_view ) = 0 ) ).
+
+    IF ms_next-view IS NOT INITIAL.
+      IF ms_next-check_set_prev_view = abap_true.
+        _=>raise( `New view_show called and set_prev_view active - both not possible` ).
+      ENDIF.
+      TRY.
+          rr_view  = REF #( ms_next-t_view[ name = ms_next-view ] ).
+        CATCH cx_root.
+          _=>raise( `View with the name ` && ms_next-view && ` not found - check the rendering` ).
+      ENDTRY.
+    ELSEIF ms_actual-view_active IS NOT INITIAL AND ms_next-view_popup IS INITIAL.
+      TRY.
+          rr_view = REF #( ms_next-t_view[ name = ms_actual-view_active ] ).
+          ms_next-view = ms_actual-view_active.
+        CATCH cx_root.
+          _=>raise( `View with the name ` && ms_actual-view_active && ` not found - check the rendering` ).
+      ENDTRY.
+    ELSEIF ms_next-view_popup IS INITIAL.
+      rr_view = REF #( ms_next-t_view[ 1 ] ).
+      ms_next-view = rr_view->name.
+    ENDIF.
+
+  ENDMETHOD.
 
 ENDCLASS.
 
