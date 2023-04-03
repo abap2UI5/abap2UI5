@@ -17,11 +17,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
         t_param  TYPE z2ui5_if_client=>ty_t_name_value,
       END OF client.
 
-    "! loads the one page ui5 application
-    "! @parameter library_path | choose your ui5 license here, see sap note 3207822 and 2943781
-    "! @parameter theme | sap_horizon, sap_belize, ...
-    "! @parameter title | browser title
-    "! @parameter r_result | index.html
     CLASS-METHODS main_index_html
       IMPORTING
         library_path    TYPE clike DEFAULT `https://ui5.sap.com/resources/sap-ui-core.js`

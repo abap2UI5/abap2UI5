@@ -10,6 +10,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         data_stringify TYPE string,
       END OF ty_attri.
 
+    types ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
+
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
     TYPES:
@@ -20,24 +22,11 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
-    TYPES:
-      BEGIN OF ty,
-        BEGIN OF s,
-          BEGIN OF msg_result,
-            message TYPE string,
-            s_bapi  TYPE LINE OF bapirettab,
-          END OF msg_result,
-        END OF s,
-        BEGIN OF t,
-          attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY,
-        END OF t,
-      END OF ty.
-
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
-        s_msg  TYPE ty-s-msg_result,
+        s_msg  TYPE LINE OF bapirettab,
       END OF ms_error.
 
     METHODS constructor
@@ -98,7 +87,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         i_focus       TYPE data
         io_app        TYPE REF TO object
-        t_attri       TYPE ty-t-attri
+        t_attri       TYPE ty_t_attri
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
 
@@ -106,7 +95,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         io_app        TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE ty-t-attri ##NEEDED.
+        VALUE(result) TYPE ty_t_attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
       IMPORTING
@@ -431,11 +420,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA temp11 TYPE string.
-    temp11 = iv_json.
     /ui2/cl_json=>deserialize(
         EXPORTING
-            json         = temp11
+            json         = CONV string( iv_json )
             assoc_arrays = abap_true
         CHANGING
             data         = ev_result
@@ -495,8 +482,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
           EXIT.
         ENDIF.
 
-        FIELD-SYMBOLS <ls_data_ui5> TYPE any.
-        ASSIGN <comp_ui5>->* TO <ls_data_ui5>.
+        ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
         IF sy-subrc = 0.
           <comp> = <ls_data_ui5>.
         ENDIF.
@@ -774,11 +760,9 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     result = NEW #( ).
     result->mo_root = result.
 
-    DATA temp25 TYPE string.
-    temp25 = iv_json.
     /ui2/cl_json=>deserialize(
         EXPORTING
-            json         = temp25
+            json         = CONV string( iv_json )
             assoc_arrays = abap_true
         CHANGING
          data            = result->mr_actual
@@ -861,8 +845,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD write_result.
 
-    DATA lo_attri LIKE LINE OF mt_values.
-    LOOP AT mt_values INTO lo_attri.
+    LOOP AT mt_values INTO DATA(lo_attri).
 
       IF sy-tabix > 1.
         result = result && |,|.
@@ -905,7 +888,7 @@ CLASS z2ui5_lcl_if_view DEFINITION.
       BEGIN OF ty_s_view,
         xml     TYPE string,
         o_model TYPE REF TO z2ui5_lcl_utility_tree_json,
-        t_attri TYPE _=>ty-t-attri,
+        t_attri TYPE _=>ty_t_attri,
       END OF ty_s_view.
 
     DATA m_name TYPE string.
@@ -990,7 +973,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         id_prev_app_stack TYPE string,
 
         view_active       TYPE string,
-        t_attri           TYPE _=>ty-t-attri,
+        t_attri           TYPE _=>ty_t_attri,
         o_app             TYPE REF TO object,
         app_classname     TYPE string,
       END OF ty_s_db.
@@ -1134,8 +1117,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
     IF me = m_root.
       result = xml_get_begin( check_popup_active ).
 
-      DATA lr_child LIKE LINE OF t_child.
-      LOOP AT t_child INTO lr_child.
+      LOOP AT t_child INTO DATA(lr_child).
         result = result && lr_child->xml_get( ).
       ENDLOOP.
 
@@ -1198,7 +1180,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT result.
+    result = NEW #( ).
     result->m_root = result.
     result->m_parent = result.
     result->mo_runtime = runtime.
@@ -1370,24 +1352,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~page.
 
-    DATA temp43 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp43.
-    DATA temp44 LIKE LINE OF temp43.
-    temp44-n = 'title'.
-    temp44-v = title.
-    APPEND temp44 TO temp43.
-    temp44-n = 'showNavButton'.
-    DATA temp18 TYPE z2ui5_if_ui5_library=>ty_s_name_value-v.
-    IF nav_button_tap = ''.
-      temp18 = 'false'.
-    ELSE.
-      temp18 = 'true'.
-    ENDIF.
-    temp44-v = temp18.
-    APPEND temp44 TO temp43.
-    temp44-n = 'navButtonTap'.
-    temp44-v = nav_button_tap.
-    APPEND temp44 TO temp43.
     result = _generic(
         name   = `Page`
          t_prop = VALUE #(
@@ -1402,12 +1366,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~vbox.
 
-    DATA temp45 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp45.
-    DATA temp46 LIKE LINE OF temp45.
-    temp46-n = 'class'.
-    temp46-v = 'sapUiSmallMargin'.
-    APPEND temp46 TO temp45.
     result = _generic(
          name   = `VBox`
          t_prop = VALUE #(
@@ -1430,54 +1388,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~simple_form.
 
-    DATA temp49 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp49.
-    DATA temp50 LIKE LINE OF temp49.
-    temp50-n = 'title'.
-    temp50-v = title.
-    APPEND temp50 TO temp49.
-    temp50-n = 'editable'.
-    temp50-v = 'true'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'layout'.
-    temp50-v = 'ResponsiveGridLayout'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'labelSpanXL'.
-    temp50-v = '4'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'labelSpanL'.
-    temp50-v = '3'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'labelSpanM'.
-    temp50-v = '4'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'labelSpanS'.
-    temp50-v = '12'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'emptySpanXL'.
-    temp50-v = '0'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'emptySpanL'.
-    temp50-v = '4'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'emptySpanM'.
-    temp50-v = '0'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'emptySpanS'.
-    temp50-v = '0'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'columnsL'.
-    temp50-v = '1'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'columnsM'.
-    temp50-v = '1'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'singleContainerFullSize'.
-    temp50-v = 'false'.
-    APPEND temp50 TO temp49.
-    temp50-n = 'adjustLabelSpan'.
-    temp50-v = 'false'.
-    APPEND temp50 TO temp49.
     result = _generic(
       name   = `SimpleForm`
       ns     = `f`
@@ -1797,24 +1707,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~table.
 
-    DATA temp83 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp83.
-    DATA temp84 LIKE LINE OF temp83.
-    temp84-n = 'items'.
-    temp84-v = items.
-    APPEND temp84 TO temp83.
-    temp84-n = 'headerText'.
-    temp84-v = header_text.
-    APPEND temp84 TO temp83.
-    temp84-n = 'growing'.
-    temp84-v = _=>get_abap_2_json( growing ).
-    APPEND temp84 TO temp83.
-    temp84-n = 'growingThreshold'.
-    temp84-v = growing_threshold.
-    APPEND temp84 TO temp83.
-    temp84-n = 'sticky'.
-    temp84-v = sticky.
-    APPEND temp84 TO temp83.
     result = _generic(
         name  = `Table`
         t_prop = VALUE #(
@@ -1838,12 +1730,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~column.
 
-    DATA temp85 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp85.
-    DATA temp86 LIKE LINE OF temp85.
-    temp86-n = 'width'.
-    temp86-v = width.
-    APPEND temp86 TO temp85.
     result = _generic(
         name  = `Column`
           t_prop = VALUE #( ( n = `width` v = width ) )
@@ -1859,12 +1745,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~column_list_item.
 
-    DATA temp87 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp87.
-    DATA temp88 LIKE LINE OF temp87.
-    temp88-n = 'vAlign'.
-    temp88-v = valign.
-    APPEND temp88 TO temp87.
     result = _generic(
         name = `ColumnListItem`
         t_prop = VALUE #( ( n = `vAlign`   v = valign )
@@ -1881,15 +1761,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~grid.
 
-    DATA temp89 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp89.
-    DATA temp90 LIKE LINE OF temp89.
-    temp90-n = 'defaultSpan'.
-    temp90-v = default_span.
-    APPEND temp90 TO temp89.
-    temp90-n = 'class'.
-    temp90-v = class.
-    APPEND temp90 TO temp89.
     result = _generic(
         name = `Grid`
         ns   = `l`
@@ -1908,21 +1779,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~scroll_container.
 
-    DATA temp91 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp91.
-    DATA temp92 LIKE LINE OF temp91.
-    temp92-n = 'height'.
-    temp92-v = height.
-    APPEND temp92 TO temp91.
-    temp92-n = 'width'.
-    temp92-v = width.
-    APPEND temp92 TO temp91.
-    temp92-n = 'vertical'.
-    temp92-v = 'true'.
-    APPEND temp92 TO temp91.
-    temp92-n = 'focusable'.
-    temp92-v = 'true'.
-    APPEND temp92 TO temp91.
     result = _generic(
         name = `ScrollContainer`
         t_prop = VALUE #(
@@ -1955,12 +1811,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~dialog.
 
-    DATA temp93 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp93.
-    DATA temp94 LIKE LINE OF temp93.
-    temp94-n = 'title'.
-    temp94-v = title.
-    APPEND temp94 TO temp93.
     result = _generic(
          name = `Dialog`
         t_prop = VALUE #(
@@ -2002,24 +1852,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~message_page.
 
-    DATA temp99 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp99.
-    DATA temp100 LIKE LINE OF temp99.
-    temp100-n = 'showHeader'.
-    temp100-v = _=>get_abap_2_json( show_header ).
-    APPEND temp100 TO temp99.
-    temp100-n = 'description'.
-    temp100-v = description.
-    APPEND temp100 TO temp99.
-    temp100-n = 'icon'.
-    temp100-v = icon.
-    APPEND temp100 TO temp99.
-    temp100-n = 'text'.
-    temp100-v = text.
-    APPEND temp100 TO temp99.
-    temp100-n = 'enableFormattedText'.
-    temp100-v = _=>get_abap_2_json( enable_formatted_text ).
-    APPEND temp100 TO temp99.
     result = _generic(
         name   = `MessagePage`
         t_prop = VALUE #(
@@ -2157,18 +1989,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
     result = me.
 
-    DATA temp107 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp107.
-    DATA temp108 LIKE LINE OF temp107.
-    temp108-n = 'icon'.
-    temp108-v = icon.
-    APPEND temp108 TO temp107.
-    temp108-n = 'key'.
-    temp108-v = key.
-    APPEND temp108 TO temp107.
-    temp108-n = 'text'.
-    temp108-v = text.
-    APPEND temp108 TO temp107.
     _generic(
           name = `FlexItemData`
         t_prop = VALUE #(
@@ -2203,12 +2023,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~tab.
 
-    DATA temp111 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp111.
-    DATA temp112 LIKE LINE OF temp111.
-    temp112-n = 'width'.
-    temp112-v = width.
-    APPEND temp112 TO temp111.
     result = _generic(
          name = `Tab`
          ns = `webc`
@@ -2237,21 +2051,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~interact_bar_chart.
 
-    DATA temp113 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp113.
-    DATA temp114 LIKE LINE OF temp113.
-    temp114-n = 'rows'.
-    temp114-v = rows.
-    APPEND temp114 TO temp113.
-    temp114-n = 'selectionMode'.
-    temp114-v = selectionMode.
-    APPEND temp114 TO temp113.
-    temp114-n = 'visibleRowCount'.
-    temp114-v = visibleRowCount.
-    APPEND temp114 TO temp113.
-    temp114-n = 'selectedIndex'.
-    temp114-v = selectedIndex.
-    APPEND temp114 TO temp113.
     result = _generic(
         name = `InteractiveBarChart`
         ns   = `mchart`
@@ -2329,15 +2128,6 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   METHOD z2ui5_if_view~interact_line_chart_point.
 
-    DATA temp117 TYPE z2ui5_if_ui5_library=>ty_t_name_value.
-    CLEAR temp117.
-    DATA temp118 LIKE LINE OF temp117.
-    temp118-n = 'class'.
-    temp118-v = class.
-    APPEND temp118 TO temp117.
-    temp118-n = 'width'.
-    temp118-v = width.
-    APPEND temp118 TO temp117.
     result = _generic(
          name   = `InteractiveLineChartPoint`
          ns     = `mchart`
