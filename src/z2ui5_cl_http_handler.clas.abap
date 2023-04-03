@@ -19,7 +19,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS main_index_html
       IMPORTING
-        library_path    TYPE clike DEFAULT `https://ui5.sap.com/resources/sap-ui-core.js`
+        library_path    TYPE clike DEFAULT `https://sdk.openui5.org/resources/sap-ui-core.js`
         theme           TYPE clike DEFAULT `sap_horizon`
         title           TYPE clike DEFAULT `abap2UI5`
       RETURNING
@@ -83,6 +83,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
+    "`https://ui5.sap.com/resources/sap-ui-core.js`
     client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
                                  ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
 
@@ -122,7 +123,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 `        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function (Controller, ODataModel, JSONModel, MessageBox, Fragment) {` && |\n| &&
                            `            "use strict";` && |\n| &&
-                           `            return Controller.extend("MyController", {` && |\n| &&
+                           `            return Controller.extend("z2ui5_controller", {` && |\n| &&
                            |\n| &&
                            `                onAfterRendering: function () {` && |\n| &&
                            `                    var oView = this.getView();` && |\n| &&
@@ -293,7 +294,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            });` && |\n| &&
                            `        });` && |\n| &&
                            `        var oView = sap.ui.xmlview({` && |\n| &&
-                           `            viewContent: "<mvc:View controllerName='MyController' xmlns:mvc='sap.ui.core.mvc' />"` && |\n| &&
+                           `            viewContent: "<mvc:View controllerName='z2ui5_controller' xmlns:mvc='sap.ui.core.mvc' />"` && |\n| &&
                            `        });` && |\n| &&
                            `        sap.z2ui5 = {};` && |\n| &&
                            `        oView.getController().Roundtrip();` && |\n| &&

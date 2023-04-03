@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -82,7 +82,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
         DATA(form) = page->grid( 'L9 M12 S12'
             )->content( 'l'
-            )->simple_form( 'Applications and Examples'
+            )->simple_form( 'Demos'
                 )->vbox( ).
 
         form->flex_box( class = 'columns'
@@ -133,6 +133,12 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                          growfactor = '3'
                          styleclass = 'sapUiTinyMargin' ).
 
+        form = page->grid( 'L9 M12 S12'
+              )->content( 'l'
+              )->simple_form( 'Demos (more Controls)'
+                )->vbox( ).
+
+        form->text( `These demos are based on controls that are not part of openUI5. Please make sure to switch the bootstrapping to UI5 first.` ).
         form->flex_box( class = 'columns'
              )->button(
                  text  = 'Visualization'

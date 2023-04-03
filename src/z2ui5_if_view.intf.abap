@@ -422,7 +422,7 @@ INTERFACE z2ui5_if_view
 
   METHODS hbox
     IMPORTING
-      class         TYPE clike
+      class         TYPE clike optional
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
