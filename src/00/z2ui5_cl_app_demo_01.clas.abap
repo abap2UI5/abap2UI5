@@ -46,7 +46,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                     text = 'Source_Code'
                     href = client->get( )-s_request-url_source_code
             )->get_parent(
-            )->simple_form( title = 'Form Title'
+            )->simple_form( title = 'Form Title' editable = abap_true
                 )->content( 'f'
                     )->title( 'Input'
                     )->label( 'quantity'

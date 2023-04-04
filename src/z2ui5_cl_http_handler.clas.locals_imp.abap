@@ -2744,14 +2744,18 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       CATCH cx_root.
 
-        IF ms_next-s_set-xml_main IS NOT INITIAL.
+        IF NOT ( ms_next-check_set_prev_view = abap_true AND ms_next-s_set-xml_popup IS INITIAL ).
+          lo_ui5_model->add_attribute_instance( request_end_get_view_model( ) ).
+        ENDIF.
+
+        IF ms_next-s_set-xml_main IS NOT INITIAL AND ms_next-check_set_prev_view = abap_false.
 
           SPLIT ms_next-s_set-xml_main AT 'controllerName="' INTO DATA(lv_1) DATA(lv_2).
           SPLIT lv_2 AT '"' INTO DATA(lv3) DATA(lv_4).
           DATA(lv_xml) = lv_1 && 'controllerName="z2ui5_controller"' && lv_4.
 
           lo_ui5_model->add_attribute( n = `vView` v = lv_xml ).
-          lo_ui5_model->add_attribute_instance( request_end_get_view_model( ) ).
+
         ENDIF.
 
         IF ms_next-s_set-xml_popup IS NOT INITIAL.
@@ -2773,7 +2777,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDTRY.
 
       DATA(ls_view_popup) = lr_view_popup->o_parser->get_view( abap_true ).
-   "   ls_view_popup-o_model->mv_name = `oViewModelPopup`.
+      "   ls_view_popup-o_model->mv_name = `oViewModelPopup`.
       ls_view_popup-o_model->mv_name = `oViewModel`.
       lo_ui5_model->add_attribute( n = `vViewPopup` v = ls_view_popup-xml ).
       lo_ui5_model->add_attribute_instance( ls_view_popup-o_model ).

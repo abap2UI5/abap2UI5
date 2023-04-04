@@ -187,31 +187,6 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_popup.
 
-    CASE app-view_popup.
-
-      WHEN 'POPUP_CONFIRM'.
-
-        app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory( check_popup = abap_true )->dialog(
-                 "   stretch = mv_stretch_active
-                    title = 'Title'
-                    icon = 'sap-icon://edit'
-                )->content(
-                    )->text_area(
-                        height = '100%'
-                        width  = '100%'
-                        value  = app-client->_bind( mv_textarea )
-                )->get_parent(
-                )->footer( )->overflow_toolbar(
-                    )->toolbar_spacer(
-                    )->button(
-                        text  = 'Cancel'
-                        press = app-client->_event( 'BUTTON_CANCEL' )
-                    )->button(
-                        text  = 'Confirm'
-                        press = app-client->_event( 'BUTTON_CONFIRM' )
-                        type  = 'Emphasized' )->get_root( )->xml_get( ).
-
-    ENDCASE.
 
   ENDMETHOD.
 

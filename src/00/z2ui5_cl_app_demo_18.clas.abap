@@ -8,6 +8,8 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
     DATA quantity TYPE string.
     DATA mv_textarea TYPE string.
 
+  PROTECTED SECTION.
+
     DATA:
       BEGIN OF app,
         client            TYPE REF TO z2ui5_if_client,
@@ -23,7 +25,6 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
     METHODS z2ui5_on_render_main.
     METHODS z2ui5_on_render_popup.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -36,7 +37,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
     app-client = client.
     app-s_get  = client->get( ).
-  "  app-view_popup = ``.
+    "  app-view_popup = ``.
 
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
@@ -70,7 +71,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
       WHEN 'BUTTON_POST'.
         app-client->popup_message_toast( |{ product } { quantity } - send to the server| ).
-     "   app-view_main  = 'MANUAL'.
+        "   app-view_main  = 'MANUAL'.
         app-view_popup = 'POPUP_CONFIRM'.
 
       WHEN 'BUTTON_CONFIRM'.
@@ -93,40 +94,12 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
     CASE app-view_main.
 
-      WHEN 'MANUAL'.
-
-        app-s_next-xml_main = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.co` &&
-`re.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|
-&&
-                              `  title="abap2UI5 - MANUAL MANUAL MANUAL" ` && |\n|  &&
-                              `  showNavButton="true" ` && |\n|  &&
-                              `  navButtonPress="onEvent( { &apos;EVENT&apos; : &apos;BACK&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; } )" ` && |\n|  &&
-                              ` > <headerContent ` && |\n|  &&
-                              ` > <Link ` && |\n|  &&
-                              `  text="Source_Code" ` && |\n|  &&
-                              `  target="_blank" ` && |\n|  &&
-                              `  href="https://6654aaf7-905f-48ea-b013-3811c03fcba8.abap-web.us10.hana.ondemand.com/sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_18/source/main" ` && |\n|  &&
-                              ` /></headerContent> <f:SimpleForm ` && |\n|  &&
-                              `  title="Form Title" ` && |\n|  &&
-                              ` > <f:content ` && |\n|  &&
-                              ` > <Title ` && |\n|  &&
-                              `  text="Input" ` && |\n|  &&
-                              ` /> <Label ` && |\n|  &&
-                              `  text="quantity" ` && |\n|  &&
-                              ` /> <Input ` && |\n|  &&
-                              `  value="{/oUpdate/QUANTITY}" ` && |\n|  &&
-                              ` /> <Label ` && |\n|  &&
-                              `  text="product" ` && |\n|  &&
-                              ` /> <Input ` && |\n|  &&
-                              `  enabled="false" ` && |\n|  &&
-                              `  value="tomato" ` && |\n|  &&
-                              ` /> <Button ` && |\n|  &&
-                              `  press="onEvent( { &apos;EVENT&apos; : &apos;BUTTON_POST&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; } )" ` && |\n|  &&
-                              `  text="post" ` && |\n|  &&
-                              ` /></f:content></f:SimpleForm></Page></Shell></mvc:View>`.
+      WHEN 'VIEW_MAIN'.
 
 
-      WHEN 'NORMAL'.
+
+
+      WHEN 'VIEW_SECOND'.
 
         app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
           )->page(
@@ -160,7 +133,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD z2ui5_on_render_popup.
+  METHOD z2ui5_on_render_popup.
 
     CASE app-view_popup.
 
