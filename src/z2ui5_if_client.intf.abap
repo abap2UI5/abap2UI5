@@ -9,12 +9,12 @@ INTERFACE z2ui5_if_client
       END OF lifecycle_method,
     END OF cs.
 
-    TYPES:
-      BEGIN OF ty_s_name_value,
-        name  TYPE string,
-        value TYPE string,
-      END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES:
+    BEGIN OF ty_s_name_value,
+      name  TYPE string,
+      value TYPE string,
+    END OF ty_s_name_value.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_cursor,
@@ -86,14 +86,19 @@ INTERFACE z2ui5_if_client
 
   METHODS show_view
     IMPORTING
-      val               TYPE clike OPTIONAL
-      check_no_rerender TYPE abap_bool DEFAULT abap_false
-        PREFERRED PARAMETER val.
+      val TYPE clike.
 
   METHODS popup_view
     IMPORTING
       name TYPE clike.
 
+  METHODS set_view
+    IMPORTING
+      xml TYPE string.
+
+  METHODS set_popup
+    IMPORTING
+      xml TYPE string.
 
   METHODS factory_view
     IMPORTING

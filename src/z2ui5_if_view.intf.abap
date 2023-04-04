@@ -236,6 +236,10 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
+  METHODS get_root
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
   METHODS get_parent
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
@@ -406,6 +410,7 @@ INTERFACE z2ui5_if_view
     IMPORTING
       title          TYPE clike OPTIONAL
       navbuttonpress TYPE clike OPTIONAL
+      shownavbutton  TYPE clike OPTIONAL
       id             TYPE clike OPTIONAL
       class          TYPE clike OPTIONAL
         PREFERRED PARAMETER title
@@ -440,7 +445,7 @@ INTERFACE z2ui5_if_view
   METHODS simple_form
     IMPORTING
       title         TYPE clike OPTIONAL
-      layout        TYPE clike DEFAULT `ResponsiveGridLayout`
+      layout        TYPE clike optional
         PREFERRED PARAMETER title
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
@@ -722,5 +727,9 @@ INTERFACE z2ui5_if_view
       upload        TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO  z2ui5_if_view.
+
+  METHODS xml_get
+    RETURNING
+      value(result)      TYPE string.
 
 ENDINTERFACE.

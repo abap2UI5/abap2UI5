@@ -984,6 +984,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       BEGIN OF s_view,
         name     TYPE string,
         o_parser TYPE REF TO z2ui5_lcl_if_view,
+        xml      TYPE string,
       END OF s_view.
 
     TYPES:
@@ -1010,6 +1011,12 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
+
+    DATA:
+      BEGIN OF ms_control,
+        view_xml       TYPE string,
+        view_popup_xml TYPE string,
+      END OF ms_control.
 
     CLASS-METHODS request_begin
       RETURNING
@@ -1061,6 +1068,10 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
     METHODS request_end_get_view
       RETURNING
         VALUE(rr_view) TYPE REF TO s_view.
+
+    METHODS request_end_get_view_model
+      RETURNING
+        VALUE(r_view_model) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
 
   PRIVATE SECTION.
@@ -1398,7 +1409,7 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
       ns     = `f`
       t_prop = VALUE #(
         ( n = `title` v = title )
-        ( n = `layout` v = layout )
+        ( n = `layout` v = `ResponsiveGridLayout` )
       ) ).
 
   ENDMETHOD.
@@ -2383,6 +2394,14 @@ CLASS z2ui5_lcl_if_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_view~xml_get.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~get_root.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_system_app DEFINITION.
@@ -2708,18 +2727,37 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_end.
 
-    DATA(lr_view) = request_end_get_view( ).
-
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
-    IF lr_view IS BOUND.
-      ms_db-view_active = lr_view->name.
+    TRY.
+        DATA(lr_view) = request_end_get_view( ).
 
-      DATA(ls_view) = lr_view->o_parser->get_view( ).
-      ls_view-o_model->mv_name = `oViewModel`.
-      lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
-      lo_ui5_model->add_attribute_instance( ls_view-o_model ).
-    ENDIF.
+        IF lr_view IS BOUND.
+          ms_db-view_active = lr_view->name.
+          DATA(ls_view) = lr_view->o_parser->get_view( ).
+          ls_view-o_model->mv_name = `oViewModel`.
+          lo_ui5_model->add_attribute( n = `vView` v = ls_view-xml ).
+          lo_ui5_model->add_attribute_instance( ls_view-o_model ).
+        ENDIF.
+
+      CATCH cx_root.
+
+        IF ms_control-view_xml IS NOT INITIAL.
+
+          lo_ui5_model->add_attribute( n = `vView` v = ms_control-view_xml ).
+          lo_ui5_model->add_attribute_instance( request_end_get_view_model( ) ).
+
+        ENDIF.
+
+        IF ms_control-view_popup_xml IS NOT INITIAL.
+
+          DATA(lo_model) = request_end_get_view_model( ).
+          lo_model->mv_name = `oViewModelPopup`.
+          lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_control-view_popup_xml ).
+          lo_ui5_model->add_attribute_instance( lo_model ).
+
+        ENDIF.
+    ENDTRY.
 
     IF ms_next-view_popup IS NOT INITIAL.
       TRY.
@@ -3029,6 +3067,57 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD request_end_get_view_model.
+
+    CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
+
+    r_view_model  = z2ui5_lcl_utility_tree_json=>factory( ).
+    r_view_model->mv_name = `oViewModel`.
+    DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
+
+    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+
+      IF lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
+
+        r_view_model->add_attribute(
+              n = lr_attri->name
+              v = lr_attri->data_stringify
+              apos_active = abap_false ).
+
+        CONTINUE.
+      ENDIF.
+
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way THEN r_view_model
+                                 ELSE lo_update ).
+
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
+      ASSIGN (lv_name) TO <attribute>.
+      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+      CASE lr_attri->type_kind.
+
+        WHEN `g` OR `D` OR `P` OR `T` OR `C`.
+          lo_actual->add_attribute( n = lr_attri->name
+                                    v = _=>get_abap_2_json( <attribute> )
+                                    apos_active = abap_false ).
+
+        WHEN `I`.
+          lo_actual->add_attribute( n = lr_attri->name
+                                    v = CONV string( <attribute> )
+                                    apos_active = abap_false ).
+
+        WHEN `h`.
+          lo_actual->add_attribute( n = lr_attri->name
+                                    v = _=>trans_any_2_json( <attribute> )
+                                    apos_active = abap_false ).
+
+      ENDCASE.
+    ENDLOOP.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_if_client IMPLEMENTATION.
@@ -3147,6 +3236,18 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app_by_id.
 
     result = CAST #( z2ui5_lcl_db=>load_app( id )-o_app ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_view.
+
+    mo_runtime->ms_control-view_xml = xml.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_popup.
+
+    mo_runtime->ms_control-view_popup_xml = xml.
 
   ENDMETHOD.
 

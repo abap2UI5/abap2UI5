@@ -174,6 +174,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    sap.ui.core.BusyIndicator.show();` && |\n| &&
                            |\n| &&
                            `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n| &&
+                           `                    if (!this.oBody){ this.oBody = {}; this.oBody.oSystem = {}; this.oBody.oEvent = {}; }` && |\n| &&
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n| &&
                            `                    this.oBody.oEvent = oEvent;` && |\n| &&
                            |\n| &&
@@ -196,7 +197,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        this.oBody.scrollPos = parseInt(this.oView.getContent()[0].getApp().getScrollDelegate().getScrollTop());` && |\n| &&
                            `                    } catch (e) { };` && |\n| &&
                            |\n| &&
-                           `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
+                   "        `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
+                           `                    if (this.oBody.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
                            `                        console.log('Request Object:');` && |\n| &&
                            `                        console.log(this.oBody);` && |\n| &&
                            `                    }` && |\n| &&
