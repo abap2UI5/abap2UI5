@@ -1455,7 +1455,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-
   ENDMETHOD.
 
 

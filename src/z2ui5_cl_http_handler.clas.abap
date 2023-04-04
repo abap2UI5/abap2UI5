@@ -69,7 +69,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
-    "`https://ui5.sap.com/resources/sap-ui-core.js`
     client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
                                  ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
 
