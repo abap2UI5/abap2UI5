@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
 
   METHOD factory.
@@ -49,33 +49,24 @@ CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
+    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
+      RETURN.
+    ENDIF.
 
-      WHEN client->cs-lifecycle_method-on_event.
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+      client->set( set_prev_view = mv_check_show_previous_view ).
+    ENDIF.
 
-        IF check_initialized = abap_false.
+    CASE client->get( )-event.
 
-          check_initialized = abap_true.
-          client->set( set_prev_view = mv_check_show_previous_view ).
-          client->popup_view( 'POPUP_DECIDE' ).
+      WHEN mv_cancel_event OR mv_confirm_event.
+        client->set( event = client->get( )-event ).
+        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+    ENDCASE.
 
-        ENDIF.
-
-
-        CASE client->get( )-event.
-
-          WHEN mv_cancel_event OR mv_confirm_event.
-
-            client->set( event = client->get( )-event ).
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-        ENDCASE.
-
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        client->factory_view( 'POPUP_DECIDE'
-            )->dialog( 'abap2UI5 - Popup to decide'
+    client->_set_next( VALUE #( xml_popup = z2ui5_cl_xml_view_helper=>factory(
+         )->dialog( 'abap2UI5 - Popup to decide'
                 )->vbox(
                     )->text( mv_text )->get_parent(
                 )->footer(
@@ -87,9 +78,8 @@ CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
                         )->button(
                             text  = mv_confirm_text
                             press = client->_event( mv_confirm_event )
-                            type  = 'Emphasized' ).
-
-    ENDCASE.
+                            type  = 'Emphasized'
+                        )->get_root( )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

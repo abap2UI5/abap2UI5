@@ -446,6 +446,7 @@ INTERFACE z2ui5_if_view
     IMPORTING
       title         TYPE clike OPTIONAL
       layout        TYPE clike optional
+      editable      TYPE clike optional
         PREFERRED PARAMETER title
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.

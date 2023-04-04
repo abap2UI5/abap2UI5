@@ -3,7 +3,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
   FINAL
   CREATE PUBLIC .
 
- PUBLIC SECTION.
+  PUBLIC SECTION.
 
     INTERFACES z2ui5_if_view.
 
@@ -12,7 +12,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         letterboxing TYPE abap_bool VALUE abap_true,
       END OF cs_config.
 
-  TYPES:
+    TYPES:
       BEGIN OF ty_attri,
         name           TYPE string,
         type_kind      TYPE string,
@@ -22,22 +22,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
-data check_popup_active type abap_bool.
-
-        TYPES:
+    TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value.
 
     TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
-    TYPES:
-      BEGIN OF ty_s_view,
-        xml     TYPE string,
-     "   o_model TYPE REF TO z2ui5_lcl_utility_tree_json,
-        t_attri TYPE ty_t_attri,
-      END OF ty_s_view.
 
     DATA m_name TYPE string.
     DATA m_ns   TYPE string.
@@ -48,13 +39,7 @@ data check_popup_active type abap_bool.
     DATA m_parent  TYPE REF TO z2ui5_cl_xml_view_helper.
     DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view_helper WITH EMPTY KEY.
 
-   " DATA mo_runtime TYPE REF TO z2ui5_lcl_system_runtime.
-
     CLASS-METHODS factory
-        importing
-            check_popup type abap_bool DEFAULT abap_false
-   "   IMPORTING
-   "     runtime       TYPE REF TO z2ui5_lcl_system_runtime
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -66,23 +51,15 @@ data check_popup_active type abap_bool.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_view.
 
-    METHODS get_view
-     " IMPORTING
-     "   check_popup_active TYPE abap_bool DEFAULT abap_false
-      RETURNING
-        VALUE(result)      TYPE ty_s_view.
-
-
-
     METHODS xml_get_begin
       RETURNING
-        VALUE(result)      TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS xml_get_end
       RETURNING
-        VALUE(result)      TYPE string.
+        VALUE(result) TYPE string.
 
- PROTECTED SECTION.
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -94,21 +71,17 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD xml_get_begin.
 
-    result = COND #( WHEN check_popup_active = abap_true THEN `<core:FragmentDefinition` ELSE `<mvc:View controllerName="z2ui5_controller"` ).
-
-    result = result && ` displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
+    result = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
+                     `xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:sap="sap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
 
-    result = result && COND #( WHEN cs_config-letterboxing = abap_true AND check_popup_active = abap_false THEN `<Shell>` ).
+    result = result && COND #( WHEN cs_config-letterboxing = abap_true THEN `<Shell>` ).
 
   ENDMETHOD.
 
   METHOD xml_get_end.
 
-    result = COND #( WHEN check_popup_active = abap_false
-              THEN COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`
-              ELSE `</core:FragmentDefinition>` ).
+    result = COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>` .
 
   ENDMETHOD.
 
@@ -116,10 +89,15 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     "case - root
     IF me = m_root.
+
+      IF t_child IS INITIAL.
+        RETURN.
+      ENDIF.
+
       result = xml_get_begin( ).
 
       LOOP AT t_child INTO DATA(lr_child).
-        result = result && cast z2ui5_if_view( lr_child )->xml_get( ).
+        result = result && CAST z2ui5_if_view( lr_child )->xml_get( ).
       ENDLOOP.
 
       result = result && xml_get_end(  ).
@@ -147,7 +125,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = |{ result }>|.
 
     LOOP AT t_child INTO lr_child.
-      result = result && cast z2ui5_if_view( lr_child )->xml_get( ).
+      result = result && CAST z2ui5_if_view( lr_child )->xml_get( ).
     ENDLOOP.
 
     DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
@@ -181,13 +159,12 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD factory.
 
-   " result = NEW #( ).
-    data(lo_tree) = new z2ui5_cl_xml_view_helper( ).
+    " result = NEW #( ).
+    DATA(lo_tree) = NEW z2ui5_cl_xml_view_helper( ).
     lo_tree->m_root = lo_tree.
     lo_tree->m_parent = lo_tree.
-    lo_tree->check_popup_active = check_popup.
     result = lo_tree.
- "   result->mo_runtime = runtime.
+    "   result->mo_runtime = runtime.
 
   ENDMETHOD.
 
@@ -295,66 +272,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_view.
-
-   " CONSTANTS c_prefix TYPE string VALUE `M_ROOT->MO_RUNTIME->MS_DB-O_APP->`.
-
-    "result-xml = m_root->xml_get( check_popup_active ).
-
-   " DATA(m_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
-  "  DATA(lo_update) = m_view_model->add_attribute_object( `oUpdate` ).
-*
-*    LOOP AT mo_runtime->ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
-*
-*      IF lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
-*
-*        m_view_model->add_attribute(
-*              n = lr_attri->name
-*              v = lr_attri->data_stringify
-*              apos_active = abap_false ).
-*
-*        CONTINUE.
-*      ENDIF.
-*
-*      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way THEN m_view_model
-*                                 ELSE lo_update ).
-*
-*      FIELD-SYMBOLS <attribute> TYPE any.
-*      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-*      ASSIGN (lv_name) TO <attribute>.
-*      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-*
-*      CASE lr_attri->type_kind.
-*
-*        WHEN `g` OR `D` OR `P` OR `T` OR `C`.
-*          lo_actual->add_attribute( n = lr_attri->name
-*                                    v = _=>get_abap_2_json( <attribute> )
-*                                    apos_active = abap_false ).
-*
-*        WHEN `I`.
-*          lo_actual->add_attribute( n = lr_attri->name
-*                                    v = CONV string( <attribute> )
-*                                    apos_active = abap_false ).
-*
-*        WHEN `h`.
-*          lo_actual->add_attribute( n = lr_attri->name
-*                                    v = _=>trans_any_2_json( <attribute> )
-*                                    apos_active = abap_false ).
-*
-*      ENDCASE.
-*    ENDLOOP.
-*
-*    IF lo_update->mt_values IS INITIAL.
-*      lo_update->mv_value = `{}`.
-*      lo_update->mv_apost_active = abap_false.
-*    ENDIF.
-*
-*    result-o_model = m_view_model.
-*    DELETE m_root->mo_runtime->ms_db-t_attri WHERE bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
-*    result-t_attri = m_root->mo_runtime->ms_db-t_attri.
-
-  ENDMETHOD.
-
   METHOD z2ui5_if_view~page.
 
     result = _generic(
@@ -397,8 +314,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       name   = `SimpleForm`
       ns     = `f`
       t_prop = VALUE #(
-        ( n = `title` v = title )
-        ( n = `layout` v = layout )
+        ( n = `title`    v = title )
+        ( n = `layout`   v = layout )
+        ( n = `editable` v = _=>get_json_boolean( editable ) )
       ) ).
 
   ENDMETHOD.
