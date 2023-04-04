@@ -3028,7 +3028,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         popup_active    = ms_next-view_popup
 
         page_scroll_pos = ms_next-page_scroll_pos
-
+        controller_name = 'z2ui5_controller'
         s_request = VALUE #(
              tenant = sy-mandt
              url_app = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=` && ms_db-app_classname

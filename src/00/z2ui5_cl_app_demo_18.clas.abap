@@ -69,7 +69,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
       WHEN 'BUTTON_POST'.
         app-client->popup_message_toast( |{ product } { quantity } - send to the server| ).
-        app-s_set-xml_main = 'NORMAL'.
+        app-view_main = 'NORMAL'.
 
       WHEN 'BACK'.
         app-client->nav_app_leave( app-s_get-id_prev_app_stack ).
@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_popup.
 
-    CASE app-s_set-xml_popup.
+    CASE app-view_popup.
 
       WHEN 'POPUP_CONFIRM'.
 
@@ -111,12 +111,12 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_main.
 
-    CASE app-s_set-xml_main.
+    CASE app-view_main.
 
       WHEN 'MANUAL'.
 
         app-s_set-xml_main =
-`<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.` &&
+`<mvc:View controllerName="` && app-s_get-controller_name && `" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.` &&
 `core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|
 &&
                             `  title="abap2UI5 - MANUAL MANUAL MANUAL" ` && |\n|  &&
@@ -129,7 +129,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                             `  href="https://6654aaf7-905f-48ea-b013-3811c03fcba8.abap-web.us10.hana.ondemand.com/sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_01/source/main" ` && |\n|  &&
                             ` /></headerContent> <f:SimpleForm ` && |\n|  &&
                             `  title="Form Title" ` && |\n|  &&
-                            `  layout="ResponsiveGridLayout" ` && |\n|  &&
+                            `   ` && |\n|  &&
                             ` > <f:content ` && |\n|  &&
                             ` > <Title ` && |\n|  &&
                             `  text="Input" ` && |\n|  &&

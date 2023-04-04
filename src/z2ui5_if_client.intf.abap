@@ -28,10 +28,11 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_get,
       view_active        TYPE string,
       popup_active       TYPE string,
-      check_previous_app TYPE abap_bool,
       event              TYPE string,
       page_scroll_pos    TYPE i,
       lifecycle_method   TYPE string,
+
+      controller_name    type string,
       id                 TYPE string,
       id_prev            TYPE string,
       id_prev_app        TYPE string,
