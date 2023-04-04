@@ -14,9 +14,6 @@ CLASS z2ui5_cl_app_demo_25 DEFINITION PUBLIC.
     DATA mv_input TYPE string.
     DATA mv_input_previous TYPE string.
     DATA mv_input_previous_set TYPE string.
-
-    DATA mv_name_attri TYPE string.
-
     DATA mv_show_view TYPE string.
 
   PROTECTED SECTION.
@@ -30,7 +27,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->mv_name_attri = i_name_attri.
+  "  r_result->mv_name_attri = i_name_attri.
 
   ENDMETHOD.
 

@@ -127,12 +127,13 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
       CLEAR mv_value.
     ENDIF.
 
+ DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory( ).
 
     CASE mv_popup_view.
 
       WHEN 'POPUP_DESCR'.
 
-        DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory(
+        lo_popup = z2ui5_cl_xml_view_helper=>factory(
            )->dialog(
                    title = 'Edit Description'
                    icon = 'sap-icon://edit'
@@ -177,7 +178,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
     client->_set_next( VALUE #(
         xml_main  = lo_main->get_root( )->xml_get( )
-        xml_popup = cond #( when lo_popup is bound then lo_popup->get_root( )->xml_get( ) )
+        xml_popup = lo_popup->get_root( )->xml_get( )
         ) ).
 
   ENDMETHOD.

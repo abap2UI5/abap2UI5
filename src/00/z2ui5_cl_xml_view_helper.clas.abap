@@ -209,9 +209,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     _generic(
        name   = `BadgeCustomData`
        t_prop = VALUE #(
-          ( n = `key`   v = key )
+          ( n = `key`      v = key )
           ( n = `value`    v = value )
-          ( n = `visible` v = _=>get_abap_2_json( visible ) )
+          ( n = `visible`  v = _=>get_json_boolean( visible ) )
        ) ).
 
   ENDMETHOD.

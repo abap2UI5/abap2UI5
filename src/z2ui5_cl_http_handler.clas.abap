@@ -173,16 +173,16 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n| &&
                            `                    sap.ui.core.BusyIndicator.show();` && |\n| &&
                            |\n| &&
-                           `                    this.oBody = this.oView.getModel().oData.oUpdate;` && |\n| &&
+                                        `                    if (sap.z2ui5.oResponse.oViewPopup) {` && |\n| &&
+                           `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n| &&
+                           `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
+                           `                      this.oBody = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
+                           `                    }else{  this.oBody = this.oView.getModel().oData.oUpdate;  }` && |\n| &&
                            `                    if (!this.oBody){ this.oBody = {}; this.oBody.oSystem = {}; this.oBody.oEvent = {}; }` && |\n| &&
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n| &&
                            `                    this.oBody.oEvent = oEvent;` && |\n| &&
                            |\n| &&
-                           `                    if (sap.z2ui5.oResponse.oViewPopup) {` && |\n| &&
-                           `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n| &&
-                           `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
-                           `                 //       this.oBody.oPopup = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
-                           `                    }` && |\n| &&
+
                            |\n| &&
                          `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
                            `     var oScrollNew = [];` && |\n| &&
