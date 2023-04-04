@@ -6,22 +6,17 @@ CLASS z2ui5_cl_app_demo_24 DEFINITION PUBLIC.
 
     DATA mv_input TYPE string.
     DATA mv_input2 TYPE string.
-
+    data mv_event type string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
-
-    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
 
     CASE client->get( )-event.
 
@@ -40,7 +35,8 @@ CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
 
       WHEN 'CALL_NEW_APP_EVENT'.
         client->nav_app_call( NEW z2ui5_cl_app_demo_25( ) ).
-        client->set( event = 'NEW_APP_EVENT' ).
+        mv_event = 'NEW_APP_EVENT'.
+      "  client->set( event = 'NEW_APP_EVENT' ).
 
       WHEN 'CALL_PREVIOUS_APP_INPUT_RETURN'.
         DATA(lo_called_app) = CAST z2ui5_cl_app_demo_25( client->get_app_by_id( client->get( )-id_prev_app ) ).
@@ -76,7 +72,10 @@ CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
          )->input( client->_bind( mv_input2 )
     ).
 
-    client->_set_next( VALUE #( xml_main = view->get_root( )->xml_get( ) ) ).
+    client->set_next( VALUE #(
+        xml_main = view->get_root( )->xml_get( )
+        event    = mv_event
+         ) ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -19,10 +19,6 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
-
     IF check_initialized = abap_false.
       check_initialized = abap_true.
       product  = 'tomato'.
@@ -36,7 +32,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
     ENDCASE.
 
-    client->_set_next( VALUE #( xml_main = z2ui5_cl_xml_view_helper=>factory(
+    client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view_helper=>factory(
         )->page(
                 title          = 'abap2UI5 - First Example'
                 navbuttonpress = client->_event( 'BACK' )

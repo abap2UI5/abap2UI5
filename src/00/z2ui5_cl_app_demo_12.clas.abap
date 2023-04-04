@@ -19,10 +19,6 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    IF  client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
-
     IF mv_check_initialized = abap_false.
       mv_check_initialized = abap_true.
       mv_main_view = 'MAIN'.

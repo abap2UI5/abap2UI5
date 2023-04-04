@@ -33,10 +33,6 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
-
     mv_popup_view = ''.
 
     CASE client->get( )-event.

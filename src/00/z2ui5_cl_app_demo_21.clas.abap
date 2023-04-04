@@ -73,10 +73,6 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
-
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
@@ -163,7 +159,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
 
     ENDCASE.
 
-    client->_set_next( VALUE #( xml_main = mv_main_xml xml_popup = mv_popup_xml ) ).
+    client->set_next( VALUE #( xml_main = mv_main_xml xml_popup = mv_popup_xml ) ).
     CLEAR: mv_main_xml, mv_popup_xml.
   ENDMETHOD.
 

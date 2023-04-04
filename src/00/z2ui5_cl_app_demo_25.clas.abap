@@ -15,7 +15,7 @@ CLASS z2ui5_cl_app_demo_25 DEFINITION PUBLIC.
     DATA mv_input_previous TYPE string.
     DATA mv_input_previous_set TYPE string.
     DATA mv_show_view TYPE string.
-
+    data mv_next_event type string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -27,16 +27,10 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-  "  r_result->mv_name_attri = i_name_attri.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_app~controller.
-
-    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
-
 
     CASE client->get( )-event.
 
@@ -62,7 +56,8 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
       WHEN 'BACK_WITH_EVENT'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
-        client->set( event = 'CALL_PREVIOUS_APP_INPUT_RETURN' ).
+        mv_next_event = 'CALL_PREVIOUS_APP_INPUT_RETURN'.
+      "  client->set( event = 'CALL_PREVIOUS_APP_INPUT_RETURN' ).
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
@@ -118,7 +113,10 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
     ENDCASE.
 
-    client->_set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
+    client->set_next( VALUE #(
+        xml_main = page->get_root( )->xml_get( )
+        event = mv_next_event
+         ) ).
 
   ENDMETHOD.
 ENDCLASS.
