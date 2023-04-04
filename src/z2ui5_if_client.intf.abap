@@ -45,12 +45,19 @@ INTERFACE z2ui5_if_client
       END OF s_request,
     END OF ty_s_get.
 
+  TYPES:
+    BEGIN OF ty_S_set,
+        xml_main  type string,
+        xml_popup  type string,
+    END OF ty_s_set.
+
   METHODS set
     IMPORTING
       event         TYPE clike OPTIONAL
       t_scroll_pos  TYPE ty_t_name_value OPTIONAL
       s_cursor_pos  TYPE ty_s_cursor OPTIONAL
-      set_prev_view TYPE abap_bool OPTIONAL.
+      set_prev_view TYPE abap_bool OPTIONAL
+      s_data        TYPE ty_S_set optional.
 
   METHODS get
     RETURNING
@@ -91,14 +98,6 @@ INTERFACE z2ui5_if_client
   METHODS popup_view
     IMPORTING
       name TYPE clike.
-
-  METHODS set_view
-    IMPORTING
-      xml TYPE string.
-
-  METHODS set_popup
-    IMPORTING
-      xml TYPE string.
 
   METHODS factory_view
     IMPORTING

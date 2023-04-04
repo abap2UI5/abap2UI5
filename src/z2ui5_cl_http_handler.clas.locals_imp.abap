@@ -1007,16 +1007,18 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         s_cursor_pos        TYPE z2ui5_if_client=>ty_s_cursor,
 
         t_view              TYPE STANDARD TABLE OF s_view WITH EMPTY KEY,
+
+        s_set               type z2ui5_if_client=>ty_S_set,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
 
-    DATA:
-      BEGIN OF ms_control,
-        view_xml       TYPE string,
-        view_popup_xml TYPE string,
-      END OF ms_control.
+*    DATA:
+*      BEGIN OF ms_control,
+*        view_xml       TYPE string,
+*        view_popup_xml TYPE string,
+*      END OF ms_control.
 
     CLASS-METHODS request_begin
       RETURNING
@@ -2742,18 +2744,18 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       CATCH cx_root.
 
-        IF ms_control-view_xml IS NOT INITIAL.
+        IF ms_next-s_set-xml_main IS NOT INITIAL.
 
-          lo_ui5_model->add_attribute( n = `vView` v = ms_control-view_xml ).
+          lo_ui5_model->add_attribute( n = `vView` v = ms_next-s_set-xml_main ).
           lo_ui5_model->add_attribute_instance( request_end_get_view_model( ) ).
 
         ENDIF.
 
-        IF ms_control-view_popup_xml IS NOT INITIAL.
+        IF ms_next-s_set-xml_popup IS NOT INITIAL.
 
           DATA(lo_model) = request_end_get_view_model( ).
           lo_model->mv_name = `oViewModelPopup`.
-          lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_control-view_popup_xml ).
+          lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_next-s_set-xml_popup ).
           lo_ui5_model->add_attribute_instance( lo_model ).
 
         ENDIF.
@@ -3200,6 +3202,10 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
       mo_runtime->ms_next-s_cursor_pos = s_cursor_pos.
     ENDIF.
 
+    if s_data is SUPPLIED.
+    mo_runtime->ms_next-s_set = s_data.
+    endif.
+
   ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind.
@@ -3239,16 +3245,5 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~set_view.
-
-    mo_runtime->ms_control-view_xml = xml.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_client~set_popup.
-
-    mo_runtime->ms_control-view_popup_xml = xml.
-
-  ENDMETHOD.
 
 ENDCLASS.
