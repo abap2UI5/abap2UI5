@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
     DATA mv_confirm_text TYPE string.
     DATA mv_confirm_event TYPE string.
     DATA mv_check_show_previous_view TYPE abap_bool.
-
+    data mv_next_event type string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -49,23 +49,21 @@ CLASS z2ui5_cl_app_demo_20 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    IF client->get( )-lifecycle_method = client->cs-lifecycle_method-on_rendering.
-      RETURN.
-    ENDIF.
-
     IF check_initialized = abap_false.
       check_initialized = abap_true.
-      client->set( set_prev_view = mv_check_show_previous_view ).
     ENDIF.
 
     CASE client->get( )-event.
 
       WHEN mv_cancel_event OR mv_confirm_event.
-        client->set( event = client->get( )-event ).
+         mv_next_event = client->get( )-event.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
     ENDCASE.
 
-    client->_set_next( VALUE #( xml_popup = z2ui5_cl_xml_view_helper=>factory(
+    client->set_next( VALUE #(
+        event = mv_next_event
+        check_set_prev_view = mv_check_show_previous_view
+        xml_popup = z2ui5_cl_xml_view_helper=>factory(
          )->dialog( 'abap2UI5 - Popup to decide'
                 )->vbox(
                     )->text( mv_text )->get_parent(

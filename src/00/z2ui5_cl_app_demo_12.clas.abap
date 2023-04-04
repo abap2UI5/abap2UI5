@@ -7,7 +7,7 @@ CLASS z2ui5_cl_app_demo_12 DEFINITION PUBLIC.
     DATA mv_popup_view TYPE string.
     DATA mv_main_view  TYPE string.
     DATA mv_check_initialized TYPE abap_bool.
-
+    data mv_set_prev_view type abap_bool.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -49,7 +49,7 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
         mv_popup_view = 'POPUP_INFO_FRONTEND_CLOSE'.
 
       WHEN 'BUTTON_POPUP_04'.
-        client->set( set_prev_view = abap_true ).
+        mv_set_prev_view = abap_true.
         mv_popup_view = 'POPUP_DECIDE'.
 
       WHEN 'BUTTON_POPUP_05'.
@@ -157,9 +157,10 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
 
     ENDCASE.
 
-    client->_set_next( VALUE #(
+    client->set_next( VALUE #(
         xml_main  = lo_main->get_root( )->xml_get( )
         xml_popup = lo_popup->get_root( )->xml_get( )
+        check_set_prev_view = mv_set_prev_view
        ) ).
 
   ENDMETHOD.

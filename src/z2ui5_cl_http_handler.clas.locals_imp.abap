@@ -9,7 +9,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         bind_type      TYPE string,
         data_stringify TYPE string,
       END OF ty_attri.
-
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
@@ -19,8 +18,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value.
-
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     DATA:
       BEGIN OF ms_error,
@@ -657,7 +654,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
         VALUE(result) TYPE string.
 
 ENDCLASS.
-
 
 
 CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.

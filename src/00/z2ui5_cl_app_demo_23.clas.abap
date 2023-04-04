@@ -50,7 +50,7 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
     z2ui5_on_render_main( ).
     z2ui5_on_render_popup( ).
 
-    client->_set_next( app-s_next ).
+    client->set_next( app-s_next ).
     CLEAR app-s_get.
     CLEAR app-s_next.
 

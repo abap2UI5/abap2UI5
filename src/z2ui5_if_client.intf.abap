@@ -1,14 +1,6 @@
 INTERFACE z2ui5_if_client
   PUBLIC .
 
-*  CONSTANTS:
-*    BEGIN OF cs,
-*      BEGIN OF lifecycle_method,
-*        on_event     TYPE string VALUE 'EVENT',
-*        on_rendering TYPE string VALUE 'RENDERING',
-*      END OF lifecycle_method,
-*    END OF cs.
-
   TYPES:
     BEGIN OF ty_s_name_value,
       name  TYPE string,
@@ -26,12 +18,7 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_get,
-      "  view_active        TYPE string,
-      " popup_active       TYPE string,
       event             TYPE string,
-      page_scroll_pos   TYPE i,
-      "  lifecycle_method   TYPE string,
-
       id                TYPE string,
       id_prev           TYPE string,
       id_prev_app       TYPE string,
