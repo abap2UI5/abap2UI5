@@ -194,6 +194,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
+
   METHOD get_abap_2_json.
 
     IF check_is_boolean( val ).
@@ -203,6 +204,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD check_is_boolean.
 
@@ -217,6 +219,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_json_boolean.
 
     IF check_is_boolean( val ).
@@ -226,6 +229,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD get_classname_by_ref.
 
@@ -254,7 +258,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     result = lt_url_params[ name = get_trim_upper( name ) ]-value.
 
   ENDMETHOD.
-
 
   METHOD get_prev_when_no_handler.
 
@@ -2439,6 +2442,7 @@ CLASS z2ui5_lcl_system_app DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_app.
 
+    data mv_view_name type string.
   PROTECTED SECTION.
 
     DATA mv_is_initialized TYPE abap_bool.
@@ -2486,14 +2490,16 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
     IF ms_error-x_error IS NOT BOUND.
-      client->show_view( `HOME` ).
+    "  client->show_view( `HOME` ).
+      mv_view_name = 'HOME'.
       ms_home-is_initialized = abap_true.
       ms_home-btn_text = `check`.
       ms_home-btn_event_id = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
       ms_home-btn_icon = `sap-icon://validate`.
     ELSE.
-      client->show_view( `ERROR` ).
+     mv_view_name = 'ERROR'.
+      "client->show_view( `ERROR` ).
     ENDIF.
 
   ENDMETHOD.
@@ -2501,7 +2507,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
-    CASE client->get( )-view_active.
+    CASE mv_view_name.
 
       WHEN `HOME`.
         CASE client->get( )-event.
@@ -2567,6 +2573,29 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
           source_line  = DATA(lv_line)
       ).
 
+      data(lv_descr) = ms_error-x_error->get_text( ) &&
+            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
+            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
+
+    data(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv` &&
+`c" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <MessagePage ` && |\n|
+&&
+                         `  description="` &&  lv_descr && `" ` && |\n|  &&
+                         `  icon="sap-icon://message-error" ` && |\n|  &&
+                         `  text="500 Internal Server Error" ` && |\n|  &&
+                         `  enableFormattedText="true" ` && |\n|  &&
+                         ` > <buttons ` && |\n|  &&
+                         ` > <Button ` && |\n|  &&
+                         `  press="` &&  client->_event( `BUTTON_HOME` ) && `" ` && |\n|  &&
+                         `  text="HOME" ` && |\n|  &&
+                         ` /> <Button ` && |\n|  &&
+                         `  press="` &&  client->_event( `BUTTON_BACK` ) && `" ` && |\n|  &&
+                         `  text="BACK" ` && |\n|  &&
+                         `  type="Emphasized" ` && |\n|  &&
+                         ` /></buttons></MessagePage></Shell></mvc:View>`.
+
+client->_set_next( value #( xml_main = lv_xml_error ) ).
+    return.
       DATA(view) = client->factory_view( `ERROR` ).
       view->message_page(
           text = `500 Internal Server Error`
@@ -2588,51 +2617,136 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    view = client->factory_view( `HOME` ).
-    DATA(page) = view->page(
-        class = `sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer`
-        ).
-    page->header_content(
-      )->title( ``
-      )->title( `abap2UI5 - Development of UI5 Apps in pure ABAP`
-      )->toolbar_spacer(
-        )->link( text = `SCN` href = `https://blogs.sap.com/tag/abap2ui5/`
-        )->link( text = `Twitter` href = `https://twitter.com/OblomovDev`
-        )->link( text = `GitHub` href = `https://github.com/oblomov-dev/abap2ui5` ).
+     DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
 
-    DATA(grid) = page->grid( `XL7 L7 M12 S12` )->content( `l` ).
-    DATA(form) = grid->simple_form( `Quick Start` )->content( `f` ).
-
-    form->label( `Step 1`
-       )->text( `Create a global class in your abap system`
-       )->label( `Step 2`
-       )->text( `Add the interface: Z2UI5_IF_APP`
-       )->label( `Step 3`
-       )->text( `Define view, implement behaviour`
-       )->link( text = `(Example)` href = `https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap`
-       )->label( `Step 4`
-    ).
+    DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
+`" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
+                        `  showNavButton="false" ` && |\n|  &&
+                        `  class="sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" ` && |\n|  &&
+                        ` > <headerContent ` && |\n|  &&
+                        ` > <Title ` && |\n|  &&
+                        ` /> <Title ` && |\n|  &&
+                        `  text="abap2UI5 - Development of UI5 Apps in pure ABAP" ` && |\n|  &&
+                        ` /> <ToolbarSpacer ` && |\n|  &&
+                        ` /> <Link ` && |\n|  &&
+                        `  text="SCN" ` && |\n|  &&
+                        `  target="_blank" ` && |\n|  &&
+                        `  href="https://blogs.sap.com/tag/abap2ui5/" ` && |\n|  &&
+                        ` /> <Link ` && |\n|  &&
+                        `  text="Twitter" ` && |\n|  &&
+                        `  target="_blank" ` && |\n|  &&
+                        `  href="https://twitter.com/OblomovDev" ` && |\n|  &&
+                        ` /> <Link ` && |\n|  &&
+                        `  text="GitHub" ` && |\n|  &&
+                        `  target="_blank" ` && |\n|  &&
+                        `  href="https://github.com/oblomov-dev/abap2ui5" ` && |\n|  &&
+                        ` /></headerContent> <l:Grid ` && |\n|  &&
+                        `  defaultSpan="XL7 L7 M12 S12" ` && |\n|  &&
+                        ` > <l:content ` && |\n|  &&
+                        ` > <f:SimpleForm ` && |\n|  &&
+                        `  title="Quick Start" ` && |\n|  &&
+                        `  layout="ResponsiveGridLayout" ` && |\n|  &&
+                        ` > <f:content ` && |\n|  &&
+                        ` > <Label ` && |\n|  &&
+                        `  text="Step 1" ` && |\n|  &&
+                        ` /> <Text ` && |\n|  &&
+                        `  text="Create a global class in your abap system" ` && |\n|  &&
+                        ` /> <Label ` && |\n|  &&
+                        `  text="Step 2" ` && |\n|  &&
+                        ` /> <Text ` && |\n|  &&
+                        `  text="Add the interface: Z2UI5_IF_APP" ` && |\n|  &&
+                        ` /> <Label ` && |\n|  &&
+                        `  text="Step 3" ` && |\n|  &&
+                        ` /> <Text ` && |\n|  &&
+                        `  text="Define view, implement behaviour" ` && |\n|  &&
+                        ` /> <Link ` && |\n|  &&
+                        `  text="(Example)" ` && |\n|  &&
+                        `  target="_blank" ` && |\n|  &&
+                        `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap" ` && |\n|  &&
+                        ` /> <Label ` && |\n|  &&
+                        `  text="Step 4" ` && |\n|  &&
+                        ` /> `.
 
     IF ms_home-class_editable = abap_true.
-      form->input(
-           value          = client->_bind( ms_home-classname )
-           placeholder    = `fill in the class name and press 'check' `
-           valuestate     = ms_home-class_value_state
-           valuestatetext = ms_home-class_value_state_text
-           editable       = ms_home-class_editable
-       ).
+      lv_xml_main = lv_xml_main &&   `<Input ` && |\n|  &&
+     `  placeholder="` && `fill in the class name and press 'check' ` && `" ` && |\n|  &&
+     `  editable="` && _=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n|  &&
+     `  value="` && client->_bind( ms_home-classname ) && `" ` && |\n|  &&
+     ` /> `.
     ELSE.
-      form->text( ms_home-classname ).
+      lv_xml_main = lv_xml_main &&   `<Text ` && |\n|  &&
+      `  text=" ` && ms_home-classname && `" /> `.
+
     ENDIF.
 
-    form->button( text = ms_home-btn_text press = client->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
-       )->label( `Step 5` ).
+    lv_xml_main = lv_xml_main &&  `<Button ` && |\n|  &&
+       `  press="`  && client->_event( ms_home-btn_event_id ) && `" ` && |\n|  &&
+       `  text="` && ms_home-btn_text && `" ` && |\n|  &&
+       `  icon="` &&  ms_home-btn_icon && `" ` && |\n|  &&
+       ` /> <Label ` && |\n|  &&
+       `  text="Step 5" ` && |\n|  &&
+       ` /> <Link ` && |\n|  &&
+       `  text="Link to the Application" ` && |\n|  &&
+       `  target="_blank" ` && |\n|  &&
+       `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n|  &&
+       `  enabled="` && _=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n|  &&
+       ` /></f:content></f:SimpleForm> <f:SimpleForm ` && |\n|  &&
+       `  title="Applications and Examples" ` && |\n|  &&
+       `  layout="ResponsiveGridLayout" ` && |\n|  &&
+       ` > <f:content ` && |\n|  &&
+       ` > <Button ` && |\n|  &&
+       `  press="` && client->_event( `DEMOS` ) && `" ` && |\n|  &&
+       `  text="Continue..." ` && |\n|  &&
+       ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
-    DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
-    form->link( text = `Link to the Application` href = lv_link enabled = xsdbool( ms_home-class_editable = abap_false ) ).
+    client->_set_next( value #( xml_main = lv_xml_main ) ).
 
-    grid->simple_form( `Applications and Examples` )->content( `f`
-                )->button( text = `Continue...` press = client->_event( `DEMOS` ) ).
+    return.
+*    view = client->factory_view( `HOME` ).
+*    DATA(page) = view->page(
+*        class = `sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer`
+*        ).
+*    page->header_content(
+*      )->title( ``
+*      )->title( `abap2UI5 - Development of UI5 Apps in pure ABAP`
+*      )->toolbar_spacer(
+*        )->link( text = `SCN` href = `https://blogs.sap.com/tag/abap2ui5/`
+*        )->link( text = `Twitter` href = `https://twitter.com/OblomovDev`
+*        )->link( text = `GitHub` href = `https://github.com/oblomov-dev/abap2ui5` ).
+*
+*    DATA(grid) = page->grid( `XL7 L7 M12 S12` )->content( `l` ).
+*    DATA(form) = grid->simple_form( `Quick Start` )->content( `f` ).
+*
+*    form->label( `Step 1`
+*       )->text( `Create a global class in your abap system`
+*       )->label( `Step 2`
+*       )->text( `Add the interface: Z2UI5_IF_APP`
+*       )->label( `Step 3`
+*       )->text( `Define view, implement behaviour`
+*       )->link( text = `(Example)` href = `https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap`
+*       )->label( `Step 4`
+*    ).
+*
+*    IF ms_home-class_editable = abap_true.
+*      form->input(
+*           value          = client->_bind( ms_home-classname )
+*           placeholder    = `fill in the class name and press 'check' `
+*           valuestate     = ms_home-class_value_state
+*           valuestatetext = ms_home-class_value_state_text
+*           editable       = ms_home-class_editable
+*       ).
+*    ELSE.
+*      form->text( ms_home-classname ).
+*    ENDIF.
+*
+*    form->button( text = ms_home-btn_text press = client->_event( ms_home-btn_event_id ) icon = ms_home-btn_icon
+*       )->label( `Step 5` ).
+*
+*
+*    form->link( text = `Link to the Application` href = lv_link enabled = xsdbool( ms_home-class_editable = abap_false ) ).
+*
+*    grid->simple_form( `Applications and Examples` )->content( `f`
+*                )->button( text = `Continue...` press = client->_event( `DEMOS` ) ).
 
   ENDMETHOD.
 
@@ -2768,6 +2882,42 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           REPLACE '</Shell>' IN lv_xml WITH ``.
           lo_ui5_model->add_attribute( n = `vViewPopup` v = lv_xml ).
         ENDIF.
+
+        lo_ui5_model->add_attribute_object( `oSystem`
+       )->add_attribute( n = `ID`                 v = ms_db-id
+       )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
+
+        IF ms_next-t_after IS NOT INITIAL.
+          DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
+          LOOP AT ms_next-t_after REFERENCE INTO DATA(lr_after).
+            DATA(lo_list2) = lo_list->add_list_list( ).
+            LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
+              lo_list2->add_list_val( lr_con->* ).
+            ENDLOOP.
+          ENDLOOP.
+        ENDIF.
+
+        lo_list = lo_ui5_model->add_attribute_list( `oScroll` ).
+        LOOP AT ms_next-t_scroll_pos REFERENCE INTO DATA(lr_focus).
+          lo_list->add_list_object( )->add_attribute( n = lr_focus->name v = lr_focus->value apos_active = abap_false ).
+        ENDLOOP.
+
+        IF ms_next-s_cursor_pos IS NOT INITIAL.
+          lo_ui5_model->add_attribute_object( `oCursor`
+              )->add_attribute( n = `cursorPos`       v = ms_next-s_cursor_pos-cursorpos apos_active = abap_false
+              )->add_attribute( n = `id`              v = ms_next-s_cursor_pos-id
+              )->add_attribute( n = `selectionEnd`    v = ms_next-s_cursor_pos-selectionend apos_active = abap_false
+              )->add_attribute( n = `selectionStart`  v = ms_next-s_cursor_pos-selectionstart apos_active = abap_false ).
+        ENDIF.
+
+        IF ms_next-check_set_prev_view = abap_true.
+          lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
+        ENDIF.
+        result = lo_ui5_model->get_root( )->write_result( ).
+
+        z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
+        RETURN.
+
     ENDTRY.
 
 
@@ -2795,17 +2945,17 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
 
     IF ms_next-t_after IS NOT INITIAL.
-      DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
-      LOOP AT ms_next-t_after REFERENCE INTO DATA(lr_after).
-        DATA(lo_list2) = lo_list->add_list_list( ).
-        LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
+      lo_list = lo_ui5_model->add_attribute_list( `oAfter` ).
+      LOOP AT ms_next-t_after REFERENCE INTO lr_after.
+        lo_list2 = lo_list->add_list_list( ).
+        LOOP AT lr_after->* REFERENCE INTO lr_con.
           lo_list2->add_list_val( lr_con->* ).
         ENDLOOP.
       ENDLOOP.
     ENDIF.
 
     lo_list = lo_ui5_model->add_attribute_list( `oScroll` ).
-    LOOP AT ms_next-t_scroll_pos REFERENCE INTO DATA(lr_focus).
+    LOOP AT ms_next-t_scroll_pos REFERENCE INTO lr_focus.
       lo_list->add_list_object( )->add_attribute( n = lr_focus->name v = lr_focus->value apos_active = abap_false ).
     ENDLOOP.
 
