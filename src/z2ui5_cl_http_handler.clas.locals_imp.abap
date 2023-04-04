@@ -1008,7 +1008,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
         t_view              TYPE STANDARD TABLE OF s_view WITH EMPTY KEY,
 
-        s_set               type z2ui5_if_client=>ty_S_set,
+        s_set               TYPE z2ui5_if_client=>ty_S_next,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -2746,20 +2746,24 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
         IF ms_next-s_set-xml_main IS NOT INITIAL.
 
-          lo_ui5_model->add_attribute( n = `vView` v = ms_next-s_set-xml_main ).
-          lo_ui5_model->add_attribute_instance( request_end_get_view_model( ) ).
+          SPLIT ms_next-s_set-xml_main AT 'controllerName="' INTO DATA(lv_1) DATA(lv_2).
+          SPLIT lv_2 AT '"' INTO DATA(lv3) DATA(lv_4).
+          DATA(lv_xml) = lv_1 && 'controllerName="z2ui5_controller"' && lv_4.
 
+          lo_ui5_model->add_attribute( n = `vView` v = lv_xml ).
+          lo_ui5_model->add_attribute_instance( request_end_get_view_model( ) ).
         ENDIF.
 
         IF ms_next-s_set-xml_popup IS NOT INITIAL.
-
-          DATA(lo_model) = request_end_get_view_model( ).
-          lo_model->mv_name = `oViewModelPopup`.
           lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_next-s_set-xml_popup ).
-          lo_ui5_model->add_attribute_instance( lo_model ).
-
         ENDIF.
     ENDTRY.
+
+
+
+
+
+
 
     IF ms_next-view_popup IS NOT INITIAL.
       TRY.
@@ -2769,7 +2773,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDTRY.
 
       DATA(ls_view_popup) = lr_view_popup->o_parser->get_view( abap_true ).
-      ls_view_popup-o_model->mv_name = `oViewModelPopup`.
+   "   ls_view_popup-o_model->mv_name = `oViewModelPopup`.
+      ls_view_popup-o_model->mv_name = `oViewModel`.
       lo_ui5_model->add_attribute( n = `vViewPopup` v = ls_view_popup-xml ).
       lo_ui5_model->add_attribute_instance( ls_view_popup-o_model ).
     ENDIF.
@@ -2822,11 +2827,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    TRY.
-        DATA(lo_model) = ss_client-o_body->get_attribute( `OPOPUP` ).
-      CATCH cx_root.
-        lo_model = ss_client-o_body.
-    ENDTRY.
+    "  TRY.
+    "   DATA(lo_model) = ss_client-o_body->get_attribute( `OPOPUP` ).
+    "   CATCH cx_root.
+    DATA(lo_model) = ss_client-o_body.
+    "  ENDTRY.
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = cs_bind_type-two_way.
@@ -3028,7 +3033,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         popup_active    = ms_next-view_popup
 
         page_scroll_pos = ms_next-page_scroll_pos
-        controller_name = 'z2ui5_controller'
         s_request = VALUE #(
              tenant = sy-mandt
              url_app = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=` && ms_db-app_classname
@@ -3202,11 +3206,15 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
       mo_runtime->ms_next-s_cursor_pos = s_cursor_pos.
     ENDIF.
 
-    if s_data is SUPPLIED.
-    mo_runtime->ms_next-s_set = s_data.
-    endif.
 
   ENDMETHOD.
+
+  METHOD z2ui5_if_client~_set_next.
+
+    mo_runtime->ms_next-s_set = val.
+
+  ENDMETHOD.
+
 
   METHOD z2ui5_if_client~_bind.
 

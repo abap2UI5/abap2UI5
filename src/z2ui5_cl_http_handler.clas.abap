@@ -181,7 +181,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    if (sap.z2ui5.oResponse.oViewPopup) {` && |\n| &&
                            `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n| &&
                            `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
-                           `                        this.oBody.oPopup = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
+                           `                 //       this.oBody.oPopup = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
                            `                    }` && |\n| &&
                            |\n| &&
                          `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
@@ -238,12 +238,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        // sap.z2ui5.oResponse.oViewModel.oUpdate.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n| &&
                            |\n| &&
                            `                        if (sap.z2ui5.oResponse.vViewPopup) {` && |\n| &&
+                           `                            if (sap.z2ui5.oResponse.oViewModelPopup){` && |\n| &&
                            `                            var oModelPopup = new JSONModel(sap.z2ui5.oResponse.oViewModelPopup);` && |\n| &&
+                           `                            } ` && |\n| &&
                            `                            new sap.ui.core.Fragment.load({` && |\n| &&
                            `                                definition: sap.z2ui5.oResponse.vViewPopup,` && |\n| &&
                            `                                controller: this,` && |\n| &&
                            `                            }).then(function (oFragment) {` && |\n| &&
-                           `                                oFragment.setModel(oModelPopup);` && |\n| &&
+                           `                             if (!oModelPopup) {    oFragment.setModel( new JSONModel(oModel.oData) ) }else { oFragment.setModel(oModelPopup)   }` && |\n| &&
+                           `                          //      oFragment.setModel(oModelPopup);` && |\n| &&
                            `                                this.getView().addDependent(oFragment);` && |\n| &&
                            `                                oFragment.open();` && |\n| &&
                            `                                sap.z2ui5.oResponse.oViewPopup = oFragment;` && |\n| &&

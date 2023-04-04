@@ -32,7 +32,6 @@ INTERFACE z2ui5_if_client
       page_scroll_pos    TYPE i,
       lifecycle_method   TYPE string,
 
-      controller_name    type string,
       id                 TYPE string,
       id_prev            TYPE string,
       id_prev_app        TYPE string,
@@ -47,19 +46,21 @@ INTERFACE z2ui5_if_client
     END OF ty_s_get.
 
   TYPES:
-    BEGIN OF ty_S_set,
+    BEGIN OF ty_S_next,
         xml_main  type string,
         xml_popup  type string,
-    END OF ty_s_set.
+    END OF ty_s_next.
 
   METHODS set
     IMPORTING
       event         TYPE clike OPTIONAL
       t_scroll_pos  TYPE ty_t_name_value OPTIONAL
       s_cursor_pos  TYPE ty_s_cursor OPTIONAL
-      set_prev_view TYPE abap_bool OPTIONAL
-      s_data        TYPE ty_S_set optional.
+      set_prev_view TYPE abap_bool OPTIONAL.
 
+ METHODS _set_next
+    IMPORTING
+       val type ty_S_next.
   METHODS get
     RETURNING
       VALUE(result) TYPE ty_s_get.
