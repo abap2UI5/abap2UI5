@@ -37,6 +37,7 @@ CLASS Z2UI5_CL_APP_DEMO_15 IMPLEMENTATION.
         )->page(
             title          = 'abap2UI5 - Formatted Text'
             navbuttonpress = client->_event( 'BACK' )
+            shownavbutton  = abap_true
             )->header_content(
                 )->toolbar_spacer(
                 )->link( text = 'Source_Code' href = client->get( )-url_source_code

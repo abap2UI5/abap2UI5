@@ -44,8 +44,8 @@ CLASS z2ui5_cl_app_demo_09 DEFINITION PUBLIC.
     DATA mt_employees TYPE STANDARD TABLE OF s_employee WITH EMPTY KEY.
     DATA check_initialized TYPE abap_bool.
 
-    data mv_view_main type string.
-    data mv_view_popup type string.
+    DATA mv_view_main TYPE string.
+    DATA mv_view_popup TYPE string.
   PROTECTED SECTION.
 
     METHODS z2ui5_on_rendering
@@ -68,7 +68,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    clear mv_view_popup.
+    CLEAR mv_view_popup.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
@@ -93,7 +93,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
       WHEN 'POPUP_TABLE_F4_CUSTOM'.
         mt_employees_sel = VALUE #( ).
         mt_employees_sel = VALUE #( ).
-         mv_view_popup = 'POPUP_TABLE_F4_CUSTOM'.
+        mv_view_popup = 'POPUP_TABLE_F4_CUSTOM'.
         mv_view_main = 'MAIN'.
 
       WHEN 'SEARCH'.
@@ -101,7 +101,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         IF screen-city IS NOT INITIAL.
           DELETE mt_employees_sel WHERE city <> screen-city.
         ENDIF.
-         mv_view_popup = 'POPUP_TABLE_F4_CUSTOM'.
+        mv_view_popup = 'POPUP_TABLE_F4_CUSTOM'.
         mv_view_main = 'MAIN'.
 
       WHEN 'POPUP_TABLE_F4_CUSTOM_CONTINUE'.
@@ -203,92 +203,92 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                 enabled = abap_false
                 type    = 'Success' ).
 
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory( ).
+    CASE mv_view_popup.
 
-case mv_view_popup.
+      WHEN 'POPUP_TABLE_F4'.
 
-    when 'POPUP_TABLE_F4'.
+        popup = z2ui5_cl_xml_view_helper=>factory(
+            )->dialog( 'abap2UI5 - F4 Value Help'
+            )->table(
+                    mode  = 'SingleSelectLeft'
+                    items = client->_bind( mt_suggestion_sel )
+                )->columns(
+                    )->column( '20rem'
+                        )->text( 'Color' )->get_parent(
+                    )->column(
+                        )->text( 'Description'
+                )->get_parent( )->get_parent(
+                )->items(
+                    )->column_list_item( selected = '{SELKZ}'
+                        )->cells(
+                            )->text( '{VALUE}'
+                            )->text( '{DESCR}'
+            )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+            )->footer(
+                )->overflow_toolbar(
+                    )->toolbar_spacer(
+                    )->button(
+                        text  = 'continue'
+                        press = client->_event( 'POPUP_TABLE_F4_CONTINUE' )
+                        type  = 'Emphasized' ).
 
-    data(popup) = z2ui5_cl_xml_view_helper=>factory(
-        )->dialog( 'abap2UI5 - F4 Value Help'
-        )->table(
-                mode  = 'SingleSelectLeft'
-                items = client->_bind( mt_suggestion_sel )
-            )->columns(
-                )->column( '20rem'
-                    )->text( 'Color' )->get_parent(
-                )->column(
-                    )->text( 'Description'
+      WHEN 'POPUP_TABLE_F4_CUSTOM'.
+
+        popup = z2ui5_cl_xml_view_helper=>factory(
+            )->dialog( 'abap2UI5 - F4 Value Help' ).
+
+        popup->simple_form(
+            )->label( 'Location'
+            )->input(
+                    value           = client->_bind( screen-city )
+                    suggestionitems = client->_bind_one( mt_suggestion_city )
+                    showsuggestion  = abap_true )->get(
+                )->suggestion_items( )->get(
+                    )->list_item(
+                        text            = '{VALUE}'
+                        additionaltext  = '{DESCR}'
             )->get_parent( )->get_parent(
-            )->items(
-                )->column_list_item( selected = '{SELKZ}'
-                    )->cells(
-                        )->text( '{VALUE}'
-                        )->text( '{DESCR}'
-        )->get_parent( )->get_parent( )->get_parent( )->get_parent(
-        )->footer(
+            )->button(
+                text  = 'search...'
+                press = client->_event( 'SEARCH' ) ).
+
+        DATA(tab) = popup->table(
+            headertext = 'Employees'
+            mode       = 'SingleSelectLeft'
+            items      = client->_bind( mt_employees_sel ) ).
+
+        tab->columns(
+            )->column( '10rem'
+                )->text( 'City' )->get_parent(
+            )->column( '10rem'
+                )->text( 'Nr' )->get_parent(
+            )->column( '15rem'
+                )->text( 'Name' )->get_parent(
+            )->column( '30rem'
+                )->text( 'Lastname' )->get_parent( ).
+
+        tab->items( )->column_list_item( selected = '{SELKZ}'
+            )->cells(
+                )->text( '{CITY}'
+                )->text( '{NR}'
+                )->text( '{NAME}'
+                )->text( '{LASTNAME}' ).
+
+        popup->footer(
             )->overflow_toolbar(
                 )->toolbar_spacer(
-                )->button(
-                    text  = 'continue'
-                    press = client->_event( 'POPUP_TABLE_F4_CONTINUE' )
-                    type  = 'Emphasized' ).
+                    )->button(
+                        text  = 'continue'
+                        press = client->_event( 'POPUP_TABLE_F4_CUSTOM_CONTINUE' )
+                        type  = 'Emphasized' ).
 
-    when 'POPUP_TABLE_F4_CUSTOM'.
+    ENDCASE.
 
-    popup = z2ui5_cl_xml_view_helper=>factory(
-        )->dialog( 'abap2UI5 - F4 Value Help' ).
-
-    popup->simple_form(
-        )->label( 'Location'
-        )->input(
-                value           = client->_bind( screen-city )
-                suggestionitems = client->_bind_one( mt_suggestion_city )
-                showsuggestion  = abap_true )->get(
-            )->suggestion_items( )->get(
-                )->list_item(
-                    text            = '{VALUE}'
-                    additionaltext  = '{DESCR}'
-        )->get_parent( )->get_parent(
-        )->button(
-            text  = 'search...'
-            press = client->_event( 'SEARCH' ) ).
-
-    DATA(tab) = popup->table(
-        headertext = 'Employees'
-        mode       = 'SingleSelectLeft'
-        items      = client->_bind( mt_employees_sel ) ).
-
-    tab->columns(
-        )->column( '10rem'
-            )->text( 'City' )->get_parent(
-        )->column( '10rem'
-            )->text( 'Nr' )->get_parent(
-        )->column( '15rem'
-            )->text( 'Name' )->get_parent(
-        )->column( '30rem'
-            )->text( 'Lastname' )->get_parent( ).
-
-    tab->items( )->column_list_item( selected = '{SELKZ}'
-        )->cells(
-            )->text( '{CITY}'
-            )->text( '{NR}'
-            )->text( '{NAME}'
-            )->text( '{LASTNAME}' ).
-
-    popup->footer(
-        )->overflow_toolbar(
-            )->toolbar_spacer(
-                )->button(
-                    text  = 'continue'
-                    press = client->_event( 'POPUP_TABLE_F4_CUSTOM_CONTINUE' )
-                    type  = 'Emphasized' ).
-
-    endcase.
-
-      client->set_next( value #(
-        xml_main  = page->get_root(  )->xml_get( )
-        xml_popup = popup->get_root(  )->xml_get( )
-        ) ).
+    client->set_next( VALUE #(
+      xml_main  = page->get_root(  )->xml_get( )
+      xml_popup = popup->get_root(  )->xml_get( )
+      ) ).
   ENDMETHOD.
 
 

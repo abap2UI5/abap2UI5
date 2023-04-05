@@ -58,6 +58,7 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
             )->page(
                 title          = 'abap2UI5 - Table with different Selection Modes'
                 navbuttonpress = client->_event( 'BACK' )
+                shownavbutton  = abap_true
                 )->header_content(
                     )->link(
                         text = 'Demo'
