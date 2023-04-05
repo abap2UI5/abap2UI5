@@ -255,6 +255,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                                oView.setModel(oModel);` && |\n| &&
                            `                                oView.placeAt("content");` && |\n| &&
                            `                                this.oView = oView;` && |\n| &&
+                           `                               sap.z2ui5.oView = oView;` && |\n| &&
                            `                                ` && |\n| &&
                            `                            }` && |\n| &&
                            `                            );` && |\n| &&
@@ -275,6 +276,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                                oView.setModel(oModel);` && |\n| &&
                            `                                oView.placeAt("content");` && |\n| &&
                            `                                this.oView = oView;` && |\n| &&
+                           `                                sap.z2ui5.oView = oView;` && |\n| &&
                            `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
                            `                            } );` && |\n| &&
                            `                        }` && |\n| &&

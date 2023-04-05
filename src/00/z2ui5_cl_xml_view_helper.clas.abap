@@ -73,7 +73,8 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
               ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:sap="sap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > `.
+                     `  xmlns:template="http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:sap="sap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns` &&
+`:text="sap.ui.richtexteditor" > `.
 
     result = result && COND #( WHEN cs_config-letterboxing = abap_true THEN `<Shell>` ).
 
@@ -1304,6 +1305,29 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   METHOD z2ui5_if_view~get_root.
 
     result = m_root.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~template_if.
+
+    result = _generic(
+            name   = `if`
+            ns     = `template`
+            t_prop = VALUE #(
+                ( n = `test`  v = test )
+        ) ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~template_with.
+
+    result = _generic(
+            name   = `with`
+            ns     = `template`
+            t_prop = VALUE #(
+                ( n = `path`  v = path )
+                ( n = `var`   v = var )
+        ) ).
 
   ENDMETHOD.
 

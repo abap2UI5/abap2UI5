@@ -1,6 +1,20 @@
 INTERFACE z2ui5_if_view
   PUBLIC .
 
+
+  METHODS template_with
+    IMPORTING
+      path          TYPE clike OPTIONAL
+      var           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
+  METHODS template_if
+    IMPORTING
+      test          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
   METHODS horizontal_layout
     IMPORTING
       class         TYPE clike OPTIONAL
@@ -427,7 +441,7 @@ INTERFACE z2ui5_if_view
 
   METHODS hbox
     IMPORTING
-      class         TYPE clike optional
+      class         TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -445,8 +459,8 @@ INTERFACE z2ui5_if_view
   METHODS simple_form
     IMPORTING
       title         TYPE clike OPTIONAL
-      layout        TYPE clike optional
-      editable      TYPE clike optional
+      layout        TYPE clike OPTIONAL
+      editable      TYPE clike OPTIONAL
         PREFERRED PARAMETER title
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
@@ -731,6 +745,6 @@ INTERFACE z2ui5_if_view
 
   METHODS xml_get
     RETURNING
-      value(result)      TYPE string.
+      VALUE(result) TYPE string.
 
 ENDINTERFACE.
