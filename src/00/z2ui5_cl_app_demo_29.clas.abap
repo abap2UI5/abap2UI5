@@ -77,9 +77,8 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
 
     CASE app-s_get-event.
 
-      WHEN 'BUTTON_POST'.
-        app-client->popup_message_toast( |{ product } { quantity } - send to the server| ).
-        app-view_popup = 'POPUP_CONFIRM'.
+      WHEN 'POST'.
+        app-client->popup_message_toast( app-s_get-event_data ).
 
 
       WHEN 'BACK'.
@@ -108,7 +107,7 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
                           `<h1>This is a heading</h1>` && |\n|  &&
                           `<p>This is a paragraph.</p>` && |\n|  &&
                           `<h1>My First JavaScript</h1>` && |\n|  &&
-                          `<button type="button" onclick="sap.z2ui5.oView.getController().onEvent( )">` && |\n|  &&
+                          `<button type="button" onclick="sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, 'this is my data' )">` && |\n|  &&
                           `Click me to display Date and Time.</button>` && |\n|  &&
                           `<p id="demo"></p>` && |\n|  &&
                           `<script>` && |\n|  &&
@@ -117,6 +116,7 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
                           `</body>` && |\n|  &&
                           `</html> ` && |\n|  &&
                           `</mvc:View>`.
+
 
 
   ENDMETHOD.

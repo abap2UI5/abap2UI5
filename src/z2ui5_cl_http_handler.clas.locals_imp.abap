@@ -1171,7 +1171,10 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_link) = client->get( )-s_request-url_app_gen && ms_home-classname.
+    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+
+    DATA(lv_link) = lv_url && `?sap-client=` &&  sy-mandt && `&app=` && ms_home-classname.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1453,6 +1456,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     TRY.
         result->ms_next-s_set-event = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
+        result->ms_actual-event_data = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1597,20 +1601,24 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
+    data(lv_data) = ms_actual-event_data.
     ms_actual = VALUE #(
         id                = ms_db-id
         id_prev_app       = ms_db-id_prev_app
         id_prev_app_stack = ms_db-id_prev_app_stack
 
         event           = ms_next-s_set-event
+        event_data       = lv_data
 
-        s_request = VALUE #(
-             tenant = sy-mandt
-             url_app = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=` && ms_db-app_classname
-             url_app_gen = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=`
-             origin = ss_client-t_header[ name = `origin` ]-value
-             url_source_code = ms_actual-s_request-origin && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
-        ) ).
+         url_app = lv_url && `?sap-client=` && sy-mandt && `&app=` && ms_db-app_classname
+          url_source_code = ss_client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
+
+       " s_request = VALUE #(
+
+         "    url_app_gen = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=`
+          "   origin = ss_client-t_header[ name = `origin` ]-value
+       "            ) ).
+        ).
 
     CLEAR ms_next.
 

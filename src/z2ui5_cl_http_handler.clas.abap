@@ -149,7 +149,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n| &&
                            `                },` && |\n| &&
                            |\n| &&
-                           `                onEvent: function (oEvent, oEvent2, oEvent3, oEvent4) {` && |\n| &&
+                           `                onEvent: function (oEvent, vData ) {` && |\n| &&
                            |\n| &&
                            `                    if (!window.navigator.onLine) {` && |\n| &&
                            `                        sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
@@ -166,6 +166,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    if (!this.oBody){ this.oBody = {}; this.oBody.oSystem = {}; this.oBody.oEvent = {}; }` && |\n| &&
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n| &&
                            `                    this.oBody.oEvent = oEvent;` && |\n| &&
+                           `                    this.oBody.oEvent.vData = vData;` && |\n| &&
                            |\n| &&
 
                            |\n| &&

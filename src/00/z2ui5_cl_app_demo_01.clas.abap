@@ -40,7 +40,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code'
-                    href = client->get( )-s_request-url_source_code
+                    href = client->get( )-url_source_code
             )->get_parent(
             )->simple_form( title = 'Form Title' editable = abap_true
                 )->content( 'f'

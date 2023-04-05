@@ -19,17 +19,21 @@ INTERFACE z2ui5_if_client
   TYPES:
     BEGIN OF ty_s_get,
       event             TYPE string,
+      event_data        type string,
       id                TYPE string,
       id_prev           TYPE string,
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
-      BEGIN OF s_request,
-        tenant          TYPE string,
-        url_app         TYPE string,
-        url_app_gen     TYPE string,
-        origin          TYPE string,
-        url_source_code TYPE string,
-      END OF s_request,
+
+         url_app         TYPE string,
+          url_source_code TYPE string,
+     " BEGIN OF s_request,
+ "       tenant          TYPE string,
+
+    "    url_app_gen     TYPE string,
+    "    origin          TYPE string,
+
+     " END OF s_request,
     END OF ty_s_get.
 
   TYPES:
