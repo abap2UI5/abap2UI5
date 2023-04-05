@@ -21,15 +21,10 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         IF check_initialized = abap_false.
           check_initialized = abap_true.
           mv_path = '../../demo/text'.
           mv_type = 'plain_text'.
-          RETURN.
         ENDIF.
 
         CASE client->get( )-event.
@@ -48,23 +43,18 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
           WHEN 'DB_SAVE'.
             lcl_mime_api=>save_data( ).
             client->popup_message_box( text = 'Upload successfull. File saved!' type = 'success' ).
-
           WHEN 'EDIT'.
             mv_check_editable = xsdbool( mv_check_editable = abap_false ).
           WHEN 'CLEAR'.
             mv_editor = ``.
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
         ENDCASE.
 
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(page) = client->factory_view( 'VIEW_INPUT'
-            )->page( title = 'abap2UI5 - MIME Editor' navbuttonpress = client->_event( 'BACK' )
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->page( title = 'abap2UI5 - MIME Editor' navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link( text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1631562906570575875'
-                    )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+                    )->link( text = 'Source_Code' href = client->get( )-url_source_code
             )->get_parent( ).
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
@@ -75,7 +65,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
              )->label( 'Option'
              )->input(
                     value           = client->_bind( mv_type )
-                    suggestionitems = client->_bind_one_way( lcl_mime_api=>get_editor_type( ) ) )->get(
+                    suggestionitems = client->_bind_one( lcl_mime_api=>get_editor_type( ) ) )->get(
                 )->suggestion_items(
                     )->list_item( text = '{NAME}' additionaltext = '{VALUE}'
              )->get_parent( )->get_parent(
@@ -110,7 +100,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                 icon = 'sap-icon://upload-to-cloud'
                 enabled = xsdbool( mv_editor IS NOT INITIAL ) ).
 
-    ENDCASE.
+    client->set_next( value #( xml_main = page->get_root( )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

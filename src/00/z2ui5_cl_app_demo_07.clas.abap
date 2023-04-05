@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
         )->header_content(
             )->toolbar_spacer(
             )->link( text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
-            )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+            )->link( text = 'Source_Code' href = client->get( )-url_source_code
         )->get_parent( ).
 
     page->zz_file_uploader(

@@ -1601,23 +1601,15 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-    data(lv_data) = ms_actual-event_data.
+    DATA(lv_data) = ms_actual-event_data.
     ms_actual = VALUE #(
         id                = ms_db-id
         id_prev_app       = ms_db-id_prev_app
         id_prev_app_stack = ms_db-id_prev_app_stack
-
-        event           = ms_next-s_set-event
-        event_data       = lv_data
-
-         url_app = lv_url && `?sap-client=` && sy-mandt && `&app=` && ms_db-app_classname
-          url_source_code = ss_client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
-
-       " s_request = VALUE #(
-
-         "    url_app_gen = lv_url && `?sap-client=` && ms_actual-s_request-tenant && `&app=`
-          "   origin = ss_client-t_header[ name = `origin` ]-value
-       "            ) ).
+        event             = ms_next-s_set-event
+        event_data        = lv_data
+        url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && ms_db-app_classname
+        url_source_code   = ss_client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
         ).
 
     CLEAR ms_next.
@@ -1672,6 +1664,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       ENDCASE.
     ENDLOOP.
+
+    DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
 
   ENDMETHOD.
 

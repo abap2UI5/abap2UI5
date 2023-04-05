@@ -84,6 +84,24 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
     form->flex_box( class = 'columns'
         )->button(
+            text = 'App Template'
+            press = client->_event( 'Z2UI5_CL_APP_DEMO_18' ) )->get(
+            )->layout_data(
+                )->flex_item_data(
+                    growfactor = '1'
+                    styleclass = 'sapUiTinyMargin'
+        )->get_parent( )->get_parent(
+        )->text(
+`You have complete freedom in structuring your apps and handling the flow logic, if you need a little bit of guidance use this template - it includes two views, one popup` &&
+` and some flow logic`
+                             )->get(
+            )->layout_data(
+                )->flex_item_data(
+                    growfactor = '3'
+                    styleclass = 'sapUiTinyMargin' ).
+
+    form->flex_box( class = 'columns'
+        )->button(
             text = 'MIME Editor'
             press = client->_event( 'Z2UI5_CL_APP_DEMO_14' ) )->get(
             )->layout_data(

@@ -9,31 +9,15 @@ INTERFACE z2ui5_if_client
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
-    BEGIN OF ty_s_cursor,
-      id             TYPE string,
-      cursorpos      TYPE string,
-      selectionstart TYPE string,
-      selectionend   TYPE string,
-    END OF ty_s_cursor.
-
-  TYPES:
     BEGIN OF ty_s_get,
       event             TYPE string,
-      event_data        type string,
+      event_data        TYPE string,
       id                TYPE string,
       id_prev           TYPE string,
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
-
-         url_app         TYPE string,
-          url_source_code TYPE string,
-     " BEGIN OF s_request,
- "       tenant          TYPE string,
-
-    "    url_app_gen     TYPE string,
-    "    origin          TYPE string,
-
-     " END OF s_request,
+      url_app           TYPE string,
+      url_source_code   TYPE string,
     END OF ty_s_get.
 
   TYPES:
@@ -43,7 +27,12 @@ INTERFACE z2ui5_if_client
       check_set_prev_view TYPE abap_bool,
       event               TYPE string,
       t_scroll_pos        TYPE z2ui5_if_client=>ty_t_name_value,
-      s_cursor_pos        TYPE z2ui5_if_client=>ty_s_cursor,
+      BEGIN OF s_cursor_pos,
+        id             TYPE string,
+        cursorpos      TYPE string,
+        selectionstart TYPE string,
+        selectionend   TYPE string,
+      END OF s_cursor_pos,
     END OF ty_s_next.
 
   METHODS set_next
