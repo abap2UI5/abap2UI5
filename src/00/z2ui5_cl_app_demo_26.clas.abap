@@ -6,7 +6,6 @@ CLASS z2ui5_cl_app_demo_26 DEFINITION PUBLIC.
 
     DATA product  TYPE string.
     DATA quantity TYPE string.
-    DATA mv_textarea TYPE string.
 
   PROTECTED SECTION.
 

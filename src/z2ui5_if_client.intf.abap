@@ -27,7 +27,7 @@ INTERFACE z2ui5_if_client
       popup_open_by_id    type string,
       check_set_prev_view TYPE abap_bool,
       event               TYPE string,
-      t_scroll_pos        TYPE z2ui5_if_client=>ty_t_name_value,
+      t_scroll_pos        TYPE ty_t_name_value,
       BEGIN OF s_cursor_pos,
         id             TYPE string,
         cursorpos      TYPE string,

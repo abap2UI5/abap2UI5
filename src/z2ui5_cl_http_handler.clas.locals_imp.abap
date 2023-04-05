@@ -13,12 +13,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
 
-    TYPES:
-      BEGIN OF ty_s_name_value,
-        n TYPE string,
-        v TYPE string,
-      END OF ty_s_name_value.
-
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
@@ -249,7 +243,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     result = iv_val.
     SPLIT result AT iv_begin INTO DATA(lv_1) DATA(lv_2).
-    SPLIT lv_2 AT iv_end INTO DATA(lv_3) DATA(lv_4).
+    SPLIT lv_2 AT iv_end INTO DATA(lv_dummy) DATA(lv_4).
     result = lv_1 && iv_replace && lv_4.
 
   ENDMETHOD.
@@ -1045,9 +1039,7 @@ CLASS z2ui5_lcl_system_app DEFINITION.
     DATA mv_is_initialized TYPE abap_bool.
     DATA mv_view_name TYPE string.
 
-    METHODS z2ui5_on_init
-      IMPORTING
-        client TYPE REF TO z2ui5_if_client.
+    METHODS z2ui5_on_init.
 
     METHODS z2ui5_on_event
       IMPORTING
@@ -1065,7 +1057,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     IF mv_is_initialized = abap_false.
       mv_is_initialized = abap_true.
-      z2ui5_on_init( client ).
+      z2ui5_on_init(  ).
     ENDIF.
 
     z2ui5_on_event( client ).
@@ -1649,7 +1641,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-      IF lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_time.
+      IF lr_attri->bind_type = cs_bind_type-one_time.
 
         r_view_model->add_attribute(
               n = lr_attri->name
@@ -1659,7 +1651,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way THEN r_view_model
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way THEN r_view_model
                                  ELSE lo_update ).
 
       FIELD-SYMBOLS <attribute> TYPE any.
@@ -1690,7 +1682,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
 
   ENDMETHOD.
-
 
 
 ENDCLASS.

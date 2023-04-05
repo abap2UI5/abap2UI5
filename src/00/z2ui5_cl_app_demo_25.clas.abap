@@ -4,13 +4,6 @@ CLASS z2ui5_cl_app_demo_25 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    CLASS-METHODS factory
-      IMPORTING
-        i_app           TYPE REF TO z2ui5_if_app
-        i_name_attri    TYPE string
-      RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_cl_app_demo_25.
-
     DATA mv_input TYPE string.
     DATA mv_input_previous TYPE string.
     DATA mv_input_previous_set TYPE string.
@@ -23,12 +16,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
-
-  METHOD factory.
-
-    r_result = NEW #( ).
-
-  ENDMETHOD.
 
   METHOD z2ui5_if_app~controller.
 
@@ -52,7 +39,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
         client->popup_message_box( 'new app called and event NEW_APP_EVENT raised' ).
 
       WHEN 'SHOW_VIEW_MAIN'.
-        mv_show_view = 'MAIN'..
+        mv_show_view = 'MAIN'.
 
       WHEN 'BACK_WITH_EVENT'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).

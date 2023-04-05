@@ -6,7 +6,6 @@ CLASS z2ui5_cl_app_demo_23 DEFINITION PUBLIC.
 
     DATA product  TYPE string.
     DATA quantity TYPE string.
-    DATA mv_textarea TYPE string.
 
     DATA:
       BEGIN OF app,

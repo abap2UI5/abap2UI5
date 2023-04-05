@@ -20,8 +20,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         data_stringify TYPE string,
       END OF ty_attri.
 
-    TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
-
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
@@ -62,9 +60,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+
+    DATA: lt_ns TYPE string_table.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA: lt_ns TYPE string_table.
 
 ENDCLASS.
 
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD xml_get_end.
 
-    result = COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>` .
+    result = COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`.
 
   ENDMETHOD.
 

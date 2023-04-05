@@ -17,7 +17,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         library_path    TYPE clike DEFAULT `https://sdk.openui5.org/resources/sap-ui-core.js`
         theme           TYPE clike DEFAULT `sap_horizon`
         title           TYPE clike DEFAULT `abap2UI5`
-        check_debug     type abap_bool DEFAULT abap_true
+     "   check_debug     type abap_bool DEFAULT abap_true
       RETURNING
         VALUE(r_result) TYPE string.
 
