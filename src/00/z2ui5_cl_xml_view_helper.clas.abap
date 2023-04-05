@@ -53,7 +53,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-
     DATA: mt_ns TYPE string_table.
 
   PROTECTED SECTION.
