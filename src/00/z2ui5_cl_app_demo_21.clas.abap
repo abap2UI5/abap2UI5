@@ -175,7 +175,7 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
                     text = 'Demo'
                     href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
                 )->link(
-                    text = 'Source_Code' href = client->get( )-s_request-url_source_code
+                    text = 'Source_Code' href = client->get( )-url_source_code
            )->get_parent( ).
 
     DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'l' ).

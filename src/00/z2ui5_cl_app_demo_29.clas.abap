@@ -107,11 +107,11 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
                           `<h1>This is a heading</h1>` && |\n|  &&
                           `<p>This is a paragraph.</p>` && |\n|  &&
                           `<h1>My First JavaScript</h1>` && |\n|  &&
-                          `<button type="button" onclick="sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, 'this is my data' )">` && |\n|  &&
+                          `<button type="button" onclick="myFunction()">` && |\n|  &&
                           `Click me to display Date and Time.</button>` && |\n|  &&
                           `<p id="demo"></p>` && |\n|  &&
                           `<script>` && |\n|  &&
-                      "    `function pressdebugger; alert( 'test' );` && |\n|  &&
+                          ` function myFunction( ) { sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, 'this is my data' ) }` && |\n|  &&
                           `</script>` &&
                           `</body>` && |\n|  &&
                           `</html> ` && |\n|  &&

@@ -24,19 +24,22 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
       mv_main_view = 'MAIN'.
     ENDIF.
 
+    mv_set_prev_view = ''.
+    mv_popup_view = ''.
+
     CASE client->get( )-event.
 
       WHEN 'BUTTON_POPUP_01'.
         mv_popup_view = 'POPUP_DECIDE'.
-        mv_main_view = ''.
+     ""   mv_main_view = ''.
 
       WHEN 'POPUP_DECIDE_CONTINUE'.
-        mv_popup_view = ''.
+    "    mv_popup_view = ''.
         mv_main_view = 'MAIN'.
         client->popup_message_toast( 'continue pressed' ).
 
       WHEN 'POPUP_DECIDE_CANCEL'.
-        mv_popup_view = ''.
+  "      mv_popup_view = ''.
         mv_main_view = 'MAIN'.
         client->popup_message_toast( 'cancel pressed' ).
 
@@ -87,7 +90,7 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                        href = client->get( )-url_source_code
                 )->get_parent( ).
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l'

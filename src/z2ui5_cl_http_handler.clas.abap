@@ -102,198 +102,168 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `</body>` && |\n| &&
                `</html>` && |\n|.
 
-    r_result = r_result && `<script>` && |\n| &&
-                           `    sap.ui.getCore().attachInit(function () {` && |\n| &&
-                           `        "use strict";` && |\n| &&
 
-`        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function (Controller, ODataModel, JSONModel, MessageBox, Fragment) {` && |\n| &&
-                           `            "use strict";` && |\n| &&
-                           `            return Controller.extend("z2ui5_controller", {` && |\n| &&
-                           |\n| &&
-                           `                onAfterRendering: function () {` && |\n| &&
-                           `                    var oView = this.getView();` && |\n| &&
-                           `                    try {` && |\n| &&
 
-                           `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n| &&
-                        `                        var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.id).getFocusInfo();` && |\n| &&
-                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.oCursor.cursorPos;` && |\n| &&
-                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.oCursor.selectionStart;` && |\n| &&
-                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.oCursor.selectionEnd;` && |\n| &&
-                           `                        }` && |\n| &&
-                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.id).applyFocusInfo(ofocus);` && |\n| &&
-                           `                    } catch (error) { };` && |\n| &&
-                           `                    try {` && |\n| &&
-                           `                   //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n| &&
-                           `                    } catch (error) { };` && |\n| &&
-                           `     //todo` && |\n| &&
-                           `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
-                           `     sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) {` && |\n| &&
-                           `   try {` && |\n| &&
-                           `   oView.byId( key ).scrollTo( item[ key ] );` && |\n| &&
-                           `  }catch( e ){  ` && |\n| &&
-                           `    var ele = '#' + oView.byId( key ).getId( ) + '-inner'; ` && |\n| &&
-                           `   $(ele).scrollTop( item[ key ] );  }  ` && |\n| &&
-                           `    // index: the ordinal position of the key within the object ` && |\n| &&
-                           `})); }` && |\n| &&
-                           `             sap.ui.core.BusyIndicator.hide();` && |\n| &&
-                           `                },` && |\n| &&
-                           |\n| &&
-                           `                onEventFrontend: function (vAction) {` && |\n| &&
-                           |\n| &&
-                           `                    if (vAction == 'POPUP_CLOSE' ){` && |\n| &&
-                           `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n| &&
-                           `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
-                           `                        delete sap.z2ui5.oResponse.oViewPopup;` && |\n| &&
-                           `                        delete sap.z2ui5.oResponse.oSystem.VIEW_POPUP;` && |\n| &&
-                           `                    }` && |\n| &&
-                           |\n| &&
-                           `                },` && |\n| &&
-                           |\n| &&
-                           `                onEvent: function (oEvent, vData ) {` && |\n| &&
-                           |\n| &&
-                           `                    if (!window.navigator.onLine) {` && |\n| &&
-                           `                        sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
-                           `                        return;` && |\n| &&
-                           `                    }` && |\n| &&
-                           |\n| &&
-                           `                    sap.ui.core.BusyIndicator.show();` && |\n| &&
-                           |\n| &&
-                                        `                    if (sap.z2ui5.oResponse.oViewPopup) {` && |\n| &&
-                           `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n| &&
-                           `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n| &&
-                           `                      this.oBody = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n| &&
-                           `                    }else{  this.oBody = this.oView.getModel().oData.oUpdate;  }` && |\n| &&
-                           `                    if (!this.oBody){ this.oBody = {}; this.oBody.oSystem = {}; this.oBody.oEvent = {}; }` && |\n| &&
-                           `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n| &&
-                           `                    this.oBody.oEvent = oEvent;` && |\n| &&
-                           `                    this.oBody.oEvent.vData = vData;` && |\n| &&
-                           |\n| &&
+    r_result = r_result && `<script>` && |\n|  &&
+                           `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
+                           `        "use strict";` && |\n|  &&
 
-                           |\n| &&
-                         `    if (sap.z2ui5.oResponse.oScroll){` && |\n| &&
-                           `     var oScrollNew = [];` && |\n| &&
-                            ` sap.z2ui5.oResponse.oScroll.forEach( item => Object.keys(item).forEach(function(key,index) { ` &&
-                                `   try {` && |\n| &&
-                           ` //  oScrollNew.push( { 'n' = key  'v' = this.oView.byId( key ).getScrollDelegate().getScrollTop() } );` && |\n| &&
-                           `  }catch( e ){ } ` &&
-                           ` }.bind(this))); ` &&
-                           `   this.oBody.oScroll = oScrollNew;         }` && |\n| &&
-                           |\n| &&
-                           `                    try {` && |\n| &&
-                           `                        this.oBody.scrollPos = parseInt(this.oView.getContent()[0].getApp().getScrollDelegate().getScrollTop());` && |\n| &&
-                           `                    } catch (e) { };` && |\n| &&
-                           |\n| &&
-                   "        `                    if (this.oView.getModel().oData.oUpdate.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
-                           `                    if (this.oBody.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
-                           `                        console.log('Request Object:');` && |\n| &&
-                           `                        console.log(this.oBody);` && |\n| &&
-                           `                    }` && |\n| &&
-                           `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n| &&
-                           `                    sap.z2ui5.oResponse = {};` && |\n| &&
-                           `                    this.oView.destroy();` && |\n| && |\n| &&
-                           `                    this.Roundtrip();` && |\n| &&
-                           `                },` && |\n| &&
-                           `                Roundtrip: function () {` && |\n| &&
-                           |\n| &&
-                           `                    var xhr = new XMLHttpRequest();` && |\n| &&
-                                                    `    var url = '` && lv_url && `';` && |\n| &&
-                           `                    xhr.open("POST", url, true);` && |\n| &&
-                           `                    xhr.onload = function (that) {` && |\n| &&
-                           `                        if (that.target.status !== 200) {` && |\n| &&
-                           `                            document.write(that.target.response);` && |\n| &&
-                           `                            return;` && |\n| &&
-                           `                        }` && |\n| &&
-                           `                        sap.z2ui5.oResponse = JSON.parse(that.target.response);` && |\n| &&
-                           `                        if (sap.z2ui5.oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n| &&
-                           `                            console.log('Response Object:');` && |\n| &&
-                           `                            console.log(sap.z2ui5.oResponse);` && |\n| &&
-                           `                            if (sap.z2ui5.oResponse.vView){` && |\n| &&
-                           `                            console.log('UI5-XML-View:');` && |\n| &&
-                           `                            console.log(sap.z2ui5.oResponse.vView);` && |\n| &&
-                           `                            }` && |\n| &&
-                                       `               if (sap.z2ui5.oResponse.vViewPopup){` && |\n| &&
-                           `                            console.log('UI5-XML-Popup:');` && |\n| &&
-                           `                            console.log(sap.z2ui5.oResponse.vViewPopup);` && |\n| &&
-                           `                            }` && |\n| &&
-                           `                        }` && |\n| &&
-                           |\n| &&
-                           `                        if (sap.z2ui5.oResponse.oAfter) {` && |\n| &&
-                           `                            sap.z2ui5.oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n| &&
-                           `                        }` && |\n| &&
-                           |\n| &&
-                           `                        // sap.z2ui5.oResponse.oViewModel.oUpdate.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n| &&
-                           |\n| &&
-                           `                        if (sap.z2ui5.oResponse.vViewPopup) {` && |\n| &&
-                           `                            if (sap.z2ui5.oResponse.oViewModelPopup){` && |\n| &&
-                           `                            var oModelPopup = new JSONModel(sap.z2ui5.oResponse.oViewModelPopup);` && |\n| &&
-                           `                            } ` && |\n| &&
-                           `                            new sap.ui.core.Fragment.load({` && |\n| &&
-                           `                                definition: sap.z2ui5.oResponse.vViewPopup,` && |\n| &&
-                           `                                controller: this,` && |\n| &&
-                           `                            }).then(function (oFragment) {` && |\n| &&
-                           `                             if (!oModelPopup) {    oFragment.setModel( new JSONModel(sap.z2ui5.oResponse.oViewModel) ) }else { oFragment.setModel(oModelPopup)   }` && |\n| &&
-                           `                          //      oFragment.setModel(oModelPopup);` && |\n| &&
-                           `                                this.getView().addDependent(oFragment);` && |\n| &&
-                           `                                oFragment.open();` && |\n| &&
-                           `                                sap.z2ui5.oResponse.oViewPopup = oFragment;` && |\n| &&
-                           `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
-                           `                            }.bind(this));` && |\n| &&
-                           `                        }` && |\n| &&
-                           |\n| &&
-                           `                        if (sap.z2ui5.oResponse.vView) {` && |\n| &&
-                           `                            var oModel = new JSONModel(sap.z2ui5.oResponse.oViewModel);` && |\n| &&
-                           `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n| &&
-                           `                                viewContent: sap.z2ui5.oResponse.vView,` && |\n| &&
-                           `                                definition: sap.z2ui5.oResponse.vView,` && |\n| &&
-                           `                                preprocessors: {` && |\n| &&
-                           `                                    xml: {` && |\n| &&
-                           `                                        models: {` && |\n| &&
-                           `                                            meta: oModel` && |\n| &&
-                           `                                        }` && |\n| &&
-                           `                                    }` && |\n| &&
-                           `                                },` && |\n| &&
-                           `                            }).then(oView => {` && |\n| &&
-                           `                                oView.setModel(oModel);` && |\n| &&
-                           `                                oView.placeAt("content");` && |\n| &&
-                           `                                this.oView = oView;` && |\n| &&
-                           `                               sap.z2ui5.oView = oView;` && |\n| &&
-                           `                                ` && |\n| &&
-                           `                            }` && |\n| &&
-                           `                            );` && |\n| &&
-                           `                        } else if ( sap.z2ui5.oResponse.SET_PREV_VIEW == true ){` && |\n| &&
-                           |\n| &&
-                           `                            var oModel = new JSONModel(sap.z2ui5.oResponseOld.oViewModel);` && |\n| &&
-                           `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n| &&
-                           `                                viewContent: sap.z2ui5.oResponseOld.vView,` && |\n| &&
-                           `                                definition: sap.z2ui5.oResponseOld.vView,` && |\n| &&
-                           `                                preprocessors: {` && |\n| &&
-                           `                                    xml: {` && |\n| &&
-                           `                                        models: {` && |\n| &&
-                           `                                            meta: oModel` && |\n| &&
-                           `                                        }` && |\n| &&
-                           `                                    }` && |\n| &&
-                           `                                },` && |\n| &&
-                           `                            }).then( oView => {` && |\n| &&
-                           `                                oView.setModel(oModel);` && |\n| &&
-                           `                                oView.placeAt("content");` && |\n| &&
-                           `                                this.oView = oView;` && |\n| &&
-                           `                                sap.z2ui5.oView = oView;` && |\n| &&
-                           `                                sap.ui.core.BusyIndicator.hide();` && |\n| &&
-                           `                            } );` && |\n| &&
-                           `                        }` && |\n| &&
-                           `                    }.bind(this);` && |\n| &&
-                           `                    xhr.send(JSON.stringify(this.oBody));` && |\n| &&
-                           `                },` && |\n| &&
-                           `            });` && |\n| &&
-                           `        });` && |\n| &&
-                           `        var oView = sap.ui.xmlview({` && |\n| &&
-                           `            viewContent: "<mvc:View controllerName='z2ui5_controller' xmlns:mvc='sap.ui.core.mvc' />"` && |\n| &&
-                           `        });` && |\n| &&
-                           `        sap.z2ui5 = {};` && |\n| &&
-                           `        oView.getController().Roundtrip();` && |\n| &&
-                           |\n| &&
-                           |\n| &&
-                           `        jQuery.sap.declare("my.library");` && |\n| &&
+`        sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/odata/v2/ODataModel", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function (Controller, ODataModel, JSONModel, MessageBox, Fragment) {` && |\n|  &&
+                           `            "use strict";` && |\n|  &&
+                           `            return Controller.extend("z2ui5_controller", {` && |\n|  &&
+                           |\n|  &&
+                           `                onAfterRendering: function () {` && |\n|  &&
+                           `                    var oView = this.getView();` && |\n|  &&
+                           `                    try {` && |\n|  &&
+                           `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n|  &&
+                           `                            var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.id).getFocusInfo();` && |\n|  &&
+                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.oCursor.cursorPos;` && |\n|  &&
+                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.oCursor.selectionStart;` && |\n|  &&
+                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.oCursor.selectionEnd;` && |\n|  &&
+                           `                        }` && |\n|  &&
+                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.id).applyFocusInfo(ofocus);` && |\n|  &&
+                           `                    } catch (error) { };` && |\n|  &&
+                           `                    try {` && |\n|  &&
+                           `                        //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n|  &&
+                           `                    } catch (error) { };` && |\n|  &&
+                           `                    //todo` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
+                           `                        sap.z2ui5.oResponse.oScroll.forEach(item => Object.keys(item).forEach(function (key, index) {` && |\n|  &&
+                           `                            try {` && |\n|  &&
+                           `                                oView.byId(key).scrollTo(item[key]);` && |\n|  &&
+                           `                            } catch (e) {` && |\n|  &&
+                           `                                var ele = '#' + oView.byId(key).getId() + '-inner';` && |\n|  &&
+                           `                                $(ele).scrollTop(item[key]);` && |\n|  &&
+                           `                            }` && |\n|  &&
+                           `                            // index: the ordinal position of the key within the object ` && |\n|  &&
+                           `                        }));` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           `                    sap.ui.core.BusyIndicator.hide();` && |\n|  &&
+                           `                },` && |\n|  &&
+                           |\n|  &&
+                           `                onEventFrontend: function (vAction) {` && |\n|  &&
+                           |\n|  &&
+                           `                    if (vAction == 'POPUP_CLOSE') {` && |\n|  &&
+                           `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n|  &&
+                           `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n|  &&
+                           `                        delete sap.z2ui5.oResponse.oViewPopup;` && |\n|  &&
+                           `                        delete sap.z2ui5.oResponse.oSystem.VIEW_POPUP;` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           |\n|  &&
+                           `                },` && |\n|  &&
+                           |\n|  &&
+                           `                onEvent: function (oEvent, vData) {` && |\n|  &&
+                           |\n|  &&
+                           `                    if (!window.navigator.onLine) {` && |\n|  &&
+                           `                        sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
+                           `                        return;` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           |\n|  &&
+                           `                    sap.ui.core.BusyIndicator.show();` && |\n|  &&
+                           `                    this.oBody = {};` && |\n|  &&
+                           `                    ` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.oViewPopup) {` && |\n|  &&
+                           `                        this.oBody.oUpdate = sap.z2ui5.oResponse.oViewPopup.getModel().oData.oUpdate;` && |\n|  &&
+                           `                        sap.z2ui5.oResponse.oViewPopup.close();` && |\n|  &&
+                           `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n|  &&
+                           `                    } else {` && |\n|  &&
+                           `                        this.oBody.oUpdate = this.oView.getModel().oData.oUpdate;` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           |\n|  &&
+                           `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n|  &&
+                           `                    this.oBody.oEvent = oEvent;` && |\n|  &&
+                           `                    this.oBody.oEvent.vData = vData;` && |\n|  &&
+                           |\n|  &&
+                           `                    if (this.oBody.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                           `                        console.log('Request Object:');` && |\n|  &&
+                           `                        console.log(this.oBody);` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           |\n|  &&
+                           `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
+                           `                    sap.z2ui5.oResponse = {};` && |\n|  &&
+                           `                    this.oView.destroy();` && |\n|  &&
+                           `                    this.Roundtrip();` && |\n|  &&
+                           `                },` && |\n|  &&
+                           |\n|  &&
+                           `                Roundtrip: function () {` && |\n|  &&
+                           |\n|  &&
+                           `                    var xhr = new XMLHttpRequest();` && |\n|  &&
+                                                     `    var url = '` && lv_url && `';` && |\n| &&
+                           `                    xhr.open("POST", url, true);` && |\n|  &&
+                           `                    xhr.onload = function (that) {` && |\n|  &&
+                           |\n|  &&
+                           `                        if (that.target.status !== 200) {` && |\n|  &&
+                           `                            document.write(that.target.response);` && |\n|  &&
+                           `                            return;` && |\n|  &&
+                           `                        }` && |\n|  &&
+                           `                        sap.z2ui5.oResponse = JSON.parse(that.target.response);` && |\n|  &&
+                           |\n|  &&
+                           `                        if (sap.z2ui5.oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                           `                            console.log('Response Object:');` && |\n|  &&
+                           `                            console.log(sap.z2ui5.oResponse);` && |\n|  &&
+                           `                            if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
+                           `                                console.log('UI5-XML-View:');` && |\n|  &&
+                           `                                console.log(sap.z2ui5.oResponse.vView);` && |\n|  &&
+                           `                            }` && |\n|  &&
+                           `                            if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
+                           `                                console.log('UI5-XML-Popup:');` && |\n|  &&
+                           `                                console.log(sap.z2ui5.oResponse.vViewPopup);` && |\n|  &&
+                           `                            }` && |\n|  &&
+                           `                        }` && |\n|  &&
+                           |\n|  &&
+                           `                        if (sap.z2ui5.oResponse.oAfter) {` && |\n|  &&
+                           `                            sap.z2ui5.oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
+                           `                        }` && |\n|  &&
+                           |\n|  &&
+                           `                        if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
+                           `                            new sap.ui.core.Fragment.load({` && |\n|  &&
+                           `                                definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
+                           `                                controller: this,` && |\n|  &&
+                           `                            }).then(function (oFragment) {` && |\n|  &&
+                           `                                oFragment.setModel(new JSONModel(sap.z2ui5.oResponse.oViewModel))` && |\n|  &&
+                           `                                this.getView().addDependent(oFragment);` && |\n|  &&
+                           `                                oFragment.open();` && |\n|  &&
+                           `                                sap.z2ui5.oResponse.oViewPopup = oFragment;` && |\n|  &&
+                           `                                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
+                           `                            }.bind(this)); }` && |\n|  &&
+                           |\n|  &&
+                           `                        if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
+                           `                            var oModel = new JSONModel(sap.z2ui5.oResponse.oViewModel);` && |\n|  &&
+                           `                            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
+                           `                                definition: sap.z2ui5.oResponse.vView,` && |\n|  &&
+                           `                            }).then(oView => {` && |\n|  &&
+                           `                                oView.setModel(oModel);` && |\n|  &&
+                           `                                oView.placeAt("content");` && |\n|  &&
+                           `                                this.oView = oView;` && |\n|  &&
+                           `                                sap.z2ui5.oView = oView;` && |\n|  &&
+                           `                            } ); ` && |\n|  &&
+                           `                        } else if (sap.z2ui5.oResponse.SET_PREV_VIEW == true) {` && |\n|  &&
+                           |\n|  &&
+                           `                            var oModel = new JSONModel(sap.z2ui5.oResponseOld.oViewModel);` && |\n|  &&
+                           `                            var oView = new sap.ui.core.mvc.XMLView.create({ ` && |\n|  &&
+                           `                                definition: sap.z2ui5.oResponseOld.vView` && |\n|  &&
+                           `                            }).then(oView => {` && |\n|  &&
+                           `                                oView.setModel(oModel);` && |\n|  &&
+                           `                                oView.placeAt("content");` && |\n|  &&
+                           `                                this.oView = oView;` && |\n|  &&
+                           `                                sap.z2ui5.oView = oView;` && |\n|  &&
+                           `                            });` && |\n|  &&
+                           `                        } }.bind(this);` && |\n|  &&
+                           `                    xhr.send(JSON.stringify(this.oBody));` && |\n|  &&
+                           `                },` && |\n|  &&
+                           `            });` && |\n|  &&
+                           `        });` && |\n|  &&
+                           `        var oView = sap.ui.xmlview({` && |\n|  &&
+                           `            viewContent: "<mvc:View controllerName='z2ui5_controller' xmlns:mvc='sap.ui.core.mvc' />"` && |\n|  &&
+                           `        });` && |\n|  &&
+                           `        sap.z2ui5 = {};` && |\n|  &&
+                           `        oView.getController().Roundtrip();`.
+
+
+
+
+
+               r_result = r_result &&   `        jQuery.sap.declare("my.library");` && |\n| &&
                            `        jQuery.sap.require("sap.ui.core.Core");` && |\n| &&
                            `        jQuery.sap.require("sap.ui.core.library");` && |\n| &&
                            |\n| &&

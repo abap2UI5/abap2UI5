@@ -55,12 +55,16 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    METHODS constructor
+      IMPORTING
+        ns TYPE string_table OPTIONAL.
     METHODS xml_get_end
       RETURNING
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    DATA: lt_ns TYPE string_table.
 
 ENDCLASS.
 
@@ -68,14 +72,39 @@ ENDCLASS.
 
 CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
+  METHOD constructor.
+
+    IF ns IS NOT SUPPLIED.
+
+      lt_ns = VALUE string_table(
+      ( `xmlns="sap.m"` )
+      ( `xmlns:z2ui5="z2ui5"` )
+      ( `xmlns:core="sap.ui.core"` )
+      ( `xmlns:mvc="sap.ui.core.mvc"` )
+      ( `xmlns:l="sap.ui.layout"` )
+      ( `xmlns:f="sap.ui.layout.form"` )
+      ( `xmlns:editor="sap.ui.codeeditor"` )
+      ( `xmlns:ui="sap.ui.table"` )
+      ( `xmlns:mchart="sap.suite.ui.microchart"` )
+      ( `xmlns:webc="sap.ui.webc.main"` )
+      ( `xmlns:uxap="sap.uxap"` )
+      ( `xmlns:sap="sap"` )
+      ( `xmlns:text="sap.ui.richtexteditor"` )
+      ( `xmlns:html="http://www.w3.org/1999/xhtml"` )
+       ).
+
+    ENDIF.
+
+  ENDMETHOD.
+
 
   METHOD xml_get_begin.
 
-    result = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml"` &&
-              ` xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" ` &&
-                     `  xmlns:template="http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:sap="sap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns` &&
-`:text="sap.ui.richtexteditor" > `.
-
+    result = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" `.
+    LOOP AT lt_ns REFERENCE INTO DATA(lr_ns).
+      result = result && ` ` && lr_ns->* && ` `.
+    ENDLOOP.
+    result = result && `>`.
     result = result && COND #( WHEN cs_config-letterboxing = abap_true THEN `<Shell>` ).
 
   ENDMETHOD.

@@ -1430,7 +1430,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    DATA(lo_model) = ss_client-o_body.
+    DATA(lo_model) = ss_client-o_body->get_attribute( `OUPDATE` ).
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = cs_bind_type-two_way.
