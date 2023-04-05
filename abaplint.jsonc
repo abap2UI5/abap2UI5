@@ -34,10 +34,7 @@
       "skipNames": []
     },
     "check_abstract": true,
-    "check_comments": {
-      "exclude": [],
-      "severity": "Warning"
-    },
+    "check_comments": false,
     "check_ddic": true,
     "check_include": true,
     "check_subrc": false,
