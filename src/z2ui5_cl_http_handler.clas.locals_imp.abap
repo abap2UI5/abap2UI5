@@ -1392,17 +1392,21 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
 
       lv_xml = _=>get_replace( iv_val = ms_next-s_set-xml_popup iv_begin = 'controllerName="' iv_end = '"' ).
-      REPLACE '<mvc:View>' IN lv_xml WITH `<core:FragmentDefinition>`.
+      REPLACE '<mvc:View' IN lv_xml WITH `<core:FragmentDefinition`.
       REPLACE '</mvc:View>' IN lv_xml WITH `</core:FragmentDefinition>`.
       REPLACE '<Shell>' IN lv_xml WITH ``.
       REPLACE '</Shell>' IN lv_xml WITH ``.
 
       lo_ui5_model->add_attribute( n = `vViewPopup` v = lv_xml ).
+
+      if ms_next-s_set-popup_open_by_id is NOT INITIAL.
+      lo_ui5_model->add_attribute( n = `OPENBY` v = ms_next-s_set-popup_open_by_id ).
+      endif.
     ENDIF.
 
     lo_ui5_model->add_attribute_object( `oSystem`
         )->add_attribute( n = `ID`                 v = ms_db-id
-*        )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( z2ui5_cl_http_handler=>cs_config-check_debug_mode ) apos_active = abap_false ).
+*
         )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( abap_true ) apos_active = abap_false ).
 
     IF ms_next-t_after IS NOT INITIAL.

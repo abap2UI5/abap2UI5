@@ -273,6 +273,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
           ( n = `enabled` v = _=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
+          ( n = `id`   v = id )
           ( n = `class`   v = class )
        ) ).
 
@@ -925,6 +926,19 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
                       ( n = `justifyContent`  v = justifycontent )
         ) ).
 
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_view~popover.
+
+    result = _generic(
+          name   = `Popover`
+          t_prop = VALUE #(
+                      ( n = `title`  v = title )
+                      ( n = `class`  v = class )
+                      ( n = `placement`  v = placement )
+                      ( n = `initialFocus`  v = initialFocus )
+        ) ).
 
   ENDMETHOD.
 

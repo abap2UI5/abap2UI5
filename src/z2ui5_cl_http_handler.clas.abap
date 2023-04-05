@@ -138,6 +138,18 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            // index: the ordinal position of the key within the object ` && |\n|  &&
                            `                        }));` && |\n|  &&
                            `                    }` && |\n|  &&
+                                         ` if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
+                           `                            new sap.ui.core.Fragment.load({` && |\n|  &&
+                           `                                definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
+                           `                                controller: this,` && |\n|  &&
+                           `                            }).then(function (oFragment) {` && |\n|  &&
+                           `                                oFragment.setModel(new JSONModel(sap.z2ui5.oResponse.oViewModel))` && |\n|  &&
+                           `                                this.getView().addDependent(oFragment);` && |\n|  &&
+                           `                                if (!sap.z2ui5.oResponse.OPENBY){ oFragment.open(); }else{` && |\n|  &&
+                           `                               oFragment.openBy( this.getView().byId( sap.z2ui5.oResponse.OPENBY )       )          } ` && |\n|  &&
+                           `                                sap.z2ui5.oResponse.oViewPopup = oFragment;` && |\n|  &&
+                           `                                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
+                           `                            }.bind(this)); }` && |\n|  &&
                            `                    sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `                },` && |\n|  &&
                            |\n|  &&
@@ -215,17 +227,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            sap.z2ui5.oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
                            `                        }` && |\n|  &&
                            |\n|  &&
-                           `                        if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
-                           `                            new sap.ui.core.Fragment.load({` && |\n|  &&
-                           `                                definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
-                           `                                controller: this,` && |\n|  &&
-                           `                            }).then(function (oFragment) {` && |\n|  &&
-                           `                                oFragment.setModel(new JSONModel(sap.z2ui5.oResponse.oViewModel))` && |\n|  &&
-                           `                                this.getView().addDependent(oFragment);` && |\n|  &&
-                           `                                oFragment.open();` && |\n|  &&
-                           `                                sap.z2ui5.oResponse.oViewPopup = oFragment;` && |\n|  &&
-                           `                                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
-                           `                            }.bind(this)); }` && |\n|  &&
+
                            |\n|  &&
                            `                        if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
                            `                            var oModel = new JSONModel(sap.z2ui5.oResponse.oViewModel);` && |\n|  &&

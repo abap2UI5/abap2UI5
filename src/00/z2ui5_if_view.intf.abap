@@ -34,6 +34,15 @@ INTERFACE z2ui5_if_view
     RETURNING
       VALUE(result)  TYPE REF TO z2ui5_if_view.
 
+  METHODS popover
+    IMPORTING
+      title         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+      placement     TYPE clike OPTIONAL
+      initialFocus  TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_view.
+
   METHODS list_item
     IMPORTING
       text           TYPE clike OPTIONAL
@@ -417,6 +426,7 @@ INTERFACE z2ui5_if_view
       enabled       TYPE clike OPTIONAL
       press         TYPE clike OPTIONAL
       class         TYPE clike OPTIONAL
+      id            TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 

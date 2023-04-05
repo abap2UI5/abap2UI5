@@ -18,10 +18,6 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         CASE client->get( )-event.
 
           WHEN 'BUTTON_MESSAGE_BOX'.
@@ -56,17 +52,14 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         ENDCASE.
 
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(page) = client->factory_view( 'MAIN'
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
             )->page(
                 title          = 'abap2UI5 - Messages'
                 navbuttonpress = client->_event( 'BACK' )
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                        href = client->get( )-url_source_code
                 )->get_parent( ).
 
         IF check_strip_active = abap_true.
@@ -109,8 +102,6 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
                         text = 'Message Toast'
                         press = client->_event( 'BUTTON_MESSAGE_TOAST' ) ).
 
-
-    ENDCASE.
-
+        client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
   ENDMETHOD.
 ENDCLASS.

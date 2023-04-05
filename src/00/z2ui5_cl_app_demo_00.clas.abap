@@ -54,18 +54,17 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         )->button( text = 'Communication & Data Binding' press = client->_event( 'z2ui5_cl_app_demo_01' )
         )->button( text = 'Events, Error & Change View'  press = client->_event( 'z2ui5_cl_app_demo_04' )
         )->button( text = 'Flow Logic'                   press = client->_event( 'z2ui5_cl_app_demo_24' )
-        )->button( text = 'Messages (Toast, Box, Strip)' press = client->_event( 'z2ui5_cl_app_demo_08' )
+
      ).
 
     grid->simple_form( title = 'HowTo - General II' layout = 'ResponsiveGridLayout' )->content( 'f'
-
+        )->button( text = 'Formatted Text'  press = client->_event( 'Z2UI5_CL_APP_DEMO_15' )
         )->button( text = 'Scrolling & Cursor'            press = client->_event( 'z2ui5_cl_app_demo_22' )
     ).
 
     grid->simple_form( title = 'HowTo - Selection-Screen' layout = 'ResponsiveGridLayout' )->content( 'f'
         )->button( text = 'Basic'           press = client->_event( 'z2ui5_cl_app_demo_02' )
         )->button( text = 'More Controls'   press = client->_event( 'z2ui5_cl_app_demo_05' )
-        )->button( text = 'Formatted Text'  press = client->_event( 'Z2UI5_CL_APP_DEMO_15' )
         )->button( text = 'F4-Value-Help'   press = client->_event( 'Z2UI5_CL_APP_DEMO_09' ) ).
 
     grid->simple_form( title = 'HowTo - Tables' layout = 'ResponsiveGridLayout' )->content( 'f'
@@ -87,6 +86,10 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 
     grid->simple_form( title = 'HowTo - Dynamic' layout = 'ResponsiveGridLayout' )->content( 'f'
          )->button( text = 'Expression Binding / Side Effects' press = client->_event( 'z2ui5_cl_app_demo_27' )
+    ).
+
+       grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'f'
+        )->button( text = 'Messages (Toast, Box, Strip)' press = client->_event( 'z2ui5_cl_app_demo_08' )
     ).
 
     DATA(form) = page->grid( 'L9 M12 S12'

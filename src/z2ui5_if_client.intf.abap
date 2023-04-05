@@ -24,6 +24,7 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_S_next,
       xml_main            TYPE string,
       xml_popup           TYPE string,
+      popup_open_by_id    type string,
       check_set_prev_view TYPE abap_bool,
       event               TYPE string,
       t_scroll_pos        TYPE z2ui5_if_client=>ty_t_name_value,

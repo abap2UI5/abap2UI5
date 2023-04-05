@@ -69,9 +69,9 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
 
     CASE app-s_get-event.
 
-      WHEN 'BUTTON_POST'.
-        app-client->popup_message_toast( |{ product } { quantity } - send to the server| ).
-        app-view_popup = 'POPUP_CONFIRM'.
+      WHEN 'POPOVER'.
+        app-view_popup = 'POPOVER'.
+        app-s_next-popup_open_by_id = 'TEST'.
 
       WHEN 'BUTTON_CONFIRM'.
         app-client->popup_message_toast( |confirm| ).
@@ -116,7 +116,8 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
                           enabled = abap_false
                       )->button(
                           text  = 'post'
-                          press = app-client->_event( 'BUTTON_POST' )
+                          press = app-client->_event( 'POPOVER' )
+                          id = 'TEST'
            )->get_root( )->xml_get( ).
 
 
@@ -132,17 +133,11 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
 
     CASE app-view_popup.
 
-      WHEN 'POPUP_CONFIRM'.
+      WHEN 'POPOVER'.
 
-        app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory( )->dialog(
+        app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory( )->popover(
                     title = 'Title'
-                    icon = 'sap-icon://edit'
-                )->content(
-                    )->text_area(
-                        height = '100%'
-                        width  = '100%'
-                        value  = app-client->_bind( mv_textarea )
-                )->get_parent(
+                   " icon = 'sap-icon://edit'
                 )->footer( )->overflow_toolbar(
                     )->toolbar_spacer(
                     )->button(
@@ -151,7 +146,10 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
                     )->button(
                         text  = 'Confirm'
                         press = app-client->_event( 'BUTTON_CONFIRM' )
-                        type  = 'Emphasized' )->get_root( )->xml_get( ).
+                        type  = 'Emphasized'
+                  )->get_parent( )->get_parent(
+              )->input( value = 'abcd'
+              )->get_root( )->xml_get( ).
 
     ENDCASE.
 
