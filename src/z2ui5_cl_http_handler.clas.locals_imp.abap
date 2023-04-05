@@ -1200,6 +1200,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
                         ` > <f:SimpleForm ` && |\n|  &&
                         `  title="Quick Start" ` && |\n|  &&
                         `  layout="ResponsiveGridLayout" ` && |\n|  &&
+                        `  editable="true" ` && |\n|  &&
                         ` > <f:content ` && |\n|  &&
                         ` > <Label ` && |\n|  &&
                         `  text="Step 1" ` && |\n|  &&
@@ -1717,7 +1718,10 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way ) && `}`.
+    result =  mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way ).
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
 
   ENDMETHOD.
 

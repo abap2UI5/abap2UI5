@@ -22,6 +22,7 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
     DATA mt_file      TYPE STANDARD TABLE OF ty_file WITH EMPTY KEY.
     DATA ms_file_edit TYPE ty_file.
     DATA ms_file_prev TYPE ty_file.
+    data mv_set_prev_view type abap_bool.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -34,6 +35,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     mv_popup_view = ''.
+    mv_set_prev_view = ''.
 
     CASE client->get( )-event.
 
@@ -57,12 +59,12 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
       WHEN 'POPUP_DESCR'.
         ms_file_edit = mt_file[ selkz = abap_true ].
         mv_popup_view = 'POPUP_DESCR'.
-        client->set( set_prev_view = abap_true ).
+        mv_set_prev_view = abap_true.
 
       WHEN 'POPUP_DATA'.
         ms_file_edit = mt_file[ selkz = abap_true ].
         mv_popup_view = 'POPUP_DATA'.
-        client->set( set_prev_view = abap_true ).
+        mv_set_prev_view = abap_true.
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
@@ -172,9 +174,10 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
     ENDCASE.
 
-    client->_set_next( VALUE #(
+    client->set_next( VALUE #(
         xml_main  = lo_main->get_root( )->xml_get( )
         xml_popup = lo_popup->get_root( )->xml_get( )
+        check_set_prev_view = mv_set_prev_view
         ) ).
 
   ENDMETHOD.

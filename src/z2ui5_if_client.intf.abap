@@ -78,6 +78,7 @@ INTERFACE z2ui5_if_client
   METHODS _bind
     IMPORTING
       val           TYPE data
+      path          TYPE abap_boolean DEFAULT abap_false
     RETURNING
       VALUE(result) TYPE string.
 
