@@ -65,6 +65,7 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
         )->page(
             title          = 'abap2UI5 - Scroll Container with Table and Toolbar'
             navbuttonpress = client->_event( 'BACK' )
+            shownavbutton  = abap_true
             )->header_content(
                 )->link(
                     text = 'Source_Code'
