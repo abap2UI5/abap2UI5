@@ -80,9 +80,6 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
           WHEN 'LINE_CHANGED'.
             client->popup_message_toast( 'Line selection changed' ).
 
-          WHEN 'DONUT_CHANGED'.
-            client->popup_message_toast( 'Donut selection changed' ).
-
           WHEN 'BACK'.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
 

@@ -13,14 +13,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       END OF cs_config.
 
     TYPES:
-      BEGIN OF ty_attri,
-        name           TYPE string,
-        type_kind      TYPE string,
-        bind_type      TYPE string,
-        data_stringify TYPE string,
-      END OF ty_attri.
-
-    TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
@@ -56,12 +48,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
     METHODS constructor
       IMPORTING
         ns TYPE string_table OPTIONAL.
+
     METHODS xml_get_end
       RETURNING
         VALUE(result) TYPE string.
 
 
-    DATA: lt_ns TYPE string_table.
+    DATA: mt_ns TYPE string_table.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -74,9 +67,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD constructor.
 
-    IF ns IS NOT SUPPLIED.
+    IF ns IS initial.
 
-      lt_ns = VALUE string_table(
+      mt_ns = VALUE string_table(
       ( `xmlns="sap.m"` )
       ( `xmlns:z2ui5="z2ui5"` )
       ( `xmlns:core="sap.ui.core"` )
@@ -101,7 +94,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   METHOD xml_get_begin.
 
     result = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" `.
-    LOOP AT lt_ns REFERENCE INTO DATA(lr_ns).
+    LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
       result = result && ` ` && lr_ns->* && ` `.
     ENDLOOP.
     result = result && `>`.

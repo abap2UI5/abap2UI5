@@ -6,7 +6,6 @@ CLASS z2ui5_cl_app_demo_27 DEFINITION PUBLIC.
 
     DATA product  TYPE string.
     DATA quantity TYPE i.
-    DATA mv_textarea TYPE string.
 
     DATA input2 TYPE string.
     DATA input31 TYPE i.
