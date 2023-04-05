@@ -44,6 +44,8 @@ CLASS z2ui5_cl_app_demo_09 DEFINITION PUBLIC.
     DATA mt_employees TYPE STANDARD TABLE OF s_employee WITH EMPTY KEY.
     DATA check_initialized TYPE abap_bool.
 
+    data mv_view_main type string.
+    data mv_view_popup type string.
   PROTECTED SECTION.
 
     METHODS z2ui5_on_rendering
@@ -66,21 +68,15 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
+    clear mv_view_popup.
 
-      WHEN client->cs-lifecycle_method-on_event.
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+      z2ui5_on_init( ).
+    ENDIF.
+    z2ui5_on_event( client ).
 
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-          z2ui5_on_init( ).
-          RETURN.
-        ENDIF.
-        z2ui5_on_event( client ).
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-        z2ui5_on_rendering( client ).
-
-    ENDCASE.
+    z2ui5_on_rendering( client ).
 
   ENDMETHOD.
 
@@ -91,22 +87,22 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
       WHEN 'POPUP_TABLE_F4'.
         mt_suggestion_sel = mt_suggestion.
-        client->popup_view( 'POPUP_TABLE_F4' ).
-        client->show_view( 'MAIN' ).
+        mv_view_popup = 'POPUP_TABLE_F4'.
+        mv_view_main = 'MAIN'.
 
       WHEN 'POPUP_TABLE_F4_CUSTOM'.
         mt_employees_sel = VALUE #( ).
         mt_employees_sel = VALUE #( ).
-        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
-        client->show_view( 'MAIN' ).
+         mv_view_popup = 'POPUP_TABLE_F4_CUSTOM'.
+        mv_view_main = 'MAIN'.
 
       WHEN 'SEARCH'.
         mt_employees_sel = mt_employees.
         IF screen-city IS NOT INITIAL.
           DELETE mt_employees_sel WHERE city <> screen-city.
         ENDIF.
-        client->popup_view( 'POPUP_TABLE_F4_CUSTOM' ).
-        client->show_view( 'MAIN' ).
+         mv_view_popup = 'POPUP_TABLE_F4_CUSTOM'.
+        mv_view_main = 'MAIN'.
 
       WHEN 'POPUP_TABLE_F4_CUSTOM_CONTINUE'.
         DELETE mt_employees_sel WHERE selkz = abap_false.
@@ -137,17 +133,18 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
 
   METHOD z2ui5_on_rendering.
 
-    DATA(page) = client->factory_view( 'MAIN'
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
         )->page(
             title          = 'abap2UI5 - Value Help Examples'
             navbuttonpress = client->_event( 'BACK' )
+            shownavbutton = abap_true
             )->header_content(
                 )->link(
                     text = 'Demo'
                     href = 'https://twitter.com/OblomovDev/status/1637470531136921600'
                 )->link(
                     text = 'Source_Code'
-                    href = client->get( )-s_request-url_source_code
+                    href = client->get( )-url_source_code
         )->get_parent( ).
 
     DATA(form) = page->grid( 'L7 M7 S7'
@@ -159,7 +156,7 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
         )->input(
             value           = client->_bind( screen-color_01 )
             placeholder     = 'fill in your favorite colour'
-            suggestionitems = client->_bind_one_way( mt_suggestion )
+            suggestionitems = client->_bind_one( mt_suggestion )
             showsuggestion  = abap_true )->get(
             )->suggestion_items( )->get(
                 )->list_item(
@@ -207,7 +204,11 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                 type    = 'Success' ).
 
 
-    client->factory_view( 'POPUP_TABLE_F4'
+case mv_view_popup.
+
+    when 'POPUP_TABLE_F4'.
+
+    data(popup) = z2ui5_cl_xml_view_helper=>factory(
         )->dialog( 'abap2UI5 - F4 Value Help'
         )->table(
                 mode  = 'SingleSelectLeft'
@@ -232,15 +233,16 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                     press = client->_event( 'POPUP_TABLE_F4_CONTINUE' )
                     type  = 'Emphasized' ).
 
+    when 'POPUP_TABLE_F4_CUSTOM'.
 
-    DATA(popup) = client->factory_view( 'POPUP_TABLE_F4_CUSTOM'
+    popup = z2ui5_cl_xml_view_helper=>factory(
         )->dialog( 'abap2UI5 - F4 Value Help' ).
 
     popup->simple_form(
         )->label( 'Location'
         )->input(
                 value           = client->_bind( screen-city )
-                suggestionitems = client->_bind_one_way( mt_suggestion_city )
+                suggestionitems = client->_bind_one( mt_suggestion_city )
                 showsuggestion  = abap_true )->get(
             )->suggestion_items( )->get(
                 )->list_item(
@@ -281,6 +283,12 @@ CLASS z2ui5_cl_app_demo_09 IMPLEMENTATION.
                     press = client->_event( 'POPUP_TABLE_F4_CUSTOM_CONTINUE' )
                     type  = 'Emphasized' ).
 
+    endcase.
+
+      client->set_next( value #(
+        xml_main  = page->get_root(  )->xml_get( )
+        xml_popup = popup->get_root(  )->xml_get( )
+        ) ).
   ENDMETHOD.
 
 

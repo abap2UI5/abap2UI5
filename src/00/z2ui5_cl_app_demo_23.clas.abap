@@ -127,7 +127,7 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
               )->header_content(
                   )->link(
                       text = 'Source_Code'
-                      href = app-client->get( )-s_request-url_source_code
+                      href = app-client->get( )-url_source_code
               )->get_parent(
               )->simple_form( 'Form Title'
                   )->content( 'f'

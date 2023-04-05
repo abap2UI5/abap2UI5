@@ -56,6 +56,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
             )->page(
                 title          = 'abap2UI5 - Messages'
                 navbuttonpress = client->_event( 'BACK' )
+                  shownavbutton = abap_true
                 )->header_content(
                     )->link(
                         text = 'Source_Code'

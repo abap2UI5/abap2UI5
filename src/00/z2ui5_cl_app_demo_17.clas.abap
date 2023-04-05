@@ -20,13 +20,8 @@ CLASS z2ui5_cl_app_demo_17 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         IF check_initialized = abap_false.
           check_initialized = abap_true.
-
 
           RETURN.
         ENDIF.
@@ -47,10 +42,7 @@ CLASS z2ui5_cl_app_demo_17 IMPLEMENTATION.
 
         ENDCASE.
 
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(view) = client->factory_view( ).
+        DATA(view) = z2ui5_cl_xml_view_helper=>factory( ).
 
 
         DATA(page) = view->object_page_layout(
@@ -107,7 +99,7 @@ CLASS z2ui5_cl_app_demo_17 IMPLEMENTATION.
              )->image( src    = get_avatar( )
         ).
 
-    ENDCASE.
+          client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 

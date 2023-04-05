@@ -28,10 +28,6 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         IF check_initialized = abap_false.
           check_initialized = abap_true.
 
@@ -44,7 +40,6 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
             ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
           ).
 
-          RETURN.
         ENDIF.
 
         CASE client->get( )-event.
@@ -52,29 +47,27 @@ CLASS Z2UI5_CL_APP_DEMO_03 IMPLEMENTATION.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
         ENDCASE.
 
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(page) = client->factory_view(
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
             )->page(
                 title          = 'abap2UI5 - List'
                 navbuttonpress = client->_event( 'BACK' )
+                  shownavbutton = abap_true
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                        href = client->get( )-url_source_code
                 )->get_parent( ).
 
         page->list(
             headertext = 'List Ouput'
-            items      = client->_bind_one_way( t_tab )
+            items      = client->_bind_one( t_tab )
             )->standard_list_item(
                 title       = '{TITLE}'
                 description = '{DESCR}'
                 icon        = '{ICON}'
                 info        = '{INFO}' ).
 
-    ENDCASE.
+      client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
