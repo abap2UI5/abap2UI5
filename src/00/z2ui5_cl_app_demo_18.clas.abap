@@ -34,23 +34,32 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    app-client     = client.
-    app-s_get      = client->get( ).
-    app-view_popup = ``.
+    " there are no restrictions how you strcucture your app
+    " you can use this class as a template or find a better way
 
+    app-client     = client. "we collect all app infos in the structure app
+    app-s_get      = client->get( ). "read the frontend infos
+    app-view_popup = ``. "we display popups only once so clear it after every roundtrip
+
+    "do this only at the first start of the app, set init values
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
       z2ui5_on_init( ).
     ENDIF.
 
+    "user commands are handler here
     IF app-s_get-event IS NOT INITIAL.
       z2ui5_on_event( ).
     ENDIF.
 
+    "view rendering
     z2ui5_on_render_main( ).
     z2ui5_on_render_popup( ).
 
+    "set the data for the frontend
     client->set_next( app-s_next ).
+
+    "the app is serialized and persisted, we delete all data which is not needed in the future before
     CLEAR app-s_get.
     CLEAR app-s_next.
 
@@ -74,7 +83,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
         app-client->popup_message_toast( |confirm| ).
 
       WHEN 'POPUP_CANCEL'.
-        clear mv_textarea.
+        CLEAR mv_textarea.
         app-client->popup_message_toast( |cancel| ).
 
       WHEN 'SHOW_VIEW_MAIN'.

@@ -40,6 +40,15 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         when TYPE abap_bool DEFAULT abap_true
           PREFERRED PARAMETER v.
 
+    CLASS-METHODS get_replace
+      IMPORTING
+        iv_val        TYPE clike
+        iv_begin      TYPE clike
+        iv_end        TYPE clike
+        iv_replace    TYPE clike default ''
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS get_classname_by_ref
       IMPORTING
         in            TYPE REF TO object
@@ -235,6 +244,15 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD get_replace.
+
+    result = iv_val.
+    SPLIT result AT iv_begin INTO DATA(lv_1) DATA(lv_2).
+    SPLIT lv_2 AT iv_end INTO DATA(lv_3) DATA(lv_4).
+    result = lv_1 && iv_replace && lv_4.
+
+  ENDMETHOD.
 
   METHOD get_params_by_url.
 
@@ -943,6 +961,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
+
     METHODS set_app_leave_to_id
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
@@ -1363,22 +1382,21 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     IF ms_next-s_set-xml_main IS NOT INITIAL AND ms_next-s_set-check_set_prev_view = abap_false.
 
-      SPLIT ms_next-s_set-xml_main AT 'controllerName="' INTO DATA(lv_1) DATA(lv_2).
-      SPLIT lv_2 AT '"' INTO DATA(lv_3) DATA(lv_4).
-      DATA(lv_xml) = lv_1 && 'controllerName="z2ui5_controller"' && lv_4.
+      DATA(lv_xml) = _=>get_replace( iv_val = ms_next-s_set-xml_main
+            iv_begin = 'controllerName="' iv_end = '"' iv_replace = 'controllerName="z2ui5_controller"' ).
 
       lo_ui5_model->add_attribute( n = `vView` v = lv_xml ).
 
     ENDIF.
 
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
-      SPLIT ms_next-s_set-xml_popup AT 'controllerName="' INTO lv_1 lv_2.
-      SPLIT lv_2 AT '"' INTO lv_3 lv_4.
-      lv_xml = `<core:FragmentDefinition` && lv_4.
-      SPLIT lv_xml AT '</mvc:View>' INTO lv_3 lv_4.
-      lv_xml = lv_3 &&  `</core:FragmentDefinition>`.
+
+      lv_xml = _=>get_replace( iv_val = ms_next-s_set-xml_popup iv_begin = 'controllerName="' iv_end = '"' ).
+      REPLACE '<mvc:View>' IN lv_xml WITH `<core:FragmentDefinition>`.
+      REPLACE '</mvc:View>' IN lv_xml WITH `</core:FragmentDefinition>`.
       REPLACE '<Shell>' IN lv_xml WITH ``.
       REPLACE '</Shell>' IN lv_xml WITH ``.
+
       lo_ui5_model->add_attribute( n = `vViewPopup` v = lv_xml ).
     ENDIF.
 
@@ -1668,6 +1686,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
 
   ENDMETHOD.
+
+
 
 ENDCLASS.
 

@@ -19,6 +19,7 @@ CLASS z2ui5_cl_app_demo_13 DEFINITION PUBLIC.
 
     TYPES ty_t_table TYPE STANDARD TABLE OF ty_s_spfli WITH EMPTY KEY.
 
+    DATA mv_view TYPE string.
 
     DATA:
       BEGIN OF ms_import,
@@ -68,35 +69,33 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_13 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
     "dummy helper - not needed when using db
     lcl_db=>app = me.
 
-    CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_event.
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
 
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
+      ms_import-segment_key = 'json'.
+      ms_import-editor = lcl_db=>get_test_data_json( ).
+      ms_export-segment_key = 'json'.
+      mv_view = 'IMPORT_TABLE'.
 
-          ms_import-segment_key = 'json'.
-          ms_import-editor = lcl_db=>get_test_data_json( ).
-          ms_export-segment_key = 'json'.
-          client->show_view( 'IMPORT_TABLE' ).
+    ENDIF.
 
-          RETURN.
-        ENDIF.
+    z2ui5_on_event( client ).
 
-        z2ui5_on_event( client ).
-
-      WHEN client->cs-lifecycle_method-on_rendering.
+    CASE mv_view.
+      WHEN 'IMPORT_TABLE'.
         z2ui5_on_render_view_import( client ).
+      WHEN 'EDIT_TABLE'.
         z2ui5_on_render_view_edit( client ).
+      WHEN 'EXPORT_TABLE'.
         z2ui5_on_render_view_export( client ).
-
     ENDCASE.
 
   ENDMETHOD.
@@ -145,11 +144,11 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
         INSERT VALUE #( ) INTO TABLE ms_edit-t_table.
 
       WHEN 'BTN_IMPORT'.
-        client->show_view( 'IMPORT_TABLE' ).
+        mv_view = 'IMPORT_TABLE'.
       WHEN 'BTN_EDIT'.
-        client->show_view( 'EDIT_TABLE' ).
+        mv_view = 'EDIT_TABLE'.
       WHEN 'BTN_EXPORT'.
-        client->show_view( 'EXPORT_TABLE' ).
+        mv_view = 'EXPORT_TABLE'.
       WHEN 'BACK'.
         client->nav_app_leave( client->get( )-id_prev_app_stack ).
 
@@ -160,17 +159,18 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_view_edit.
 
-    DATA(page) = client->factory_view( 'EDIT_TABLE'
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
        )->page(
                title          = 'abap2ui5 - Table Maintenance'
                navbuttonpress = client->_event( 'BACK' )
+               shownavbutton  = abap_true
            )->header_content(
                )->link(
                    text = 'Demo'
                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
                )->link(
                    text = 'Source_Code'
-                   href = client->get( )-s_request-url_source_code
+                   href = client->get( )-url_source_code
            )->get_parent(
            )->sub_header(
                )->overflow_toolbar(
@@ -193,7 +193,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
             )->label( 'Table'
             )->input( 'SPFLI' ).
 
-                grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
     DATA(cont) = grid->simple_form(  )->content( 'f' ).
 
@@ -240,36 +240,39 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                 type = 'Emphasized'
                 icon = 'sap-icon://upload-to-cloud' ).
 
+    client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
+
   ENDMETHOD.
 
 
   METHOD z2ui5_on_render_view_export.
 
-    DATA(page) = client->factory_view( 'EXPORT_TABLE'
-        )->page(
-                title          = 'abap2ui5 - Table Maintenance'
-                navbuttonpress = client->_event( 'BACK' )
-            )->header_content(
-                )->link(
-                    text = 'Demo'
-                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
-                )->link(
-                    text = 'Source_Code'
-                    href = client->get( )-s_request-url_source_code
-            )->get_parent(
-            )->sub_header(
-                )->overflow_toolbar(
-                    )->button(
-                        text  = '(1) Import Data'
-                        press = client->_event( 'BTN_IMPORT' )
-                    )->button(
-                        text  = '(2) Edit Data'
-                        press = client->_event( 'BTN_EDIT' )
-                    )->button(
-                        text    = '(3) Export Data'
-                        press   = client->_event( 'BTN_EXPORT' )
-                        enabled = abap_false
-            )->get_parent( )->get_parent( ).
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+    )->page(
+            title          = 'abap2ui5 - Table Maintenance'
+            navbuttonpress = client->_event( 'BACK' )
+            shownavbutton  = abap_true
+        )->header_content(
+            )->link(
+                text = 'Demo'
+                href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+            )->link(
+                text = 'Source_Code'
+                href = client->get( )-url_source_code
+        )->get_parent(
+        )->sub_header(
+            )->overflow_toolbar(
+                )->button(
+                    text  = '(1) Import Data'
+                    press = client->_event( 'BTN_IMPORT' )
+                )->button(
+                    text  = '(2) Edit Data'
+                    press = client->_event( 'BTN_EDIT' )
+                )->button(
+                    text    = '(3) Export Data'
+                    press   = client->_event( 'BTN_EXPORT' )
+                    enabled = abap_false
+        )->get_parent( )->get_parent( ).
 
     DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
@@ -301,36 +304,39 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                 type  = 'Emphasized'
                 icon  = 'sap-icon://download-from-cloud' ).
 
+    client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
+
   ENDMETHOD.
 
 
   METHOD z2ui5_on_render_view_import.
 
-    DATA(page) = client->factory_view( 'IMPORT_TABLE'
-        )->page(
-                title          = 'abap2UI5 - Table Maintenance'
-                navbuttonpress = client->_event( 'BACK' )
-            )->header_content(
-                )->link(
-                    text = 'Demo'
-                    href = `https://twitter.com/OblomovDev/status/1634206964291911682`
-                )->link(
-                    text = 'Source_Code'
-                    href = client->get( )-s_request-url_source_code
-            )->get_parent(
-            )->sub_header(
-                )->overflow_toolbar(
-                    )->button(
-                        text    = '(1) Import Data'
-                        press   = client->_event( 'BTN_IMPORT' )
-                        enabled = abap_false
-                    )->button(
-                        text  = '(2) Edit Data'
-                        press = client->_event( 'BTN_EDIT' )
-                    )->button(
-                        text  = '(3) Export Data'
-                        press = client->_event( 'BTN_EXPORT' )
-            )->get_parent( )->get_parent( ).
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+    )->page(
+            title          = 'abap2UI5 - Table Maintenance'
+            navbuttonpress = client->_event( 'BACK' )
+              shownavbutton  = abap_true
+        )->header_content(
+            )->link(
+                text = 'Demo'
+                href = `https://twitter.com/OblomovDev/status/1634206964291911682`
+            )->link(
+                text = 'Source_Code'
+                href = client->get( )-url_source_code
+        )->get_parent(
+        )->sub_header(
+            )->overflow_toolbar(
+                )->button(
+                    text    = '(1) Import Data'
+                    press   = client->_event( 'BTN_IMPORT' )
+                    enabled = abap_false
+                )->button(
+                    text  = '(2) Edit Data'
+                    press = client->_event( 'BTN_EDIT' )
+                )->button(
+                    text  = '(3) Export Data'
+                    press = client->_event( 'BTN_EXPORT' )
+        )->get_parent( )->get_parent( ).
 
     DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
 
@@ -364,6 +370,8 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
             press = client->_event( 'IMPORT_DB' )
             type  = 'Emphasized'
             icon  = 'sap-icon://upload-to-cloud' ).
+
+    client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

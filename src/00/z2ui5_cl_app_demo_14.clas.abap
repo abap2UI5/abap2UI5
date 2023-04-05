@@ -51,7 +51,10 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
             client->nav_app_leave( client->get( )-id_prev_app_stack ).
         ENDCASE.
 
-        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->page( title = 'abap2UI5 - MIME Editor' navbuttonpress = client->_event( 'BACK' )
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->page(
+        title = 'abap2UI5 - MIME Editor'
+        navbuttonpress = client->_event( 'BACK' )
+        shownavbutton = abap_true
                 )->header_content(
                     )->link( text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1631562906570575875'
                     )->link( text = 'Source_Code' href = client->get( )-url_source_code
@@ -59,7 +62,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
 
-        grid->simple_form( 'File' )->content( 'f'
+        grid->simple_form( title = 'File' editable = abap_true )->content( 'f'
              )->label( 'path'
              )->input( client->_bind( mv_path )
              )->label( 'Option'
