@@ -126,7 +126,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                           enabled = abap_false
                       )->button(
                           text  = 'show popup input'
-                          press = app-client->_event( 'POPUP' )
+                          press = app-client->_event( 'SHOW_POPUP' )
                           )->get_parent( )->get_parent( )->footer(
                         )->overflow_toolbar(
                 )->toolbar_spacer(
