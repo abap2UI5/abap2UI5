@@ -141,11 +141,9 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
                       )->button(
                           text  = 'cancel'
                           press = app-client->_event( 'POPOVER' )
-                          id = 'TEST'
                     )->button(
                           text  = 'post'
                           press = app-client->_event( 'POPOVER' )
-                          id = 'TEST'
            )->get_root( )->xml_get( ).
 
 
