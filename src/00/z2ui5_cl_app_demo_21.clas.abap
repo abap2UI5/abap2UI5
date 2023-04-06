@@ -68,7 +68,248 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
+
+
+  METHOD view_main.
+
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+        )->page(
+                title          = 'abap2UI5 - Popups'
+                navbuttonpress = client->_event( 'BACK' )
+                shownavbutton  = abap_true
+            )->header_content(
+                )->link(
+                    text = 'Demo'
+                    href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
+                )->link(
+                    text = 'Source_Code' href = client->get( )-url_source_code
+           )->get_parent( ).
+
+    DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'l' ).
+
+    grid->simple_form( 'Decide' )->content( 'f'
+        )->label( '01'
+        )->button(
+            text  = 'Popup to decide'
+            press = client->_event( 'POPUP_TO_DECIDE' ) ).
+
+    grid->simple_form( 'TextArea' )->content( 'f'
+        )->label( '01'
+        )->button(
+            text  = 'Popup with textarea input'
+            press = client->_event( 'POPUP_TO_TEXTAREA' )
+        )->label( '02'
+        )->button(
+            text  = 'Popup with textarea input (size)'
+            press = client->_event( 'POPUP_TO_TEXTAREA_SIZE' )
+        )->label( '03'
+        )->button(
+            text  = 'Popup with textarea input (stretched)'
+            press = client->_event( 'POPUP_TO_TEXTAREA_STRETCH' ) ).
+
+    grid->simple_form( 'Inputs' )->content( 'f'
+        )->label( '01'
+        )->button(
+            text  = 'Popup Get Input Values'
+            press = client->_event( 'POPUP_TO_INPUT' ) ).
+
+    grid->simple_form( 'Tables' )->content( 'f'
+        )->label( '01'
+        )->button(
+            text  = 'Show bapiret tab'
+            press = client->_event( 'POPUP_BAL' )
+        )->label( '02'
+        )->button(
+            text  = 'Popup to select'
+            press = client->_event( 'POPUP_TABLE' ) ).
+
+    mv_main_xml = page->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
+  METHOD view_popup_bal.
+
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+        )->dialog( 'abap2ui5 - Popup Message Log'
+            )->table( client->_bind( t_bapiret )
+                )->columns(
+                    )->column( '5rem'
+                        )->text( 'Type' )->get_parent(
+                    )->column( '5rem'
+                        )->text( 'Number' )->get_parent(
+                    )->column( '5rem'
+                        )->text( 'ID' )->get_parent(
+                    )->column(
+                        )->text( 'Message' )->get_parent(
+                )->get_parent(
+                )->items(
+                    )->column_list_item(
+                        )->cells(
+                            )->text( '{TYPE}'
+                            )->text( '{NUMBER}'
+                            )->text( '{ID}'
+                            )->text( '{MESSAGE}'
+            )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+            )->footer( )->overflow_toolbar(
+                )->toolbar_spacer(
+                )->button(
+                    text  = 'close'
+                    press = client->_event( 'POPUP_BAL_CLOSE' )
+                    type  = 'Emphasized' ).
+
+    mv_popup_xml = popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
+  METHOD view_popup_decide.
+
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+        )->dialog(
+                title = 'Title'
+                icon = 'sap-icon://question-mark'
+            )->content(
+                )->vbox( 'sapUiMediumMargin'
+                    )->text( 'This is a question, you have to make a decision now, cancel or confirm?'
+            )->get_parent( )->get_parent(
+            )->footer( )->overflow_toolbar(
+                )->toolbar_spacer(
+                )->button(
+                    text  = 'Cancel'
+                    press = client->_event( 'BUTTON_CANCEL' )
+                )->button(
+                    text  = 'Confirm'
+                    press = client->_event( 'BUTTON_CONFIRM' )
+                    type  = 'Emphasized' ).
+
+    mv_popup_xml = popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
+  METHOD view_popup_input.
+
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+       )->dialog(
+       contentheight = '500px'
+       contentwidth  = '500px'
+       title = 'Title'
+       )->content(
+           )->simple_form(
+               )->label( 'Input1'
+               )->input( client->_bind( ms_popup_input-value1 )
+               )->label( 'Input2'
+               )->input( client->_bind( ms_popup_input-value2 )
+               )->label( 'Checkbox'
+               )->checkbox(
+                   selected = client->_bind( ms_popup_input-check_is_active )
+                   text     = 'this is a checkbox'
+                   enabled  = abap_true
+       )->get_parent( )->get_parent(
+       )->footer( )->overflow_toolbar(
+           )->toolbar_spacer(
+           )->button(
+               text  = 'Cancel'
+               press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
+           )->button(
+               text  = 'Confirm'
+               press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
+               type  = 'Emphasized' ).
+
+    mv_popup_xml = popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
+  METHOD view_popup_table.
+
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+       )->dialog( 'abap2UI5 - Popup to select entry'
+           )->table(
+               mode = 'SingleSelectLeft'
+               items = client->_bind( t_tab )
+               )->columns(
+                   )->column( )->text( 'Title' )->get_parent(
+                   )->column( )->text( 'Color' )->get_parent(
+                   )->column( )->text( 'Info' )->get_parent(
+                   )->column( )->text( 'Description' )->get_parent(
+               )->get_parent(
+               )->items( )->column_list_item( selected = '{SELKZ}'
+                   )->cells(
+                       )->text( '{TITLE}'
+                       )->text( '{VALUE}'
+                       )->text( '{INFO}'
+                       )->text( '{DESCR}'
+           )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+           )->footer( )->overflow_toolbar(
+               )->toolbar_spacer(
+               )->button(
+                   text  = 'continue'
+                   press = client->_event( 'POPUP_TABLE_CONTINUE' )
+                   type  = 'Emphasized' ).
+
+    mv_popup_xml = popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
+  METHOD view_popup_textarea.
+
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+      )->dialog(
+              stretch = mv_stretch_active
+              title = 'Title'
+              icon = 'sap-icon://edit'
+          )->content(
+              )->text_area(
+                  height = '100%'
+                  width  = '100%'
+                  value  = client->_bind( mv_textarea )
+          )->get_parent(
+          )->footer( )->overflow_toolbar(
+              )->toolbar_spacer(
+              )->button(
+                  text  = 'Cancel'
+                  press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
+              )->button(
+                  text  = 'Confirm'
+                  press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
+                  type  = 'Emphasized' ).
+
+    mv_popup_xml = popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
+  METHOD view_popup_textarea_size.
+
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+       )->dialog(
+               contentheight = '100px'
+               contentwidth  = '1200px'
+               title         = 'Title'
+               icon          = 'sap-icon://edit'
+           )->content(
+               )->text_area(
+                   height = '95%'
+                   width  = '99%'
+                   value  = client->_bind( mv_textarea )
+          )->get_parent(
+          )->footer( )->overflow_toolbar(
+               )->toolbar_spacer(
+               )->button(
+                   text  = 'Cancel'
+                   press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
+               )->button(
+                   text  = 'Confirm'
+                   press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
+                   type  = 'Emphasized' ).
+
+    mv_popup_xml = popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
 
 
   METHOD z2ui5_if_app~controller.
@@ -162,241 +403,4 @@ CLASS z2ui5_cl_app_demo_21 IMPLEMENTATION.
     client->set_next( VALUE #( xml_main = mv_main_xml xml_popup = mv_popup_xml ) ).
     CLEAR: mv_main_xml, mv_popup_xml.
   ENDMETHOD.
-
-  METHOD view_main.
-
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
-        )->page(
-                title          = 'abap2UI5 - Popups'
-                navbuttonpress = client->_event( 'BACK' )
-                shownavbutton  = abap_true
-            )->header_content(
-                )->link(
-                    text = 'Demo'
-                    href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
-                )->link(
-                    text = 'Source_Code' href = client->get( )-url_source_code
-           )->get_parent( ).
-
-    DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'l' ).
-
-    grid->simple_form( 'Decide' )->content( 'f'
-        )->label( '01'
-        )->button(
-            text  = 'Popup to decide'
-            press = client->_event( 'POPUP_TO_DECIDE' ) ).
-
-    grid->simple_form( 'TextArea' )->content( 'f'
-        )->label( '01'
-        )->button(
-            text  = 'Popup with textarea input'
-            press = client->_event( 'POPUP_TO_TEXTAREA' )
-        )->label( '02'
-        )->button(
-            text  = 'Popup with textarea input (size)'
-            press = client->_event( 'POPUP_TO_TEXTAREA_SIZE' )
-        )->label( '03'
-        )->button(
-            text  = 'Popup with textarea input (stretched)'
-            press = client->_event( 'POPUP_TO_TEXTAREA_STRETCH' ) ).
-
-    grid->simple_form( 'Inputs' )->content( 'f'
-        )->label( '01'
-        )->button(
-            text  = 'Popup Get Input Values'
-            press = client->_event( 'POPUP_TO_INPUT' ) ).
-
-    grid->simple_form( 'Tables' )->content( 'f'
-        )->label( '01'
-        )->button(
-            text  = 'Show bapiret tab'
-            press = client->_event( 'POPUP_BAL' )
-        )->label( '02'
-        )->button(
-            text  = 'Popup to select'
-            press = client->_event( 'POPUP_TABLE' ) ).
-
-    mv_main_xml = page->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-
-  METHOD view_popup_decide.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-        )->dialog(
-                title = 'Title'
-                icon = 'sap-icon://question-mark'
-            )->content(
-                )->vbox( 'sapUiMediumMargin'
-                    )->text( 'This is a question, you have to make a decision now, cancel or confirm?'
-            )->get_parent( )->get_parent(
-            )->footer( )->overflow_toolbar(
-                )->toolbar_spacer(
-                )->button(
-                    text  = 'Cancel'
-                    press = client->_event( 'BUTTON_CANCEL' )
-                )->button(
-                    text  = 'Confirm'
-                    press = client->_event( 'BUTTON_CONFIRM' )
-                    type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-
-  METHOD view_popup_input.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-       )->dialog(
-       contentheight = '500px'
-       contentwidth  = '500px'
-       title = 'Title'
-       )->content(
-           )->simple_form(
-               )->label( 'Input1'
-               )->input( client->_bind( ms_popup_input-value1 )
-               )->label( 'Input2'
-               )->input( client->_bind( ms_popup_input-value2 )
-               )->label( 'Checkbox'
-               )->checkbox(
-                   selected = client->_bind( ms_popup_input-check_is_active )
-                   text     = 'this is a checkbox'
-                   enabled  = abap_true
-       )->get_parent( )->get_parent(
-       )->footer( )->overflow_toolbar(
-           )->toolbar_spacer(
-           )->button(
-               text  = 'Cancel'
-               press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
-           )->button(
-               text  = 'Confirm'
-               press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
-               type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-  METHOD view_popup_bal.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-        )->dialog( 'abap2ui5 - Popup Message Log'
-            )->table( client->_bind( t_bapiret )
-                )->columns(
-                    )->column( '5rem'
-                        )->text( 'Type' )->get_parent(
-                    )->column( '5rem'
-                        )->text( 'Number' )->get_parent(
-                    )->column( '5rem'
-                        )->text( 'ID' )->get_parent(
-                    )->column(
-                        )->text( 'Message' )->get_parent(
-                )->get_parent(
-                )->items(
-                    )->column_list_item(
-                        )->cells(
-                            )->text( '{TYPE}'
-                            )->text( '{NUMBER}'
-                            )->text( '{ID}'
-                            )->text( '{MESSAGE}'
-            )->get_parent( )->get_parent( )->get_parent( )->get_parent(
-            )->footer( )->overflow_toolbar(
-                )->toolbar_spacer(
-                )->button(
-                    text  = 'close'
-                    press = client->_event( 'POPUP_BAL_CLOSE' )
-                    type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-  METHOD view_popup_table.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-       )->dialog( 'abap2UI5 - Popup to select entry'
-           )->table(
-               mode = 'SingleSelectLeft'
-               items = client->_bind( t_tab )
-               )->columns(
-                   )->column( )->text( 'Title' )->get_parent(
-                   )->column( )->text( 'Color' )->get_parent(
-                   )->column( )->text( 'Info' )->get_parent(
-                   )->column( )->text( 'Description' )->get_parent(
-               )->get_parent(
-               )->items( )->column_list_item( selected = '{SELKZ}'
-                   )->cells(
-                       )->text( '{TITLE}'
-                       )->text( '{VALUE}'
-                       )->text( '{INFO}'
-                       )->text( '{DESCR}'
-           )->get_parent( )->get_parent( )->get_parent( )->get_parent(
-           )->footer( )->overflow_toolbar(
-               )->toolbar_spacer(
-               )->button(
-                   text  = 'continue'
-                   press = client->_event( 'POPUP_TABLE_CONTINUE' )
-                   type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-  METHOD view_popup_textarea_size.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-       )->dialog(
-               contentheight = '100px'
-               contentwidth  = '1200px'
-               title         = 'Title'
-               icon          = 'sap-icon://edit'
-           )->content(
-               )->text_area(
-                   height = '95%'
-                   width  = '99%'
-                   value  = client->_bind( mv_textarea )
-          )->get_parent(
-          )->footer( )->overflow_toolbar(
-               )->toolbar_spacer(
-               )->button(
-                   text  = 'Cancel'
-                   press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
-               )->button(
-                   text  = 'Confirm'
-                   press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
-                   type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-  METHOD view_popup_textarea.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-      )->dialog(
-              stretch = mv_stretch_active
-              title = 'Title'
-              icon = 'sap-icon://edit'
-          )->content(
-              )->text_area(
-                  height = '100%'
-                  width  = '100%'
-                  value  = client->_bind( mv_textarea )
-          )->get_parent(
-          )->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
-              )->button(
-                  text  = 'Cancel'
-                  press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
-              )->button(
-                  text  = 'Confirm'
-                  press = client->_event( 'BUTTON_TEXTAREA_CONFIRM' )
-                  type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
 ENDCLASS.

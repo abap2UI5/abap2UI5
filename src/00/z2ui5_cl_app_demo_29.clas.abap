@@ -31,7 +31,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -57,17 +57,6 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_on_init.
-
-    product  = 'tomato'.
-    quantity = '500'.
-    app-view_main = 'VIEW_MAIN'.
-    input41 = 'faasdfdfsaVIp'.
-
-    input21 = '40'.
-    input22 = '40'.
-
-  ENDMETHOD.
 
   METHOD z2ui5_on_event.
 
@@ -81,6 +70,19 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
         app-client->nav_app_leave( app-s_get-id_prev_app_stack ).
 
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_init.
+
+    product  = 'tomato'.
+    quantity = '500'.
+    app-view_main = 'VIEW_MAIN'.
+    input41 = 'faasdfdfsaVIp'.
+
+    input21 = '40'.
+    input22 = '40'.
 
   ENDMETHOD.
 
@@ -116,5 +118,4 @@ CLASS z2ui5_cl_app_demo_29 IMPLEMENTATION.
 
 
   ENDMETHOD.
-
 ENDCLASS.

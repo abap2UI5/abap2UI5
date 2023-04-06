@@ -6,6 +6,7 @@ CLASS z2ui5_cl_app_demo_26 DEFINITION PUBLIC.
 
     DATA product  TYPE string.
     DATA quantity TYPE string.
+    data mv_placement type string.
 
   PROTECTED SECTION.
 
@@ -29,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -56,13 +57,16 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_init.
 
+    mv_placement = 'Left'.
     product  = 'tomato'.
     quantity = '500'.
     app-view_main = 'VIEW_MAIN'.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_on_event.
 
@@ -96,7 +100,7 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
 
         app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
           )->page(
-                  title          = 'abap2UI5 - NORMAL NORMAL NORMAL'
+                  title          = 'abap2UI5 - Popover Examples'
                   navbuttonpress = app-client->_event( 'BACK' )
                   shownavbutton  = abap_true
               )->header_content(
@@ -104,16 +108,41 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
                       text = 'Source_Code'
                       href = app-client->get( )-url_source_code
               )->get_parent(
-              )->simple_form( 'Form Title'
+              )->simple_form( 'Popover'
                   )->content( 'f'
                       )->title( 'Input'
-                      )->label( 'quantity'
-                      )->input( app-client->_bind( quantity )
-                      )->label( 'product'
-                      )->input(
-                          value   = product
-                          enabled = abap_false
+                      )->label( 'Link'
+                      )->link(  text = 'Documentation UI5 Popover Control' href = 'https://openui5.hana.ondemand.com/entity/sap.m.Popover'
+                      )->label( 'placement'
+                      )->segmented_button( app-client->_bind( mv_placement )
+                            )->items(
+                            )->segmented_button_item(
+                                    key = 'Left'
+                                    icon = 'sap-icon://add-favorite'
+                                    text = 'Left'
+                            )->segmented_button_item(
+                                    key = 'Top'
+                                    icon = 'sap-icon://accept'
+                                    text = 'Top'
+                            )->segmented_button_item(
+                                    key = 'Bottom'
+                                    icon = 'sap-icon://accept'
+                                    text = 'Bottom'
+                            )->segmented_button_item(
+                                    key = 'Right'
+                                    icon = 'sap-icon://attachment'
+                                    text = 'Right'
+                      )->get_parent( )->get_parent(
+                      )->label( 'popover'
                       )->button(
+                          text  = 'show'
+                          press = app-client->_event( 'POPOVER' )
+                          id = 'TEST'
+                      )->button(
+                          text  = 'cancel'
+                          press = app-client->_event( 'POPOVER' )
+                          id = 'TEST'
+                    )->button(
                           text  = 'post'
                           press = app-client->_event( 'POPOVER' )
                           id = 'TEST'
@@ -128,6 +157,7 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_render_popup.
 
     CASE app-view_popup.
@@ -135,7 +165,8 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
       WHEN 'POPOVER'.
 
         app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory( )->popover(
-                    title = 'Title'
+                    title     = 'Popover Title'
+                    placement = mv_placement
                    " icon = 'sap-icon://edit'
                 )->footer( )->overflow_toolbar(
                     )->toolbar_spacer(
@@ -147,11 +178,11 @@ CLASS z2ui5_cl_app_demo_26 IMPLEMENTATION.
                         press = app-client->_event( 'BUTTON_CONFIRM' )
                         type  = 'Emphasized'
                   )->get_parent( )->get_parent(
+              )->text(  'make an input here:'
               )->input( value = 'abcd'
               )->get_root( )->xml_get( ).
 
     ENDCASE.
 
   ENDMETHOD.
-
 ENDCLASS.

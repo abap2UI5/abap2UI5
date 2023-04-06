@@ -58,54 +58,6 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
-
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-
-          mv_path = '../../demo/text'.
-          mv_type = 'plain_text'.
-          mv_sel1 = abap_true.
-
-        ENDIF.
-
-        CASE client->get( )-event.
-
-          WHEN 'DONUT_CHANGED'.
-            client->popup_message_toast( 'Donut selection changed' ).
-
-          WHEN 'BAR_CHANGED'.
-            client->popup_message_toast( 'Bar selection changed' ).
-
-          WHEN 'LINE_CHANGED'.
-            client->popup_message_toast( 'Line selection changed' ).
-
-          WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-        ENDCASE.
-
-
-        DATA(container) = z2ui5_cl_xml_view_helper=>factory(
-            )->page(
-                title = 'abap2UI5 - Visualization'
-                navbuttonpress = client->_event( 'BACK' )
-                shownavbutton = abap_true
-                )->header_content(
-                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1639191954285113344`
-                    )->link( text = 'Source_Code' href = client->get( )-url_source_code
-            )->get_parent(
-            )->tab_container( ).
-
-        render_tab_donut(  client = client container = container ).
-        render_tab_bar(    client = client container = container ).
-        render_tab_line(   client = client container = container ).
-        render_tab_radial( client = client container = container ).
-
-          client->set_next( value #( xml_main = container->get_root(  )->xml_get( ) ) ).
-
-  ENDMETHOD.
-
   METHOD render_tab_bar.
 
     DATA(grid) = container->tab(
@@ -384,4 +336,51 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_app~controller.
+
+        IF check_initialized = abap_false.
+          check_initialized = abap_true.
+
+          mv_path = '../../demo/text'.
+          mv_type = 'plain_text'.
+          mv_sel1 = abap_true.
+
+        ENDIF.
+
+        CASE client->get( )-event.
+
+          WHEN 'DONUT_CHANGED'.
+            client->popup_message_toast( 'Donut selection changed' ).
+
+          WHEN 'BAR_CHANGED'.
+            client->popup_message_toast( 'Bar selection changed' ).
+
+          WHEN 'LINE_CHANGED'.
+            client->popup_message_toast( 'Line selection changed' ).
+
+          WHEN 'BACK'.
+            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+
+        ENDCASE.
+
+
+        DATA(container) = z2ui5_cl_xml_view_helper=>factory(
+            )->page(
+                title = 'abap2UI5 - Visualization'
+                navbuttonpress = client->_event( 'BACK' )
+                shownavbutton = abap_true
+                )->header_content(
+                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1639191954285113344`
+                    )->link( text = 'Source_Code' href = client->get( )-url_source_code
+            )->get_parent(
+            )->tab_container( ).
+
+        render_tab_donut(  client = client container = container ).
+        render_tab_bar(    client = client container = container ).
+        render_tab_line(   client = client container = container ).
+        render_tab_radial( client = client container = container ).
+
+          client->set_next( value #( xml_main = container->get_root(  )->xml_get( ) ) ).
+
+  ENDMETHOD.
 ENDCLASS.

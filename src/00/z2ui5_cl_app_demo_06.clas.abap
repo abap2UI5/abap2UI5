@@ -26,7 +26,19 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
+
+
+  METHOD refresh_data.
+
+    DO 1000 TIMES.
+      DATA(ls_row) = VALUE ty_row( count = sy-index  value = 'red'
+        info = COND #( WHEN sy-index < 50 THEN 'completed' ELSE 'uncompleted' )
+        descr = 'this is a description' checkbox = abap_true ).
+      INSERT ls_row INTO TABLE t_tab.
+    ENDDO.
+
+  ENDMETHOD.
 
 
   METHOD z2ui5_if_app~controller.
@@ -153,16 +165,4 @@ CLASS z2ui5_cl_app_demo_06 IMPLEMENTATION.
     client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) )  ).
 
   ENDMETHOD.
-
-  METHOD refresh_data.
-
-    DO 1000 TIMES.
-      DATA(ls_row) = VALUE ty_row( count = sy-index  value = 'red'
-        info = COND #( WHEN sy-index < 50 THEN 'completed' ELSE 'uncompleted' )
-        descr = 'this is a description' checkbox = abap_true ).
-      INSERT ls_row INTO TABLE t_tab.
-    ENDDO.
-
-  ENDMETHOD.
-
 ENDCLASS.

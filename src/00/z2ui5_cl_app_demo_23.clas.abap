@@ -28,7 +28,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -55,13 +55,6 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_on_init.
-
-    product  = 'tomato'.
-    quantity = '500'.
-    app-view_main = 'NORMAL'.
-
-  ENDMETHOD.
 
   METHOD z2ui5_on_event.
 
@@ -74,6 +67,15 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
         app-view_main = app-s_get-event.
 
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_init.
+
+    product  = 'tomato'.
+    quantity = '500'.
+    app-view_main = 'NORMAL'.
 
   ENDMETHOD.
 
@@ -184,9 +186,9 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_render_popup.
 
 
   ENDMETHOD.
-
 ENDCLASS.
