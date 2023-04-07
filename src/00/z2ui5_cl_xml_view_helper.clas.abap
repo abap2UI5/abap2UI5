@@ -5,7 +5,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES z2ui5_if_view.
 
     TYPES:
       BEGIN OF ty_s_name_value,
@@ -26,7 +25,752 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     CLASS-METHODS factory
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+   METHODS constructor
+      IMPORTING
+        ns TYPE string_table OPTIONAL.
+
+
+  METHODS template_with
+    IMPORTING
+      path          TYPE clike OPTIONAL
+      var           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS template_if
+    IMPORTING
+      test          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS horizontal_layout
+    IMPORTING
+      class         TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS flex_box
+    IMPORTING
+      class          TYPE clike OPTIONAL
+      rendertype     TYPE clike OPTIONAL
+      width          TYPE clike OPTIONAL
+      fitContainer   TYPE clike OPTIONAL
+      height         TYPE clike OPTIONAL
+      alignitems     TYPE clike OPTIONAL
+      justifycontent TYPE clike OPTIONAL
+      wrap           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS popover
+    IMPORTING
+      title         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+      placement     TYPE clike OPTIONAL
+      initialFocus  TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS list_item
+    IMPORTING
+      text           TYPE clike OPTIONAL
+      additionaltext TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS table
+    IMPORTING
+      items               TYPE clike OPTIONAL
+      growing             TYPE clike OPTIONAL
+      growingthreshold    TYPE clike OPTIONAL
+      growingscrolltoload TYPE clike OPTIONAL
+      headertext          TYPE clike OPTIONAL
+      sticky              TYPE clike OPTIONAL
+      mode                TYPE clike OPTIONAL
+      width               TYPE clike OPTIONAL
+        PREFERRED PARAMETER items
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS message_strip
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      showicon      TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+        PREFERRED PARAMETER text
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS footer
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS message_page
+    IMPORTING
+      show_header         TYPE clike OPTIONAL
+      text                TYPE clike OPTIONAL
+      enableformattedtext TYPE clike OPTIONAL
+      description         TYPE clike OPTIONAL
+      icon                TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS object_page_layout
+    IMPORTING
+      showTitleInHeaderContent TYPE clike OPTIONAL
+      showEditHeaderButton     TYPE clike OPTIONAL
+      editHeaderButtonPress    TYPE clike OPTIONAL
+      upperCaseAnchorBar       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)            TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS Object_Page_Dyn_Header_Title
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS expanded_heading
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS snapped_heading
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS expanded_content
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS snapped_content
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS snapped_Title_On_Mobile
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS actions
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS avatar
+    IMPORTING
+      src           TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+      displaysize   TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS header_title
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS sections
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS Object_Page_Section
+    IMPORTING
+      titleUppercase TYPE clike OPTIONAL
+      title          TYPE clike OPTIONAL
+      importance     TYPE clike OPTIONAL
+      id             TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS heading
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS sub_sections
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS Object_page_Sub_Section
+    importing
+        id          TYPE clike OPTIONAL
+        title       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS blocks
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS layout_data
+    IMPORTING
+      ns            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS flex_item_data
+    IMPORTING
+      growfactor       TYPE clike OPTIONAL
+      basesize         TYPE clike OPTIONAL
+      backgrounddesign TYPE clike OPTIONAL
+      styleclass       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)    TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS code_editor
+    IMPORTING
+      value         TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      height        TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+      editable      TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS suggestion_items
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS vertical_layout
+    IMPORTING
+      class         TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS multi_input
+    IMPORTING
+      showclearicon   TYPE clike OPTIONAL
+      showValueHelp   TYPE clike OPTIONAL
+      suggestionitems TYPE clike OPTIONAL
+      width           TYPE clike OPTIONAL
+      tokens          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)   TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS tokens
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS token
+    IMPORTING
+      key           TYPE clike OPTIONAL
+      text          TYPE clike OPTIONAL
+      selected      TYPE clike OPTIONAL
+      visible       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS input
+    IMPORTING
+      id               TYPE clike OPTIONAL
+      value            TYPE clike OPTIONAL
+      placeholder      TYPE clike OPTIONAL
+      type             TYPE clike OPTIONAL
+      showclearicon    TYPE clike OPTIONAL
+      valuestate       TYPE clike OPTIONAL
+      valuestatetext   TYPE clike OPTIONAL
+      description      TYPE clike OPTIONAL
+      editable         TYPE clike OPTIONAL
+      enabled          TYPE clike OPTIONAL
+      suggestionitems  TYPE clike OPTIONAL
+      showsuggestion   TYPE clike OPTIONAL
+      showvaluehelp    TYPE clike OPTIONAL
+      valuehelprequest TYPE clike OPTIONAL
+        PREFERRED PARAMETER value
+    RETURNING
+      VALUE(result)    TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS dialog
+    IMPORTING
+      title         TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      showheader    TYPE clike OPTIONAL
+      stretch       TYPE clike OPTIONAL
+      contentheight TYPE clike OPTIONAL
+      contentwidth  TYPE clike OPTIONAL
+        PREFERRED PARAMETER title
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS buttons
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS get_root
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS get_parent
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS get
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS get_child
+    IMPORTING
+      index         TYPE i DEFAULT 1
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS columns
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS column
+    IMPORTING
+      width         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS items
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS interact_donut_chart
+    IMPORTING
+      selectionchanged  TYPE clike OPTIONAL
+      errormessage      TYPE clike OPTIONAL
+      errormessagetitle TYPE clike OPTIONAL
+      showerror         TYPE clike OPTIONAL
+      displayedsegments TYPE clike OPTIONAL
+      press             TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)     TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS segments
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS interact_donut_chart_segment
+    IMPORTING
+      label          TYPE clike OPTIONAL
+      value          TYPE clike OPTIONAL
+      displayedvalue TYPE clike OPTIONAL
+      selected       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS interact_bar_chart
+    IMPORTING
+      selectionchanged  TYPE clike OPTIONAL
+      press             TYPE clike OPTIONAL
+      labelwidth        TYPE clike OPTIONAL
+      errormessage      TYPE clike OPTIONAL
+      errormessagetitle TYPE clike OPTIONAL
+      showerror         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)     TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS bars
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS interact_bar_chart_bar
+    IMPORTING
+      label          TYPE clike OPTIONAL
+      value          TYPE clike OPTIONAL
+      displayedvalue TYPE clike OPTIONAL
+      selected       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS interact_line_chart
+    IMPORTING
+      selectionchanged  TYPE clike OPTIONAL
+      press             TYPE clike OPTIONAL
+      precedingpoint    TYPE clike OPTIONAL
+      succeddingpoint   TYPE clike OPTIONAL
+      errormessage      TYPE clike OPTIONAL
+      errormessagetitle TYPE clike OPTIONAL
+      showerror         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)     TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS points
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS interact_line_chart_point
+    IMPORTING
+      label          TYPE clike OPTIONAL
+      value          TYPE clike OPTIONAL
+      secondarylabel TYPE clike OPTIONAL
+      displayedvalue TYPE clike OPTIONAL
+      selected       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS radial_micro_chart
+    IMPORTING
+      sice          TYPE clike OPTIONAL
+      percentage    TYPE clike OPTIONAL
+      press         TYPE clike OPTIONAL
+      valuecolor    TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS column_list_item
+    IMPORTING
+      valign        TYPE clike OPTIONAL
+      selected      TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS cells
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS header_content
+    IMPORTING
+      ns            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS sub_header
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS custom_data
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS badge_custom_data
+    IMPORTING
+      key           TYPE clike OPTIONAL
+      value         TYPE clike OPTIONAL
+      visible       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS toggle_button
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+      press         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS button
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+      press         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+      id            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS page
+    IMPORTING
+      title          TYPE clike OPTIONAL
+      navbuttonpress TYPE clike OPTIONAL
+      shownavbutton  TYPE clike OPTIONAL
+      id             TYPE clike OPTIONAL
+      class          TYPE clike OPTIONAL
+        PREFERRED PARAMETER title
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS vbox
+    IMPORTING
+      height        TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+        PREFERRED PARAMETER class
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS hbox
+    IMPORTING
+      class         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS scroll_container
+    IMPORTING
+      height        TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+      vertical      TYPE clike OPTIONAL
+      horizontal    TYPE clike OPTIONAL
+      focusable     TYPE clike OPTIONAL
+        PREFERRED PARAMETER height
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS simple_form
+    IMPORTING
+      title         TYPE clike OPTIONAL
+      layout        TYPE clike OPTIONAL
+      editable      TYPE clike OPTIONAL
+        PREFERRED PARAMETER title
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS zz_html
+    IMPORTING
+      val           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS content
+    IMPORTING
+      ns            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS title
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      wrapping      TYPE clike OPTIONAL
+        PREFERRED PARAMETER text
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS tab_container
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS tab
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      selected      TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS overflow_toolbar
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS overflow_toolbar_button
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+      press         TYPE clike OPTIONAL
+      tooltip       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS toolbar_spacer
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS label
+    IMPORTING
+      text          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS image
+    IMPORTING
+      src           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS date_picker
+    IMPORTING
+      value         TYPE clike OPTIONAL
+      placeholder   TYPE clike OPTIONAL
+        PREFERRED PARAMETER value
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS time_picker
+    IMPORTING
+      value         TYPE clike OPTIONAL
+      placeholder   TYPE clike OPTIONAL
+        PREFERRED PARAMETER value
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS date_time_picker
+    IMPORTING
+      value         TYPE clike OPTIONAL
+      placeholder   TYPE clike OPTIONAL
+        PREFERRED PARAMETER value
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS link
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      href          TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS list
+    IMPORTING
+      headertext    TYPE clike OPTIONAL
+      items         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS standard_list_item
+    IMPORTING
+      title         TYPE clike OPTIONAL
+      description   TYPE clike OPTIONAL
+      icon          TYPE clike OPTIONAL
+      info          TYPE clike OPTIONAL
+      press         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS item
+    IMPORTING
+      key           TYPE clike OPTIONAL
+      text          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS segmented_button_item
+    IMPORTING
+      icon          TYPE clike OPTIONAL
+      key           TYPE clike OPTIONAL
+      text          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS combobox
+    IMPORTING
+      selectedkey   TYPE clike OPTIONAL
+      showclearicon TYPE clike OPTIONAL
+      label         TYPE clike OPTIONAL
+      items         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS grid
+    IMPORTING
+      class         TYPE clike OPTIONAL
+      default_span  TYPE clike OPTIONAL
+        PREFERRED PARAMETER default_span
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS grid_data
+    IMPORTING
+      span          TYPE clike OPTIONAL
+        PREFERRED PARAMETER span
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS text_area
+    IMPORTING
+      value           TYPE clike OPTIONAL
+      rows            TYPE clike OPTIONAL
+      height          TYPE clike OPTIONAL
+      width           TYPE clike OPTIONAL
+      editable        TYPE clike OPTIONAL
+      enabled         TYPE clike OPTIONAL
+      growing         TYPE clike OPTIONAL
+      growingmaxlines TYPE clike OPTIONAL
+      id              TYPE clike OPTIONAL
+        PREFERRED PARAMETER value
+    RETURNING
+      VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS range_slider
+    IMPORTING
+      max           TYPE clike OPTIONAL
+      min           TYPE clike OPTIONAL
+      step          TYPE clike OPTIONAL
+      startvalue    TYPE clike OPTIONAL
+      endvalue      TYPE clike OPTIONAL
+      showtickmarks TYPE clike OPTIONAL
+      labelinterval TYPE clike OPTIONAL
+      width         TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+      id            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS generic_tag
+    IMPORTING
+      arialabelledby TYPE clike OPTIONAL
+      text           TYPE clike OPTIONAL
+      design         TYPE clike OPTIONAL
+      status         TYPE clike OPTIONAL
+      class          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS object_number
+    IMPORTING
+      state         TYPE clike OPTIONAL
+      emphasized    TYPE clike OPTIONAL
+      number        TYPE clike OPTIONAL
+      unit          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS switch
+    IMPORTING
+      state         TYPE clike OPTIONAL
+      customtexton  TYPE clike OPTIONAL
+      customtextoff TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+      type          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS step_input
+    IMPORTING
+      value         TYPE clike
+      min           TYPE clike
+      max           TYPE clike
+      step          TYPE clike
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS progress_indicator
+    IMPORTING
+      percentvalue  TYPE clike OPTIONAL
+      displayvalue  TYPE clike OPTIONAL
+      showvalue     TYPE clike OPTIONAL
+      state         TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS segmented_button
+    IMPORTING
+      selected_key     TYPE clike
+      selection_change TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)    TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS checkbox
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      selected      TYPE clike OPTIONAL
+      enabled       TYPE clike OPTIONAL
+        PREFERRED PARAMETER selected
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS header_toolbar
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS text
+    IMPORTING
+      text          TYPE clike OPTIONAL
+      class         TYPE clike OPTIONAL
+        PREFERRED PARAMETER text
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS formatted_text
+    IMPORTING
+      htmltext      TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS _generic
       IMPORTING
@@ -34,7 +778,26 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         ns            TYPE clike OPTIONAL
         t_prop        TYPE ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+  METHODS zz_file_uploader
+    IMPORTING
+      value         TYPE clike OPTIONAL
+      path          TYPE clike OPTIONAL
+      placeholder   TYPE clike OPTIONAL
+      upload        TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+
+  METHODS xml_get
+    IMPORTING
+      check_shell   TYPE abap_bool DEFAULT abap_true
+    RETURNING
+      VALUE(result) TYPE string.
+
+
+  PROTECTED SECTION.
+
 
     METHODS xml_get_begin
       IMPORTING
@@ -42,9 +805,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS constructor
-      IMPORTING
-        ns TYPE string_table OPTIONAL.
+
 
     METHODS xml_get_end
       IMPORTING
@@ -54,7 +815,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     DATA mt_ns TYPE string_table.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -121,7 +881,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~actions.
+  METHOD actions.
 
     result = _generic(
         name   = `actions`
@@ -131,7 +891,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~avatar.
+  METHOD avatar.
 
     result = me.
     _generic(
@@ -145,7 +905,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~badge_custom_data.
+  METHOD badge_custom_data.
 
     result = me.
     _generic(
@@ -159,7 +919,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~bars.
+  METHOD bars.
 
     result = _generic(
         name = `bars`
@@ -168,7 +928,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~blocks.
+  METHOD blocks.
 
     result = _generic(
         name   = `blocks`
@@ -178,7 +938,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~button.
+  METHOD button.
 
     result = me.
     _generic(
@@ -196,21 +956,21 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~buttons.
+  METHOD buttons.
 
     result = _generic( `buttons` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~cells.
+  METHOD cells.
 
     result = _generic( `cells` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~checkbox.
+  METHOD checkbox.
 
     result = me.
     _generic(
@@ -224,7 +984,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~code_editor.
+  METHOD code_editor.
 
     result = me.
     _generic(
@@ -241,7 +1001,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~column.
+  METHOD column.
 
     result = _generic(
         name  = `Column`
@@ -251,14 +1011,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~columns.
+  METHOD columns.
 
     result = _generic( `columns` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~column_list_item.
+  METHOD column_list_item.
 
     result = _generic(
         name = `ColumnListItem`
@@ -269,7 +1029,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~combobox.
+  METHOD combobox.
 
     result = _generic(
        name  = `ComboBox`
@@ -282,14 +1042,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~content.
+  METHOD content.
 
     result = _generic( ns = ns name = `content` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~custom_data.
+  METHOD custom_data.
 
     result = _generic(
        `customData`
@@ -298,7 +1058,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~date_picker.
+  METHOD date_picker.
 
     result = me.
     _generic(
@@ -311,7 +1071,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~date_time_picker.
+  METHOD date_time_picker.
 
     result = me.
     _generic(
@@ -324,7 +1084,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~dialog.
+  METHOD dialog.
 
     result = _generic(
          name = `Dialog`
@@ -340,7 +1100,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~expanded_content.
+  METHOD expanded_content.
 
     result = _generic(
          name   = `expandedContent`
@@ -350,7 +1110,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~expanded_heading.
+  METHOD expanded_heading.
 
     result = _generic(
         name   = `expandedHeading`
@@ -360,7 +1120,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~flex_box.
+  METHOD flex_box.
 
     result = _generic(
           name   = `FlexBox`
@@ -379,7 +1139,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~flex_item_data.
+  METHOD flex_item_data.
 
     result = me.
 
@@ -395,14 +1155,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~footer.
+  METHOD footer.
 
     result = _generic( `footer` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~formatted_text.
+  METHOD formatted_text.
 
     result = me.
     _generic(
@@ -414,7 +1174,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~generic_tag.
+  METHOD generic_tag.
 
     result = _generic(
            name  = `GenericTag`
@@ -429,33 +1189,33 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~get.
+  METHOD get.
 
     result = m_root->m_last.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~get_child.
+  METHOD get_child.
 
     result = t_child[ index ].
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~get_parent.
+  METHOD get_parent.
     result = m_parent.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~get_root.
+  METHOD get_root.
 
     result = m_root.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~grid.
+  METHOD grid.
 
     result = _generic(
         name = `Grid`
@@ -468,7 +1228,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~grid_data.
+  METHOD grid_data.
 
     result = me.
     _generic(
@@ -481,7 +1241,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~hbox.
+  METHOD hbox.
 
     result = _generic(
           name   = `HBox`
@@ -492,7 +1252,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~header_content.
+  METHOD header_content.
 
     result = _generic(
         name = `headerContent`
@@ -502,7 +1262,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~header_title.
+  METHOD header_title.
 
     result = _generic(
         name   = `headerTitle`
@@ -512,14 +1272,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~header_toolbar.
+  METHOD header_toolbar.
 
     result = _generic( `headerToolbar` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~heading.
+  METHOD heading.
 
     result = me.
     result = _generic(
@@ -530,7 +1290,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~horizontal_layout.
+  METHOD horizontal_layout.
 
     result = _generic(
         name   = `HorizontalLayout`
@@ -543,7 +1303,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~image.
+  METHOD image.
 
     result = me.
     _generic(
@@ -555,7 +1315,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~input.
+  METHOD input.
 
     result = me.
     _generic(
@@ -580,7 +1340,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~interact_bar_chart.
+  METHOD interact_bar_chart.
 
     result = _generic(
         name = `InteractiveBarChart`
@@ -597,7 +1357,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~interact_bar_chart_bar.
+  METHOD interact_bar_chart_bar.
 
     result = _generic(
          name = `InteractiveBarChartBar`
@@ -612,7 +1372,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~interact_donut_chart.
+  METHOD interact_donut_chart.
 
     result = _generic(
          name = `InteractiveDonutChart`
@@ -629,7 +1389,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~interact_donut_chart_segment.
+  METHOD interact_donut_chart_segment.
 
     result = _generic(
          name = `InteractiveDonutChartSegment`
@@ -644,7 +1404,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~interact_line_chart.
+  METHOD interact_line_chart.
 
     result = _generic(
          name = `InteractiveLineChart`
@@ -662,7 +1422,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~interact_line_chart_point.
+  METHOD interact_line_chart_point.
 
     result = _generic(
          name   = `InteractiveLineChartPoint`
@@ -678,7 +1438,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~item.
+  METHOD item.
 
     result = me.
     _generic(
@@ -692,14 +1452,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~items.
+  METHOD items.
 
     result = _generic( `items` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~label.
+  METHOD label.
 
     result = me.
     _generic(
@@ -711,7 +1471,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~layout_data.
+  METHOD layout_data.
 
     result = _generic(
             ns = ns
@@ -721,7 +1481,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~link.
+  METHOD link.
 
     result = me.
     _generic(
@@ -736,7 +1496,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~list.
+  METHOD list.
 
     result = _generic(
         name = `List`
@@ -748,7 +1508,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~list_item.
+  METHOD list_item.
 
     result = me.
     _generic(
@@ -761,7 +1521,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~message_page.
+  METHOD message_page.
 
     result = _generic(
         name   = `MessagePage`
@@ -776,7 +1536,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~message_strip.
+  METHOD message_strip.
 
     result = me.
     _generic(
@@ -791,7 +1551,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~multi_input.
+  METHOD multi_input.
 
     result = _generic(
         name   = `MultiInput`
@@ -806,7 +1566,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~object_number.
+  METHOD object_number.
 
     result = me.
     _generic(
@@ -821,7 +1581,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~object_page_dyn_header_title.
+  METHOD object_page_dyn_header_title.
 
     result = _generic(
         name   = `ObjectPageDynamicHeaderTitle`
@@ -831,7 +1591,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~object_page_layout.
+  METHOD object_page_layout.
 
     result = _generic(
         name   = `ObjectPageLayout`
@@ -846,7 +1606,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~object_page_section.
+  METHOD object_page_section.
 
     result = _generic(
         name   = `ObjectPageSection`
@@ -860,7 +1620,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~object_page_sub_section.
+  METHOD object_page_sub_section.
 
     result = _generic(
         name   = `ObjectPageSubSection`
@@ -873,14 +1633,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~overflow_toolbar.
+  METHOD overflow_toolbar.
 
     result = _generic( `OverflowToolbar` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~overflow_toolbar_button.
+  METHOD overflow_toolbar_button.
 
     result = me.
     _generic(
@@ -897,7 +1657,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~page.
+  METHOD page.
 
     result = _generic(
         name   = `Page`
@@ -912,7 +1672,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~points.
+  METHOD points.
 
     result = _generic(
          name = `points`
@@ -921,7 +1681,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~popover.
+  METHOD popover.
 
     result = _generic(
           name   = `Popover`
@@ -935,7 +1695,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~progress_indicator.
+  METHOD progress_indicator.
 
     result = me.
     _generic(
@@ -950,7 +1710,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~radial_micro_chart.
+  METHOD radial_micro_chart.
 
     result = me.
     _generic(
@@ -966,7 +1726,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~range_slider.
+  METHOD range_slider.
 
     result = me.
     _generic(
@@ -988,7 +1748,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~scroll_container.
+  METHOD scroll_container.
 
     result = _generic(
         name = `ScrollContainer`
@@ -1003,7 +1763,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~sections.
+  METHOD sections.
 
     result = _generic(
         name   = `sections`
@@ -1013,7 +1773,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~segmented_button.
+  METHOD segmented_button.
 
     result = _generic(
        name  = `SegmentedButton`
@@ -1025,7 +1785,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~segmented_button_item.
+  METHOD segmented_button_item.
 
     result = me.
     _generic(
@@ -1039,7 +1799,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~segments.
+  METHOD segments.
 
     result = _generic(
         name = `segments`
@@ -1048,7 +1808,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~simple_form.
+  METHOD simple_form.
 
     result = _generic(
       name   = `SimpleForm`
@@ -1062,7 +1822,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~snapped_content.
+  METHOD snapped_content.
 
     result = _generic(
          name   = `snappedContent`
@@ -1072,7 +1832,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~snapped_heading.
+  METHOD snapped_heading.
 
     result = me.
     result = _generic(
@@ -1083,7 +1843,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~snapped_title_on_mobile.
+  METHOD snapped_title_on_mobile.
 
     result = _generic(
          name   = `snappedTitleOnMobile`
@@ -1093,7 +1853,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~standard_list_item.
+  METHOD standard_list_item.
 
     result = me.
     _generic(
@@ -1109,7 +1869,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~step_input.
+  METHOD step_input.
 
     result = me.
     _generic(
@@ -1124,14 +1884,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~sub_header.
+  METHOD sub_header.
 
     result = _generic( `subHeader` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~sub_sections.
+  METHOD sub_sections.
 
     result = me.
     result = _generic(
@@ -1142,14 +1902,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~suggestion_items.
+  METHOD suggestion_items.
 
     result = _generic( `suggestionItems` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~switch.
+  METHOD switch.
 
     result = me.
     _generic(
@@ -1165,7 +1925,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~tab.
+  METHOD tab.
 
     result = _generic(
          name = `Tab`
@@ -1178,7 +1938,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~table.
+  METHOD table.
 
     result = _generic(
         name  = `Table`
@@ -1196,7 +1956,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~tab_container.
+  METHOD tab_container.
 
     result = _generic(
         name = `TabContainer`
@@ -1205,7 +1965,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~template_if.
+  METHOD template_if.
 
     result = _generic(
             name   = `if`
@@ -1217,7 +1977,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~template_with.
+  METHOD template_with.
 
     result = _generic(
             name   = `with`
@@ -1230,7 +1990,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~text.
+  METHOD text.
 
     result = me.
     _generic(
@@ -1243,7 +2003,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~text_area.
+  METHOD text_area.
 
     result = me.
     _generic(
@@ -1263,7 +2023,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~time_picker.
+  METHOD time_picker.
 
     result = me.
     _generic(
@@ -1276,7 +2036,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~title.
+  METHOD title.
 
     result = me.
     _generic(
@@ -1289,7 +2049,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~toggle_button.
+  METHOD toggle_button.
 
     result = me.
     _generic(
@@ -1306,7 +2066,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~token.
+  METHOD token.
 
     result = me.
     _generic(
@@ -1321,14 +2081,14 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~tokens.
+  METHOD tokens.
 
     result = _generic( `tokens` ).
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~toolbar_spacer.
+  METHOD toolbar_spacer.
 
     result = me.
     _generic( `ToolbarSpacer` ).
@@ -1336,7 +2096,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~vbox.
+  METHOD vbox.
 
     result = _generic(
          name   = `VBox`
@@ -1348,7 +2108,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~vertical_layout.
+  METHOD vertical_layout.
 
     result = _generic(
         name   = `VerticalLayout`
@@ -1361,7 +2121,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~xml_get.
+  METHOD xml_get.
 
     "case - root
     IF me = m_root.
@@ -1373,7 +2133,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       result = xml_get_begin( check_shell ).
 
       LOOP AT t_child INTO DATA(lr_child).
-        result = result && CAST z2ui5_if_view( lr_child )->xml_get( ).
+        result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
       ENDLOOP.
 
       result = result && xml_get_end( check_shell ).
@@ -1401,7 +2161,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = |{ result }>|.
 
     LOOP AT t_child INTO lr_child.
-      result = result && CAST z2ui5_if_view( lr_child )->xml_get( ).
+      result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
     ENDLOOP.
 
     DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
@@ -1410,7 +2170,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~zz_file_uploader.
+  METHOD zz_file_uploader.
 
     result = me.
     _generic(
@@ -1426,7 +2186,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_view~zz_html.
+  METHOD zz_html.
 
     SPLIT val AT `<` INTO TABLE DATA(lt_table).
 
@@ -1446,16 +2206,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
          name  = `ZZHTML`
          t_prop = VALUE #( ( n = `VALUE` v = lv_html ) )
     ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_if_view~_generic.
-
-    result = _generic(
-       name   = name
-       ns     = ns
-       t_prop = t_prop ).
 
   ENDMETHOD.
 
