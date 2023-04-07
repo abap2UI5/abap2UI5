@@ -754,6 +754,8 @@ INTERFACE z2ui5_if_view
       VALUE(result) TYPE REF TO  z2ui5_if_view.
 
   METHODS xml_get
+    IMPORTING
+      check_shell   TYPE abap_bool DEFAULT abap_true
     RETURNING
       VALUE(result) TYPE string.
 

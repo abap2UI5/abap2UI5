@@ -80,9 +80,12 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         )->button( text = 'Popover'             press = client->_event( 'z2ui5_cl_app_demo_26' )
     ).
 *
-*    grid->simple_form( title = 'HowTo - Layouts' layout = 'ResponsiveGridLayout' )->content( 'f'
-*         )->button( text = 'Layout (Header, Footer, Grid)' press = client->_event( 'z2ui5_cl_app_demo_10' )
-*    ).
+    grid->simple_form( title = 'HowTo - Layouts' layout = 'ResponsiveGridLayout' )->content( 'f'
+         )->button( text = 'Layout (Header, Footer, Grid)' press = client->_event( 'z2ui5_cl_app_demo_10' )
+         )->button( text = 'Object Page' press = client->_event( 'z2ui5_cl_app_demo_17' )
+*         )->button( text = 'Dynamic Page' press = client->_event( 'z2ui5_cl_app_demo_17' )
+*         )->button( text = 'Split App' press = client->_event( 'z2ui5_cl_app_demo_17' )
+    ).
 *
 *    grid->simple_form( title = 'HowTo - Dynamic' layout = 'ResponsiveGridLayout' )->content( 'f'
 *         )->button( text = 'Expression Binding / Side Effects' press = client->_event( 'z2ui5_cl_app_demo_27' )

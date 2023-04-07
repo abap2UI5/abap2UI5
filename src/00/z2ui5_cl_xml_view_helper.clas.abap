@@ -7,11 +7,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     INTERFACES z2ui5_if_view.
 
-    CONSTANTS:
-      BEGIN OF cs_config,
-        letterboxing TYPE abap_bool VALUE abap_true,
-      END OF cs_config.
-
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
@@ -42,6 +37,8 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         VALUE(result) TYPE REF TO z2ui5_if_view.
 
     METHODS xml_get_begin
+      IMPORTING
+        check_shell   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
@@ -50,6 +47,8 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         ns TYPE string_table OPTIONAL.
 
     METHODS xml_get_end
+      IMPORTING
+        check_shell   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
@@ -62,12 +61,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW_HELPER IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
 
   METHOD constructor.
 
-    IF ns IS initial.
+    IF ns IS INITIAL.
 
       mt_ns = VALUE string_table(
       ( `xmlns="sap.m"` )
@@ -110,14 +109,14 @@ CLASS Z2UI5_CL_XML_VIEW_HELPER IMPLEMENTATION.
       result = result && ` ` && lr_ns->* && ` `.
     ENDLOOP.
     result = result && `>`.
-    result = result && COND #( WHEN cs_config-letterboxing = abap_true THEN `<Shell>` ).
+    result = result && COND #( WHEN check_shell = abap_true THEN `<Shell>` ).
 
   ENDMETHOD.
 
 
   METHOD xml_get_end.
 
-    result = COND #( WHEN cs_config-letterboxing = abap_true THEN `</Shell>` ) && `</mvc:View>`.
+    result = COND #( WHEN check_shell = abap_true THEN `</Shell>` ) && `</mvc:View>`.
 
   ENDMETHOD.
 
@@ -1365,13 +1364,13 @@ CLASS Z2UI5_CL_XML_VIEW_HELPER IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      result = xml_get_begin( ).
+      result = xml_get_begin( check_shell ).
 
       LOOP AT t_child INTO DATA(lr_child).
         result = result && CAST z2ui5_if_view( lr_child )->xml_get( ).
       ENDLOOP.
 
-      result = result && xml_get_end(  ).
+      result = result && xml_get_end( check_shell ).
       RETURN.
     ENDIF.
 
