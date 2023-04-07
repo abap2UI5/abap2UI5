@@ -930,10 +930,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS app_before_event
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_client.
-
     METHODS request_end
       RETURNING
         VALUE(result) TYPE string.
@@ -1515,7 +1511,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = _=>get_uuid( ).
     result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
 
-    result->ms_next = ms_next.
+    "result->ms_next = ms_next.
     CLEAR ms_next.
 
     result->ms_db-id_prev_app = ms_db-id.
@@ -1606,23 +1602,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
-
-  ENDMETHOD.
-
-
-  METHOD app_before_event.
-
-  "  result = NEW z2ui5_lcl_if_client( me ).
-
-*    DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
-*    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
-
- "   DATA(lv_data)  = ms_actual-event_data.
-  "  DATA(lv_event) = ms_actual-event.
-
-
-
-  "  CLEAR ms_next.
 
   ENDMETHOD.
 
