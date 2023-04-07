@@ -1288,6 +1288,8 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD create.
 
+  cast z2ui5_if_app( db-o_app )->id = id.
+
     DATA(ls_db) = VALUE z2ui5_t_draft(
         uuid       = id
         uname      = _=>get_user_tech( )
@@ -1492,10 +1494,17 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   METHOD set_app_leave_to_id.
 
     result = NEW #( ).
-    result->ms_db-id = _=>get_uuid( ).
-    result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
 
-    "result->ms_next = ms_next.
+    IF ms_next-s_nav_app_call_new-o_app IS BOUND.
+      "  result->ms_db = z2ui5_lcl_db=>load_app( cast z2ui5_if_app( ms_next-s_nav_app_call_new-o_app )->id ).
+          result->ms_db = z2ui5_lcl_db=>load_app( cast z2ui5_if_app( ms_next-s_nav_app_call_new-o_app )->id ).
+      result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
+    Else.
+    result->ms_db = z2ui5_lcl_db=>load_app( ms_next-nav_app_leave_to_id ).
+    endif.
+
+  result->ms_db-id = _=>get_uuid( ).
+
     CLEAR ms_next.
 
     result->ms_db-id_prev_app = ms_db-id.
@@ -1740,6 +1749,12 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~nav_app_leave.
+
+    IF val IS BOUND.
+      z2ui5_if_client~nav_app_call( val ).
+      mo_runtime->ms_next-nav_app_leave_to_id = abap_true.
+      return.
+    ENDIF.
 
     _=>raise( when = xsdbool( id = `` ) v = `app not found, please check if calling app exists, pervious app_id is empty` ).
     mo_runtime->ms_next-nav_app_leave_to_id = id.
