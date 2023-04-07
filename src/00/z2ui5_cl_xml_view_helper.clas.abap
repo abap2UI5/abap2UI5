@@ -16,7 +16,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     DATA m_name TYPE string.
     DATA m_ns   TYPE string.
-    DATA mt_prop TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA mt_prop TYPE ty_t_name_value.
 
     DATA m_root    TYPE REF TO z2ui5_cl_xml_view_helper.
     DATA m_last    TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -2143,13 +2143,13 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     "case - normal
     CASE m_name.
       WHEN `ZZHTML`.
-        result = mt_prop[ name = `VALUE` ]-value.
+        result = mt_prop[ n = `VALUE` ]-v.
         RETURN.
     ENDCASE.
 
     DATA(lv_tmp2) = COND #( WHEN m_ns <> `` THEN |{ m_ns }:| ).
-    DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( value <> `` )
-                          NEXT val = |{ val } { row-name }="{ escape( val = COND string( WHEN row-value = abap_true THEN `true` ELSE row-value ) format = cl_abap_format=>e_xml_attr ) }" \n | ).
+    DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
+                          NEXT val = |{ val } { row-n }="{ escape( val = COND string( WHEN row-v = abap_true THEN `true` ELSE row-v ) format = cl_abap_format=>e_xml_attr ) }" \n | ).
 
     result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
 
