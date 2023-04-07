@@ -45,7 +45,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     " you can use this class as a template or find a better way
 
     app-client     = client. "we collect all app infos in the structure app
-    app-get      = client->get( ). "read the frontend infos
+    app-get        = client->get( ). "read the frontend infos
     app-view_popup = ``. "we display popups only once so clear it after every roundtrip
 
     "do this only at the first start of the app, set init values

@@ -895,13 +895,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
-*    CLASS-DATA:
-*      BEGIN OF ss_client,
-*        o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
-*        t_header TYPE z2ui5_if_client=>ty_t_name_value,
-*        t_param  TYPE z2ui5_if_client=>ty_t_name_value,
-*      END OF ss_client.
-
     TYPES:
       BEGIN OF ty_s_db,
         id                TYPE string,
@@ -1275,7 +1268,6 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
     client->set_next( VALUE #( xml_main = lv_xml_main ) ).
 
-
   ENDMETHOD.
 
 ENDCLASS.
@@ -1353,10 +1345,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_begin.
 
-*    ss_client = VALUE #( t_header = z2ui5_cl_http_handler=>client-t_header
-*                         t_param  = z2ui5_cl_http_handler=>client-t_param
-*                         o_body   = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ) ).
-
     mo_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ).
 
     TRY.
@@ -1384,9 +1372,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
 
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
-
       lo_ui5_model->add_attribute( n = `vViewPopup` v = request_end_popup( ) ).
-
       IF ms_next-s_set-popup_open_by_id IS NOT INITIAL.
         lo_ui5_model->add_attribute( n = `OPENBY` v = ms_next-s_set-popup_open_by_id ).
       ENDIF.
@@ -1394,7 +1380,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     lo_ui5_model->add_attribute_object( `oSystem`
         )->add_attribute( n = `ID`                 v = ms_db-id
-*
         )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = _=>get_abap_2_json( abap_true ) apos_active = abap_false ).
 
     IF ms_next-t_after IS NOT INITIAL.
@@ -1465,7 +1450,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDLOOP.
 
     TRY.
-        "result->ms_next-s_set-event = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
         result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
         result->ms_actual-event_data = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
       CATCH cx_root.
@@ -1534,10 +1518,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
     result->ms_next-t_after = ms_next-t_after.
-  "  result->ms_next-s_set-event   = ms_next-s_set-event.
 
     result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
-        CLEAR ms_next.
+    CLEAR ms_next.
 
   ENDMETHOD.
 
@@ -1617,12 +1600,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
       IF lr_attri->bind_type = cs_bind_type-one_time.
-
-        r_view_model->add_attribute(
-              n = lr_attri->name
-              v = lr_attri->data_stringify
-              apos_active = abap_false ).
-
+        r_view_model->add_attribute( n = lr_attri->name v = lr_attri->data_stringify apos_active = abap_false ).
         CONTINUE.
       ENDIF.
 
@@ -1659,12 +1637,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD request_end_view.
 
-
     rv_xml  = _=>get_replace( iv_val = ms_next-s_set-xml_main
-     iv_begin = 'controllerName="' iv_end = '"' iv_replace = 'controllerName="z2ui5_controller"' ).
+    iv_begin = 'controllerName="' iv_end = '"' iv_replace = 'controllerName="z2ui5_controller"' ).
 
   ENDMETHOD.
 
@@ -1702,7 +1678,6 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD z2ui5_if_client~nav_app_home.
 
     z2ui5_if_client~nav_app_call( NEW z2ui5_lcl_system_app( ) ).
@@ -1715,15 +1690,11 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
     DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
-
-       mo_runtime->ms_actual-id                = mo_runtime->ms_db-id.
-        mo_runtime->ms_actual-id_prev_app       = mo_runtime->ms_db-id_prev_app.
-        mo_runtime->ms_actual-id_prev_app_stack = mo_runtime->ms_db-id_prev_app_stack.
-      "  event             = lv_event
-      "  event_data        = lv_data
-        mo_runtime->ms_actual-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && mo_runtime->ms_db-app_classname.
-        mo_runtime->ms_actual-url_source_code   = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && mo_runtime->ms_db-app_classname && `/source/main`.
-
+    result-id                = mo_runtime->ms_db-id.
+    result-id_prev_app       = mo_runtime->ms_db-id_prev_app.
+    result-id_prev_app_stack = mo_runtime->ms_db-id_prev_app_stack.
+    result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && mo_runtime->ms_db-app_classname.
+    result-url_source_code   = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && mo_runtime->ms_db-app_classname && `/source/main`.
 
   ENDMETHOD.
 
