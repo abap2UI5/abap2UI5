@@ -8,7 +8,9 @@ CLASS z2ui5_cl_app_demo_25 DEFINITION PUBLIC.
     DATA mv_input_previous TYPE string.
     DATA mv_input_previous_set TYPE string.
     DATA mv_show_view TYPE string.
-    data mv_next_event type string.
+  "  data mv_next_event type string.
+
+    data mv_event type string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -42,9 +44,9 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
       WHEN 'SHOW_VIEW_MAIN'.
         mv_show_view = 'MAIN'.
 
-      WHEN 'BACK_WITH_EVENT'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
-        mv_next_event = 'CALL_PREVIOUS_APP_INPUT_RETURN'.
+   "   WHEN 'BACK_WITH_EVENT'.
+       " client->nav_app_leave( client->get( )-id_prev_app_stack ).
+      "  mv_next_event = 'CALL_PREVIOUS_APP_INPUT_RETURN'.
       "  client->set( event = 'CALL_PREVIOUS_APP_INPUT_RETURN' ).
 
       WHEN 'BACK'.
@@ -103,7 +105,7 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
     client->set_next( VALUE #(
         xml_main = page->get_root( )->xml_get( )
-        event = mv_next_event
+      "  event = mv_next_event
          ) ).
 
   ENDMETHOD.

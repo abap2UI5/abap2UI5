@@ -14,10 +14,10 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS main_index_html
       IMPORTING
-        library_path    TYPE clike DEFAULT `https://sdk.openui5.org/resources/sap-ui-core.js`
-        theme           TYPE clike DEFAULT `sap_horizon`
-        title           TYPE clike DEFAULT `abap2UI5`
-     "   check_debug     type abap_bool DEFAULT abap_true
+        library_path    TYPE clike     DEFAULT `https://sdk.openui5.org/resources/sap-ui-core.js`
+        theme           TYPE clike     DEFAULT `sap_horizon`
+        title           TYPE clike     DEFAULT `abap2UI5`
+        check_logging   type abap_bool DEFAULT abap_false
       RETURNING
         VALUE(r_result) TYPE string.
 
@@ -41,9 +41,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
     DO.
       TRY.
-          DATA(li_client) = lo_runtime->app_before_event( ).
+        "  DATA(li_client) = lo_runtime->app_before_event( ).
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( li_client ).
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
           IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.

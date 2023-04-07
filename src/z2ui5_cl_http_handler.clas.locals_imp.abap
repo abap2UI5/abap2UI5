@@ -39,7 +39,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         iv_val        TYPE clike
         iv_begin      TYPE clike
         iv_end        TYPE clike
-        iv_replace    TYPE clike default ''
+        iv_replace    TYPE clike DEFAULT ''
       RETURNING
         VALUE(result) TYPE string.
 
@@ -895,12 +895,12 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
-    CLASS-DATA:
-      BEGIN OF ss_client,
-        o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
-        t_header TYPE z2ui5_if_client=>ty_t_name_value,
-        t_param  TYPE z2ui5_if_client=>ty_t_name_value,
-      END OF ss_client.
+*    CLASS-DATA:
+*      BEGIN OF ss_client,
+*        o_body   TYPE REF TO z2ui5_lcl_utility_tree_json,
+*        t_header TYPE z2ui5_if_client=>ty_t_name_value,
+*        t_param  TYPE z2ui5_if_client=>ty_t_name_value,
+*      END OF ss_client.
 
     TYPES:
       BEGIN OF ty_s_db,
@@ -970,11 +970,20 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS request_end_get_model
+    METHODS request_end_model
       RETURNING
         VALUE(r_view_model) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
+    METHODS request_end_view
+      RETURNING
+        VALUE(rv_xml) TYPE string.
+
+    METHODS request_end_popup
+      RETURNING
+        VALUE(rv_xml) TYPE string.
+
   PRIVATE SECTION.
+    CLASS-DATA mo_body TYPE REF TO z2ui5_lcl_utility_tree_json.
 
 ENDCLASS.
 
@@ -1348,12 +1357,14 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_begin.
 
-    ss_client = VALUE #( t_header = z2ui5_cl_http_handler=>client-t_header
-                         t_param  = z2ui5_cl_http_handler=>client-t_param
-                         o_body   = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ) ).
+*    ss_client = VALUE #( t_header = z2ui5_cl_http_handler=>client-t_header
+*                         t_param  = z2ui5_cl_http_handler=>client-t_param
+*                         o_body   = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ) ).
+
+    mo_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ).
 
     TRY.
-        DATA(lv_id_prev) = ss_client-o_body->get_attribute( `OSYSTEM` )->get_attribute( `ID` )->get_val( ).
+        DATA(lv_id_prev) = mo_body->get_attribute( `OSYSTEM` )->get_attribute( `ID` )->get_val( ).
       CATCH cx_root.
         result = set_app_start( ).
         RETURN.
@@ -1369,31 +1380,20 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
     IF ms_next-s_set-check_set_prev_view = abap_false OR ms_next-s_set-xml_popup IS NOT INITIAL.
-      lo_ui5_model->add_attribute_instance( request_end_get_model( ) ).
+      lo_ui5_model->add_attribute_instance( request_end_model( ) ).
     ENDIF.
 
     IF ms_next-s_set-xml_main IS NOT INITIAL AND ms_next-s_set-check_set_prev_view = abap_false.
-
-      DATA(lv_xml) = _=>get_replace( iv_val = ms_next-s_set-xml_main
-            iv_begin = 'controllerName="' iv_end = '"' iv_replace = 'controllerName="z2ui5_controller"' ).
-
-      lo_ui5_model->add_attribute( n = `vView` v = lv_xml ).
-
+      lo_ui5_model->add_attribute( n = `vView` v = request_end_view( ) ).
     ENDIF.
 
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
 
-      lv_xml = _=>get_replace( iv_val = ms_next-s_set-xml_popup iv_begin = 'controllerName="' iv_end = '"' ).
-      REPLACE '<mvc:View' IN lv_xml WITH `<core:FragmentDefinition`.
-      REPLACE '</mvc:View>' IN lv_xml WITH `</core:FragmentDefinition>`.
-      REPLACE '<Shell>' IN lv_xml WITH ``.
-      REPLACE '</Shell>' IN lv_xml WITH ``.
+      lo_ui5_model->add_attribute( n = `vViewPopup` v = request_end_popup( ) ).
 
-      lo_ui5_model->add_attribute( n = `vViewPopup` v = lv_xml ).
-
-      if ms_next-s_set-popup_open_by_id is NOT INITIAL.
-      lo_ui5_model->add_attribute( n = `OPENBY` v = ms_next-s_set-popup_open_by_id ).
-      endif.
+      IF ms_next-s_set-popup_open_by_id IS NOT INITIAL.
+        lo_ui5_model->add_attribute( n = `OPENBY` v = ms_next-s_set-popup_open_by_id ).
+      ENDIF.
     ENDIF.
 
     lo_ui5_model->add_attribute_object( `oSystem`
@@ -1444,7 +1444,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    DATA(lo_model) = ss_client-o_body->get_attribute( `OUPDATE` ).
+    DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
 
     LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = cs_bind_type-two_way.
@@ -1469,8 +1469,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDLOOP.
 
     TRY.
-        result->ms_next-s_set-event = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
-        result->ms_actual-event_data = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
+        "result->ms_next-s_set-event = ss_client-o_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
+        result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
+        result->ms_actual-event_data = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1483,7 +1484,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = _=>get_uuid( ).
     DO.
       TRY.
-          result->ms_db-app_classname = to_upper( ss_client-t_param[ name = `app` ]-value ).
+          result->ms_db-app_classname = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
 
         CATCH cx_root ##CATCH_ALL.
           result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
@@ -1537,9 +1538,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
     result->ms_next-t_after = ms_next-t_after.
-    result->ms_next-s_set-event   = ms_next-s_set-event.
+  "  result->ms_next-s_set-event   = ms_next-s_set-event.
 
     result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
+        CLEAR ms_next.
 
   ENDMETHOD.
 
@@ -1610,28 +1612,22 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD app_before_event.
 
-    result = NEW z2ui5_lcl_if_client( me ).
+  "  result = NEW z2ui5_lcl_if_client( me ).
 
-    DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
-    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+*    DATA(lv_url) = ss_client-t_header[ name = `referer` ]-value.
+*    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-    DATA(lv_data) = ms_actual-event_data.
-    ms_actual = VALUE #(
-        id                = ms_db-id
-        id_prev_app       = ms_db-id_prev_app
-        id_prev_app_stack = ms_db-id_prev_app_stack
-        event             = ms_next-s_set-event
-        event_data        = lv_data
-        url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && ms_db-app_classname
-        url_source_code   = ss_client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && ms_db-app_classname && `/source/main`
-        ).
+ "   DATA(lv_data)  = ms_actual-event_data.
+  "  DATA(lv_event) = ms_actual-event.
 
-    CLEAR ms_next.
+
+
+  "  CLEAR ms_next.
 
   ENDMETHOD.
 
 
-  METHOD request_end_get_model.
+  METHOD request_end_model.
 
     CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
 
@@ -1684,6 +1680,27 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
+
+  METHOD request_end_view.
+
+
+    rv_xml  = _=>get_replace( iv_val = ms_next-s_set-xml_main
+     iv_begin = 'controllerName="' iv_end = '"' iv_replace = 'controllerName="z2ui5_controller"' ).
+
+  ENDMETHOD.
+
+
+  METHOD request_end_popup.
+
+    DATA lv_xml TYPE string.
+    rv_xml = _=>get_replace( iv_val = ms_next-s_set-xml_popup iv_begin = 'controllerName="' iv_end = '"' ).
+    REPLACE '<mvc:View' IN rv_xml WITH `<core:FragmentDefinition`.
+    REPLACE '</mvc:View>' IN rv_xml WITH `</core:FragmentDefinition>`.
+    REPLACE '<Shell>' IN rv_xml WITH ``.
+    REPLACE '</Shell>' IN rv_xml WITH ``.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS z2ui5_lcl_if_client IMPLEMENTATION.
@@ -1716,6 +1733,18 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get.
 
     result = mo_runtime->ms_actual.
+
+    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+
+       mo_runtime->ms_actual-id                = mo_runtime->ms_db-id.
+        mo_runtime->ms_actual-id_prev_app       = mo_runtime->ms_db-id_prev_app.
+        mo_runtime->ms_actual-id_prev_app_stack = mo_runtime->ms_db-id_prev_app_stack.
+      "  event             = lv_event
+      "  event_data        = lv_data
+        mo_runtime->ms_actual-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && mo_runtime->ms_db-app_classname.
+        mo_runtime->ms_actual-url_source_code   = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && mo_runtime->ms_db-app_classname && `/source/main`.
+
 
   ENDMETHOD.
 
