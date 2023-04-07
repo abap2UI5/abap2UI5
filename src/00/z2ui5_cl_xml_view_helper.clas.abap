@@ -137,8 +137,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     _generic(
         name   = `Avatar`
         t_prop = VALUE #(
-            ( n = `src`      v = src )
-            ( n = `class`    v = class )
+            ( n = `src`         v = src )
+            ( n = `class`       v = class )
+            ( n = `displaysize` v = displaysize )
     ) ).
 
   ENDMETHOD.
@@ -371,6 +372,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
                       ( n = `alignItems`  v = alignitems )
                       ( n = `fitContainer`  v = _=>get_json_boolean( fitContainer ) )
                       ( n = `justifyContent`  v = justifycontent )
+                      ( n = `wrap`  v = wrap )
         ) ).
 
 
@@ -850,8 +852,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
         name   = `ObjectPageSection`
         ns     = `uxap`
         t_prop = VALUE #(
-            ( n = `titleUppercase`  v = titleUppercase )
+            ( n = `titleUppercase`  v = _=>get_json_boolean( titleUppercase ) )
             ( n = `title`           v = title )
+            ( n = `id`              v = id )
     ) ).
 
   ENDMETHOD.
@@ -862,7 +865,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = _generic(
         name   = `ObjectPageSubSection`
         ns     = `uxap`
-     ).
+      t_prop = VALUE #(
+            ( n = `id`    v = id )
+            ( n = `title` v = title )
+    ) ).
 
   ENDMETHOD.
 

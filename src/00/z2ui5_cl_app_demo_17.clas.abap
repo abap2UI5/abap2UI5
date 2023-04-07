@@ -53,16 +53,16 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
         header_title->expanded_heading(
                 )->hbox(
 
-                    )->title( text = 'Denise Smith' wrapping = abap_true ).
+                    )->title( text = 'Oblomov Dev' wrapping = abap_true ).
 
         header_title->snapped_heading(
                 )->flex_box( alignitems = `Center`
                   )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiTinyMarginEnd'
-                    )->title( text = 'Denise Smith' ).
+                    )->title( text = 'Oblomov Dev' wrapping = abap_true ).
 
-        header_title->expanded_content( )->text( `Senior UI Developer` ).
-        header_title->snapped_Content( )->text( `Senior UI Developer` ).
-        header_title->snapped_Title_On_Mobile( )->title( `Senior UI Developer` ).
+        header_title->expanded_content( )->text( `abap2UI5 Developer` ).
+        header_title->snapped_Content( )->text( `abap2UI5 Developer` ).
+        header_title->snapped_Title_On_Mobile( )->title( `abap2UI5 Developer` ).
 
         header_title->actions( )->overflow_toolbar(
              )->overflow_toolbar_button(
@@ -87,13 +87,103 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
 
         DATA(header_content) = page->header_Content( ns = 'uxap' ).
 
-        header_content->flex_box(
-             )->link(  text    = '+33 6 4512 5158'
-             )->link(  text    = 'DeniseSmith@sap.com'
-             )->label( text    = 'Hello! I am Denise and I use UxAP'
-             )->label( text    = 'San Jose, USA'
-             )->image( src    = lcl_help=>get_avatar( )
+        header_content->flex_box( wrap = 'Wrap'
+           )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'L'
+            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->link(  text    = '+33 6 4512 5158'
+                )->link(  text    = 'email@email.com'
+            )->get_parent(
+            )->horizontal_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->label( text    = 'Hello! I an abap2UI5 developer'
+                )->label( text    = 'San Jose, USA'
+            )->get_parent(
+            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->label(  text    = 'Hello! I an abap2UI5 developer'
+                )->vbox(
+                    )->label( 'Achived goals'
+                    )->progress_indicator( percentvalue = '30%' displayvalue = '30%'
+            )->get_parent(  )->get_parent(
+          "  )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'L'
+            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->label(  text    = 'San Jose, USA'
+            )->get_parent(
         ).
+
+
+        data(sections) = page->sections( ).
+
+        sections->object_page_section( titleuppercase = abap_false id = 'goalsSectionSS1' title = '2014 Goals Plan'
+            )->heading(
+                )->message_strip( text = 'this is a message strip'
+            )->get_parent(
+            )->sub_sections(
+                )->object_page_sub_section( id = 'goalssubSectionSS1' title = 'goals1'
+                    )->blocks(
+                          )->vbox(
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+                          )->label( text    = 'goals1'
+
+                )->get_parent( )->get_parent( )->get_parent(
+                )->object_page_sub_section( id = 'goalsSectionWS1' title = 'goals2'
+                      )->blocks(
+                            )->vbox(
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2'
+                          )->label( text    = 'goals2').
+
+         sections->object_page_section( titleuppercase = abap_false id = 'PersonalSection' title = 'Personal'
+            )->heading(
+           "     )->message_strip( text = 'this is a message strip'
+            )->get_parent(
+            )->sub_sections(
+                )->object_page_sub_section( id = 'personalSectionSS1' title = 'Connect'
+                    )->blocks(
+                          )->label( text    = 'telefon'
+                          )->label( text    = 'email'
+                )->get_parent( )->get_parent(
+                )->object_page_sub_section( id = 'personalSectionWS2' title = 'Payment information  '
+                      )->blocks(
+                          )->label( text    = 'Hello! I an abap2UI5 developer'
+                          )->label( text    = 'San Jose, USA' ).
+
+
+           sections->object_page_section( titleuppercase = abap_false id = 'employmentSection' title = 'Employment'
+            )->heading(
+           "     )->message_strip( text = 'this is a message strip'
+            )->get_parent(
+            )->sub_sections(
+                )->object_page_sub_section( id = 'empSectionSS1' title = 'Job information'
+                    )->blocks(
+                          )->label( text    = 'info'
+                          )->label( text    = 'info'
+                          )->label( text    = 'info'
+                          )->label( text    = 'info'
+                          )->label( text    = 'info'
+                )->get_parent( )->get_parent(
+                )->object_page_sub_section( id = 'empSectionWS2' title = 'Employee Details '
+                      )->blocks(
+                            )->vbox(
+                          )->label( text    = 'details'
+                          )->label( text    = 'details'
+                          )->label( text    = 'details'
+                          )->label( text    = 'details'
+                          )->label( text    = 'details'
+                          )->label( text    = 'details'
+                          )->label( text    = 'details'
+                          )->label( text    = 'details' ).
 
           client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 

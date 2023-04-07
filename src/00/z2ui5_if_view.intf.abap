@@ -31,6 +31,7 @@ INTERFACE z2ui5_if_view
       height         TYPE clike OPTIONAL
       alignitems     TYPE clike OPTIONAL
       justifycontent TYPE clike OPTIONAL
+      wrap           TYPE clike OPTIONAL
     RETURNING
       VALUE(result)  TYPE REF TO z2ui5_if_view.
 
@@ -129,6 +130,7 @@ INTERFACE z2ui5_if_view
     IMPORTING
       src           TYPE clike OPTIONAL
       class         TYPE clike OPTIONAL
+      displaysize   TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
@@ -145,6 +147,7 @@ INTERFACE z2ui5_if_view
       titleUppercase TYPE clike OPTIONAL
       title          TYPE clike OPTIONAL
       importance     TYPE clike OPTIONAL
+      id             TYPE clike OPTIONAL
     RETURNING
       VALUE(result)  TYPE REF TO z2ui5_if_view.
 
@@ -157,6 +160,9 @@ INTERFACE z2ui5_if_view
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
   METHODS Object_page_Sub_Section
+    importing
+        id          TYPE clike OPTIONAL
+        title       TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_view.
 
