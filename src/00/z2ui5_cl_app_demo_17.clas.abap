@@ -80,9 +80,9 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
                  text = 'show state'
                  tooltip = 'show'
              )->button(
-                 icon = `sap-icon://edit`
-                 text = 'Toggle Footer'
-                 press = client->_event( 'TOGGLE_FOOTER' )
+                " icon = `sap-icon://edit`
+                 text = 'Go Back'
+                 press = client->_event( 'BACK' )
              ).
 
         DATA(header_content) = page->header_Content( ns = 'uxap' ).
