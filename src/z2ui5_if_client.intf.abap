@@ -91,4 +91,5 @@ INTERFACE z2ui5_if_client
   METHODS _event_close_popup
     RETURNING
       VALUE(result) TYPE string.
+
 ENDINTERFACE.
