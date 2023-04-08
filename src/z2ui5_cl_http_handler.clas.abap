@@ -19,7 +19,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         title           TYPE clike     DEFAULT `abap2UI5`
         check_logging   TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(r_result) TYPE string.
+        VALUE(r_result) TYPE string ##NEEDED.
 
     CLASS-METHODS main_roundtrip
       RETURNING

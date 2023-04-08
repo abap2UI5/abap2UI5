@@ -1553,7 +1553,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
-    DATA(lo_app) = CAST object( ms_db-o_app ) ##needed.
+    DATA(lo_app) = CAST object( ms_db-o_app ) ##NEEDED.
 
     IF type = cs_bind_type-one_time.
       DATA(lv_id) = _=>get_uuid_session( ).

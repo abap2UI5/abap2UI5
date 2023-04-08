@@ -9,7 +9,7 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
 
   PROTECTED SECTION.
 
-    data client TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
@@ -21,12 +21,15 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
+
     METHODS z2ui5_on_view_main
       RETURNING
         VALUE(result) TYPE string.
+
     METHODS z2ui5_on_view_second
       RETURNING
         VALUE(result) TYPE string.
+
     METHODS z2ui5_on_popup_input
       RETURNING
         VALUE(result) TYPE string.
@@ -44,8 +47,9 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     " there are no restrictions how you structure your app
     " you can use this class as a template or find a better way
 
-    me->client     = client. "we collect all app infos in the structure app
-    app-get        = client->get( ). "read the frontend infos
+    me->client     = client.
+    "we collect all app infos in the structure app
+    app-get        = client->get( ).
     app-view_popup = ``. "we display popups only once so clear it after every roundtrip
 
     "do this only at the first start of the app, set init values
@@ -120,7 +124,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_on_view_main.
 
-    result = app-next-xml_main = z2ui5_cl_xml_view_helper=>factory(
+    result = z2ui5_cl_xml_view_helper=>factory(
         )->page(
                 title          = 'abap2UI5 - Template'
                 navbuttonpress = client->_event( 'BACK' )
@@ -160,7 +164,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_on_view_second.
 
-    result = app-next-xml_main = z2ui5_cl_xml_view_helper=>factory(
+    result = z2ui5_cl_xml_view_helper=>factory(
          )->page(
                  title          = 'abap2UI5 - Template'
                  navbuttonpress = client->_event( 'BACK' )
