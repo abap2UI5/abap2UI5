@@ -117,7 +117,7 @@ CLASS z2ui5_cl_app_demo_30 IMPLEMENTATION.
             )->button( icon = 'sap-icon://decline' type  = 'Transparent'
     ).
 
-    DATA(header_content) = page->header( )->dynamic_page_header(  pinnable = abap_true
+     page->header( )->dynamic_page_header(  pinnable = abap_true
         )->horizontal_layout(
             )->vertical_layout(
                    )->object_attribute( title = 'Location' text = 'Warehouse A'
