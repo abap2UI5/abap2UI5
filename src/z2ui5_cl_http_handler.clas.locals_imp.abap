@@ -1314,6 +1314,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
   METHOD read.
 
     IF check_load_app = abap_true.
+
       SELECT SINGLE *
         FROM z2ui5_t_draft
        WHERE uuid = @id
@@ -1447,7 +1448,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    DATA(lo_app) = CAST object( result->ms_db-o_app ) ##needed.
+    DATA(lo_app) = CAST object( result->ms_db-o_app ) ##NEEDED.
 
     DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
 
@@ -1520,10 +1521,11 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     CLEAR ms_next.
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
-    DATA(ls_draft) = z2ui5_lcl_db=>read( id = ms_next-o_call_app->id check_load_app = abap_false ).
+    DATA(ls_draft) = z2ui5_lcl_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
     result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
 
     result->ms_db-id = _=>get_uuid( ).
+    result->ms_db-o_app->id   = result->ms_db-id.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.
 
@@ -1620,7 +1622,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
-    DATA(lo_app) = CAST object( ms_db-o_app ) ##needed.
+    DATA(lo_app) = CAST object( ms_db-o_app ) ##NEEDED.
     r_view_model  = z2ui5_lcl_utility_tree_json=>factory( ).
     r_view_model->mv_name = `oViewModel`.
     DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
