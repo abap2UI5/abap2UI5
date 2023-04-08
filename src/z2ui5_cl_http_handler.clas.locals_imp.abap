@@ -895,6 +895,9 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
+   " data ms_db type z2ui5_t_draft.
+  "  data o_app TYPE REF TO z2ui5_if_app.
+  "  data mt_attri TYPE _=>ty_t_attri.
     TYPES:
       BEGIN OF ty_s_db,
         id                TYPE string,
