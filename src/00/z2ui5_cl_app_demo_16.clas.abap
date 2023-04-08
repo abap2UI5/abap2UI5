@@ -31,22 +31,22 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
     METHODS render_tab_bar
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_if_view.
+        container TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS render_tab_donut
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_if_view.
+        container TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS render_tab_line
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_if_view.
+        container TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS render_tab_radial
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_if_view.
+        container TYPE REF TO z2ui5_cl_xml_view_helper.
 
 
   PROTECTED SECTION.
@@ -359,7 +359,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
             client->popup_message_toast( 'Line selection changed' ).
 
           WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+            client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
         ENDCASE.
 

@@ -75,7 +75,7 @@ CLASS Z2UI5_CL_APP_DEMO_28 IMPLEMENTATION.
         app-view_popup = ''.
 
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-s_get-id_prev_app_stack ).
+        app-client->nav_app_leave( app-client->get_app( app-s_get-id_prev_app_stack ) ).
 
     ENDCASE.
 

@@ -61,7 +61,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
     CASE app-s_get-event.
 
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-s_get-id_prev_app_stack ).
+        app-client->nav_app_leave( app-client->get_app( app-s_get-id_prev_app_stack ) ).
 
       WHEN OTHERS.
         app-view_main = app-s_get-event.
@@ -152,32 +152,32 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
         DATA(li_view) = z2ui5_cl_xml_view_helper=>factory( ).
 
         li_view->_generic(
-           name   = `Page`
+           name      = `Page`
            t_prop = VALUE #(
-               ( name = `title`          value = 'abap2UI5 - GENERIC GENERIC GENERIC' )
-               ( name = `showNavButton`  value = `true` )
-               ( name = `navButtonPress` value = app-client->_event( 'BACK' ) )
+               ( n = `title`          v = 'abap2UI5 - GENERIC GENERIC GENERIC' )
+               ( n = `showNavButton`  v = `true` )
+               ( n = `navButtonPress` v = app-client->_event( 'BACK' ) )
            ) )->_generic(
                 name = `SimpleForm`
                 ns   = `f`
                 t_prop = VALUE #(
-                    ( name = `title` value = 'title' )
+                    ( n = `title` v = 'title' )
            ) )->_generic(
                 name = `content`
                 ns   = `f`
            )->_generic(
                 name = `Label`
                 t_prop = VALUE #(
-                    ( name = `text` value = 'quantity' )
+                    ( n = `text` v = 'quantity' )
            ) )->get_parent( )->_generic(
                 name = `Input`
                 t_prop = VALUE #(
-                    ( name = `value` value = app-client->_bind( quantity ) )
+                    ( n = `value` v = app-client->_bind( quantity ) )
            ) )->get_parent( )->_generic(
                 name = `Button`
                 t_prop = VALUE #(
-                    ( name = `text`  value = `NORMAL` )
-                    ( name = `press` value = app-client->_event( 'NORMAL' ) ) ) ).
+                    ( n = `text`  v = `NORMAL` )
+                    ( n = `press` v = app-client->_event( 'NORMAL' ) ) ) ).
 
         app-s_next-xml_main = li_view->get_root( )->xml_get( ).
 

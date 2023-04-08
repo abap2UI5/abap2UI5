@@ -67,7 +67,7 @@ CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
         mv_set_prev_view = abap_true.
 
       WHEN 'BACK'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
     ENDCASE.
 

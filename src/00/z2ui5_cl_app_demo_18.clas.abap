@@ -9,9 +9,9 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
 
   PROTECTED SECTION.
 
+    data client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
-        client            TYPE REF TO z2ui5_if_client,
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
@@ -44,7 +44,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     " there are no restrictions how you structure your app
     " you can use this class as a template or find a better way
 
-    app-client     = client. "we collect all app infos in the structure app
+    me->client     = client. "we collect all app infos in the structure app
     app-get        = client->get( ). "read the frontend infos
     app-view_popup = ``. "we display popups only once so clear it after every roundtrip
 
@@ -91,11 +91,11 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
         app-view_popup = 'POPUP_INPUT'.
 
       WHEN 'POPUP_CONFIRM'.
-        app-client->popup_message_toast( |confirm| ).
+        client->popup_message_toast( |confirm| ).
 
       WHEN 'POPUP_CANCEL'.
         CLEAR mv_textarea.
-        app-client->popup_message_toast( |cancel| ).
+        client->popup_message_toast( |cancel| ).
 
       WHEN 'SHOW_VIEW_MAIN'.
         app-view_main = 'VIEW_MAIN'.
@@ -103,7 +103,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
         app-view_main = 'VIEW_SECOND'.
 
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-get-id_prev_app_stack ).
+        client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
 
     ENDCASE.
 
@@ -123,36 +123,36 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     result = app-next-xml_main = z2ui5_cl_xml_view_helper=>factory(
         )->page(
                 title          = 'abap2UI5 - Template'
-                navbuttonpress = app-client->_event( 'BACK' )
+                navbuttonpress = client->_event( 'BACK' )
                 shownavbutton  = abap_true
             )->header_content(
                 )->link(
                     text = 'Source_Code'
-                    href = app-client->get( )-url_source_code
+                    href = client->get( )-url_source_code
             )->get_parent(
             )->simple_form( title = 'VIEW_MAIN' editable = abap_true
                 )->content( 'f'
                     )->title( 'Input'
                     )->label( 'quantity'
-                    )->input( app-client->_bind( quantity )
+                    )->input( client->_bind( quantity )
                     )->label( 'text'
                     )->input(
-                        value   = app-client->_bind( mv_textarea )
+                        value   = client->_bind( mv_textarea )
                         enabled = abap_false
                     )->button(
                         text  = 'show popup input'
-                        press = app-client->_event( 'SHOW_POPUP' )
+                        press = client->_event( 'SHOW_POPUP' )
                         )->get_parent( )->get_parent( )->footer(
                       )->overflow_toolbar(
               )->toolbar_spacer(
               )->overflow_toolbar_button(
                   text  = 'Clear'
-                  press = app-client->_event( 'BUTTON_CLEAR' )
+                  press = client->_event( 'BUTTON_CLEAR' )
                   type  = 'Reject'
                   icon  = 'sap-icon://delete'
               )->button(
                   text  = 'Go to View Second'
-                  press = app-client->_event( 'SHOW_VIEW_SECOND' )
+                  press = client->_event( 'SHOW_VIEW_SECOND' )
          )->get_root( )->xml_get( ).
 
   ENDMETHOD.
@@ -162,12 +162,12 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     result = app-next-xml_main = z2ui5_cl_xml_view_helper=>factory(
          )->page(
                  title          = 'abap2UI5 - Template'
-                 navbuttonpress = app-client->_event( 'BACK' )
+                 navbuttonpress = client->_event( 'BACK' )
                  shownavbutton  = abap_true
              )->header_content(
                  )->link(
                      text = 'Source_Code'
-                     href = app-client->get( )-url_source_code
+                     href = client->get( )-url_source_code
              )->get_parent(
              )->simple_form( 'VIEW_SECOND'
                  )->content( 'f'
@@ -177,12 +177,12 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                )->toolbar_spacer(
                )->overflow_toolbar_button(
                    text  = 'Clear'
-                   press = app-client->_event( 'BUTTON_CLEAR' )
+                   press = client->_event( 'BUTTON_CLEAR' )
                    type  = 'Reject'
                    icon  = 'sap-icon://delete'
                )->button(
                    text  = 'Go to View Main'
-                   press = app-client->_event( 'SHOW_VIEW_MAIN' )
+                   press = client->_event( 'SHOW_VIEW_MAIN' )
           )->get_root( )->xml_get( ).
 
   ENDMETHOD.
@@ -197,16 +197,16 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                       )->text_area(
                           height = '100%'
                           width  = '100%'
-                          value  = app-client->_bind( mv_textarea )
+                          value  = client->_bind( mv_textarea )
                   )->get_parent(
                   )->footer( )->overflow_toolbar(
                       )->toolbar_spacer(
                       )->button(
                           text  = 'Cancel'
-                          press = app-client->_event( 'POPUP_CANCEL' )
+                          press = client->_event( 'POPUP_CANCEL' )
                       )->button(
                           text  = 'Confirm'
-                          press = app-client->_event( 'POPUP_CONFIRM' )
+                          press = client->_event( 'POPUP_CONFIRM' )
                           type  = 'Emphasized' )->get_root( )->xml_get( ).
 
 

@@ -57,11 +57,11 @@ CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
 
       WHEN mv_cancel_event OR mv_confirm_event.
          mv_next_event = client->get( )-event.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
     client->set_next( VALUE #(
-        event = mv_next_event
+      "  event = mv_next_event
         check_set_prev_view = mv_check_show_previous_view
         xml_popup = z2ui5_cl_xml_view_helper=>factory(
          )->dialog( 'abap2UI5 - Popup to decide'

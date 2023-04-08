@@ -65,9 +65,8 @@ CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
       WHEN 'POST'.
         app-client->popup_message_toast( app-s_get-event_data ).
 
-
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-s_get-id_prev_app_stack ).
+        app-client->nav_app_leave( app-client->get_app( app-s_get-id_prev_app_stack ) ).
 
     ENDCASE.
 
