@@ -6,15 +6,15 @@ CLASS z2ui5_cl_app_demo_24 DEFINITION PUBLIC.
 
     DATA mv_input TYPE string.
     DATA mv_input2 TYPE string.
-    data mv_event type string.
-
+    DATA mv_event TYPE string.
+    DATA mv_backend_event TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_24 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -35,16 +35,21 @@ CLASS Z2UI5_CL_APP_DEMO_24 IMPLEMENTATION.
         client->nav_app_call( lo_app_next ).
 
       WHEN 'CALL_NEW_APP_EVENT'.
-         lo_app_next = NEW z2ui5_cl_app_demo_25( ).
-         lo_app_next->mv_event = 'NEW_APP_EVENT'.
+        lo_app_next = NEW z2ui5_cl_app_demo_25( ).
+        lo_app_next->mv_event_backend = 'NEW_APP_EVENT'.
         client->nav_app_call( lo_app_next  ).
 
-      WHEN 'CALL_PREVIOUS_APP_INPUT_RETURN'.
-        DATA(lo_called_app) = CAST z2ui5_cl_app_demo_25( client->get_app_by_id( client->get( )-id_prev_app ) ).
-        client->popup_message_box( `Input made in the previous app:` && lo_called_app->mv_input ).
-
       WHEN 'BACK'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
+
+      WHEN OTHERS.
+        CASE mv_backend_event.
+
+          WHEN 'CALL_PREVIOUS_APP_INPUT_RETURN'.
+            DATA(lo_called_app) = CAST z2ui5_cl_app_demo_25( client->get_app( client->get( )-id_prev_app ) ).
+            client->popup_message_box( `Input made in the previous app:` && lo_called_app->mv_input ).
+
+        ENDCASE.
 
     ENDCASE.
 

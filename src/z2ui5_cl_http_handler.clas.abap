@@ -45,12 +45,13 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
-          IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_call_new( ).
+          IF lo_runtime->ms_next-check_app_leave IS NOT INITIAL.
+            lo_runtime = lo_runtime->set_app_leave_to_id( ).
             CONTINUE.
           ENDIF.
-          IF lo_runtime->ms_next-nav_app_leave_to_id IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_leave_to_id( ).
+
+          IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
+            lo_runtime = lo_runtime->set_app_call_new( ).
             CONTINUE.
           ENDIF.
 

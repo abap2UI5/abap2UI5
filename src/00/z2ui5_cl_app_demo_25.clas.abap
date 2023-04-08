@@ -8,16 +8,16 @@ CLASS z2ui5_cl_app_demo_25 DEFINITION PUBLIC.
     DATA mv_input_previous TYPE string.
     DATA mv_input_previous_set TYPE string.
     DATA mv_show_view TYPE string.
-  "  data mv_next_event type string.
+    "  data mv_next_event type string.
 
-    data mv_event type string.
+    DATA mv_event_backend TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -34,23 +34,29 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
         client->nav_app_call( NEW z2ui5_cl_app_demo_01( ) ).
 
       WHEN 'BUTTON_READ_PREVIOUS'.
-        DATA(lo_previous_app) = CAST z2ui5_cl_app_demo_24( client->get_app_by_id( client->get( )-id_prev_app ) ).
+        DATA(lo_previous_app) = CAST z2ui5_cl_app_demo_24( client->get_app( client->get( )-id_prev_app ) ).
         mv_input_previous = lo_previous_app->mv_input2.
         client->popup_message_toast( `data of previous app read` ).
-
-      WHEN 'NEW_APP_EVENT'.
-        client->popup_message_box( 'new app called and event NEW_APP_EVENT raised' ).
 
       WHEN 'SHOW_VIEW_MAIN'.
         mv_show_view = 'MAIN'.
 
-   "   WHEN 'BACK_WITH_EVENT'.
-       " client->nav_app_leave( client->get( )-id_prev_app_stack ).
-      "  mv_next_event = 'CALL_PREVIOUS_APP_INPUT_RETURN'.
-      "  client->set( event = 'CALL_PREVIOUS_APP_INPUT_RETURN' ).
+      WHEN 'BACK_WITH_EVENT'.
+        lo_previous_app = CAST z2ui5_cl_app_demo_24( client->get_app( client->get( )-id_prev_app_stack ) ).
+        lo_previous_app->mv_backend_event = 'CALL_PREVIOUS_APP_INPUT_RETURN'.
+        client->nav_app_leave( lo_previous_app ).
 
       WHEN 'BACK'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
+
+      WHEN OTHERS.
+
+        CASE mv_event_backend.
+
+          WHEN 'NEW_APP_EVENT'.
+            client->popup_message_box( 'new app called and event NEW_APP_EVENT raised' ).
+
+        ENDCASE.
 
     ENDCASE.
 

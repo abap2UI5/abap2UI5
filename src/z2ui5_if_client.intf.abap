@@ -43,7 +43,7 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE ty_s_get.
 
-  METHODS get_app_by_id
+  METHODS get_app
     IMPORTING
       id            TYPE clike
     RETURNING
@@ -51,9 +51,7 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_app_leave
     IMPORTING
-      id  TYPE clike optional
-      val type ref to z2ui5_if_app optional
-      PREFERRED PARAMETER id.
+      app type ref to z2ui5_if_app.
 
   METHODS nav_app_call
     IMPORTING
