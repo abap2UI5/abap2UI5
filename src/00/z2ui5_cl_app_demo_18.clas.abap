@@ -159,6 +159,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_view_second.
+
     result = app-next-xml_main = z2ui5_cl_xml_view_helper=>factory(
          )->page(
                  title          = 'abap2UI5 - Template'

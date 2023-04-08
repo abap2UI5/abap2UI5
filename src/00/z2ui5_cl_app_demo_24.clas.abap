@@ -6,7 +6,6 @@ CLASS z2ui5_cl_app_demo_24 DEFINITION PUBLIC.
 
     DATA mv_input TYPE string.
     DATA mv_input2 TYPE string.
-    DATA mv_event TYPE string.
     DATA mv_backend_event TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.

@@ -1037,6 +1037,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
           (  n = `showClearIcon` v = _=>get_json_boolean( showclearicon ) )
           (  n = `selectedKey`   v = selectedkey )
           (  n = `items`         v = items )
+          (  n = `label`         v = label )
       ) ).
 
   ENDMETHOD.
@@ -1615,6 +1616,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
             ( n = `titleUppercase`  v = _=>get_json_boolean( titleUppercase ) )
             ( n = `title`           v = title )
             ( n = `id`              v = id )
+            ( n = `importance`      v = importance )
     ) ).
 
   ENDMETHOD.
