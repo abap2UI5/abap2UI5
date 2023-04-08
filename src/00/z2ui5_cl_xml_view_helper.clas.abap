@@ -5,13 +5,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
   PUBLIC SECTION.
 
-
     TYPES:
       BEGIN OF ty_s_name_value,
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value.
-
     TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
     DATA m_name TYPE string.
@@ -30,20 +28,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
    METHODS constructor
       IMPORTING
         ns TYPE string_table OPTIONAL.
-
-
-  METHODS template_with
-    IMPORTING
-      path          TYPE clike OPTIONAL
-      var           TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
-
-  METHODS template_if
-    IMPORTING
-      test          TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
   METHODS horizontal_layout
     IMPORTING
@@ -1965,32 +1949,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
         ns   = `webc` ).
 
   ENDMETHOD.
-
-
-  METHOD template_if.
-
-    result = _generic(
-            name   = `if`
-            ns     = `template`
-            t_prop = VALUE #(
-                ( n = `test`  v = test )
-        ) ).
-
-  ENDMETHOD.
-
-
-  METHOD template_with.
-
-    result = _generic(
-            name   = `with`
-            ns     = `template`
-            t_prop = VALUE #(
-                ( n = `path`  v = path )
-                ( n = `var`   v = var )
-        ) ).
-
-  ENDMETHOD.
-
 
   METHOD text.
 

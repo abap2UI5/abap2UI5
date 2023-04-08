@@ -97,39 +97,39 @@ CLASS Z2UI5_CL_APP_DEMO_28 IMPLEMENTATION.
 
   METHOD z2ui5_on_render.
 
-
-    app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
-      )->page(
-              title          = 'abap2UI5 - Binding Syntax'
-              navbuttonpress = app-client->_event( 'BACK' )
-              shownavbutton  = abap_true
-          )->header_content(
-              )->link(
-                  text = 'Source_Code'
-                  href = app-client->get( )-url_source_code
-          )->get_parent(
-          )->simple_form( title = 'Binding Syntax' editable = abap_true
-              )->content( 'f'
-                )->title( 'Templating'
-                  )->label( 'Documentation'
-                )->link(
-                  text = 'Templating'
-                  href = 'https://sapui5.hana.ondemand.com/#/entity/sap.ui.core.mvc.XMLView'
-                )->label( 'when both values are equal second form is displayed'
-                )->input( app-client->_bind( input21 )
-                )->input( app-client->_bind( input22 )
-
-         )->get_parent( )->get_parent(
-      "   )->template_if(  test = '{= $' && app-client->_bind( input21 ) && ` === $` && app-client->_bind( input22 ) && `  } `
-         )->template_if(  test = '{= ${meta>/oUpdate/INPUT21} === ${meta>/oUpdate/INPUT22}   } '
-         )->simple_form( title = 'Binding Syntax' editable = abap_true
-              )->content( 'f'
-                )->title( 'Expression Binding'
-                )->label( 'templating'
-                )->input( app-client->_bind( input21 )
-                )->input( app-client->_bind( input22 )
-
-       )->get_root( )->xml_get( ).
+*
+*    app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
+*      )->page(
+*              title          = 'abap2UI5 - Binding Syntax'
+*              navbuttonpress = app-client->_event( 'BACK' )
+*              shownavbutton  = abap_true
+*          )->header_content(
+*              )->link(
+*                  text = 'Source_Code'
+*                  href = app-client->get( )-url_source_code
+*          )->get_parent(
+*          )->simple_form( title = 'Binding Syntax' editable = abap_true
+*              )->content( 'f'
+*                )->title( 'Templating'
+*                  )->label( 'Documentation'
+*                )->link(
+*                  text = 'Templating'
+*                  href = 'https://sapui5.hana.ondemand.com/#/entity/sap.ui.core.mvc.XMLView'
+*                )->label( 'when both values are equal second form is displayed'
+*                )->input( app-client->_bind( input21 )
+*                )->input( app-client->_bind( input22 )
+*
+*         )->get_parent( )->get_parent(
+*      "   )->template_if(  test = '{= $' && app-client->_bind( input21 ) && ` === $` && app-client->_bind( input22 ) && `  } `
+*         )->template_if(  test = '{= ${meta>/oUpdate/INPUT21} === ${meta>/oUpdate/INPUT22}   } '
+*         )->simple_form( title = 'Binding Syntax' editable = abap_true
+*              )->content( 'f'
+*                )->title( 'Expression Binding'
+*                )->label( 'templating'
+*                )->input( app-client->_bind( input21 )
+*                )->input( app-client->_bind( input22 )
+*
+*       )->get_root( )->xml_get( ).
 
 
   ENDMETHOD.
