@@ -46,12 +46,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           ROLLBACK WORK.
 
           IF lo_runtime->ms_next-check_app_leave IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_leave_to_id( ).
+            lo_runtime = lo_runtime->set_app_leave( ).
             CONTINUE.
           ENDIF.
 
-          IF lo_runtime->ms_next-s_nav_app_call_new IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_call_new( ).
+          IF lo_runtime->ms_next-o_call_app IS NOT INITIAL.
+            lo_runtime = lo_runtime->set_app_call( ).
             CONTINUE.
           ENDIF.
 

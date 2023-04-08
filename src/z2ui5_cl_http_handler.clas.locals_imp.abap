@@ -895,9 +895,9 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
-   " data ms_db type z2ui5_t_draft.
-  "  data o_app TYPE REF TO z2ui5_if_app.
-  "  data mt_attri TYPE _=>ty_t_attri.
+    " data ms_db type z2ui5_t_draft.
+    "  data o_app TYPE REF TO z2ui5_if_app.
+    "  data mt_attri TYPE _=>ty_t_attri.
     TYPES:
       BEGIN OF ty_s_db,
         id                TYPE string,
@@ -912,10 +912,11 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     TYPES:
       BEGIN OF ty_s_next,
-        check_app_leave    TYPE abap_bool,
-        s_nav_app_call_new TYPE ty_s_db,
-        t_after            TYPE _=>ty_tt_string,
-        s_set              TYPE z2ui5_if_client=>ty_S_next,
+        check_app_leave TYPE abap_bool,
+        o_call_app      TYPE REF TO z2ui5_if_app,
+        "  s_nav_app_call_new TYPE ty_s_db,
+        t_after         TYPE _=>ty_tt_string,
+        s_set           TYPE z2ui5_if_client=>ty_S_next,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -948,11 +949,11 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS set_app_leave_to_id
+    METHODS set_app_leave
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS set_app_call_new
+    METHODS set_app_call
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
@@ -997,9 +998,10 @@ CLASS z2ui5_lcl_db DEFINITION.
 
     CLASS-METHODS read
       IMPORTING
-        id            TYPE clike
+        id             TYPE clike
+        check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(result) TYPE z2ui5_t_draft.
+        VALUE(result)  TYPE z2ui5_t_draft.
 
     CLASS-METHODS cleanup.
 
@@ -1296,6 +1298,9 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
     DATA(ls_db) = VALUE z2ui5_t_draft(
         uuid       = id
+        uuid_prev     = db-id_prev
+        uuid_prev_app = db-id_prev_app
+        uuid_prev_app_stack = db-id_prev_app_stack
         uname      = _=>get_user_tech( )
         timestampl = _=>get_timestampl( )
         data       = _=>trans_object_2_xml( REF #( db ) ) ).
@@ -1308,11 +1313,22 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD read.
 
-    SELECT SINGLE *
-      FROM z2ui5_t_draft
-     WHERE uuid = @id
-    INTO @result.
-    _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+    IF check_load_app = abap_true.
+      SELECT SINGLE *
+        FROM z2ui5_t_draft
+       WHERE uuid = @id
+      INTO @result.
+      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+    ELSE.
+
+      SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
+        FROM z2ui5_t_draft
+       WHERE uuid = @id
+      INTO @result.
+      _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1431,7 +1447,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    DATA(lo_app) = CAST object( result->ms_db-o_app ).
+    DATA(lo_app) = CAST object( result->ms_db-o_app ) ##needed.
 
     DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
 
@@ -1496,32 +1512,30 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD set_app_leave_to_id.
+  METHOD set_app_leave.
 
     result = NEW #( ).
 
-    result->ms_db = z2ui5_lcl_db=>load_app( CAST z2ui5_if_app( ms_next-s_nav_app_call_new-o_app )->id ).
-    result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
+    result->ms_db-o_app = ms_next-o_call_app.
+    CLEAR ms_next.
+    z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
+
+    DATA(ls_draft) = z2ui5_lcl_db=>read( id = ms_next-o_call_app->id check_load_app = abap_false ).
+    result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
 
     result->ms_db-id = _=>get_uuid( ).
-
-    CLEAR ms_next.
-
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.
 
-    z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
-
   ENDMETHOD.
 
-  METHOD set_app_call_new.
+  METHOD set_app_call.
 
     z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
 
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
-    result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
-    " result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
+    result->ms_db-o_app = ms_next-o_call_app.
 
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
@@ -1537,7 +1551,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
-    DATA(lo_app) = CAST object( ms_db-o_app ).
+    DATA(lo_app) = CAST object( ms_db-o_app ) ##needed.
 
     IF type = cs_bind_type-one_time.
       DATA(lv_id) = _=>get_uuid_session( ).
@@ -1562,9 +1576,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       DATA(lr_ref) = REF #( <attribute> ).
 
       IF lr_in = lr_ref.
-        if lr_attri->bind_type is NOT INITIAL and lr_attri->bind_type <> type.
-            _=>raise( `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used, this is not possible` ).
-        endif.
+        IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
+          _=>raise( `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used, this is not possible` ).
+        ENDIF.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
         RETURN.
@@ -1590,7 +1604,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app ).
-    " result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
@@ -1605,10 +1618,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_end_model.
 
-    "    CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
-    DATA(lo_app) = CAST object( ms_db-o_app ).
+    DATA(lo_app) = CAST object( ms_db-o_app ) ##needed.
     r_view_model  = z2ui5_lcl_utility_tree_json=>factory( ).
     r_view_model->mv_name = `oViewModel`.
     DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
@@ -1663,7 +1675,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD request_end_popup.
 
-    DATA lv_xml TYPE string.
     rv_xml = _=>get_replace( iv_val = ms_next-s_set-xml_popup iv_begin = 'controllerName="' iv_end = '"' ).
     REPLACE '<mvc:View' IN rv_xml WITH `<core:FragmentDefinition`.
     REPLACE '</mvc:View>' IN rv_xml WITH `</core:FragmentDefinition>`.
@@ -1688,17 +1699,20 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~popup_message_box.
 
     INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) ) INTO TABLE mo_runtime->ms_next-t_after.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_client~nav_app_home.
 
     z2ui5_if_client~nav_app_call( NEW z2ui5_lcl_system_app( ) ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_client~get.
 
@@ -1716,7 +1730,7 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_call.
 
-    mo_runtime->ms_next-s_nav_app_call_new = VALUE #( o_app = app ).
+    mo_runtime->ms_next-o_call_app =  app.
 
   ENDMETHOD.
 
