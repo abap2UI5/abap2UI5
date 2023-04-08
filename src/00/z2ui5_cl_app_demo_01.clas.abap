@@ -46,6 +46,8 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                 )->content( 'f'
                     )->title( 'Input'
                     )->label( 'quantity'
+                    )->input( client->_bind_one( quantity )
+                     )->label( 'quantity'
                     )->input( client->_bind( quantity )
                     )->label( 'product'
                     )->input(

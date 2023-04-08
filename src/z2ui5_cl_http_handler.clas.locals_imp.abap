@@ -903,8 +903,7 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         id_prev_app_stack TYPE string,
 
         t_attri           TYPE _=>ty_t_attri,
-        o_app             TYPE REF TO z2ui5_if_app, "object,
-        app_classname     TYPE string,
+        o_app             TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
     DATA ms_db TYPE ty_s_db.
 
@@ -995,7 +994,7 @@ CLASS z2ui5_lcl_db DEFINITION.
 
     CLASS-METHODS read
       IMPORTING
-        id            TYPE string
+        id            TYPE clike
       RETURNING
         VALUE(result) TYPE z2ui5_t_draft.
 
@@ -1420,9 +1419,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD set_app_client.
 
-    " CONSTANTS c_prefix TYPE string VALUE `result->MS_DB-O_APP->`.
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
-
 
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
@@ -1472,7 +1469,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = _=>get_uuid( ).
     DO.
       TRY.
-          result->ms_db-app_classname = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
+          DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
 
         CATCH cx_root ##CATCH_ALL.
           result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
@@ -1480,19 +1477,18 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDTRY.
 
       TRY.
-          CREATE OBJECT result->ms_db-o_app TYPE (result->ms_db-app_classname).
+          CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
           EXIT.
 
         CATCH cx_root ##CATCH_ALL.
           DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
-            val = `class with name ` && result->ms_db-app_classname && ` not found, app call not possible` ).
+            val = `class with name ` && lv_classname && ` not found, app call not possible` ).
           result->ms_db-o_app = lo_error.
           EXIT.
       ENDTRY.
     ENDDO.
 
-    result->ms_db-app_classname      = _=>get_classname_by_ref( result->ms_db-o_app ).
     result->ms_db-t_attri            = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
   ENDMETHOD.
@@ -1522,7 +1518,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app = ms_next-s_nav_app_call_new-o_app.
-    result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
+    " result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
@@ -1536,7 +1532,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   METHOD _create_binding.
 
-    "  CONSTANTS c_prefix TYPE string VALUE `MS_DB-O_APP->`.
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     DATA(lo_app) = CAST object( ms_db-o_app ).
@@ -1564,6 +1559,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       DATA(lr_ref) = REF #( <attribute> ).
 
       IF lr_in = lr_ref.
+        if lr_attri->bind_type is NOT INITIAL and lr_attri->bind_type <> type.
+            _=>raise( `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used, this is not possible` ).
+        endif.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
         RETURN.
@@ -1589,7 +1587,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app ).
-    result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
+    " result->ms_db-app_classname = _=>get_classname_by_ref( result->ms_db-o_app ).
 
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
@@ -1708,8 +1706,8 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
     result-id                = mo_runtime->ms_db-id.
     result-id_prev_app       = mo_runtime->ms_db-id_prev_app.
     result-id_prev_app_stack = mo_runtime->ms_db-id_prev_app_stack.
-    result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && mo_runtime->ms_db-app_classname.
-    result-url_source_code   = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && mo_runtime->ms_db-app_classname && `/source/main`.
+    result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
+    result-url_source_code   = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ) && `/source/main`.
 
   ENDMETHOD.
 
@@ -1738,7 +1736,10 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_one.
 
-    result = `{` && mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way ) && `}`.
+    result = mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-one_way ).
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
 
   ENDMETHOD.
 
