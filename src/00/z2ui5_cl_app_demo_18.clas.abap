@@ -195,7 +195,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_on_popup_input.
 
-    result = app-next-xml_popup = z2ui5_cl_xml_view_helper=>factory( )->dialog(
+    result = z2ui5_cl_xml_view_helper=>factory( )->dialog(
                       title = 'Title'
                       icon = 'sap-icon://edit'
                   )->content(

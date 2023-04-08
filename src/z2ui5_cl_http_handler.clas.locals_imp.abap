@@ -1317,7 +1317,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
       SELECT SINGLE *
         FROM z2ui5_t_draft
-       WHERE uuid = @id
+        WHERE uuid = @id
       INTO @result.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -1325,7 +1325,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
       SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
-       WHERE uuid = @id
+        WHERE uuid = @id
       INTO @result.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -1491,7 +1491,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       TRY.
           DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
 
-        CATCH cx_root ##CATCH_ALL.
+        CATCH cx_root.
           result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
           EXIT.
       ENDTRY.
@@ -1500,7 +1500,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
           EXIT.
 
-        CATCH cx_root ##CATCH_ALL.
+        CATCH cx_root.
           DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
           lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
             val = `class with name ` && lv_classname && ` not found, app call not possible` ).
@@ -1509,7 +1509,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDTRY.
     ENDDO.
 
-    result->ms_db-t_attri            = _=>get_t_attri_by_ref( result->ms_db-o_app ).
+    result->ms_db-o_app->id = result->ms_db-id.
+    result->ms_db-t_attri   = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
   ENDMETHOD.
 
@@ -1538,6 +1539,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app = ms_next-o_call_app.
+    result->ms_db-o_app->id = result->ms_db-id.
 
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
