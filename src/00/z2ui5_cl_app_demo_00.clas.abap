@@ -50,40 +50,40 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
     DATA(grid) = page->grid( 'L3 M6 S12'
         )->content( 'l' ).
 
-    grid->simple_form( title = 'HowTo - General' layout = 'ResponsiveGridLayout' )->content( 'f'
+    grid->simple_form( title = 'HowTo - General' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Communication & Data Binding' press = client->_event( 'z2ui5_cl_app_demo_01' )
         )->button( text = 'Events, Error & Change View'  press = client->_event( 'z2ui5_cl_app_demo_04' )
         )->button( text = 'Flow Logic'                   press = client->_event( 'z2ui5_cl_app_demo_24' )
 
      ).
 
-    grid->simple_form( title = 'HowTo - General II' layout = 'ResponsiveGridLayout' )->content( 'f'
+    grid->simple_form( title = 'HowTo - General II' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Formatted Text'  press = client->_event( 'Z2UI5_CL_APP_DEMO_15' )
         )->button( text = 'Scrolling & Cursor'            press = client->_event( 'z2ui5_cl_app_demo_22' )
     ).
 
-    grid->simple_form( title = 'HowTo - Selection-Screen' layout = 'ResponsiveGridLayout' )->content( 'f'
+    grid->simple_form( title = 'HowTo - Selection-Screen' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Basic'           press = client->_event( 'z2ui5_cl_app_demo_02' )
         )->button( text = 'More Controls'   press = client->_event( 'z2ui5_cl_app_demo_05' )
         )->button( text = 'F4-Value-Help'   press = client->_event( 'Z2UI5_CL_APP_DEMO_09' ) ).
 
-    grid->simple_form( title = 'HowTo - Tables' layout = 'ResponsiveGridLayout' )->content( 'f'
+    grid->simple_form( title = 'HowTo - Tables' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'List'                        press = client->_event( 'z2ui5_cl_app_demo_03' )
         )->button( text = 'Toolbar, Scroll Container'   press = client->_event( 'z2ui5_cl_app_demo_06' )
         )->button( text = 'Selection Modes'             press = client->_event( 'z2ui5_cl_app_demo_19' )
         )->button( text = 'Editable'                    press = client->_event( 'z2ui5_cl_app_demo_11' )
     ).
 
-    grid->simple_form( title = 'HowTo - Popups' layout = 'ResponsiveGridLayout' )->content( 'f'
+    grid->simple_form( title = 'HowTo - Popups' layout = 'ResponsiveGridLayout' )->content( 'form'
           )->button( text = 'Basic'                        press = client->_event( 'Z2UI5_CL_APP_DEMO_21' )
         )->button( text = 'Popups & Flow Logic'           press = client->_event( 'z2ui5_cl_app_demo_12' )
         )->button( text = 'Popover'             press = client->_event( 'z2ui5_cl_app_demo_26' )
     ).
 *
-    grid->simple_form( title = 'HowTo - Layouts' layout = 'ResponsiveGridLayout' )->content( 'f'
+    grid->simple_form( title = 'HowTo - Layouts' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Layout (Header, Footer, Grid)' press = client->_event( 'z2ui5_cl_app_demo_10' )
          )->button( text = 'Object Page' press = client->_event( 'z2ui5_cl_app_demo_17' )
-*         )->button( text = 'Dynamic Page' press = client->_event( 'z2ui5_cl_app_demo_17' )
+         )->button( text = 'Dynamic Page' press = client->_event( 'z2ui5_cl_app_demo_30' )
 *         )->button( text = 'Split App' press = client->_event( 'z2ui5_cl_app_demo_17' )
     ).
 *

@@ -1326,7 +1326,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
         WHERE uuid = @id
-      INTO @result.
+      INTO CORRESPONDING FIELDS OF @result.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     ENDIF.

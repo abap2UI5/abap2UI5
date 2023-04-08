@@ -43,7 +43,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                     href = client->get( )-url_source_code
             )->get_parent(
             )->simple_form( title = 'Form Title' editable = abap_true
-                )->content( 'f'
+                )->content( 'form'
                     )->title( 'Input'
                     )->label( 'quantity'
                     )->input( client->_bind( quantity )
