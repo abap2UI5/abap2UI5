@@ -69,7 +69,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         page->grid( 'L6 M12 S12'
             )->content( 'l'
-                )->simple_form( 'Message Box' )->content( 'f'
+                )->simple_form( 'Message Box' )->content( 'form'
                     )->button(
                         text  = 'information'
                         press = client->_event( 'BUTTON_MESSAGE_BOX' )
@@ -85,7 +85,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         page->grid( 'L6 M12 S12'
             )->content( 'l'
-                )->simple_form( 'Message Strip' )->content( 'f'
+                )->simple_form( 'Message Strip' )->content( 'form'
                     )->button(
                         text = 'success'
                         press = client->_event( 'BUTTON_MESSAGE_STRIP_SUCCESS' )
@@ -98,7 +98,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
 
         page->grid( 'L6 M12 S12'
             )->content( 'l'
-                )->simple_form( 'Display' )->content( 'f'
+                )->simple_form( 'Display' )->content( 'form'
                     )->button(
                         text = 'Message Toast'
                         press = client->_event( 'BUTTON_MESSAGE_TOAST' ) ).

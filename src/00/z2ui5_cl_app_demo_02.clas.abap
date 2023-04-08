@@ -123,7 +123,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
         )->content( 'l' ).
 
     grid->simple_form( 'Input'
-        )->content( 'f'
+        )->content( 'form'
             )->label( 'Input with value help'
             )->input(
                     value           = client->_bind( screen-colour )
@@ -136,7 +136,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
                         additionaltext = '{DESCR}' ).
 
     grid->simple_form( 'Time Inputs'
-        )->content( 'f'
+        )->content( 'form'
             )->label( 'Date'
             )->date_picker( client->_bind( screen-date )
             )->label( 'Date and Time'
@@ -149,7 +149,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     DATA(form) = grid->get_parent( )->get_parent( )->grid( 'L12 M12 S12'
         )->content( 'l'
             )->simple_form( 'Input with select options'
-                )->content( 'f' ).
+                )->content( 'form' ).
 
     form->label( 'Checkbox'
         )->checkbox(

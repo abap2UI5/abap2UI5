@@ -85,7 +85,7 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         )->get_parent( ).
 
     page->simple_form( title = 'Form Title' editable = abap_true
-                )->content( 'f'
+                )->content( 'form'
                     )->title( 'Filter'
                     )->label( 'info'
                     )->input(  client->_bind( mv_info_filter )

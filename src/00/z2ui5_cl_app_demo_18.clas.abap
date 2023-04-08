@@ -135,7 +135,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                     href = client->get( )-url_source_code
             )->get_parent(
             )->simple_form( title = 'VIEW_MAIN' editable = abap_true
-                )->content( 'f'
+                )->content( 'form'
                     )->title( 'Input'
                     )->label( 'quantity'
                     )->input( client->_bind( quantity )
@@ -175,7 +175,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                      href = client->get( )-url_source_code
              )->get_parent(
              )->simple_form( 'VIEW_SECOND'
-                 )->content( 'f'
+                 )->content( 'form'
 
            )->get_parent( )->get_parent( )->footer(
            )->overflow_toolbar(

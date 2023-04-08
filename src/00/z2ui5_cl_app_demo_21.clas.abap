@@ -88,13 +88,13 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
     DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'l' ).
 
-    grid->simple_form( 'Decide' )->content( 'f'
+    grid->simple_form( 'Decide' )->content( 'form'
         )->label( '01'
         )->button(
             text  = 'Popup to decide'
             press = client->_event( 'POPUP_TO_DECIDE' ) ).
 
-    grid->simple_form( 'TextArea' )->content( 'f'
+    grid->simple_form( 'TextArea' )->content( 'form'
         )->label( '01'
         )->button(
             text  = 'Popup with textarea input'
@@ -108,13 +108,13 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
             text  = 'Popup with textarea input (stretched)'
             press = client->_event( 'POPUP_TO_TEXTAREA_STRETCH' ) ).
 
-    grid->simple_form( 'Inputs' )->content( 'f'
+    grid->simple_form( 'Inputs' )->content( 'form'
         )->label( '01'
         )->button(
             text  = 'Popup Get Input Values'
             press = client->_event( 'POPUP_TO_INPUT' ) ).
 
-    grid->simple_form( 'Tables' )->content( 'f'
+    grid->simple_form( 'Tables' )->content( 'form'
         )->label( '01'
         )->button(
             text  = 'Show bapiret tab'

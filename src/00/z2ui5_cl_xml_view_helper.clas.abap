@@ -862,7 +862,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       ( `xmlns:f="sap.f"` )
       ( `xmlns:form="sap.ui.layout.form"` )
       ( `xmlns:editor="sap.ui.codeeditor"` )
-      ( `xmlns:ui="sap.ui.table"` )
+     " ( `xmlns:ui="sap.ui.table"` )
       ( `xmlns:mchart="sap.suite.ui.microchart"` )
       ( `xmlns:webc="sap.ui.webc.main"` )
       ( `xmlns:uxap="sap.uxap"` )

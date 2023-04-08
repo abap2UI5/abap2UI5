@@ -131,7 +131,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                       href = app-client->get( )-url_source_code
               )->get_parent(
               )->simple_form( 'Form Title'
-                  )->content( 'f'
+                  )->content( 'form'
                       )->title( 'Input'
                       )->label( 'quantity'
                       )->input( app-client->_bind( quantity )

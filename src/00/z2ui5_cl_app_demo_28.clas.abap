@@ -109,7 +109,7 @@ CLASS Z2UI5_CL_APP_DEMO_28 IMPLEMENTATION.
 *                  href = app-client->get( )-url_source_code
 *          )->get_parent(
 *          )->simple_form( title = 'Binding Syntax' editable = abap_true
-*              )->content( 'f'
+*              )->content( 'form'
 *                )->title( 'Templating'
 *                  )->label( 'Documentation'
 *                )->link(
@@ -123,7 +123,7 @@ CLASS Z2UI5_CL_APP_DEMO_28 IMPLEMENTATION.
 *      "   )->template_if(  test = '{= $' && app-client->_bind( input21 ) && ` === $` && app-client->_bind( input22 ) && `  } `
 *         )->template_if(  test = '{= ${meta>/oUpdate/INPUT21} === ${meta>/oUpdate/INPUT22}   } '
 *         )->simple_form( title = 'Binding Syntax' editable = abap_true
-*              )->content( 'f'
+*              )->content( 'form'
 *                )->title( 'Expression Binding'
 *                )->label( 'templating'
 *                )->input( app-client->_bind( input21 )

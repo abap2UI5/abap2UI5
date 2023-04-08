@@ -109,7 +109,7 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
                       href = app-client->get( )-url_source_code
               )->get_parent(
               )->simple_form( 'Popover'
-                  )->content( 'f'
+                  )->content( 'form'
                       )->title( 'Input'
                       )->label( 'Link'
                       )->link(  text = 'Documentation UI5 Popover Control' href = 'https://openui5.hana.ondemand.com/entity/sap.m.Popover'

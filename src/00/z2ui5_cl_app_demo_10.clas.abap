@@ -51,24 +51,24 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
 
     DATA(grid) = page->grid( 'L4 M4 S4' )->content( 'l' ).
 
-    grid->simple_form( 'Grid width 33%' )->content( 'f'
+    grid->simple_form( 'Grid width 33%' )->content( 'form'
        )->button( text = 'button'
        )->text( 'text'
        )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
-    grid->simple_form( 'Grid width 33%' )->content( 'f'
+    grid->simple_form( 'Grid width 33%' )->content( 'form'
       )->button( text = 'button'
       )->text( 'text'
       )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
-    grid->simple_form( 'Grid width 33%' )->content( 'f'
+    grid->simple_form( 'Grid width 33%' )->content( 'form'
       )->button( text = 'button'
       )->text( 'text'
       )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
 
     grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
-    grid->simple_form( 'grid width 100%' )->content( 'f'
+    grid->simple_form( 'grid width 100%' )->content( 'form'
       )->button( text = 'button'
       )->text( 'text'
       )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).

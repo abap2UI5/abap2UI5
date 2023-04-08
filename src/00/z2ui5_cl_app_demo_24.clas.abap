@@ -62,7 +62,7 @@ CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
 
        )->grid( 'L6 M12 S12' )->content( 'l'
 
-       )->simple_form( 'Controller' )->content( 'f'
+       )->simple_form( 'Controller' )->content( 'form'
 
          )->label( 'Demo'
          )->button( text = 'call new app (first View)' press = client->_event( 'CALL_NEW_APP' )

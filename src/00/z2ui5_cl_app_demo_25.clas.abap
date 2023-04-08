@@ -76,7 +76,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
         page->grid( 'L6 M12 S12' )->content( 'l'
 
-              )->simple_form( 'View: FIRST' )->content( 'f'
+              )->simple_form( 'View: FIRST' )->content( 'form'
 
                )->label( 'Input set by previous app'
                )->input( mv_input_previous_set
@@ -101,7 +101,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
-            )->simple_form( 'View: SECOND' )->content( 'f'
+            )->simple_form( 'View: SECOND' )->content( 'form'
               )->label( 'Demo'
               )->button( text = 'leave to previous app' press = client->_event( 'BACK' )
               )->label( 'Demo'

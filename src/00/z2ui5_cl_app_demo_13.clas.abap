@@ -189,13 +189,13 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
     DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
     grid->simple_form( '2. Edit Data'
-         )->content( 'f'
+         )->content( 'form'
             )->label( 'Table'
             )->input( 'SPFLI' ).
 
     grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
-    DATA(cont) = grid->simple_form(  )->content( 'f' ).
+    DATA(cont) = grid->simple_form(  )->content( 'form' ).
 
     cont->overflow_toolbar(
                   )->button(
@@ -277,7 +277,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
     DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
 
     grid->simple_form( '3. Export Data'
-         )->content( 'f'
+         )->content( 'form'
             )->label( 'Table'
             )->input( 'SPFLI'
             )->label( 'Format'
@@ -341,7 +341,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
     DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
 
     grid->simple_form( '1. Import Data'
-         )->content( 'f'
+         )->content( 'form'
             )->label( 'Table'
             )->input( 'SPFLI'
             )->label( 'Format'

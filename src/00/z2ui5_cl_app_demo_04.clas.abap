@@ -89,7 +89,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
-            )->simple_form( 'Controller' )->content( 'f'
+            )->simple_form( 'Controller' )->content( 'form'
                 )->label( 'Roundtrip'
                 )->button(
                     text  = 'Client/Server Interaction'
@@ -115,7 +115,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
                 navbuttonpress = client->_event( 'BACK' ) ).
 
         page->grid( 'L12 M12 S12' )->content( 'l'
-            )->simple_form( 'View Second' )->content( 'f'
+            )->simple_form( 'View Second' )->content( 'form'
                 )->label( 'Change View'
                 )->button(
                     text  = 'Display View MAIN'

@@ -62,7 +62,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
 
-        grid->simple_form( title = 'File' editable = abap_true )->content( 'f'
+        grid->simple_form( title = 'File' editable = abap_true )->content( 'form'
              )->label( 'path'
              )->input( client->_bind( mv_path )
              )->label( 'Option'
@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
 
         grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
-        grid->simple_form( 'Editor' )->content( 'f'
+        grid->simple_form( 'Editor' )->content( 'form'
                 )->scroll_container( '75%'
                     )->code_editor(
                         type  = mv_type

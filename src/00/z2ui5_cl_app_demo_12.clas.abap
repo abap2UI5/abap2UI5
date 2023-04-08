@@ -94,7 +94,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                 )->get_parent( ).
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l'
-            )->simple_form( 'Popup in same App' )->content( 'f'
+            )->simple_form( 'Popup in same App' )->content( 'form'
                 )->label( 'Demo'
                 )->button(
                     text  = 'popup rendering, no background rendering'
@@ -113,7 +113,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                     press = client->_event( 'BUTTON_POPUP_04' )
             )->get_parent( )->get_parent( ).
 
-        grid->simple_form( 'Popup in new App' )->content( 'f'
+        grid->simple_form( 'Popup in new App' )->content( 'form'
             )->label( 'Demo'
             )->button(
                 text  = 'popup rendering, no background'

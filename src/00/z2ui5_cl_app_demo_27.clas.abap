@@ -109,7 +109,7 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
                   href = app-client->get( )-url_source_code
           )->get_parent(
           )->simple_form( title = 'Binding Syntax' editable = abap_true
-              )->content( 'f'
+              )->content( 'form'
                 )->title( 'Expression Binding'
 
                 )->label( 'Documentation'

@@ -131,7 +131,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
-        grid->simple_form( 'More Controls' )->content( 'f'
+        grid->simple_form( 'More Controls' )->content( 'form'
             )->label( 'ProgressIndicator'
             )->progress_indicator(
                 percentvalue    = screen-progress_value
@@ -177,7 +177,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                         visible = `{VISIBLE}`
         ).
 
-        grid->simple_form( 'Text Area' )->content( 'f'
+        grid->simple_form( 'Text Area' )->content( 'form'
             )->label( 'text area'
             )->text_area(
                 value = `Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magn` &&
