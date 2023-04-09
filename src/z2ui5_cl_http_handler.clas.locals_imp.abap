@@ -1504,9 +1504,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
         result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
     ENDTRY.
 
-
-    "   ENDDO.
-
     result->ms_db-o_app->id = result->ms_db-id.
     result->ms_db-t_attri   = _=>get_t_attri_by_ref( result->ms_db-o_app ).
 
@@ -1740,13 +1737,11 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD z2ui5_if_client~set_next.
 
     mo_runtime->ms_next-s_set = val.
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_client~_bind.
 
