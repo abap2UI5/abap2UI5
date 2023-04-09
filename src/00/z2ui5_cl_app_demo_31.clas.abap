@@ -82,7 +82,7 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
                         `       <form:SimpleForm editable="true" width="40rem">` && |\n|  &&
                         `       <Label text="Loading time" />` && |\n|  &&
                         `       <Input id="loadingMinSeconds" width="8rem" type="Number" description="seconds" value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
-                        `       <Button text="Start loading" type="Emphasized" press="onFormSubmit"/>` && |\n|  &&
+                        `       <Button text="BACK" type="Emphasized" press="` && client->_event( 'BACK') && `"/>` && |\n|  &&
                         `   </form:SimpleForm>  ` && |\n|  &&
                         `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Country-Specific Profit Margin"  press="` && client->_event( 'POPUP' ) && `"` && |\n|  &&
                         `       frameType="OneByHalf" subheader="Subtitle">` && |\n|  &&
