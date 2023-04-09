@@ -159,12 +159,12 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                ( n = `navButtonPress` v = app-client->_event( 'BACK' ) )
            ) )->_generic(
                 name = `SimpleForm`
-                ns   = `f`
+                ns   = `form`
                 t_prop = VALUE #(
                     ( n = `title` v = 'title' )
            ) )->_generic(
                 name = `content`
-                ns   = `f`
+                ns   = `form`
            )->_generic(
                 name = `Label`
                 t_prop = VALUE #(
@@ -173,11 +173,25 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                 name = `Input`
                 t_prop = VALUE #(
                     ( n = `value` v = app-client->_bind( quantity ) )
-           ) )->get_parent( )->_generic(
+           ) )->get_parent(
+            )->_generic(
                 name = `Button`
                 t_prop = VALUE #(
                     ( n = `text`  v = `NORMAL` )
-                    ( n = `press` v = app-client->_event( 'NORMAL' ) ) ) ).
+                    ( n = `press` v = app-client->_event( 'NORMAL' ) ) )
+               )->get_parent(
+               )->_generic(
+                name = `Button`
+                t_prop = VALUE #(
+                    ( n = `text`  v = `GENERIC` )
+                    ( n = `press` v = app-client->_event( 'GENERIC' ) ) )
+                )->get_parent(
+                     )->_generic(
+                name = `Button`
+                t_prop = VALUE #(
+                    ( n = `text`  v = `XML` )
+                    ( n = `press` v = app-client->_event( 'XML' ) ) )
+                 ).
 
         app-s_next-xml_main = li_view->get_root( )->xml_get( ).
 
