@@ -244,7 +244,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     result = iv_val.
     SPLIT result AT iv_begin INTO DATA(lv_1) DATA(lv_2).
     SPLIT lv_2 AT iv_end INTO DATA(lv_dummy) DATA(lv_4).
+    if lv_4 is not INITIAL.
     result = lv_1 && iv_replace && lv_4.
+    endif.
 
   ENDMETHOD.
 

@@ -4,17 +4,16 @@ CLASS z2ui5_cl_app_demo_31 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    DATA product  TYPE string.
-    DATA quantity TYPE string.
+    DATA mv_value    TYPE string.
 
+  PROTECTED SECTION.
+
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
-        client            TYPE REF TO z2ui5_if_client,
         check_initialized TYPE abap_bool,
-        view_main         TYPE string,
-        view_popup        TYPE string,
-        s_get             TYPE z2ui5_if_client=>ty_s_get,
-        s_next            TYPE z2ui5_if_client=>ty_s_next,
+        get               TYPE z2ui5_if_client=>ty_s_get,
+        next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
 
     METHODS z2ui5_on_init.
@@ -22,49 +21,46 @@ CLASS z2ui5_cl_app_demo_31 DEFINITION PUBLIC.
     METHODS z2ui5_on_render_main.
     METHODS z2ui5_on_render_popup.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_31 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
-    app-client = client.
-    app-s_get  = client->get( ).
-    "  app-view_popup = ``.
+    app-get = client->get( ).
+    me->client = client.
 
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
       z2ui5_on_init( ).
     ENDIF.
 
-    IF app-s_get-event IS NOT INITIAL.
+    IF app-get-event IS NOT INITIAL.
       z2ui5_on_event( ).
     ENDIF.
 
     z2ui5_on_render_main( ).
     z2ui5_on_render_popup( ).
 
-    client->set_next( app-s_next ).
-    CLEAR app-s_get.
-    CLEAR app-s_next.
+    client->set_next( app-next ).
+    CLEAR app-get.
+    CLEAR app-next.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_event.
 
-    CASE app-s_get-event.
+    CASE app-get-event.
 
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-client->get_app( app-s_get-id_prev_app_stack ) ).
-
-      WHEN OTHERS.
-        app-view_main = app-s_get-event.
+        client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
+      WHEN 'POPUP'.
+        client->popup_message_box( 'Event raised value:' && mv_value ).
 
     ENDCASE.
 
@@ -73,122 +69,140 @@ CLASS Z2UI5_CL_APP_DEMO_31 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    product  = 'tomato'.
-    quantity = '500'.
-    app-view_main = 'NORMAL'.
+    mv_value  = '200'.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_render_main.
 
-    CASE app-view_main.
+    app-next-xml_main = `<mvc:View controllerName="sap.m.sample.GenericTileAsLaunchTile.Page"` && |\n|  &&
+                        `xmlns="sap.m" xmlns:mvc="sap.ui.core.mvc"` && |\n|  &&
+                        `       xmlns:form="sap.ui.layout.form">` && |\n|  &&
+                        `       <form:SimpleForm editable="true" width="40rem">` && |\n|  &&
+                        `       <Label text="Loading time" />` && |\n|  &&
+                        `       <Input id="loadingMinSeconds" width="8rem" type="Number" description="seconds" value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
+                        `       <Button text="Start loading" type="Emphasized" press="onFormSubmit"/>` && |\n|  &&
+                        `   </form:SimpleForm>  ` && |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Country-Specific Profit Margin"  press="` && client->_event( 'POPUP' ) && `"` && |\n|  &&
+                        `       frameType="OneByHalf" subheader="Subtitle">` && |\n|  &&
+                        `       <TileContent>` && |\n|  &&
+                        `           <ImageContent src="test-resources/sap/m/demokit/sample/GenericTileAsLaunchTile/images/SAPLogoLargeTile_28px_height.png" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Sales Fulfillment Application Title"` && |\n|  &&
+                        `       subheader="Subtitle" press="press" frameType= "TwoByHalf">` && |\n|  &&
+                        `       <TileContent />` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Manage Activity Master Data Type"` && |\n|  &&
+                        `       subheader="Subtitle" press="press" frameType= "TwoByHalf">` && |\n|  &&
+                        `       <TileContent unit="EUR" footer="Current Quarter">` && |\n|  &&
+                        `           <ImageContent src="sap-icon://home-share" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Right click to open in new tab"` && |\n|  &&
+                        `       subheader="Link tile" press="press" url="https://www.sap.com/">` && |\n|  &&
+                        `       <TileContent>` && |\n|  &&
+                        `           <ImageContent src="test-resources/sap/m/demokit/sample/GenericTileAsLaunchTile/images/SAPLogoLargeTile_28px_height.png" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Sales Fulfillment Application Title"` && |\n|  &&
+                        `       subheader="Subtitle" press="press">` && |\n|  &&
+                        `       <TileContent unit="EUR" footer="Current Quarter">` && |\n|  &&
+                        `           <ImageContent src="sap-icon://home-share" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Manage Activity Master Data Type"` && |\n|  &&
+                        `       subheader="Subtitle" press="press">` && |\n|  &&
+                        `       <TileContent>` && |\n|  &&
+                        `           <ImageContent src="test-resources/sap/m/demokit/sample/GenericTileAsLaunchTile/images/SAPLogoLargeTile_28px_height.png" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Manage Activity Master Data Type With a Long Title Without an Icon"` && |\n|  &&
+                        `       subheader="Subtitle Launch Tile" mode="HeaderMode" press="press">` && |\n|  &&
+                        `       <TileContent unit="EUR" footer="Current Quarter" />` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Jessica D. Prince Senior Consultant"` && |\n|  &&
+                        `       subheader="Department" press="press" appShortcut = "shortcut" systemInfo = "systeminfo">` && |\n|  &&
+                        `       <TileContent>` && |\n|  &&
+                        `           <ImageContent src="test-resources/sap/m/demokit/sample/GenericTileAsLaunchTile/images/ProfileImage_LargeGenTile.png" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Sales Fulfillment Application Title"` && |\n|  &&
+                        `       press="press" frameType= "OneByHalf">` && |\n|  &&
+                        `       <TileContent unit="EUR" footer="Current Quarter">` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Sales Fulfillment Application Title"` && |\n|  &&
+                        `       press="press" frameType= "TwoByHalf">` && |\n|  &&
+                        `       <TileContent unit="EUR" footer="Current Quarter">` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Jessica D. Prince Senior Consultant"` && |\n|  &&
+                        `       subheader="Department" press="press" frameType="TwoByHalf">` && |\n|  &&
+                        `       <TileContent>` && |\n|  &&
+                        `           <ImageContent src="test-resources/sap/m/demokit/sample/GenericTileAsLaunchTile/images/ProfileImage_LargeGenTile.png" />` && |\n|  &&
+                        `       </TileContent>` && |\n|  &&
+                        `   </GenericTile>` && |\n|  &&
+                        `</mvc:View>`.
 
-      WHEN 'XML'.
-
-        app-s_next-xml_main = `<mvc:View controllerName="zzdummy" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.co` &&
-`re.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|
-&&
-                              `  title="abap2UI5 - XML XML XML" ` && |\n|  &&
-                              `  showNavButton="true" ` && |\n|  &&
-                              `  navButtonPress="onEvent( { &apos;EVENT&apos; : &apos;BACK&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; } )" ` && |\n|  &&
-                              ` > <headerContent ` && |\n|  &&
-                              ` > <Link ` && |\n|  &&
-                              `  text="Source_Code" ` && |\n|  &&
-                              `  target="_blank" ` && |\n|  &&
-                              `  href="https://6654aaf7-905f-48ea-b013-3811c03fcba8.abap-web.us10.hana.ondemand.com/sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_23/source/main" ` && |\n|  &&
-                              ` /></headerContent> <f:SimpleForm ` && |\n|  &&
-                              `  title="Form Title" ` && |\n|  &&
-                              ` > <f:content ` && |\n|  &&
-                              ` > <Title ` && |\n|  &&
-                              `  text="Input" ` && |\n|  &&
-                              ` /> <Label ` && |\n|  &&
-                              `  text="quantity" ` && |\n|  &&
-                              ` /> <Input ` && |\n|  &&
-                              `  value="` &&  app-client->_bind( quantity ) && `" ` && |\n|  &&
-                              ` /> <Button ` && |\n|  &&
-                              `  press="` &&  app-client->_event( 'NORMAL' ) && `"`  && |\n|  &&
-                              `  text="NORMAL" ` && |\n|  &&
-                              ` /> <Button ` && |\n|  &&
-                                  `  press="` &&  app-client->_event( 'GENERIC' ) && `"`  && |\n|  &&
-                              `  text="GENERIC" ` && |\n|  &&
-                              ` /> <Button ` && |\n|  &&
-                                 `  press="` &&  app-client->_event( 'XML' ) && `"`  && |\n|  &&
-                              `  text="XML" ` && |\n|  &&
-                              ` /></f:content></f:SimpleForm></Page></Shell></mvc:View>`.
-
-
-      WHEN 'NORMAL'.
-
-        app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
-          )->page(
-                  title          = 'abap2UI5 - NORMAL NORMAL NORMAL'
-                  navbuttonpress = app-client->_event( 'BACK' )
-                  shownavbutton  = abap_true
-              )->header_content(
-                  )->link(
-                      text = 'Source_Code'
-                      href = app-client->get( )-url_source_code
-              )->get_parent(
-              )->simple_form( 'Form Title'
-                  )->content( 'form'
-                      )->title( 'Input'
-                      )->label( 'quantity'
-                      )->input( app-client->_bind( quantity )
-                      )->button(
-                          text  = 'NORMAL'
-                          press = app-client->_event( 'NORMAL' )
-                      )->button(
-                          text  = 'GENERIC'
-                          press = app-client->_event( 'GENERIC' )
-                         )->button(
-                          text  = 'XML'
-                          press = app-client->_event( 'XML' )
-           )->get_root( )->xml_get( ).
-
-
-      WHEN 'GENERIC'.
-
-        DATA(li_view) = z2ui5_cl_xml_view_helper=>factory( ).
-
-        li_view->_generic(
-           name      = `Page`
-           t_prop = VALUE #(
-               ( n = `title`          v = 'abap2UI5 - GENERIC GENERIC GENERIC' )
-               ( n = `showNavButton`  v = `true` )
-               ( n = `navButtonPress` v = app-client->_event( 'BACK' ) )
-           ) )->_generic(
-                name = `SimpleForm`
-                ns   = `f`
-                t_prop = VALUE #(
-                    ( n = `title` v = 'title' )
-           ) )->_generic(
-                name = `content`
-                ns   = `f`
-           )->_generic(
-                name = `Label`
-                t_prop = VALUE #(
-                    ( n = `text` v = 'quantity' )
-           ) )->get_parent( )->_generic(
-                name = `Input`
-                t_prop = VALUE #(
-                    ( n = `value` v = app-client->_bind( quantity ) )
-           ) )->get_parent( )->_generic(
-                name = `Button`
-                t_prop = VALUE #(
-                    ( n = `text`  v = `NORMAL` )
-                    ( n = `press` v = app-client->_event( 'NORMAL' ) ) ) ).
-
-        app-s_next-xml_main = li_view->get_root( )->xml_get( ).
-
-
-    ENDCASE.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_render_popup.
 
+    app-next-xml_popup = `<core:FragmentDefinition` && |\n|  &&
+                         `  xmlns="sap.m"` && |\n|  &&
+                         `  xmlns:core="sap.ui.core">` && |\n|  &&
+                         `  <ViewSettingsDialog` && |\n|  &&
+                         `      confirm="` && client->_event_close_popup( ) && `">` && |\n|  &&
+                         `      <sortItems>` && |\n|  &&
+                         `          <ViewSettingsItem text="Field 1" key="1" selected="true" />` && |\n|  &&
+                         `          <ViewSettingsItem text="Field 2" key="2" />` && |\n|  &&
+                         `          <ViewSettingsItem text="Field 3" key="3" />` && |\n|  &&
+                         `      </sortItems>` && |\n|  &&
+                         `      <groupItems>` && |\n|  &&
+                         `          <ViewSettingsItem text="Field 1" key="1" selected="true" />` && |\n|  &&
+                         `          <ViewSettingsItem text="Field 2" key="2" />` && |\n|  &&
+                         `          <ViewSettingsItem text="Field 3" key="3" />` && |\n|  &&
+                         `      </groupItems>` && |\n|  &&
+                         `      <filterItems>` && |\n|  &&
+                         `          <ViewSettingsFilterItem text="Field1" key="1">` && |\n|  &&
+                         `              <items>` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value A" key="1a" />` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value B" key="1b" />` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value C" key="1c" />` && |\n|  &&
+                         `              </items>` && |\n|  &&
+                         `          </ViewSettingsFilterItem>` && |\n|  &&
+                         `          <ViewSettingsFilterItem text="Field2" key="2">` && |\n|  &&
+                         `              <items>` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value A" key="2a" />` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value B" key="2b" />` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value C" key="2c" />` && |\n|  &&
+                         `              </items>` && |\n|  &&
+                         `          </ViewSettingsFilterItem>` && |\n|  &&
+                         `          <ViewSettingsFilterItem text="Field3" key="3">` && |\n|  &&
+                         `              <items>` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value A" key="3a" />` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value B" key="3b" />` && |\n|  &&
+                         `                  <ViewSettingsItem text="Value C" key="3c" />` && |\n|  &&
+                         `              </items>` && |\n|  &&
+                         `          </ViewSettingsFilterItem>` && |\n|  &&
+                         `      </filterItems>` && |\n|  &&
+                         `  </ViewSettingsDialog>` && |\n|  &&
+                         `</core:FragmentDefinition>`.
 
   ENDMETHOD.
+
 ENDCLASS.
