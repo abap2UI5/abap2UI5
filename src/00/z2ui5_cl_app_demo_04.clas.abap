@@ -14,6 +14,7 @@ CLASS z2ui5_cl_app_demo_04 DEFINITION PUBLIC.
     DATA mo_app TYPE REF TO z2ui5_if_app.
     DATA mv_name_attri TYPE string.
     DATA check_initialized TYPE abap_bool.
+    DATA mv_view_main TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -35,63 +36,60 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
 
-      WHEN client->cs-lifecycle_method-on_event.
+      mv_view_main = 'MAIN'.
+      client->popup_message_box( 'app started, init values set' ).
 
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-
-          client->show_view( 'MAIN' ).
-          client->popup_message_box( 'app started, init values set' ).
-          RETURN.
-
-        ENDIF.
+    ENDIF.
 
 
-        CASE client->get( )-event.
+    CASE client->get( )-event.
 
-          WHEN 'BUTTON_ROUNDTRIP'.
-            client->popup_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
+      WHEN 'BUTTON_ROUNDTRIP'.
+        client->popup_message_box( 'server-client roundtrip, method on_event of the abap controller was called' ).
 
-          WHEN 'BUTTON_RESTART'.
-            client->nav_app_call( NEW z2ui5_cl_app_demo_04( ) ).
+      WHEN 'BUTTON_RESTART'.
+        client->nav_app_call( NEW z2ui5_cl_app_demo_04( ) ).
 
-          WHEN 'BUTTON_CHANGE_APP'.
-            client->nav_app_call( NEW z2ui5_cl_app_demo_01( ) ).
+      WHEN 'BUTTON_CHANGE_APP'.
+        client->nav_app_call( NEW z2ui5_cl_app_demo_01( ) ).
 
-          WHEN 'BUTTON_CHANGE_VIEW'.
+      WHEN 'BUTTON_CHANGE_VIEW'.
 
-            CASE client->get( )-view_active.
-              WHEN 'MAIN'.
-                client->show_view( 'SECOND' ).
-              WHEN 'SECOND'.
-                client->show_view( 'MAIN' ).
-            ENDCASE.
-
-          WHEN 'BUTTON_ERROR'.
-            DATA(lv_dummy) = 1 / 0.
-
-          WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
+        CASE mv_view_main.
+          WHEN 'MAIN'.
+            mv_view_main = 'SECOND'.
+          WHEN 'SECOND'.
+            mv_view_main = 'MAIN'.
         ENDCASE.
 
+      WHEN 'BUTTON_ERROR'.
+        DATA(lv_dummy) = 1 / 0.
 
-      WHEN client->cs-lifecycle_method-on_rendering.
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
-        DATA(page) = client->factory_view( 'MAIN'
+    ENDCASE.
+
+    CASE mv_view_main.
+
+      WHEN 'MAIN'.
+
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
             )->page(
                 title          = 'abap2UI5 - Controller'
                 navbuttonpress = client->_event( 'BACK' )
+                  shownavbutton = abap_true
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                        href = client->get( )-url_source_code
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'l'
-            )->simple_form( 'Controller' )->content( 'f'
+            )->simple_form( 'Controller' )->content( 'form'
                 )->label( 'Roundtrip'
                 )->button(
                     text  = 'Client/Server Interaction'
@@ -109,20 +107,24 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
                     text  = 'Error not catched by the user'
                     press = client->_event( 'BUTTON_ERROR' ) ).
 
+      WHEN 'SECOND'.
 
-        page = client->factory_view( 'SECOND'
+        page = z2ui5_cl_xml_view_helper=>factory(
             )->page(
                 title          = 'abap2UI5 - Controller'
                 navbuttonpress = client->_event( 'BACK' ) ).
 
         page->grid( 'L12 M12 S12' )->content( 'l'
-            )->simple_form( 'View Second' )->content( 'f'
+            )->simple_form( 'View Second' )->content( 'form'
                 )->label( 'Change View'
                 )->button(
                     text  = 'Display View MAIN'
                     press = client->_event( 'BUTTON_CHANGE_VIEW' ) ).
 
     ENDCASE.
+
+    client->set_next( VALUE #( xml_main = page->get_root(  )->xml_get( ) ) ).
+
 
   ENDMETHOD.
 ENDCLASS.

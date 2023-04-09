@@ -14,85 +14,79 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
 
-      WHEN client->cs-lifecycle_method-on_event.
-
-        CASE client->get( )-event.
-
-          WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
-
-        ENDCASE.
-
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(page) = client->factory_view(
-            )->page(
-                title           = 'abap2UI5 - Demo Layout'
-                navbuttonpress  = client->_event( 'BACK' ) ).
-
-        page->header_content(
-          )->button( text = 'button'
-          )->text( 'text'
-          )->link(
-            text = 'link'
-            href = 'https://twitter.com/OblomovDev'
-          )->link(
-            text = 'Source_Code'
-            href = client->get( )-s_request-url_source_code ).
-
-        page->sub_header(
-            )->overflow_toolbar(
-                )->button( text = 'button'
-                )->text( 'text'
-                )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
-                )->toolbar_spacer(
-                )->text( 'subheader'
-                )->toolbar_spacer(
-                )->button( text = 'button'
-                )->text( 'text'
-                )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
-
-        DATA(grid) = page->grid( 'L4 M4 S4' )->content( 'l' ).
-
-        grid->simple_form( 'Grid width 33%' )->content( 'f'
-           )->button( text = 'button'
-           )->text( 'text'
-           )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
-
-        grid->simple_form( 'Grid width 33%' )->content( 'f'
-          )->button( text = 'button'
-          )->text( 'text'
-          )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
-
-        grid->simple_form( 'Grid width 33%' )->content( 'f'
-          )->button( text = 'button'
-          )->text( 'text'
-          )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
-
-        grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
-
-        grid->simple_form( 'grid width 100%' )->content( 'f'
-          )->button( text = 'button'
-          )->text( 'text'
-          )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
-
-        page->footer(
-            )->overflow_toolbar(
-                )->button( text = 'button'
-                )->text( 'text'
-                )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
-                )->toolbar_spacer(
-                )->text( 'footer'
-                )->toolbar_spacer(
-                )->text( 'text'
-                )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
-                )->button( text = 'reject' type = 'Reject'
-                )->button( text = 'accept' type = 'Success' ).
-
+    CASE client->get( )-event.
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
+
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+        )->page(
+            title           = 'abap2UI5 - Demo Layout'
+            navbuttonpress  = client->_event( 'BACK' )
+            shownavbutton   = abap_true
+             ).
+
+    page->header_content(
+      )->button( text = 'button'
+      )->text( 'text'
+      )->link(
+        text = 'link'
+        href = 'https://twitter.com/OblomovDev'
+      )->link(
+        text = 'Source_Code'
+        href = client->get( )-url_source_code ).
+
+    page->sub_header(
+        )->overflow_toolbar(
+            )->button( text = 'button'
+            )->text( 'text'
+            )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
+            )->toolbar_spacer(
+            )->text( 'subheader'
+            )->toolbar_spacer(
+            )->button( text = 'button'
+            )->text( 'text'
+            )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+
+    DATA(grid) = page->grid( 'L4 M4 S4' )->content( 'l' ).
+
+    grid->simple_form( 'Grid width 33%' )->content( 'form'
+       )->button( text = 'button'
+       )->text( 'text'
+       )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+
+    grid->simple_form( 'Grid width 33%' )->content( 'form'
+      )->button( text = 'button'
+      )->text( 'text'
+      )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+
+    grid->simple_form( 'Grid width 33%' )->content( 'form'
+      )->button( text = 'button'
+      )->text( 'text'
+      )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+
+    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+
+    grid->simple_form( 'grid width 100%' )->content( 'form'
+      )->button( text = 'button'
+      )->text( 'text'
+      )->link( text = 'link' href = 'https://twitter.com/OblomovDev' ).
+
+    page->footer(
+        )->overflow_toolbar(
+            )->button( text = 'button'
+            )->text( 'text'
+            )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
+            )->toolbar_spacer(
+            )->text( 'footer'
+            )->toolbar_spacer(
+            )->text( 'text'
+            )->link( text = 'link' href = 'https://twitter.com/OblomovDev'
+            )->button( text = 'reject' type = 'Reject'
+            )->button( text = 'accept' type = 'Success' ).
+
+    client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

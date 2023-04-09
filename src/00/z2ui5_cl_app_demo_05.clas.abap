@@ -45,10 +45,6 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         IF screen-check_initialized = abap_false.
           screen-check_initialized = abap_true.
 
@@ -70,7 +66,6 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
              time_start        = '05:24:00'
              time_end          = '17:23:57' ).
 
-          RETURN.
         ENDIF.
 
 
@@ -85,21 +80,19 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
               type = 'success' ).
 
           WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+            client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
         ENDCASE.
 
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(page) = client->factory_view(
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
             )->page(
                     title          = 'abap2UI5 - Selection-Screen more Controls'
                     navbuttonpress = client->_event( 'BACK' )
+                      shownavbutton = abap_true
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                        href = client->get( )-url_source_code
                 )->get_parent( ).
 
         page->generic_tag(
@@ -138,7 +131,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
 
-        grid->simple_form( 'More Controls' )->content( 'f'
+        grid->simple_form( 'More Controls' )->content( 'form'
             )->label( 'ProgressIndicator'
             )->progress_indicator(
                 percentvalue    = screen-progress_value
@@ -172,7 +165,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                     tokens = client->_bind( mt_token )
                     showclearicon   = abap_true
                     showvaluehelp   = abap_true
-                    suggestionitems = client->_bind_one_way( mt_token )
+                    suggestionitems = client->_bind_one( mt_token )
                 )->item(
                         key = `{KEY}`
                         text = `{TEXT}`
@@ -184,7 +177,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                         visible = `{VISIBLE}`
         ).
 
-        grid->simple_form( 'Text Area' )->content( 'f'
+        grid->simple_form( 'Text Area' )->content( 'form'
             )->label( 'text area'
             )->text_area(
                 value = `Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magn` &&
@@ -231,7 +224,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                     press = client->_event( 'BUTTON_SEND' )
                     type  = 'Success' ).
 
-    ENDCASE.
+      client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
