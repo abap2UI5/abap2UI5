@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_APP_DEMO_17</CLSNAME>
+    <CLSNAME>Z2UI5_CL_APP_DEMO_26</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>layout - object page</DESCRIPT>
+    <DESCRIPT>open by</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

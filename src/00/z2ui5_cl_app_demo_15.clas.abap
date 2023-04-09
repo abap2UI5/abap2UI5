@@ -18,10 +18,6 @@ CLASS Z2UI5_CL_APP_DEMO_15 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         IF check_initialized = abap_false.
           check_initialized = abap_true.
 
@@ -30,22 +26,21 @@ CLASS Z2UI5_CL_APP_DEMO_15 IMPLEMENTATION.
 `><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a reference to a source</cite></p>` &&
 `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
 
-          RETURN.
         ENDIF.
 
         CASE client->get( )-event.
           WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+            client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
         ENDCASE.
 
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        client->factory_view( 'VIEW_INPUT' )->page(
+        data(view) = z2ui5_cl_xml_view_helper=>factory(
+        )->page(
             title          = 'abap2UI5 - Formatted Text'
             navbuttonpress = client->_event( 'BACK' )
+            shownavbutton  = abap_true
             )->header_content(
                 )->toolbar_spacer(
-                )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+                )->link( text = 'Source_Code' href = client->get( )-url_source_code
             )->get_parent(
             )->vbox( 'sapUiSmallMargin'
                 )->link(
@@ -55,7 +50,7 @@ CLASS Z2UI5_CL_APP_DEMO_15 IMPLEMENTATION.
             )->vbox( 'sapUiSmallMargin'
                 )->formatted_text( mv_html_text ).
 
-    ENDCASE.
+          client->set_next( value #( xml_main = view->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

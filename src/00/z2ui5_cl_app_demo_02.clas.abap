@@ -56,21 +56,13 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+      z2ui5_on_init( ).
+    ENDIF.
+    z2ui5_on_event( client ).
 
-      WHEN client->cs-lifecycle_method-on_event.
-
-        IF check_initialized = abap_false.
-          check_initialized = abap_true.
-          z2ui5_on_init( ).
-          RETURN.
-        ENDIF.
-        z2ui5_on_event( client ).
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-        z2ui5_on_rendering( client ).
-
-    ENDCASE.
+    z2ui5_on_rendering( client ).
 
   ENDMETHOD.
 
@@ -85,7 +77,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
         CLEAR screen.
         client->popup_message_toast( 'View initialized' ).
       WHEN 'BACK'.
-        client->nav_app_leave( client->get( )-id_prev_app_stack ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
     ENDCASE.
 
@@ -117,25 +109,26 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_rendering.
 
-    DATA(page) = client->factory_view(
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
         )->page(
             title          = 'abap2UI5 - Selection-Screen Example'
             navbuttonpress = client->_event( 'BACK' )
+              shownavbutton = abap_true
             )->header_content(
                 )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1628701535222865922`
-                )->link( text = 'Source_Code' href = client->get( )-s_request-url_source_code
+                )->link( text = 'Source_Code' href = client->get( )-url_source_code
             )->get_parent( ).
 
     DATA(grid) = page->grid( 'L6 M12 S12'
         )->content( 'l' ).
 
     grid->simple_form( 'Input'
-        )->content( 'f'
+        )->content( 'form'
             )->label( 'Input with value help'
             )->input(
                     value           = client->_bind( screen-colour )
                     placeholder     = 'fill in your favorite colour'
-                    suggestionitems = client->_bind_one_way( mt_suggestion )
+                    suggestionitems = client->_bind_one( mt_suggestion )
                     showsuggestion  = abap_true )->get(
                 )->suggestion_items( )->get(
                     )->list_item(
@@ -143,7 +136,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
                         additionaltext = '{DESCR}' ).
 
     grid->simple_form( 'Time Inputs'
-        )->content( 'f'
+        )->content( 'form'
             )->label( 'Date'
             )->date_picker( client->_bind( screen-date )
             )->label( 'Date and Time'
@@ -156,7 +149,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
     DATA(form) = grid->get_parent( )->get_parent( )->grid( 'L12 M12 S12'
         )->content( 'l'
             )->simple_form( 'Input with select options'
-                )->content( 'f' ).
+                )->content( 'form' ).
 
     form->label( 'Checkbox'
         )->checkbox(
@@ -167,7 +160,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
         )->label( 'Combobox'
         )->combobox(
             selectedkey = client->_bind( screen-combo_key )
-            items       = client->_bind_one_way( VALUE ty_t_combo(
+            items       = client->_bind_one( VALUE ty_t_combo(
                     ( key = 'BLUE'  text = 'green' )
                     ( key = 'GREEN' text = 'blue' )
                     ( key = 'BLACK' text = 'red' )
@@ -222,6 +215,8 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
              text  = 'Send to Server'
              press = client->_event( 'BUTTON_SEND' )
              type  = 'Success' ).
+
+    client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -28,10 +28,6 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    CASE client->get( )-lifecycle_method.
-
-      WHEN client->cs-lifecycle_method-on_event.
-
         IF check_initialized = abap_false.
           check_initialized = abap_true.
 
@@ -43,7 +39,6 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
               (  title = 'title_04'  value = 'value_04' )
               (  title = 'title_05'  value = 'value_05' ) ).
 
-          RETURN.
         ENDIF.
 
         CASE client->get( )-event.
@@ -55,24 +50,22 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
             DELETE t_tab_sel WHERE selkz <> abap_true.
 
           WHEN 'BACK'.
-            client->nav_app_leave( client->get( )-id_prev_app_stack ).
+            client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
         ENDCASE.
 
-
-      WHEN client->cs-lifecycle_method-on_rendering.
-
-        DATA(page) = client->factory_view(
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
             )->page(
                 title          = 'abap2UI5 - Table with different Selection Modes'
                 navbuttonpress = client->_event( 'BACK' )
+                shownavbutton  = abap_true
                 )->header_content(
                     )->link(
                         text = 'Demo'
                         href = 'https://twitter.com/OblomovDev/status/1637852441671528448'
                     )->link(
                         text = 'Source_Code'
-                        href = client->get( )-s_request-url_source_code
+                        href = client->get( )-url_source_code
                 )->get_parent( ).
 
         page->segmented_button(
@@ -111,7 +104,7 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
                         )->text( '{VALUE}'
                         )->text( '{DESCR}' ).
 
-        page->table( client->_bind_one_way( t_tab_sel )
+        page->table( client->_bind_one( t_tab_sel )
             )->header_toolbar(
                 )->overflow_toolbar(
                     )->title( 'Selected Entries'
@@ -130,7 +123,7 @@ CLASS Z2UI5_CL_APP_DEMO_19 IMPLEMENTATION.
                 )->text( '{VALUE}'
                 )->text( '{DESCR}' ).
 
-    ENDCASE.
+  client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
