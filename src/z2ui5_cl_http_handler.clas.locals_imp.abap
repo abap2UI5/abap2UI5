@@ -244,7 +244,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     result = iv_val.
     SPLIT result AT iv_begin INTO DATA(lv_1) DATA(lv_2).
     SPLIT lv_2 AT iv_end INTO DATA(lv_dummy) DATA(lv_4).
-    result = lv_1 && iv_replace && lv_4.
+    IF lv_4 IS NOT INITIAL.
+      result = lv_1 && iv_replace && lv_4.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -895,9 +897,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
-    " data ms_db type z2ui5_t_draft.
-    "  data o_app TYPE REF TO z2ui5_if_app.
-    "  data mt_attri TYPE _=>ty_t_attri.
     TYPES:
       BEGIN OF ty_s_db,
         id                TYPE string,
@@ -1487,27 +1486,26 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
-    DO.
-      TRY.
-          DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
+    "  DO.
+    TRY.
+        DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
 
-        CATCH cx_root.
-          result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
-          EXIT.
-      ENDTRY.
+        TRY.
+            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
 
-      TRY.
-          CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-          EXIT.
+          CATCH cx_root.
+            DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
+            lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
+              val = `class with name ` && lv_classname && ` not found, app call not possible` ).
+            result->ms_db-o_app = lo_error.
+        ENDTRY.
 
-        CATCH cx_root.
-          DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
-          lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
-            val = `class with name ` && lv_classname && ` not found, app call not possible` ).
-          result->ms_db-o_app = lo_error.
-          EXIT.
-      ENDTRY.
-    ENDDO.
+      CATCH cx_root.
+        result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+    ENDTRY.
+
+
+    "   ENDDO.
 
     result->ms_db-o_app->id = result->ms_db-id.
     result->ms_db-t_attri   = _=>get_t_attri_by_ref( result->ms_db-o_app ).
@@ -1581,7 +1579,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
-          _=>raise( `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used, this is not possible` ).
+          _=>raise( `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used` ).
         ENDIF.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
@@ -1589,6 +1587,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
+
+    IF type = cs_bind_type-two_way.
+      _=>raise( `Binding Error - two way binding used but no attribute found (` && lr_attri->name && `)` ).
+    ENDIF.
 
     "one time when not global class attribute
     lv_id = _=>get_uuid_session( ).
