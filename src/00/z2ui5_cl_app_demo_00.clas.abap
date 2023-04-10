@@ -86,10 +86,10 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 *         )->button( text = 'Split App' press = client->_event( 'z2ui5_cl_app_demo_17' )
     ).
 *
-    grid->simple_form( title = 'HowTo - View Extension' layout = 'ResponsiveGridLayout' )->content( 'form'
-         )->button( text = 'XML vs. Normal' press = client->_event( 'z2ui5_cl_app_demo_23' )
-         )->button( text = 'Import XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
-*         )->button( text = 'Expression Binding / Side Effects' press = client->_event( 'z2ui5_cl_app_demo_27' )
+    grid->simple_form( title = 'HowTo - Extensions' layout = 'ResponsiveGridLayout' )->content( 'form'
+         )->button( text = 'Views - Normal, Generic, XML' press = client->_event( 'z2ui5_cl_app_demo_23' )
+         )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
+         )->button( text = 'HTML, JS, CSS' press = client->_event( 'z2ui5_cl_app_demo_29' )
     ).
 *
 *       grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'f'
