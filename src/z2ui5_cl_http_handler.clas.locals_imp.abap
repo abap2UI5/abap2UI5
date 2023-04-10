@@ -1509,7 +1509,8 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
             WHEN cl_abap_datadescr=>kind_elem.
               CREATE DATA <attribute> TYPE (lr_attri->gen_type).
               lv_value = lo_model->get_attribute( lr_attri->name )->get_val( ).
-              <attribute>->* = lv_value.
+              assign <attribute>->* to FIELD-SYMBOL(<attribute2>).
+              <attribute2> = lv_value.
             WHEN cl_abap_datadescr=>kind_table.
               DATA(lo_struc) = cl_abap_structdescr=>describe_by_name( lr_attri->gen_type ).
               DATA(lo_tab) = cl_abap_tabledescr=>create(
@@ -1518,10 +1519,10 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
                                p_unique       = abap_false
                              ).
               CREATE DATA <attribute> TYPE HANDLE lo_tab.
-
+              assign <attribute>->* to <attribute2>.
               _=>trans_ref_tab_2_tab(
               EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-              CHANGING ct_to   = <attribute>->* ).
+              CHANGING ct_to   = <attribute2> ).
 
               "(lr_attri->gen_type).
           ENDCASE.

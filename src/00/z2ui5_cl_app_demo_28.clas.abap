@@ -105,8 +105,10 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
 
     SELECT FROM z2ui5_t_draft
         FIELDS uuid, uuid_prev
+        order by uuid
       INTO TABLE @DATA(lt_data)
-        UP TO 10 ROWS.
+        UP TO 10 ROWS
+        .
 
     mt_draft->* = CORRESPONDING #( lt_data ).
 
