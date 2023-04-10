@@ -637,6 +637,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       IMPORTING
         text          TYPE clike OPTIONAL
         href          TYPE clike OPTIONAL
+        target        type clike optional
         enabled       TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
       RETURNING
@@ -1533,10 +1534,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
      name  = `Link`
      ns    = ns
        t_prop = VALUE #(
-         ( n = `text`   v = text )
-         ( n = `target` v = `_blank` )
-         ( n = `href`   v = href )
-         ( n = `enabled`   v = _=>get_json_boolean( enabled ) )
+         ( n = `text`    v = text )
+         ( n = `target`  v = target )
+         ( n = `href`    v = href )
+         ( n = `enabled` v = _=>get_json_boolean( enabled ) )
        ) ).
 
   ENDMETHOD.
