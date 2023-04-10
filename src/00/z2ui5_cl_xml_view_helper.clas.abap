@@ -24,7 +24,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
     CLASS-METHODS factory
       IMPORTING
         ns            TYPE string_table OPTIONAL
-        check_shell   TYPE abap_bool    DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -216,6 +215,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
+    METHODS shell
+      IMPORTING
+        ns            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
     METHODS blocks
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -879,12 +883,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     lo_tree->m_root = lo_tree.
     lo_tree->m_parent = lo_tree.
     result = lo_tree.
-
-    if check_shell = abap_true.
-
-    result = result->_generic( 'Shell' ).
-
-    endif.
 
   ENDMETHOD.
 
@@ -2280,6 +2278,15 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
          name  = `ZZPLAIN`
          t_prop = VALUE #( ( n = `VALUE` v = val ) )
     ).
+
+  ENDMETHOD.
+
+  METHOD shell.
+
+    _generic(
+       name   = `ObjectAttribute`
+       ns     = `ns`
+     ).
 
   ENDMETHOD.
 
