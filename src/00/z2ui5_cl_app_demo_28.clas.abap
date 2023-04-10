@@ -108,7 +108,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
       INTO TABLE @DATA(lt_data)
         UP TO 10 ROWS.
 
-    mt_draft->* = lt_data.
+    mt_draft->* = CORRESPONDING #( lt_data ).
 
   ENDMETHOD.
 
@@ -136,7 +136,8 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
                 press = client->_event( 'BUTTON_POST' )
             ).
 
-    DATA(tab) = lo_view->table(
+   data(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
+             )->content( 'form' )->table(
                items = client->_bind( val = mt_draft->*  check_gen_data = abap_true )
            ).
 
