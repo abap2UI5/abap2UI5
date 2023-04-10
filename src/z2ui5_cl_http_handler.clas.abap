@@ -139,7 +139,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
                            `     ` && |\n|  &&
-                           `                         jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
+                           `                        ` && |\n|  &&
                            `                         sap.ui.core.Fragment.load({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
                            `                            controller: this,` && |\n|  &&
@@ -271,6 +271,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        if (xml == '') { xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />' };` && |\n|  &&
                            |\n|  &&
                            `        debugger;` && |\n|  &&
+                           `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
+                           `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
+                           `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
                            `        oView.getController().Roundtrip();` && |\n|  &&
                            |\n|  &&
