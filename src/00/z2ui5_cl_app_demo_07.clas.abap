@@ -153,7 +153,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_view_init.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( check_shell = abap_false ns = VALUE #(
+    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( ns = VALUE #(
          ( `xmlns:mvc="sap.ui.core.mvc"` )
          ( `xmlns:m="sap.m"` )
          ( `xmlns:z2ui5="z2ui5"` )
