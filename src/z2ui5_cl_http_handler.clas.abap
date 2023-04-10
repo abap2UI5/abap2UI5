@@ -76,7 +76,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DATA(lv_url) = client-t_header[ name = '~path' ]-value.
     TRY.
         DATA(lv_app) = client-t_param[ name = 'APP' ]-value.
-       " lv_url = lv_url && `?app=` && lv_app.
       CATCH cx_root.
     ENDTRY.
 
@@ -109,9 +108,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
                            |\n|  &&
-                           `       // sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/model/json/JSONModel", "sap/m/MessageBox", "sap/ui/core/Fragment"], function (Controller, JSONModel, MessageBox, Fragment) {` && |\n|  &&
-                           `         //   "use strict";` && |\n|  &&
-                           `          //  return Controller.extend("z2ui5_controller", {` && |\n|  &&
                            `            sap.ui.controller("z2ui5_controller", {` && |\n|  &&
                            |\n|  &&
                            `                onAfterRendering: function () {` && |\n|  &&
@@ -141,7 +137,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        }));` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
-                           `                        new sap.ui.core.Fragment.load({` && |\n|  &&
+                           `     ` && |\n|  &&
+                           `                         jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
+                           `                         sap.ui.core.Fragment.load({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
                            `                            controller: this,` && |\n|  &&
                            `                        }).then(function (oFragment) {` && |\n|  &&
@@ -201,7 +199,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                            `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                            `                    sap.z2ui5.oResponse = {};` && |\n|  &&
-
                            `                    this.oView.destroy();` && |\n|  &&
                            `                    this.Roundtrip();` && |\n|  &&
                            `                },` && |\n|  &&
@@ -212,7 +209,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    var xhr = new XMLHttpRequest();` && |\n|  &&
                            `                   if ( sap.startApp ) { var app = sap.startApp;   }else` && |\n|  &&
                            `                      {   ` && |\n|  &&
-                           `                         app = '`  && lv_app && `'; ` && |\n|  &&
+                           `                         app = ' ` && lv_app && `'; ` && |\n|  &&
                            `                         }` && |\n|  &&
                            `                    var url = '/sap/bc/http/sap/y2ui5_http_handler?app=' + app;` && |\n|  &&
                            `                    xhr.open("POST", url, true);` && |\n|  &&
@@ -248,8 +245,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            }).then(oView => {` && |\n|  &&
                            `                                oView.setModel(oModel);` && |\n|  &&
                            `                                debugger;` && |\n|  &&
-                         `                                oView.placeAt("content");` && |\n|  &&
-*                           `                               sap.z2ui5.oParent.addContent( oView );` && |\n|  &&
+                           `                                oView.placeAt("content");` && |\n|  &&
                            `                                this.oView = oView;` && |\n|  &&
                            `                                sap.z2ui5.oView = oView;` && |\n|  &&
                            `                            });` && |\n|  &&
@@ -268,7 +264,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    xhr.send(JSON.stringify(this.oBody));` && |\n|  &&
                            `                },` && |\n|  &&
                            `            });` && |\n|  &&
-                           `     //   });` && |\n|  &&
                            |\n|  &&
                            `        if (!sap.z2ui5) {sap.z2ui5 = {}; };` && |\n|  &&
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
@@ -278,17 +273,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
                            `        oView.getController().Roundtrip();` && |\n|  &&
                            |\n|  &&
-                           `        ` && |\n|  &&
-                           `       // var oView = new sap.ui.core.mvc.View.create({` && |\n|  &&
-                           `       //     type: 'XML',` && |\n|  &&
-                           `       //     definition: xml,` && |\n|  &&
-                           `       // }).then(oView => {` && |\n|  &&
-                           `       //     oView.getController().Roundtrip();` && |\n|  &&
-                           `       // });` && |\n|  &&
-                           |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
-                           `</html>`.
+                           `</html>` .
 
   ENDMETHOD.
 ENDCLASS.

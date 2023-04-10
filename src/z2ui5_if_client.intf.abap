@@ -16,10 +16,8 @@ INTERFACE z2ui5_if_client
       id_prev           TYPE string,
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
-      t_req_params      type ty_t_name_value,
+      t_req_param       type ty_t_name_value,
       t_req_header      type ty_t_name_value,
-    "  url_app           TYPE string,
-    "  url_source_code   TYPE string,
     END OF ty_s_get.
 
   TYPES:

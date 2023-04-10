@@ -1724,13 +1724,12 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get.
 
-    result = value #( base mo_runtime->ms_actual
-        id                = mo_runtime->ms_db-id
-        id_prev_app       = mo_runtime->ms_db-id_prev_app
-        id_prev_app_stack = mo_runtime->ms_db-id_prev_app_stack
-        t_req_header      = z2ui5_cl_http_handler=>client-t_header
-        t_req_params      = z2ui5_cl_http_handler=>client-t_param
-    ).
+    result = VALUE #( BASE CORRESPONDING #( mo_runtime->ms_db )
+         event             = mo_runtime->ms_actual-event
+         event_data        = mo_runtime->ms_actual-event_data
+         t_req_header      = z2ui5_cl_http_handler=>client-t_header
+         t_req_param       = z2ui5_cl_http_handler=>client-t_param
+     ).
 
   ENDMETHOD.
 

@@ -15,9 +15,9 @@ CLASS z2ui5_cl_app_demo_27 DEFINITION PUBLIC.
     DATA input52 TYPE string.
   PROTECTED SECTION.
 
+    data  client            TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
-        client            TYPE REF TO z2ui5_if_client,
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
@@ -39,7 +39,7 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    app-client     = client.
+    me->client        = client.
     app-s_get      = client->get( ).
     app-view_popup = ``.
 
@@ -66,19 +66,19 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
     CASE app-s_get-event.
 
       WHEN 'BUTTON_POST'.
-        app-client->popup_message_toast( |{ product } { quantity } - send to the server| ).
+        client->popup_message_toast( |{ product } { quantity } - send to the server| ).
         app-view_popup = 'POPUP_CONFIRM'.
 
       WHEN 'BUTTON_CONFIRM'.
-        app-client->popup_message_toast( |confirm| ).
+        client->popup_message_toast( |confirm| ).
         app-view_popup = ''.
 
       WHEN 'BUTTON_CANCEL'.
-        app-client->popup_message_toast( |cancel| ).
+        client->popup_message_toast( |cancel| ).
         app-view_popup = ''.
 
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-client->get_app( app-s_get-id_prev_app_stack ) ).
+        client->nav_app_leave( client->get_app( app-s_get-id_prev_app_stack ) ).
 
     ENDCASE.
 
@@ -101,12 +101,12 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
     app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
       )->page(
               title          = 'abap2UI5 - Binding Syntax'
-              navbuttonpress = app-client->_event( 'BACK' )
+              navbuttonpress = client->_event( 'BACK' )
               shownavbutton  = abap_true
           )->header_content(
               )->link(
                   text = 'Source_Code'
-                  href = app-client->get( )-url_source_code
+                  href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
           )->get_parent(
           )->simple_form( title = 'Binding Syntax' editable = abap_true
               )->content( 'form'
@@ -117,43 +117,43 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
                   text = 'Expression Binding'
                   href = 'https://sapui5.hana.ondemand.com/sdk/#/topic/daf6852a04b44d118963968a1239d2c0'
                 )->label( 'input in uppercase'
-                )->input( app-client->_bind( input2 )
+                )->input( client->_bind( input2 )
                 )->input(
-                    value   = '{= $' &&  app-client->_bind( input2 ) && '.toUpperCase() }'
+                    value   = '{= $' &&  client->_bind( input2 ) && '.toUpperCase() }'
                     enabled = abap_false
 
 
                 )->label( 'max value of the first two inputs'
                 )->input( '{ type : "sap.ui.model.type.Integer",' &&
-                          '  path:"' &&  app-client->_bind( val = input31 path = abap_true ) && '" }'
+                          '  path:"' &&  client->_bind( val = input31 path = abap_true ) && '" }'
                 )->input( '{ type : "sap.ui.model.type.Integer",' && |\n|  &&
-                          '  path:"' &&  app-client->_bind( val = input32 path = abap_true ) && '" }'
+                          '  path:"' &&  client->_bind( val = input32 path = abap_true ) && '" }'
                 )->input(
-                    value   = '{= Math.max($' &&  app-client->_bind( input31 ) &&', $' &&  app-client->_bind( input32 ) &&  ') }'
+                    value   = '{= Math.max($' && client->_bind( input31 ) &&', $' &&  client->_bind( input32 ) &&  ') }'
                     enabled = abap_false
 
 
                 )->label( 'only enabled when the quantity equals 500'
                 )->input( '{ type : "sap.ui.model.type.Integer",' &&
-                          '  path:"' &&  app-client->_bind( val = quantity path = abap_true ) && `"  }`
+                          '  path:"' && client->_bind( val = quantity path = abap_true ) && `"  }`
                 )->input(
                     value   = product
-                    enabled = '{= 500===$' && app-client->_bind( quantity ) && ' }'
+                    enabled = '{= 500===$' && client->_bind( quantity ) && ' }'
 
                 )->label( 'RegExp Set to enabled if the input contains VIP, ignoring the case.'
-                )->input( app-client->_bind( val = input41 )
+                )->input( client->_bind( val = input41 )
                 )->button(
                     text   = 'VIP'
-                    enabled = '{= RegExp(''vip'', ''i'').test($' && app-client->_bind( input41 ) && ') }'
+                    enabled = '{= RegExp(''vip'', ''i'').test($' && client->_bind( input41 ) && ') }'
 
 
                 )->label( 'concatenate both inputs'
-                )->input( app-client->_bind( val = input51 )
-                )->input( app-client->_bind( val = input52 )
+                )->input( client->_bind( val = input51 )
+                )->input( client->_bind( val = input52 )
                 )->input(
                     value   = '{ parts: [' && |\n|  &&
-                              '                "' &&  app-client->_bind( val = input51 path = abap_true ) && '",' && |\n|  &&
-                              '                "' &&   app-client->_bind( val = input52 path = abap_true ) && '"' && |\n|  &&
+                              '                "' &&  client->_bind( val = input51 path = abap_true ) && '",' && |\n|  &&
+                              '                "' &&  client->_bind( val = input52 path = abap_true ) && '"' && |\n|  &&
                               '               ]  }'
                     enabled = abap_false
 

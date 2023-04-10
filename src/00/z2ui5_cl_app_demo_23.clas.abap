@@ -7,9 +7,9 @@ CLASS z2ui5_cl_app_demo_23 DEFINITION PUBLIC.
     DATA product  TYPE string.
     DATA quantity TYPE string.
 
+    data client type ref to z2ui5_if_client.
     DATA:
       BEGIN OF app,
-        client            TYPE REF TO z2ui5_if_client,
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
@@ -33,7 +33,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
 
   METHOD z2ui5_if_app~controller.
 
-    app-client = client.
+    me->client = client.
     app-s_get  = client->get( ).
     "  app-view_popup = ``.
 
@@ -61,7 +61,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
     CASE app-s_get-event.
 
       WHEN 'BACK'.
-        app-client->nav_app_leave( app-client->get_app( app-s_get-id_prev_app_stack ) ).
+        client->nav_app_leave( client->get_app( app-s_get-id_prev_app_stack ) ).
 
       WHEN OTHERS.
         app-view_main = app-s_get-event.
@@ -105,15 +105,15 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                               ` /> <Label ` && |\n|  &&
                               `  text="quantity" ` && |\n|  &&
                               ` /> <Input ` && |\n|  &&
-                              `  value="` &&  app-client->_bind( quantity ) && `" ` && |\n|  &&
+                              `  value="` &&  client->_bind( quantity ) && `" ` && |\n|  &&
                               ` /> <Button ` && |\n|  &&
-                              `  press="` &&  app-client->_event( 'NORMAL' ) && `"`  && |\n|  &&
+                              `  press="` &&  client->_event( 'NORMAL' ) && `"`  && |\n|  &&
                               `  text="NORMAL" ` && |\n|  &&
                               ` /> <Button ` && |\n|  &&
-                                  `  press="` &&  app-client->_event( 'GENERIC' ) && `"`  && |\n|  &&
+                                  `  press="` &&  client->_event( 'GENERIC' ) && `"`  && |\n|  &&
                               `  text="GENERIC" ` && |\n|  &&
                               ` /> <Button ` && |\n|  &&
-                                 `  press="` &&  app-client->_event( 'XML' ) && `"`  && |\n|  &&
+                                 `  press="` &&  client->_event( 'XML' ) && `"`  && |\n|  &&
                               `  text="XML" ` && |\n|  &&
                               ` /></f:content></f:SimpleForm></Page></Shell></mvc:View>`.
 
@@ -123,27 +123,27 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
         app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
           )->page(
                   title          = 'abap2UI5 - NORMAL NORMAL NORMAL'
-                  navbuttonpress = app-client->_event( 'BACK' )
+                  navbuttonpress = client->_event( 'BACK' )
                   shownavbutton  = abap_true
               )->header_content(
                   )->link(
                       text = 'Source_Code'
-                      href = app-client->get( )-url_source_code
+                      href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
               )->get_parent(
               )->simple_form( 'Form Title'
                   )->content( 'form'
                       )->title( 'Input'
                       )->label( 'quantity'
-                      )->input( app-client->_bind( quantity )
+                      )->input( client->_bind( quantity )
                       )->button(
                           text  = 'NORMAL'
-                          press = app-client->_event( 'NORMAL' )
+                          press = client->_event( 'NORMAL' )
                       )->button(
                           text  = 'GENERIC'
-                          press = app-client->_event( 'GENERIC' )
+                          press = client->_event( 'GENERIC' )
                          )->button(
                           text  = 'XML'
-                          press = app-client->_event( 'XML' )
+                          press = client->_event( 'XML' )
            )->get_root( )->xml_get( ).
 
 
@@ -156,7 +156,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
            t_prop = VALUE #(
                ( n = `title`          v = 'abap2UI5 - GENERIC GENERIC GENERIC' )
                ( n = `showNavButton`  v = `true` )
-               ( n = `navButtonPress` v = app-client->_event( 'BACK' ) )
+               ( n = `navButtonPress` v = client->_event( 'BACK' ) )
            ) )->_generic(
                 name = `SimpleForm`
                 ns   = `form`
@@ -172,25 +172,25 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
            ) )->get_parent( )->_generic(
                 name = `Input`
                 t_prop = VALUE #(
-                    ( n = `value` v = app-client->_bind( quantity ) )
+                    ( n = `value` v = client->_bind( quantity ) )
            ) )->get_parent(
             )->_generic(
                 name = `Button`
                 t_prop = VALUE #(
                     ( n = `text`  v = `NORMAL` )
-                    ( n = `press` v = app-client->_event( 'NORMAL' ) ) )
+                    ( n = `press` v = client->_event( 'NORMAL' ) ) )
                )->get_parent(
                )->_generic(
                 name = `Button`
                 t_prop = VALUE #(
                     ( n = `text`  v = `GENERIC` )
-                    ( n = `press` v = app-client->_event( 'GENERIC' ) ) )
+                    ( n = `press` v = client->_event( 'GENERIC' ) ) )
                 )->get_parent(
                      )->_generic(
                 name = `Button`
                 t_prop = VALUE #(
                     ( n = `text`  v = `XML` )
-                    ( n = `press` v = app-client->_event( 'XML' ) ) )
+                    ( n = `press` v = client->_event( 'XML' ) ) )
                  ).
 
         app-s_next-xml_main = li_view->get_root( )->xml_get( ).

@@ -12,8 +12,8 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       END OF ty_s_name_value.
     TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
-    DATA m_name TYPE string.
-    DATA m_ns   TYPE string.
+    DATA m_name  TYPE string.
+    DATA m_ns    TYPE string.
     DATA mt_prop TYPE ty_t_name_value.
 
     DATA m_root    TYPE REF TO z2ui5_cl_xml_view_helper.
