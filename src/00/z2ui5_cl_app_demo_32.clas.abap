@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_29 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_32 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -32,7 +32,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -110,6 +110,48 @@ CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
                           `</style>` &&
                           `</head>` && |\n|  &&
                           `<body>` && |\n|  &&
+                                                    `<script> debugger; if(!z2ui5.MyCC){   jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
+                          |\n|  &&
+                          `    sap.ui.define( [` && |\n|  &&
+                          `        "sap/ui/core/Control",` && |\n|  &&
+                          `    ], function (Control) {` && |\n|  &&
+                          `        "use strict";` && |\n|  &&
+                          |\n|  &&
+                          `        return Control.extend("z2ui5.MyCC", {` && |\n|  &&
+                          |\n|  &&
+                          `            metadata: {` && |\n|  &&
+                          `                properties: {` && |\n|  &&
+                          `                    value: { type: "string" }` && |\n|  &&
+                          `                },` && |\n|  &&
+                          `                events: {` && |\n|  &&
+                          `                    "change": {` && |\n|  &&
+                          `                        allowPreventDefault: true,` && |\n|  &&
+                          `                        parameters: {}` && |\n|  &&
+                          `                    }` && |\n|  &&
+                          `                }` && |\n|  &&
+                          `            },` && |\n|  &&
+                          |\n|  &&
+                          `            renderer: function (oRm, oControl) {` && |\n|  &&
+                          |\n|  &&
+                          `                oControl.oInput = new sap.m.Input({` && |\n|  &&
+                          `                    value: oControl.getProperty("value")` && |\n|  &&
+                          `                });` && |\n|  &&
+                          |\n|  &&
+                          `                oControl.oButton = new sap.m.Button({` && |\n|  &&
+                          `                    text: 'button text',` && |\n|  &&
+                          `                    press: function (oEvent) {` && |\n|  &&
+                          `                        // this.oInput._sTypedInValue` && |\n|  &&
+                          `                        // this.oInput.getProperty( 'value' ) ` && |\n|  &&
+                          `                        this.setProperty("value", this.oInput._sTypedInValue );` && |\n|  &&
+                          `                        this.fireChange();` && |\n|  &&
+                          `                    }.bind(oControl)` && |\n|  &&
+                          `                });` && |\n|  &&
+                          `                oRm.renderControl(oControl.oInput);` && |\n|  &&
+                          `                oRm.renderControl(oControl.oButton);` && |\n|  &&
+                          `            }` && |\n|  &&
+                          `    });` && |\n|  &&
+                          `}); } </script>` && |\n|  &&
+                          |\n|  &&
                           `<h1>This is a heading with css</h1>` && |\n|  &&
                           `<p>This is a paragraph with css.</p>` && |\n|  &&
                           `<h1>My First JavaScript</h1>` && |\n|  &&
@@ -143,7 +185,10 @@ CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
                           `    context.clearRect (385, 60, 50, 10); }  ` && |\n|  &&
                           ` function myFunction( ) { alert( 'button pressed' ) }` && |\n|  &&
                           ` function myFunction2( ) { sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, ` && ' document.getElementById(sap.z2ui5.oView.createId( "input" )).value ' && ` ) }` && |\n|  &&
-                          `</script></body>` && |\n|  &&
+                                                                    `</script> <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/barcodes/JsBarcode.code128.min.js"> </script>` &&
+*                                                    ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
+
+                          `</body>` && |\n|  &&
                           `</html> ` && |\n|  &&
                             `</mvc:View>`.
 

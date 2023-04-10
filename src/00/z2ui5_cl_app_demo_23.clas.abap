@@ -120,7 +120,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
 
       WHEN 'NORMAL'.
 
-        app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory(
+        app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory( )->shell(
           )->page(
                   title          = 'abap2UI5 - NORMAL NORMAL NORMAL'
                   navbuttonpress = client->_event( 'BACK' )
@@ -129,6 +129,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                   )->link(
                       text = 'Source_Code'
                       href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                      target = '_blank'
               )->get_parent(
               )->simple_form( 'Form Title'
                   )->content( 'form'
@@ -157,7 +158,9 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                ( n = `title`          v = 'abap2UI5 - GENERIC GENERIC GENERIC' )
                ( n = `showNavButton`  v = `true` )
                ( n = `navButtonPress` v = client->_event( 'BACK' ) )
-           ) )->_generic(
+           )
+           )->_generic( 'Shell'
+           )->_generic(
                 name = `SimpleForm`
                 ns   = `form`
                 t_prop = VALUE #(
