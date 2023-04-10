@@ -70,16 +70,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
-    client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
-                                 ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
-
-    DATA(lv_url) = client-t_header[ name = '~path' ]-value.
-
-    TRY.
-        DATA(lv_app) = client-t_param[ name = 'APP' ]-value.
-      CATCH cx_root.
-    ENDTRY.
-
+    DATA(lv_url) = _=>get_header_val( '~path' ).
+    DATA(lv_app) = _=>get_param_val( 'app' ).
     z2ui5_lcl_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
@@ -278,4 +270,5 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `</html>`.
 
   ENDMETHOD.
+
 ENDCLASS.
