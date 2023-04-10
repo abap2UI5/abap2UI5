@@ -33,6 +33,7 @@ CLASS z2ui5_cl_app_demo_05 DEFINITION PUBLIC.
        end of ty_S_token.
 
     data mt_token            type STANDARD TABLE OF ty_S_token with empty key.
+    data mt_token_sugg       type STANDARD TABLE OF ty_S_token with empty key.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -50,9 +51,15 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
             mt_token = value #(
                 ( key = 'VAL1' text = 'value_1' selkz = abap_true  visible = abap_true )
-                ( key = 'VAL2' text = 'value_2' selkz = abap_false )
                 ( key = 'VAL3' text = 'value_3' selkz = abap_false visible = abap_true )
                 ( key = 'VAL4' text = 'value_4' selkz = abap_true )
+            ).
+
+            mt_token_sugg = value #(
+                ( key = 'VAL1' text = 'value_1' )
+                ( key = 'VAL2' text = 'value_2' )
+                ( key = 'VAL3' text = 'value_3' )
+                ( key = 'VAL4' text = 'value_4' )
             ).
 
           screen = VALUE #(
@@ -84,7 +91,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         ENDCASE.
 
-        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
             )->page(
                     title          = 'abap2UI5 - Selection-Screen more Controls'
                     navbuttonpress = client->_event( 'BACK' )
@@ -165,7 +172,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                     tokens = client->_bind( mt_token )
                     showclearicon   = abap_true
                     showvaluehelp   = abap_true
-                    suggestionitems = client->_bind_one( mt_token )
+                    suggestionitems = client->_bind( mt_token_sugg )
                 )->item(
                         key = `{KEY}`
                         text = `{TEXT}`

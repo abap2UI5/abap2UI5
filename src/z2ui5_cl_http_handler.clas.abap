@@ -103,8 +103,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `</body>` && |\n| &&
                `</html>` && |\n|.
 
-
-
     r_result = r_result && `<script id="z2ui5">` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
@@ -245,7 +243,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                                definition: sap.z2ui5.oResponse.vView,` && |\n|  &&
                            `                            }).then(oView => {` && |\n|  &&
                            `                                oView.setModel(oModel);` && |\n|  &&
-                           `                                debugger;` && |\n|  &&
                            `                                oView.placeAt("content");` && |\n|  &&
                            `                                this.oView = oView;` && |\n|  &&
                            `                                sap.z2ui5.oView = oView;` && |\n|  &&
@@ -270,7 +267,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
                            `        if (xml == '') { xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />' };` && |\n|  &&
                            |\n|  &&
-                           `        debugger;` && |\n|  &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
