@@ -74,6 +74,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                                  ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
 
     DATA(lv_url) = client-t_header[ name = '~path' ]-value.
+
     TRY.
         DATA(lv_app) = client-t_param[ name = 'APP' ]-value.
       CATCH cx_root.
@@ -211,7 +212,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                      {   ` && |\n|  &&
                            `                         app = ' ` && lv_app && `'; ` && |\n|  &&
                            `                         }` && |\n|  &&
-                           `                    var url = '/sap/bc/http/sap/y2ui5_http_handler?app=' + app;` && |\n|  &&
+                           `                    var url = '` && lv_url && `?app=' + app;` && |\n|  &&
                            `                    xhr.open("POST", url, true);` && |\n|  &&
                            `                    xhr.onload = function (that) {` && |\n|  &&
                            |\n|  &&
@@ -275,7 +276,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
-                           `</html>` .
+                           `</html>`.
 
   ENDMETHOD.
 ENDCLASS.
