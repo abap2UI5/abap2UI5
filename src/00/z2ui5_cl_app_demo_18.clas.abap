@@ -22,15 +22,15 @@ CLASS z2ui5_cl_app_demo_18 DEFINITION PUBLIC.
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
 
-    METHODS z2ui5_on_view_main
+    METHODS z2ui5_render_view_main
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS z2ui5_on_view_second
+    METHODS z2ui5_render_view_second
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS z2ui5_on_popup_input
+    METHODS z2ui5_render_popup_input
       RETURNING
         VALUE(result) TYPE string.
 
@@ -66,15 +66,15 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     "view rendering
     CASE app-view_main.
       WHEN 'VIEW_MAIN'.
-        app-next-xml_main = z2ui5_on_view_main( ).
+        app-next-xml_main = z2ui5_render_view_main( ).
       WHEN 'VIEW_SECOND'.
-        app-next-xml_main = z2ui5_on_view_second( ).
+        app-next-xml_main = z2ui5_render_view_second( ).
     ENDCASE.
 
     "popup rendering
     CASE app-view_popup.
       WHEN 'POPUP_INPUT'.
-        app-next-xml_popup = z2ui5_on_popup_input( ).
+        app-next-xml_popup = z2ui5_render_popup_input( ).
     ENDCASE.
 
     "set the data for the frontend
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_on_view_main.
+  METHOD z2ui5_render_view_main.
 
     result = z2ui5_cl_xml_view_helper=>factory(
         )->page(
@@ -162,7 +162,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_on_view_second.
+  METHOD z2ui5_render_view_second.
 
     result = z2ui5_cl_xml_view_helper=>factory(
          )->page(
@@ -193,7 +193,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_on_popup_input.
+  METHOD z2ui5_render_popup_input.
 
     result = z2ui5_cl_xml_view_helper=>factory( )->dialog(
                       title = 'Title'

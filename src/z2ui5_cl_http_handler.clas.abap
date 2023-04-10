@@ -58,7 +58,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           result = lo_runtime->request_end( ).
 
         CATCH cx_root INTO DATA(x).
-          lo_runtime = lo_runtime->set_app_system_error( x ).
+          lo_runtime = lo_runtime->set_app_system( x ).
           CONTINUE.
       ENDTRY.
 

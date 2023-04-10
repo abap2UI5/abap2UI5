@@ -108,9 +108,11 @@ CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
                           `h1   {color: blue;}` && |\n|  &&
                           `p    {color: red;}` && |\n|  &&
                           `</style>` &&
-                          `<script>    jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
+                          `</head>` && |\n|  &&
+                          `<body>` && |\n|  &&
+                                                    `<script> debugger; if(!z2ui5.MyCC){   jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
                           |\n|  &&
-                          `    sap.ui.define([` && |\n|  &&
+                          `    sap.ui.define( [` && |\n|  &&
                           `        "sap/ui/core/Control",` && |\n|  &&
                           `    ], function (Control) {` && |\n|  &&
                           `        "use strict";` && |\n|  &&
@@ -148,9 +150,7 @@ CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
                           `                oRm.renderControl(oControl.oButton);` && |\n|  &&
                           `            }` && |\n|  &&
                           `    });` && |\n|  &&
-                          `});</script>` && |\n|  &&
-                          `</head>` && |\n|  &&
-                          `<body>` && |\n|  &&
+                          `}); } </script>` && |\n|  &&
                           |\n|  &&
                           `<h1>This is a heading</h1>` && |\n|  &&
                           `<p>This is a paragraph.</p>` && |\n|  &&
@@ -184,9 +184,9 @@ CLASS Z2UI5_CL_APP_DEMO_29 IMPLEMENTATION.
                           `    context.clearRect (385, 60, 50, 10); }  ` && |\n|  &&
                           ` function myFunction( ) { sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, 'this is my data' ) }` && |\n|  &&
                                                                     `</script> <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/barcodes/JsBarcode.code128.min.js"> </script>` &&
-                          `</body>` && |\n|  &&
-                            ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
+*                                                    ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
 
+                          `</body>` && |\n|  &&
                           `</html> ` && |\n|  &&
                             `</mvc:View>`.
 
