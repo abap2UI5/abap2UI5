@@ -2061,10 +2061,12 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD title.
 
+    data(lv_name) = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` ).
+
     result = me.
     _generic(
          ns = ns
-         name  = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` )
+         name  = lv_name
          t_prop = VALUE #(
              ( n = `text`     v = text )
              ( n = `wrapping` v = _=>get_json_boolean( wrapping ) )
