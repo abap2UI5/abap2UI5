@@ -1316,7 +1316,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD create.
 
-    DATA(lo_app) = CAST object( db-o_app ).
+    DATA(lo_app) = CAST object( db-o_app ) ##NEEDED.
 
     LOOP AT db-t_attri REFERENCE INTO DATA(lr_attri) WHERE gen_type IS NOT INITIAL.
 
@@ -1633,9 +1633,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF check_gen_data = abap_true.
         TRY.
-            DATA(lo_refdescr) = CAST cl_abap_refdescr( cl_abap_datadescr=>describe_by_data( lr_ref2->* ) ).
-            DATA lr_ref TYPE REF TO data.
-            lr_ref =  lr_ref2->*.
+         "   DATA(lo_refdescr) = CAST cl_abap_refdescr( cl_abap_datadescr=>describe_by_data( lr_ref2->* ) ).
+         "   DATA lr_ref TYPE REF TO data.
+            data(lr_ref) = cast data( lr_ref2->* ).
             IF lr_attri->gen_type IS INITIAL.
               DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( lr_ref->* ).
               lr_attri->gen_type_kind = lo_datadescr->type_kind.
