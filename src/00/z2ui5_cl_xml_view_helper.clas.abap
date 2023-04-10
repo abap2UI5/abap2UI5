@@ -824,8 +824,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
 
     METHODS xml_get
-     " IMPORTING
-    "    check_shell   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
@@ -833,14 +831,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
   PROTECTED SECTION.
 
     METHODS xml_get_begin
-      IMPORTING
-        check_shell   TYPE abap_bool DEFAULT abap_true
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS xml_get_end
-      IMPORTING
-        check_shell   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
@@ -906,17 +896,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       result = result && ` ` && lr_ns->* && ` `.
     ENDLOOP.
     result = result && `>`.
-   " result = result && COND #( WHEN check_shell = abap_true THEN `<Shell>` ).
 
   ENDMETHOD.
 
-
-  METHOD xml_get_end.
-
-  "  result = COND #( WHEN check_shell = abap_true THEN `</Shell>` ) && `</mvc:View>`.
-    result = `</mvc:View>`.
-
-  ENDMETHOD.
 
   METHOD header.
 
@@ -2128,7 +2110,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   METHOD toolbar_spacer.
 
     result = me.
-    _generic( `ToolbarSpacer` ).
+    _generic(
+        name = `ToolbarSpacer`
+        ns   = ns
+        ).
 
   ENDMETHOD.
 
@@ -2167,15 +2152,13 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-     " result = xml_get_begin( check_shell ).
       result = xml_get_begin(  ).
 
       LOOP AT t_child INTO DATA(lr_child).
         result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
       ENDLOOP.
 
-     " result = result && xml_get_end( check_shell ).
-      result = result && xml_get_end(  ).
+      result = result &&  `</mvc:View>`.
       RETURN.
     ENDIF.
 
