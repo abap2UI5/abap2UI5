@@ -27,6 +27,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
+    CLASS-METHODS hlp_get_source_code_url
+      IMPORTING
+        app           TYPE ref to z2ui5_if_app
+        get           TYPE z2ui5_if_client=>ty_s_get
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS constructor
       IMPORTING
         ns TYPE string_table OPTIONAL.
@@ -2283,10 +2290,21 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD shell.
 
-   result = _generic(
-       name   = `Shell`
-       ns     = ns
-     ).
+    result = _generic(
+        name   = `Shell`
+        ns     = ns
+      ).
+
+  ENDMETHOD.
+
+  METHOD hlp_get_source_code_url.
+
+      DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
+      SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+
+      " result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
+      result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( app ) && `/source/main`.
+
 
   ENDMETHOD.
 

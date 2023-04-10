@@ -32,7 +32,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
     ENDCASE.
 
-    client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view_helper=>factory(
+    client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view_helper=>factory( )->shell(
         )->page(
                 title          = 'abap2UI5 - First Example'
                 navbuttonpress = client->_event( 'BACK' )
@@ -40,7 +40,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code'
-                    href = client->get( )-url_source_code
+                    href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent(
             )->simple_form( title = 'Form Title' editable = abap_true
                 )->content( 'form'
