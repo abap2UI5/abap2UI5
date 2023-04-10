@@ -108,7 +108,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         shownavbutton = abap_true
         ).
 
-    page->header_content( )->link( text = 'Source_Code' href = client->get( )-url_source_code ).
+    page->header_content( )->link( text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) ).
 
 
     page->input(
