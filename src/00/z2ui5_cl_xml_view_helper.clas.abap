@@ -2283,9 +2283,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD shell.
 
-    _generic(
-       name   = `ObjectAttribute`
-       ns     = `ns`
+   result = _generic(
+       name   = `Shell`
+       ns     = ns
      ).
 
   ENDMETHOD.
