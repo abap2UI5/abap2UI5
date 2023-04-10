@@ -22,6 +22,9 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
     DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view_helper WITH EMPTY KEY.
 
     CLASS-METHODS factory
+      IMPORTING
+        ns            TYPE string_table OPTIONAL
+        check_shell   TYPE abap_bool    DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -148,7 +151,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS snapped_content
-    IMPORTING
+      IMPORTING
         ns            TYPE clike DEFAULT `uxap`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -166,7 +169,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS actions
-    IMPORTING
+      IMPORTING
         ns            TYPE clike DEFAULT `uxap`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -480,6 +483,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         press         TYPE clike OPTIONAL
         class         TYPE clike OPTIONAL
         id            TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -490,6 +494,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         shownavbutton  TYPE clike OPTIONAL
         id             TYPE clike OPTIONAL
         class          TYPE clike OPTIONAL
+        ns             TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -528,7 +533,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
-    METHODS zz_html
+    METHODS zz_plain
       IMPORTING
         val           TYPE clike OPTIONAL
       RETURNING
@@ -536,7 +541,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     METHODS content
       IMPORTING
-        ns            TYPE clike optional
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -576,6 +581,8 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
     METHODS toolbar_spacer
+      IMPORTING
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -620,6 +627,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         text          TYPE clike OPTIONAL
         href          TYPE clike OPTIONAL
         enabled       TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -787,6 +795,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       IMPORTING
         text          TYPE clike OPTIONAL
         class         TYPE clike OPTIONAL
+        ns            TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
@@ -815,26 +824,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
 
     METHODS xml_get
-      IMPORTING
-        check_shell   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
 
   PROTECTED SECTION.
 
-
     METHODS xml_get_begin
-      IMPORTING
-        check_shell   TYPE abap_bool DEFAULT abap_true
-      RETURNING
-        VALUE(result) TYPE string.
-
-
-
-    METHODS xml_get_end
-      IMPORTING
-        check_shell   TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
@@ -870,6 +866,8 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       ( `xmlns:html="http://www.w3.org/1999/xhtml"` )
        ).
 
+    ELSE.
+      mt_ns = ns.
     ENDIF.
 
   ENDMETHOD.
@@ -877,12 +875,16 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD factory.
 
-    " result = NEW #( ).
-    DATA(lo_tree) = NEW z2ui5_cl_xml_view_helper( ).
+    DATA(lo_tree) = NEW z2ui5_cl_xml_view_helper( ns = ns ).
     lo_tree->m_root = lo_tree.
     lo_tree->m_parent = lo_tree.
     result = lo_tree.
-    "   result->mo_runtime = runtime.
+
+    if check_shell = abap_true.
+
+    result = result->_generic( 'Shell' ).
+
+    endif.
 
   ENDMETHOD.
 
@@ -894,16 +896,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       result = result && ` ` && lr_ns->* && ` `.
     ENDLOOP.
     result = result && `>`.
-    result = result && COND #( WHEN check_shell = abap_true THEN `<Shell>` ).
 
   ENDMETHOD.
 
-
-  METHOD xml_get_end.
-
-    result = COND #( WHEN check_shell = abap_true THEN `</Shell>` ) && `</mvc:View>`.
-
-  ENDMETHOD.
 
   METHOD header.
 
@@ -986,6 +981,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = me.
     _generic(
        name   = `Button`
+       ns     = ns
        t_prop = VALUE #(
           ( n = `press`   v = press )
           ( n = `text`    v = text )
@@ -1530,6 +1526,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = me.
     _generic(
      name  = `Link`
+     ns    = ns
        t_prop = VALUE #(
          ( n = `text`   v = text )
          ( n = `target` v = `_blank` )
@@ -1706,6 +1703,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = _generic(
         name   = `Page`
+        ns     = ns
          t_prop = VALUE #(
              ( n = `title` v = title )
              ( n = `showNavButton`  v = _=>get_json_boolean( shownavbutton ) )
@@ -2014,6 +2012,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = me.
     _generic(
       name  = `Text`
+      ns    = ns
       t_prop = VALUE #(
         ( n = `text`  v = text )
         ( n = `class` v = class )
@@ -2060,7 +2059,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = me.
     _generic(
          ns = ns
-         name  = cond #( when ns = 'f' then 'title' else `Title` )
+         name  = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` )
          t_prop = VALUE #(
              ( n = `text`     v = text )
              ( n = `wrapping` v = _=>get_json_boolean( wrapping ) )
@@ -2111,7 +2110,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   METHOD toolbar_spacer.
 
     result = me.
-    _generic( `ToolbarSpacer` ).
+    _generic(
+        name = `ToolbarSpacer`
+        ns   = ns
+        ).
 
   ENDMETHOD.
 
@@ -2150,19 +2152,22 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
         RETURN.
       ENDIF.
 
-      result = xml_get_begin( check_shell ).
+      result = xml_get_begin(  ).
 
       LOOP AT t_child INTO DATA(lr_child).
         result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
       ENDLOOP.
 
-      result = result && xml_get_end( check_shell ).
+      result = result &&  `</mvc:View>`.
       RETURN.
     ENDIF.
 
     "case - normal
     CASE m_name.
       WHEN `ZZHTML`.
+        result = mt_prop[ n = `VALUE` ]-v.
+        RETURN.
+      WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
         RETURN.
     ENDCASE.
@@ -2204,31 +2209,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       ) ).
 
   ENDMETHOD.
-
-
-  METHOD zz_html.
-
-    SPLIT val AT `<` INTO TABLE DATA(lt_table).
-
-    DATA(lv_html) = ``.
-    lv_html = VALUE #( lt_table[ 1 ] OPTIONAL ).
-
-    LOOP AT lt_table REFERENCE INTO DATA(lr_line) FROM 2.
-      IF lr_line->*(1) = `/`.
-        lv_html = `</html:` && lr_line->*.
-      ELSE.
-        lv_html = `<html:` && lr_line->*.
-      ENDIF.
-    ENDLOOP.
-
-    result = me.
-    _generic(
-         name  = `ZZHTML`
-         t_prop = VALUE #( ( n = `VALUE` v = lv_html ) )
-    ).
-
-  ENDMETHOD.
-
 
   METHOD _generic.
 
@@ -2290,6 +2270,16 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
          (  n = `title`       v = title )
          (  n = `text`           v = text )
        ) ).
+
+  ENDMETHOD.
+
+  METHOD zz_plain.
+
+    result = me.
+    _generic(
+         name  = `ZZPLAIN`
+         t_prop = VALUE #( ( n = `VALUE` v = val ) )
+    ).
 
   ENDMETHOD.
 

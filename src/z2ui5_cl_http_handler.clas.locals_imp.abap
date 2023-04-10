@@ -956,9 +956,11 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
-    METHODS set_app_system_error
+    METHODS set_app_system
       IMPORTING
-        ix            TYPE REF TO cx_root
+        VALUE(ix)     TYPE REF TO cx_root OPTIONAL
+        error_text    TYPE string OPTIONAL
+          PREFERRED PARAMETER ix
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_system_runtime.
 
@@ -1293,7 +1295,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD create.
 
-    CAST z2ui5_if_app( db-o_app )->id = id.
+    " CAST z2ui5_if_app( db-o_app )->id = id.
 
     DATA(ls_db) = VALUE z2ui5_t_draft(
         uuid       = id
@@ -1486,26 +1488,22 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
-    "  DO.
+
     TRY.
         DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
 
-        TRY.
-            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-
-          CATCH cx_root.
-            DATA(lo_error) = NEW z2ui5_lcl_system_app( ).
-            lo_error->ms_error-x_error = NEW z2ui5_lcl_utility(
-              val = `class with name ` && lv_classname && ` not found, app call not possible` ).
-            result->ms_db-o_app = lo_error.
-        ENDTRY.
-
       CATCH cx_root.
-        result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+        result = result->set_app_system( ).
+        RETURN.
     ENDTRY.
 
+    TRY.
+        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
 
-    "   ENDDO.
+      CATCH cx_root.
+        result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
+        RETURN.
+    ENDTRY.
 
     result->ms_db-o_app->id = result->ms_db-id.
     result->ms_db-t_attri   = _=>get_t_attri_by_ref( result->ms_db-o_app ).
@@ -1523,6 +1521,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DATA(ls_draft) = z2ui5_lcl_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
     result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
 
+    result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
     result->ms_db-id = _=>get_uuid( ).
     result->ms_db-o_app->id   = result->ms_db-id.
     result->ms_db-id_prev_app = ms_db-id.
@@ -1604,20 +1603,38 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD set_app_system_error.
+  METHOD set_app_system.
 
-    z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
+    IF ms_db-o_app  IS BOUND.
+      z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
+    ENDIF.
+
     result = NEW #( ).
     result->ms_db-id = _=>get_uuid( ).
-    result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app ).
 
-    result->ms_db-id_prev_app = ms_db-id.
-    result->ms_db-id_prev_app_stack = ms_db-id.
+    IF ix IS NOT BOUND AND error_text IS NOT INITIAL.
+      ix = NEW z2ui5_lcl_utility( val = error_text ).
+    ENDIF.
 
-    result->ms_next-t_after = ms_next-t_after.
+    IF ix IS BOUND.
+
+      z2ui5_lcl_db=>create( id = ms_db-id db = ms_db ).
+      result->ms_db-o_app = z2ui5_lcl_system_app=>factory_error( error = ix app = ms_db-o_app ).
+
+      result->ms_db-id_prev_app = ms_db-id.
+      result->ms_db-id_prev_app_stack = ms_db-id.
+
+      result->ms_next-t_after = ms_next-t_after.
+
+
+      result->ms_db-id_prev_app = ms_db-id.
+
+    ELSE.
+      result->ms_db-o_app = NEW z2ui5_lcl_system_app( ).
+    ENDIF.
+
     result->ms_db-t_attri = _=>get_t_attri_by_ref( result->ms_db-o_app ).
-
-    result->ms_db-id_prev_app = ms_db-id.
+    result->ms_db-o_app->id = result->ms_db-id.
 
   ENDMETHOD.
 
@@ -1740,13 +1757,11 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD z2ui5_if_client~set_next.
 
     mo_runtime->ms_next-s_set = val.
 
   ENDMETHOD.
-
 
   METHOD z2ui5_if_client~_bind.
 
