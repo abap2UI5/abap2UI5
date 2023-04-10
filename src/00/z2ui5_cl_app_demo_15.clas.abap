@@ -31,9 +31,10 @@ CLASS Z2UI5_CL_APP_DEMO_15 IMPLEMENTATION.
         CASE client->get( )-event.
           WHEN 'BACK'.
             client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
+
         ENDCASE.
 
-        data(view) = z2ui5_cl_xml_view_helper=>factory(
+        data(view) = z2ui5_cl_xml_view_helper=>factory( )->shell(
         )->page(
             title          = 'abap2UI5 - Formatted Text'
             navbuttonpress = client->_event( 'BACK' )

@@ -70,16 +70,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
-    client-t_param = VALUE #( LET tab = client-t_param IN FOR row IN tab
-                                 ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
-
-    DATA(lv_url) = client-t_header[ name = '~path' ]-value.
-
-    TRY.
-        DATA(lv_app) = client-t_param[ name = 'APP' ]-value.
-      CATCH cx_root.
-    ENDTRY.
-
+    DATA(lv_url) = _=>get_header_val( '~path' ).
+    DATA(lv_app) = _=>get_param_val( 'app' ).
     z2ui5_lcl_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
@@ -102,8 +94,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
                `</body>` && |\n| &&
                `</html>` && |\n|.
-
-
 
     r_result = r_result && `<script id="z2ui5">` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
@@ -245,7 +235,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                                definition: sap.z2ui5.oResponse.vView,` && |\n|  &&
                            `                            }).then(oView => {` && |\n|  &&
                            `                                oView.setModel(oModel);` && |\n|  &&
-                           `                                debugger;` && |\n|  &&
                            `                                oView.placeAt("content");` && |\n|  &&
                            `                                this.oView = oView;` && |\n|  &&
                            `                                sap.z2ui5.oView = oView;` && |\n|  &&
@@ -270,7 +259,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
                            `        if (xml == '') { xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />' };` && |\n|  &&
                            |\n|  &&
-                           `        debugger;` && |\n|  &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
@@ -282,4 +270,5 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `</html>`.
 
   ENDMETHOD.
+
 ENDCLASS.

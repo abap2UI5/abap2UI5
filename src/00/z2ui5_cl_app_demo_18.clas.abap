@@ -124,7 +124,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_render_view_main.
 
-    result = z2ui5_cl_xml_view_helper=>factory(
+    result = z2ui5_cl_xml_view_helper=>factory( )->shell(
         )->page(
                 title          = 'abap2UI5 - Template'
                 navbuttonpress = client->_event( 'BACK' )

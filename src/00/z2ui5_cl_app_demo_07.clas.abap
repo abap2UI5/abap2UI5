@@ -184,7 +184,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_view_main.
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->page(
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory(  )->shell( )->page(
             title          = 'abap2UI5 - File Upload/Download'
             navbuttonpress = client->_event( 'BACK' )
             shownavbutton  = abap_true
