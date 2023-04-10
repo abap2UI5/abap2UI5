@@ -23,7 +23,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     METHODS constructor
       IMPORTING
         val      TYPE any OPTIONAL
-        previous LIKE previous OPTIONAL
+        previous TYPE REF TO cx_root OPTIONAL
           PREFERRED PARAMETER val.
 
     METHODS get_text REDEFINITION.
