@@ -77,11 +77,11 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
 
       WHEN 'MAIN'.
 
-        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
             )->page(
                 title          = 'abap2UI5 - Controller'
                 navbuttonpress = client->_event( 'BACK' )
-                  shownavbutton = abap_true
+                shownavbutton = abap_true
                 )->header_content(
                     )->link(
                         text = 'Source_Code'
@@ -109,10 +109,12 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
 
       WHEN 'SECOND'.
 
-        page = z2ui5_cl_xml_view_helper=>factory(
+        page = z2ui5_cl_xml_view_helper=>factory( )->shell(
             )->page(
                 title          = 'abap2UI5 - Controller'
-                navbuttonpress = client->_event( 'BACK' ) ).
+                navbuttonpress = client->_event( 'BACK' )
+                shownavbutton = abap_true
+                ).
 
         page->grid( 'L12 M12 S12' )->content( 'l'
             )->simple_form( 'View Second' )->content( 'form'

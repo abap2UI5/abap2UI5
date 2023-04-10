@@ -364,7 +364,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
         ENDCASE.
 
 
-        DATA(container) = z2ui5_cl_xml_view_helper=>factory(
+        DATA(container) = z2ui5_cl_xml_view_helper=>factory( )->shell(
             )->page(
                 title = 'abap2UI5 - Visualization'
                 navbuttonpress = client->_event( 'BACK' )

@@ -8,6 +8,9 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         type_kind      TYPE string,
         bind_type      TYPE string,
         data_stringify TYPE string,
+        gen_type_kind  TYPE string,
+        gen_type       TYPE string,
+        gen_kind       TYPE string,
       END OF ty_attri.
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
@@ -42,6 +45,18 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         iv_replace    TYPE clike DEFAULT ''
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS get_header_val
+      IMPORTING
+        v             TYPE clike
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_s_name_value-value.
+
+    CLASS-METHODS get_param_val
+      IMPORTING
+        v             TYPE clike
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_s_name_value-value.
 
     CLASS-METHODS get_uuid
       RETURNING
@@ -322,10 +337,30 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
+
   METHOD get_uuid_session.
 
     mv_counter = mv_counter + 1.
     result = get_trim_upper( mv_counter ).
+
+  ENDMETHOD.
+
+
+  METHOD get_header_val.
+
+    result  = z2ui5_cl_http_handler=>client-t_header[ name = v ]-value.
+
+  ENDMETHOD.
+
+
+  METHOD get_param_val.
+
+    DATA(lt_param) = VALUE z2ui5_if_client=>ty_t_name_value( LET tab = z2ui5_cl_http_handler=>client-t_param IN FOR row IN tab
+                                 ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
+    TRY.
+        result = lt_param[ name = get_trim_upper( v ) ]-value.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -453,17 +488,16 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ASSIGN ir_tab_from->* TO <lt_from>.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    READ TABLE ct_to INDEX 1 ASSIGNING FIELD-SYMBOL(<back>).
-    IF sy-subrc <> 0.
-      RETURN.
-    ENDIF.
-
-    DATA(lt_components) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( <back> ) )->get_components( ).
+    CLEAR ct_to.
+    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( ct_to )  ).
+    DATA(lo_struc) = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+    DATA(lt_components) = lo_struc->get_components( ).
 
     LOOP AT <lt_from> INTO DATA(lr_from).
 
-      ASSIGN ct_to[ sy-tabix ] TO <back>.
-      raise( when = xsdbool( sy-subrc <> 0 ) ).
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row TYPE HANDLE lo_struc.
+      ASSIGN lr_row->* TO FIELD-SYMBOL(<back>).
 
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
       raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -488,6 +522,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
+      INSERT lr_row->* INTO TABLE ct_to.
     ENDLOOP.
 
   ENDMETHOD.
@@ -918,10 +953,11 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
 
     METHODS _create_binding
       IMPORTING
-        value         TYPE data
-        type          TYPE string DEFAULT cs_bind_type-two_way
+        value          TYPE data
+        type           TYPE string DEFAULT cs_bind_type-two_way
+        check_gen_data TYPE abap_bool OPTIONAL
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result)  TYPE string.
 
     CLASS-METHODS set_app_start
       RETURNING
@@ -1280,7 +1316,17 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
 
   METHOD create.
 
-    " CAST z2ui5_if_app( db-o_app )->id = id.
+    DATA(lo_app) = CAST object( db-o_app ) ##NEEDED.
+
+    LOOP AT db-t_attri REFERENCE INTO DATA(lr_attri) WHERE gen_type IS NOT INITIAL.
+
+      FIELD-SYMBOLS <attribute> TYPE any.
+      DATA(lv_name) = 'LO_APP->' && to_upper( lr_attri->name ).
+      ASSIGN (lv_name) TO <attribute>.
+      DATA(lr_ref2) = REF #( <attribute> ).
+      CLEAR lr_ref2->*.
+
+    ENDLOOP.
 
     DATA(ls_db) = VALUE z2ui5_t_draft(
         uuid       = id
@@ -1457,6 +1503,30 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
                EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
                CHANGING ct_to   = <attribute> ).
 
+        WHEN OTHERS.
+
+          CASE lr_attri->gen_kind.
+            WHEN cl_abap_datadescr=>kind_elem.
+              CREATE DATA <attribute> TYPE (lr_attri->gen_type).
+              lv_value = lo_model->get_attribute( lr_attri->name )->get_val( ).
+              assign <attribute>->* to FIELD-SYMBOL(<attribute2>).
+              <attribute2> = lv_value.
+            WHEN cl_abap_datadescr=>kind_table.
+              DATA(lo_struc) = cl_abap_structdescr=>describe_by_name( lr_attri->gen_type ).
+              DATA(lo_tab) = cl_abap_tabledescr=>create(
+                               p_line_type    = CAST #( lo_struc )
+                               p_table_kind   = cl_abap_tabledescr=>tablekind_std
+                               p_unique       = abap_false
+                             ).
+              CREATE DATA <attribute> TYPE HANDLE lo_tab.
+              assign <attribute>->* to <attribute2>.
+              _=>trans_ref_tab_2_tab(
+              EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
+              CHANGING ct_to   = <attribute2> ).
+
+              "(lr_attri->gen_type).
+          ENDCASE.
+
       ENDCASE.
     ENDLOOP.
 
@@ -1475,7 +1545,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     result->ms_db-id = _=>get_uuid( ).
 
     TRY.
-        DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
+        DATA(lv_classname) = _=>get_trim_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value  ).
         _=>raise( when = xsdbool( lv_classname = `` ) ).
       CATCH cx_root.
         result = result->set_app_system( ).
@@ -1559,7 +1629,32 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ASSIGN (lv_name) TO <attribute>.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
 
-      DATA(lr_ref) = REF #( <attribute> ).
+      DATA(lr_ref2) = REF #( <attribute> ).
+
+      IF check_gen_data = abap_true.
+        TRY.
+         "   DATA(lo_refdescr) = CAST cl_abap_refdescr( cl_abap_datadescr=>describe_by_data( lr_ref2->* ) ).
+         "   DATA lr_ref TYPE REF TO data.
+            data(lr_ref) = cast data( lr_ref2->* ).
+            IF lr_attri->gen_type IS INITIAL.
+              DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( lr_ref->* ).
+              lr_attri->gen_type_kind = lo_datadescr->type_kind.
+              lr_attri->gen_kind = lo_datadescr->kind.
+              CASE lo_datadescr->kind.
+                WHEN lo_datadescr->kind_elem.
+                  SPLIT lo_datadescr->absolute_name AT '=' INTO DATA(lv_dummy)  lr_attri->gen_type.
+                WHEN lo_datadescr->kind_table.
+                  DATA(lo_tab) = CAST cl_abap_tabledescr( lo_datadescr  ).
+                  DATA(lo_struc) = lo_tab->get_table_line_type( ).
+                  SPLIT lo_struc->absolute_name AT '=' INTO lv_dummy lr_attri->gen_type.
+              ENDCASE.
+            ENDIF.
+          CATCH cx_root.
+            CONTINUE.
+        ENDTRY.
+      ELSE.
+        lr_ref = lr_ref2.
+      ENDIF.
 
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
@@ -1665,6 +1760,20 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
                                     v = _=>trans_any_2_json( <attribute> )
                                     apos_active = abap_false ).
 
+        WHEN OTHERS.
+
+          CASE lr_attri->gen_kind.
+            WHEN cl_abap_datadescr=>kind_elem.
+              lo_actual->add_attribute( n = lr_attri->name
+                            v = _=>get_abap_2_json( <attribute>->* )
+                            apos_active = abap_false ).
+
+            WHEN cl_abap_datadescr=>kind_table.
+              lo_actual->add_attribute( n = lr_attri->name
+                                     v = _=>trans_any_2_json( <attribute>->* )
+                                     apos_active = abap_false ).
+          ENDCASE.
+
       ENDCASE.
     ENDLOOP.
 
@@ -1747,7 +1856,11 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result =  mo_runtime->_create_binding( value = val type = z2ui5_lcl_system_runtime=>cs_bind_type-two_way ).
+    result =  mo_runtime->_create_binding(
+        value = val
+        type  = z2ui5_lcl_system_runtime=>cs_bind_type-two_way
+        check_gen_data = check_gen_data
+         ).
     IF path = abap_false.
       result = `{` && result && `}`.
     ENDIF.
