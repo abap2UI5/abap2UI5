@@ -43,12 +43,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS get_classname_by_ref
-      IMPORTING
-        in            TYPE REF TO object
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS get_uuid
       RETURNING
         VALUE(result) TYPE string.
@@ -227,14 +221,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ELSE.
       result = val.
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_classname_by_ref.
-
-    DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
-    result = substring_after( val = lv_classname sub = `\CLASS=` ).
 
   ENDMETHOD.
 
@@ -913,7 +899,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       BEGIN OF ty_s_next,
         check_app_leave TYPE abap_bool,
         o_call_app      TYPE REF TO z2ui5_if_app,
-        "  s_nav_app_call_new TYPE ty_s_db,
         t_after         TYPE _=>ty_tt_string,
         s_set           TYPE z2ui5_if_client=>ty_S_next,
       END OF ty_s_next.
@@ -1491,7 +1476,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
     TRY.
         DATA(lv_classname) = to_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value ).
-
+        _=>raise( when = xsdbool( lv_classname = `` ) ).
       CATCH cx_root.
         result = result->set_app_system( ).
         RETURN.
@@ -1739,15 +1724,12 @@ CLASS z2ui5_lcl_if_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get.
 
-    result = mo_runtime->ms_actual.
-
-    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
-    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
-    result-id                = mo_runtime->ms_db-id.
-    result-id_prev_app       = mo_runtime->ms_db-id_prev_app.
-    result-id_prev_app_stack = mo_runtime->ms_db-id_prev_app_stack.
-    result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
-    result-url_source_code   = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ) && `/source/main`.
+    result = VALUE #( BASE CORRESPONDING #( mo_runtime->ms_db )
+         event             = mo_runtime->ms_actual-event
+         event_data        = mo_runtime->ms_actual-event_data
+         t_req_header      = z2ui5_cl_http_handler=>client-t_header
+         t_req_param       = z2ui5_cl_http_handler=>client-t_param
+     ).
 
   ENDMETHOD.
 

@@ -132,7 +132,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code'
-                    href = client->get( )-url_source_code
+                    href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent(
             )->simple_form( title = 'VIEW_MAIN' editable = abap_true
                 )->content( 'form'
@@ -172,7 +172,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
              )->header_content(
                  )->link(
                      text = 'Source_Code'
-                     href = client->get( )-url_source_code
+                     href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
              )->get_parent(
              )->simple_form( 'VIEW_SECOND'
                  )->content( 'form'

@@ -12,8 +12,8 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       END OF ty_s_name_value.
     TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
-    DATA m_name TYPE string.
-    DATA m_ns   TYPE string.
+    DATA m_name  TYPE string.
+    DATA m_ns    TYPE string.
     DATA mt_prop TYPE ty_t_name_value.
 
     DATA m_root    TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -26,6 +26,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         ns            TYPE string_table OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+    CLASS-METHODS hlp_get_source_code_url
+      IMPORTING
+        app           TYPE ref to z2ui5_if_app
+        get           TYPE z2ui5_if_client=>ty_s_get
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS constructor
       IMPORTING
@@ -2054,10 +2061,12 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD title.
 
+    data(lv_name) = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` ).
+
     result = me.
     _generic(
          ns = ns
-         name  = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` )
+         name  = lv_name
          t_prop = VALUE #(
              ( n = `text`     v = text )
              ( n = `wrapping` v = _=>get_json_boolean( wrapping ) )
@@ -2283,10 +2292,21 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD shell.
 
-   result = _generic(
-       name   = `Shell`
-       ns     = ns
-     ).
+    result = _generic(
+        name   = `Shell`
+        ns     = ns
+      ).
+
+  ENDMETHOD.
+
+  METHOD hlp_get_source_code_url.
+
+      DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
+      SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+
+      " result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
+      result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( app ) && `/source/main`.
+
 
   ENDMETHOD.
 
