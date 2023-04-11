@@ -995,11 +995,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(rv_xml) TYPE string.
 
-    METHODS request_end_popup
-      RETURNING
-        VALUE(rv_xml) TYPE string.
-
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -1431,7 +1426,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
 
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
-      lo_ui5_model->add_attribute( n = `vViewPopup` v = request_end_popup( ) ).
+      lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_next-s_set-xml_popup ). "request_end_popup( ) ).
       IF ms_next-s_set-popup_open_by_id IS NOT INITIAL.
         lo_ui5_model->add_attribute( n = `OPENBY` v = ms_next-s_set-popup_open_by_id ).
       ENDIF.
@@ -1803,16 +1798,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD request_end_popup.
-
-    rv_xml = _=>get_replace( iv_val = ms_next-s_set-xml_popup iv_begin = 'controllerName="' iv_end = '"' ).
-    REPLACE '<mvc:View' IN rv_xml WITH `<core:FragmentDefinition`.
-    REPLACE '</mvc:View>' IN rv_xml WITH `</core:FragmentDefinition>`.
-    REPLACE '<Shell>' IN rv_xml WITH ``.
-    REPLACE '</Shell>' IN rv_xml WITH ``.
-
-  ENDMETHOD.
 
 ENDCLASS.
 

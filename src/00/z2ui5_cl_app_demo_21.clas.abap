@@ -122,7 +122,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_decide.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
         )->dialog(
                 title = 'Title'
                 icon = 'sap-icon://question-mark'

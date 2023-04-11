@@ -1,7 +1,7 @@
 CLASS z2ui5_cl_xml_view_helper DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PROTECTED.
 
   PUBLIC SECTION.
 
@@ -16,6 +16,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
     DATA m_ns    TYPE string.
     DATA mt_prop TYPE ty_t_name_value.
 
+    DATA m_check_popup TYPE abap_bool.
     DATA m_root    TYPE REF TO z2ui5_cl_xml_view_helper.
     DATA m_last    TYPE REF TO z2ui5_cl_xml_view_helper.
     DATA m_parent  TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -23,7 +24,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        ns            TYPE string_table OPTIONAL
+        t_ns          TYPE ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+    CLASS-METHODS factory_popup
+      IMPORTING
+        t_ns          TYPE ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -851,15 +858,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-
   PROTECTED SECTION.
-
-    METHODS xml_get_begin
-      RETURNING
-        VALUE(result) TYPE string.
-
-    DATA mt_ns TYPE string_table.
-
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -868,54 +867,28 @@ ENDCLASS.
 
 CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
-
-  METHOD constructor.
-
-    IF ns IS INITIAL.
-
-      mt_ns = VALUE string_table(
-      ( `xmlns="sap.m"` )
-      ( `xmlns:z2ui5="z2ui5"` )
-      ( `xmlns:core="sap.ui.core"` )
-      ( `xmlns:mvc="sap.ui.core.mvc"` )
-      ( `xmlns:l="sap.ui.layout"` )
-      ( `xmlns:f="sap.f"` )
-      ( `xmlns:form="sap.ui.layout.form"` )
-      ( `xmlns:editor="sap.ui.codeeditor"` )
-      ( `xmlns:mchart="sap.suite.ui.microchart"` )
-      ( `xmlns:webc="sap.ui.webc.main"` )
-      ( `xmlns:uxap="sap.uxap"` )
-      ( `xmlns:sap="sap"` )
-      ( `xmlns:text="sap.ui.richtexteditor"` )
-      ( `xmlns:html="http://www.w3.org/1999/xhtml"` )
-       ).
-
-    ELSE.
-      mt_ns = ns.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD factory.
 
-    DATA(lo_tree) = NEW z2ui5_cl_xml_view_helper( ns = ns ).
-    lo_tree->m_root = lo_tree.
-    lo_tree->m_parent = lo_tree.
-    result = lo_tree.
+    result = NEW #( ).
+
+    IF t_ns IS not INITIAL.
+      result->mt_prop = t_ns.
+    ENDIF.
+
+    result->mt_prop = VALUE #( BASE result->mt_prop
+        (  n = 'displayBlock'   v = 'true' )
+        (  n = 'height'         v = '100%' )
+        (  n = 'controllerName' v = 'z2ui5_controller' )
+    ).
+
+    result->m_name = `View`.
+    result->m_ns = `mvc`.
+
+    result->m_root = result.
+    result->m_parent = result.
 
   ENDMETHOD.
 
-
-  METHOD xml_get_begin.
-
-    result = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" `.
-    LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
-      result = result && ` ` && lr_ns->* && ` `.
-    ENDLOOP.
-    result = result && `>`.
-
-  ENDMETHOD.
 
 
   METHOD header.
@@ -2165,28 +2138,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD xml_get.
 
-    "case - root
-    IF me = m_root.
-
-      IF t_child IS INITIAL.
-        RETURN.
-      ENDIF.
-
-      result = xml_get_begin(  ).
-
-      LOOP AT t_child INTO DATA(lr_child).
-        result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
-      ENDLOOP.
-
-      result = result &&  `</mvc:View>`.
-      RETURN.
-    ENDIF.
-
-    "case - normal
     CASE m_name.
-      WHEN `ZZHTML`.
-        result = mt_prop[ n = `VALUE` ]-v.
-        RETURN.
       WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
         RETURN.
@@ -2205,7 +2157,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = |{ result }>|.
 
-    LOOP AT t_child INTO lr_child.
+    LOOP AT t_child INTO data(lr_child).
       result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
     ENDLOOP.
 
@@ -2340,6 +2292,49 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
             ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
             ( n = `illustrationType`             v = illustrationType )
     ) ).
+
+  ENDMETHOD.
+
+  METHOD factory_popup.
+
+    result = NEW #( ).
+
+    IF t_ns IS not INITIAL.
+      result->mt_prop = t_ns.
+    ENDIF.
+
+   " result->mt_prop = VALUE #( BASE result->mt_prop
+     "   (  n = 'displayBlock'   v = 'true' )
+     "   (  n = 'height'         v = '100%' )
+      "  (  n = 'controllerName' v = 'z2ui5_controller' )
+  "  ).
+
+    result->m_name = `FragmentDefinition`.
+    result->m_ns = `core`.
+
+    result->m_root = result.
+    result->m_parent = result.
+
+  ENDMETHOD.
+
+  METHOD constructor.
+
+    mt_prop = VALUE #(
+    ( n = `xmlns` v = `sap.m` )
+    ( n = `xmlns:z2ui5` v = `z2ui5` )
+    ( n = `xmlns:core` v = `sap.ui.core` )
+    ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
+    ( n = `xmlns:l` v = `sap.ui.layout` )
+    ( n = `xmlns:f` v = `sap.f` )
+    ( n = `xmlns:form` v = `sap.ui.layout.form` )
+    ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
+    ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
+    ( n = `xmlns:webc` v = `sap.ui.webc.main` )
+    ( n = `xmlns:uxap` v = `sap.uxap` )
+    ( n = `xmlns:sap` v = `sap` )
+    ( n = `xmlns:text` v = `sap.ui.richtextedito` )
+    ( n = `xmlns:html` v = `http://www.w3.org/1999/xhtml` )
+     ).
 
   ENDMETHOD.
 
