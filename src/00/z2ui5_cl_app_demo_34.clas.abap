@@ -27,7 +27,7 @@ CLASS Z2UI5_CL_APP_DEMO_34 IMPLEMENTATION.
 
   METHOD view_main.
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
         )->page(
                 title          = 'abap2UI5 - Popups'
                 navbuttonpress = client->_event( 'BACK' )
