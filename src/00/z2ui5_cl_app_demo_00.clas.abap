@@ -91,10 +91,10 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
          )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
          )->button( text = 'HTML, JS, CSS' press = client->_event( 'z2ui5_cl_app_demo_29' )
     ).
-*
-*       grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'f'
-*        )->button( text = 'Messages (Toast, Box, Strip)' press = client->_event( 'z2ui5_cl_app_demo_08' )
-*    ).
+
+       grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'form'
+        )->button( text = 'Messages (Toast, Box, Strip)' press = client->_event( 'z2ui5_cl_app_demo_08' )
+    ).
 
     DATA(form) = page->grid( 'L9 M12 S12'
         )->content( 'l'

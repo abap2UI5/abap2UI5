@@ -80,7 +80,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     "set the data for the frontend
     client->set_next( app-next ).
 
-    "the app is serialized and persisted, we delete all data which is not needed in the future before
+    "the app will be serialized and persisted, we delete all data which is not needed in the future before
     CLEAR app-get.
     CLEAR app-next.
 
@@ -131,7 +131,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                 shownavbutton  = abap_true
             )->header_content(
                 )->link(
-                    text = 'Source_Code'
+                    text = 'Source_Code' target = '_blank'
                     href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent(
             )->simple_form( title = 'VIEW_MAIN' editable = abap_true

@@ -66,7 +66,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
         )->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
-            text = 'Go to the SAP Demos for Interactive bar Charts here...'
+            text = 'Go to the SAP Demos for Interactive bar Charts here...' target = '_blank'
             href = 'https://sapui5.hana.ondemand.com/#/entity/sap.suite.ui.microchart.InteractiveBarChart/sample/sap.suite.ui.microchart.sample.InteractiveBarChart'
         )->text(
                 text  = 'Absolute and Percentage value'
@@ -131,7 +131,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
         )->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
-         text = 'Go to the SAP Demos for Interactive Donut Charts here...'
+         text = 'Go to the SAP Demos for Interactive Donut Charts here...' target = '_blank'
          href = 'https://sapui5.hana.ondemand.com/#/entity/sap.suite.ui.microchart.InteractiveDonutChart/sample/sap.suite.ui.microchart.sample.InteractiveDonutChart'
         )->text(
                 text  = 'Three segments'
@@ -203,7 +203,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
     DATA(grid) = tab->grid( 'XL6 L6 M6 S12' ).
 
     grid->link(
-      text = 'Go to the SAP Demos for Interactive Line Charts here...'
+      text = 'Go to the SAP Demos for Interactive Line Charts here...' target = '_blank'
       href = 'https://sapui5.hana.ondemand.com/#/entity/sap.suite.ui.microchart.InteractiveLineChart/sample/sap.suite.ui.microchart.sample.InteractiveLineChart' ).
 
     grid->text(
@@ -283,7 +283,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
         )->grid( 'XL12 L12 M12 S12' ).
 
     grid->link(
-        text = 'Go to the SAP Demos for Radial Charts here...'
+        text = 'Go to the SAP Demos for Radial Charts here...' target = '_blank'
         href = 'https://sapui5.hana.ondemand.com/#/entity/sap.suite.ui.microchart.RadialMicroChart/sample/sap.suite.ui.microchart.sample.RadialMicroChart' ).
 
     grid->vertical_layout(
@@ -370,8 +370,8 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
                 navbuttonpress = client->_event( 'BACK' )
                 shownavbutton = abap_true
                 )->header_content(
-                    )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1639191954285113344`
-                    )->link( text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    )->link( text = 'Demo'        target = '_blank' href = `https://twitter.com/OblomovDev/status/1639191954285113344`
+                    )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent(
             )->tab_container( ).
 

@@ -22,8 +22,8 @@ CLASS z2ui5_cl_app_demo_28 DEFINITION PUBLIC.
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
-        s_get             TYPE z2ui5_if_client=>ty_s_get,
-        s_next            TYPE z2ui5_if_client=>ty_s_next,
+        get               TYPE z2ui5_if_client=>ty_s_get,
+        next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
 
     METHODS z2ui5_on_init.
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     me->client     = client.
-    app-s_get      = client->get( ).
+    app-get        = client->get( ).
     app-view_popup = ``.
 
     IF app-check_initialized = abap_false.
@@ -49,22 +49,22 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
       z2ui5_on_init( ).
     ENDIF.
 
-    IF app-s_get-event IS NOT INITIAL.
+    IF app-get-event IS NOT INITIAL.
       z2ui5_on_event( ).
     ENDIF.
 
     z2ui5_on_render( ).
 
-    client->set_next( app-s_next ).
-    CLEAR app-s_get.
-    CLEAR app-s_next.
+    client->set_next( app-next ).
+    CLEAR app-get.
+    CLEAR app-next.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_event.
 
-    CASE app-s_get-event.
+    CASE app-get-event.
 
       WHEN 'BUTTON_POST'.
 *        client->popup_message_toast( |{ product } { quantity } - send to the server| ).
@@ -74,12 +74,31 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
         client->popup_message_toast( |confirm| ).
         app-view_popup = ''.
 
+      WHEN 'TIMER_FINISHED'.
+
+        FIELD-SYMBOLS <mt_draft> TYPE STANDARD TABLE.
+
+        " OF z2ui5_t_draft.
+        ASSIGN mt_draft->* TO <mt_draft>.
+
+        SELECT FROM z2ui5_t_draft
+            FIELDS *
+            ORDER BY uuid
+          INTO TABLE @DATA(lt_data)
+            UP TO 2 ROWS
+            .
+        APPEND LINES OF lt_data TO <mt_draft>.
+        "!"mt_draft->* = CORRESPONDING #( lt_data ).
+        "!
+        app-next-s_timer-interval_ms = '2000'.
+        app-next-s_timer-event_finished = 'TIMER_FINISHED'.
+
       WHEN 'BUTTON_CANCEL'.
         client->popup_message_toast( |cancel| ).
         app-view_popup = ''.
 
       WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( app-s_get-id_prev_app_stack ) ).
+        client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
 
     ENDCASE.
 
@@ -105,12 +124,15 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
 
     SELECT FROM z2ui5_t_draft
         FIELDS uuid, uuid_prev
-        order by uuid
+        ORDER BY uuid
       INTO TABLE @DATA(lt_data)
         UP TO 10 ROWS
         .
 
     mt_draft->* = CORRESPONDING #( lt_data ).
+
+    app-next-s_timer-interval_ms = '2000'.
+    app-next-s_timer-event_finished = 'TIMER_FINISHED'.
 
   ENDMETHOD.
 
@@ -123,7 +145,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
              shownavbutton  = abap_true
          )->header_content(
              )->link(
-                 text = 'Source_Code'
+                 text = 'Source_Code' target = '_blank'
                  href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
          )->get_parent(
          )->simple_form( title = 'Form Title' editable = abap_true
@@ -138,10 +160,10 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
                 press = client->_event( 'BUTTON_POST' )
             ).
 
-   data(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
-             )->content( 'form' )->table(
-               items = client->_bind( val = mt_draft->*  check_gen_data = abap_true )
-           ).
+    DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
+              )->content( 'form' )->table(
+                items = client->_bind( val = mt_draft->*  check_gen_data = abap_true )
+            ).
 
     tab->columns(
         )->column(
@@ -155,7 +177,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
           )->input( '{UUID_PREV}'
       ).
 
-    app-s_next-xml_main = lo_view->get_root( )->xml_get( ).
+    app-next-xml_main = lo_view->get_root( )->xml_get( ).
 
   ENDMETHOD.
 
