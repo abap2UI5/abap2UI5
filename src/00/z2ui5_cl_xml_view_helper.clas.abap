@@ -60,7 +60,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
-
     METHODS Dynamic_Page_Header
       IMPORTING
         pinnable      TYPE clike OPTIONAL
@@ -864,6 +863,27 @@ ENDCLASS.
 
 CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
+  METHOD constructor.
+
+    mt_prop = VALUE #(
+    ( n = `xmlns`        v = `sap.m` )
+    ( n = `xmlns:z2ui5`  v = `z2ui5` )
+    ( n = `xmlns:core`   v = `sap.ui.core` )
+    ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
+    ( n = `xmlns:layout` v = `sap.ui.layout` )
+    ( n = `xmlns:f`      v = `sap.f` )
+    ( n = `xmlns:form`   v = `sap.ui.layout.form` )
+    ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
+    ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
+    ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
+    ( n = `xmlns:uxap`   v = `sap.uxap` )
+    ( n = `xmlns:sap`    v = `sap` )
+    ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
+    ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
+     ).
+
+  ENDMETHOD.
+
   METHOD factory.
 
     result = NEW #( ).
@@ -878,10 +898,9 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
         (  n = 'controllerName' v = 'z2ui5_controller' )
     ).
 
-    result->m_name = `View`.
-    result->m_ns = `mvc`.
-
-    result->m_root = result.
+    result->m_name   = `View`.
+    result->m_ns     = `mvc`.
+    result->m_root   = result.
     result->m_parent = result.
 
   ENDMETHOD.
@@ -956,8 +975,8 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   METHOD blocks.
 
     result = _generic(
-        name   = `blocks`
-        ns     = `uxap`
+        name = `blocks`
+        ns   = `uxap`
      ).
 
   ENDMETHOD.
@@ -975,7 +994,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
           ( n = `enabled` v = _=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
-          ( n = `id`   v = id )
+          ( n = `id`      v = id )
           ( n = `class`   v = class )
        ) ).
 
@@ -1080,7 +1099,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = _generic(
        `customData`
-        ).
+    ).
 
   ENDMETHOD.
 
@@ -1354,7 +1373,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
            ( n = `showClearIcon`    v = _=>get_json_boolean( showclearicon ) )
            ( n = `description`      v = description )
            ( n = `editable`         v = _=>get_json_boolean( editable ) )
-           ( n = `enabled`         v = _=>get_json_boolean( enabled ) )
+           ( n = `enabled`          v = _=>get_json_boolean( enabled ) )
            ( n = `valueState`       v = valuestate )
            ( n = `valueStateText`   v = valuestatetext )
            ( n = `value`            v = value )
@@ -1570,10 +1589,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     _generic(
         name   = `MessageStrip`
         t_prop = VALUE #(
-           ( n = `text` v = text )
-           ( n = `type` v = type )
+           ( n = `text`     v = text )
+           ( n = `type`     v = type )
            ( n = `showIcon` v = _=>get_json_boolean( showicon ) )
-           ( n = `class` v = class )
+           ( n = `class`    v = class )
       ) ).
 
   ENDMETHOD.
@@ -1600,10 +1619,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     _generic(
         name  = `ObjectNumber`
         t_prop = VALUE #(
-           ( n = `emphasized`           v = _=>get_json_boolean( emphasized ) )
-           ( n = `number`        v = number )
-           ( n = `state`          v = state )
-           ( n = `unit`  v = unit )
+           ( n = `emphasized`  v = _=>get_json_boolean( emphasized ) )
+           ( n = `number`      v = number )
+           ( n = `state`       v = state )
+           ( n = `unit`        v = unit )
     ) ).
 
   ENDMETHOD.
@@ -2221,9 +2240,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = _generic(
        name   = `DynamicPageTitle`
        ns     = `f`
-       t_prop = VALUE #(
-       "   (  n = `pinnable`           v = pinnable )
-       ) ).
+       ).
 
   ENDMETHOD.
 
@@ -2233,7 +2250,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     _generic(
        name   = `ObjectAttribute`
-     "  ns     = `form`
        t_prop = VALUE #(
          (  n = `title`       v = title )
          (  n = `text`           v = text )
@@ -2265,9 +2281,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-    " result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
     result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( app ) && `/source/main`.
-
 
   ENDMETHOD.
 
@@ -2275,7 +2289,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = _generic(
          name  = `additionalContent`
-
     ).
 
   ENDMETHOD.
@@ -2299,38 +2312,10 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
       result->mt_prop = t_ns.
     ENDIF.
 
-    " result->mt_prop = VALUE #( BASE result->mt_prop
-    "   (  n = 'displayBlock'   v = 'true' )
-    "   (  n = 'height'         v = '100%' )
-    "  (  n = 'controllerName' v = 'z2ui5_controller' )
-    "  ).
-
     result->m_name = `FragmentDefinition`.
     result->m_ns = `core`.
-
     result->m_root = result.
     result->m_parent = result.
-
-  ENDMETHOD.
-
-  METHOD constructor.
-
-    mt_prop = VALUE #(
-    ( n = `xmlns`        v = `sap.m` )
-    ( n = `xmlns:z2ui5`  v = `z2ui5` )
-    ( n = `xmlns:core`   v = `sap.ui.core` )
-    ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
-    ( n = `xmlns:layout` v = `sap.ui.layout` )
-    ( n = `xmlns:f`      v = `sap.f` )
-    ( n = `xmlns:form`   v = `sap.ui.layout.form` )
-    ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
-    ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
-    ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
-    ( n = `xmlns:uxap`   v = `sap.uxap` )
-    ( n = `xmlns:sap`    v = `sap` )
-    ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
-    ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
-     ).
 
   ENDMETHOD.
 
