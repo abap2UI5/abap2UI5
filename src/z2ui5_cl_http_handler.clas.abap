@@ -14,10 +14,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS main_index_html
       IMPORTING
-        library_path    TYPE clike     DEFAULT `https://sdk.openui5.org/resources/sap-ui-core.js`
-        theme           TYPE clike     DEFAULT `sap_horizon`
-        title           TYPE clike     DEFAULT `abap2UI5`
-        rtl             TYPE abap_bool OPTIONAL
+        title           TYPE clike DEFAULT `abap2UI5`
+        t_config        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         check_logging   TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(r_result) TYPE string ##NEEDED.
@@ -71,6 +69,19 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main_index_html.
 
+    DATA(lt_Config) = t_config.
+    IF lt_config IS INITIAL.
+      lt_config = VALUE #(
+        (  name = `data-sap-ui-theme`         value = `sap_horizon` )
+        (  name = `src`                       value = `https://sdk.openui5.org/resources/sap-ui-core.js` )
+        (  name = `data-sap-ui-theme`         value = `sap_horizon` )
+        (  name = `data-sap-ui-libs`          value = `sap.m` )
+        (  name = `data-sap-ui-bindingSyntax` value = `complex` )
+        (  name = `data-sap-ui-frameOptions`  value = `trusted` )
+        (  name = `data-sap-ui-compatVersion` value = `edge` )
+          ).
+    ENDIF.
+
     DATA(lv_url) = _=>get_header_val( '~path' ).
     DATA(lv_app) = _=>get_param_val( 'app' ).
     z2ui5_lcl_db=>cleanup( ).
@@ -86,16 +97,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `            height: 100%;` && |\n|  &&
                `        }` && |\n|  &&
                `    </style> ` &&
-               `    <script src="` && library_path && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && theme && `" `.
+               `    <script id="sap-ui-bootstrap"`.
 
-    IF rtl IS SUPPLIED.
-      r_result = r_result && `data-sap-ui-rtl="` && _=>get_json_boolean( rtl ) &&  `" `.
-    ENDIF.
+    LOOP AT lt_config REFERENCE INTO DATA(lr_config).
+      r_result = r_result && | { lr_config->name }="{ lr_config->value }"|.
+    ENDLOOP.
 
-    r_result = r_result && ` data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
-        `        >` && |\n| &&
-        `     </script></head>` && |\n| &&
+    r_result = r_result &&
+        ` ></script></head>` && |\n| &&
         `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
