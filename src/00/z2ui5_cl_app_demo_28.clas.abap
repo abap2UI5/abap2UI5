@@ -41,7 +41,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     me->client     = client.
-    app-get      = client->get( ).
+    app-get        = client->get( ).
     app-view_popup = ``.
 
     IF app-check_initialized = abap_false.
@@ -145,7 +145,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
              shownavbutton  = abap_true
          )->header_content(
              )->link(
-                 text = 'Source_Code'
+                 text = 'Source_Code' target = '_blank'
                  href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
          )->get_parent(
          )->simple_form( title = 'Form Title' editable = abap_true

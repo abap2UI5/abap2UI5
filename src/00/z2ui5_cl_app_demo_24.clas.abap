@@ -56,8 +56,8 @@ CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
     DATA(view) = z2ui5_cl_xml_view_helper=>factory(
         )->page( title = 'abap2UI5 - flow logic - APP 01' navbuttonpress = client->_event( 'BACK' ) shownavbutton = abap_true
         )->header_content(
-            )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1640743794206228480`
-            )->link( text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+            )->link( text = 'Demo'        target = '_blank' href = `https://twitter.com/OblomovDev/status/1640743794206228480`
+            )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
         )->get_parent(
 
        )->grid( 'L6 M12 S12' )->content( 'l'
