@@ -1645,7 +1645,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF check_gen_data = abap_true.
         TRY.
-            DATA(lr_ref) = CAST data( lr_ref2->* ).
+            FIELD-SYMBOLS <field> type any.
+            assign lr_ref2->* to <field>.
+            DATA(lr_ref) = CAST data( <field> ).
             IF lr_attri->gen_type IS INITIAL.
               DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( lr_ref->* ).
               lr_attri->gen_type_kind = lo_datadescr->type_kind.
