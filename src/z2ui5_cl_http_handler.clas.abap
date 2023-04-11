@@ -143,6 +143,11 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `                        }.bind(this));` && |\n|  &&
                            `                    }` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.oTimer){ ` && |\n|  &&
+                           `                    var oEvent = { 'EVENT' : 'BUTTON_CHECK', 'METHOD' : 'UPDATE' };` && |\n|  &&
+                           `                    oEvent.EVENT = sap.z2ui5.oResponse.oTimer.eventFinished;` && |\n|  &&
+                           `                    setTimeout( sap.z2ui5.oView.getController().onEvent, sap.z2ui5.oResponse.oTimer.intervalMs, oEvent );` && |\n|  &&
+                           `                    }` && |\n|  &&
                            `                    sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `                },` && |\n|  &&
                            |\n|  &&
@@ -176,7 +181,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        }` && |\n|  &&
                            `                        sap.z2ui5.oResponse.oViewPopup.destroy();` && |\n|  &&
                            `                    } else {` && |\n|  &&
-                           `                        this.oBody.oUpdate = this.oView.getModel().oData.oUpdate;` && |\n|  &&
+                           `                        this.oBody.oUpdate = sap.z2ui5.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    }` && |\n|  &&
                            |\n|  &&
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n|  &&
@@ -190,8 +195,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                            `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                            `                    sap.z2ui5.oResponse = {};` && |\n|  &&
-                           `                    this.oView.destroy();` && |\n|  &&
-                           `                    this.Roundtrip();` && |\n|  &&
+                           `                    sap.z2ui5.oBody = this.oBody;` && |\n|  &&
+                           `                    sap.z2ui5.oView.getController( ).Roundtrip();` && |\n|  &&
+                           `                    sap.z2ui5.oView.destroy();` && |\n|  &&
                            `                },` && |\n|  &&
                            |\n|  &&
                            `                Roundtrip: function () {` && |\n|  &&
@@ -251,7 +257,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            });` && |\n|  &&
                            `                        }` && |\n|  &&
                            `                    }.bind(this);` && |\n|  &&
-                           `                    xhr.send(JSON.stringify(this.oBody));` && |\n|  &&
+                           `                    xhr.send(JSON.stringify(sap.z2ui5.oBody));` && |\n|  &&
                            `                },` && |\n|  &&
                            `            });` && |\n|  &&
                            |\n|  &&
