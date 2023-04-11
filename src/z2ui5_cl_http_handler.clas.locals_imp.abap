@@ -522,7 +522,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
-      INSERT lr_row->* INTO TABLE ct_to.
+      FIELD-SYMBOLS <row> type any.
+      ASSign lr_row->* to <row>.
+      INSERT <row> INTO TABLE ct_to.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1324,7 +1326,9 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       DATA(lv_name) = 'LO_APP->' && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
       DATA(lr_ref2) = REF #( <attribute> ).
-      CLEAR lr_ref2->*.
+      FIELD-SYMBOLS <field> type any.
+      ASSign lr_ref2->* to <field>.
+      CLEAR <field>.
 
     ENDLOOP.
 
@@ -1635,12 +1639,12 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ASSIGN (lv_name) TO <attribute>.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
 
-      DATA(lr_ref2) = REF #( <attribute> ).
+    data lr_ref2 type ref to data.
+    get reference of  <attribute> into lr_ref2.
+    "  DATA(lr_ref2) = REF #( <attribute> ).
 
       IF check_gen_data = abap_true.
         TRY.
-            "   DATA(lo_refdescr) = CAST cl_abap_refdescr( cl_abap_datadescr=>describe_by_data( lr_ref2->* ) ).
-            "   DATA lr_ref TYPE REF TO data.
             DATA(lr_ref) = CAST data( lr_ref2->* ).
             IF lr_attri->gen_type IS INITIAL.
               DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( lr_ref->* ).
