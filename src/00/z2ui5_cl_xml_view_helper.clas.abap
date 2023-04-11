@@ -16,7 +16,6 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
     DATA m_ns    TYPE string.
     DATA mt_prop TYPE ty_t_name_value.
 
-    DATA m_check_popup TYPE abap_bool.
     DATA m_root    TYPE REF TO z2ui5_cl_xml_view_helper.
     DATA m_last    TYPE REF TO z2ui5_cl_xml_view_helper.
     DATA m_parent  TYPE REF TO z2ui5_cl_xml_view_helper.
@@ -41,9 +40,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS constructor
-      IMPORTING
-        ns TYPE string_table OPTIONAL.
+    METHODS constructor.
 
     METHODS horizontal_layout
       IMPORTING
@@ -888,7 +885,6 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result->m_parent = result.
 
   ENDMETHOD.
-
 
 
   METHOD header.

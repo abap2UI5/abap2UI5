@@ -15,21 +15,7 @@ CLASS z2ui5_cl_app_demo_34 DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA mv_textarea TYPE string.
-    DATA mv_stretch_active TYPE abap_bool.
-
-    DATA:
-      BEGIN OF ms_popup_input,
-        value1          TYPE string,
-        value2          TYPE string,
-        check_is_active TYPE abap_bool,
-        combo_key       TYPE string,
-      END OF ms_popup_input.
-
     DATA t_bapiret TYPE bapirettab.
-
     DATA check_initialized TYPE abap_bool.
     DATA mv_popup_name TYPE string.
     DATA mv_main_xml TYPE string.
