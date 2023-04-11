@@ -7,7 +7,7 @@ CLASS z2ui5_cl_app_demo_23 DEFINITION PUBLIC.
     DATA product  TYPE string.
     DATA quantity TYPE string.
 
-    data client type ref to z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
@@ -28,14 +28,13 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     me->client = client.
     app-s_get  = client->get( ).
-    "  app-view_popup = ``.
 
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
@@ -82,21 +81,23 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_main.
 
+    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( ).
+
     CASE app-view_main.
 
       WHEN 'XML'.
 
-        app-s_next-xml_main = `<mvc:View controllerName="zzdummy" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.co` &&
-`re.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|
-&&
+        DATA(lv_xml) = `<mvc:View controllerName="zzdummy" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.co` &&
+    `re.mvc" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|
+    &&
                               `  title="abap2UI5 - XML XML XML" ` && |\n|  &&
                               `  showNavButton="true" ` && |\n|  &&
-                              `  navButtonPress="onEvent( { &apos;EVENT&apos; : &apos;BACK&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; } )" ` && |\n|  &&
+                              `  navButtonPress="` &&  client->_event( 'BACK' ) && `" ` && |\n|  &&
                               ` > <headerContent ` && |\n|  &&
                               ` > <Link ` && |\n|  &&
                               `  text="Source_Code" ` && |\n|  &&
                               `  target="_blank" ` && |\n|  &&
-                              `  href="https://6654aaf7-905f-48ea-b013-3811c03fcba8.abap-web.us10.hana.ondemand.com/sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_23/source/main" ` && |\n|  &&
+                              `  href="<system>sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_23/source/main" ` && |\n|  &&
                               ` /></headerContent> <f:SimpleForm ` && |\n|  &&
                               `  title="Form Title" ` && |\n|  &&
                               ` > <f:content ` && |\n|  &&
@@ -117,10 +118,11 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                               `  text="XML" ` && |\n|  &&
                               ` /></f:content></f:SimpleForm></Page></Shell></mvc:View>`.
 
+        app-s_next-xml_main = lv_xml.
 
       WHEN 'NORMAL'.
 
-        app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory( )->shell(
+        lo_view->shell(
           )->page(
                   title          = 'abap2UI5 - NORMAL NORMAL NORMAL'
                   navbuttonpress = client->_event( 'BACK' )
@@ -144,22 +146,18 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                           press = client->_event( 'GENERIC' )
                          )->button(
                           text  = 'XML'
-                          press = client->_event( 'XML' )
-           )->get_root( )->xml_get( ).
+                          press = client->_event( 'XML' ) ).
 
+        app-s_next-xml_main = lo_view->get_root( )->xml_get( ).
 
       WHEN 'GENERIC'.
 
-        DATA(li_view) = z2ui5_cl_xml_view_helper=>factory( ).
-
-        li_view->_generic(
+        lo_view->_generic( 'Shell' )->_generic(
            name      = `Page`
            t_prop = VALUE #(
                ( n = `title`          v = 'abap2UI5 - GENERIC GENERIC GENERIC' )
                ( n = `showNavButton`  v = `true` )
-               ( n = `navButtonPress` v = client->_event( 'BACK' ) )
-           )
-           )->_generic( 'Shell'
+               ( n = `navButtonPress` v = client->_event( 'BACK' ) ) )
            )->_generic(
                 name = `SimpleForm`
                 ns   = `form`
@@ -193,11 +191,9 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                 name = `Button`
                 t_prop = VALUE #(
                     ( n = `text`  v = `XML` )
-                    ( n = `press` v = client->_event( 'XML' ) ) )
-                 ).
+                    ( n = `press` v = client->_event( 'XML' ) ) ) ).
 
-        app-s_next-xml_main = li_view->get_root( )->xml_get( ).
-
+        app-s_next-xml_main = lo_view->get_root( )->xml_get( ).
 
     ENDCASE.
 

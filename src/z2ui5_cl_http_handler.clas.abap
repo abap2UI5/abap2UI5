@@ -74,7 +74,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lt_config = VALUE #(
         (  name = `data-sap-ui-theme`         value = `sap_horizon` )
         (  name = `src`                       value = `https://sdk.openui5.org/resources/sap-ui-core.js` )
-        (  name = `data-sap-ui-theme`         value = `sap_horizon` )
         (  name = `data-sap-ui-libs`          value = `sap.m` )
         (  name = `data-sap-ui-bindingSyntax` value = `complex` )
         (  name = `data-sap-ui-frameOptions`  value = `trusted` )
