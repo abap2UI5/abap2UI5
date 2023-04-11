@@ -19,6 +19,7 @@ CLASS z2ui5_cl_app_demo_28 DEFINITION PUBLIC.
         next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
 
+
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS z2ui5_on_render.
