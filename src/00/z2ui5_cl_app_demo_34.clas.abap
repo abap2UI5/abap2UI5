@@ -4,17 +4,6 @@ CLASS z2ui5_cl_app_demo_34 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    TYPES:
-      BEGIN OF ty_row,
-        selkz    TYPE abap_bool,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        icon     TYPE string,
-        info     TYPE string,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
-
     DATA t_bapiret TYPE bapirettab.
     DATA check_initialized TYPE abap_bool.
     DATA mv_popup_name TYPE string.
@@ -27,7 +16,6 @@ CLASS z2ui5_cl_app_demo_34 DEFINITION PUBLIC.
     METHODS view_popup_bal
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
-
 
   PROTECTED SECTION.
   PRIVATE SECTION.
