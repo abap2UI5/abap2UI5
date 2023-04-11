@@ -489,15 +489,18 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     CLEAR ct_to.
-    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( ct_to )  ).
-    DATA(lo_struc) = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+
+    DATA lr_row TYPE REF TO data.
+    CREATE DATA lr_row LIKE LINE OF ct_to.
+    ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+
+    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <row> ).
+    DATA(lo_struc) = CAST cl_abap_structdescr( lo_descr ).
     DATA(lt_components) = lo_struc->get_components( ).
 
     LOOP AT <lt_from> INTO DATA(lr_from).
 
-      DATA lr_row TYPE REF TO data.
-      CREATE DATA lr_row TYPE HANDLE lo_struc.
-      ASSIGN lr_row->* TO FIELD-SYMBOL(<back>).
+      CLEAR <row>.
 
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
       raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -505,7 +508,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       LOOP AT lt_components INTO DATA(ls_comp).
 
         FIELD-SYMBOLS <comp> TYPE data.
-        ASSIGN COMPONENT ls_comp-name OF STRUCTURE <back> TO <comp>.
+        ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row> TO <comp>.
         IF sy-subrc <> 0.
           EXIT.
         ENDIF.
@@ -522,8 +525,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
-      FIELD-SYMBOLS <row> TYPE any.
-      ASSIGN lr_row->* TO <row>.
       INSERT <row> INTO TABLE ct_to.
     ENDLOOP.
 
@@ -1320,10 +1321,7 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = 'LO_APP->' && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
-      DATA(lr_ref2) = REF #( <attribute> ).
-      FIELD-SYMBOLS <field> TYPE any.
-      ASSIGN lr_ref2->* TO <field>.
-      CLEAR <field>.
+      CLEAR <attribute>.
 
     ENDLOOP.
 
@@ -1516,14 +1514,13 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
               lv_value = lo_model->get_attribute( lr_attri->name )->get_val( ).
               ASSIGN <attribute>->* TO FIELD-SYMBOL(<attribute2>).
               <attribute2> = lv_value.
+
             WHEN cl_abap_datadescr=>kind_table.
-              DATA(lo_struc) = cl_abap_structdescr=>describe_by_name( lr_attri->gen_type ).
-              DATA(lo_tab) = cl_abap_tabledescr=>create(
-                               p_line_type    = CAST #( lo_struc )
-                               p_table_kind   = cl_abap_tabledescr=>tablekind_std
-                               p_unique       = abap_false
-                             ).
-              CREATE DATA <attribute> TYPE HANDLE lo_tab.
+              DATA lr_data TYPE REF TO data.
+              CREATE DATA lr_data TYPE (lr_attri->gen_type).
+              ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
+
+              CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
               ASSIGN <attribute>->* TO <attribute2>.
               _=>trans_ref_tab_2_tab(
               EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
