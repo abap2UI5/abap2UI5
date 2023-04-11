@@ -100,7 +100,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
     ENDCASE.
 
 
-    DATA(view) = z2ui5_cl_xml_view_helper=>factory( ).
+    DATA(view) = z2ui5_cl_xml_view_helper=>factory( )->shell( ).
     DATA(page) = view->page(
         id = 'id_page'
         title = 'abap2ui5 - Scrolling and Cursor (use the browser Chrome to avoid incompatibilities)'

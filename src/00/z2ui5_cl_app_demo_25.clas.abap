@@ -64,7 +64,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
       WHEN 'MAIN' OR ''.
 
-        DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
             )->page(
                    title          = 'abap2UI5 - flow logic - APP 02'
                    navbuttonpress = client->_event( 'BACK' ) shownavbutton = abap_true

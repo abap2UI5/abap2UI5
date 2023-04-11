@@ -88,17 +88,18 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `    </style> ` &&
                `    <script src="` && library_path && `" ` &&
                ` id="sap-ui-bootstrap" data-sap-ui-theme="` && theme && `" `.
-            if rtl is SUPPLIED.
-            r_result = r_result && `data-sap-ui-rtl="` && _=>get_json_boolean( rtl ) &&  `" `.
-            endif.
 
-           r_result = r_result && ` data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
-               `        >` && |\n| &&
-               `     </script></head>` && |\n| &&
-               `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
-               `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
-               `</body>` && |\n| &&
-               `</html>` && |\n|.
+    IF rtl IS SUPPLIED.
+      r_result = r_result && `data-sap-ui-rtl="` && _=>get_json_boolean( rtl ) &&  `" `.
+    ENDIF.
+
+    r_result = r_result && ` data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
+        `        >` && |\n| &&
+        `     </script></head>` && |\n| &&
+        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
+        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
+        `</body>` && |\n| &&
+        `</html>` && |\n|.
 
     r_result = r_result && `<script id="z2ui5">` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&

@@ -522,8 +522,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
-      FIELD-SYMBOLS <row> type any.
-      ASSign lr_row->* to <row>.
+      FIELD-SYMBOLS <row> TYPE any.
+      ASSIGN lr_row->* TO <row>.
       INSERT <row> INTO TABLE ct_to.
     ENDLOOP.
 
@@ -1321,8 +1321,8 @@ CLASS z2ui5_lcl_db IMPLEMENTATION.
       DATA(lv_name) = 'LO_APP->' && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
       DATA(lr_ref2) = REF #( <attribute> ).
-      FIELD-SYMBOLS <field> type any.
-      ASSign lr_ref2->* to <field>.
+      FIELD-SYMBOLS <field> TYPE any.
+      ASSIGN lr_ref2->* TO <field>.
       CLEAR <field>.
 
     ENDLOOP.
@@ -1634,18 +1634,18 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
       ASSIGN (lv_name) TO <attribute>.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
 
-    data lr_ref2 type ref to data.
-    get reference of  <attribute> into lr_ref2.
-    "  DATA(lr_ref2) = REF #( <attribute> ).
+      DATA lr_ref2 TYPE REF TO data.
+      GET REFERENCE OF  <attribute> INTO lr_ref2.
+      "  DATA(lr_ref2) = REF #( <attribute> ).
 
       IF check_gen_data = abap_true.
         TRY.
-            FIELD-SYMBOLS <field> type any.
-            assign lr_ref2->* to <field>.
+            FIELD-SYMBOLS <field> TYPE any.
+            ASSIGN lr_ref2->* TO <field>.
             DATA(lr_ref) = CAST data( <field> ).
             IF lr_attri->gen_type IS INITIAL.
-              FIELD-SYMBOLS <field2> type any.
-              assign lr_ref->* to <field2>.
+              FIELD-SYMBOLS <field2> TYPE any.
+              ASSIGN lr_ref->* TO <field2>.
               DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( <field2> ).
               lr_attri->gen_type_kind = lo_datadescr->type_kind.
               lr_attri->gen_kind = lo_datadescr->kind.
@@ -1773,13 +1773,19 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
           CASE lr_attri->gen_kind.
             WHEN cl_abap_datadescr=>kind_elem.
+              lv_name = '<ATTRIBUTE>->*'.
+              FIELD-SYMBOLS <field> type any.
+              assign (lv_name) to <field>.
               lo_actual->add_attribute( n = lr_attri->name
-                            v = _=>get_abap_2_json( <attribute>->* )
+                            v = _=>get_abap_2_json( <field> )
                             apos_active = abap_false ).
 
             WHEN cl_abap_datadescr=>kind_table.
+                 lv_name = '<ATTRIBUTE>->*'.
+             " FIELD-SYMBOLS <field> type any.
+              assign (lv_name) to <field>.
               lo_actual->add_attribute( n = lr_attri->name
-                                     v = _=>trans_any_2_json( <attribute>->* )
+                                     v = _=>trans_any_2_json( <field> )
                                      apos_active = abap_false ).
           ENDCASE.
 
