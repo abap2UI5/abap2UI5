@@ -119,7 +119,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
     CREATE DATA mt_draft TYPE STANDARD TABLE OF z2ui5_t_draft.
 
     SELECT FROM z2ui5_t_draft
-        FIELDS uuid, uuid_prev
+        FIELDS *
         ORDER BY uuid
       INTO TABLE @DATA(lt_data)
         UP TO 10 ROWS
@@ -129,7 +129,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE ty_t_draft.
 
     assign  mt_draft->*  to <tab>.
-    <tab> = CORRESPONDING #( lt_data ).
+    <tab> = lt_data.
 
     app-next-s_timer-interval_ms = '2000'.
     app-next-s_timer-event_finished = 'TIMER_FINISHED'.
