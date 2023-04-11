@@ -88,7 +88,7 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
         DATA(header_content) = page->header_Content( ns = 'uxap' ).
 
         header_content->flex_box( wrap = 'Wrap'
-           )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'L'
+           )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'layout'
             )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
                 )->link(  text    = '+33 6 4512 5158'
                 )->link(  text    = 'email@email.com'
@@ -103,7 +103,7 @@ CLASS Z2UI5_CL_APP_DEMO_17 IMPLEMENTATION.
                     )->label( 'Achived goals'
                     )->progress_indicator( percentvalue = '30%' displayvalue = '30%'
             )->get_parent(  )->get_parent(
-          "  )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'L'
+          "  )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'layout'
             )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
                 )->label(  text    = 'San Jose, USA'
             )->get_parent(

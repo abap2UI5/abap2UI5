@@ -7,8 +7,6 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
     DATA mv_path TYPE string.
     DATA mv_value TYPE string.
 
-    " DATA mv_popup_view TYPE string.
-    " DATA check_initialized TYPE abap_bool.
     TYPES:
       BEGIN OF ty_file,
         selkz  TYPE abap_bool,
@@ -22,7 +20,6 @@ CLASS z2ui5_cl_app_demo_07 DEFINITION PUBLIC.
     DATA mt_file      TYPE STANDARD TABLE OF ty_file WITH EMPTY KEY.
     DATA ms_file_edit TYPE ty_file.
     DATA ms_file_prev TYPE ty_file.
-    " DATA mv_set_prev_view TYPE abap_bool.
 
   PROTECTED SECTION.
 
@@ -153,13 +150,13 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_view_init.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( ns = VALUE #(
-         ( `xmlns:mvc="sap.ui.core.mvc"` )
-         ( `xmlns:m="sap.m"` )
-         ( `xmlns:z2ui5="z2ui5"` )
-         ( `xmlns:core="sap.ui.core"` )
-         ( `xmlns="http://www.w3.org/1999/xhtml"` )
-   ) ).
+    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( VALUE #(
+         ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
+         ( n = `xmlns:m` v = `sap.m` )
+         ( n = `xmlns:z2ui5` v = `z2ui5` )
+         ( n = `xmlns:core` v = `sap.ui.core` )
+         ( n = `xmlns` v = `http://www.w3.org/1999/xhtml` )
+     ) ).
 
     DATA(page) = lo_view->_generic( name = 'Shell' ns = 'm' )->page(
            ns             = 'm'
@@ -243,7 +240,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_popup_descr.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory_popup(
               )->dialog(
                       title = 'Edit Description'
                       icon = 'sap-icon://edit'
@@ -270,7 +267,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_popup_data.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory_popup(
      )->dialog(
              stretch = abap_true
              title = 'Data:'

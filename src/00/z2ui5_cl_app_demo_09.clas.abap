@@ -222,7 +222,7 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
         )->get_parent( ).
 
     DATA(form) = page->grid( 'L7 M7 S7'
-        )->content( 'l'
+        )->content( 'layout'
             )->simple_form( 'Input with Value Help'
                 )->content( 'form' ).
 
@@ -282,7 +282,7 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
 
       WHEN 'POPUP_TABLE_F4'.
 
-        popup = z2ui5_cl_xml_view_helper=>factory(
+        popup = z2ui5_cl_xml_view_helper=>factory_popup(
             )->dialog( 'abap2UI5 - F4 Value Help'
             )->table(
                     mode  = 'SingleSelectLeft'
@@ -309,7 +309,7 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
 
       WHEN 'POPUP_TABLE_F4_CUSTOM'.
 
-        popup = z2ui5_cl_xml_view_helper=>factory(
+        popup = z2ui5_cl_xml_view_helper=>factory_popup(
             )->dialog( 'abap2UI5 - F4 Value Help' ).
 
         popup->simple_form(

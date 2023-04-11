@@ -120,7 +120,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
             )->get_parent( ).
 
     DATA(grid) = page->grid( 'L6 M12 S12'
-        )->content( 'l' ).
+        )->content( 'layout' ).
 
     grid->simple_form( 'Input'
         )->content( 'form'
@@ -147,7 +147,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
 
     DATA(form) = grid->get_parent( )->get_parent( )->grid( 'L12 M12 S12'
-        )->content( 'l'
+        )->content( 'layout'
             )->simple_form( 'Input with select options'
                 )->content( 'form' ).
 

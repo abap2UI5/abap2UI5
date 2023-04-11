@@ -68,7 +68,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
         ENDIF.
 
         page->grid( 'L6 M12 S12'
-            )->content( 'l'
+            )->content( 'layout'
                 )->simple_form( 'Message Box' )->content( 'form'
                     )->button(
                         text  = 'information'
@@ -84,7 +84,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
                         press = client->_event( 'BUTTON_MESSAGE_BOX_WARNING' ) ).
 
         page->grid( 'L6 M12 S12'
-            )->content( 'l'
+            )->content( 'layout'
                 )->simple_form( 'Message Strip' )->content( 'form'
                     )->button(
                         text = 'success'
@@ -97,7 +97,7 @@ CLASS Z2UI5_CL_APP_DEMO_08 IMPLEMENTATION.
                         press = client->_event( 'BUTTON_MESSAGE_STRIP_INFO' ) ).
 
         page->grid( 'L6 M12 S12'
-            )->content( 'l'
+            )->content( 'layout'
                 )->simple_form( 'Display' )->content( 'form'
                     )->button(
                         text = 'Message Toast'
