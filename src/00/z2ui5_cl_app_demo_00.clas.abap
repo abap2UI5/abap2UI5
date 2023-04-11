@@ -90,7 +90,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
     grid->simple_form( title = 'HowTo - Extensions' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Views - Normal, Generic, XML' press = client->_event( 'z2ui5_cl_app_demo_23' )
          )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
-         )->button( text = 'HTML, JS, CSS' press = client->_event( 'z2ui5_cl_app_demo_32' )
+         )->button( text = 'HTML, JS, CSS' press = client->_event( 'z2ui5_cl_app_demo_32    ' )
          )->button( text = 'Custom Control' press = client->_event( 'z2ui5_cl_app_demo_37' )
     ).
 
