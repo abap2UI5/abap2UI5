@@ -54,10 +54,6 @@ CLASS z2ui5_cl_app_demo_21 DEFINITION PUBLIC.
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
 
-    METHODS view_popup_bal
-      IMPORTING
-        client TYPE REF TO z2ui5_if_client.
-
     METHODS view_popup_table
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -115,10 +111,6 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
             press = client->_event( 'POPUP_TO_INPUT' ) ).
 
     grid->simple_form( 'Tables' )->content( 'form'
-        )->label( '01'
-        )->button(
-            text  = 'Show bapiret tab'
-            press = client->_event( 'POPUP_BAL' )
         )->label( '02'
         )->button(
             text  = 'Popup to select'
@@ -127,42 +119,6 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
     mv_main_xml = page->get_root( )->xml_get( ).
 
   ENDMETHOD.
-
-
-  METHOD view_popup_bal.
-
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
-        )->dialog( 'abap2ui5 - Popup Message Log'
-            )->table( client->_bind( t_bapiret )
-                )->columns(
-                    )->column( '5rem'
-                        )->text( 'Type' )->get_parent(
-                    )->column( '5rem'
-                        )->text( 'Number' )->get_parent(
-                    )->column( '5rem'
-                        )->text( 'ID' )->get_parent(
-                    )->column(
-                        )->text( 'Message' )->get_parent(
-                )->get_parent(
-                )->items(
-                    )->column_list_item(
-                        )->cells(
-                            )->text( '{TYPE}'
-                            )->text( '{NUMBER}'
-                            )->text( '{ID}'
-                            )->text( '{MESSAGE}'
-            )->get_parent( )->get_parent( )->get_parent( )->get_parent(
-            )->footer( )->overflow_toolbar(
-                )->toolbar_spacer(
-                )->button(
-                    text  = 'close'
-                    press = client->_event( 'POPUP_BAL_CLOSE' )
-                    type  = 'Emphasized' ).
-
-    mv_popup_xml = popup->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
 
   METHOD view_popup_decide.
 
@@ -393,8 +349,6 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
         view_popup_textarea_size( client ).
       WHEN 'POPUP_TO_INPUT'.
         view_popup_input( client ).
-      WHEN 'POPUP_BAL'.
-        view_popup_bal( client ).
       WHEN 'POPUP_TABLE'.
         view_popup_table( client ).
 
