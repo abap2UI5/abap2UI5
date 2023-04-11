@@ -17,6 +17,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         library_path    TYPE clike     DEFAULT `https://sdk.openui5.org/resources/sap-ui-core.js`
         theme           TYPE clike     DEFAULT `sap_horizon`
         title           TYPE clike     DEFAULT `abap2UI5`
+        rtl             TYPE abap_bool OPTIONAL
         check_logging   TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(r_result) TYPE string ##NEEDED.
@@ -86,8 +87,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `        }` && |\n|  &&
                `    </style> ` &&
                `    <script src="` && library_path && `" ` &&
-               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && theme && `"` && |\n| &&
-               `        data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
+               ` id="sap-ui-bootstrap" data-sap-ui-theme="` && theme && `" `.
+            if rtl is SUPPLIED.
+            r_result = r_result && `data-sap-ui-rtl="` && _=>get_json_boolean( rtl ) &&  `" `.
+            endif.
+
+           r_result = r_result && ` data-sap-ui-libs="sap.m" data-sap-ui-bindingSyntax="complex" data-sap-ui-frameOptions="trusted" data-sap-ui-compatVersion="edge"` && |\n| &&
                `        >` && |\n| &&
                `     </script></head>` && |\n| &&
                `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
