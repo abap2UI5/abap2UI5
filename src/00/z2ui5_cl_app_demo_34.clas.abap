@@ -4,32 +4,7 @@ CLASS z2ui5_cl_app_demo_34 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    TYPES:
-      BEGIN OF ty_row,
-        selkz    TYPE abap_bool,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        icon     TYPE string,
-        info     TYPE string,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
-
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA mv_textarea TYPE string.
-    DATA mv_stretch_active TYPE abap_bool.
-
-    DATA:
-      BEGIN OF ms_popup_input,
-        value1          TYPE string,
-        value2          TYPE string,
-        check_is_active TYPE abap_bool,
-        combo_key       TYPE string,
-      END OF ms_popup_input.
-
     DATA t_bapiret TYPE bapirettab.
-
     DATA check_initialized TYPE abap_bool.
     DATA mv_popup_name TYPE string.
     DATA mv_main_xml TYPE string.
@@ -41,7 +16,6 @@ CLASS z2ui5_cl_app_demo_34 DEFINITION PUBLIC.
     METHODS view_popup_bal
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
-
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -66,7 +40,7 @@ CLASS Z2UI5_CL_APP_DEMO_34 IMPLEMENTATION.
                     text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
            )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'layout' ).
 
     grid->simple_form( 'Tables' )->content( 'form'
         )->label( '01'
@@ -82,7 +56,7 @@ CLASS Z2UI5_CL_APP_DEMO_34 IMPLEMENTATION.
 
   METHOD view_popup_bal.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
         )->dialog( 'abap2ui5 - Popup Message Log'
             )->table( client->_bind( t_bapiret )
                 )->columns(

@@ -8,7 +8,6 @@ CLASS z2ui5_cl_app_demo_25 DEFINITION PUBLIC.
     DATA mv_input_previous TYPE string.
     DATA mv_input_previous_set TYPE string.
     DATA mv_show_view TYPE string.
-    "  data mv_next_event type string.
 
     DATA mv_event_backend TYPE string.
   PROTECTED SECTION.
@@ -74,7 +73,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
                    )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
                )->get_parent( ).
 
-        page->grid( 'L6 M12 S12' )->content( 'l'
+        page->grid( 'L6 M12 S12' )->content( 'layout'
 
               )->simple_form( 'View: FIRST' )->content( 'form'
 
@@ -100,7 +99,7 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
                     )->link( text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
                 )->get_parent( ).
 
-        page->grid( 'L6 M12 S12' )->content( 'l'
+        page->grid( 'L6 M12 S12' )->content( 'layout'
             )->simple_form( 'View: SECOND' )->content( 'form'
               )->label( 'Demo'
               )->button( text = 'leave to previous app' press = client->_event( 'BACK' )

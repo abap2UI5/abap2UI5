@@ -60,7 +60,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                     )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent( ).
 
-        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
+        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'layout' ).
 
         grid->simple_form( title = 'File' editable = abap_true )->content( 'form'
              )->label( 'path'
@@ -77,7 +77,7 @@ CLASS Z2UI5_CL_APP_DEMO_14 IMPLEMENTATION.
                     press = client->_event( 'DB_LOAD' )
                     icon  = 'sap-icon://download-from-cloud' ).
 
-        grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        grid = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
         grid->simple_form( 'Editor' )->content( 'form'
                 )->scroll_container( '75%'

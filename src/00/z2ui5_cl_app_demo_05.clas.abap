@@ -136,7 +136,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                 number     = '3.5M'
                 unit       = 'EUR' ).
 
-        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'l' ).
+        DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
         grid->simple_form( 'More Controls' )->content( 'form'
             )->label( 'ProgressIndicator'
