@@ -4,8 +4,17 @@ CLASS z2ui5_cl_app_demo_28 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    DATA mt_draft TYPE REF TO data.
-    DATA mv_test TYPE REF TO data.
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        descr    TYPE string,
+        icon     TYPE string,
+        info     TYPE string,
+        checkbox TYPE abap_bool,
+      END OF ty_row.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA mv_Counter TYPE i.
 
   PROTECTED SECTION.
 
@@ -18,7 +27,6 @@ CLASS z2ui5_cl_app_demo_28 DEFINITION PUBLIC.
         get               TYPE z2ui5_if_client=>ty_s_get,
         next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
-
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
@@ -60,36 +68,13 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
 
     CASE app-get-event.
 
-      WHEN 'BUTTON_POST'.
-*        client->popup_message_toast( |{ product } { quantity } - send to the server| ).
-        app-view_popup = 'POPUP_CONFIRM'.
-
-      WHEN 'BUTTON_CONFIRM'.
-        client->popup_message_toast( |confirm| ).
-        app-view_popup = ''.
-
       WHEN 'TIMER_FINISHED'.
+        mv_counter = mv_counter + 1.
+        INSERT VALUE #( title = 'entry' && mv_counter   info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account'  )
+            INTO TABLE t_tab.
 
-        FIELD-SYMBOLS <mt_draft> TYPE STANDARD TABLE.
-
-        " OF z2ui5_t_draft.
-        ASSIGN mt_draft->* TO <mt_draft>.
-
-        SELECT FROM z2ui5_t_draft
-            FIELDS *
-            ORDER BY uuid
-          INTO TABLE @DATA(lt_data)
-            UP TO 2 ROWS
-            .
-        APPEND LINES OF lt_data TO <mt_draft>.
-        "!"mt_draft->* = CORRESPONDING #( lt_data ).
-        "!
         app-next-s_timer-interval_ms = '2000'.
         app-next-s_timer-event_finished = 'TIMER_FINISHED'.
-
-      WHEN 'BUTTON_CANCEL'.
-        client->popup_message_toast( |cancel| ).
-        app-view_popup = ''.
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
@@ -101,35 +86,10 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-*    product  = 'tomato'.
-*    quantity = '500'.
-    app-view_main = 'VIEW_MAIN'.
-*    input41 = 'faasdfdfsaVIp'.
-*
-*    input21 = '40'.
-*    input22 = '40'.
+    mv_counter = 1.
 
-
-
-    CREATE DATA mv_test TYPE string.
-    FIELD-SYMBOLS <field> type string.
-    assign  mv_test->* to <field>.
-    <field> = 'test'.
-
-    CREATE DATA mt_draft TYPE STANDARD TABLE OF z2ui5_t_draft.
-
-    SELECT FROM z2ui5_t_draft
-        FIELDS *
-        ORDER BY uuid
-      INTO TABLE @DATA(lt_data)
-        UP TO 10 ROWS
-        .
-
-    types ty_t_draft type STANDARD TABLE OF z2ui5_t_draft.
-    FIELD-SYMBOLS <tab> TYPE ty_t_draft.
-
-    assign  mt_draft->*  to <tab>.
-    <tab> = lt_data.
+    t_tab = VALUE #(
+            ( title = 'entry' && mv_counter  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' ) ).
 
     app-next-s_timer-interval_ms = '2000'.
     app-next-s_timer-event_finished = 'TIMER_FINISHED'.
@@ -140,48 +100,40 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
   METHOD z2ui5_on_render.
 
     DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( )->shell( )->page(
-             title          = 'abap2UI5 - First Example'
+             title          = 'abap2UI5 - CL_GUI_TIMER - Monitor'
              navbuttonpress = client->_event( 'BACK' )
              shownavbutton  = abap_true
          )->header_content(
+             )->link( text = 'Demo'    target = '_blank'    href = `https://twitter.com/OblomovDev/status/1645816100813152256`
              )->link(
                  text = 'Source_Code' target = '_blank'
                  href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
          )->get_parent(
-         )->simple_form( title = 'Form Title' editable = abap_true
-             )->content( 'form'
-                 )->title( 'Input'
-                 )->label( 'quantity' ).
+         )->simple_form( title = 'Chart auto refresh (2 sec)' editable = abap_true
+          ).
 
+    DATA(point) = lo_View->flex_box(
+           width      = '22rem'
+           height     = '13rem'
+           alignitems = 'Center'
+           class      = 'sapUiSmallMargin'
+        )->items( )->interact_line_chart(
+               selectionchanged = client->_event( 'LINE_CHANGED' )
+               precedingpoint   = '15'
+               succeddingpoint  = '89'
+           )->points( ).
+    LOOP AT t_tab REFERENCE INTO DATA(lr_line).
+      point->interact_line_chart_point( label = lr_line->title  value = CONV string( sy-tabix )  ).
+    ENDLOOP.
 
-    FIELD-SYMBOLS <field> type string.
-    ASSIGN mv_test->* to <field>.
-
-    lo_view->input( client->_bind( val = <field>  check_gen_data = abap_true ) ).
-
-    lo_view->button(
-                text  = 'post'
-                press = client->_event( 'BUTTON_POST' )
-            ).
-
-FIELD-SYMBOLS <tab> type STANDARD TABLE.
-    assign mt_draft->* to <tab>.
-    DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
-              )->content( 'form' )->table(
-                items = client->_bind( val = <tab>  check_gen_data = abap_true )
-            ).
-
-    tab->columns(
-        )->column(
-            )->text( 'UUID' )->get_parent(
-        )->column(
-            )->text( 'UUID_PREV' ).
-
-    tab->items( )->column_list_item(
-      )->cells(
-          )->input( '{UUID}'
-          )->input( '{UUID_PREV}'
-      ).
+    lo_view->get_parent( )->list(
+         headertext = 'Data auto refresh (2 sec)'
+         items      = client->_bind_one( t_tab )
+         )->standard_list_item(
+             title       = '{TITLE}'
+             description = '{DESCR}'
+             icon        = '{ICON}'
+             info        = '{INFO}' ).
 
     app-next-xml_main = lo_view->get_root( )->xml_get( ).
 
