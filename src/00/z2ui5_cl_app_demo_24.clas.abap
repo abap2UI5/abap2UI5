@@ -60,7 +60,7 @@ CLASS z2ui5_cl_app_demo_24 IMPLEMENTATION.
             )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
         )->get_parent(
 
-       )->grid( 'L6 M12 S12' )->content( 'l'
+       )->grid( 'L6 M12 S12' )->content( 'layout'
 
        )->simple_form( 'Controller' )->content( 'form'
 

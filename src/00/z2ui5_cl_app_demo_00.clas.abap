@@ -47,7 +47,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         )->get_parent( ).
 
     DATA(grid) = page->grid( 'L3 M6 S12'
-        )->content( 'l' ).
+        )->content( 'layout' ).
 
     grid->simple_form( title = 'HowTo - General' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Communication & Data Binding' press = client->_event( 'z2ui5_cl_app_demo_01' )
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
     ).
 
     DATA(form) = page->grid( 'L9 M12 S12'
-        )->content( 'l'
+        )->content( 'layout'
         )->simple_form( 'Demos I'
             )->vbox( ).
 
@@ -170,7 +170,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
                      styleclass = 'sapUiTinyMargin' ).
 
     form = page->grid( 'L9 M12 S12'
-          )->content( 'l'
+          )->content( 'layout'
           )->simple_form( 'Demos II'
             )->vbox( ).
 

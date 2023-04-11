@@ -100,7 +100,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
     bar->interact_bar_chart_bar( label = 'Product 3' value = '70' displayedvalue = '70%' ).
 
     bar = grid->vertical_layout(
-        )->layout_data( 'l'
+        )->layout_data( 'layout'
             )->grid_data( 'XL12 L12 M12 S12'
         )->get_parent(
         )->text(
@@ -249,7 +249,7 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
     point->interact_line_chart_point( label = 'Oct'  value = '0.9'  displayedvalue = '9.9%'  ).
 
     point = grid->vertical_layout(
-        )->layout_data( ns = 'l'
+        )->layout_data( ns = 'layout'
             )->grid_data( 'XL12 L12 M12 S12'
         )->get_parent(
         )->text(

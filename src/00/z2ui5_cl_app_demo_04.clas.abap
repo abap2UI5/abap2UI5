@@ -89,7 +89,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
                         target = '_blank'
                 )->get_parent( ).
 
-        page->grid( 'L6 M12 S12' )->content( 'l'
+        page->grid( 'L6 M12 S12' )->content( 'layout'
             )->simple_form( 'Controller' )->content( 'form'
                 )->label( 'Roundtrip'
                 )->button(
@@ -117,7 +117,7 @@ CLASS Z2UI5_CL_APP_DEMO_04 IMPLEMENTATION.
                 shownavbutton = abap_true
                 ).
 
-        page->grid( 'L12 M12 S12' )->content( 'l'
+        page->grid( 'L12 M12 S12' )->content( 'layout'
             )->simple_form( 'View Second' )->content( 'form'
                 )->label( 'Change View'
                 )->button(

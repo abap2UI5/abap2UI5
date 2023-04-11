@@ -93,7 +93,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                         href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
                 )->get_parent( ).
 
-        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l'
+        DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'layout'
             )->simple_form( 'Popup in same App' )->content( 'form'
                 )->label( 'Demo'
                 )->button(

@@ -871,7 +871,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = NEW #( ).
 
-    IF t_ns IS not INITIAL.
+    IF t_ns IS NOT INITIAL.
       result->mt_prop = t_ns.
     ENDIF.
 
@@ -1250,7 +1250,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = _generic(
         name = `Grid`
-        ns   = `l`
+        ns   = `layout`
         t_prop = VALUE #(
             ( n = `defaultSpan` v = default_span )
             ( n = `class`       v = class )
@@ -1264,7 +1264,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = me.
     _generic(
            name = `GridData`
-           ns = `l`
+           ns = `layout`
         t_prop = VALUE #(
             ( n = `span`  v = span )
         ) ).
@@ -1325,7 +1325,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = _generic(
         name   = `HorizontalLayout`
-        ns     = `l`
+        ns     = `layout`
         t_prop = VALUE #(
                      ( n = `class`  v = class )
                      ( n = `width`  v = width )
@@ -2127,7 +2127,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = _generic(
         name   = `VerticalLayout`
-        ns     = `l`
+        ns     = `layout`
         t_prop = VALUE #(
                      ( n = `class`  v = class )
                      ( n = `width`  v = width )
@@ -2157,7 +2157,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = |{ result }>|.
 
-    LOOP AT t_child INTO data(lr_child).
+    LOOP AT t_child INTO DATA(lr_child).
       result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
     ENDLOOP.
 
@@ -2299,15 +2299,15 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
     result = NEW #( ).
 
-    IF t_ns IS not INITIAL.
+    IF t_ns IS NOT INITIAL.
       result->mt_prop = t_ns.
     ENDIF.
 
-   " result->mt_prop = VALUE #( BASE result->mt_prop
-     "   (  n = 'displayBlock'   v = 'true' )
-     "   (  n = 'height'         v = '100%' )
-      "  (  n = 'controllerName' v = 'z2ui5_controller' )
-  "  ).
+    " result->mt_prop = VALUE #( BASE result->mt_prop
+    "   (  n = 'displayBlock'   v = 'true' )
+    "   (  n = 'height'         v = '100%' )
+    "  (  n = 'controllerName' v = 'z2ui5_controller' )
+    "  ).
 
     result->m_name = `FragmentDefinition`.
     result->m_ns = `core`.
@@ -2320,20 +2320,20 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
   METHOD constructor.
 
     mt_prop = VALUE #(
-    ( n = `xmlns` v = `sap.m` )
-    ( n = `xmlns:z2ui5` v = `z2ui5` )
-    ( n = `xmlns:core` v = `sap.ui.core` )
-    ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
-    ( n = `xmlns:l` v = `sap.ui.layout` )
-    ( n = `xmlns:f` v = `sap.f` )
-    ( n = `xmlns:form` v = `sap.ui.layout.form` )
+    ( n = `xmlns`        v = `sap.m` )
+    ( n = `xmlns:z2ui5`  v = `z2ui5` )
+    ( n = `xmlns:core`   v = `sap.ui.core` )
+    ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
+    ( n = `xmlns:layout` v = `sap.ui.layout` )
+    ( n = `xmlns:f`      v = `sap.f` )
+    ( n = `xmlns:form`   v = `sap.ui.layout.form` )
     ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
     ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
-    ( n = `xmlns:webc` v = `sap.ui.webc.main` )
-    ( n = `xmlns:uxap` v = `sap.uxap` )
-    ( n = `xmlns:sap` v = `sap` )
-    ( n = `xmlns:text` v = `sap.ui.richtextedito` )
-    ( n = `xmlns:html` v = `http://www.w3.org/1999/xhtml` )
+    ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
+    ( n = `xmlns:uxap`   v = `sap.uxap` )
+    ( n = `xmlns:sap`    v = `sap` )
+    ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
+    ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
      ).
 
   ENDMETHOD.

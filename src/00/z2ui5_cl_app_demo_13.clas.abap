@@ -186,14 +186,14 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                        press   = client->_event( 'BTN_EXPORT' )
            )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'layout' ).
 
     grid->simple_form( '2. Edit Data'
          )->content( 'form'
             )->label( 'Table'
             )->input( 'SPFLI' ).
 
-    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    grid = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
     DATA(cont) = grid->simple_form(  )->content( 'form' ).
 
@@ -274,7 +274,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                     enabled = abap_false
         )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M7 S7' )->content( 'layout' ).
 
     grid->simple_form( '3. Export Data'
          )->content( 'form'
@@ -287,7 +287,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                     )->segmented_button_item( key = 'csv'  text = 'csv'
                     )->segmented_button_item( key = 'xml'  text = 'xml' ).
 
-    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    grid = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
     grid->scroll_container( '75%'
         )->code_editor(
@@ -338,7 +338,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                     press = client->_event( 'BTN_EXPORT' )
         )->get_parent( )->get_parent( ).
 
-    DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'l' ).
+    DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'layout' ).
 
     grid->simple_form( '1. Import Data'
          )->content( 'form'
@@ -351,7 +351,7 @@ CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
                     )->segmented_button_item( key = 'csv'  text = 'csv'
                     )->segmented_button_item( key = 'xml'  text = 'xml' ).
 
-    grid = page->grid( 'L12 M12 S12' )->content( 'l' ).
+    grid = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
     grid->scroll_container( '75%'
         )->code_editor(

@@ -222,7 +222,7 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
         )->get_parent( ).
 
     DATA(form) = page->grid( 'L7 M7 S7'
-        )->content( 'l'
+        )->content( 'layout'
             )->simple_form( 'Input with Value Help'
                 )->content( 'form' ).
 
