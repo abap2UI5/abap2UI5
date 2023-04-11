@@ -41,6 +41,7 @@ CLASS z2ui5_cl_app_demo_01 IMPLEMENTATION.
                 )->link(
                     text = 'Source_Code'
                     href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    target = '_blank'
             )->get_parent(
             )->simple_form( title = 'Form Title' editable = abap_true
                 )->content( 'form'

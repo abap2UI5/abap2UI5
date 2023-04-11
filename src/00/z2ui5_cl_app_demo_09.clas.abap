@@ -214,10 +214,10 @@ CLASS Z2UI5_CL_APP_DEMO_09 IMPLEMENTATION.
             shownavbutton = abap_true
             )->header_content(
                 )->link(
-                    text = 'Demo'
+                    text = 'Demo'  target = '_blank'
                     href = 'https://twitter.com/OblomovDev/status/1637470531136921600'
                 )->link(
-                    text = 'Source_Code'
+                    text = 'Source_Code' target = '_blank'
                     href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
         )->get_parent( ).
 

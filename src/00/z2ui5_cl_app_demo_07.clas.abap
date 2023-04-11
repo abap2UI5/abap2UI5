@@ -168,8 +168,8 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
            shownavbutton  = abap_true
        )->header_content( ns = 'm'
            )->toolbar_spacer( ns = 'm'
-           )->link( ns = 'm' text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
-           )->link( ns = 'm' text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+           )->link( ns = 'm' text = 'Demo'   target = '_blank'     href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
+           )->link( ns = 'm'  target = '_blank' text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
        )->get_parent( ).
 
     page->text( ns = 'm' text = 'Custom Control for File Upload is now loaded.'

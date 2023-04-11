@@ -33,6 +33,10 @@ INTERFACE z2ui5_if_client
         selectionstart TYPE string,
         selectionend   TYPE string,
       END OF s_cursor_pos,
+      begin of s_timer,
+        interval_ms    type string,
+        event_finished type string,
+      end of s_timer,
     END OF ty_s_next.
 
   METHODS set_next

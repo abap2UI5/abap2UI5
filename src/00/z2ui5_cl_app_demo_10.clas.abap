@@ -31,10 +31,10 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
       )->button( text = 'button'
       )->text( 'text'
       )->link(
-        text = 'link'
+        text = 'link' target = '_blank'
         href = 'https://twitter.com/OblomovDev'
       )->link(
-        text = 'Source_Code'
+        text = 'Source_Code' target = '_blank'
         href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
        ).
 

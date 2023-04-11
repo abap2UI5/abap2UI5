@@ -1460,6 +1460,12 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           )->add_attribute( n = `selectionStart`  v = ms_next-s_set-s_cursor_pos-selectionstart apos_active = abap_false ).
     ENDIF.
 
+    IF ms_next-s_set-s_timer IS NOT INITIAL.
+      lo_ui5_model->add_attribute_object( `oTimer`
+          )->add_attribute( n = `eventFinished`  v = ms_next-s_set-s_timer-event_finished
+          )->add_attribute( n = `intervalMs`     v = ms_next-s_set-s_timer-interval_ms apos_active = abap_false ).
+    ENDIF.
+
     IF ms_next-s_set-check_set_prev_view = abap_true.
       lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
     ENDIF.
@@ -1509,7 +1515,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
             WHEN cl_abap_datadescr=>kind_elem.
               CREATE DATA <attribute> TYPE (lr_attri->gen_type).
               lv_value = lo_model->get_attribute( lr_attri->name )->get_val( ).
-              assign <attribute>->* to FIELD-SYMBOL(<attribute2>).
+              ASSIGN <attribute>->* TO FIELD-SYMBOL(<attribute2>).
               <attribute2> = lv_value.
             WHEN cl_abap_datadescr=>kind_table.
               DATA(lo_struc) = cl_abap_structdescr=>describe_by_name( lr_attri->gen_type ).
@@ -1519,7 +1525,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
                                p_unique       = abap_false
                              ).
               CREATE DATA <attribute> TYPE HANDLE lo_tab.
-              assign <attribute>->* to <attribute2>.
+              ASSIGN <attribute>->* TO <attribute2>.
               _=>trans_ref_tab_2_tab(
               EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
               CHANGING ct_to   = <attribute2> ).
@@ -1633,9 +1639,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
       IF check_gen_data = abap_true.
         TRY.
-         "   DATA(lo_refdescr) = CAST cl_abap_refdescr( cl_abap_datadescr=>describe_by_data( lr_ref2->* ) ).
-         "   DATA lr_ref TYPE REF TO data.
-            data(lr_ref) = cast data( lr_ref2->* ).
+            "   DATA(lo_refdescr) = CAST cl_abap_refdescr( cl_abap_datadescr=>describe_by_data( lr_ref2->* ) ).
+            "   DATA lr_ref TYPE REF TO data.
+            DATA(lr_ref) = CAST data( lr_ref2->* ).
             IF lr_attri->gen_type IS INITIAL.
               DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( lr_ref->* ).
               lr_attri->gen_type_kind = lo_datadescr->type_kind.

@@ -80,10 +80,10 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
                 shownavbutton  = abap_true
             )->header_content(
                 )->link(
-                    text = 'Demo'
+                    text = 'Demo' target = '_blank'
                     href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
                 )->link(
-                    text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
            )->get_parent( ).
 
     DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'l' ).
