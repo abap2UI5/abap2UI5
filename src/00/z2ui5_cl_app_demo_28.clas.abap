@@ -125,7 +125,7 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
         .
 
     types ty_t_draft type STANDARD TABLE OF z2ui5_t_draft.
-    FIELD-SYMBOLS: <tab> TYPE ty_t_draft.
+    FIELD-SYMBOLS <tab> TYPE ty_t_draft.
 
     assign  mt_draft->*  to <tab>.
     <tab> = CORRESPONDING #( lt_data ).
