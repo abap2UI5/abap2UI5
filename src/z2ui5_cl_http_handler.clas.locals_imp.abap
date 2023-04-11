@@ -1773,13 +1773,19 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
 
           CASE lr_attri->gen_kind.
             WHEN cl_abap_datadescr=>kind_elem.
+              lv_name = '<ATTRIBUTE>->*'.
+              FIELD-SYMBOLS <field> type any.
+              assign (lv_name) to <field>.
               lo_actual->add_attribute( n = lr_attri->name
-                            v = _=>get_abap_2_json( <attribute>->* )
+                            v = _=>get_abap_2_json( <field> )
                             apos_active = abap_false ).
 
             WHEN cl_abap_datadescr=>kind_table.
+                 lv_name = '<ATTRIBUTE>->*'.
+             " FIELD-SYMBOLS <field> type any.
+              assign (lv_name) to <field>.
               lo_actual->add_attribute( n = lr_attri->name
-                                     v = _=>trans_any_2_json( <attribute>->* )
+                                     v = _=>trans_any_2_json( <field> )
                                      apos_active = abap_false ).
           ENDCASE.
 
