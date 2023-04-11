@@ -29,7 +29,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
 
     CLASS-METHODS hlp_get_source_code_url
       IMPORTING
-        app           TYPE ref to z2ui5_if_app
+        app           TYPE REF TO z2ui5_if_app
         get           TYPE z2ui5_if_client=>ty_s_get
       RETURNING
         VALUE(result) TYPE string.
@@ -56,9 +56,21 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
+
     METHODS Dynamic_Page_Header
       IMPORTING
         pinnable      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+
+    METHODS Illustrated_Message
+      IMPORTING
+        enableVerticalResponsiveness TYPE clike OPTIONAL
+        illustrationType             TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)                TYPE REF TO z2ui5_cl_xml_view_helper.
+
+    METHODS additional_Content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
@@ -637,7 +649,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       IMPORTING
         text          TYPE clike OPTIONAL
         href          TYPE clike OPTIONAL
-        target        type clike optional
+        target        TYPE clike OPTIONAL
         enabled       TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
       RETURNING
@@ -2062,7 +2074,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD title.
 
-    data(lv_name) = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` ).
+    DATA(lv_name) = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` ).
 
     result = me.
     _generic(
@@ -2302,12 +2314,32 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD hlp_get_source_code_url.
 
-      DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
-      SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+    DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-      " result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
-      result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( app ) && `/source/main`.
+    " result-url_app           = lv_url && `?sap-client=` && sy-mandt && `&app=` && _=>get_classname_by_ref( mo_runtime->ms_db-o_app ).
+    result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( app ) && `/source/main`.
 
+
+  ENDMETHOD.
+
+  METHOD additional_content.
+
+    result = _generic(
+         name  = `additionalContent`
+
+    ).
+
+  ENDMETHOD.
+
+  METHOD illustrated_message.
+
+    result = _generic(
+         name  = `IllustratedMessage`
+         t_prop = VALUE #(
+            ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
+            ( n = `illustrationType`             v = illustrationType )
+    ) ).
 
   ENDMETHOD.
 
