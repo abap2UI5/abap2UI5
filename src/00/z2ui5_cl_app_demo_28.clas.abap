@@ -4,13 +4,6 @@ CLASS z2ui5_cl_app_demo_28 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-*    DATA product  TYPE string.
-*    DATA quantity TYPE i.
-*
-*    DATA input21 TYPE string.
-*    DATA input22 TYPE string.
-*    DATA input41 TYPE string.
-
     DATA mt_draft TYPE REF TO data.
     DATA mv_test TYPE REF TO data.
 
@@ -118,7 +111,9 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
 
 
     CREATE DATA mv_test TYPE string.
-    mv_test->* = 'test'.
+    FIELD-SYMBOLS <field> type string.
+    assign  mv_test->* to <field>.
+    <field> = 'test'.
 
     CREATE DATA mt_draft TYPE STANDARD TABLE OF z2ui5_t_draft.
 
@@ -129,7 +124,11 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
         UP TO 10 ROWS
         .
 
-    mt_draft->* = CORRESPONDING #( lt_data ).
+    types ty_t_draft type STANDARD TABLE OF z2ui5_t_draft.
+    FIELD-SYMBOLS: <tab> TYPE ty_t_draft.
+
+    assign  mt_draft->*  to <tab>.
+    <tab> = CORRESPONDING #( lt_data ).
 
     app-next-s_timer-interval_ms = '2000'.
     app-next-s_timer-event_finished = 'TIMER_FINISHED'.
@@ -153,16 +152,22 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
                  )->title( 'Input'
                  )->label( 'quantity' ).
 
-    lo_view->input( client->_bind( val = mv_test->*  check_gen_data = abap_true ) ).
+
+    FIELD-SYMBOLS <field> type string.
+    ASSIGN mv_test->* to <field>.
+
+    lo_view->input( client->_bind( val = <field>  check_gen_data = abap_true ) ).
 
     lo_view->button(
                 text  = 'post'
                 press = client->_event( 'BUTTON_POST' )
             ).
 
+FIELD-SYMBOLS <tab> type STANDARD TABLE.
+    assign mt_draft->* to <tab>.
     DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
               )->content( 'form' )->table(
-                items = client->_bind( val = mt_draft->*  check_gen_data = abap_true )
+                items = client->_bind( val = <tab>  check_gen_data = abap_true )
             ).
 
     tab->columns(
