@@ -82,7 +82,7 @@ CLASS Z2UI5_CL_APP_DEMO_34 IMPLEMENTATION.
 
   METHOD view_popup_bal.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
         )->dialog( 'abap2ui5 - Popup Message Log'
             )->table( client->_bind( t_bapiret )
                 )->columns(

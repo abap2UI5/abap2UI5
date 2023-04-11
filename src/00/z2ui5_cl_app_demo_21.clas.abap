@@ -147,7 +147,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_input.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
        )->dialog(
        contentheight = '500px'
        contentwidth  = '500px'
@@ -181,7 +181,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_table.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
        )->dialog( 'abap2UI5 - Popup to select entry'
            )->table(
                mode = 'SingleSelectLeft'
@@ -213,7 +213,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_textarea.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
       )->dialog(
               stretch = mv_stretch_active
               title = 'Title'
@@ -241,7 +241,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_textarea_size.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
        )->dialog(
                contentheight = '100px'
                contentwidth  = '1200px'

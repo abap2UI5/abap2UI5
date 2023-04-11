@@ -162,7 +162,7 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
 
       WHEN 'POPOVER'.
 
-        app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory( )->popover(
+        app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory_popup( )->popover(
                     title     = 'Popover Title'
                     placement = mv_placement
                 )->footer( )->overflow_toolbar(

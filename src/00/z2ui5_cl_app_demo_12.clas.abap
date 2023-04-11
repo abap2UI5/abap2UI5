@@ -125,7 +125,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
     ENDCASE.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory( ).
+    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory_popup( ).
 
     CASE mv_popup_view.
 
