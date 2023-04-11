@@ -1649,7 +1649,9 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
             assign lr_ref2->* to <field>.
             DATA(lr_ref) = CAST data( <field> ).
             IF lr_attri->gen_type IS INITIAL.
-              DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( lr_ref->* ).
+              FIELD-SYMBOLS <field2> type any.
+              assign lr_ref->* to <field2>.
+              DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( <field2> ).
               lr_attri->gen_type_kind = lo_datadescr->type_kind.
               lr_attri->gen_kind = lo_datadescr->kind.
               CASE lo_datadescr->kind.
