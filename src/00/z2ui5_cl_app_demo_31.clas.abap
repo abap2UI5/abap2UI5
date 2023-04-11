@@ -83,6 +83,7 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
                         `       <Label text="Loading time" />` && |\n|  &&
                         `       <Input id="loadingMinSeconds" width="8rem" type="Number" description="seconds" value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
                         `       <Button text="BACK" type="Emphasized" press="` && client->_event( 'BACK') && `"/>` && |\n|  &&
+                        `       <Link target="_blank" text="Demo" href="https://twitter.com/OblomovDev/status/1645104539387691008"/>` && |\n|  &&
                         `       <Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
                         `   </form:SimpleForm>  ` && |\n|  &&
                         `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Country-Specific Profit Margin"  press="` && client->_event( 'POPUP' ) && `"` && |\n|  &&
