@@ -3558,7 +3558,7 @@ GET REFERENCE OF <temp21> INTO lr_view_popup.
       RETURN.
     ENDIF.
 
-    DATA lr_in LIKE REF TO value.
+    DATA lr_in TYPE REF TO DATA.
     GET REFERENCE OF value INTO lr_in.
 
     DATA temp27 LIKE LINE OF ms_db-t_attri.
@@ -3571,7 +3571,7 @@ GET REFERENCE OF <temp21> INTO lr_view_popup.
       ASSIGN (lv_name) TO <attribute>.
       _=>raise( when = boolc( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
 
-      DATA lr_ref LIKE REF TO <attribute>.
+      DATA lr_ref TYPE REF TO DATA.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
       IF lr_in = lr_ref.
