@@ -41,9 +41,9 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         shownavbutton = abap_true
         )->header_content(
             )->toolbar_spacer(
-            )->link( text = 'SCN' href = 'https://blogs.sap.com/tag/abap2ui5/'
-            )->link( text = 'Twitter' href = 'https://twitter.com/OblomovDev'
-            )->link( text = 'GitHub' href = 'https://github.com/oblomov-dev/abap2ui5'
+            )->link( text = 'SCN'     target = '_blank' href = 'https://blogs.sap.com/tag/abap2ui5/'
+            )->link( text = 'Twitter' target = '_blank' href = 'https://twitter.com/OblomovDev'
+            )->link( text = 'GitHub'  target = '_blank' href = 'https://github.com/oblomov-dev/abap2ui5'
         )->get_parent( ).
 
     DATA(grid) = page->grid( 'L3 M6 S12'
