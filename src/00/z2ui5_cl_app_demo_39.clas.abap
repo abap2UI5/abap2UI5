@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_31 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_39 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -14,7 +14,6 @@ CLASS z2ui5_cl_app_demo_31 DEFINITION PUBLIC.
         check_initialized TYPE abap_bool,
         get               TYPE z2ui5_if_client=>ty_s_get,
         next              TYPE z2ui5_if_client=>ty_s_next,
-        popup             type string,
       END OF app.
 
     METHODS z2ui5_on_init.
@@ -27,14 +26,13 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_39 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
     app-get = client->get( ).
     me->client = client.
-    app-popup = ``.
 
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
@@ -62,9 +60,8 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
       WHEN 'POPUP'.
-        app-popup = 'TEST'.
-        WHEN 'DATA'.
         client->popup_message_box( 'Event raised value:' && mv_value ).
+
     ENDCASE.
 
   ENDMETHOD.
@@ -84,20 +81,18 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
                         `       xmlns:form="sap.ui.layout.form">` && |\n|  &&
                         `       <form:SimpleForm editable="true" width="40rem">` && |\n|  &&
                         `       <Label text="Loading time" />` && |\n|  &&
-                        `       <Input id="loadingMinSeconds" width="8rem" type="Number" description="seconds" value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
-                        `       <Button text="BACK" type="Emphasized" press="` && client->_event( 'BACK') && `"/>` && |\n|  &&
-                        `       <Link target="_blank" text="Demo" href="https://twitter.com/OblomovDev/status/1645104539387691008"/>` && |\n|  &&
-                        `       <Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
+                        `       <Input id="loadingMinSeconds" width="8rem" type="Number" description="seconds" value="-1"/>` && |\n|  &&
+                        `       <Button text="Start loading" type="Emphasized" press="onFormSubmit"/>` && |\n|  &&
                         `   </form:SimpleForm>  ` && |\n|  &&
-                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Country-Specific Profit Margin"  press="` && client->_event( 'POPUP' ) && `"` && |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Country-Specific Profit Margin"  press="onPress"` && |\n|  &&
                         `       frameType="OneByHalf" subheader="Subtitle">` && |\n|  &&
                         `       <TileContent>` && |\n|  &&
                         `           <ImageContent src="test-resources/sap/m/demokit/sample/GenericTileAsLaunchTile/images/SAPLogoLargeTile_28px_height.png" />` && |\n|  &&
                         `       </TileContent>` && |\n|  &&
                         `   </GenericTile>` && |\n|  &&
                         |\n|  &&
-                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Sales Fulfillment Application Title" press="` && client->_event( 'DATA' ) && `"` && |\n|  &&
-                        `       subheader="Subtitle" frameType= "TwoByHalf">` && |\n|  &&
+                        `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Sales Fulfillment Application Title"` && |\n|  &&
+                        `       subheader="Subtitle" press="press" frameType= "TwoByHalf">` && |\n|  &&
                         `       <TileContent />` && |\n|  &&
                         `   </GenericTile>` && |\n|  &&
                         |\n|  &&
@@ -167,12 +162,11 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_popup.
 
-    if app-popup = `TEST`.
     app-next-xml_popup = `<core:FragmentDefinition` && |\n|  &&
                          `  xmlns="sap.m"` && |\n|  &&
                          `  xmlns:core="sap.ui.core">` && |\n|  &&
                          `  <ViewSettingsDialog` && |\n|  &&
-                         `      confirm="` && client->_event_close_popup( ) && `">` && |\n|  &&
+                         `      confirm="handleConfirm">` && |\n|  &&
                          `      <sortItems>` && |\n|  &&
                          `          <ViewSettingsItem text="Field 1" key="1" selected="true" />` && |\n|  &&
                          `          <ViewSettingsItem text="Field 2" key="2" />` && |\n|  &&
@@ -209,7 +203,6 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
                          `  </ViewSettingsDialog>` && |\n|  &&
                          `</core:FragmentDefinition>`.
 
-    endif.
   ENDMETHOD.
 
 ENDCLASS.
