@@ -106,7 +106,7 @@ CLASS z2ui5_cl_app_demo_37 IMPLEMENTATION.
                           `<m:Button text="Display Custom Control" press="` && client->_event( 'DISPLAY_CC' ) && `" />` && |\n|  &&
                           `<html><head> ` &&
                           `</head>` && |\n|  &&
-                          `<body>` .
+                          `<body>`.
 
     IF mv_load_cc = abap_true.
       mv_load_cc = abap_false.
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_app_demo_37 IMPLEMENTATION.
     ENDIF.
 
     IF mv_display_cc = abap_true.
-      app-next-xml_main = app-next-xml_main && ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>` .
+      app-next-xml_main = app-next-xml_main && ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>`.
     ENDIF.
 
     app-next-xml_main = app-next-xml_main && `</body>` && |\n|  &&
