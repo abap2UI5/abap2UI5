@@ -95,9 +95,10 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
     ).
 
        grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'form'
-        )->button( text = 'Toast, Box & Strip'  press = client->_event( 'z2ui5_cl_app_demo_08' )
-        )->button( text = 'Illustrated Message' press = client->_event( 'z2ui5_cl_app_demo_33' )
+        )->button( text = 'Toast, Box & Strip'   press = client->_event( 'z2ui5_cl_app_demo_08' )
+        )->button( text = 'Illustrated Message'  press = client->_event( 'z2ui5_cl_app_demo_33' )
         )->button( text = 'T100 & bapiret popup' press = client->_event( 'z2ui5_cl_app_demo_34' )
+        )->button( text = 'Message Manager'      press = client->_event( 'z2ui5_cl_app_demo_38' )
     ).
 
     DATA(form) = page->grid( 'L9 M12 S12'
