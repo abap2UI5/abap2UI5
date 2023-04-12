@@ -6,6 +6,7 @@ CLASS z2ui5_cl_app_demo_40 DEFINITION PUBLIC.
 
     DATA mv_barcode TYPE string.
     DATA mv_load_lib TYPE abap_bool.
+
   PROTECTED SECTION.
 
     DATA client TYPE REF TO z2ui5_if_client.
@@ -18,7 +19,6 @@ CLASS z2ui5_cl_app_demo_40 DEFINITION PUBLIC.
         next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
 
-    METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS z2ui5_on_render.
 
@@ -33,13 +33,8 @@ CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
   METHOD z2ui5_if_app~controller.
 
     me->client = client.
-    app-get      = client->get( ).
+    app-get    = client->get( ).
     app-view_popup = ``.
-
-    IF app-check_initialized = abap_false.
-      app-check_initialized = abap_true.
-      z2ui5_on_init( ).
-    ENDIF.
 
     IF app-get-event IS NOT INITIAL.
       z2ui5_on_event( ).
@@ -68,14 +63,6 @@ CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
-
-
-  METHOD z2ui5_on_init.
-
-
-
-  ENDMETHOD.
-
 
   METHOD z2ui5_on_render.
 
@@ -111,7 +98,6 @@ CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
            `</html> ` && |\n|  &&
              `</mvc:View>`.
 
-
-
   ENDMETHOD.
+
 ENDCLASS.
