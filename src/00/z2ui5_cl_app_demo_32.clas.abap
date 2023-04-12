@@ -94,30 +94,6 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
 
   METHOD z2ui5_on_render.
 
-*    app-next-xml_main = `<mvc:View controllerName="project1.controller.View1"` && |\n|  &&
-*                          `    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"` && |\n|  &&
-*                          `  xmlns:z2ui5="z2ui5"  xmlns:m="sap.m" xmlns="http://www.w3.org/1999/xhtml"` && |\n|  &&
-*                          `    ><m:Button ` && |\n|  &&
-*                          `  text="back" ` && |\n|  &&
-*                          `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
-*                          `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
-*                   `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
-*                          `<html><head><style>` && |\n|  &&
-*                          `body {background-color: powderblue;}` && |\n|  &&
-*                          `h1   {color: blue;}` && |\n|  &&
-*                          `p    {color: red;}` && |\n|  &&
-*                          `</style>` &&
-*                          `</head>` && |\n|  &&
-*                          `<body>` && |\n|  &&
-*                          `<h1>This is a heading with css</h1>` && |\n|  &&
-*                          `<p>This is a paragraph with css.</p>` && |\n|  &&
-*                          `<h1>My First JavaScript</h1>` && |\n|  &&
-*                          `<button type="button">send</button>` && |\n|  &&
-*                          `<Input id='input' value='frontend data' /> ` &&
-*                          `</body>` && |\n|  &&
-*                          `</html> ` && |\n|  &&
-*                            `</mvc:View>`.
-
     app-next-xml_main = `<mvc:View controllerName="project1.controller.View1"` && |\n|  &&
                           `    xmlns:mvc="sap.ui.core.mvc" displayBlock="true"` && |\n|  &&
                           `  xmlns:z2ui5="z2ui5"  xmlns:m="sap.m" xmlns="http://www.w3.org/1999/xhtml"` && |\n|  &&
