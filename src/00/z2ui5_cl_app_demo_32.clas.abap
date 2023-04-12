@@ -5,12 +5,7 @@ CLASS z2ui5_cl_app_demo_32 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     data mv_value type string.
-    DATA product  TYPE string.
-    DATA quantity TYPE i.
 
-    DATA input21 TYPE string.
-    DATA input22 TYPE string.
-    DATA input41 TYPE string.
   PROTECTED SECTION.
 
     data client TYPE REF TO z2ui5_if_client.
@@ -79,14 +74,7 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    product  = 'tomato'.
-    quantity = '500'.
     app-view_main = 'VIEW_MAIN'.
-    input41 = 'faasdfdfsaVIp'.
-
-    input21 = '40'.
-    input22 = '40'.
-
     mv_value = 'test'.
 
   ENDMETHOD.
