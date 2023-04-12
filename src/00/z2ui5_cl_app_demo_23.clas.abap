@@ -20,7 +20,6 @@ CLASS z2ui5_cl_app_demo_23 DEFINITION PUBLIC.
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS z2ui5_on_render_main.
-    METHODS z2ui5_on_render_popup.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -46,7 +45,6 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
     ENDIF.
 
     z2ui5_on_render_main( ).
-    z2ui5_on_render_popup( ).
 
     client->set_next( app-s_next ).
     CLEAR app-s_get.
@@ -199,9 +197,4 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD z2ui5_on_render_popup.
-
-
-  ENDMETHOD.
 ENDCLASS.
