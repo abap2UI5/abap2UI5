@@ -513,6 +513,30 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
 
+   METHODS message_view
+      IMPORTING
+        items          TYPE clike OPTIONAL
+        groupItems     type clike optional
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+   METHODS message_popover
+      IMPORTING
+        items          TYPE clike OPTIONAL
+        groupItems     type clike optional
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
+   METHODS message_item
+      IMPORTING
+        type           TYPE clike OPTIONAL
+        title          TYPE clike OPTIONAL
+        subtitle       TYPE clike OPTIONAL
+        description    TYPE clike OPTIONAL
+        groupName      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+
     METHODS page
       IMPORTING
         title          TYPE clike OPTIONAL
@@ -2316,6 +2340,42 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result->m_ns = `core`.
     result->m_root = result.
     result->m_parent = result.
+
+  ENDMETHOD.
+
+  METHOD message_item.
+
+    result = _generic(
+         name  = `MessageItem`
+         t_prop = VALUE #(
+            ( n = `type`        v = type )
+            ( n = `title`       v = title )
+            ( n = `subtitle`    v = subtitle )
+            ( n = `description` v = description )
+            ( n = `groupName`   v = groupName )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD message_popover.
+
+    result = _generic(
+         name  = `MessagePopover`
+         t_prop = VALUE #(
+            ( n = `items`      v = items )
+            ( n = `groupItems` v = _=>get_json_boolean( groupItems ) )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD message_view.
+
+    result = _generic(
+         name  = `MessageView`
+         t_prop = VALUE #(
+            ( n = `items`      v = items )
+            ( n = `groupItems` v = _=>get_json_boolean( groupItems ) )
+    ) ).
 
   ENDMETHOD.
 
