@@ -79,27 +79,33 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
         )->button( text = 'Popups & Flow Logic'           press = client->_event( 'z2ui5_cl_app_demo_12' )
         )->button( text = 'Popover'             press = client->_event( 'z2ui5_cl_app_demo_26' )
     ).
-*
+
+    grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'form'
+        )->button( text = 'Toast, Box & Strip'   press = client->_event( 'z2ui5_cl_app_demo_08' )
+        )->button( text = 'Illustrated Message'  press = client->_event( 'z2ui5_cl_app_demo_33' )
+        )->button( text = 'T100 & bapiret popup' press = client->_event( 'z2ui5_cl_app_demo_34' )
+        )->button( text = 'Message Manager'      press = client->_event( 'z2ui5_cl_app_demo_38' )
+    ).
+
     grid->simple_form( title = 'HowTo - Layouts' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Layout (Header, Footer, Grid)' press = client->_event( 'z2ui5_cl_app_demo_10' )
          )->button( text = 'Object Page' press = client->_event( 'z2ui5_cl_app_demo_17' )
          )->button( text = 'Dynamic Page' press = client->_event( 'z2ui5_cl_app_demo_30' )
 *         )->button( text = 'Split App' press = client->_event( 'z2ui5_cl_app_demo_17' )
     ).
-*
-    grid->simple_form( title = 'HowTo - Extensions' layout = 'ResponsiveGridLayout' )->content( 'form'
+
+    grid->simple_form( title = 'HowTo - Extension II' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Views - Normal, Generic, XML' press = client->_event( 'z2ui5_cl_app_demo_23' )
          )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
-         )->button( text = 'HTML, JS, CSS' press = client->_event( 'z2ui5_cl_app_demo_32    ' )
          )->button( text = 'Custom Control' press = client->_event( 'z2ui5_cl_app_demo_37' )
     ).
 
-       grid->simple_form( title = 'HowTo - Messages' layout = 'ResponsiveGridLayout' )->content( 'form'
-        )->button( text = 'Toast, Box & Strip'   press = client->_event( 'z2ui5_cl_app_demo_08' )
-        )->button( text = 'Illustrated Message'  press = client->_event( 'z2ui5_cl_app_demo_33' )
-        )->button( text = 'T100 & bapiret popup' press = client->_event( 'z2ui5_cl_app_demo_34' )
-        )->button( text = 'Message Manager'      press = client->_event( 'z2ui5_cl_app_demo_38' )
+    grid->simple_form( title = 'HowTo - Extension II' layout = 'ResponsiveGridLayout' )->content( 'form'
+         )->button( text = 'HTML, JS, CSS' press = client->_event( 'z2ui5_cl_app_demo_32' )
+         )->button( text = 'Canvas & SVG' press = client->_event( 'z2ui5_cl_app_demo_36' )
+         )->button( text = 'ext. Library' press = client->_event( 'z2ui5_cl_app_demo_40' )
     ).
+
 
     DATA(form) = page->grid( 'L9 M12 S12'
         )->content( 'layout'

@@ -97,7 +97,7 @@ CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
                               ` > <Link ` && |\n|  &&
                               `  text="Source_Code" ` && |\n|  &&
                               `  target="_blank" ` && |\n|  &&
-                              `  href="<system>sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_23/source/main" ` && |\n|  &&
+                              `  href="&lt;system&gt;sap/bc/adt/oo/classes/Z2UI5_CL_APP_DEMO_23/source/main" ` && |\n|  &&
                               ` /></headerContent> <f:SimpleForm ` && |\n|  &&
                               `  title="Form Title" ` && |\n|  &&
                               ` > <f:content ` && |\n|  &&

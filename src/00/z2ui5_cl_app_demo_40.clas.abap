@@ -1,26 +1,21 @@
-CLASS z2ui5_cl_app_demo_32 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_40 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
 
-    data mv_value type string.
-    DATA product  TYPE string.
-    DATA quantity TYPE i.
-
-    DATA input21 TYPE string.
-    DATA input22 TYPE string.
-    DATA input41 TYPE string.
+    DATA mv_barcode TYPE string.
+    DATA mv_load_lib TYPE abap_bool.
   PROTECTED SECTION.
 
-    data client TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
-        get             TYPE z2ui5_if_client=>ty_s_get,
-        next            TYPE z2ui5_if_client=>ty_s_next,
+        get               TYPE z2ui5_if_client=>ty_s_get,
+        next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
 
     METHODS z2ui5_on_init.
@@ -32,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -63,11 +58,9 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
 
     CASE app-get-event.
 
-      WHEN 'POST'.
-        client->popup_message_toast( app-get-event_data ).
-
-         WHEN 'MYCC'.
-        client->popup_message_toast( 'MYCC event ' && mv_value ).
+      WHEN 'LOAD_BC'.
+        client->popup_message_box( 'JSBarcode Library loaded').
+        mv_load_lib = abap_true.
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
@@ -79,15 +72,7 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    product  = 'tomato'.
-    quantity = '500'.
-    app-view_main = 'VIEW_MAIN'.
-    input41 = 'faasdfdfsaVIp'.
 
-    input21 = '40'.
-    input22 = '40'.
-
-    mv_value = 'test'.
 
   ENDMETHOD.
 
@@ -102,22 +87,31 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
                           `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
                           `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
                    `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
-                          `<html><head><style>` && |\n|  &&
-                          `body {background-color: powderblue;}` && |\n|  &&
-                          `h1   {color: blue;}` && |\n|  &&
-                          `p    {color: red;}` && |\n|  &&
-                          `</style>` &&
+
+                          `<html><head>` && |\n|  &&
                           `</head>` && |\n|  &&
                           `<body>` && |\n|  &&
-                          `<h1>This is a heading with css</h1>` && |\n|  &&
-                          `<p>This is a paragraph with css.</p>` && |\n|  &&
-                          `<h1>My First JavaScript</h1>` && |\n|  &&
-                          `<button onclick="myFunction()" type="button">send</button>` && |\n|  &&
-                          `<Input id='input' value='frontend data' /> ` &&
-                          `<script> function myFunction( ) { sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, document.getElementById(sap.z2ui5.oView.createId( "input" )).value ) } </script>` && |\n|  &&
-                          `</body>` && |\n|  &&
-                          `</html> ` && |\n|  &&
-                            `</mvc:View>`.
+                          `<m:Button text="LoadJSBarcode" press="` && client->_event( 'LOAD_BC' ) && `" />` && |\n|  &&
+                          `<m:Input value="` && client->_bind( mv_barcode ) && `" />` && |\n|  &&
+                         `<m:Button text="Display Barcode" press="` && client->_event( 'DISPLAY_BC' ) && `" />` && |\n|  &&
+                          `<h1>JSBarcode Library</h1>` && |\n|  &&
+                          `  <svg class="barcode"` && |\n|  &&
+                          `  jsbarcode-format="upc"` && |\n|  &&
+                          `  jsbarcode-value="` && mv_barcode && `"` && |\n|  &&
+                          `  jsbarcode-textmargin="0"` && |\n|  &&
+                          `  jsbarcode-fontoptions="bold">` && |\n|  &&
+                          `</svg>` && |\n|.
+    IF mv_load_lib = abap_true.
+      mv_load_lib = abap_false.
+      app-next-xml_main = app-next-xml_main && `<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"> </script>`.
+    ENDIF.
+
+    app-next-xml_main = app-next-xml_main && `<script> JsBarcode(".barcode").init(); </script>` &&
+           `</body>` && |\n|  &&
+           `</html> ` && |\n|  &&
+             `</mvc:View>`.
+
+
 
   ENDMETHOD.
 ENDCLASS.

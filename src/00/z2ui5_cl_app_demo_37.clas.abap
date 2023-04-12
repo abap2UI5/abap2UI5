@@ -4,24 +4,26 @@ CLASS z2ui5_cl_app_demo_37 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    data mv_value type string.
-    DATA product  TYPE string.
-    DATA quantity TYPE i.
+    DATA mv_value TYPE string.
 
-    DATA input21 TYPE string.
-    DATA input22 TYPE string.
-    DATA input41 TYPE string.
   PROTECTED SECTION.
 
-    data client TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
-        get             TYPE z2ui5_if_client=>ty_s_get,
-        next            TYPE z2ui5_if_client=>ty_s_next,
+        get               TYPE z2ui5_if_client=>ty_s_get,
+        next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
+
+    DATA mv_load_cc    TYPE abap_bool.
+    DATA mv_display_cc TYPE abap_bool.
+
+    METHODS get_js_custom_control
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
@@ -32,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_37 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_37 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -66,8 +68,16 @@ CLASS Z2UI5_CL_APP_DEMO_37 IMPLEMENTATION.
       WHEN 'POST'.
         client->popup_message_toast( app-get-event_data ).
 
-         WHEN 'MYCC'.
-        client->popup_message_toast( 'MYCC event ' && mv_value ).
+      WHEN 'LOAD_CC'.
+        mv_load_cc = abap_true.
+        client->popup_message_box( 'Custom Control loaded ' ).
+
+      WHEN 'DISPLAY_CC'.
+        mv_display_cc = abap_true.
+        client->popup_message_box( 'Custom Control displayed ' ).
+
+      WHEN 'MYCC'.
+        client->popup_message_toast( `Custom Control input: ` && mv_value ).
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
@@ -78,16 +88,6 @@ CLASS Z2UI5_CL_APP_DEMO_37 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_init.
-
-    product  = 'tomato'.
-    quantity = '500'.
-    app-view_main = 'VIEW_MAIN'.
-    input41 = 'faasdfdfsaVIp'.
-
-    input21 = '40'.
-    input22 = '40'.
-
-    mv_value = 'test'.
 
   ENDMETHOD.
 
@@ -102,96 +102,66 @@ CLASS Z2UI5_CL_APP_DEMO_37 IMPLEMENTATION.
                           `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
                           `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
                    `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
-                          `<html><head><style>` && |\n|  &&
-                          `body {background-color: powderblue;}` && |\n|  &&
-                          `h1   {color: blue;}` && |\n|  &&
-                          `p    {color: red;}` && |\n|  &&
-                          `</style>` &&
+                          `<m:Button text="Load Custom Control"    press="` && client->_event( 'LOAD_CC' )    && `" />` && |\n|  &&
+                          `<m:Button text="Display Custom Control" press="` && client->_event( 'DISPLAY_CC' ) && `" />` && |\n|  &&
+                          `<html><head> ` &&
                           `</head>` && |\n|  &&
-                          `<body>` && |\n|  &&
-                                                    `<script> debugger; if(!z2ui5.MyCC){   jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
-                          |\n|  &&
-                          `    sap.ui.define( [` && |\n|  &&
-                          `        "sap/ui/core/Control",` && |\n|  &&
-                          `    ], function (Control) {` && |\n|  &&
-                          `        "use strict";` && |\n|  &&
-                          |\n|  &&
-                          `        return Control.extend("z2ui5.MyCC", {` && |\n|  &&
-                          |\n|  &&
-                          `            metadata: {` && |\n|  &&
-                          `                properties: {` && |\n|  &&
-                          `                    value: { type: "string" }` && |\n|  &&
-                          `                },` && |\n|  &&
-                          `                events: {` && |\n|  &&
-                          `                    "change": {` && |\n|  &&
-                          `                        allowPreventDefault: true,` && |\n|  &&
-                          `                        parameters: {}` && |\n|  &&
-                          `                    }` && |\n|  &&
-                          `                }` && |\n|  &&
-                          `            },` && |\n|  &&
-                          |\n|  &&
-                          `            renderer: function (oRm, oControl) {` && |\n|  &&
-                          |\n|  &&
-                          `                oControl.oInput = new sap.m.Input({` && |\n|  &&
-                          `                    value: oControl.getProperty("value")` && |\n|  &&
-                          `                });` && |\n|  &&
-                          |\n|  &&
-                          `                oControl.oButton = new sap.m.Button({` && |\n|  &&
-                          `                    text: 'button text',` && |\n|  &&
-                          `                    press: function (oEvent) {` && |\n|  &&
-                          `                        // this.oInput._sTypedInValue` && |\n|  &&
-                          `                        // this.oInput.getProperty( 'value' ) ` && |\n|  &&
-                          `                        this.setProperty("value", this.oInput._sTypedInValue );` && |\n|  &&
-                          `                        this.fireChange();` && |\n|  &&
-                          `                    }.bind(oControl)` && |\n|  &&
-                          `                });` && |\n|  &&
-                          `                oRm.renderControl(oControl.oInput);` && |\n|  &&
-                          `                oRm.renderControl(oControl.oButton);` && |\n|  &&
-                          `            }` && |\n|  &&
-                          `    });` && |\n|  &&
-                          `}); } </script>` && |\n|  &&
-                          |\n|  &&
-                          `<h1>This is a heading with css</h1>` && |\n|  &&
-                          `<p>This is a paragraph with css.</p>` && |\n|  &&
-                          `<h1>My First JavaScript</h1>` && |\n|  &&
-                          `<button type="button" onclick="myFunction()">` && |\n|  &&
-                          `run javascript code sent from the backend.</button>` && |\n|  &&
-                           `<button type="button" onclick="myFunction2()">sent data to backend and come back</button>` && |\n|  &&
-                          `<Input id='input' value='frontend data' /><h1>This is SVG</h1><p id="demo"></p><svg id="svg" version="1.1"` && |\n|  &&
-                          `       baseProfile="full"` && |\n|  &&
-                          `       width="500" height="500"` && |\n|  &&
-                          `       xmlns="http://www.w3.org/2000/svg">` && |\n|  &&
-                          `    <rect width="100%" height="100%" />` && |\n|  &&
-                          `    <circle id="circle" cx="100" cy="100" r="80" />` && |\n|  &&
-                          `  </svg>` && |\n|  &&
-                          `<div>X: <input id="sliderX" type="range" min="1" max="500" value="100" /></div><h1>This is canvas</h1><canvas id="canvas" width="500" height="300"></canvas>` && |\n|  &&
-                          `<script> debugger; var canvas = document.getElementById(sap.z2ui5.oView.createId( 'canvas' ));` && |\n|  &&
-                          `  if (canvas.getContext){` && |\n|  &&
-                          `let context = canvas.getContext('2d');` && |\n|  &&
-                          `context.fillStyle = 'rgb(200,0,0)';` && |\n|  &&
-                          `context.fillRect (10, 10, 80, 80);` && |\n|  &&
-                          `context.fillStyle = 'rgba(0, 0, 200, 0.5)';` && |\n|  &&
-                          `context.fillRect (100, 10, 80, 80);` && |\n|  &&
-                          `context.strokeStyle = 'rgb(200,0,0)';` && |\n|  &&
-                          `context.strokeRect (190, 10, 80, 80);` && |\n|  &&
-                          `context.strokeStyle = 'rgba(0, 0, 200, 0.5)';` && |\n|  &&
-                          `    context.strokeRect (280, 10, 80, 80);` && |\n|  &&
-                          `    context.fillStyle = 'rgb(200,0,0)';` && |\n|  &&
-                          `    context.fillRect (370, 10, 80, 80);` && |\n|  &&
-                          `    context.clearRect (380, 20, 60, 20);` && |\n|  &&
-                          `    context.fillRect (390, 25, 10, 10);` && |\n|  &&
-                          `    context.fillRect (420, 25, 10, 10);` && |\n|  &&
-                          `    context.clearRect (385, 60, 50, 10); }  ` && |\n|  &&
-                          ` function myFunction( ) { alert( 'button pressed' ) }` && |\n|  &&
-                          ` function myFunction2( ) { sap.z2ui5.oView.getController().onEvent({ 'EVENT' : 'POST', 'METHOD' : 'UPDATE' }, ` && ' document.getElementById(sap.z2ui5.oView.createId( "input" )).value ' && ` ) }` && |\n|  &&
-                                                                    `</script> <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/barcodes/JsBarcode.code128.min.js"> </script>` &&
-*                                                    ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
+                          `<body>`.
 
-                          `</body>` && |\n|  &&
-                          `</html> ` && |\n|  &&
-                            `</mvc:View>`.
+    IF mv_load_cc = abap_true.
+      mv_load_cc = abap_false.
+      app-next-xml_main = app-next-xml_main && get_js_custom_control( ).
+    ENDIF.
+
+    IF mv_display_cc = abap_true.
+      app-next-xml_main = app-next-xml_main && ` <z2ui5:MyCC change=" ` && client->_event( 'MYCC' ) && `"  value="` && client->_bind( mv_value ) && `"/>`.
+    ENDIF.
+
+    app-next-xml_main = app-next-xml_main && `</body>` && |\n|  &&
+      `</html> ` && |\n|  &&
+        `</mvc:View>`.
 
 
+
+  ENDMETHOD.
+
+  METHOD get_js_custom_control.
+
+    result = `<script>if(!z2ui5.MyCC){ jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
+                            `    sap.ui.define( [` && |\n|  &&
+                            `        "sap/ui/core/Control",` && |\n|  &&
+                            `    ], function (Control) {` && |\n|  &&
+                            `        "use strict";` && |\n|  &&
+                            `        return Control.extend("z2ui5.MyCC", {` && |\n|  &&
+                            `            metadata: {` && |\n|  &&
+                            `                properties: {` && |\n|  &&
+                            `                    value: { type: "string" }` && |\n|  &&
+                            `                },` && |\n|  &&
+                            `                events: {` && |\n|  &&
+                            `                    "change": {` && |\n|  &&
+                            `                        allowPreventDefault: true,` && |\n|  &&
+                            `                        parameters: {}` && |\n|  &&
+                            `                    }` && |\n|  &&
+                            `                }` && |\n|  &&
+                            `            },` && |\n|  &&
+                            `            renderer: function (oRm, oControl) {` && |\n|  &&
+                            `                oControl.oInput = new sap.m.Input({` && |\n|  &&
+                            `                    value: oControl.getProperty("value")` && |\n|  &&
+                            `                });` && |\n|  &&
+                            `                oControl.oButton = new sap.m.Button({` && |\n|  &&
+                            `                    text: 'button text',` && |\n|  &&
+                            `                    press: function (oEvent) {` && |\n|  &&
+                            `                        debugger;` && |\n|  &&
+*                            `                        this.setProperty("value",  this.oInput._sTypedInValue )` && |\n|  &&
+                            `                        this.setProperty("value",  this.oInput.getProperty( 'value')  )` && |\n|  &&
+                            `                        this.fireChange();` && |\n|  &&
+                            `                    }.bind(oControl)` && |\n|  &&
+                            `                });` && |\n|  &&
+                           `                oRm.renderControl(oControl.oInput);` && |\n|  &&
+                            `                oRm.renderControl(oControl.oButton);` && |\n|  &&
+                            `            }` && |\n|  &&
+                            `    });` && |\n|  &&
+                            `}); } </script>`.
 
   ENDMETHOD.
 ENDCLASS.
