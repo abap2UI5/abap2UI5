@@ -5,12 +5,7 @@ CLASS z2ui5_cl_app_demo_36 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     data mv_value type string.
-    DATA product  TYPE string.
-    DATA quantity TYPE i.
 
-    DATA input21 TYPE string.
-    DATA input22 TYPE string.
-    DATA input41 TYPE string.
   PROTECTED SECTION.
 
     data client TYPE REF TO z2ui5_if_client.
@@ -79,14 +74,7 @@ CLASS Z2UI5_CL_APP_DEMO_36 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    product  = 'tomato'.
-    quantity = '500'.
     app-view_main = 'VIEW_MAIN'.
-    input41 = 'faasdfdfsaVIp'.
-
-    input21 = '40'.
-    input22 = '40'.
-
     mv_value = 'test'.
 
   ENDMETHOD.
@@ -109,48 +97,6 @@ CLASS Z2UI5_CL_APP_DEMO_36 IMPLEMENTATION.
                           `</style>` &&
                           `</head>` && |\n|  &&
                           `<body>` && |\n|  &&
-                                                    `<script> debugger; if(!z2ui5.MyCC){   jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
-                          |\n|  &&
-                          `    sap.ui.define( [` && |\n|  &&
-                          `        "sap/ui/core/Control",` && |\n|  &&
-                          `    ], function (Control) {` && |\n|  &&
-                          `        "use strict";` && |\n|  &&
-                          |\n|  &&
-                          `        return Control.extend("z2ui5.MyCC", {` && |\n|  &&
-                          |\n|  &&
-                          `            metadata: {` && |\n|  &&
-                          `                properties: {` && |\n|  &&
-                          `                    value: { type: "string" }` && |\n|  &&
-                          `                },` && |\n|  &&
-                          `                events: {` && |\n|  &&
-                          `                    "change": {` && |\n|  &&
-                          `                        allowPreventDefault: true,` && |\n|  &&
-                          `                        parameters: {}` && |\n|  &&
-                          `                    }` && |\n|  &&
-                          `                }` && |\n|  &&
-                          `            },` && |\n|  &&
-                          |\n|  &&
-                          `            renderer: function (oRm, oControl) {` && |\n|  &&
-                          |\n|  &&
-                          `                oControl.oInput = new sap.m.Input({` && |\n|  &&
-                          `                    value: oControl.getProperty("value")` && |\n|  &&
-                          `                });` && |\n|  &&
-                          |\n|  &&
-                          `                oControl.oButton = new sap.m.Button({` && |\n|  &&
-                          `                    text: 'button text',` && |\n|  &&
-                          `                    press: function (oEvent) {` && |\n|  &&
-                          `                        // this.oInput._sTypedInValue` && |\n|  &&
-                          `                        // this.oInput.getProperty( 'value' ) ` && |\n|  &&
-                          `                        this.setProperty("value", this.oInput._sTypedInValue );` && |\n|  &&
-                          `                        this.fireChange();` && |\n|  &&
-                          `                    }.bind(oControl)` && |\n|  &&
-                          `                });` && |\n|  &&
-                          `                oRm.renderControl(oControl.oInput);` && |\n|  &&
-                          `                oRm.renderControl(oControl.oButton);` && |\n|  &&
-                          `            }` && |\n|  &&
-                          `    });` && |\n|  &&
-                          `}); } </script>` && |\n|  &&
-                          |\n|  &&
                           `<h1>This is a heading with css</h1>` && |\n|  &&
                           `<p>This is a paragraph with css.</p>` && |\n|  &&
                           `<h1>My First JavaScript</h1>` && |\n|  &&
