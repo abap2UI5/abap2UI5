@@ -29,7 +29,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_35 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -186,5 +186,4 @@ FIELD-SYMBOLS <tab> type STANDARD TABLE.
     app-next-xml_main = lo_view->get_root( )->xml_get( ).
 
   ENDMETHOD.
-
 ENDCLASS.

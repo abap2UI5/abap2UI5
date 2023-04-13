@@ -22,7 +22,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_30 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_30 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.

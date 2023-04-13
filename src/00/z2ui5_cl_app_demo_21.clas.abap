@@ -120,6 +120,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD view_popup_decide.
 
     DATA(popup) = Z2UI5_CL_XML_VIEW=>factory_popup(

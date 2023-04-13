@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_28 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -123,5 +123,4 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
     app-next-xml_main = lo_view->get_root( )->xml_get( ).
 
   ENDMETHOD.
-
 ENDCLASS.

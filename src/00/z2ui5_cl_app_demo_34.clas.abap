@@ -25,6 +25,7 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_APP_DEMO_34 IMPLEMENTATION.
 
+
   METHOD view_main.
 
     DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
@@ -87,6 +88,7 @@ CLASS Z2UI5_CL_APP_DEMO_34 IMPLEMENTATION.
     mv_popup_xml = popup->get_root( )->xml_get( ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~controller.
 
