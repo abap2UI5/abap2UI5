@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_demo_38 DEFINITION PUBLIC.
 
   PROTECTED SECTION.
 
-      DATA client TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
@@ -44,48 +44,37 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_38 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_38 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
 
-
     me->client     = client.
-    "we collect all app infos in the structure app
     app-get        = client->get( ).
-    app-view_popup = ``. "we display popups only once so clear it after every roundtrip
-
+    app-view_popup = ``.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-        t_msg = value #(
-            ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Error'     group = 'group 01' )
-            ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Information' group = 'group 01' )
-            ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Information' group = 'group 02' )
-            ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Success' group = 'group 03' )
-
-        ).
-
-      t_tab = VALUE #(
-        ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-      ).
+      t_msg = VALUE #(
+          ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Error'     group = 'group 01' )
+          ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Information' group = 'group 01' )
+          ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Information' group = 'group 02' )
+          ( description = 'descr' subtitle = 'subtitle' title = 'title' type = 'Success' group = 'group 03' ) ).
 
     ENDIF.
 
     CASE client->get( )-event.
-      WHEN 'MESSAGES'.
-
+      WHEN 'POPUP'.
+        app-view_popup = 'POPUP'.
+      WHEN 'POPOVER'.
+        app-view_popup = 'POPOVER'.
+        app-next-popup_open_by_id = 'test'.
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
-    DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
+    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
         )->page(
             title          = 'abap2UI5 - List'
             navbuttonpress = client->_event( 'BACK' )
@@ -93,9 +82,9 @@ CLASS Z2UI5_CL_APP_DEMO_38 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code'  target = '_blank'
-                    href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent( ).
-    page->button( text = 'Messages' press = client->_event( 'MESSAGES' ) ).
+    page->button( text = 'Messages' press = client->_event( 'POPUP' )  ).
     page->message_view(
         items = client->_bind( t_msg )
         groupitems = abap_true
@@ -104,28 +93,73 @@ CLASS Z2UI5_CL_APP_DEMO_38 IMPLEMENTATION.
             title       = `{TITLE}`
             subtitle    = `{SUBTITLE}`
             description = `{DESCRIPTION}`
-            groupname   = `{GROUP}`
-    ).
-    page->list(
-       headertext = 'List Ouput'
-       items      = client->_bind_one( t_tab )
-       )->standard_list_item(
-           title       = '{TITLE}'
-           description = '{DESCR}'
-           icon        = '{ICON}'
-           info        = '{INFO}' ).
+            groupname   = `{GROUP}` ).
+
+    page->footer( )->overflow_toolbar(
+         )->button(
+             id = 'test'
+             text  = 'Messages (6)'
+             press = client->_event( 'POPOVER' )
+             type  = 'Emphasized'
+         )->toolbar_spacer(
+         )->button(
+             text  = 'Send to Server'
+             press = client->_event( 'BUTTON_SEND' )
+             type  = 'Success' ).
 
     app-next-xml_main = page->get_root(  )->xml_get( ).
 
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
+    CASE app-view_popup.
 
-   " data(popup) = Z2UI5_CL_XML_VIEW=>factory_popup( )->
+      WHEN 'POPOVER'.
 
+        popup = popup->popover(
+            placement = `Top`
+            title = `Messages`
+            contentheight = '50%'
+            contentwidth = '50%' ).
 
-    "set the data for the frontend
+        popup->message_view(
+                items      = client->_bind( t_msg )
+                groupitems = abap_true
+            )->message_item(
+                type        = `{TYPE}`
+                title       = `{TITLE}`
+                subtitle    = `{SUBTITLE}`
+                description = `{DESCRIPTION}`
+                groupname   = `{GROUP}` ).
+
+      WHEN 'POPUP'.
+
+        popup = popup->dialog(
+        title = `Messages`
+        contentheight = '50%'
+        contentwidth = '50%' ).
+
+        popup->message_view(
+                items = client->_bind( t_msg )
+                groupitems = abap_true
+            )->message_item(
+                type        = `{TYPE}`
+                title       = `{TITLE}`
+                subtitle    = `{SUBTITLE}`
+                description = `{DESCRIPTION}`
+                groupname   = `{GROUP}` ).
+
+        popup->footer( )->overflow_toolbar(
+          )->toolbar_spacer(
+          )->button(
+              text  = 'close'
+              press = client->_event_close_popup( ) ).
+
+    ENDCASE.
+
+    app-next-xml_popup = popup->get_root(  )->xml_get( ).
+
     client->set_next( app-next ).
-
-    "the app will be serialized and persisted, we delete all data which is not needed in the future before
     CLEAR app-get.
     CLEAR app-next.
+
   ENDMETHOD.
 ENDCLASS.

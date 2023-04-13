@@ -96,6 +96,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         class         TYPE clike OPTIONAL
         placement     TYPE clike OPTIONAL
         initialFocus  TYPE clike OPTIONAL
+        contentwidth  TYPE clike OPTIONAL
+        contentheight TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1759,10 +1761,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
           name   = `Popover`
           t_prop = VALUE #(
-                      ( n = `title`  v = title )
-                      ( n = `class`  v = class )
-                      ( n = `placement`  v = placement )
+                      ( n = `title`         v = title )
+                      ( n = `class`         v = class )
+                      ( n = `placement`     v = placement )
                       ( n = `initialFocus`  v = initialFocus )
+                      ( n = `contentHeight` v = contentheight )
+                      ( n = `contentWidth`  v = contentwidth )
         ) ).
 
   ENDMETHOD.
