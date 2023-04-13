@@ -16,7 +16,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -64,13 +64,13 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
       WHEN 'MAIN' OR ''.
 
-        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
+        DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
             )->page(
                    title          = 'abap2UI5 - flow logic - APP 02'
                    navbuttonpress = client->_event( 'BACK' ) shownavbutton = abap_true
                )->header_content(
                    )->link( text = 'Demo'        target = '_blank' href = `https://twitter.com/OblomovDev/status/1640743794206228480`
-                   )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                   )->link( text = 'Source_Code' target = '_blank' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
                )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'layout'
@@ -90,13 +90,13 @@ CLASS z2ui5_cl_app_demo_25 IMPLEMENTATION.
 
       WHEN 'SECOND'.
 
-        page = z2ui5_cl_xml_view_helper=>factory(
+        page = Z2UI5_CL_XML_VIEW=>factory(
             )->page(
                     title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' ) shownavbutton = abap_true
                 )->header_content(
                     )->link( text = 'Demo'        href = `https://twitter.com/OblomovDev/status/1640743794206228480`
-                    )->link( text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    )->link( text = 'Source_Code' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
                 )->get_parent( ).
 
         page->grid( 'L6 M12 S12' )->content( 'layout'

@@ -124,7 +124,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_render_view_main.
 
-    result = z2ui5_cl_xml_view_helper=>factory( )->shell(
+    result = z2ui5_cl_xml_view=>factory( )->shell(
         )->page(
                 title          = 'abap2UI5 - Template'
                 navbuttonpress = client->_event( 'BACK' )
@@ -132,7 +132,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code' target = '_blank'
-                    href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent(
             )->simple_form( title = 'VIEW_MAIN' editable = abap_true
                 )->content( 'form'
@@ -164,7 +164,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_render_view_second.
 
-    result = z2ui5_cl_xml_view_helper=>factory( )->shell(
+    result = z2ui5_cl_xml_view=>factory( )->shell(
          )->page(
                  title          = 'abap2UI5 - Template'
                  navbuttonpress = client->_event( 'BACK' )
@@ -172,7 +172,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
              )->header_content(
                  )->link(
                      text = 'Source_Code'
-                     href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                     href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
              )->get_parent(
              )->simple_form( 'VIEW_SECOND'
                  )->content( 'form'
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
   METHOD z2ui5_render_popup_input.
 
-    result = z2ui5_cl_xml_view_helper=>factory_popup( )->dialog(
+    result = z2ui5_cl_xml_view=>factory_popup( )->dialog(
                       title = 'Title'
                       icon = 'sap-icon://edit'
                   )->content(

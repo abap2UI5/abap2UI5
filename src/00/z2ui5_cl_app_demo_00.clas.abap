@@ -10,7 +10,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
     ENDCASE.
 
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory(
         )->shell( )->page(
         title = 'abap2UI5 - Demo Section'
         class = 'sapUiContentPadding sapUiResponsivePadding--content '
@@ -94,7 +94,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 *         )->button( text = 'Split App' press = client->_event( 'z2ui5_cl_app_demo_17' )
     ).
 
-    grid->simple_form( title = 'HowTo - Extension II' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - Extension I' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Views - Normal, Generic, XML' press = client->_event( 'z2ui5_cl_app_demo_23' )
          )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
          )->button( text = 'Custom Control' press = client->_event( 'z2ui5_cl_app_demo_37' )

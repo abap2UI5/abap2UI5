@@ -77,7 +77,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
     ENDCASE.
 
-    DATA(lo_main) = z2ui5_cl_xml_view_helper=>factory( )->shell( ).
+    DATA(lo_main) = Z2UI5_CL_XML_VIEW=>factory( )->shell( ).
 
     CASE mv_main_view.
 
@@ -90,7 +90,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                 )->header_content(
                     )->link(
                         text = 'Source_Code' target = '_blank'
-                        href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                        href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
                 )->get_parent( ).
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'layout'
@@ -125,7 +125,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
     ENDCASE.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory_popup( ).
+    DATA(lo_popup) = Z2UI5_CL_XML_VIEW=>factory_popup( ).
 
     CASE mv_popup_view.
 
