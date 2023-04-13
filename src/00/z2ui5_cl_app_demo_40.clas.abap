@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_40 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -74,7 +74,7 @@ CLASS Z2UI5_CL_APP_DEMO_40 IMPLEMENTATION.
                           `  text="back" ` && |\n|  &&
                           `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
                           `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
-                   `       <m:Link target="_blank" text="Source_Code" href="` && Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
+                   `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
 
                           `<html><head>` && |\n|  &&
                           `</head>` && |\n|  &&
@@ -98,6 +98,8 @@ CLASS Z2UI5_CL_APP_DEMO_40 IMPLEMENTATION.
            `</body>` && |\n|  &&
            `</html> ` && |\n|  &&
              `</mvc:View>`.
+
+    app-next-xml_main = z2ui5_cl_xml_view=>hlp_replace_controller_name( app-next-xml_main ).
 
   ENDMETHOD.
 ENDCLASS.

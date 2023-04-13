@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_23 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_main.
 
-    DATA(lo_view) = Z2UI5_CL_XML_VIEW=>factory( ).
+    DATA(lo_view) = z2ui5_cl_xml_view=>factory( ).
 
     CASE app-view_main.
 
@@ -116,7 +116,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
                               `  text="XML" ` && |\n|  &&
                               ` /></f:content></f:SimpleForm></Page></Shell></mvc:View>`.
 
-        app-s_next-xml_main = lv_xml.
+        app-s_next-xml_main = z2ui5_cl_xml_view=>hlp_replace_controller_name( lv_xml ).
 
       WHEN 'NORMAL'.
 
@@ -128,7 +128,7 @@ CLASS Z2UI5_CL_APP_DEMO_23 IMPLEMENTATION.
               )->header_content(
                   )->link(
                       text = 'Source_Code'
-                      href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
+                      href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
                       target = '_blank'
               )->get_parent(
               )->simple_form( 'Form Title'
