@@ -33,7 +33,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
     ENDCASE.
 
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory(
         )->shell( )->page(
         title = 'abap2UI5 - Demo Section'
         class = 'sapUiContentPadding sapUiResponsivePadding--content '

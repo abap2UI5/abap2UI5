@@ -101,7 +101,7 @@ CLASS z2ui5_cl_app_demo_37 IMPLEMENTATION.
                           `  text="back" ` && |\n|  &&
                           `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
                           `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
-                   `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
+                   `       <m:Link target="_blank" text="Source_Code" href="` && Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
                           `<m:Button text="Load Custom Control"    press="` && client->_event( 'LOAD_CC' )    && `" />` && |\n|  &&
                           `<m:Button text="Display Custom Control" press="` && client->_event( 'DISPLAY_CC' ) && `" />` && |\n|  &&
                           `<html><head> ` &&

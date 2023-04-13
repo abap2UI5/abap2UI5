@@ -100,7 +100,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
     ENDCASE.
 
 
-    DATA(view) = z2ui5_cl_xml_view_helper=>factory( )->shell( ).
+    DATA(view) = Z2UI5_CL_XML_VIEW=>factory( )->shell( ).
     DATA(page) = view->page(
         id = 'id_page'
         title = 'abap2ui5 - Scrolling and Cursor (use the browser Chrome to avoid incompatibilities)'
@@ -108,7 +108,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         shownavbutton = abap_true
         ).
 
-    page->header_content( )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) ).
+    page->header_content( )->link( text = 'Source_Code' target = '_blank' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) ) ).
 
 
     page->input(
