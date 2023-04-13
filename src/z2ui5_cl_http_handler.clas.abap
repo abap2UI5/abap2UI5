@@ -10,7 +10,12 @@ CLASS z2ui5_cl_http_handler DEFINITION
         body     TYPE string,
         t_header TYPE z2ui5_if_client=>ty_t_name_value,
         t_param  TYPE z2ui5_if_client=>ty_t_name_value,
-      END OF client.
+      END OF client .
+
+    CLASS-DATA:
+      BEGIN OF config READ-ONLY,
+        controller_name TYPE string VALUE `z2ui5_controller`,
+      END OF config.
 
     CLASS-METHODS main_index_html
       IMPORTING
@@ -290,5 +295,4 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `</html>`.
 
   ENDMETHOD.
-
 ENDCLASS.

@@ -37,15 +37,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         when TYPE abap_bool DEFAULT abap_true
           PREFERRED PARAMETER v.
 
-    CLASS-METHODS get_replace
-      IMPORTING
-        iv_val        TYPE clike
-        iv_begin      TYPE clike
-        iv_end        TYPE clike
-        iv_replace    TYPE clike DEFAULT ''
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS get_header_val
       IMPORTING
         v             TYPE clike
@@ -235,18 +226,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
     ELSE.
       result = val.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_replace.
-
-    result = iv_val.
-    SPLIT result AT iv_begin INTO DATA(lv_1) DATA(lv_2).
-    SPLIT lv_2 AT iv_end INTO DATA(lv_dummy) DATA(lv_4).
-    IF lv_4 IS NOT INITIAL.
-      result = lv_1 && iv_replace && lv_4.
     ENDIF.
 
   ENDMETHOD.
@@ -992,10 +971,6 @@ CLASS z2ui5_lcl_system_runtime DEFINITION.
       RETURNING
         VALUE(r_view_model) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
-    METHODS request_end_view
-      RETURNING
-        VALUE(rv_xml) TYPE string.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -1420,7 +1395,7 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
 
     IF ms_next-s_set-xml_main IS NOT INITIAL AND ms_next-s_set-check_set_prev_view = abap_false.
-      lo_ui5_model->add_attribute( n = `vView` v = request_end_view( ) ).
+      lo_ui5_model->add_attribute( n = `vView` v = ms_next-s_set-xml_main ).
     ENDIF.
 
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
@@ -1792,15 +1767,6 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
 
   ENDMETHOD.
-
-
-  METHOD request_end_view.
-
-    rv_xml  = _=>get_replace( iv_val = ms_next-s_set-xml_main
-    iv_begin = 'controllerName="' iv_end = '"' iv_replace = 'controllerName="z2ui5_controller"' ).
-
-  ENDMETHOD.
-
 
 ENDCLASS.
 
