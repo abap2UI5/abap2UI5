@@ -5,16 +5,6 @@ CLASS z2ui5_cl_app_demo_38 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        icon     TYPE string,
-        info     TYPE string,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
-
-    TYPES:
       BEGIN OF ty_msg,
         type        TYPE string,
         title       TYPE string,
@@ -23,7 +13,6 @@ CLASS z2ui5_cl_app_demo_38 DEFINITION PUBLIC.
         group       TYPE string,
       END OF ty_msg.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     DATA t_msg TYPE STANDARD TABLE OF ty_msg WITH EMPTY KEY.
     DATA check_initialized TYPE abap_bool.
 
