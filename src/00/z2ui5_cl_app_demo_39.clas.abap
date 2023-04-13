@@ -156,6 +156,7 @@ CLASS z2ui5_cl_app_demo_39 IMPLEMENTATION.
                         `   </GenericTile>` && |\n|  &&
                         `</mvc:View>`.
 
+    app-next-xml_main = z2ui5_cl_xml_view=>hlp_replace_controller_name( app-next-xml_main ).
 
   ENDMETHOD.
 

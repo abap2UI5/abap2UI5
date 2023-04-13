@@ -40,6 +40,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS hlp_replace_controller_name
+      IMPORTING
+        xml           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS constructor.
 
     METHODS horizontal_layout
@@ -96,6 +102,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         class         TYPE clike OPTIONAL
         placement     TYPE clike OPTIONAL
         initialFocus  TYPE clike OPTIONAL
+        contentwidth  TYPE clike OPTIONAL
+        contentheight TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -513,29 +521,29 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-   METHODS message_view
+    METHODS message_view
       IMPORTING
-        items          TYPE clike OPTIONAL
-        groupItems     type clike optional
+        items         TYPE clike OPTIONAL
+        groupItems    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-   METHODS message_popover
+    METHODS message_popover
       IMPORTING
-        items          TYPE clike OPTIONAL
-        groupItems     type clike optional
+        items         TYPE clike OPTIONAL
+        groupItems    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-   METHODS message_item
+    METHODS message_item
       IMPORTING
-        type           TYPE clike OPTIONAL
-        title          TYPE clike OPTIONAL
-        subtitle       TYPE clike OPTIONAL
-        description    TYPE clike OPTIONAL
-        groupName      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        subtitle      TYPE clike OPTIONAL
+        description   TYPE clike OPTIONAL
+        groupName     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS page
       IMPORTING
@@ -919,7 +927,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mt_prop = VALUE #( BASE result->mt_prop
         (  n = 'displayBlock'   v = 'true' )
         (  n = 'height'         v = '100%' )
-        (  n = 'controllerName' v = 'z2ui5_controller' )
+        (  n = 'controllerName' v = z2ui5_cl_http_handler=>config-controller_name )
     ).
 
     result->m_name   = `View`.
@@ -1759,10 +1767,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
           name   = `Popover`
           t_prop = VALUE #(
-                      ( n = `title`  v = title )
-                      ( n = `class`  v = class )
-                      ( n = `placement`  v = placement )
+                      ( n = `title`         v = title )
+                      ( n = `class`         v = class )
+                      ( n = `placement`     v = placement )
                       ( n = `initialFocus`  v = initialFocus )
+                      ( n = `contentHeight` v = contentheight )
+                      ( n = `contentWidth`  v = contentwidth )
         ) ).
 
   ENDMETHOD.
@@ -2376,6 +2386,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `items`      v = items )
             ( n = `groupItems` v = _=>get_json_boolean( groupItems ) )
     ) ).
+
+  ENDMETHOD.
+
+  METHOD hlp_replace_controller_name.
+
+    result  = _=>get_replace( iv_val = xml
+    iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
 
   ENDMETHOD.
 
