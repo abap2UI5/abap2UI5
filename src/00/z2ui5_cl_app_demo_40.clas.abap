@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_40 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -64,6 +64,7 @@ CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_render.
 
     app-next-xml_main = `<mvc:View controllerName="project1.controller.View1"` && |\n|  &&
@@ -73,7 +74,7 @@ CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
                           `  text="back" ` && |\n|  &&
                           `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
                           `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
-                   `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
+                   `       <m:Link target="_blank" text="Source_Code" href="` && Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
 
                           `<html><head>` && |\n|  &&
                           `</head>` && |\n|  &&
@@ -99,5 +100,4 @@ CLASS z2ui5_cl_app_demo_40 IMPLEMENTATION.
              `</mvc:View>`.
 
   ENDMETHOD.
-
 ENDCLASS.

@@ -60,7 +60,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -97,6 +97,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
     CLEAR app-next.
 
   ENDMETHOD.
+
 
   METHOD ui5_on_init.
 
@@ -150,7 +151,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_view_init.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( VALUE #(
+    DATA(lo_view) = Z2UI5_CL_XML_VIEW=>factory( VALUE #(
          ( n = `xmlns:mvc` v = `sap.ui.core.mvc` )
          ( n = `xmlns:m` v = `sap.m` )
          ( n = `xmlns:z2ui5` v = `z2ui5` )
@@ -166,7 +167,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
        )->header_content( ns = 'm'
            )->toolbar_spacer( ns = 'm'
            )->link( ns = 'm' text = 'Demo'   target = '_blank'     href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
-           )->link( ns = 'm'  target = '_blank' text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+           )->link( ns = 'm'  target = '_blank' text = 'Source_Code' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
        )->get_parent( ).
 
     page->text( ns = 'm' text = 'Custom Control for File Upload is now loaded.'
@@ -181,14 +182,14 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_view_main.
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory(  )->shell( )->page(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory(  )->shell( )->page(
             title          = 'abap2UI5 - File Upload/Download'
             navbuttonpress = client->_event( 'BACK' )
             shownavbutton  = abap_true
         )->header_content(
             )->toolbar_spacer(
             )->link( text = 'Demo'        href = 'https://twitter.com/OblomovDev/status/1638487600930357248'
-            )->link( text = 'Source_Code' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+            )->link( text = 'Source_Code' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
         )->get_parent( ).
 
     page->zz_file_uploader(
@@ -240,7 +241,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_popup_descr.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(lo_popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
               )->dialog(
                       title = 'Edit Description'
                       icon = 'sap-icon://edit'
@@ -267,7 +268,7 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
 
   METHOD ui5_render_popup_data.
 
-    DATA(lo_popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(lo_popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
      )->dialog(
              stretch = abap_true
              title = 'Data:'
@@ -399,5 +400,4 @@ CLASS z2ui5_cl_app_demo_07 IMPLEMENTATION.
                          `            });` && |\n|  &&
                          `        });`.
   ENDMETHOD.
-
 ENDCLASS.

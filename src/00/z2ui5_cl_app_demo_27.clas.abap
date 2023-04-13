@@ -98,7 +98,7 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
   METHOD z2ui5_on_render.
 
 
-    app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory( )->shell(
+    app-s_next-xml_main = Z2UI5_CL_XML_VIEW=>factory( )->shell(
       )->page(
               title          = 'abap2UI5 - Binding Syntax'
               navbuttonpress = client->_event( 'BACK' )
@@ -106,7 +106,7 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
           )->header_content(
               )->link(
                   text = 'Source_Code' target = '_blank'
-                  href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                  href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
           )->get_parent(
           )->simple_form( title = 'Binding Syntax' editable = abap_true
               )->content( 'form'

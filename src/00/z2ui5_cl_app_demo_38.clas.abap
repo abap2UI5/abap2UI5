@@ -44,7 +44,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_38 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_38 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -85,7 +85,7 @@ CLASS z2ui5_cl_app_demo_38 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
         )->page(
             title          = 'abap2UI5 - List'
             navbuttonpress = client->_event( 'BACK' )
@@ -93,7 +93,7 @@ CLASS z2ui5_cl_app_demo_38 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code'  target = '_blank'
-                    href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent( ).
     page->button( text = 'Messages' press = client->_event( 'MESSAGES' ) ).
     page->message_view(
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_app_demo_38 IMPLEMENTATION.
     app-next-xml_main = page->get_root(  )->xml_get( ).
 
 
-   " data(popup) = z2ui5_cl_xml_view_helper=>factory_popup( )->
+   " data(popup) = Z2UI5_CL_XML_VIEW=>factory_popup( )->
 
 
     "set the data for the frontend

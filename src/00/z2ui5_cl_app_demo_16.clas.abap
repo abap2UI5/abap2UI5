@@ -31,22 +31,22 @@ CLASS z2ui5_cl_app_demo_16 DEFINITION PUBLIC.
     METHODS render_tab_bar
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_cl_xml_view_helper.
+        container TYPE REF TO Z2UI5_CL_XML_VIEW.
 
     METHODS render_tab_donut
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_cl_xml_view_helper.
+        container TYPE REF TO Z2UI5_CL_XML_VIEW.
 
     METHODS render_tab_line
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_cl_xml_view_helper.
+        container TYPE REF TO Z2UI5_CL_XML_VIEW.
 
     METHODS render_tab_radial
       IMPORTING
         client    TYPE REF TO z2ui5_if_client
-        container TYPE REF TO z2ui5_cl_xml_view_helper.
+        container TYPE REF TO Z2UI5_CL_XML_VIEW.
 
 
   PROTECTED SECTION.
@@ -364,14 +364,14 @@ CLASS Z2UI5_CL_APP_DEMO_16 IMPLEMENTATION.
         ENDCASE.
 
 
-        DATA(container) = z2ui5_cl_xml_view_helper=>factory( )->shell(
+        DATA(container) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
             )->page(
                 title = 'abap2UI5 - Visualization'
                 navbuttonpress = client->_event( 'BACK' )
                 shownavbutton = abap_true
                 )->header_content(
                     )->link( text = 'Demo'        target = '_blank' href = `https://twitter.com/OblomovDev/status/1639191954285113344`
-                    )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    )->link( text = 'Source_Code' target = '_blank' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent(
             )->tab_container( ).
 

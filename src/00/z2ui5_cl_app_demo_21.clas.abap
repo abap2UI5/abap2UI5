@@ -69,7 +69,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_main.
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
         )->page(
                 title          = 'abap2UI5 - Popups'
                 navbuttonpress = client->_event( 'BACK' )
@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
                     text = 'Demo' target = '_blank'
                     href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
                 )->link(
-                    text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    text = 'Source_Code' target = '_blank' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
            )->get_parent( ).
 
     DATA(grid) = page->grid( 'L8 M12 S12' )->content( 'layout' ).
@@ -120,9 +120,10 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD view_popup_decide.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
         )->dialog(
                 title = 'Title'
                 icon = 'sap-icon://question-mark'
@@ -147,7 +148,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_input.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
        )->dialog(
        contentheight = '500px'
        contentwidth  = '500px'
@@ -181,7 +182,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_table.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
        )->dialog( 'abap2UI5 - Popup to select entry'
            )->table(
                mode = 'SingleSelectLeft'
@@ -213,7 +214,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_textarea.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
       )->dialog(
               stretch = mv_stretch_active
               title = 'Title'
@@ -241,7 +242,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
   METHOD view_popup_textarea_size.
 
-    DATA(popup) = z2ui5_cl_xml_view_helper=>factory_popup(
+    DATA(popup) = Z2UI5_CL_XML_VIEW=>factory_popup(
        )->dialog(
                contentheight = '100px'
                contentwidth  = '1200px'
