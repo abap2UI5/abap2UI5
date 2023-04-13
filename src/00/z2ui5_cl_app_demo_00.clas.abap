@@ -94,7 +94,7 @@ CLASS z2ui5_cl_app_demo_00 IMPLEMENTATION.
 *         )->button( text = 'Split App' press = client->_event( 'z2ui5_cl_app_demo_17' )
     ).
 
-    grid->simple_form( title = 'HowTo - Extension II' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - Extension I' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Views - Normal, Generic, XML' press = client->_event( 'z2ui5_cl_app_demo_23' )
          )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
          )->button( text = 'Custom Control' press = client->_event( 'z2ui5_cl_app_demo_37' )
