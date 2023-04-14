@@ -110,7 +110,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
   METHOD z2ui5_on_rendering.
 
     DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
-        )->page(
+         )->page(
             title          = 'abap2UI5 - Selection-Screen Example'
             navbuttonpress = client->_event( 'BACK' )
               shownavbutton = abap_true
@@ -215,6 +215,35 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
              text  = 'Send to Server'
              press = client->_event( 'BUTTON_SEND' )
              type  = 'Success' ).
+
+    client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
 

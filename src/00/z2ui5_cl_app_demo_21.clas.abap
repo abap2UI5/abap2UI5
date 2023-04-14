@@ -331,7 +331,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
 
       WHEN 'POPUP_TABLE_CONTINUE'.
         DELETE t_tab WHERE selkz = abap_false.
-        client->popup_message_toast( `Entry selected: ` && t_tab[ 1 ]-title ).
+        client->popup_message_toast( `Entry selected: ` && VALUE #( t_tab[ 1 ]-title DEFAULT `no entry selected` )  ).
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
