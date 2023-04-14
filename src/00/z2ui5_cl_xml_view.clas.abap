@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_xml_view_helper DEFINITION
+CLASS z2ui5_cl_xml_view DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED.
@@ -16,27 +16,33 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
     DATA m_ns    TYPE string.
     DATA mt_prop TYPE ty_t_name_value.
 
-    DATA m_root    TYPE REF TO z2ui5_cl_xml_view_helper.
-    DATA m_last    TYPE REF TO z2ui5_cl_xml_view_helper.
-    DATA m_parent  TYPE REF TO z2ui5_cl_xml_view_helper.
-    DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view_helper WITH EMPTY KEY.
+    DATA m_root    TYPE REF TO z2ui5_cl_xml_view.
+    DATA m_last    TYPE REF TO z2ui5_cl_xml_view.
+    DATA m_parent  TYPE REF TO z2ui5_cl_xml_view.
+    DATA t_child TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
 
     CLASS-METHODS factory
       IMPORTING
         t_ns          TYPE ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS factory_popup
       IMPORTING
         t_ns          TYPE ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS hlp_get_source_code_url
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
         get           TYPE z2ui5_if_client=>ty_s_get
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS hlp_replace_controller_name
+      IMPORTING
+        xml           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -47,35 +53,35 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         class         TYPE clike OPTIONAL
         width         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Dynamic_Page
       IMPORTING
         headerExpanded           TYPE clike OPTIONAL
         toggleHeaderOnTitleClick TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)            TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Dynamic_Page_Title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Dynamic_Page_Header
       IMPORTING
         pinnable      TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Illustrated_Message
       IMPORTING
         enableVerticalResponsiveness TYPE clike OPTIONAL
         illustrationType             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)                TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS additional_Content
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS flex_box
       IMPORTING
@@ -88,7 +94,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         justifycontent TYPE clike OPTIONAL
         wrap           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS popover
       IMPORTING
@@ -96,15 +102,17 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         class         TYPE clike OPTIONAL
         placement     TYPE clike OPTIONAL
         initialFocus  TYPE clike OPTIONAL
+        contentwidth  TYPE clike OPTIONAL
+        contentheight TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS list_item
       IMPORTING
         text           TYPE clike OPTIONAL
         additionaltext TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS table
       IMPORTING
@@ -118,7 +126,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         width               TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
-        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_strip
       IMPORTING
@@ -128,11 +136,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         class         TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS footer
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_page
       IMPORTING
@@ -142,7 +150,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         description         TYPE clike OPTIONAL
         icon                TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_page_layout
       IMPORTING
@@ -151,49 +159,49 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         editHeaderButtonPress    TYPE clike OPTIONAL
         upperCaseAnchorBar       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)            TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Object_Page_Dyn_Header_Title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS expanded_heading
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS snapped_heading
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS expanded_content
       IMPORTING
         ns            TYPE clike DEFAULT `uxap`
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS snapped_content
       IMPORTING
         ns            TYPE clike DEFAULT `uxap`
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS snapped_Title_On_Mobile
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS navigation_actions
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS actions
       IMPORTING
         ns            TYPE clike DEFAULT `uxap`
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS avatar
       IMPORTING
@@ -201,15 +209,15 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         class         TYPE clike OPTIONAL
         displaysize   TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sections
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Object_Page_Section
       IMPORTING
@@ -218,39 +226,39 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         importance     TYPE clike OPTIONAL
         id             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS heading
       IMPORTING
         ns            TYPE clike DEFAULT `uxap`
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sub_sections
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Object_page_Sub_Section
       IMPORTING
         id            TYPE clike OPTIONAL
         title         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS shell
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
     METHODS blocks
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS layout_data
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS flex_item_data
       IMPORTING
@@ -259,7 +267,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         backgrounddesign TYPE clike OPTIONAL
         styleclass       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS code_editor
       IMPORTING
@@ -269,18 +277,18 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         width         TYPE clike OPTIONAL
         editable      TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS suggestion_items
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vertical_layout
       IMPORTING
         class         TYPE clike OPTIONAL
         width         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS multi_input
       IMPORTING
@@ -290,11 +298,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         width           TYPE clike OPTIONAL
         tokens          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tokens
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS token
       IMPORTING
@@ -303,7 +311,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         selected      TYPE clike OPTIONAL
         visible       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS input
       IMPORTING
@@ -323,7 +331,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         valuehelprequest TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dialog
       IMPORTING
@@ -335,43 +343,43 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         contentwidth  TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS buttons
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS get_root
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS get_parent
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS get
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS get_child
       IMPORTING
         index         TYPE i DEFAULT 1
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS columns
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column
       IMPORTING
         width         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS items
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS interact_donut_chart
       IMPORTING
@@ -382,11 +390,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         displayedsegments TYPE clike OPTIONAL
         press             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS segments
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS interact_donut_chart_segment
       IMPORTING
@@ -395,7 +403,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         displayedvalue TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS interact_bar_chart
       IMPORTING
@@ -406,11 +414,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         errormessagetitle TYPE clike OPTIONAL
         showerror         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS bars
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS interact_bar_chart_bar
       IMPORTING
@@ -419,7 +427,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         displayedvalue TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS interact_line_chart
       IMPORTING
@@ -431,11 +439,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         errormessagetitle TYPE clike OPTIONAL
         showerror         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS points
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS interact_line_chart_point
       IMPORTING
@@ -445,7 +453,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         displayedvalue TYPE clike OPTIONAL
         selected       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS radial_micro_chart
       IMPORTING
@@ -454,32 +462,32 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         press         TYPE clike OPTIONAL
         valuecolor    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column_list_item
       IMPORTING
         valign        TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS cells
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_content
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sub_header
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS custom_data
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS badge_custom_data
       IMPORTING
@@ -487,7 +495,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         value         TYPE clike OPTIONAL
         visible       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS toggle_button
       IMPORTING
@@ -498,7 +506,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         press         TYPE clike OPTIONAL
         class         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS button
       IMPORTING
@@ -511,31 +519,31 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         id            TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-   METHODS message_view
+    METHODS message_view
       IMPORTING
-        items          TYPE clike OPTIONAL
-        groupItems     type clike optional
+        items         TYPE clike OPTIONAL
+        groupItems    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-   METHODS message_popover
+    METHODS message_popover
       IMPORTING
-        items          TYPE clike OPTIONAL
-        groupItems     type clike optional
+        items         TYPE clike OPTIONAL
+        groupItems    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-   METHODS message_item
+    METHODS message_item
       IMPORTING
-        type           TYPE clike OPTIONAL
-        title          TYPE clike OPTIONAL
-        subtitle       TYPE clike OPTIONAL
-        description    TYPE clike OPTIONAL
-        groupName      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        subtitle      TYPE clike OPTIONAL
+        description   TYPE clike OPTIONAL
+        groupName     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS page
       IMPORTING
@@ -547,7 +555,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         ns             TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vbox
       IMPORTING
@@ -555,13 +563,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         class         TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS hbox
       IMPORTING
         class         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS scroll_container
       IMPORTING
@@ -572,7 +580,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         focusable     TYPE clike OPTIONAL
           PREFERRED PARAMETER height
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS simple_form
       IMPORTING
@@ -581,19 +589,19 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         editable      TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS zz_plain
       IMPORTING
         val           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS content
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS title
       IMPORTING
@@ -602,22 +610,22 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         wrapping      TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tab_container
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tab
       IMPORTING
         text          TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS overflow_toolbar
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS overflow_toolbar_button
       IMPORTING
@@ -628,25 +636,25 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         press         TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS toolbar_spacer
       IMPORTING
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS label
       IMPORTING
         text          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS image
       IMPORTING
         src           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS date_picker
       IMPORTING
@@ -654,7 +662,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         placeholder   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS time_picker
       IMPORTING
@@ -662,7 +670,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         placeholder   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS date_time_picker
       IMPORTING
@@ -670,7 +678,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         placeholder   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS link
       IMPORTING
@@ -680,14 +688,14 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         enabled       TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS list
       IMPORTING
         headertext    TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS standard_list_item
       IMPORTING
@@ -697,14 +705,14 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         info          TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS item
       IMPORTING
         key           TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS segmented_button_item
       IMPORTING
@@ -712,7 +720,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         key           TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS combobox
       IMPORTING
@@ -721,7 +729,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         label         TYPE clike OPTIONAL
         items         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid
       IMPORTING
@@ -729,14 +737,14 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         default_span  TYPE clike OPTIONAL
           PREFERRED PARAMETER default_span
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS grid_data
       IMPORTING
         span          TYPE clike OPTIONAL
           PREFERRED PARAMETER span
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS text_area
       IMPORTING
@@ -751,7 +759,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         id              TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS range_slider
       IMPORTING
@@ -766,7 +774,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         class         TYPE clike OPTIONAL
         id            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS generic_tag
       IMPORTING
@@ -776,14 +784,14 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         status         TYPE clike OPTIONAL
         class          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_attribute
       IMPORTING
         title         TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS object_number
       IMPORTING
@@ -792,7 +800,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         number        TYPE clike OPTIONAL
         unit          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS switch
       IMPORTING
@@ -802,7 +810,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         enabled       TYPE clike OPTIONAL
         type          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS step_input
       IMPORTING
@@ -811,7 +819,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         max           TYPE clike
         step          TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS progress_indicator
       IMPORTING
@@ -820,14 +828,14 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         showvalue     TYPE clike OPTIONAL
         state         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS segmented_button
       IMPORTING
         selected_key     TYPE clike
         selection_change TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS checkbox
       IMPORTING
@@ -836,11 +844,11 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         enabled       TYPE clike OPTIONAL
           PREFERRED PARAMETER selected
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_toolbar
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS text
       IMPORTING
@@ -849,13 +857,13 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         ns            TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS formatted_text
       IMPORTING
         htmltext      TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS _generic
       IMPORTING
@@ -863,7 +871,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         ns            TYPE clike OPTIONAL
         t_prop        TYPE ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS zz_file_uploader
       IMPORTING
@@ -872,7 +880,7 @@ CLASS z2ui5_cl_xml_view_helper DEFINITION
         placeholder   TYPE clike OPTIONAL
         upload        TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view_helper.
+        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     METHODS xml_get
       RETURNING
@@ -885,7 +893,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -919,7 +927,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result->mt_prop = VALUE #( BASE result->mt_prop
         (  n = 'displayBlock'   v = 'true' )
         (  n = 'height'         v = '100%' )
-        (  n = 'controllerName' v = 'z2ui5_controller' )
+        (  n = 'controllerName' v = z2ui5_cl_http_handler=>config-controller_name )
     ).
 
     result->m_name   = `View`.
@@ -1759,10 +1767,12 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = _generic(
           name   = `Popover`
           t_prop = VALUE #(
-                      ( n = `title`  v = title )
-                      ( n = `class`  v = class )
-                      ( n = `placement`  v = placement )
+                      ( n = `title`         v = title )
+                      ( n = `class`         v = class )
+                      ( n = `placement`     v = placement )
                       ( n = `initialFocus`  v = initialFocus )
+                      ( n = `contentHeight` v = contentheight )
+                      ( n = `contentWidth`  v = contentwidth )
         ) ).
 
   ENDMETHOD.
@@ -2197,7 +2207,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
     result = |{ result }>|.
 
     LOOP AT t_child INTO DATA(lr_child).
-      result = result && CAST z2ui5_cl_xml_view_helper( lr_child )->xml_get( ).
+      result = result && CAST z2ui5_cl_xml_view( lr_child )->xml_get( ).
     ENDLOOP.
 
     DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
@@ -2223,7 +2233,7 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
 
   METHOD _generic.
 
-    DATA(result2) = NEW z2ui5_cl_xml_view_helper( ).
+    DATA(result2) = NEW z2ui5_cl_xml_view( ).
     result2->m_name = name.
     result2->m_ns = ns.
     result2->mt_prop = t_prop.
@@ -2376,6 +2386,13 @@ CLASS z2ui5_cl_xml_view_helper IMPLEMENTATION.
             ( n = `items`      v = items )
             ( n = `groupItems` v = _=>get_json_boolean( groupItems ) )
     ) ).
+
+  ENDMETHOD.
+
+  METHOD hlp_replace_controller_name.
+
+    result  = _=>get_replace( iv_val = xml
+    iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
 
   ENDMETHOD.
 

@@ -20,12 +20,32 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(result) TYPE string.
 
+  CLASS-METHODS get_replace
+      IMPORTING
+        iv_val        TYPE clike
+        iv_begin      TYPE clike
+        iv_end        TYPE clike
+        iv_replace    TYPE clike DEFAULT ''
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
 ENDCLASS.
 
 CLASS z2ui5_lcl_utility IMPLEMENTATION.
+
+ METHOD get_replace.
+
+    result = iv_val.
+    SPLIT result AT iv_begin INTO DATA(lv_1) DATA(lv_2).
+    SPLIT lv_2 AT iv_end INTO DATA(lv_dummy) DATA(lv_4).
+    IF lv_4 IS NOT INITIAL.
+      result = lv_1 && iv_replace && lv_4.
+    ENDIF.
+
+  ENDMETHOD.
 
   METHOD get_classname_by_ref.
 

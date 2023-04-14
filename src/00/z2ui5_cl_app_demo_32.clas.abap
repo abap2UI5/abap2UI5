@@ -4,18 +4,18 @@ CLASS z2ui5_cl_app_demo_32 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    data mv_value type string.
+    DATA mv_value TYPE string.
 
   PROTECTED SECTION.
 
-    data client TYPE REF TO z2ui5_if_client.
+    DATA client TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
         view_main         TYPE string,
         view_popup        TYPE string,
-        get             TYPE z2ui5_if_client=>ty_s_get,
-        next            TYPE z2ui5_if_client=>ty_s_next,
+        get               TYPE z2ui5_if_client=>ty_s_get,
+        next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
 
     METHODS z2ui5_on_init.
@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_32 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -61,7 +61,7 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
       WHEN 'POST'.
         client->popup_message_toast( app-get-event_data ).
 
-         WHEN 'MYCC'.
+      WHEN 'MYCC'.
         client->popup_message_toast( 'MYCC event ' && mv_value ).
 
       WHEN 'BACK'.
@@ -89,7 +89,7 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
                           `  text="back" ` && |\n|  &&
                           `  press="` && client->_event( 'BACK' ) && `" ` && |\n|  &&
                           `  class="sapUiContentPadding sapUiResponsivePadding--content"/> ` && |\n|  &&
-                   `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
+                   `       <m:Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
                           `<html><head><style>` && |\n|  &&
                           `body {background-color: powderblue;}` && |\n|  &&
                           `h1   {color: blue;}` && |\n|  &&
@@ -106,6 +106,8 @@ CLASS Z2UI5_CL_APP_DEMO_32 IMPLEMENTATION.
                           `</body>` && |\n|  &&
                           `</html> ` && |\n|  &&
                             `</mvc:View>`.
+
+    app-next-xml_main = z2ui5_cl_xml_view=>hlp_replace_controller_name( app-next-xml_main ).
 
   ENDMETHOD.
 ENDCLASS.

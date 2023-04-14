@@ -29,7 +29,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_35 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -139,14 +139,14 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
 
   METHOD z2ui5_on_render.
 
-    DATA(lo_view) = z2ui5_cl_xml_view_helper=>factory( )->shell( )->page(
+    DATA(lo_view) = Z2UI5_CL_XML_VIEW=>factory( )->shell( )->page(
              title          = 'abap2UI5 - First Example'
              navbuttonpress = client->_event( 'BACK' )
              shownavbutton  = abap_true
          )->header_content(
              )->link(
                  text = 'Source_Code' target = '_blank'
-                 href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                 href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
          )->get_parent(
          )->simple_form( title = 'Form Title' editable = abap_true
              )->content( 'form'
@@ -186,5 +186,4 @@ FIELD-SYMBOLS <tab> type STANDARD TABLE.
     app-next-xml_main = lo_view->get_root( )->xml_get( ).
 
   ENDMETHOD.
-
 ENDCLASS.

@@ -22,7 +22,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_30 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_30 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -71,7 +71,7 @@ CLASS z2ui5_cl_app_demo_30 IMPLEMENTATION.
 
     ENDCASE.
 
-    DATA(view) = z2ui5_cl_xml_view_helper=>factory( ).
+    DATA(view) = Z2UI5_CL_XML_VIEW=>factory( ).
 
 
     DATA(page) = view->dynamic_page(

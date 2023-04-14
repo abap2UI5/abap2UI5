@@ -98,7 +98,7 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
 
       WHEN 'VIEW_MAIN'.
 
-        app-s_next-xml_main = z2ui5_cl_xml_view_helper=>factory( )->shell(
+        app-s_next-xml_main = Z2UI5_CL_XML_VIEW=>factory( )->shell(
           )->page(
                   title          = 'abap2UI5 - Popover Examples'
                   navbuttonpress = client->_event( 'BACK' )
@@ -107,7 +107,7 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
                   )->link( text = 'Demo' target = '_blank' href = `https://twitter.com/OblomovDev/status/1643899059839672321`
                   )->link(
                       text = 'Source_Code' target = '_blank'
-                      href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                      href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
               )->get_parent(
               )->simple_form( 'Popover'
                   )->content( 'form'
@@ -163,7 +163,7 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
 
       WHEN 'POPOVER'.
 
-        app-s_next-xml_popup = z2ui5_cl_xml_view_helper=>factory_popup( )->popover(
+        app-s_next-xml_popup = Z2UI5_CL_XML_VIEW=>factory_popup( )->popover(
                     title     = 'Popover Title'
                     placement = mv_placement
                 )->footer( )->overflow_toolbar(

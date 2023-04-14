@@ -20,7 +20,7 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
-    DATA(page) = z2ui5_cl_xml_view_helper=>factory(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory(
         )->page(
             title           = 'abap2UI5 - Demo Layout'
             navbuttonpress  = client->_event( 'BACK' )
@@ -35,7 +35,7 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
         href = 'https://twitter.com/OblomovDev'
       )->link(
         text = 'Source_Code' target = '_blank'
-        href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+        href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
        ).
 
     page->sub_header(

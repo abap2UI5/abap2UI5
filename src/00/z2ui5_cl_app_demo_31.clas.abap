@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_31 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
                         `       <Input id="loadingMinSeconds" width="8rem" type="Number" description="seconds" value="` && client->_bind( mv_value ) && `"/>` && |\n|  &&
                         `       <Button text="BACK" type="Emphasized" press="` && client->_event( 'BACK') && `"/>` && |\n|  &&
                         `       <Link target="_blank" text="Demo" href="https://twitter.com/OblomovDev/status/1645104539387691008"/>` && |\n|  &&
-                        `       <Link target="_blank" text="Source_Code" href="` && z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
+                        `       <Link target="_blank" text="Source_Code" href="` && Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) ) && `"/>` && |\n|  &&
                         `   </form:SimpleForm>  ` && |\n|  &&
                         `   <GenericTile class="sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout" header="Country-Specific Profit Margin"  press="` && client->_event( 'POPUP' ) && `"` && |\n|  &&
                         `       frameType="OneByHalf" subheader="Subtitle">` && |\n|  &&
@@ -161,6 +161,7 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
                         `   </GenericTile>` && |\n|  &&
                         `</mvc:View>`.
 
+     app-next-xml_main = z2ui5_cl_xml_view=>hlp_replace_controller_name( app-next-xml_main ).
 
   ENDMETHOD.
 
@@ -211,5 +212,4 @@ CLASS z2ui5_cl_app_demo_31 IMPLEMENTATION.
 
     endif.
   ENDMETHOD.
-
 ENDCLASS.

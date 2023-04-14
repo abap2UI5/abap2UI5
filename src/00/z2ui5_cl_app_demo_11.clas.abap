@@ -60,7 +60,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
 
         ENDCASE.
 
-        DATA(page) = z2ui5_cl_xml_view_helper=>factory( )->shell(
+        DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
             )->page(
                     title          = 'abap2UI5 - Tables and editable'
                     navbuttonpress = client->_event( 'BACK' )
@@ -71,7 +71,7 @@ CLASS Z2UI5_CL_APP_DEMO_11 IMPLEMENTATION.
                         href = 'https://twitter.com/OblomovDev/status/1630240894581608448'
                     )->link(
                         text = 'Source_Code' target = '_blank'
-                        href = z2ui5_cl_xml_view_helper=>hlp_get_source_code_url( app = me get = client->get( ) )
+                        href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent( ).
 
         DATA(tab) = page->table(
