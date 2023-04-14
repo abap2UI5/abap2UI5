@@ -180,7 +180,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
     form->flex_box( class = 'columns'
          )->button(
-             text = 'Layout'
+             text = 'Layouts'
              press = client->_event( 'z2ui5_cl_app_demo_42' ) )->get(
              )->layout_data(
                  )->flex_item_data(
