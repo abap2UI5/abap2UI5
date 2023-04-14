@@ -1259,7 +1259,7 @@ CLASS z2ui5_lcl_system_app IMPLEMENTATION.
        `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n|  &&
        `  enabled="` && _=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n|  &&
        ` /></f:content></f:SimpleForm> <f:SimpleForm ` && |\n|  &&
-       `  title="Applications and Examples" ` && |\n|  &&
+       `  title="Demo Section" ` && |\n|  &&
        `  layout="ResponsiveGridLayout" ` && |\n|  &&
        ` > <f:content ` && |\n|  &&
        ` > <Button ` && |\n|  &&
