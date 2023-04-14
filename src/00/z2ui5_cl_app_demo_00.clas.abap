@@ -178,6 +178,21 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                      growfactor = '3'
                      styleclass = 'sapUiTinyMargin' ).
 
+    form->flex_box( class = 'columns'
+         )->button(
+             text = 'Layout'
+             press = client->_event( 'z2ui5_cl_app_demo_42' ) )->get(
+             )->layout_data(
+                 )->flex_item_data(
+                     growfactor = '1'
+                     styleclass = 'sapUiTinyMargin'
+         )->get_parent( )->get_parent(
+         )->text( `Use the sap.uxap.ObjectPageLayout to easily display information related to a business object. It is composed of a header and content wrapping in sections and subestions.` )->get(
+             )->layout_data(
+                 )->flex_item_data(
+                     growfactor = '3'
+                     styleclass = 'sapUiTinyMargin' ).
+
     form = page->grid( 'L9 M12 S12'
           )->content( 'layout'
           )->simple_form( 'Demos II'
@@ -195,6 +210,21 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
          )->get_parent( )->get_parent(
          )->text( `Use the sap.suite.ui.microchart controls to visualize data - `
                              && 'choose between bar charts, donut charts, line charts or radial charts and make your data beautiful' )->get(
+             )->layout_data(
+                 )->flex_item_data(
+                     growfactor = '3'
+                     styleclass = 'sapUiTinyMargin' ).
+
+      form->flex_box( class = 'columns'
+         )->button(
+             text  = 'Monitoring'
+             press = client->_event( 'z2ui5_cl_app_demo_41' ) )->get(
+             )->layout_data(
+                 )->flex_item_data(
+                     growfactor = '1'
+                     styleclass = 'sapUiTinyMargin'
+         )->get_parent( )->get_parent(
+         )->text( `Use the timer function of abap2UI5 to create self refreshing monitor apps.` )->get(
              )->layout_data(
                  )->flex_item_data(
                      growfactor = '3'
