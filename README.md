@@ -83,7 +83,6 @@ METHOD if_http_extension~handle_request.
 ENDMETHOD.
 ```
 ## FAQ
-* read these [instructions](https://github.com/oblomov-dev/ABAP2UI5/wiki/First-App) when you develop your first app<br>
-* running into problems with your app? see [debugging & troubleshooting](https://github.com/oblomov-dev/ABAP2UI5/wiki/Debugging-&-Troubleshooting)
-* take a look at the [wiki](https://github.com/oblomov-dev/ABAP2UI5/wiki) for instructions on setting up the theme, bootstrapping, title, etc.
+* read these [instructions](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/) when you develop your first app<br>
+* running into problems with your app? or want to configure the theme, bootstrapping, language or title? see [configuration & debugging](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
