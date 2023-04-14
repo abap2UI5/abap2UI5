@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_28 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_41 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_41 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~controller.
@@ -110,6 +110,20 @@ CLASS z2ui5_cl_app_demo_28 IMPLEMENTATION.
                  href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
          )->get_parent(
           ).
+
+    DATA(point) = lo_View->flex_box(
+        width      = '22rem'
+        height     = '13rem'
+        alignitems = 'Center'
+        class      = 'sapUiSmallMargin'
+        )->items( )->interact_line_chart(
+        selectionchanged = client->_event( 'LINE_CHANGED' )
+        precedingpoint   = '15'
+        succeddingpoint  = '89'
+        )->points( ).
+    LOOP AT t_tab REFERENCE INTO DATA(lr_line).
+      point->interact_line_chart_point( label = lr_line->title  value = CONV string( sy-tabix )  ).
+    ENDLOOP.
 
     lo_view->list(
          headertext = 'Data auto refresh (2 sec)'
