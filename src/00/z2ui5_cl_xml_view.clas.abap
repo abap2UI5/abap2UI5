@@ -1676,10 +1676,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name   = `ObjectPageLayout`
         ns     = `uxap`
         t_prop = VALUE #(
-            ( n = `showTitleInHeaderContent`  v = _=>get_json_boolean( showTitleInHeaderContent ) )
-            ( n = `showEditHeaderButton`      v = _=>get_json_boolean( showEditHeaderButton ) )
-            ( n = `editHeaderButtonPress`     v = editHeaderButtonPress )
-            ( n = `upperCaseAnchorBar`        v = upperCaseAnchorBar )
+            ( n = `showTitleInHeaderContent` v = _=>get_json_boolean( showTitleInHeaderContent ) )
+            ( n = `showEditHeaderButton`     v = _=>get_json_boolean( showEditHeaderButton ) )
+            ( n = `editHeaderButtonPress`    v = editHeaderButtonPress )
+            ( n = `upperCaseAnchorBar`       v = upperCaseAnchorBar )
     ) ).
 
   ENDMETHOD.
