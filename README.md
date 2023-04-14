@@ -27,7 +27,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Development of UI5 Selection Screens in pure ABAP (former version) [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 
-### Demo [(Example)](https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap)
+### Demo
 ![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
 
 ## Installation
@@ -38,7 +38,7 @@ Works with all available ABAP releases and language versions:
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the low syntax [branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
 
-Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5 [(more information)](https://github.com/oblomov-dev/abap2ui5/wiki):
+Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5 [(more information)](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/):
 
 ##### ABAP for Cloud:
 ```abap
