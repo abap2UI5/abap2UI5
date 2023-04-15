@@ -2,13 +2,22 @@
 
 Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://twitter.com/OblomovDev) to keep up to date!
 
-## Project Features
+## The Project 
+### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
 * low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF, FE or RAP)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
 * high system compatibility – runs on all available ABAP stacks (from NW 7.02 to ABAP 2302)
 * easy installation – abapGit project, no additional app deployment needed
+
+### Compatibility
+Works with all available ABAP releases and language versions:
+* BTP ABAP Environment (ABAP for Cloud)
+* S/4 Public Cloud ABAP Environment (ABAP for Cloud)
+* S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
+* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the low syntax [branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
 
 ### Information
 ##### SCN Blog Series - Introduction to abap2UI5
@@ -31,13 +40,6 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 ![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
 
 ## Installation
-Works with all available ABAP releases and language versions:
-* BTP ABAP Environment (ABAP for Cloud)
-* S/4 Public Cloud ABAP Environment (ABAP for Cloud)
-* S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the low syntax [branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
-
 Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5. More information can be found [here.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 
 ##### ABAP for Cloud:
