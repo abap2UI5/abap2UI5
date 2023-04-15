@@ -10,7 +10,6 @@ Development of UI5 Apps in pure ABAP. Follow this project on [twitter](https://t
 * easy installation – abapGit project, no additional app deployment needed
 
 #### Compatibility
-Works with all available ABAP releases and language versions:
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
