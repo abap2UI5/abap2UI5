@@ -175,13 +175,25 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS expanded_content
       IMPORTING
-        ns            TYPE clike DEFAULT `uxap`
+        ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS snapped_content
       IMPORTING
-        ns            TYPE clike DEFAULT `uxap`
+        ns            TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS heading
+      IMPORTING
+        ns            TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS actions
+      IMPORTING
+        ns            TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -194,12 +206,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS navigation_actions
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS actions
-      IMPORTING
-        ns            TYPE clike DEFAULT `uxap`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -227,12 +233,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
         id             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS heading
-      IMPORTING
-        ns            TYPE clike DEFAULT `uxap`
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sub_sections
       RETURNING
