@@ -70,7 +70,7 @@ CLASS z2ui5_cl_app_demo_38 IMPLEMENTATION.
               shownavbutton = abap_true
             )->header_content(
                 )->link(
-                    text = 'Link'  target = '_blank'
+                    text = 'Demo'  target = '_blank'
                     href = `https://twitter.com/OblomovDev/status/1647246029828268032`
                 )->link(
                     text = 'Source_Code'  target = '_blank'

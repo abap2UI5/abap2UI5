@@ -31,15 +31,13 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
       WHEN 'BUTTON_POPUP_01'.
         mv_popup_view = 'POPUP_DECIDE'.
-     ""   mv_main_view = ''.
+        mv_main_view = ''.
 
       WHEN 'POPUP_DECIDE_CONTINUE'.
-    "    mv_popup_view = ''.
         mv_main_view = 'MAIN'.
         client->popup_message_toast( 'continue pressed' ).
 
       WHEN 'POPUP_DECIDE_CANCEL'.
-  "      mv_popup_view = ''.
         mv_main_view = 'MAIN'.
         client->popup_message_toast( 'cancel pressed' ).
 

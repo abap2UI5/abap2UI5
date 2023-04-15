@@ -208,7 +208,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                            `                    this.oBody.oEvent.vData = vData;` && |\n|  &&
                            |\n|  &&
-                           `                    if (this.oBody.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                           `                    if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                        console.log('Request Object:');` && |\n|  &&
                            `                        console.log(this.oBody);` && |\n|  &&
                            `                    }` && |\n|  &&
@@ -239,7 +239,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        }` && |\n|  &&
                            `                        sap.z2ui5.oResponse = JSON.parse(that.target.response);` && |\n|  &&
                            |\n|  &&
-                           `                        if (sap.z2ui5.oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                           `                        if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                            console.log('Response Object:');` && |\n|  &&
                            `                            console.log(sap.z2ui5.oResponse);` && |\n|  &&
                            `                            if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
@@ -282,7 +282,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                },` && |\n|  &&
                            `            });` && |\n|  &&
                            |\n|  &&
-                           `        if (!sap.z2ui5) {sap.z2ui5 = {}; };` && |\n|  &&
+                           `        if (!sap.z2ui5) { sap.z2ui5 = {}; };` && |\n|  &&
+                           `        sap.z2ui5.checkLogActive = ` && _=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
                            `        if (xml == '') { xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />' };` && |\n|  &&
                            |\n|  &&
