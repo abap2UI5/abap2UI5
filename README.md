@@ -1,5 +1,5 @@
 # abap2UI5
-This is an open-source project providing a pure ABAP approach for developing UI5 apps without JavaScript, OData, Fiori Elements and RAP — similar to the past, when only a few lines of ABAP were needed to display inputs and tables using selection screens and ALVs. It is designed with a minimal system footprint and runs in both on-premise and cloud environments.
+Welcome to abap2UI5! This is an open-source project providing a pure ABAP approach for developing UI5 apps without JavaScript, OData, Fiori Elements and RAP — similar to the past, when only a few lines of ABAP were needed to display inputs and tables using selection screens and ALVs. It is designed with a minimal system footprint and runs in both on-premise and cloud environments. Stay up-to-date by following on Twitter.
 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
