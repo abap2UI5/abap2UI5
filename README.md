@@ -39,7 +39,7 @@ Works with all available ABAP releases and language versions:
 ![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
 
 ## Installation
-Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5. More information can be found [here.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
+Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5. For more information, check out the documentation [here.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 
 ##### ABAP for Cloud:
 ```abap
