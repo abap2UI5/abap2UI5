@@ -165,7 +165,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    if (sap.z2ui5.oResponse.oTimer){ ` && |\n|  &&
                            `                    var oEvent = { 'EVENT' : 'BUTTON_CHECK', 'METHOD' : 'UPDATE' };` && |\n|  &&
                            `                    oEvent.EVENT = sap.z2ui5.oResponse.oTimer.eventFinished;` && |\n|  &&
-                           `                    setTimeout( sap.z2ui5.oView.getController().onEvent, sap.z2ui5.oResponse.oTimer.intervalMs, oEvent );` && |\n|  &&
+                           `                    sap.z2ui5.checkTimerActive = true;` && |\n|  &&
+                           `                    setTimeout( ( ) => { if ( sap.z2ui5.checkTimerActive ) { sap.z2ui5.oView.getController().onEvent( oEvent ); } }, sap.z2ui5.oResponse.oTimer.intervalMs, oEvent );` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `                },` && |\n|  &&
@@ -207,7 +208,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                            `                    this.oBody.oEvent.vData = vData;` && |\n|  &&
                            |\n|  &&
-                           `                    if (this.oBody.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                           `                    if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                        console.log('Request Object:');` && |\n|  &&
                            `                        console.log(this.oBody);` && |\n|  &&
                            `                    }` && |\n|  &&
@@ -221,6 +222,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                            `                Roundtrip: function () {` && |\n|  &&
                            |\n|  &&
+                           `                   sap.z2ui5.checkTimerActive = false;` && |\n|  &&
                            `                    if (sap.z2ui5.oView){ sap.z2ui5.oView.destroy( ); }` && |\n|  &&
                            `                    var xhr = new XMLHttpRequest();` && |\n|  &&
                            `                   if ( sap.startApp ) { var app = sap.startApp;   }else` && |\n|  &&
@@ -237,7 +239,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        }` && |\n|  &&
                            `                        sap.z2ui5.oResponse = JSON.parse(that.target.response);` && |\n|  &&
                            |\n|  &&
-                           `                        if (sap.z2ui5.oResponse.oSystem.CHECK_DEBUG_ACTIVE) {` && |\n|  &&
+                           `                        if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                            console.log('Response Object:');` && |\n|  &&
                            `                            console.log(sap.z2ui5.oResponse);` && |\n|  &&
                            `                            if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
@@ -280,7 +282,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                },` && |\n|  &&
                            `            });` && |\n|  &&
                            |\n|  &&
-                           `        if (!sap.z2ui5) {sap.z2ui5 = {}; };` && |\n|  &&
+                           `        if (!sap.z2ui5) { sap.z2ui5 = {}; };` && |\n|  &&
+                           `        sap.z2ui5.checkLogActive = ` && _=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
                            `        if (xml == '') { xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />' };` && |\n|  &&
                            |\n|  &&
