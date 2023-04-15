@@ -4,6 +4,7 @@ CLASS z2ui5_cl_app_demo_33 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
     DATA mv_type TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -33,6 +34,9 @@ CLASS z2ui5_cl_app_demo_33 IMPLEMENTATION.
             navbuttonpress = client->_event( 'BACK' )
               shownavbutton = abap_true
             )->header_content(
+                 )->link(
+                    text = 'Demo'  target = '_blank'
+                    href = `https://twitter.com/OblomovDev/status/1647175810917318657`
                 )->link(
                     text = 'Source_Code'  target = '_blank'
                     href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
