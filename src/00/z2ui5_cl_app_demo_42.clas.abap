@@ -59,11 +59,11 @@ CLASS Z2UI5_CL_APP_DEMO_42 IMPLEMENTATION.
                   )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiTinyMarginEnd'
                     )->title( text = 'Oblomov Dev' wrapping = abap_true ).
 
-        header_title->expanded_content( )->text( `abap2UI5 Developer` ).
-        header_title->snapped_Content( )->text( `abap2UI5 Developer` ).
+        header_title->expanded_content( ns = `uxap` )->text( `abap2UI5 Developer` ).
+        header_title->snapped_Content( ns = `uxap` )->text( `abap2UI5 Developer` ).
         header_title->snapped_Title_On_Mobile( )->title( `abap2UI5 Developer` ).
 
-        header_title->actions( )->overflow_toolbar(
+        header_title->actions( ns = `uxap` )->overflow_toolbar(
              )->overflow_toolbar_button(
                  icon    = `sap-icon://edit`
                  text    = 'edit header'
@@ -111,7 +111,7 @@ CLASS Z2UI5_CL_APP_DEMO_42 IMPLEMENTATION.
         data(sections) = page->sections( ).
 
         sections->object_page_section( titleuppercase = abap_false id = 'goalsSectionSS1' title = '2014 Goals Plan'
-            )->heading(
+            )->heading( ns = `uxap`
                 )->message_strip( text = 'this is a message strip'
             )->get_parent(
             )->sub_sections(
@@ -143,7 +143,7 @@ CLASS Z2UI5_CL_APP_DEMO_42 IMPLEMENTATION.
                           )->label( text    = 'goals2').
 
          sections->object_page_section( titleuppercase = abap_false id = 'PersonalSection' title = 'Personal'
-            )->heading(
+            )->heading( ns = `uxap`
            "     )->message_strip( text = 'this is a message strip'
             )->get_parent(
             )->sub_sections(
@@ -159,7 +159,7 @@ CLASS Z2UI5_CL_APP_DEMO_42 IMPLEMENTATION.
 
 
            sections->object_page_section( titleuppercase = abap_false id = 'employmentSection' title = 'Employment'
-            )->heading(
+            )->heading( ns = `uxap`
            "     )->message_strip( text = 'this is a message strip'
             )->get_parent(
             )->sub_sections(
