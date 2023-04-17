@@ -67,10 +67,13 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         )->button( text = 'More Controls'   press = client->_event( 'z2ui5_cl_app_demo_05' )
         )->button( text = 'F4-Value-Help'   press = client->_event( 'Z2UI5_CL_APP_DEMO_09' ) ).
 
-    grid->simple_form( title = 'HowTo - Tables' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - Tables I' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'List'                        press = client->_event( 'z2ui5_cl_app_demo_03' )
-        )->button( text = 'Toolbar, Scroll Container'   press = client->_event( 'z2ui5_cl_app_demo_06' )
+        )->button( text = 'Toolbar, Container, Sort'   press = client->_event( 'z2ui5_cl_app_demo_06' )
         )->button( text = 'Selection Modes'             press = client->_event( 'z2ui5_cl_app_demo_19' )
+    ).
+
+   grid->simple_form( title = 'HowTo - Tables II' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Editable'                    press = client->_event( 'z2ui5_cl_app_demo_11' )
     ).
 
