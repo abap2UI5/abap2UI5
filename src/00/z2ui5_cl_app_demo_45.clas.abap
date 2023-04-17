@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_demo_06 DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_demo_45 DEFINITION PUBLIC.
 
   PUBLIC SECTION.
 
@@ -16,7 +16,7 @@ CLASS z2ui5_cl_app_demo_06 DEFINITION PUBLIC.
 
     DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     DATA check_initialized TYPE abap_bool.
-    DATA mv_key TYPE string.
+    DATA mv_info_filter TYPE string.
     METHODS refresh_data.
 
   PROTECTED SECTION.
@@ -25,7 +25,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_45 IMPLEMENTATION.
 
 
   METHOD refresh_data.
@@ -49,13 +49,11 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      WHEN 'SORT_ASCENDING'.
-        SORT t_tab BY count ASCENDING.
-        client->popup_message_toast( 'sort ascending' ).
-
-      WHEN 'SORT_DESCENDING'.
-        SORT t_tab BY count DESCENDING.
-        client->popup_message_toast( 'sort descending' ).
+      WHEN 'FLTER_INFO'.
+        refresh_data( ).
+        IF mv_info_filter <> ''.
+          DELETE t_tab WHERE info <> mv_info_filter.
+        ENDIF.
 
       WHEN 'BUTTON_POST'.
         client->popup_message_box( 'button post was pressed' ).
@@ -77,6 +75,15 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
                     href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
         )->get_parent( ).
 
+    page->simple_form( title = 'Form Title' editable = abap_true
+                )->content( 'form'
+                    )->title( 'Filter'
+                    )->label( 'info'
+                    )->input(  client->_bind( mv_info_filter )
+                    )->button(
+                        text  = 'filter'
+                        press = client->_event( 'FLTER_INFO' ) ).
+
     DATA(tab) = page->scroll_container( height = '70%' vertical = abap_true
         )->table(
             growing             = abap_true
@@ -87,45 +94,7 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
 
     tab->header_toolbar(
         )->overflow_toolbar(
-            )->title( 'title of the table'
-            )->button(
-                text  = 'letf side button'
-                icon  = 'sap-icon://account'
-                press = client->_event( 'BUTTON_SORT' )
-            )->segmented_button( selected_key = mv_key
-                )->items(
-                    )->segmented_button_item(
-                        key = 'BLUE'
-                        icon = 'sap-icon://accept'
-                        text = 'blue'
-                    )->segmented_button_item(
-                        key = 'GREEN'
-                        icon = 'sap-icon://add-favorite'
-                        text = 'green'
-            )->get_parent( )->get_parent(
-            )->toolbar_spacer(
-            )->generic_tag(
-                    arialabelledby = 'genericTagLabel'
-                    text           = 'Project Cost'
-                    design         = 'StatusIconHidden'
-                    status         = 'Error'
-                    class          = 'sapUiSmallMarginBottom'
-                )->object_number(
-                    state      = 'Error'
-                    emphasized = 'false'
-                    number     = '3.5M'
-                    unit       = 'EUR'
-            )->get_parent(
-            )->toolbar_spacer(
-            )->button(
-                text  = 'counter descending'
-                icon = 'sap-icon://sort-descending'
-                press = client->_event( 'SORT_DESCENDING' )
-                        )->button(
-                text  = 'counter ascending'
-                icon = 'sap-icon://sort-ascending'
-                press = client->_event( 'SORT_ASCENDING' )
-            ).
+            )->toolbar_spacer( ).
 
     tab->columns(
         )->column(

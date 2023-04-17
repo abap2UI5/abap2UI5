@@ -269,7 +269,7 @@ CLASS Z2UI5_CL_APP_DEMO_21 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.

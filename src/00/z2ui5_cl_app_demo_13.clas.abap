@@ -72,7 +72,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_13 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
     "dummy helper - not needed when using db
     lcl_db=>app = me.
 
