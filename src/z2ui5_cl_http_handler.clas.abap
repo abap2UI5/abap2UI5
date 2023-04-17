@@ -113,7 +113,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
         `</html>` && |\n|.
-
     r_result = r_result && `<script id="z2ui5">` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
