@@ -34,7 +34,7 @@
       "skipNames": []
     },
     "check_abstract": true,
-    "check_comments": false,
+    "check_comments": true,
     "check_ddic": true,
     "check_include": true,
     "check_subrc": false,

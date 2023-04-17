@@ -5,7 +5,7 @@ INTERFACE z2ui5_if_app
 
   DATA id TYPE string.
 
-  METHODS controller
+  METHODS main
     IMPORTING
       client TYPE REF TO z2ui5_if_client.
 

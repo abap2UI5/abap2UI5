@@ -13,7 +13,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     CASE client->get( )-event.
 
@@ -74,7 +74,8 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
     ).
 
    grid->simple_form( title = 'HowTo - Tables II' layout = 'ResponsiveGridLayout' )->content( 'form'
-        )->button( text = 'Editable'                    press = client->_event( 'z2ui5_cl_app_demo_11' )
+        )->button( text = 'Editable' press = client->_event( 'z2ui5_cl_app_demo_11' )
+        )->button( text = 'Filter'   press = client->_event( 'z2ui5_cl_app_demo_45' )
     ).
 
     grid->simple_form( title = 'HowTo - Popups' layout = 'ResponsiveGridLayout' )->content( 'form'

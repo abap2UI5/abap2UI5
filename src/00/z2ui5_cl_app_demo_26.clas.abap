@@ -33,7 +33,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     me->client     = client.
     app-s_get      = client->get( ).
@@ -58,16 +58,6 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_on_init.
-
-    mv_placement = 'Left'.
-    product  = 'tomato'.
-    quantity = '500'.
-    app-view_main = 'VIEW_MAIN'.
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_on_event.
 
     CASE app-s_get-event.
@@ -88,6 +78,16 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( app-s_get-id_prev_app_stack ) ).
 
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_init.
+
+    mv_placement = 'Left'.
+    product  = 'tomato'.
+    quantity = '500'.
+    app-view_main = 'VIEW_MAIN'.
 
   ENDMETHOD.
 

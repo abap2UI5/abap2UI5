@@ -6,16 +6,16 @@ CLASS z2ui5_cl_app_demo_27 DEFINITION PUBLIC.
 
     DATA product  TYPE string.
     DATA quantity TYPE i.
-
     DATA input2 TYPE string.
     DATA input31 TYPE i.
     DATA input32 TYPE i.
     DATA input41 TYPE string.
     DATA input51 TYPE string.
     DATA input52 TYPE string.
+
   PROTECTED SECTION.
 
-    data  client            TYPE REF TO z2ui5_if_client.
+    data client            TYPE REF TO z2ui5_if_client.
     DATA:
       BEGIN OF app,
         check_initialized TYPE abap_bool,
@@ -37,9 +37,9 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
-    me->client        = client.
+    me->client     = client.
     app-s_get      = client->get( ).
     app-view_popup = ``.
 
@@ -65,18 +65,6 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
 
     CASE app-s_get-event.
 
-      WHEN 'BUTTON_POST'.
-        client->popup_message_toast( |{ product } { quantity } - send to the server| ).
-        app-view_popup = 'POPUP_CONFIRM'.
-
-      WHEN 'BUTTON_CONFIRM'.
-        client->popup_message_toast( |confirm| ).
-        app-view_popup = ''.
-
-      WHEN 'BUTTON_CANCEL'.
-        client->popup_message_toast( |cancel| ).
-        app-view_popup = ''.
-
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( app-s_get-id_prev_app_stack ) ).
 
@@ -96,7 +84,6 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_render.
-
 
     app-s_next-xml_main = Z2UI5_CL_XML_VIEW=>factory( )->shell(
       )->page(
@@ -159,7 +146,6 @@ CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
                     enabled = abap_false
 
        )->get_root( )->xml_get( ).
-
 
   ENDMETHOD.
 ENDCLASS.
