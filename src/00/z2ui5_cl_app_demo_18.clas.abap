@@ -39,10 +39,10 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_18 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     " there are no restrictions how you structure your app
     " you can use this class as a template or find a better way
@@ -50,7 +50,8 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
     me->client     = client.
     "we collect all app infos in the structure app
     app-get        = client->get( ).
-    app-view_popup = ``. "we display popups only once so clear it after every roundtrip
+    "we display popups only once so clear it after every roundtrip
+    app-view_popup = ``.
 
     "do this only at the first start of the app, set init values
     IF app-check_initialized = abap_false.
@@ -122,6 +123,31 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_render_popup_input.
+
+    result = z2ui5_cl_xml_view=>factory_popup( )->dialog(
+                      title = 'Title'
+                      icon = 'sap-icon://edit'
+                  )->content(
+                      )->text_area(
+                          height = '100%'
+                          width  = '100%'
+                          value  = client->_bind( mv_textarea )
+                  )->get_parent(
+                  )->footer( )->overflow_toolbar(
+                      )->toolbar_spacer(
+                      )->button(
+                          text  = 'Cancel'
+                          press = client->_event( 'POPUP_CANCEL' )
+                      )->button(
+                          text  = 'Confirm'
+                          press = client->_event( 'POPUP_CONFIRM' )
+                          type  = 'Emphasized' )->get_root( )->xml_get( ).
+
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_render_view_main.
 
     result = z2ui5_cl_xml_view=>factory( )->shell(
@@ -189,31 +215,6 @@ CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
                    text  = 'Go to View Main'
                    press = client->_event( 'SHOW_VIEW_MAIN' )
           )->get_root( )->xml_get( ).
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_render_popup_input.
-
-    result = z2ui5_cl_xml_view=>factory_popup( )->dialog(
-                      title = 'Title'
-                      icon = 'sap-icon://edit'
-                  )->content(
-                      )->text_area(
-                          height = '100%'
-                          width  = '100%'
-                          value  = client->_bind( mv_textarea )
-                  )->get_parent(
-                  )->footer( )->overflow_toolbar(
-                      )->toolbar_spacer(
-                      )->button(
-                          text  = 'Cancel'
-                          press = client->_event( 'POPUP_CANCEL' )
-                      )->button(
-                          text  = 'Confirm'
-                          press = client->_event( 'POPUP_CONFIRM' )
-                          type  = 'Emphasized' )->get_root( )->xml_get( ).
-
 
   ENDMETHOD.
 ENDCLASS.

@@ -692,8 +692,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS list
       IMPORTING
-        headertext    TYPE clike OPTIONAL
-        items         TYPE clike OPTIONAL
+        headertext      TYPE clike OPTIONAL
+        items           TYPE clike OPTIONAL
+        mode            TYPE clike OPTIONAL
+        selectionChange type clike optional
       RETURNING
         VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
@@ -704,6 +706,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         icon          TYPE clike OPTIONAL
         info          TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        selected      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1580,8 +1584,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
         name = `List`
         t_prop = VALUE #(
-          ( n = `headerText` v = headertext )
-          ( n = `items` v = items )
+          ( n = `headerText`      v = headertext )
+          ( n = `items`           v = items )
+          ( n = `mode`            v = mode )
+          ( n = `selectionChange` v = selectionchange )
       ) ).
 
   ENDMETHOD.
@@ -1605,10 +1611,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
         name   = `MessagePage`
         t_prop = VALUE #(
-           ( n = `showHeader` v = _=>get_json_boolean( show_header ) )
-           ( n = `description` v = description )
-           ( n = `icon` v = icon )
-           ( n = `text` v = text )
+           ( n = `showHeader`          v = _=>get_json_boolean( show_header ) )
+           ( n = `description`         v = description )
+           ( n = `icon`                v = icon )
+           ( n = `text`                v = text )
            ( n = `enableFormattedText` v = _=>get_json_boolean( enableformattedtext ) )
       ) ).
 
@@ -1947,6 +1953,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `icon`        v = icon )
             ( n = `info`        v = info )
             ( n = `press`       v = press )
+            ( n = `type`        v = type )
+            ( n = `selected`    v = selected )
        ) ).
 
   ENDMETHOD.

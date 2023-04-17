@@ -17,7 +17,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     IF mv_check_initialized = abap_false.
       mv_check_initialized = abap_true.
@@ -160,7 +160,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
     client->set_next( VALUE #(
         xml_main  = lo_main->get_root( )->xml_get( )
-        xml_popup = lo_popup->get_root( )->xml_get( )
+        xml_popup = cond #( when mv_popup_view is not INITIAL then lo_popup->get_root( )->xml_get( ) )
         check_set_prev_view = mv_set_prev_view
        ) ).
 

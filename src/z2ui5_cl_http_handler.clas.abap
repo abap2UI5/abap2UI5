@@ -17,7 +17,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         controller_name TYPE string VALUE `z2ui5_controller`,
       END OF config.
 
-    CLASS-METHODS main_index_html
+    CLASS-METHODS http_get
       IMPORTING
         title           TYPE clike DEFAULT `abap2UI5`
         t_config        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
@@ -25,7 +25,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(r_result) TYPE string ##NEEDED.
 
-    CLASS-METHODS main_roundtrip
+    CLASS-METHODS http_post
       RETURNING
         VALUE(result) TYPE string.
 
@@ -36,33 +36,33 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
-  METHOD main_roundtrip.
+  METHOD http_post.
 
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
+    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( ).
 
     DO.
       TRY.
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
           ROLLBACK WORK.
 
-          IF lo_runtime->ms_next-check_app_leave IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_leave( ).
+          IF lo_handler->ms_next-check_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_leave( ).
             CONTINUE.
           ENDIF.
 
-          IF lo_runtime->ms_next-o_call_app IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_call( ).
+          IF lo_handler->ms_next-o_call_app IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_call( ).
             CONTINUE.
           ENDIF.
 
-          result = lo_runtime->request_end( ).
+          result = lo_handler->request_end( ).
 
         CATCH cx_root INTO DATA(x).
-          lo_runtime = lo_runtime->set_app_system( x ).
+          lo_handler = lo_handler->set_app_system( x ).
           CONTINUE.
       ENDTRY.
 
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD main_index_html.
+  METHOD http_get.
 
     DATA(lt_Config) = t_config.
     IF lt_config IS INITIAL.
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(lv_url) = _=>get_header_val( '~path' ).
     DATA(lv_app) = _=>get_param_val( 'app' ).
-    z2ui5_lcl_db=>cleanup( ).
+    z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
@@ -113,7 +113,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
         `</html>` && |\n|.
-
     r_result = r_result && `<script id="z2ui5">` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
@@ -216,7 +215,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                            `                    sap.z2ui5.oResponse = {};` && |\n|  &&
                            `                    sap.z2ui5.oBody = this.oBody;` && |\n|  &&
-                           `                    sap.z2ui5.oView.getController( ).Roundtrip();` && |\n|  &&
+                           `                    sap.z2ui5.Roundtrip();` && |\n|  &&
                            `                    sap.z2ui5.oView.destroy();` && |\n|  &&
                            `                },` && |\n|  &&
                            |\n|  &&
@@ -277,6 +276,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                                sap.z2ui5.oView = oView;` && |\n|  &&
                            `                            });` && |\n|  &&
                            `                        }` && |\n|  &&
+
                            `                    }.bind(this);` && |\n|  &&
                            `                    xhr.send(JSON.stringify(sap.z2ui5.oBody));` && |\n|  &&
                            `                },` && |\n|  &&
@@ -291,7 +291,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
-                           `        oView.getController().Roundtrip();` && |\n|  &&
+                           `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
+                           `        sap.z2ui5.Roundtrip();` && |\n|  &&
                            |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&

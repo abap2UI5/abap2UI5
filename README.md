@@ -48,8 +48,8 @@ METHOD if_http_service_extension~handle_request.
       body     = request->get_text( ) ).
 
    DATA(lv_resp) = SWITCH #( request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
-      WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( ) ).
 
    response->set_status( 200 )->set_text( lv_resp ).
 
@@ -72,8 +72,8 @@ METHOD if_http_extension~handle_request.
       body     = server->request->get_cdata( ) ).
 
    DATA(lv_resp) = SWITCH #( server->request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_http_handler=>main_index_html( )
-      WHEN 'POST' THEN z2ui5_cl_http_handler=>main_roundtrip( ) ).
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( ) ).
 
    server->response->set_cdata( lv_resp ).
    server->response->set_status( code = 200 reason = 'success' ).
