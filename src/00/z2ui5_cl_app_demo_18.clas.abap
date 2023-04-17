@@ -50,7 +50,8 @@ CLASS Z2UI5_CL_APP_DEMO_18 IMPLEMENTATION.
     me->client     = client.
     "we collect all app infos in the structure app
     app-get        = client->get( ).
-    app-view_popup = ``. "we display popups only once so clear it after every roundtrip
+    "we display popups only once so clear it after every roundtrip
+    app-view_popup = ``.
 
     "do this only at the first start of the app, set init values
     IF app-check_initialized = abap_false.
