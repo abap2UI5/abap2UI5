@@ -46,7 +46,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     DO.
       TRY.
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->controller( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->main( NEW z2ui5_lcl_if_client( lo_runtime ) ).
           ROLLBACK WORK.
 
           IF lo_runtime->ms_next-check_app_leave IS NOT INITIAL.

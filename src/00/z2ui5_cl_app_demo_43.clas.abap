@@ -18,7 +18,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_app_demo_43 IMPLEMENTATION.
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
 *    SELECT carrid connid fldate price FROM sflight INTO TABLE mt_flight.
 *

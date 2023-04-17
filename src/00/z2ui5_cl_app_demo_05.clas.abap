@@ -44,7 +44,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
         IF screen-check_initialized = abap_false.
           screen-check_initialized = abap_true.

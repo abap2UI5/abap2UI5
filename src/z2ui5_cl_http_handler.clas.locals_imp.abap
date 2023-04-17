@@ -1052,7 +1052,7 @@ ENDCLASS.
 
 CLASS z2ui5_lcl_system_app IMPLEMENTATION.
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     IF mv_is_initialized = abap_false.
       mv_is_initialized = abap_true.

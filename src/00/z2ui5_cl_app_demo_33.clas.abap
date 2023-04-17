@@ -14,7 +14,7 @@ ENDCLASS.
 CLASS z2ui5_cl_app_demo_33 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     CASE client->get( )-event.
       WHEN 'BACK'.

@@ -42,7 +42,7 @@ ENDCLASS.
 CLASS z2ui5_cl_app_demo_18 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     " there are no restrictions how you structure your app
     " you can use this class as a template or find a better way

@@ -37,7 +37,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_APP_DEMO_27 IMPLEMENTATION.
 
 
-  METHOD z2ui5_if_app~controller.
+  METHOD z2ui5_if_app~main.
 
     me->client        = client.
     app-s_get      = client->get( ).
