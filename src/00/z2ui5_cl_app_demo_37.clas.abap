@@ -34,7 +34,49 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_37 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_37 IMPLEMENTATION.
+
+
+  METHOD get_js_custom_control.
+
+    result = `<script>if(!z2ui5.MyCC){ jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
+                            `    sap.ui.define( [` && |\n|  &&
+                            `        "sap/ui/core/Control",` && |\n|  &&
+                            `    ], function (Control) {` && |\n|  &&
+                            `        "use strict";` && |\n|  &&
+                            `        return Control.extend("z2ui5.MyCC", {` && |\n|  &&
+                            `            metadata: {` && |\n|  &&
+                            `                properties: {` && |\n|  &&
+                            `                    value: { type: "string" }` && |\n|  &&
+                            `                },` && |\n|  &&
+                            `                events: {` && |\n|  &&
+                            `                    "change": {` && |\n|  &&
+                            `                        allowPreventDefault: true,` && |\n|  &&
+                            `                        parameters: {}` && |\n|  &&
+                            `                    }` && |\n|  &&
+                            `                }` && |\n|  &&
+                            `            },` && |\n|  &&
+                            `            renderer: function (oRm, oControl) {` && |\n|  &&
+                            `                oControl.oInput = new sap.m.Input({` && |\n|  &&
+                            `                    value: oControl.getProperty("value")` && |\n|  &&
+                            `                });` && |\n|  &&
+                            `                oControl.oButton = new sap.m.Button({` && |\n|  &&
+                            `                    text: 'button text',` && |\n|  &&
+                            `                    press: function (oEvent) {` && |\n|  &&
+                            `                        debugger;` && |\n|  &&
+*                            `                        this.setProperty("value",  this.oInput._sTypedInValue )` && |\n|  &&
+                            `                        this.setProperty("value",  this.oInput.getProperty( 'value')  )` && |\n|  &&
+                            `                        this.fireChange();` && |\n|  &&
+                            `                    }.bind(oControl)` && |\n|  &&
+                            `                });` && |\n|  &&
+                           `                oRm.renderControl(oControl.oInput);` && |\n|  &&
+                            `                oRm.renderControl(oControl.oButton);` && |\n|  &&
+                            `            }` && |\n|  &&
+                            `    });` && |\n|  &&
+                            `}); } </script>`.
+
+
+  ENDMETHOD.
 
 
   METHOD z2ui5_if_app~main.
@@ -122,48 +164,6 @@ CLASS z2ui5_cl_app_demo_37 IMPLEMENTATION.
         `</mvc:View>`.
 
     app-next-xml_main = z2ui5_cl_xml_view=>hlp_replace_controller_name( app-next-xml_main ).
-
-  ENDMETHOD.
-
-
-  METHOD get_js_custom_control.
-
-    result = `<script>if(!z2ui5.MyCC){ jQuery.sap.declare("z2ui5.MyCC");` && |\n|  &&
-                            `    sap.ui.define( [` && |\n|  &&
-                            `        "sap/ui/core/Control",` && |\n|  &&
-                            `    ], function (Control) {` && |\n|  &&
-                            `        "use strict";` && |\n|  &&
-                            `        return Control.extend("z2ui5.MyCC", {` && |\n|  &&
-                            `            metadata: {` && |\n|  &&
-                            `                properties: {` && |\n|  &&
-                            `                    value: { type: "string" }` && |\n|  &&
-                            `                },` && |\n|  &&
-                            `                events: {` && |\n|  &&
-                            `                    "change": {` && |\n|  &&
-                            `                        allowPreventDefault: true,` && |\n|  &&
-                            `                        parameters: {}` && |\n|  &&
-                            `                    }` && |\n|  &&
-                            `                }` && |\n|  &&
-                            `            },` && |\n|  &&
-                            `            renderer: function (oRm, oControl) {` && |\n|  &&
-                            `                oControl.oInput = new sap.m.Input({` && |\n|  &&
-                            `                    value: oControl.getProperty("value")` && |\n|  &&
-                            `                });` && |\n|  &&
-                            `                oControl.oButton = new sap.m.Button({` && |\n|  &&
-                            `                    text: 'button text',` && |\n|  &&
-                            `                    press: function (oEvent) {` && |\n|  &&
-                            `                        debugger;` && |\n|  &&
-*                            `                        this.setProperty("value",  this.oInput._sTypedInValue )` && |\n|  &&
-                            `                        this.setProperty("value",  this.oInput.getProperty( 'value')  )` && |\n|  &&
-                            `                        this.fireChange();` && |\n|  &&
-                            `                    }.bind(oControl)` && |\n|  &&
-                            `                });` && |\n|  &&
-                           `                oRm.renderControl(oControl.oInput);` && |\n|  &&
-                            `                oRm.renderControl(oControl.oButton);` && |\n|  &&
-                            `            }` && |\n|  &&
-                            `    });` && |\n|  &&
-                            `}); } </script>`.
-
 
   ENDMETHOD.
 ENDCLASS.

@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_39 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_39 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -205,5 +205,4 @@ CLASS z2ui5_cl_app_demo_39 IMPLEMENTATION.
                          `</core:FragmentDefinition>`.
 
   ENDMETHOD.
-
 ENDCLASS.

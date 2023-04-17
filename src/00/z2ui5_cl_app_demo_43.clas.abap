@@ -13,10 +13,14 @@ CLASS z2ui5_cl_app_demo_43 DEFINITION PUBLIC.
 *      END OF t_flight.
 *    DATA: mt_flight TYPE STANDARD TABLE OF t_flight.
 
+protected section.
+private section.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_demo_43 IMPLEMENTATION.
+
+CLASS Z2UI5_CL_APP_DEMO_43 IMPLEMENTATION.
+
 
   METHOD z2ui5_if_app~main.
 
