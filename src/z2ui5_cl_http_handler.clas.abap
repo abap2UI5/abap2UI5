@@ -36,33 +36,33 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD http_post.
 
-    DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
+    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( ).
 
     DO.
       TRY.
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_runtime->ms_db-o_app )->main( NEW z2ui5_lcl_if_client( lo_runtime ) ).
+          CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
           ROLLBACK WORK.
 
-          IF lo_runtime->ms_next-check_app_leave IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_leave( ).
+          IF lo_handler->ms_next-check_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_leave( ).
             CONTINUE.
           ENDIF.
 
-          IF lo_runtime->ms_next-o_call_app IS NOT INITIAL.
-            lo_runtime = lo_runtime->set_app_call( ).
+          IF lo_handler->ms_next-o_call_app IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_call( ).
             CONTINUE.
           ENDIF.
 
-          result = lo_runtime->request_end( ).
+          result = lo_handler->request_end( ).
 
         CATCH cx_root INTO DATA(x).
-          lo_runtime = lo_runtime->set_app_system( x ).
+          lo_handler = lo_handler->set_app_system( x ).
           CONTINUE.
       ENDTRY.
 
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(lv_url) = _=>get_header_val( '~path' ).
     DATA(lv_app) = _=>get_param_val( 'app' ).
-    z2ui5_lcl_db=>cleanup( ).
+    z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
