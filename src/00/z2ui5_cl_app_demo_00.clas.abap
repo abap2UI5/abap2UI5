@@ -49,14 +49,14 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
     DATA(grid) = page->grid( 'L3 M6 S12'
         )->content( 'layout' ).
 
-    grid->simple_form( title = 'HowTo - General' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - Basic' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Communication & Data Binding' press = client->_event( 'z2ui5_cl_app_demo_01' )
         )->button( text = 'Events, Error & Change View'  press = client->_event( 'z2ui5_cl_app_demo_04' )
         )->button( text = 'Flow Logic'                   press = client->_event( 'z2ui5_cl_app_demo_24' )
 
      ).
 
-    grid->simple_form( title = 'HowTo - General II' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - Basic II' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Formatted Text'       press = client->_event( 'Z2UI5_CL_APP_DEMO_15' )
         )->button( text = 'Scrolling & Cursor'   press = client->_event( 'z2ui5_cl_app_demo_22' )
         )->button( text = 'Timer'                press = client->_event( 'z2ui5_cl_app_demo_28' )
@@ -67,10 +67,13 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
         )->button( text = 'More Controls'   press = client->_event( 'z2ui5_cl_app_demo_05' )
         )->button( text = 'F4-Value-Help'   press = client->_event( 'Z2UI5_CL_APP_DEMO_09' ) ).
 
-    grid->simple_form( title = 'HowTo - Tables' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - Tables I' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'List'                        press = client->_event( 'z2ui5_cl_app_demo_03' )
-        )->button( text = 'Toolbar, Scroll Container'   press = client->_event( 'z2ui5_cl_app_demo_06' )
+        )->button( text = 'Toolbar, Container, Sort'   press = client->_event( 'z2ui5_cl_app_demo_06' )
         )->button( text = 'Selection Modes'             press = client->_event( 'z2ui5_cl_app_demo_19' )
+    ).
+
+   grid->simple_form( title = 'HowTo - Tables II' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'Editable'                    press = client->_event( 'z2ui5_cl_app_demo_11' )
     ).
 
@@ -106,6 +109,9 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
          )->button( text = 'ext. Library' press = client->_event( 'z2ui5_cl_app_demo_40' )
     ).
 
+    grid->simple_form( title = 'HowTo - More' layout = 'ResponsiveGridLayout' )->content( 'form'
+         )->button( text = 'Side Effects' press = client->_event( 'z2ui5_cl_app_demo_27' )
+    ).
 
     DATA(form) = page->grid( 'L9 M12 S12'
         )->content( 'layout'

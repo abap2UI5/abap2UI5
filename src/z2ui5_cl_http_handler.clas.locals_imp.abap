@@ -1399,11 +1399,14 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
     ENDIF.
 
     IF ms_next-s_set-xml_popup IS NOT INITIAL.
-      lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_next-s_set-xml_popup ). "request_end_popup( ) ).
+      lo_ui5_model->add_attribute( n = `vViewPopup` v = ms_next-s_set-xml_popup ).
       IF ms_next-s_set-popup_open_by_id IS NOT INITIAL.
         lo_ui5_model->add_attribute( n = `OPENBY` v = ms_next-s_set-popup_open_by_id ).
       ENDIF.
     ENDIF.
+
+    _=>raise( when = xsdbool( ms_next-s_set-check_set_prev_view = abap_false AND ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL )
+              v    = `No view or popup found. Check your view rendering!` ).
 
     lo_ui5_model->add_attribute_object( `oSystem`
         )->add_attribute( n = `ID`                 v = ms_db-id
@@ -1746,16 +1749,16 @@ CLASS z2ui5_lcl_system_runtime IMPLEMENTATION.
           CASE lr_attri->gen_kind.
             WHEN cl_abap_datadescr=>kind_elem.
               lv_name = '<ATTRIBUTE>->*'.
-              FIELD-SYMBOLS <field> type any.
-              assign (lv_name) to <field>.
+              FIELD-SYMBOLS <field> TYPE any.
+              ASSIGN (lv_name) TO <field>.
               lo_actual->add_attribute( n = lr_attri->name
                             v = _=>get_abap_2_json( <field> )
                             apos_active = abap_false ).
 
             WHEN cl_abap_datadescr=>kind_table.
-                 lv_name = '<ATTRIBUTE>->*'.
-             " FIELD-SYMBOLS <field> type any.
-              assign (lv_name) to <field>.
+              lv_name = '<ATTRIBUTE>->*'.
+              " FIELD-SYMBOLS <field> type any.
+              ASSIGN (lv_name) TO <field>.
               lo_actual->add_attribute( n = lr_attri->name
                                      v = _=>trans_any_2_json( <field> )
                                      apos_active = abap_false ).
