@@ -215,7 +215,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                            `                    sap.z2ui5.oResponse = {};` && |\n|  &&
                            `                    sap.z2ui5.oBody = this.oBody;` && |\n|  &&
-                           `                    sap.z2ui5.oView.getController( ).Roundtrip();` && |\n|  &&
+                           `                    sap.z2ui5.Roundtrip();` && |\n|  &&
                            `                    sap.z2ui5.oView.destroy();` && |\n|  &&
                            `                },` && |\n|  &&
                            |\n|  &&
@@ -276,6 +276,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                                sap.z2ui5.oView = oView;` && |\n|  &&
                            `                            });` && |\n|  &&
                            `                        }` && |\n|  &&
+
                            `                    }.bind(this);` && |\n|  &&
                            `                    xhr.send(JSON.stringify(sap.z2ui5.oBody));` && |\n|  &&
                            `                },` && |\n|  &&
@@ -290,7 +291,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
-                           `        oView.getController().Roundtrip();` && |\n|  &&
+                           `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
+                           `        sap.z2ui5.Roundtrip();` && |\n|  &&
                            |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&

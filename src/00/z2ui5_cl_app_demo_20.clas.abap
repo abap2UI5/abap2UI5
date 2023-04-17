@@ -62,6 +62,7 @@ CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
 
     client->set_next( VALUE #(
         check_set_prev_view = mv_check_show_previous_view
+        xml_main = Z2UI5_CL_XML_VIEW=>factory( )->get_root( )->xml_get( )
         xml_popup = Z2UI5_CL_XML_VIEW=>factory_popup(
          )->dialog( 'abap2UI5 - Popup to decide'
                 )->vbox(
