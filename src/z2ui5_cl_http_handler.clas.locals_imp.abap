@@ -1473,6 +1473,21 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ASSIGN (lv_name) TO <attribute>.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
+      IF lr_attri->gen_kind IS NOT INITIAL.
+
+        CASE lr_attri->gen_kind.
+          WHEN cl_abap_datadescr=>kind_elem.
+            CREATE DATA <attribute> TYPE (lr_attri->gen_type).
+            ASSIGN <attribute>->* TO <attribute>.
+          WHEN cl_abap_datadescr=>kind_table.
+            DATA lr_data TYPE REF TO data.
+            CREATE DATA lr_data TYPE (lr_attri->gen_type).
+            ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
+            CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
+            ASSIGN <attribute>->* TO <attribute>.
+        ENDCASE.
+      ENDIF.
+
       CASE lr_attri->type_kind.
 
         WHEN `g` OR `I` OR `C`.
@@ -1485,28 +1500,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                CHANGING ct_to   = <attribute> ).
 
         WHEN OTHERS.
-
-          CASE lr_attri->gen_kind.
-            WHEN cl_abap_datadescr=>kind_elem.
-              CREATE DATA <attribute> TYPE (lr_attri->gen_type).
-              lv_value = lo_model->get_attribute( lr_attri->name )->get_val( ).
-              ASSIGN <attribute>->* TO FIELD-SYMBOL(<attribute2>).
-              <attribute2> = lv_value.
-
-            WHEN cl_abap_datadescr=>kind_table.
-              DATA lr_data TYPE REF TO data.
-              CREATE DATA lr_data TYPE (lr_attri->gen_type).
-              ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
-
-              CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
-              ASSIGN <attribute>->* TO <attribute2>.
-              _=>trans_ref_tab_2_tab(
-              EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-              CHANGING ct_to   = <attribute2> ).
-
-              "(lr_attri->gen_type).
-          ENDCASE.
-
       ENDCASE.
     ENDLOOP.
 
@@ -1727,6 +1720,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ASSIGN (lv_name) TO <attribute>.
       _=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
+      IF lr_attri->gen_kind IS NOT INITIAL.
+
+        lv_name = '<ATTRIBUTE>->*'.
+        FIELD-SYMBOLS <field> TYPE any.
+        ASSIGN (lv_name) TO <attribute>.
+        lr_attri->type_kind = lr_attri->gen_type_kind.
+      ENDIF.
+
       CASE lr_attri->type_kind.
 
         WHEN `g` OR `D` OR `P` OR `T` OR `C`.
@@ -1745,24 +1746,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
-
-          CASE lr_attri->gen_kind.
-            WHEN cl_abap_datadescr=>kind_elem.
-              lv_name = '<ATTRIBUTE>->*'.
-              FIELD-SYMBOLS <field> TYPE any.
-              ASSIGN (lv_name) TO <field>.
-              lo_actual->add_attribute( n = lr_attri->name
-                            v = _=>get_abap_2_json( <field> )
-                            apos_active = abap_false ).
-
-            WHEN cl_abap_datadescr=>kind_table.
-              lv_name = '<ATTRIBUTE>->*'.
-              " FIELD-SYMBOLS <field> type any.
-              ASSIGN (lv_name) TO <field>.
-              lo_actual->add_attribute( n = lr_attri->name
-                                     v = _=>trans_any_2_json( <field> )
-                                     apos_active = abap_false ).
-          ENDCASE.
 
       ENDCASE.
     ENDLOOP.

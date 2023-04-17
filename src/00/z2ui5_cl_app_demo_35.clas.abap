@@ -68,24 +68,6 @@ CLASS Z2UI5_CL_APP_DEMO_35 IMPLEMENTATION.
         client->popup_message_toast( |confirm| ).
         app-view_popup = ''.
 
-      WHEN 'TIMER_FINISHED'.
-
-        FIELD-SYMBOLS <mt_draft> TYPE STANDARD TABLE.
-
-        " OF z2ui5_t_draft.
-        ASSIGN mt_draft->* TO <mt_draft>.
-
-        SELECT FROM z2ui5_t_draft
-            FIELDS *
-            ORDER BY uuid
-          INTO TABLE @DATA(lt_data)
-            UP TO 2 ROWS
-            .
-        APPEND LINES OF lt_data TO <mt_draft>.
-        "!"mt_draft->* = CORRESPONDING #( lt_data ).
-        "!
-        app-next-s_timer-interval_ms = '2000'.
-        app-next-s_timer-event_finished = 'TIMER_FINISHED'.
 
       WHEN 'BUTTON_CANCEL'.
         client->popup_message_toast( |cancel| ).
@@ -101,15 +83,7 @@ CLASS Z2UI5_CL_APP_DEMO_35 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-*    product  = 'tomato'.
-*    quantity = '500'.
     app-view_main = 'VIEW_MAIN'.
-*    input41 = 'faasdfdfsaVIp'.
-*
-*    input21 = '40'.
-*    input22 = '40'.
-
-
 
     CREATE DATA mv_test TYPE string.
     FIELD-SYMBOLS <field> type string.
@@ -130,9 +104,6 @@ CLASS Z2UI5_CL_APP_DEMO_35 IMPLEMENTATION.
 
     assign  mt_draft->*  to <tab>.
     <tab> = lt_data.
-
-    app-next-s_timer-interval_ms = '2000'.
-    app-next-s_timer-event_finished = 'TIMER_FINISHED'.
 
   ENDMETHOD.
 
