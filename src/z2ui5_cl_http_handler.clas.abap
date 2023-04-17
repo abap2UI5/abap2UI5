@@ -17,7 +17,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         controller_name TYPE string VALUE `z2ui5_controller`,
       END OF config.
 
-    CLASS-METHODS main_index_html
+    CLASS-METHODS http_get
       IMPORTING
         title           TYPE clike DEFAULT `abap2UI5`
         t_config        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
@@ -25,7 +25,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(r_result) TYPE string ##NEEDED.
 
-    CLASS-METHODS main_roundtrip
+    CLASS-METHODS http_post
       RETURNING
         VALUE(result) TYPE string.
 
@@ -39,7 +39,7 @@ ENDCLASS.
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
-  METHOD main_roundtrip.
+  METHOD http_post.
 
     DATA(lo_runtime) = z2ui5_lcl_system_runtime=>request_begin( ).
 
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD main_index_html.
+  METHOD http_get.
 
     DATA(lt_Config) = t_config.
     IF lt_config IS INITIAL.
