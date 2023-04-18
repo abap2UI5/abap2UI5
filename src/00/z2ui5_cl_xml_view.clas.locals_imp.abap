@@ -1,4 +1,4 @@
-CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
+CLASS lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
   PUBLIC SECTION.
 
@@ -34,7 +34,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
 ENDCLASS.
 
-CLASS z2ui5_lcl_utility IMPLEMENTATION.
+CLASS lcl_utility IMPLEMENTATION.
 
  METHOD get_replace.
 
@@ -77,7 +77,4 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS.
-
-CLASS _ DEFINITION INHERITING FROM z2ui5_lcl_utility.
 ENDCLASS.

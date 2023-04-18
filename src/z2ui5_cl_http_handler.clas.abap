@@ -86,8 +86,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           ).
     ENDIF.
 
-    DATA(lv_url) = _=>get_header_val( '~path' ).
-    DATA(lv_app) = _=>get_param_val( 'app' ).
+    DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+    DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
     z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
@@ -283,7 +283,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            });` && |\n|  &&
                            |\n|  &&
                            `        if (!sap.z2ui5) { sap.z2ui5 = {}; };` && |\n|  &&
-                           `        sap.z2ui5.checkLogActive = ` && _=>get_json_boolean( check_logging ) && `;` && |\n|  &&
+                           `        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
                            `        if (xml == '') { xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />' };` && |\n|  &&
                            |\n|  &&
