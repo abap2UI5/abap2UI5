@@ -993,7 +993,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = `key`      v = key )
           ( n = `value`    v = value )
-          ( n = `visible`  v = _=>get_json_boolean( visible ) )
+          ( n = `visible`  v = lcl_utility=>get_json_boolean( visible ) )
        ) ).
 
   ENDMETHOD.
@@ -1027,7 +1027,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = `press`   v = press )
           ( n = `text`    v = text )
-          ( n = `enabled` v = _=>get_json_boolean( enabled ) )
+          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
           ( n = `id`      v = id )
@@ -1059,7 +1059,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = `text`     v = text )
           ( n = `selected` v = selected )
-          ( n = `enabled`  v = _=>get_json_boolean( enabled ) )
+          ( n = `enabled`  v = lcl_utility=>get_json_boolean( enabled ) )
       ) ).
 
   ENDMETHOD.
@@ -1074,7 +1074,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         t_prop = VALUE #(
             ( n = `value`   v = value )
             ( n = `type`    v = type )
-            ( n = `editable`   v = _=>get_json_boolean( editable ) )
+            ( n = `editable`   v = lcl_utility=>get_json_boolean( editable ) )
             ( n = `height` v = height )
             ( n = `width`  v = width )
        ) ).
@@ -1115,7 +1115,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
        name  = `ComboBox`
        t_prop = VALUE #(
-          (  n = `showClearIcon` v = _=>get_json_boolean( showclearicon ) )
+          (  n = `showClearIcon` v = lcl_utility=>get_json_boolean( showclearicon ) )
           (  n = `selectedKey`   v = selectedkey )
           (  n = `items`         v = items )
           (  n = `label`         v = label )
@@ -1212,7 +1212,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                       ( n = `width`  v = width )
                       ( n = `height`  v = height )
                       ( n = `alignItems`  v = alignitems )
-                      ( n = `fitContainer`  v = _=>get_json_boolean( fitContainer ) )
+                      ( n = `fitContainer`  v = lcl_utility=>get_json_boolean( fitContainer ) )
                       ( n = `justifyContent`  v = justifycontent )
                       ( n = `wrap`  v = wrap )
         ) ).
@@ -1406,17 +1406,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
            ( n = `id`               v = id )
            ( n = `placeholder`      v = placeholder )
            ( n = `type`             v = type )
-           ( n = `showClearIcon`    v = _=>get_json_boolean( showclearicon ) )
+           ( n = `showClearIcon`    v = lcl_utility=>get_json_boolean( showclearicon ) )
            ( n = `description`      v = description )
-           ( n = `editable`         v = _=>get_json_boolean( editable ) )
-           ( n = `enabled`          v = _=>get_json_boolean( enabled ) )
+           ( n = `editable`         v = lcl_utility=>get_json_boolean( editable ) )
+           ( n = `enabled`          v = lcl_utility=>get_json_boolean( enabled ) )
            ( n = `valueState`       v = valuestate )
            ( n = `valueStateText`   v = valuestatetext )
            ( n = `value`            v = value )
            ( n = `suggestionItems`  v = suggestionitems )
-           ( n = `showSuggestion`   v = _=>get_json_boolean( showsuggestion ) )
+           ( n = `showSuggestion`   v = lcl_utility=>get_json_boolean( showsuggestion ) )
            ( n = `valueHelpRequest` v = valuehelprequest )
-           ( n = `showValueHelp`    v = _=>get_json_boolean( showvaluehelp ) )
+           ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
         ) ).
 
   ENDMETHOD.
@@ -1461,7 +1461,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ns   = `mchart`
          t_prop = VALUE #(
              ( n = `selectionChanged`  v = selectionchanged )
-             ( n = `showError`         v = _=>get_json_boolean( showerror ) )
+             ( n = `showError`         v = lcl_utility=>get_json_boolean( showerror ) )
              ( n = `errorMessageTitle` v = errormessagetitle )
              ( n = `errorMessage`      v = errormessage )
              ( n = `displayedSegments` v = displayedsegments )
@@ -1493,7 +1493,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ns = `mchart`
          t_prop = VALUE #(
              ( n = `selectionChanged`  v = selectionchanged )
-             ( n = `showError`         v = _=>get_json_boolean( showerror ) )
+             ( n = `showError`         v = lcl_utility=>get_json_boolean( showerror ) )
              ( n = `press`             v = press )
              ( n = `errorMessageTitle` v = errormessagetitle )
              ( n = `errorMessage`      v = errormessage )
@@ -1514,7 +1514,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
              ( n = `secondaryLabel` v = secondarylabel )
              ( n = `value`          v = value )
              ( n = `displayedValue` v = displayedvalue )
-             ( n = `selected`       v = _=>get_json_boolean( selected ) )
+             ( n = `selected`       v = lcl_utility=>get_json_boolean( selected ) )
     ) ).
 
   ENDMETHOD.
@@ -1573,7 +1573,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ( n = `text`    v = text )
          ( n = `target`  v = target )
          ( n = `href`    v = href )
-         ( n = `enabled` v = _=>get_json_boolean( enabled ) )
+         ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
        ) ).
 
   ENDMETHOD.
@@ -1611,11 +1611,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
         name   = `MessagePage`
         t_prop = VALUE #(
-           ( n = `showHeader`          v = _=>get_json_boolean( show_header ) )
+           ( n = `showHeader`          v = lcl_utility=>get_json_boolean( show_header ) )
            ( n = `description`         v = description )
            ( n = `icon`                v = icon )
            ( n = `text`                v = text )
-           ( n = `enableFormattedText` v = _=>get_json_boolean( enableformattedtext ) )
+           ( n = `enableFormattedText` v = lcl_utility=>get_json_boolean( enableformattedtext ) )
       ) ).
 
   ENDMETHOD.
@@ -1629,7 +1629,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         t_prop = VALUE #(
            ( n = `text`     v = text )
            ( n = `type`     v = type )
-           ( n = `showIcon` v = _=>get_json_boolean( showicon ) )
+           ( n = `showIcon` v = lcl_utility=>get_json_boolean( showicon ) )
            ( n = `class`    v = class )
       ) ).
 
@@ -1642,8 +1642,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name   = `MultiInput`
         t_prop = VALUE #(
             ( n = `tokens` v = tokens )
-            ( n = `showClearIcon` v = _=>get_json_boolean( showclearicon ) )
-            ( n = `showValueHelp` v = _=>get_json_boolean( showvaluehelp ) )
+            ( n = `showClearIcon` v = lcl_utility=>get_json_boolean( showclearicon ) )
+            ( n = `showValueHelp` v = lcl_utility=>get_json_boolean( showvaluehelp ) )
             ( n = `suggestionItems` v = suggestionitems )
             ( n = `width` v = width )
     ) ).
@@ -1657,7 +1657,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     _generic(
         name  = `ObjectNumber`
         t_prop = VALUE #(
-           ( n = `emphasized`  v = _=>get_json_boolean( emphasized ) )
+           ( n = `emphasized`  v = lcl_utility=>get_json_boolean( emphasized ) )
            ( n = `number`      v = number )
            ( n = `state`       v = state )
            ( n = `unit`        v = unit )
@@ -1682,8 +1682,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name   = `ObjectPageLayout`
         ns     = `uxap`
         t_prop = VALUE #(
-            ( n = `showTitleInHeaderContent` v = _=>get_json_boolean( showTitleInHeaderContent ) )
-            ( n = `showEditHeaderButton`     v = _=>get_json_boolean( showEditHeaderButton ) )
+            ( n = `showTitleInHeaderContent` v = lcl_utility=>get_json_boolean( showTitleInHeaderContent ) )
+            ( n = `showEditHeaderButton`     v = lcl_utility=>get_json_boolean( showEditHeaderButton ) )
             ( n = `editHeaderButtonPress`    v = editHeaderButtonPress )
             ( n = `upperCaseAnchorBar`       v = upperCaseAnchorBar )
     ) ).
@@ -1697,7 +1697,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name   = `ObjectPageSection`
         ns     = `uxap`
         t_prop = VALUE #(
-            ( n = `titleUppercase`  v = _=>get_json_boolean( titleUppercase ) )
+            ( n = `titleUppercase`  v = lcl_utility=>get_json_boolean( titleUppercase ) )
             ( n = `title`           v = title )
             ( n = `id`              v = id )
             ( n = `importance`      v = importance )
@@ -1734,7 +1734,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = `press`   v = press )
           ( n = `text`    v = text )
-          ( n = `enabled` v = _=>get_json_boolean( enabled ) )
+          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
           ( n = `tooltip` v = tooltip )
@@ -1750,7 +1750,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         ns     = ns
          t_prop = VALUE #(
              ( n = `title` v = title )
-             ( n = `showNavButton`  v = _=>get_json_boolean( shownavbutton ) )
+             ( n = `showNavButton`  v = lcl_utility=>get_json_boolean( shownavbutton ) )
              ( n = `navButtonPress` v = navbuttonpress )
              ( n = `class` v = class )
              ( n = `id` v = id )
@@ -1792,7 +1792,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          t_prop = VALUE #(
             ( n = `percentValue` v = percentvalue )
             ( n = `displayValue` v = displayvalue )
-            ( n = `showValue`    v = _=>get_json_boolean( showvalue ) )
+            ( n = `showValue`    v = lcl_utility=>get_json_boolean( showvalue ) )
             ( n = `state`        v = state )
      ) ).
 
@@ -1828,7 +1828,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
              ( n = `labelInterval`  v = labelinterval )
              ( n = `max`   v = max )
              ( n = `min`   v = min )
-             ( n = `showTickmarks`   v = _=>get_json_boolean( showtickmarks ) )
+             ( n = `showTickmarks`   v = lcl_utility=>get_json_boolean( showtickmarks ) )
              ( n = `startValue`   v = startvalue )
              ( n = `step`   v = step )
              ( n = `width`   v = width )
@@ -1844,9 +1844,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         t_prop = VALUE #(
           ( n = `height`      v = height )
           ( n = `width`       v = width )
-          ( n = `vertical`    v = _=>get_json_boolean( vertical ) )
-          ( n = `horizontal`  v = _=>get_json_boolean( horizontal ) )
-          ( n = `focusable`   v = _=>get_json_boolean( focusable  ) )
+          ( n = `vertical`    v = lcl_utility=>get_json_boolean( vertical ) )
+          ( n = `horizontal`  v = lcl_utility=>get_json_boolean( horizontal ) )
+          ( n = `focusable`   v = lcl_utility=>get_json_boolean( focusable  ) )
        ) ).
 
   ENDMETHOD.
@@ -1905,7 +1905,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       t_prop = VALUE #(
         ( n = `title`    v = title )
         ( n = `layout`   v = layout )
-        ( n = `editable` v = _=>get_json_boolean( editable ) )
+        ( n = `editable` v = lcl_utility=>get_json_boolean( editable ) )
       ) ).
 
   ENDMETHOD.
@@ -2007,7 +2007,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           name  = `Switch`
           t_prop = VALUE #(
              ( n = `type`           v = type )
-             ( n = `enabled`        v = _=>get_json_boolean( enabled ) )
+             ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
              ( n = `state`          v = state )
              ( n = `customTextOff`  v = customtextoff )
              ( n = `customTextOn`   v = customtexton )
@@ -2079,10 +2079,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               ( n = `rows` v = rows )
               ( n = `height` v = height )
               ( n = `width` v = width )
-              ( n = `editable` v = _=>get_json_boolean( editable ) )
-              ( n = `enabled` v = _=>get_json_boolean( enabled ) )
+              ( n = `editable` v = lcl_utility=>get_json_boolean( editable ) )
+              ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
               ( n = `id` v = id )
-              ( n = `growing` v = _=>get_json_boolean( growing ) )
+              ( n = `growing` v = lcl_utility=>get_json_boolean( growing ) )
               ( n = `growingMaxLines` v = growingmaxlines )
        ) ).
 
@@ -2112,7 +2112,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          name  = lv_name
          t_prop = VALUE #(
              ( n = `text`     v = text )
-             ( n = `wrapping` v = _=>get_json_boolean( wrapping ) )
+             ( n = `wrapping` v = lcl_utility=>get_json_boolean( wrapping ) )
       ) ).
 
   ENDMETHOD.
@@ -2126,7 +2126,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        t_prop = VALUE #(
           ( n = `press`   v = press )
           ( n = `text`    v = text )
-          ( n = `enabled` v = _=>get_json_boolean( enabled ) )
+          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
           ( n = `type`    v = type )
           ( n = `class`   v = class )
@@ -2260,7 +2260,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       name   = `DynamicPage`
       ns     = `f`
       t_prop = VALUE #(
-         (  n = `headerExpanded`           v = _=>get_json_boolean( headerexpanded ) )
+         (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
          (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
       ) ).
 
@@ -2272,7 +2272,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       name   = `DynamicPageHeader`
       ns     = `f`
       t_prop = VALUE #(
-         (  n = `pinnable`           v = _=>get_json_boolean( pinnable ) )
+         (  n = `pinnable`           v = lcl_utility=>get_json_boolean( pinnable ) )
       ) ).
 
   ENDMETHOD.
@@ -2323,7 +2323,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-    result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && _=>get_classname_by_ref( app ) && `/source/main`.
+    result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( app ) && `/source/main`.
 
   ENDMETHOD.
 
@@ -2381,7 +2381,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          name  = `MessagePopover`
          t_prop = VALUE #(
             ( n = `items`      v = items )
-            ( n = `groupItems` v = _=>get_json_boolean( groupItems ) )
+            ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
     ) ).
 
   ENDMETHOD.
@@ -2392,14 +2392,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          name  = `MessageView`
          t_prop = VALUE #(
             ( n = `items`      v = items )
-            ( n = `groupItems` v = _=>get_json_boolean( groupItems ) )
+            ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
     ) ).
 
   ENDMETHOD.
 
   METHOD hlp_replace_controller_name.
 
-    result  = _=>get_replace( iv_val = xml
+    result  = lcl_utility=>get_replace( iv_val = xml
     iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
 
   ENDMETHOD.
