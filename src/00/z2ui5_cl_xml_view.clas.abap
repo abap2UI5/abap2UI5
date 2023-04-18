@@ -124,6 +124,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         sticky              TYPE clike OPTIONAL
         mode                TYPE clike OPTIONAL
         width               TYPE clike OPTIONAL
+        selectionchange     TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -2042,6 +2043,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
            ( n = `sticky`           v = sticky )
            ( n = `mode`             v = mode )
            ( n = `width`            v = width )
+           ( n = `selectionChange`  v = selectionchange )
      ) ).
 
   ENDMETHOD.
