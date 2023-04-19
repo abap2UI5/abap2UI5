@@ -645,7 +645,7 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
-    METHODS write_result
+    METHODS stringify
       RETURNING
         VALUE(result) TYPE string.
 
@@ -857,7 +857,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD write_result.
+  METHOD stringify.
 
     LOOP AT mt_values INTO DATA(lo_attri).
 
@@ -871,7 +871,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
 
       IF lo_attri->mt_values IS NOT INITIAL.
-        result = result && lo_attri->write_result( ).
+        result = result && lo_attri->stringify( ).
       ELSE.
         result = result &&
            quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
@@ -1442,7 +1442,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     IF ms_next-s_set-check_set_prev_view = abap_true.
       lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
     ENDIF.
-    result = lo_ui5_model->get_root( )->write_result( ).
+    result = lo_ui5_model->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
