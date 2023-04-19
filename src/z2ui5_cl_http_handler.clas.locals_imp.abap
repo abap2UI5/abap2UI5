@@ -645,7 +645,7 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
-    METHODS write_result
+    METHODS stringify
       RETURNING
         VALUE(result) TYPE string.
 
@@ -857,7 +857,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD write_result.
+  METHOD stringify.
 
     LOOP AT mt_values INTO DATA(lo_attri).
 
@@ -871,7 +871,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
 
       IF lo_attri->mt_values IS NOT INITIAL.
-        result = result && lo_attri->write_result( ).
+        result = result && lo_attri->stringify( ).
       ELSE.
         result = result &&
            quote_json( iv_cond = xsdbool( lo_attri->mv_apost_active = abap_true OR lo_attri->mv_value IS INITIAL )
@@ -1442,7 +1442,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     IF ms_next-s_set-check_set_prev_view = abap_true.
       lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
     ENDIF.
-    result = lo_ui5_model->get_root( )->write_result( ).
+    result = lo_ui5_model->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
@@ -1547,8 +1547,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     DATA(ls_draft) = z2ui5_lcl_fw_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
     result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
 
-    result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
-    result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
+    result->ms_db-t_attri     = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+    result->ms_db-id          = z2ui5_lcl_utility=>get_uuid( ).
     result->ms_db-o_app->id   = result->ms_db-id.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.
@@ -1560,11 +1560,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
     result = NEW #( ).
-    result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
-    result->ms_db-o_app = ms_next-o_call_app.
+    result->ms_db-id        = z2ui5_lcl_utility=>get_uuid( ).
+    result->ms_db-o_app     = ms_next-o_call_app.
     result->ms_db-o_app->id = result->ms_db-id.
 
-    result->ms_db-id_prev_app = ms_db-id.
+    result->ms_db-id_prev_app       = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
     result->ms_next-t_after = ms_next-t_after.
@@ -1599,16 +1599,18 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
       z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
-
-      DATA lr_ref2 TYPE REF TO data.
-      GET REFERENCE OF  <attribute> INTO lr_ref2.
-      "  DATA(lr_ref2) = REF #( <attribute> ).
+      DATA lr_ref TYPE REF TO data.
+      GET REFERENCE OF  <attribute> INTO lr_ref.
 
       IF check_gen_data = abap_true.
         TRY.
+
+            DATA lr_ref2 TYPE REF TO data.
+            GET REFERENCE OF  <attribute> INTO lr_ref2.
+
             FIELD-SYMBOLS <field> TYPE any.
             ASSIGN lr_ref2->* TO <field>.
-            DATA(lr_ref) = CAST data( <field> ).
+            lr_ref = CAST data( <field> ).
             IF lr_attri->gen_type IS INITIAL.
               FIELD-SYMBOLS <field2> TYPE any.
               ASSIGN lr_ref->* TO <field2>.
@@ -1627,8 +1629,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
           CATCH cx_root.
             CONTINUE.
         ENDTRY.
-      ELSE.
-        lr_ref = lr_ref2.
       ENDIF.
 
       IF lr_in = lr_ref.
