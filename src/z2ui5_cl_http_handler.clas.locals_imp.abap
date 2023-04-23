@@ -296,7 +296,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         DATA uuid TYPE c LENGTH 32.
 
         TRY.
-            CALL METHOD (`CL_SYSTEM_UUID`)=>create_uuid_c32_static
+            CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c32
               RECEIVING
                 uuid = uuid.
 
