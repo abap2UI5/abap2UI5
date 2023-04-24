@@ -98,7 +98,7 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
   METHOD z2ui5_on_render.
 
     DATA(lo_view) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
-             title          = 'abap2UI5 - First Example'
+             title          = 'abap2UI5 - Change the table type with RTTI'
              navbuttonpress = client->_event( 'BACK' )
              shownavbutton  = abap_true
          )->header_content(
@@ -114,7 +114,7 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
     lo_view->input( client->_bind( mv_name  ) ).
 
     lo_view->button(
-                text  = 'post'
+                text  = 'search'
                 press = client->_event( 'BUTTON_POST' )
             ).
 
