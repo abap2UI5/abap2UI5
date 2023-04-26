@@ -193,6 +193,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
     ENDIF.
 
+
+
     lv_assign = `DESCR->*`.
     ASSIGN <row>->(lv_assign) TO <val>.
     IF <val> <> ls_tab_test-descr.
