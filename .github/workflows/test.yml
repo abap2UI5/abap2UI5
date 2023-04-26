@@ -1,4 +1,4 @@
-name: downport
+name: test
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  lint-and-merge:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -17,4 +17,6 @@ jobs:
         node-version: '16'
     - run: npm ci
     - run: npm run downport
+    - run: npm run transpile
+    - run: npm run unit
 
