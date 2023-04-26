@@ -1408,7 +1408,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     lo_ui5_model->add_attribute_object( `oSystem`
         )->add_attribute( n = `ID`                 v = ms_db-id
-        )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = z2ui5_lcl_utility=>get_abap_2_json( abap_true ) apos_active = abap_false ).
+     "   )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = z2ui5_lcl_utility=>get_abap_2_json( abap_true ) apos_active = abap_false
+      ).
 
     IF ms_next-t_after IS NOT INITIAL.
       DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
