@@ -63,7 +63,7 @@
       "severity": "Error",
       "max": 20
     },
-    "dangerous_statement": true,
+    "dangerous_statement": false,
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
@@ -204,7 +204,7 @@
       "ignoreWorkflow": true
     },
     "rfc_error_handling": true,
-    "select_add_order_by": true,
+    "select_add_order_by": false,
     "select_performance": true,
     "selection_screen_naming": true,
     "sequential_blank": {
