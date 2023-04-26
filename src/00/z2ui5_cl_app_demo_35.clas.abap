@@ -6,7 +6,6 @@ CLASS z2ui5_cl_app_demo_35 DEFINITION PUBLIC.
 
     DATA mt_table TYPE REF TO data.
     DATA mv_name TYPE string.
-    DATA mv_test TYPE REF TO data.
 
   PROTECTED SECTION.
 
@@ -62,9 +61,11 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
     CASE app-get-event.
 
       WHEN 'BUTTON_POST'.
+
         CREATE DATA mt_table TYPE STANDARD TABLE OF (mv_name).
         FIELD-SYMBOLS <tab> TYPE table.
         ASSIGN mt_table->* TO <tab>.
+
         SELECT FROM (mv_name)
             FIELDS *
           INTO CORRESPONDING FIELDS OF TABLE @<tab>
@@ -140,17 +141,6 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
       ENDLOOP.
 
     ENDIF.
-*    tab->columns(
-*        )->column(
-*            )->text( 'UUID' )->get_parent(
-*        )->column(
-*            )->text( 'UUID_PREV' ).
-*
-*    tab->items( )->column_list_item(
-*      )->cells(
-*          )->input( '{UUID}'
-*          )->input( '{UUID_PREV}'
-*      ).
 
     app-next-xml_main = lo_view->get_root( )->xml_get( ).
 
