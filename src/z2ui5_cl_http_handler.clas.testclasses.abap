@@ -138,7 +138,6 @@ CLASS ltcl_unit_test_basic IMPLEMENTATION.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
     ENDIF.
-    DATA(lv_id) = CONV string( <val> ).
 
   ENDMETHOD.
 
