@@ -20,6 +20,7 @@
     "check_include": true,
     "check_syntax": true,
     "global_class": true,
+    "definitions_top": true,
     "implement_methods": true,
     "method_implemented_twice": true,
     "parser_error": true,
