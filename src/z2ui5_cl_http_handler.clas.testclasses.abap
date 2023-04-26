@@ -1,24 +1,17 @@
-CLASS ltcl_unit_test_basic DEFINITION FINAL FOR TESTING
+CLASS ltcl_unit_test_json DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    DATA product  TYPE string.
-    DATA quantity TYPE string.
-    DATA check_initialized TYPE abap_bool.
 
   PRIVATE SECTION.
-    METHODS test_json_attri       FOR TESTING RAISING cx_static_check.
-    METHODS test_json_object      FOR TESTING RAISING cx_static_check.
-    METHODS test_index_html       FOR TESTING RAISING cx_static_check.
-    METHODS test_app_start        FOR TESTING RAISING cx_static_check.
-    METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
+    METHODS test_json_attri   FOR TESTING RAISING cx_static_check.
+    METHODS test_json_object  FOR TESTING RAISING cx_static_check.
+    METHODS test_json_struc   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
-CLASS ltcl_unit_test_basic IMPLEMENTATION.
+CLASS ltcl_unit_test_json IMPLEMENTATION.
 
   METHOD test_json_attri.
 
@@ -46,6 +39,50 @@ CLASS ltcl_unit_test_basic IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+  METHOD test_json_struc.
+
+    DATA(lo_tree) = NEW z2ui5_lcl_utility_tree_json( ).
+
+    TYPES:
+      BEGIN OF ty_s_test,
+        comp1 TYPE string,
+        comp2 TYPE string,
+      END OF ty_s_test.
+
+    DATA(ls_test) = VALUE ty_S_test( comp1 = `AAA` comp2 = `BBB` ).
+
+    lo_tree->add_attribute_object( `CCC`
+        )->add_attribute_struc( ls_test ).
+
+    DATA(lv_result) = lo_tree->stringify( ).
+    IF `{"CCC":{"COMP1":"AAA","COMP2":"BBB"}}` <> lv_result.
+      cl_abap_unit_assert=>fail( 'json tree - wrong stringify structure' ).
+    ENDIF.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_unit_test_app_basic DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    DATA product  TYPE string.
+    DATA quantity TYPE string.
+    DATA check_initialized TYPE abap_bool.
+
+  PRIVATE SECTION.
+    METHODS test_index_html       FOR TESTING RAISING cx_static_check.
+    METHODS test_app_start        FOR TESTING RAISING cx_static_check.
+    METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_unit_test_app_basic IMPLEMENTATION.
 
   METHOD test_index_html.
 
@@ -102,7 +139,7 @@ CLASS ltcl_unit_test_basic IMPLEMENTATION.
   METHOD test_app_start.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_BASIC' ) )
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_APP_BASIC' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -144,7 +181,7 @@ CLASS ltcl_unit_test_basic IMPLEMENTATION.
   METHOD test_app_change_value.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_BASIC' ) )
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_APP_BASIC' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -178,7 +215,7 @@ CLASS ltcl_unit_test_basic IMPLEMENTATION.
     z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
     lv_response = z2ui5_cl_http_handler=>http_post(  ).
 
-    clear lo_data.
+    CLEAR lo_data.
     /ui2/cl_json=>deserialize(
       EXPORTING
          json            = lv_response
@@ -220,6 +257,7 @@ CLASS ltcl_unit_test_deep_data DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     METHODS test_app_deep_data FOR TESTING RAISING cx_static_check.
+    METHODS test_app_deep_data_change FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -308,4 +346,53 @@ CLASS ltcl_unit_test_deep_data IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+  METHOD test_app_deep_data_change.
+
+*    z2ui5_cl_http_handler=>client = VALUE #(
+*       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_DEEP_DATA' ) )
+*       ).
+*
+*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+*
+*    DATA lo_data TYPE REF TO data.
+*    /ui2/cl_json=>deserialize(
+*      EXPORTING
+*         json            = lv_response
+*      CHANGING
+*        data             = lo_data ).
+*
+*    DATA lv_assign TYPE string.
+*    FIELD-SYMBOLS <val> TYPE any.
+*
+*    UNASSIGN <val>.
+*    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+*    FIELD-SYMBOLS <row> TYPE any.
+*    lv_assign = `OVIEWMODEL->T_TAB->*`.
+*    ASSIGN lo_data->(lv_assign) TO <tab>.
+*    ASSIGN <tab>[ 1 ] TO <row>.
+*
+*    DATA ls_tab_test TYPE ltcl_unit_test_deep_data=>ty_row.
+*    ls_tab_test = VALUE #( title = 'Peter'  info = 'completed' descr = 'this is a description' icon = 'sap-icon://account' ).
+*
+*    lv_assign = `TITLE->*`.
+*    ASSIGN <row>->(lv_assign) TO <val>.
+*    IF <val> <> ls_tab_test-title.
+*      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
+*    ENDIF.
+*
+*    lv_assign = `INFO->*`.
+*    ASSIGN <row>->(lv_assign) TO <val>.
+*    IF <val> <> ls_tab_test-info.
+*      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
+*    ENDIF.
+*
+*    lv_assign = `DESCR->*`.
+*    ASSIGN <row>->(lv_assign) TO <val>.
+*    IF <val> <> ls_tab_test-descr.
+*      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
+*    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.

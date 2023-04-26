@@ -123,12 +123,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    var oView = this.getView();` && |\n|  &&
                            `                    try {` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n|  &&
-                           `                            var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.id).getFocusInfo();` && |\n|  &&
-                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.oCursor.cursorPos;` && |\n|  &&
-                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.oCursor.selectionStart;` && |\n|  &&
-                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.oCursor.selectionEnd;` && |\n|  &&
+                           `                            var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.ID).getFocusInfo();` && |\n|  &&
+                           `                            ofocus.cursorPos = parseInt( sap.z2ui5.oResponse.oCursor.CURSORPOS );` && |\n|  &&
+                           `                            ofocus.selectionStart = parseInt( sap.z2ui5.oResponse.oCursor.SELECTIONSTART );` && |\n|  &&
+                           `                            ofocus.selectionEnd = parseInt( sap.z2ui5.oResponse.oCursor.SELECTIONEND );` && |\n|  &&
                            `                        }` && |\n|  &&
-                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.id).applyFocusInfo(ofocus);` && |\n|  &&
+                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.ID).applyFocusInfo(ofocus);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
                            `                    try {` && |\n|  &&
                            `                        //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n|  &&
@@ -163,9 +163,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.oTimer){ ` && |\n|  &&
                            `                    var oEvent = { 'EVENT' : 'BUTTON_CHECK', 'METHOD' : 'UPDATE' };` && |\n|  &&
-                           `                    oEvent.EVENT = sap.z2ui5.oResponse.oTimer.eventFinished;` && |\n|  &&
+                           `                    oEvent.EVENT = sap.z2ui5.oResponse.oTimer.EVENT_FINISHED;` && |\n|  &&
                            `                    sap.z2ui5.checkTimerActive = true;` && |\n|  &&
-                           `                    setTimeout( ( ) => { if ( sap.z2ui5.checkTimerActive ) { sap.z2ui5.oView.getController().onEvent( oEvent ); } }, sap.z2ui5.oResponse.oTimer.intervalMs, oEvent );` && |\n|  &&
+                           `                    setTimeout( ( ) => { if ( sap.z2ui5.checkTimerActive ) { sap.z2ui5.oView.getController().onEvent( oEvent ); } }, parseInt( sap.z2ui5.oResponse.oTimer.INTERVAL_MS ) , oEvent );` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `                },` && |\n|  &&
