@@ -1,17 +1,19 @@
-CLASS ltcl_unit_test_json DEFINITION FINAL FOR TESTING
+CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
 
   PRIVATE SECTION.
-    METHODS test_json_attri   FOR TESTING RAISING cx_static_check.
-    METHODS test_json_object  FOR TESTING RAISING cx_static_check.
-    METHODS test_json_struc   FOR TESTING RAISING cx_static_check.
+    METHODS test_json_attri     FOR TESTING RAISING cx_static_check.
+    METHODS test_json_object    FOR TESTING RAISING cx_static_check.
+    METHODS test_json_struc     FOR TESTING RAISING cx_static_check.
+    METHODS test_json_trans     FOR TESTING RAISING cx_static_check.
+    METHODS test_json_trans_gen FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
-CLASS ltcl_unit_test_json IMPLEMENTATION.
+CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   METHOD test_json_attri.
 
@@ -62,9 +64,81 @@ CLASS ltcl_unit_test_json IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_json_trans.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        selected TYPE abap_bool,
+      END OF ty_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+
+    DATA(lt_tab) = VALUE ty_t_tab(
+         ( title = 'Test'  value = 'this is a description' selected = abap_true  )
+         ( title = 'Test2' value = 'this is a new descr'   selected = abap_false )
+     ).
+
+    DATA(lt_tab2) = VALUE ty_t_tab( ).
+
+    DATA(lv_tab) = /ui2/cl_json=>serialize( lt_tab ).
+
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+        json             = lv_tab
+      CHANGING
+        data             = lt_tab2
+    ).
+
+    IF lt_tab <> lt_tab2.
+      cl_abap_unit_assert=>fail( msg = 'json serial -  /ui2/cl_json wrong simple table' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_json_trans_gen.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        selected TYPE abap_bool,
+      END OF ty_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+
+    DATA(lt_tab) = VALUE ty_t_tab(
+         ( title = 'Test'  value = 'this is a description' selected = abap_true  )
+         ( title = 'Test2' value = 'this is a new descr'   selected = abap_false )
+     ).
+
+    DATA(lt_tab2) = VALUE ty_t_tab( ).
+
+    DATA(lv_tab) = /ui2/cl_json=>serialize( lt_tab ).
+
+    data lo_data type ref to data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+        json             = lv_tab
+      CHANGING
+        data             = lo_data
+    ).
+
+    z2ui5_lcl_utility=>trans_ref_tab_2_tab(
+      EXPORTING
+        ir_tab_from = lo_data
+      importing
+        t_result    = lt_tab2
+    ).
+
+    IF lt_tab <> lt_tab2.
+      cl_abap_unit_assert=>fail( msg = 'json serial -  /ui2/cl_json wrong generic table' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
-CLASS ltcl_unit_test_app_basic DEFINITION FINAL FOR TESTING
+CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -77,12 +151,17 @@ CLASS ltcl_unit_test_app_basic DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     METHODS test_index_html       FOR TESTING RAISING cx_static_check.
-    METHODS test_app_start        FOR TESTING RAISING cx_static_check.
-    METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
+    METHODS test_xml_view         FOR TESTING RAISING cx_static_check.
+    METHODS test_xml_popup        FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_one_way     FOR TESTING RAISING cx_static_check.
+    METHODS test_bind_two_way     FOR TESTING RAISING cx_static_check.
+    METHODS test_message_toast    FOR TESTING RAISING cx_static_check.
+    METHODS test_message_box      FOR TESTING RAISING cx_static_check.
+    METHODS test_timer            FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
-CLASS ltcl_unit_test_app_basic IMPLEMENTATION.
+CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_index_html.
 
@@ -133,13 +212,12 @@ CLASS ltcl_unit_test_app_basic IMPLEMENTATION.
                         press = client->_event( 'BUTTON_POST' )
          )->get_root( )->xml_get( ) ) ).
 
-
   ENDMETHOD.
 
-  METHOD test_app_start.
+  METHOD test_xml_view.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_APP_BASIC' ) )
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -178,10 +256,93 @@ CLASS ltcl_unit_test_app_basic IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_bind_one_way.
+
+  ENDMETHOD.
+
+  METHOD test_bind_two_way.
+
+  ENDMETHOD.
+
+  METHOD test_message_box.
+
+  ENDMETHOD.
+
+  METHOD test_message_toast.
+
+  ENDMETHOD.
+
+  METHOD test_timer.
+
+  ENDMETHOD.
+
+  METHOD test_xml_popup.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_unit_03_app_ajax DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    INTERFACES z2ui5_if_app.
+
+    DATA product  TYPE string.
+    DATA quantity TYPE string.
+    DATA check_initialized TYPE abap_bool.
+
+  PRIVATE SECTION.
+
+    METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+      product  = 'tomato'.
+      quantity = '500'.
+
+    ENDIF.
+
+    CASE client->get( )-event.
+      WHEN 'BUTTON_POST'.
+        client->popup_message_toast( |{ product } { quantity } - send to the server| ).
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
+    ENDCASE.
+
+    client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+        )->page(
+                title          = 'abap2UI5 - First Example'
+                navbuttonpress = client->_event( 'BACK' )
+                shownavbutton  = abap_true
+            )->simple_form( title = 'Form Title' editable = abap_true
+                )->content( 'form'
+                    )->title( 'Input'
+                    )->label( 'quantity'
+                    )->input( client->_bind( quantity )
+                    )->label( 'product'
+                    )->input(
+                        value   = product
+                        enabled = abap_false
+                    )->button(
+                        text  = 'post'
+                        press = client->_event( 'BUTTON_POST' )
+         )->get_root( )->xml_get( ) ) ).
+
+  ENDMETHOD.
+
   METHOD test_app_change_value.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_APP_BASIC' ) )
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -231,7 +392,7 @@ CLASS ltcl_unit_test_app_basic IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS.
+endclass.
 
 CLASS ltcl_unit_test_deep_data DEFINITION FINAL FOR TESTING
   DURATION SHORT

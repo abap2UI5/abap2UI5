@@ -142,8 +142,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING
         ir_tab_from TYPE REF TO data
-      CHANGING
-        ct_to       TYPE STANDARD TABLE.
+      EXPORTING
+        t_result    TYPE STANDARD TABLE.
 
     CLASS-METHODS get_trim_upper
       IMPORTING
@@ -465,10 +465,10 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ASSIGN ir_tab_from->* TO <lt_from>.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    CLEAR ct_to.
+    CLEAR t_result.
 
     DATA lr_row TYPE REF TO data.
-    CREATE DATA lr_row LIKE LINE OF ct_to.
+    CREATE DATA lr_row LIKE LINE OF t_result.
     ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
 
     DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <row> ).
@@ -502,7 +502,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
-      INSERT <row> INTO TABLE ct_to.
+      INSERT <row> INTO TABLE t_result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -552,8 +552,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
         v       TYPE string,
         no_apos TYPE abap_bool,
       END OF ty_s_name.
-
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name.
 
     DATA mo_root TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mo_parent TYPE REF TO z2ui5_lcl_utility_tree_json.
@@ -718,6 +716,8 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
       ASSIGN COMPONENT lr_comp->name OF STRUCTURE val TO <value>.
       add_attribute( n = lr_comp->name v = <value> ).
     ENDLOOP.
+
+    result = me.
 
   ENDMETHOD.
 
@@ -1486,7 +1486,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         WHEN `h`.
           z2ui5_lcl_utility=>trans_ref_tab_2_tab(
                EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-               CHANGING ct_to   = <attribute> ).
+               IMPORTING t_result    = <attribute> ).
 
         WHEN OTHERS.
       ENDCASE.
@@ -1502,7 +1502,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         DATA(lo_scroll) = mo_body->get_attribute( `OSCROLL` ).
         z2ui5_lcl_utility=>trans_ref_tab_2_tab(
             EXPORTING ir_tab_from = lo_scroll->mr_actual
-            CHANGING  ct_to       = result->ms_actual-t_scroll_pos ).
+            IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
       CATCH cx_root.
     ENDTRY.
 
