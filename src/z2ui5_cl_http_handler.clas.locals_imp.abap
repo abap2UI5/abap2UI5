@@ -613,12 +613,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
-    METHODS add_attributes_name_value_tab
-      IMPORTING
-        it_name_value TYPE ty_t_name_value
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
     METHODS add_attribute_object
       IMPORTING
         name          TYPE clike
@@ -693,20 +687,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     lo_attri->mo_parent = me.
 
     INSERT lo_attri INTO TABLE mt_values.
-    result = me.
-
-  ENDMETHOD.
-
-
-  METHOD add_attributes_name_value_tab.
-
-    LOOP AT it_name_value INTO DATA(ls_value).
-      add_attribute(
-           n           = ls_value-n
-           v           = ls_value-v
-           apos_active = xsdbool( ls_value-no_apos = abap_false ) ).
-    ENDLOOP.
-
     result = me.
 
   ENDMETHOD.
