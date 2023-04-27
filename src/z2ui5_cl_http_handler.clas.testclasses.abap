@@ -81,7 +81,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
 
-    DATA(lv_tab) = /ui2/cl_json=>serialize( lt_tab ).
+    DATA(lv_tab) = z2ui5_lcl_utility=>get_abap_2_json( lt_tab ).
 
     /ui2/cl_json=>deserialize(
       EXPORTING
@@ -113,7 +113,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
 
-    DATA(lv_tab) = /ui2/cl_json=>serialize( lt_tab ).
+    DATA(lv_tab) = z2ui5_lcl_utility=>get_abap_2_json( lt_tab ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize(
