@@ -63,12 +63,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(result) TYPE timestampl.
 
-    CLASS-METHODS trans_json_2_data
-      IMPORTING
-        iv_json   TYPE clike
-      EXPORTING
-        ev_result TYPE REF TO data.
-
     CLASS-METHODS trans_any_2_json
       IMPORTING
         any           TYPE any
@@ -81,14 +75,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       EXPORTING
         data TYPE data.
 
-    CLASS-METHODS get_attri_name_by_ref
-      IMPORTING
-        i_focus       TYPE data
-        io_app        TYPE REF TO object
-        t_attri       TYPE ty_t_attri
-      RETURNING
-        VALUE(result) TYPE string ##NEEDED.
-
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
         io_app        TYPE REF TO object
@@ -100,26 +86,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         object        TYPE data
       RETURNING
         VALUE(result) TYPE string.
-
-    CLASS-METHODS get_params_by_url
-      IMPORTING
-        url           TYPE string
-        name          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS get_prev_when_no_handler
-      IMPORTING
-        val           TYPE REF TO cx_root
-      RETURNING
-        VALUE(result) TYPE REF TO cx_root.
-
-    CLASS-METHODS get_ref_data
-      IMPORTING
-        n             TYPE clike
-        o             TYPE REF TO object
-      RETURNING
-        VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS get_abap_2_json
       IMPORTING
@@ -228,51 +194,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_params_by_url.
-
-    DATA(url_segments) = segment( val = get_trim_upper( url ) index = 2 sep = `?` ).
-    SPLIT url_segments AT `&` INTO TABLE DATA(lt_params).
-
-    DATA lt_url_params TYPE z2ui5_if_client=>ty_t_name_value.
-
-    LOOP AT lt_params INTO DATA(lv_param).
-
-      SPLIT lv_param AT `=` INTO DATA(lv_name) DATA(lv_value) DATA(lv_dummy).
-
-      INSERT VALUE #( name  = lv_name
-                      value = lv_value ) INTO TABLE lt_url_params.
-
-    ENDLOOP.
-
-    result = lt_url_params[ name = get_trim_upper( name ) ]-value.
-
-  ENDMETHOD.
-
-  METHOD get_prev_when_no_handler.
-
-    TRY.
-        result = CAST cx_sy_no_handler( val )->previous.
-      CATCH cx_root.
-    ENDTRY.
-
-    IF result IS NOT BOUND.
-      result = val.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_ref_data.
-
-    FIELD-SYMBOLS <field> TYPE data.
-
-    ASSIGN o->(n) TO <field>.
-    raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-    result = REF #( <field> ).
-
-  ENDMETHOD.
-
 
   METHOD get_timestampl.
 
@@ -341,31 +262,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_attri_name_by_ref.
-
-    CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
-
-    DATA lr_in TYPE REF TO data.
-    GET REFERENCE OF i_focus INTO lr_in.
-
-    LOOP AT t_attri REFERENCE INTO DATA(lr_attri).
-
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
-
-      DATA lr_ref TYPE REF TO data.
-      GET REFERENCE OF <attribute> INTO lr_ref.
-
-      IF lr_in = lr_ref.
-        result = to_upper( lr_attri->name ).
-        EXIT.
-      ENDIF.
-
-    ENDLOOP.
-
-  ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
 
@@ -422,23 +318,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   METHOD trans_any_2_json.
 
     result = /ui2/cl_json=>serialize( any ).
-
-  ENDMETHOD.
-
-  METHOD trans_json_2_data.
-
-    CLEAR ev_result.
-    IF iv_json IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    /ui2/cl_json=>deserialize(
-        EXPORTING
-            json         = CONV string( iv_json )
-            assoc_arrays = abap_true
-        CHANGING
-            data         = ev_result
-        ).
 
   ENDMETHOD.
 
@@ -584,10 +463,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS get_parent
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
     METHODS add_list_val
       IMPORTING
         v             TYPE string
@@ -638,9 +513,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS get_name
-      RETURNING
-        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -811,19 +683,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
 
     result = <attribute>.
-
-  ENDMETHOD.
-
-  METHOD get_name.
-
-    result = mv_name.
-
-  ENDMETHOD.
-
-
-  METHOD get_parent.
-
-    result = COND #( WHEN mo_parent IS NOT BOUND THEN me ELSE mo_parent ).
 
   ENDMETHOD.
 

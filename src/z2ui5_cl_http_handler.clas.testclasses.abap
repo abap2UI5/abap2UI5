@@ -196,16 +196,16 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
     ENDCASE.
 
-    if sv_state = 'TEST_MESSAGE_BOX'.
-        client->popup_message_box(
-          text = 'test message box'
-        ).
+    IF sv_state = 'TEST_MESSAGE_BOX'.
+      client->popup_message_box(
+        text = 'test message box'
+      ).
     ENDIF.
 
-    if sv_state = 'TEST_MESSAGE_TOAST'.
-        client->popup_message_toast(
-          text = 'test message toast'
-        ).
+    IF sv_state = 'TEST_MESSAGE_TOAST'.
+      client->popup_message_toast(
+        text = 'test message toast'
+      ).
     ENDIF.
 
     CASE sv_state.
@@ -248,30 +248,30 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
                             press = client->_event( 'BUTTON_POST' )
              )->get_root( )->xml_get( ) ) ).
 
-    when 'TEST_TIMER'.
-         client->set_next( VALUE #(
-            s_timer = value #(
-               event_finished = 'TIMER_FINISHED'
-               interval_ms    =  `500`
-            )
-            xml_main = z2ui5_cl_xml_view=>factory( )->shell(
-            )->page(
-                    title          = 'abap2UI5 - First Example'
-                    navbuttonpress = client->_event( 'BACK' )
-                    shownavbutton  = abap_true
-                )->simple_form( title = 'Form Title' editable = abap_true
-                    )->content( 'form'
-                        )->title( 'Input'
-                        )->label( 'quantity'
-                        )->input( client->_bind( quantity )
-                        )->label( 'product'
-                        )->input(
-                            value   = product
-                            enabled = abap_false
-                        )->button(
-                            text  = 'post'
-                            press = client->_event( 'BUTTON_POST' )
-             )->get_root( )->xml_get( ) ) ).
+      WHEN 'TEST_TIMER'.
+        client->set_next( VALUE #(
+           s_timer = VALUE #(
+              event_finished = 'TIMER_FINISHED'
+              interval_ms    =  `500`
+           )
+           xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+           )->page(
+                   title          = 'abap2UI5 - First Example'
+                   navbuttonpress = client->_event( 'BACK' )
+                   shownavbutton  = abap_true
+               )->simple_form( title = 'Form Title' editable = abap_true
+                   )->content( 'form'
+                       )->title( 'Input'
+                       )->label( 'quantity'
+                       )->input( client->_bind( quantity )
+                       )->label( 'product'
+                       )->input(
+                           value   = product
+                           enabled = abap_false
+                       )->button(
+                           text  = 'post'
+                           press = client->_event( 'BUTTON_POST' )
+            )->get_root( )->xml_get( ) ) ).
 
       WHEN OTHERS.
         client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
@@ -445,9 +445,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_message_toast.
 
-  z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
-       ).
+    z2ui5_cl_http_handler=>client = VALUE #(
+         t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+         ).
 
     sv_state = `TEST_MESSAGE_TOAST`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -486,9 +486,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_timer.
 
-   z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
-       ).
+    z2ui5_cl_http_handler=>client = VALUE #(
+        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        ).
 
     sv_state = `TEST_TIMER`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -561,6 +561,7 @@ CLASS ltcl_unit_03_app_ajax DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
+    METHODS test_app_event        FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -621,14 +622,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `500`.
-      cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
-    ENDIF.
-
-    UNASSIGN <val>.
-    lv_assign = `OSYSTEM->ID->*`.
+    DATA(lv_assign) = `OSYSTEM->ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
@@ -655,9 +649,54 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_app_event.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    DATA(lv_assign) = `OSYSTEM->ID->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> IS INITIAL.
+      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
+    ENDIF.
+    DATA(lv_id) = CONV string( <val> ).
+
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"oSystem":{"ID": "` && lv_id && `"},"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
+    z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
+    lv_response = z2ui5_cl_http_handler=>http_post(  ).
+
+    clear lo_data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    UNASSIGN <val>.
+    lv_assign = `OMESSAGE->TEXT->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `tomato 700 - send to the server`.
+      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
-CLASS ltcl_unit_test_deep_data DEFINITION FINAL FOR TESTING
+CLASS ltcl_unit_04_deep_data DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -681,11 +720,10 @@ CLASS ltcl_unit_test_deep_data DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
     METHODS test_app_deep_data FOR TESTING RAISING cx_static_check.
-    METHODS test_app_deep_data_change FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
-CLASS ltcl_unit_test_deep_data IMPLEMENTATION.
+CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -726,7 +764,7 @@ CLASS ltcl_unit_test_deep_data IMPLEMENTATION.
   METHOD test_app_deep_data.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_DEEP_DATA' ) )
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_04_DEEP_DATA' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -747,7 +785,7 @@ CLASS ltcl_unit_test_deep_data IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 
-    DATA ls_tab_test TYPE ltcl_unit_test_deep_data=>ty_row.
+    DATA ls_tab_test TYPE ltcl_unit_04_deep_data=>ty_row.
     ls_tab_test = VALUE #( title = 'Peter'  info = 'completed' descr = 'this is a description' icon = 'sap-icon://account' ).
 
     lv_assign = `TITLE->*`.
@@ -767,54 +805,6 @@ CLASS ltcl_unit_test_deep_data IMPLEMENTATION.
     IF <val> <> ls_tab_test-descr.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD test_app_deep_data_change.
-
-*    z2ui5_cl_http_handler=>client = VALUE #(
-*       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_TEST_DEEP_DATA' ) )
-*       ).
-*
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
-*
-*    DATA lv_assign TYPE string.
-*    FIELD-SYMBOLS <val> TYPE any.
-*
-*    UNASSIGN <val>.
-*    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-*    FIELD-SYMBOLS <row> TYPE any.
-*    lv_assign = `OVIEWMODEL->T_TAB->*`.
-*    ASSIGN lo_data->(lv_assign) TO <tab>.
-*    ASSIGN <tab>[ 1 ] TO <row>.
-*
-*    DATA ls_tab_test TYPE ltcl_unit_test_deep_data=>ty_row.
-*    ls_tab_test = VALUE #( title = 'Peter'  info = 'completed' descr = 'this is a description' icon = 'sap-icon://account' ).
-*
-*    lv_assign = `TITLE->*`.
-*    ASSIGN <row>->(lv_assign) TO <val>.
-*    IF <val> <> ls_tab_test-title.
-*      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
-*    ENDIF.
-*
-*    lv_assign = `INFO->*`.
-*    ASSIGN <row>->(lv_assign) TO <val>.
-*    IF <val> <> ls_tab_test-info.
-*      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
-*    ENDIF.
-*
-*    lv_assign = `DESCR->*`.
-*    ASSIGN <row>->(lv_assign) TO <val>.
-*    IF <val> <> ls_tab_test-descr.
-*      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
-*    ENDIF.
 
   ENDMETHOD.
 
