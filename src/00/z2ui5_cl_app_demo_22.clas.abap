@@ -59,6 +59,11 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
 
     ENDIF.
 
+     app-s_next-t_scroll_pos = VALUE #(
+             ( name = 'id_page'  )
+             ( name = 'id_text3'  )
+            ).
+
     CASE client->get( )-event.
 
       WHEN 'BUTTON_SCROLL_TOP'.
@@ -76,8 +81,7 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
         app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
       WHEN 'BUTTON_SCROLL_HOLD'.
-        lv_pos = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ).
-        app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
+        app-s_next-t_scroll_pos = app-s_get-t_scroll_pos.
 
       WHEN 'BUTTON_FOCUS_FIRST'.
         app-s_next-s_cursor_pos =  VALUE #( id = 'id_text1'  cursorpos = '3' selectionstart = '3' selectionend = '3' ).

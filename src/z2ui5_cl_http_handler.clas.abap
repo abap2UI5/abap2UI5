@@ -134,7 +134,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    } catch (error) { };` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
                            `                  sap.z2ui5.oResponse.oScroll.forEach(` && |\n|  &&
-                           `                   item => {  try {   oView.byId(item.NAME).scrollTo(item[ parseInt( item.VALUE ) ]);   ` && |\n|  &&
+                           `                   item => {  try {   oView.byId(item.NAME).scrollTo( parseInt( item.VALUE ) );   ` && |\n|  &&
                            `                 } catch (e) {` && |\n|  &&
                            `            var ele = '#' + oView.byId(item.NAME).getId() + '-inner';`  && |\n|  &&
                            `                  $(ele).scrollTop(item.VALUE); ` && |\n|  &&
@@ -203,7 +203,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                                 `             this.oBody.oScroll = sap.z2ui5.oResponse.oScroll; ` && |\n|  &&
                            `                  this.oBody.oScroll .forEach(` && |\n|  &&
                            `                   item => {  try {   ` && |\n|  &&
-                           `     item.VALUE = this.getView().byId( item.NAME ).getScrollDelegate().getScrollHeight();   ` && |\n|  &&
+                           `     item.VALUE = this.getView().byId( item.NAME ).getScrollDelegate().getScrollTop();   ` && |\n|  &&
                            `                 } catch (e) {` && |\n|  &&
                            `            var ele = '#' + this.getView( ).byId(item.NAME).getId() + '-inner';`  && |\n|  &&
                            `              item.VALUE =  $(ele).scrollTop(); ` && |\n|  &&
