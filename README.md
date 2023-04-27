@@ -6,7 +6,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
 * low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF, FE or RAP)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2302)
+* high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2305)
 * easy installation – abapGit project, no additional app deployment needed
 
 #### Compatibility
@@ -23,7 +23,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 4. Advanced Functionality & Demonstrations [(Blog SCN - 02.04.2023)](https://blogs.sap.com/2023/04/02/abap2ui5-4-5-additional-features-demos/)<br>
 5. Extensions with XML Views, HTML, JS & Custom Controls [(Blog SCN - 12.04.2023)](https://blogs.sap.com/2023/04/12/abap2ui5-5-6-extensions-with-xml-views-html-js-custom-controls/)<br>
 6. Installation, Configuration & Debugging [(Blog SCN - 14.04.2023)](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)<br>
-7. Technical Background & Conclusion<br>
+7. Technical Background: Under the Hood of abap2UI5 [(Blog SCN - 26.04.2023)](https://blogs.sap.com/2023/04/26/abap2ui5-7-7-technical-background-under-the-hood-of-abap2ui5/)<br>
 
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
