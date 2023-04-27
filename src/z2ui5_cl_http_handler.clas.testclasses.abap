@@ -81,7 +81,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
 
-    DATA(lv_tab) = z2ui5_lcl_utility=>get_abap_2_json( lt_tab ).
+    DATA(lv_tab) = z2ui5_lcl_utility=>trans_any_2_json( lt_tab ).
 
     /ui2/cl_json=>deserialize(
       EXPORTING
@@ -113,7 +113,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
 
-    DATA(lv_tab) = z2ui5_lcl_utility=>get_abap_2_json( lt_tab ).
+    DATA(lv_tab) = z2ui5_lcl_utility=>trans_any_2_json( lt_tab ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize(
@@ -303,7 +303,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
-    ltcl_unit_02_app_start=>sv_state = ``.
+    sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -330,7 +330,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
-    ltcl_unit_02_app_start=>sv_state = ``.
+    sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -356,7 +356,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
          t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
          ).
 
-    ltcl_unit_02_app_start=>sv_state = `TEST_ONE_WAY`.
+    sv_state = `TEST_ONE_WAY`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -382,7 +382,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
          t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
          ).
 
-    ltcl_unit_02_app_start=>sv_state = ``.
+    sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -404,11 +404,11 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_message_box.
 
-   z2ui5_cl_http_handler=>client = VALUE #(
+    z2ui5_cl_http_handler=>client = VALUE #(
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
-    ltcl_unit_02_app_start=>sv_state = `TEST_MESSAGE_BOX`.
+    sv_state = `TEST_MESSAGE_BOX`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -449,7 +449,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
-    ltcl_unit_02_app_start=>sv_state = `TEST_MESSAGE_TOAST`.
+    sv_state = `TEST_MESSAGE_TOAST`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -490,7 +490,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
-    ltcl_unit_02_app_start=>sv_state = `TEST_TIMER`.
+    sv_state = `TEST_TIMER`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -524,7 +524,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
-    ltcl_unit_02_app_start=>sv_state = `TEST_POPUP`.
+    sv_state = `TEST_POPUP`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -560,7 +560,6 @@ CLASS ltcl_unit_03_app_ajax DEFINITION FINAL FOR TESTING
     DATA check_initialized TYPE abap_bool.
 
   PRIVATE SECTION.
-
     METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
