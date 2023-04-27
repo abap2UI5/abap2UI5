@@ -14,8 +14,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       END OF ty_attri.
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
-    TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
-
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
@@ -913,8 +911,12 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       BEGIN OF ty_s_next,
         check_app_leave TYPE abap_bool,
         o_call_app      TYPE REF TO z2ui5_if_app,
-        t_after         TYPE z2ui5_lcl_utility=>ty_tt_string,
         s_set           TYPE z2ui5_if_client=>ty_S_next,
+        BEGIN OF s_msg,
+          control TYPE string,
+          type    TYPE string,
+          text    TYPE string,
+        END OF s_msg,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -1406,20 +1408,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       z2ui5_lcl_utility=>raise( `No view or popup found. Check your view rendering!` ).
     ENDIF.
 
-    IF ms_next-t_after IS NOT INITIAL.
-      DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
-      LOOP AT ms_next-t_after REFERENCE INTO DATA(lr_after).
-        DATA(lo_list2) = lo_list->add_list_list( ).
-        LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
-          lo_list2->add_list_val( lr_con->* ).
-        ENDLOOP.
-      ENDLOOP.
-    ENDIF.
-
     lo_ui5_model->add_attribute_object( `oSystem` )->add_attribute( n = `ID` v = ms_db-id ).
 
+    IF ms_next-s_msg IS NOT INITIAL.
+      lo_ui5_model->add_attribute_object( `oMessage` )->add_attribute_struc( ms_next-s_msg ).
+    ENDIF.
+
     IF ms_next-s_set-t_scroll_pos IS NOT INITIAL.
-      lo_list = lo_ui5_model->add_attribute_list( `oScroll` ).
+      data(lo_list) = lo_ui5_model->add_attribute_list( `oScroll` ).
       LOOP AT ms_next-s_set-t_scroll_pos REFERENCE INTO DATA(lr_focus).
         lo_list->add_list_object( )->add_attribute( n = lr_focus->name v = lr_focus->value apos_active = abap_false ).
       ENDLOOP.
@@ -1562,7 +1558,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app       = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
-    result->ms_next-t_after = ms_next-t_after.
+    result->ms_next-s_msg = ms_next-s_msg.
 
     result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
     CLEAR ms_next.
@@ -1673,10 +1669,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       result->ms_db-id_prev_app = ms_db-id.
       result->ms_db-id_prev_app_stack = ms_db-id.
-
-      result->ms_next-t_after = ms_next-t_after.
-
-
+      result->ms_next-s_msg = ms_next-s_msg.
       result->ms_db-id_prev_app = ms_db-id.
 
     ELSE.
@@ -1757,14 +1750,22 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_message_toast.
 
-    INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) ) INTO TABLE mo_handler->ms_next-t_after.
+    mo_handler->ms_next-s_msg =  VALUE #(
+        control = `MessageToast`
+        type    = `show`
+        text    = text
+    ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_message_box.
 
-    INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) ) INTO TABLE mo_handler->ms_next-t_after.
+    mo_handler->ms_next-s_msg =  VALUE #(
+        control = `MessageBox`
+        type    = type
+        text    = text
+    ).
 
   ENDMETHOD.
 

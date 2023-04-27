@@ -251,9 +251,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                            }` && |\n|  &&
                            `                        }` && |\n|  &&
                            |\n|  &&
-                           `                        if (sap.z2ui5.oResponse.oAfter) {` && |\n|  &&
-                           `                            sap.z2ui5.oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
-                           `                        }` && |\n|  &&
+                           `                       if (sap.z2ui5.oResponse.oMessage) {` && |\n|  &&
+                           `                             sap.m[sap.z2ui5.oResponse.oMessage.CONTROL][sap.z2ui5.oResponse.oMessage.TYPE](sap.z2ui5.oResponse.oMessage.TEXT);` && |\n|  &&
+                           `                          }` && |\n|  &&
                            |\n|  &&
                            `                        if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
                            `                            var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.oViewModel);` && |\n|  &&
