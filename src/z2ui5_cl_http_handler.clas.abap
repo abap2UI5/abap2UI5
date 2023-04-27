@@ -131,19 +131,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        oView.byId(sap.z2ui5.oResponse.oCursor.ID).applyFocusInfo(ofocus);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
                            `                    try {` && |\n|  &&
-                           `                        //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
-                           `                    //todo` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
-                           `                        sap.z2ui5.oResponse.oScroll.forEach(item => Object.keys(item).forEach(function (key, index) {` && |\n|  &&
-                           `                            try {` && |\n|  &&
-                           `                                oView.byId(key).scrollTo(item[key]);` && |\n|  &&
-                           `                            } catch (e) {` && |\n|  &&
-                           `                                var ele = '#' + oView.byId(key).getId() + '-inner';` && |\n|  &&
-                           `                                $(ele).scrollTop(item[key]);` && |\n|  &&
-                           `                            }` && |\n|  &&
-                           `                            // index: the ordinal position of the key within the object ` && |\n|  &&
-                           `                        }));` && |\n|  &&
+                           `                  sap.z2ui5.oResponse.oScroll.forEach(` && |\n|  &&
+                           `                   item => {  try {   oView.byId(item.NAME).scrollTo(item[ parseInt( item.VALUE ) ]);   ` && |\n|  &&
+                           `                 } catch (e) {` && |\n|  &&
+                           `            var ele = '#' + oView.byId(item.NAME).getId() + '-inner';`  && |\n|  &&
+                           `                  $(ele).scrollTop(item.VALUE); ` && |\n|  &&
+                           `                 } ` && |\n|  &&
+                           `                 } );` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
                            `     ` && |\n|  &&
@@ -203,6 +199,19 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        this.oBody.oUpdate = sap.z2ui5.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    }` && |\n|  &&
                            |\n|  &&
+                                            ` if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
+                                `             this.oBody.oScroll = sap.z2ui5.oResponse.oScroll; ` && |\n|  &&
+                           `                  this.oBody.oScroll .forEach(` && |\n|  &&
+                           `                   item => {  try {   ` && |\n|  &&
+                           `     item.VALUE = this.getView().byId( item.NAME ).getScrollDelegate().getScrollHeight();   ` && |\n|  &&
+                           `                 } catch (e) {` && |\n|  &&
+                           `            var ele = '#' + this.getView( ).byId(item.NAME).getId() + '-inner';`  && |\n|  &&
+                           `              item.VALUE =  $(ele).scrollTop(); ` && |\n|  &&
+                           `                 } ` && |\n|  &&
+                           `                 } );` && |\n|  &&
+                           `                    }` && |\n|  &&
+
+
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n|  &&
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                            `                    this.oBody.oEvent.vData = vData;` && |\n|  &&

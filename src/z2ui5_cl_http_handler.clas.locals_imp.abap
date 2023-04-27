@@ -1415,9 +1415,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     IF ms_next-s_set-t_scroll_pos IS NOT INITIAL.
-      data(lo_list) = lo_ui5_model->add_attribute_list( `oScroll` ).
+      DATA(lo_list) = lo_ui5_model->add_attribute_list( `oScroll` ).
       LOOP AT ms_next-s_set-t_scroll_pos REFERENCE INTO DATA(lr_focus).
-        lo_list->add_list_object( )->add_attribute( n = lr_focus->name v = lr_focus->value apos_active = abap_false ).
+        lo_list->add_list_object( )->add_attribute_struc( lr_focus->* ).
       ENDLOOP.
     ENDIF.
 

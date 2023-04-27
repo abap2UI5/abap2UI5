@@ -41,7 +41,6 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
 
     app-client     = client.
     app-s_get      = client->get( ).
-    app-view_popup = ``.
 
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
@@ -156,6 +155,9 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
 
     app-s_next-xml_main = page->get_root( )->xml_get( ).
     client->set_next( app-s_next ).
+
+    app-view_popup = ``.
+    clear app-s_next.
 
   ENDMETHOD.
 ENDCLASS.
