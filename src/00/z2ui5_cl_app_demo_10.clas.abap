@@ -19,7 +19,7 @@ CLASS Z2UI5_CL_APP_DEMO_10 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
-    DATA(page) = Z2UI5_CL_XML_VIEW=>factory(
+    DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
         )->page(
             title           = 'abap2UI5 - Demo Layout'
             navbuttonpress  = client->_event( 'BACK' )
