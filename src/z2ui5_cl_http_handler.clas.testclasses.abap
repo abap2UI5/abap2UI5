@@ -72,7 +72,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
         value    TYPE string,
         selected TYPE abap_bool,
       END OF ty_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
     DATA(lt_tab) = VALUE ty_t_tab(
          ( title = 'Test'  value = 'this is a description' selected = abap_true  )
@@ -104,7 +104,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
         value    TYPE string,
         selected TYPE abap_bool,
       END OF ty_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH DEFAULT KEY.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
     DATA(lt_tab) = VALUE ty_t_tab(
          ( title = 'Test'  value = 'this is a description' selected = abap_true  )
@@ -115,7 +115,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lv_tab) = /ui2/cl_json=>serialize( lt_tab ).
 
-    data lo_data type ref to data.
+    DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize(
       EXPORTING
         json             = lv_tab
@@ -126,7 +126,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
     z2ui5_lcl_utility=>trans_ref_tab_2_tab(
       EXPORTING
         ir_tab_from = lo_data
-      importing
+      IMPORTING
         t_result    = lt_tab2
     ).
 
@@ -149,9 +149,12 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
     DATA quantity TYPE string.
     DATA check_initialized TYPE abap_bool.
 
+    CLASS-DATA sv_state TYPE string.
+
   PRIVATE SECTION.
     METHODS test_index_html       FOR TESTING RAISING cx_static_check.
     METHODS test_xml_view         FOR TESTING RAISING cx_static_check.
+    METHODS test_id               FOR TESTING RAISING cx_static_check.
     METHODS test_xml_popup        FOR TESTING RAISING cx_static_check.
     METHODS test_bind_one_way     FOR TESTING RAISING cx_static_check.
     METHODS test_bind_two_way     FOR TESTING RAISING cx_static_check.
@@ -193,24 +196,104 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
     ENDCASE.
 
-    client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
-        )->page(
-                title          = 'abap2UI5 - First Example'
-                navbuttonpress = client->_event( 'BACK' )
-                shownavbutton  = abap_true
-            )->simple_form( title = 'Form Title' editable = abap_true
-                )->content( 'form'
-                    )->title( 'Input'
-                    )->label( 'quantity'
-                    )->input( client->_bind( quantity )
-                    )->label( 'product'
-                    )->input(
-                        value   = product
-                        enabled = abap_false
-                    )->button(
-                        text  = 'post'
-                        press = client->_event( 'BUTTON_POST' )
-         )->get_root( )->xml_get( ) ) ).
+    if sv_state = 'TEST_MESSAGE_BOX'.
+        client->popup_message_box(
+          text = 'test message box'
+        ).
+    ENDIF.
+
+    if sv_state = 'TEST_MESSAGE_TOAST'.
+        client->popup_message_toast(
+          text = 'test message toast'
+        ).
+    ENDIF.
+
+    CASE sv_state.
+
+      WHEN 'TEST_ONE_WAY'.
+        client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+            )->page(
+                    title          = 'abap2UI5 - First Example'
+                    navbuttonpress = client->_event( 'BACK' )
+                    shownavbutton  = abap_true
+                )->simple_form( title = 'Form Title' editable = abap_true
+                    )->content( 'form'
+                        )->title( 'Input'
+                        )->label( 'quantity'
+                        )->input( client->_bind_one( quantity )
+                        )->label( 'product'
+                        )->input(
+                            value   = product
+                            enabled = abap_false
+                        )->button(
+                            text  = 'post'
+                            press = client->_event( 'BUTTON_POST' )
+             )->get_root( )->xml_get( ) ) ).
+
+      WHEN 'TEST_POPUP'.
+        client->set_next( VALUE #( xml_popup = z2ui5_cl_xml_view=>factory(
+            )->dialog(
+                    title          = 'abap2UI5 - First Example'
+                )->simple_form( title = 'Form Title' editable = abap_true
+                    )->content( 'form'
+                        )->title( 'Input'
+                        )->label( 'quantity'
+                        )->input( client->_bind_one( quantity )
+                        )->label( 'product'
+                        )->input(
+                            value   = product
+                            enabled = abap_false
+                        )->button(
+                            text  = 'post'
+                            press = client->_event( 'BUTTON_POST' )
+             )->get_root( )->xml_get( ) ) ).
+
+    when 'TEST_TIMER'.
+         client->set_next( VALUE #(
+            s_timer = value #(
+               event_finished = 'TIMER_FINISHED'
+               interval_ms    =  `500`
+            )
+            xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+            )->page(
+                    title          = 'abap2UI5 - First Example'
+                    navbuttonpress = client->_event( 'BACK' )
+                    shownavbutton  = abap_true
+                )->simple_form( title = 'Form Title' editable = abap_true
+                    )->content( 'form'
+                        )->title( 'Input'
+                        )->label( 'quantity'
+                        )->input( client->_bind( quantity )
+                        )->label( 'product'
+                        )->input(
+                            value   = product
+                            enabled = abap_false
+                        )->button(
+                            text  = 'post'
+                            press = client->_event( 'BUTTON_POST' )
+             )->get_root( )->xml_get( ) ) ).
+
+      WHEN OTHERS.
+        client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+            )->page(
+                    title          = 'abap2UI5 - First Example'
+                    navbuttonpress = client->_event( 'BACK' )
+                    shownavbutton  = abap_true
+                )->simple_form( title = 'Form Title' editable = abap_true
+                    )->content( 'form'
+                        )->title( 'Input'
+                        )->label( 'quantity'
+                        )->input( client->_bind( quantity )
+                        )->label( 'product'
+                        )->input(
+                            value   = product
+                            enabled = abap_false
+                        )->button(
+                            text  = 'post'
+                            press = client->_event( 'BUTTON_POST' )
+             )->get_root( )->xml_get( ) ) ).
+
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -220,6 +303,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
+    ltcl_unit_02_app_start=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
     DATA lo_data TYPE REF TO data.
@@ -229,26 +313,36 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
       CHANGING
         data             = lo_data ).
 
-    DATA lv_assign TYPE string.
     FIELD-SYMBOLS <val> TYPE any.
-
     UNASSIGN <val>.
-    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `500`.
-      cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
-    ENDIF.
-
-    UNASSIGN <val>.
-    lv_assign = `VVIEW->*`.
+    DATA(lv_assign) = `VVIEW->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val>(9) <> `<mvc:View`.
       cl_abap_unit_assert=>fail( msg = 'xml view - intital view wrong' quit = 5 ).
     ENDIF.
 
+  ENDMETHOD.
+
+  METHOD test_id.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    ltcl_unit_02_app_start=>sv_state = ``.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    lv_assign = `OSYSTEM->ID->*`.
+    DATA(lv_assign) = `OSYSTEM->ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
@@ -258,25 +352,196 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_bind_one_way.
 
+    z2ui5_cl_http_handler=>client = VALUE #(
+         t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+         ).
+
+    ltcl_unit_02_app_start=>sv_state = `TEST_ONE_WAY`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+    UNASSIGN <val>.
+    DATA(lv_assign) = `OVIEWMODEL->QUANTITY->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `500`.
+      cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_bind_two_way.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+         t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+         ).
+
+    ltcl_unit_02_app_start=>sv_state = ``.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+    UNASSIGN <val>.
+    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `500`.
+      cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD test_message_box.
 
+   z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    ltcl_unit_02_app_start=>sv_state = `TEST_MESSAGE_BOX`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `MessageBox`.
+      cl_abap_unit_assert=>fail( msg = 'message box - control wrong' quit = 5 ).
+    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `OMESSAGE->TEXT->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `test message box`.
+      cl_abap_unit_assert=>fail( msg = 'message box - text wrong' quit = 5 ).
+    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `OMESSAGE->TYPE->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `information`.
+      cl_abap_unit_assert=>fail( msg = 'message box - type wrong' quit = 5 ).
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_message_toast.
+
+  z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    ltcl_unit_02_app_start=>sv_state = `TEST_MESSAGE_TOAST`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `MessageToast`.
+      cl_abap_unit_assert=>fail( msg = 'message toast - control wrong' quit = 5 ).
+    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `OMESSAGE->TEXT->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `test message toast`.
+      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
+    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `OMESSAGE->TYPE->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `show`.
+      cl_abap_unit_assert=>fail( msg = 'message toast - type wrong' quit = 5 ).
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD test_timer.
 
+   z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    ltcl_unit_02_app_start=>sv_state = `TEST_TIMER`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    DATA(lv_assign) = `OTIMER->EVENT_FINISHED->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `TIMER_FINISHED`.
+      cl_abap_unit_assert=>fail( msg = 'timer - event wrong' quit = 5 ).
+    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `OTIMER->INTERVAL_MS->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> <> `500`.
+      cl_abap_unit_assert=>fail( msg = 'timer - ms wrong' quit = 5 ).
+    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_xml_popup.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    ltcl_unit_02_app_start=>sv_state = `TEST_POPUP`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+    UNASSIGN <val>.
+    DATA(lv_assign) = `VVIEWPOPUP->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    <val> = shift_left( <val> ).
+    IF <val>(9) <> `<mvc:View`.
+      cl_abap_unit_assert=>fail( msg = 'xml popup - intital popup wrong' quit = 5 ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -354,11 +619,10 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
       CHANGING
         data             = lo_data ).
 
-    DATA lv_assign TYPE string.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
@@ -392,7 +656,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
   ENDMETHOD.
 
-endclass.
+ENDCLASS.
 
 CLASS ltcl_unit_test_deep_data DEFINITION FINAL FOR TESTING
   DURATION SHORT
@@ -475,13 +739,12 @@ CLASS ltcl_unit_test_deep_data IMPLEMENTATION.
       CHANGING
         data             = lo_data ).
 
-    DATA lv_assign TYPE string.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE any.
-    lv_assign = `OVIEWMODEL->T_TAB->*`.
+    DATA(lv_assign) = `OVIEWMODEL->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 

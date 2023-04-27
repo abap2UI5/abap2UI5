@@ -546,13 +546,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_name,
-        n       TYPE string,
-        v       TYPE string,
-        no_apos TYPE abap_bool,
-      END OF ty_s_name.
-
     DATA mo_root TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mo_parent TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mv_name   TYPE string.
