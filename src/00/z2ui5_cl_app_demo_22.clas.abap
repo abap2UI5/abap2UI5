@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -67,15 +67,17 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
       WHEN 'BUTTON_SCROLL_BOTTOM'.
         app-s_next-t_scroll_pos = VALUE #( ( name = 'id_page' value = '99999' ) ).
 
-        " WHEN 'BUTTON_SCROLL_UP'.
-        "    DATA(lv_pos) = client->get( )-page_scroll_pos - 500.
-        "   client->set( page_scroll_pos = COND #( WHEN lv_pos < 0 THEN 0 ELSE lv_pos ) ).
+      WHEN 'BUTTON_SCROLL_UP'.
+        DATA(lv_pos) = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ) - 500.
+        app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
-        "  WHEN 'BUTTON_SCROLL_DOWN'.
-        "    client->set( page_scroll_pos = client->get( )-page_scroll_pos + 500 ).
+      WHEN 'BUTTON_SCROLL_DOWN'.
+        lv_pos = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ) + 500.
+        app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
-        "  WHEN 'BUTTON_SCROLL_HOLD'.
-        "  client->set( page_scroll_pos = client->get( )-page_scroll_pos ).
+      WHEN 'BUTTON_SCROLL_HOLD'.
+        lv_pos = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ).
+        app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
       WHEN 'BUTTON_FOCUS_FIRST'.
         app-s_next-s_cursor_pos =  VALUE #( id = 'id_text1'  cursorpos = '3' selectionstart = '3' selectionend = '3' ).
@@ -99,7 +101,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
     ENDCASE.
 
 
-    DATA(view) = Z2UI5_CL_XML_VIEW=>factory( )->shell( ).
+    DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
     DATA(page) = view->page(
         id = 'id_page'
         title = 'abap2ui5 - Scrolling and Cursor (use the browser Chrome to avoid incompatibilities)'
@@ -107,7 +109,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         shownavbutton = abap_true
         ).
 
-    page->header_content( )->link( text = 'Source_Code' target = '_blank' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) ) ).
+    page->header_content( )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) ) ).
 
 
     page->input(
@@ -146,18 +148,18 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
 
     page->footer( )->overflow_toolbar(
           )->button( text = 'Scroll Top'     press = client->_event( 'BUTTON_SCROLL_TOP' )
-     "    )->button( text = 'Scroll 500 up'   press = view->_event( 'BUTTON_SCROLL_UP' )
-     "    )->button( text = 'Scroll 500 down' press = view->_event( 'BUTTON_SCROLL_DOWN' )
+         )->button( text = 'Scroll 500 up'   press = client->_event( 'BUTTON_SCROLL_UP' )
+         )->button( text = 'Scroll 500 down' press = client->_event( 'BUTTON_SCROLL_DOWN' )
          )->button( text = 'Scroll Bottom'   press = client->_event( 'BUTTON_SCROLL_BOTTOM' )
-       "  )->toolbar_spacer(
-       "  )->button( text = 'Server Event and hold position' press = view->_event( 'BUTTON_SCROLL_HOLD' )
+         )->toolbar_spacer(
+         )->button( text = 'Server Event and hold position' press = client->_event( 'BUTTON_SCROLL_HOLD' )
        ).
 
     app-s_next-xml_main = page->get_root( )->xml_get( ).
     client->set_next( app-s_next ).
 
     app-view_popup = ``.
-    clear app-s_next.
+    CLEAR app-s_next.
 
   ENDMETHOD.
 ENDCLASS.

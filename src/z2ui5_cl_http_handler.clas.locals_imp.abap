@@ -1498,6 +1498,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+    TRY.
+        DATA(lo_scroll) = mo_body->get_attribute( `OSCROLL` ).
+        z2ui5_lcl_utility=>trans_ref_tab_2_tab(
+            EXPORTING ir_tab_from = lo_scroll->mr_actual
+            CHANGING  ct_to       = result->ms_actual-t_scroll_pos ).
+      CATCH cx_root.
+    ENDTRY.
+
   ENDMETHOD.
 
 
