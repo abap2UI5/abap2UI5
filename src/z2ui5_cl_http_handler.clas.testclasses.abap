@@ -161,6 +161,9 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
     METHODS test_message_toast    FOR TESTING RAISING cx_static_check.
     METHODS test_message_box      FOR TESTING RAISING cx_static_check.
     METHODS test_timer            FOR TESTING RAISING cx_static_check.
+    METHODS test_landing_page     FOR TESTING RAISING cx_static_check.
+    METHODS test_scroll_cursor    FOR TESTING RAISING cx_static_check.
+    METHODS test_navigate         FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -207,6 +210,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
         text = 'test message toast'
       ).
     ENDIF.
+
 
     CASE sv_state.
 
@@ -294,6 +298,30 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
              )->get_root( )->xml_get( ) ) ).
 
     ENDCASE.
+
+    IF sv_state = 'TEST_SCROLL_CURSOR'.
+
+      client->set_next( VALUE #(
+       xml_main = `test`
+       s_cursor_pos  = VALUE #( id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10' )
+       t_scroll_pos = VALUE #(
+                ( name = 'id_page'  value = '99999' )
+                ( name = 'id_text3' value = '99999' )
+               )
+       ) ).
+
+    ENDIF.
+
+    IF sv_state = 'TEST_NAVIGATE'.
+      DATA(lo_app) = NEW ltcl_unit_02_app_start( ).
+      sv_state = 'LEAVE_APP'.
+      client->nav_app_call( lo_app ).
+      return.
+    ENDIF.
+
+    IF sv_state = 'LEAVE_APP'.
+      client->nav_app_leave( client->get_app( client->get( )-id_prev_app ) ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -545,6 +573,93 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_landing_page.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_header = VALUE #( ( name = 'referer' value = 'dummy' ) )
+       ).
+
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+    UNASSIGN <val>.
+    DATA(lv_assign) = `VVIEW->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    <val> = shift_left( <val> ).
+    IF NOT <val> CS `Step 4`.
+      cl_abap_unit_assert=>fail( msg = 'landing page - not started when no app' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_scroll_cursor.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    sv_state = `TEST_SCROLL_CURSOR`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+*    UNASSIGN <val>.
+*    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `MessageBox`.
+*      cl_abap_unit_assert=>fail( msg = 'message box - control wrong' quit = 5 ).
+*    ENDIF.
+*
+*    UNASSIGN <val>.
+*    lv_assign = `OMESSAGE->TEXT->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `test message box`.
+*      cl_abap_unit_assert=>fail( msg = 'message box - text wrong' quit = 5 ).
+*    ENDIF.
+*
+*    UNASSIGN <val>.
+*    lv_assign = `OMESSAGE->TYPE->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `information`.
+*      cl_abap_unit_assert=>fail( msg = 'message box - type wrong' quit = 5 ).
+*    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_navigate.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    sv_state = `TEST_NAVIGATE`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS ltcl_unit_03_app_ajax DEFINITION FINAL FOR TESTING
@@ -558,10 +673,11 @@ CLASS ltcl_unit_03_app_ajax DEFINITION FINAL FOR TESTING
     DATA product  TYPE string.
     DATA quantity TYPE string.
     DATA check_initialized TYPE abap_bool.
-
+    CLASS-DATA sv_state TYPE string.
   PRIVATE SECTION.
     METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
     METHODS test_app_event        FOR TESTING RAISING cx_static_check.
+    METHODS test_app_dump         FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -582,6 +698,10 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
     ENDCASE.
+
+    IF sv_state = 'ERROR'.
+      DATA(lv_test) = 1 / 0.
+    ENDIF.
 
     client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
         )->page(
@@ -678,7 +798,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
     lv_response = z2ui5_cl_http_handler=>http_post(  ).
 
-    clear lo_data.
+    CLEAR lo_data.
     /ui2/cl_json=>deserialize(
       EXPORTING
          json            = lv_response
@@ -690,6 +810,33 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `tomato 700 - send to the server`.
       cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_app_dump.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+          t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_03_APP_AJAX' ) )
+          ).
+
+    sv_state = `ERROR`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+    UNASSIGN <val>.
+    DATA(lv_assign) = `VVIEW->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    <val> = shift_left( <val> ).
+    IF NOT <val> CS `MessagePage`.
+      cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -780,7 +927,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
 
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row> TYPE ref to data.
+    FIELD-SYMBOLS <row> TYPE REF TO data.
     DATA(lv_assign) = `OVIEWMODEL->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
