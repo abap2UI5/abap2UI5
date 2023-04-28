@@ -701,7 +701,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ENDCASE.
 
     IF sv_state = 'ERROR'.
-      DATA(lv_test) = 1 / 0 ##NEEDED.
+      z2ui5_lcl_utility=>raise( `exception test` ).
     ENDIF.
 
     client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
