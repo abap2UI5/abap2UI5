@@ -320,6 +320,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     ENDIF.
 
     IF sv_state = 'LEAVE_APP'.
+      CLEAR sv_state.
       client->nav_app_leave( client->get_app( client->get( )-id_prev_app ) ).
     ENDIF.
 
@@ -593,8 +594,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `VVIEW->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
-    IF <val> CS `Step 4`.
-    ELSE.
+    IF <val> NS `Step 4`.
       cl_abap_unit_assert=>fail( msg = 'landing page - not started when no app' quit = 5 ).
     ENDIF.
 
@@ -616,7 +616,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
       CHANGING
         data             = lo_data ).
 
-   " FIELD-SYMBOLS <val> TYPE any.
+    " FIELD-SYMBOLS <val> TYPE any.
 
 *    UNASSIGN <val>.
 *    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
@@ -657,7 +657,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
       CHANGING
         data             = lo_data ).
 
-  "  FIELD-SYMBOLS <val> TYPE any.
+    "  FIELD-SYMBOLS <val> TYPE any.
 
   ENDMETHOD.
 
@@ -701,7 +701,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ENDCASE.
 
     IF sv_state = 'ERROR'.
-      DATA(lv_test) = 1 / 0 ##needed.
+      DATA(lv_test) = 1 / 0 ##NEEDED.
     ENDIF.
 
     client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
@@ -836,8 +836,8 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     DATA(lv_assign) = `VVIEW->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
-    IF <val> CS `MessagePage`.
-    else.
+    IF <val> NS `MessagePage`.
+    ELSE.
       cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
     ENDIF.
 
