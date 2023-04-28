@@ -837,7 +837,6 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val> NS `MessagePage`.
-    ELSE.
       cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
     ENDIF.
 
