@@ -123,27 +123,23 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    var oView = this.getView();` && |\n|  &&
                            `                    try {` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n|  &&
-                           `                            var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.id).getFocusInfo();` && |\n|  &&
-                           `                            ofocus.cursorPos = sap.z2ui5.oResponse.oCursor.cursorPos;` && |\n|  &&
-                           `                            ofocus.selectionStart = sap.z2ui5.oResponse.oCursor.selectionStart;` && |\n|  &&
-                           `                            ofocus.selectionEnd = sap.z2ui5.oResponse.oCursor.selectionEnd;` && |\n|  &&
+                           `                            var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.ID).getFocusInfo();` && |\n|  &&
+                           `                            ofocus.cursorPos = parseInt( sap.z2ui5.oResponse.oCursor.CURSORPOS );` && |\n|  &&
+                           `                            ofocus.selectionStart = parseInt( sap.z2ui5.oResponse.oCursor.SELECTIONSTART );` && |\n|  &&
+                           `                            ofocus.selectionEnd = parseInt( sap.z2ui5.oResponse.oCursor.SELECTIONEND );` && |\n|  &&
                            `                        }` && |\n|  &&
-                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.id).applyFocusInfo(ofocus);` && |\n|  &&
+                           `                        oView.byId(sap.z2ui5.oResponse.oCursor.ID).applyFocusInfo(ofocus);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
                            `                    try {` && |\n|  &&
-                           `                        //     oView.getContent()[0].getApp().scrollTo(sap.z2ui5.oResponse.PAGE_SCROLL_POS);` && |\n|  &&
                            `                    } catch (error) { };` && |\n|  &&
-                           `                    //todo` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
-                           `                        sap.z2ui5.oResponse.oScroll.forEach(item => Object.keys(item).forEach(function (key, index) {` && |\n|  &&
-                           `                            try {` && |\n|  &&
-                           `                                oView.byId(key).scrollTo(item[key]);` && |\n|  &&
-                           `                            } catch (e) {` && |\n|  &&
-                           `                                var ele = '#' + oView.byId(key).getId() + '-inner';` && |\n|  &&
-                           `                                $(ele).scrollTop(item[key]);` && |\n|  &&
-                           `                            }` && |\n|  &&
-                           `                            // index: the ordinal position of the key within the object ` && |\n|  &&
-                           `                        }));` && |\n|  &&
+                           `                  sap.z2ui5.oResponse.oScroll.forEach(` && |\n|  &&
+                           `                   item => {  try {   oView.byId(item.NAME).scrollTo( parseInt( item.VALUE ) );   ` && |\n|  &&
+                           `                 } catch (e) {` && |\n|  &&
+                           `            var ele = '#' + oView.byId(item.NAME).getId() + '-inner';`  && |\n|  &&
+                           `                  $(ele).scrollTop(item.VALUE); ` && |\n|  &&
+                           `                 } ` && |\n|  &&
+                           `                 } );` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.vViewPopup) {` && |\n|  &&
                            `     ` && |\n|  &&
@@ -163,9 +159,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.oTimer){ ` && |\n|  &&
                            `                    var oEvent = { 'EVENT' : 'BUTTON_CHECK', 'METHOD' : 'UPDATE' };` && |\n|  &&
-                           `                    oEvent.EVENT = sap.z2ui5.oResponse.oTimer.eventFinished;` && |\n|  &&
+                           `                    oEvent.EVENT = sap.z2ui5.oResponse.oTimer.EVENT_FINISHED;` && |\n|  &&
                            `                    sap.z2ui5.checkTimerActive = true;` && |\n|  &&
-                           `                    setTimeout( ( ) => { if ( sap.z2ui5.checkTimerActive ) { sap.z2ui5.oView.getController().onEvent( oEvent ); } }, sap.z2ui5.oResponse.oTimer.intervalMs, oEvent );` && |\n|  &&
+                           `                    setTimeout( ( ) => { if ( sap.z2ui5.checkTimerActive ) { sap.z2ui5.oView.getController().onEvent( oEvent ); } }, parseInt( sap.z2ui5.oResponse.oTimer.INTERVAL_MS ) , oEvent );` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `                },` && |\n|  &&
@@ -203,6 +199,19 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        this.oBody.oUpdate = sap.z2ui5.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                    }` && |\n|  &&
                            |\n|  &&
+                                            ` if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
+                                `             this.oBody.oScroll = sap.z2ui5.oResponse.oScroll; ` && |\n|  &&
+                           `                  this.oBody.oScroll .forEach(` && |\n|  &&
+                           `                   item => {  try {   ` && |\n|  &&
+                           `     item.VALUE = this.getView().byId( item.NAME ).getScrollDelegate().getScrollTop();   ` && |\n|  &&
+                           `                 } catch (e) {` && |\n|  &&
+                           `            var ele = '#' + this.getView( ).byId(item.NAME).getId() + '-inner';`  && |\n|  &&
+                           `              item.VALUE =  $(ele).scrollTop(); ` && |\n|  &&
+                           `                 } ` && |\n|  &&
+                           `                 } );` && |\n|  &&
+                           `                    }` && |\n|  &&
+
+
                            `                    this.oBody.oSystem = sap.z2ui5.oResponse.oSystem;` && |\n|  &&
                            `                    this.oBody.oEvent = oEvent;` && |\n|  &&
                            `                    this.oBody.oEvent.vData = vData;` && |\n|  &&
@@ -251,9 +260,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                            }` && |\n|  &&
                            `                        }` && |\n|  &&
                            |\n|  &&
-                           `                        if (sap.z2ui5.oResponse.oAfter) {` && |\n|  &&
-                           `                            sap.z2ui5.oResponse.oAfter.forEach(item => sap.m[item[0]][item[1]](item[2]));` && |\n|  &&
-                           `                        }` && |\n|  &&
+                           `                       if (sap.z2ui5.oResponse.oMessage) {` && |\n|  &&
+                           `                             sap.m[sap.z2ui5.oResponse.oMessage.CONTROL][sap.z2ui5.oResponse.oMessage.TYPE](sap.z2ui5.oResponse.oMessage.TEXT);` && |\n|  &&
+                           `                          }` && |\n|  &&
                            |\n|  &&
                            `                        if (sap.z2ui5.oResponse.vView) {` && |\n|  &&
                            `                            var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.oViewModel);` && |\n|  &&

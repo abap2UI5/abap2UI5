@@ -14,8 +14,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       END OF ty_attri.
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
-    TYPES ty_tt_string TYPE STANDARD TABLE OF string_table WITH EMPTY KEY.
-
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
@@ -65,12 +63,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(result) TYPE timestampl.
 
-    CLASS-METHODS trans_json_2_data
-      IMPORTING
-        iv_json   TYPE clike
-      EXPORTING
-        ev_result TYPE REF TO data.
-
     CLASS-METHODS trans_any_2_json
       IMPORTING
         any           TYPE any
@@ -83,14 +75,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       EXPORTING
         data TYPE data.
 
-    CLASS-METHODS get_attri_name_by_ref
-      IMPORTING
-        i_focus       TYPE data
-        io_app        TYPE REF TO object
-        t_attri       TYPE ty_t_attri
-      RETURNING
-        VALUE(result) TYPE string ##NEEDED.
-
     CLASS-METHODS get_t_attri_by_ref
       IMPORTING
         io_app        TYPE REF TO object
@@ -102,26 +86,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         object        TYPE data
       RETURNING
         VALUE(result) TYPE string.
-
-    CLASS-METHODS get_params_by_url
-      IMPORTING
-        url           TYPE string
-        name          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS get_prev_when_no_handler
-      IMPORTING
-        val           TYPE REF TO cx_root
-      RETURNING
-        VALUE(result) TYPE REF TO cx_root.
-
-    CLASS-METHODS get_ref_data
-      IMPORTING
-        n             TYPE clike
-        o             TYPE REF TO object
-      RETURNING
-        VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS get_abap_2_json
       IMPORTING
@@ -144,8 +108,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING
         ir_tab_from TYPE REF TO data
-      CHANGING
-        ct_to       TYPE STANDARD TABLE.
+      EXPORTING
+        t_result    TYPE STANDARD TABLE.
 
     CLASS-METHODS get_trim_upper
       IMPORTING
@@ -230,51 +194,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_params_by_url.
-
-    DATA(url_segments) = segment( val = get_trim_upper( url ) index = 2 sep = `?` ).
-    SPLIT url_segments AT `&` INTO TABLE DATA(lt_params).
-
-    DATA lt_url_params TYPE z2ui5_if_client=>ty_t_name_value.
-
-    LOOP AT lt_params INTO DATA(lv_param).
-
-      SPLIT lv_param AT `=` INTO DATA(lv_name) DATA(lv_value) DATA(lv_dummy).
-
-      INSERT VALUE #( name  = lv_name
-                      value = lv_value ) INTO TABLE lt_url_params.
-
-    ENDLOOP.
-
-    result = lt_url_params[ name = get_trim_upper( name ) ]-value.
-
-  ENDMETHOD.
-
-  METHOD get_prev_when_no_handler.
-
-    TRY.
-        result = CAST cx_sy_no_handler( val )->previous.
-      CATCH cx_root.
-    ENDTRY.
-
-    IF result IS NOT BOUND.
-      result = val.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_ref_data.
-
-    FIELD-SYMBOLS <field> TYPE data.
-
-    ASSIGN o->(n) TO <field>.
-    raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-    result = REF #( <field> ).
-
-  ENDMETHOD.
-
 
   METHOD get_timestampl.
 
@@ -343,31 +262,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_attri_name_by_ref.
-
-    CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
-
-    DATA lr_in TYPE REF TO data.
-    GET REFERENCE OF i_focus INTO lr_in.
-
-    LOOP AT t_attri REFERENCE INTO DATA(lr_attri).
-
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
-
-      DATA lr_ref TYPE REF TO data.
-      GET REFERENCE OF <attribute> INTO lr_ref.
-
-      IF lr_in = lr_ref.
-        result = to_upper( lr_attri->name ).
-        EXIT.
-      ENDIF.
-
-    ENDLOOP.
-
-  ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
 
@@ -427,23 +321,6 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD trans_json_2_data.
-
-    CLEAR ev_result.
-    IF iv_json IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    /ui2/cl_json=>deserialize(
-        EXPORTING
-            json         = CONV string( iv_json )
-            assoc_arrays = abap_true
-        CHANGING
-            data         = ev_result
-        ).
-
-  ENDMETHOD.
-
 
   METHOD trans_object_2_xml.
 
@@ -467,10 +344,10 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ASSIGN ir_tab_from->* TO <lt_from>.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    CLEAR ct_to.
+    CLEAR t_result.
 
     DATA lr_row TYPE REF TO data.
-    CREATE DATA lr_row LIKE LINE OF ct_to.
+    CREATE DATA lr_row LIKE LINE OF t_result.
     ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
 
     DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <row> ).
@@ -504,7 +381,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
-      INSERT <row> INTO TABLE ct_to.
+      INSERT <row> INTO TABLE t_result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -548,15 +425,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_name,
-        n       TYPE string,
-        v       TYPE string,
-        no_apos TYPE abap_bool,
-      END OF ty_s_name.
-
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name.
-
     DATA mo_root TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mo_parent TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mv_name   TYPE string.
@@ -595,10 +463,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS get_parent
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
     METHODS add_list_val
       IMPORTING
         v             TYPE string
@@ -613,15 +477,15 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
-    METHODS add_attributes_name_value_tab
-      IMPORTING
-        it_name_value TYPE ty_t_name_value
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
     METHODS add_attribute_object
       IMPORTING
         name          TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS add_attribute_struc
+      IMPORTING
+        val           TYPE data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
@@ -649,9 +513,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS get_name
-      RETURNING
-        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -692,20 +553,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_attributes_name_value_tab.
-
-    LOOP AT it_name_value INTO DATA(ls_value).
-      add_attribute(
-           n           = ls_value-n
-           v           = ls_value-v
-           apos_active = xsdbool( ls_value-no_apos = abap_false ) ).
-    ENDLOOP.
-
-    result = me.
-
-  ENDMETHOD.
-
-
   METHOD add_attribute_instance.
 
     val->mo_root = mo_root.
@@ -723,6 +570,21 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD add_attribute_struc.
+
+    FIELD-SYMBOLS <value> TYPE any.
+    DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_datadescr=>describe_by_data( val ) ).
+    DATA(lt_comp) = lo_struc->get_components( ).
+
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+      ASSIGN COMPONENT lr_comp->name OF STRUCTURE val TO <value>.
+      add_attribute( n = lr_comp->name v = <value> ).
+    ENDLOOP.
+
+    result = me.
+
+  ENDMETHOD.
 
   METHOD add_attribute_object.
 
@@ -824,19 +686,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_name.
-
-    result = mv_name.
-
-  ENDMETHOD.
-
-
-  METHOD get_parent.
-
-    result = COND #( WHEN mo_parent IS NOT BOUND THEN me ELSE mo_parent ).
-
-  ENDMETHOD.
-
 
   METHOD get_root.
 
@@ -914,8 +763,12 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       BEGIN OF ty_s_next,
         check_app_leave TYPE abap_bool,
         o_call_app      TYPE REF TO z2ui5_if_app,
-        t_after         TYPE z2ui5_lcl_utility=>ty_tt_string,
         s_set           TYPE z2ui5_if_client=>ty_S_next,
+        BEGIN OF s_msg,
+          control TYPE string,
+          type    TYPE string,
+          text    TYPE string,
+        END OF s_msg,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -1403,46 +1256,35 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    z2ui5_lcl_utility=>raise( when = xsdbool( ms_next-s_set-check_set_prev_view = abap_false AND ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL )
-              v    = `No view or popup found. Check your view rendering!` ).
+    IF ms_next-s_set-check_set_prev_view = abap_false AND ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL.
+      z2ui5_lcl_utility=>raise( `No view or popup found. Check your view rendering!` ).
+    ENDIF.
 
-    lo_ui5_model->add_attribute_object( `oSystem`
-        )->add_attribute( n = `ID`                 v = ms_db-id
-     "   )->add_attribute( n = `CHECK_DEBUG_ACTIVE` v = z2ui5_lcl_utility=>get_abap_2_json( abap_true ) apos_active = abap_false
-      ).
+    lo_ui5_model->add_attribute_object( `oSystem` )->add_attribute( n = `ID` v = ms_db-id ).
 
-    IF ms_next-t_after IS NOT INITIAL.
-      DATA(lo_list) = lo_ui5_model->add_attribute_list( `oAfter` ).
-      LOOP AT ms_next-t_after REFERENCE INTO DATA(lr_after).
-        DATA(lo_list2) = lo_list->add_list_list( ).
-        LOOP AT lr_after->* REFERENCE INTO DATA(lr_con).
-          lo_list2->add_list_val( lr_con->* ).
-        ENDLOOP.
+    IF ms_next-s_msg IS NOT INITIAL.
+      lo_ui5_model->add_attribute_object( `oMessage` )->add_attribute_struc( ms_next-s_msg ).
+    ENDIF.
+
+    IF ms_next-s_set-t_scroll_pos IS NOT INITIAL.
+      DATA(lo_list) = lo_ui5_model->add_attribute_list( `oScroll` ).
+      LOOP AT ms_next-s_set-t_scroll_pos REFERENCE INTO DATA(lr_focus).
+        lo_list->add_list_object( )->add_attribute_struc( lr_focus->* ).
       ENDLOOP.
     ENDIF.
 
-    lo_list = lo_ui5_model->add_attribute_list( `oScroll` ).
-    LOOP AT ms_next-s_set-t_scroll_pos REFERENCE INTO DATA(lr_focus).
-      lo_list->add_list_object( )->add_attribute( n = lr_focus->name v = lr_focus->value apos_active = abap_false ).
-    ENDLOOP.
-
     IF ms_next-s_set-s_cursor_pos IS NOT INITIAL.
-      lo_ui5_model->add_attribute_object( `oCursor`
-          )->add_attribute( n = `cursorPos`       v = ms_next-s_set-s_cursor_pos-cursorpos apos_active = abap_false
-          )->add_attribute( n = `id`              v = ms_next-s_set-s_cursor_pos-id
-          )->add_attribute( n = `selectionEnd`    v = ms_next-s_set-s_cursor_pos-selectionend apos_active = abap_false
-          )->add_attribute( n = `selectionStart`  v = ms_next-s_set-s_cursor_pos-selectionstart apos_active = abap_false ).
+      lo_ui5_model->add_attribute_object( `oCursor` )->add_attribute_struc( ms_next-s_set-s_cursor_pos ).
     ENDIF.
 
     IF ms_next-s_set-s_timer IS NOT INITIAL.
-      lo_ui5_model->add_attribute_object( `oTimer`
-          )->add_attribute( n = `eventFinished`  v = ms_next-s_set-s_timer-event_finished
-          )->add_attribute( n = `intervalMs`     v = ms_next-s_set-s_timer-interval_ms apos_active = abap_false ).
+      lo_ui5_model->add_attribute_object( `oTimer` )->add_attribute_struc( ms_next-s_set-s_timer ).
     ENDIF.
 
     IF ms_next-s_set-check_set_prev_view = abap_true.
       lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
     ENDIF.
+
     result = lo_ui5_model->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
@@ -1496,7 +1338,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         WHEN `h`.
           z2ui5_lcl_utility=>trans_ref_tab_2_tab(
                EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-               CHANGING ct_to   = <attribute> ).
+               IMPORTING t_result    = <attribute> ).
 
         WHEN OTHERS.
       ENDCASE.
@@ -1505,6 +1347,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     TRY.
         result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
         result->ms_actual-event_data = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_scroll) = mo_body->get_attribute( `OSCROLL` ).
+        z2ui5_lcl_utility=>trans_ref_tab_2_tab(
+            EXPORTING ir_tab_from = lo_scroll->mr_actual
+            IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1568,7 +1418,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app       = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
-    result->ms_next-t_after = ms_next-t_after.
+    result->ms_next-s_msg = ms_next-s_msg.
 
     result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
     CLEAR ms_next.
@@ -1679,10 +1529,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       result->ms_db-id_prev_app = ms_db-id.
       result->ms_db-id_prev_app_stack = ms_db-id.
-
-      result->ms_next-t_after = ms_next-t_after.
-
-
+      result->ms_next-s_msg = ms_next-s_msg.
       result->ms_db-id_prev_app = ms_db-id.
 
     ELSE.
@@ -1763,14 +1610,22 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_message_toast.
 
-    INSERT VALUE #( ( `MessageToast` ) ( `show` ) ( text ) ) INTO TABLE mo_handler->ms_next-t_after.
+    mo_handler->ms_next-s_msg =  VALUE #(
+        control = `MessageToast`
+        type    = `show`
+        text    = text
+    ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_message_box.
 
-    INSERT VALUE #( ( `MessageBox` ) ( type ) ( text ) ) INTO TABLE mo_handler->ms_next-t_after.
+    mo_handler->ms_next-s_msg =  VALUE #(
+        control = `MessageBox`
+        type    = type
+        text    = text
+    ).
 
   ENDMETHOD.
 
@@ -1787,6 +1642,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
          event             = mo_handler->ms_actual-event
          event_data        = mo_handler->ms_actual-event_data
+         t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
          t_req_header      = z2ui5_cl_http_handler=>client-t_header
          t_req_param       = z2ui5_cl_http_handler=>client-t_param
      ).
