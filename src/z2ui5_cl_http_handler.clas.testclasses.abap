@@ -780,7 +780,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
 
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <row> TYPE ref to data.
     DATA(lv_assign) = `OVIEWMODEL->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
