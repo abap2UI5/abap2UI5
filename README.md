@@ -40,7 +40,7 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 
 #### Demo
 ![gif_demo2](https://user-images.githubusercontent.com/102328295/235298442-7e444942-3063-43ff-ad4d-6434ddcc169e.gif)
-
+<img src="https://user-images.githubusercontent.com/102328295/235298442-7e444942-3063-43ff-ad4d-6434ddcc169e.gif" width="250" height="250"/>
 #### Installation
 Install with [abapGit](https://abapgit.org), create a new HTTP service and call abap2UI5. For more information, check out this [documentation.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 
