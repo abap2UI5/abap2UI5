@@ -33,12 +33,6 @@ Development of UI5 Apps in pure ABAP. Follow this project on [Twitter](https://t
 * Development of UI5 Selection Screens in pure ABAP (former version) [(Blog SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 
 #### Demo
-![gif_git](https://user-images.githubusercontent.com/102328295/227471575-617dad73-5c3a-4ed2-be31-fe537ca0c080.gif)
-
-#### test
-![gif_demo](https://user-images.githubusercontent.com/102328295/235298346-2b9e727e-63de-41f8-a92d-6a70e968f751.gif)
-
-#### Demo
 <img src="https://user-images.githubusercontent.com/102328295/235298442-7e444942-3063-43ff-ad4d-6434ddcc169e.gif" width="665" height="500"/>
 
 #### Installation
