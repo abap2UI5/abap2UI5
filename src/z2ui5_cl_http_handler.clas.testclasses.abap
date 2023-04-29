@@ -10,6 +10,7 @@ CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
     METHODS test_json_struc     FOR TESTING RAISING cx_static_check.
     METHODS test_json_trans     FOR TESTING RAISING cx_static_check.
     METHODS test_json_trans_gen FOR TESTING RAISING cx_static_check.
+    METHODS test_utility        FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -132,6 +133,21 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     IF lt_tab <> lt_tab2.
       cl_abap_unit_assert=>fail( msg = 'json serial -  /ui2/cl_json wrong generic table' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_utility.
+
+    DATA(lv_one) = z2ui5_lcl_utility=>get_uuid_session( ).
+    DATA(lv_two) = z2ui5_lcl_utility=>get_uuid_session( ).
+
+    IF lv_one <> `1`.
+      cl_abap_unit_assert=>fail( msg = 'utility - create session id' quit = 5 ).
+    ENDIF.
+
+    IF lv_two <> `2`.
+      cl_abap_unit_assert=>fail( msg = 'utility - create session id' quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -864,10 +880,14 @@ CLASS ltcl_unit_04_deep_data DEFINITION FINAL FOR TESTING
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    CLASS-DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    CLASS-DATA sv_status TYPE string.
 
   PRIVATE SECTION.
-    METHODS test_app_deep_data FOR TESTING RAISING cx_static_check.
+    METHODS test_app_deep_data        FOR TESTING RAISING cx_static_check.
+    METHODS test_app_deep_data_change FOR TESTING RAISING cx_static_check.
+    METHODS test_app_all              FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -886,27 +906,51 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
 
     ENDIF.
 
-    client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
-        )->page(
-                title          = 'abap2UI5 - First Example'
-                navbuttonpress = client->_event( 'BACK' )
-                shownavbutton  = abap_true
-        )->list(
-            headertext      = 'List Ouput'
-            items           = client->_bind_one( t_tab )
-            mode            = `SingleSelectMaster`
-            selectionchange = client->_event( 'SELCHANGE' )
-        )->standard_list_item(
-            title       = '{TITLE}'
-            description = '{DESCR}'
-            icon        = '{ICON}'
-            info        = '{INFO}'
-            press       = client->_event( 'TEST' )
-            type        = `Navigation`
-            selected    = `{SELECTED}`
-         )->get_root( )->xml_get( ) ) ).
+    CASE sv_status.
 
+      WHEN `CHANGE`.
+        client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+            )->page(
+                    title          = 'abap2UI5 - First Example'
+                    navbuttonpress = client->_event( 'BACK' )
+                    shownavbutton  = abap_true
+            )->list(
+                headertext      = 'List Ouput'
+                items           = client->_bind( t_tab )
+                mode            = `SingleSelectMaster`
+                selectionchange = client->_event( 'SELCHANGE' )
+            )->standard_list_item(
+                title       = '{TITLE}'
+                description = '{DESCR}'
+                icon        = '{ICON}'
+                info        = '{INFO}'
+                press       = client->_event( 'TEST' )
+                type        = `Navigation`
+                selected    = `{SELECTED}`
+             )->get_root( )->xml_get( ) ) ).
 
+      WHEN OTHERS.
+        client->set_next( VALUE #( xml_main = z2ui5_cl_xml_view=>factory( )->shell(
+            )->page(
+                    title          = 'abap2UI5 - First Example'
+                    navbuttonpress = client->_event( 'BACK' )
+                    shownavbutton  = abap_true
+            )->list(
+                headertext      = 'List Ouput'
+                items           = client->_bind_one( t_tab )
+                mode            = `SingleSelectMaster`
+                selectionchange = client->_event( 'SELCHANGE' )
+            )->standard_list_item(
+                title       = '{TITLE}'
+                description = '{DESCR}'
+                icon        = '{ICON}'
+                info        = '{INFO}'
+                press       = client->_event( 'TEST' )
+                type        = `Navigation`
+                selected    = `{SELECTED}`
+             )->get_root( )->xml_get( ) ) ).
+
+    ENDCASE.
   ENDMETHOD.
 
   METHOD test_app_deep_data.
@@ -929,7 +973,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE REF TO data.
-    DATA(lv_assign) = `OVIEWMODEL->T_TAB->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 
@@ -953,6 +997,113 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     IF <val> <> ls_tab_test-descr.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_app_deep_data_change.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_04_DEEP_DATA' ) )
+       ).
+
+    sv_status = 'CHANGE'.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE REF TO data.
+    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->T_TAB->*`.
+    ASSIGN lo_data->(lv_assign) TO <tab>.
+    ASSIGN <tab>[ 1 ] TO <row>.
+
+    DATA ls_tab_test TYPE ty_row.
+    ls_tab_test = VALUE #( title = 'Peter'  info = 'completed' descr = 'this is a description' icon = 'sap-icon://account' ).
+
+    lv_assign = `TITLE->*`.
+    ASSIGN <row>->(lv_assign) TO <val>.
+    IF <val> <> ls_tab_test-title.
+      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
+    ENDIF.
+
+    lv_assign = `INFO->*`.
+    ASSIGN <row>->(lv_assign) TO <val>.
+    IF <val> <> ls_tab_test-info.
+      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
+    ENDIF.
+
+    lv_assign = `DESCR->*`.
+    ASSIGN <row>->(lv_assign) TO <val>.
+    IF <val> <> ls_tab_test-descr.
+      cl_abap_unit_assert=>fail( msg = 'data binding - initial tab data wrong' quit = 5 ).
+    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `OSYSTEM->ID->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    IF <val> IS INITIAL.
+      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
+    ENDIF.
+    DATA(lv_id) = CONV string( <val> ).
+
+    DATA(lv_tab) = z2ui5_lcl_utility=>trans_any_2_json( t_tab ).
+
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600", "T_TAB":`  && lv_tab && `},"oSystem":{"ID": "` && lv_id && `"` &&  `,"CHECK_DEBUG_ACTIVE":true},"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
+    z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
+    lv_response = z2ui5_cl_http_handler=>http_post(  ).
+
+    CLEAR lo_data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+  ENDMETHOD.
+
+  METHOD test_app_all.
+
+    DO 40 TIMES.
+
+      DATA(Lv_ind) = shift_left( CONV string( sy-index ) ).
+      IF sy-index < 10.
+        Lv_ind = `0` && Lv_ind.
+      ENDIF.
+      DATA(lv_name) = `Z2UI5_CL_APP_DEMO_` && lv_ind.
+
+      z2ui5_cl_http_handler=>client = VALUE #(
+         t_param = VALUE #( ( name = 'app' value = lv_name ) )
+         ).
+
+      sv_status = 'CHANGE'.
+      DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+      DATA lo_data TYPE REF TO data.
+      /ui2/cl_json=>deserialize(
+        EXPORTING
+           json            = lv_response
+        CHANGING
+          data             = lo_data ).
+
+      FIELD-SYMBOLS <val> TYPE any.
+      UNASSIGN <val>.
+      DATA(lv_assign) = `VVIEW->*`.
+      ASSIGN lo_data->(lv_assign) TO <val>.
+      <val> = shift_left( <val> ).
+      IF <val>(9) <> `<mvc:View`.
+        cl_abap_unit_assert=>fail( msg = 'xml view - intital view wrong' quit = 5 ).
+      ENDIF.
+
+    ENDDO.
+
 
   ENDMETHOD.
 
