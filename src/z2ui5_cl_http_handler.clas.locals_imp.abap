@@ -1331,9 +1331,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN `g` OR `I` OR `C`.
-          DATA(lv_value) = lo_model->get_attribute( lr_attri->name )->get_val( ).
-          <attribute> = lv_value.
+        WHEN `g` OR `I` OR `C` OR `P`.
+          DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
+          FIELD-SYMBOLS <val> TYPE any.
+          ASSIGN lo_attri->mr_actual->* TO <val>.
+          <attribute> = <val>.
 
         WHEN `h`.
           z2ui5_lcl_utility=>trans_ref_tab_2_tab(
@@ -1574,13 +1576,20 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN `g` OR `D` OR `P` OR `T` OR `C`.
+        WHEN `g` OR `D` OR `T` OR `C`.
           lo_actual->add_attribute( n = lr_attri->name
                                     v = z2ui5_lcl_utility=>get_abap_2_json( <attribute> )
                                     apos_active = abap_false ).
 
+        WHEN `P`.
+          lo_actual->add_attribute( n = lr_attri->name
+                                   " v =  <attribute>
+                                    v = CONV string( <attribute> )
+                                    apos_active = abap_false ).
+
         WHEN `I`.
           lo_actual->add_attribute( n = lr_attri->name
+                                  "  v = <attribute>
                                     v = CONV string( <attribute> )
                                     apos_active = abap_false ).
 
