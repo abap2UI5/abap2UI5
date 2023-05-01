@@ -640,6 +640,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
         EXPORTING
             json         = CONV string( iv_json )
             assoc_arrays = abap_true
+        "    conversion_exits = abap_true
         CHANGING
          data            = result->mr_actual
         ).
@@ -1331,18 +1332,27 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN `g` OR `I` OR `C` OR `P`.
-          DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
-          FIELD-SYMBOLS <val> TYPE any.
-          ASSIGN lo_attri->mr_actual->* TO <val>.
-          <attribute> = <val>.
-
         WHEN `h`.
           z2ui5_lcl_utility=>trans_ref_tab_2_tab(
                EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
                IMPORTING t_result    = <attribute> ).
 
+        WHEN 'D' OR 'T' OR 'C'.
+          DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
+          FIELD-SYMBOLS <val> TYPE any.
+          ASSIGN lo_attri->mr_actual->* TO <val>.
+          /ui2/cl_json=>deserialize(
+              EXPORTING
+                json             = `"` && <val> && `"`
+              CHANGING
+                data             = <attribute>
+            ).
+
         WHEN OTHERS.
+          lo_attri = lo_model->get_attribute( lr_attri->name ).
+          ASSIGN lo_attri->mr_actual->* TO <val>.
+          <attribute> = <val>.
+
       ENDCASE.
     ENDLOOP.
 
@@ -1576,22 +1586,21 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-        WHEN `g` OR `D` OR `T` OR `C`.
-          lo_actual->add_attribute( n = lr_attri->name
-                                    v = z2ui5_lcl_utility=>get_abap_2_json( <attribute> )
-                                    apos_active = abap_false ).
+          "  WHEN `g` OR `D` OR `T` OR `C`.
+          "   lo_actual->add_attribute( n = lr_attri->name
+          "                              v = z2ui5_lcl_utility=>get_abap_2_json( <attribute> )
+          "                            apos_active = abap_false ).
 
-        WHEN `P`.
-          lo_actual->add_attribute( n = lr_attri->name
-                                   " v =  <attribute>
-                                    v = CONV string( <attribute> )
-                                    apos_active = abap_false ).
+          "   WHEN `P`.
+          "     lo_actual->add_attribute( n = lr_attri->name
+          "                               v =  /ui2/cl_json=>serialize( <attribute> )
+          "                              apos_active = abap_false ).
 
-        WHEN `I`.
-          lo_actual->add_attribute( n = lr_attri->name
-                                  "  v = <attribute>
-                                    v = CONV string( <attribute> )
-                                    apos_active = abap_false ).
+          "  WHEN `I`.
+          "    lo_actual->add_attribute( n = lr_attri->name
+          "                           "  v = <attribute>
+          "                             v = CONV string( <attribute> )
+          "                             apos_active = abap_false ).
 
         WHEN `h`.
           lo_actual->add_attribute( n = lr_attri->name
@@ -1599,6 +1608,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
+          lo_actual->add_attribute(
+                n = lr_attri->name
+                v = /ui2/cl_json=>serialize( <attribute> )
+                apos_active = abap_false ).
 
       ENDCASE.
     ENDLOOP.
