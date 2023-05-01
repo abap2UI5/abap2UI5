@@ -6,6 +6,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       BEGIN OF ty_attri,
         name           TYPE string,
         type_kind      TYPE string,
+        type           TYPE string,
         bind_type      TYPE string,
         data_stringify TYPE string,
         gen_type_kind  TYPE string,
@@ -282,7 +283,19 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT lt_attri INTO ls_attri.
-      APPEND CORRESPONDING #( ls_attri ) TO result.
+      DATA(ls_attri2) = CORRESPONDING ty_attri( ls_attri ).
+
+      FIELD-SYMBOLS <any> TYPE any.
+      UNASSIGN <any>.
+      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
+      ASSIGN (lv_assign) TO <any>.
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
+      CASE lo_descr->kind.
+        WHEN lo_descr->kind_elem.
+          ls_attri2-type =  CAST cl_abap_elemdescr( lo_descr )->get_relative_name( ).
+      ENDCASE.
+
+      APPEND ls_attri2 TO result.
     ENDLOOP.
 
   ENDMETHOD.
@@ -1337,22 +1350,29 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
                IMPORTING t_result    = <attribute> ).
 
-        WHEN 'D' OR 'T' OR 'C'.
+        WHEN OTHERS.
+
           DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
           FIELD-SYMBOLS <val> TYPE any.
           ASSIGN lo_attri->mr_actual->* TO <val>.
-          /ui2/cl_json=>deserialize(
-              EXPORTING
-                json             = `"` && <val> && `"`
-              CHANGING
-                data             = <attribute>
-            ).
 
-        WHEN OTHERS.
-          lo_attri = lo_model->get_attribute( lr_attri->name ).
-          ASSIGN lo_attri->mr_actual->* TO <val>.
-          <attribute> = <val>.
-
+          CASE lr_attri->type_kind.
+            WHEN 'D' OR 'T'.
+              /ui2/cl_json=>deserialize(
+                  EXPORTING
+                    json             = `"` && <val> && `"`
+                  CHANGING
+                    data             = <attribute>  ).
+            WHEN 'C'.
+              CASE lr_attri->type.
+                WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+                  <attribute> = COND #( WHEN <val> = `true` THEN abap_true ELSE abap_false ). .
+                WHEN OTHERS.
+                  <attribute> = <val>.
+              ENDCASE.
+            WHEN OTHERS.
+              <attribute> = <val>.
+          ENDCASE.
       ENDCASE.
     ENDLOOP.
 
@@ -1586,33 +1606,29 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       CASE lr_attri->type_kind.
 
-          "  WHEN `g` OR `D` OR `T` OR `C`.
-          "   lo_actual->add_attribute( n = lr_attri->name
-          "                              v = z2ui5_lcl_utility=>get_abap_2_json( <attribute> )
-          "                            apos_active = abap_false ).
-
-          "   WHEN `P`.
-          "     lo_actual->add_attribute( n = lr_attri->name
-          "                               v =  /ui2/cl_json=>serialize( <attribute> )
-          "                              apos_active = abap_false ).
-
-          "  WHEN `I`.
-          "    lo_actual->add_attribute( n = lr_attri->name
-          "                           "  v = <attribute>
-          "                             v = CONV string( <attribute> )
-          "                             apos_active = abap_false ).
-
         WHEN `h`.
           lo_actual->add_attribute( n = lr_attri->name
                                     v = z2ui5_lcl_utility=>trans_any_2_json( <attribute> )
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
-          lo_actual->add_attribute(
-                n = lr_attri->name
-                v = /ui2/cl_json=>serialize( <attribute> )
-                apos_active = abap_false ).
 
+          CASE lr_attri->type.
+
+            WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+
+              lo_actual->add_attribute(
+                 n = lr_attri->name
+                 v = SWITCH #( <attribute> WHEN abap_true THEN `true` ELSE `false` )
+                 apos_active = abap_false ).
+
+            WHEN OTHERS.
+
+              lo_actual->add_attribute(
+                    n = lr_attri->name
+                    v = /ui2/cl_json=>serialize( <attribute> )
+                    apos_active = abap_false ).
+          ENDCASE.
       ENDCASE.
     ENDLOOP.
 

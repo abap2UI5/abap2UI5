@@ -35,44 +35,6 @@ CLASS z2ui5_cl_app_demo_47 IMPLEMENTATION.
       time = sy-uzeit.
       dec1 = -1 / 3.
 
-*      /ui2/cl_json=>serialize(
-*        EXPORTING
-*          data             = time
-**          compress         =
-**          name             =
-**          pretty_name      =
-**          type_descr       =
-**          assoc_arrays     =
-**          ts_as_iso8601    =
-**          expand_includes  =
-**          assoc_arrays_opt =
-**          numc_as_string   =
-**          name_mappings    =
-**          conversion_exits =
-**          format_output    =
-**          hex_as_base64    =
-*       RECEIVING
-*         r_json           = data(lv_json)
-*      ).
-*
-*      data(lv_test) = conv string( lv_json ).
-*      lv_test = lv_test+1.
-*      lv_test = shift_right( val = lv_test sub = `"` ).
-*
-*       /ui2/cl_json=>deserialize(
-*            EXPORTING
-*              json             = lv_test
-**              jsonx            =
-**              pretty_name      =
-**              assoc_arrays     =
-**              assoc_arrays_opt =
-**              name_mappings    =
-*              conversion_exits = abap_true
-**              hex_as_base64    =
-*            CHANGING
-*              data             = time2
-*          ).
-
     ENDIF.
 
     CASE client->get( )-event.
