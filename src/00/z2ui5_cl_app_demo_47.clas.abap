@@ -14,9 +14,7 @@ CLASS z2ui5_cl_app_demo_47 DEFINITION PUBLIC.
 
     DATA boolean TYPE abap_bool.
     DATA date    TYPE d.
-    DATA date2    TYPE d.
     DATA time    TYPE t.
-    DATA time2    TYPE t.
 
     DATA check_initialized TYPE abap_bool.
 
@@ -100,20 +98,20 @@ CLASS z2ui5_cl_app_demo_47 IMPLEMENTATION.
             )->simple_form( title = 'Integer and Decimals' editable = abap_true
                 )->content( 'form'
                     )->title( 'Input'
-*                    )->label( 'integer'
-*                    )->input( value = client->_bind( int1 )
-*                    )->input( value = client->_bind( int2 )
-*                    )->input( enabled = abap_false value = client->_bind( int_sum )
+                    )->label( 'integer'
+                    )->input( value = client->_bind( int1 )
+                    )->input( value = client->_bind( int2 )
+                    )->input( enabled = abap_false value = client->_bind( int_sum )
                     )->button( text  = 'calc sum' press = client->_event( 'BUTTON_INT' )
-*                    )->label( 'decimals'
-*                    )->input( client->_bind( dec1 )
-*                    )->input( client->_bind( dec2 )
-*                    )->input( enabled = abap_false value = client->_bind( dec_sum )
-*                    )->button( text  = 'calc sum' press = client->_event( 'BUTTON_DEC' )
-*                    )->label( 'date'
-*                    )->input( client->_bind( date )
-*                    )->label( 'time'
-*                    )->input( client->_bind( time )
+                    )->label( 'decimals'
+                    )->input( client->_bind( dec1 )
+                    )->input( client->_bind( dec2 )
+                    )->input( enabled = abap_false value = client->_bind( dec_sum )
+                    )->button( text  = 'calc sum' press = client->_event( 'BUTTON_DEC' )
+                    )->label( 'date'
+                    )->input( client->_bind( date )
+                    )->label( 'time'
+                    )->input( client->_bind( time )
                     )->label( 'boolean'
                     )->input( client->_bind( boolean )
          )->get_root( )->xml_get( ) ) ).
