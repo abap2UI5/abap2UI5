@@ -33,12 +33,12 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
       check_initialized = abap_true.
 
       t_tab = VALUE #(
-        ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'Peter'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+        ( title = 'row_01'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+        ( title = 'row_02'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
+        ( title = 'row_03'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+        ( title = 'row_04'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
+        ( title = 'row_05'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
+        ( title = 'row_06'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
       ).
 
     ENDIF.
