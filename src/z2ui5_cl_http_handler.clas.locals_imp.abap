@@ -1487,12 +1487,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       IF check_gen_data = abap_true.
         TRY.
-
-            DATA lr_ref2 TYPE REF TO data.
-            GET REFERENCE OF  <attribute> INTO lr_ref2.
-
             FIELD-SYMBOLS <field> TYPE any.
-            ASSIGN lr_ref2->* TO <field>.
+            ASSIGN lr_ref->* TO <field>.
             lr_ref = CAST data( <field> ).
             IF lr_attri->gen_type IS INITIAL.
               FIELD-SYMBOLS <field2> TYPE any.
@@ -1590,8 +1586,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way THEN r_view_model
-                                 ELSE lo_update ).
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way
+        THEN r_view_model
+        ELSE lo_update ).
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
