@@ -1366,7 +1366,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
             WHEN 'C'.
               CASE lr_attri->type.
                 WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
-                  <attribute> = COND #( WHEN <val> = `true` THEN abap_true ELSE abap_false ). .
+                  <attribute> = COND #( WHEN <val> = `true` THEN abap_true ELSE abap_false ).
                 WHEN OTHERS.
                   <attribute> = <val>.
               ENDCASE.
