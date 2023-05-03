@@ -48,13 +48,13 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'TEST'.
-       " DATA(lt_sel1) = t_tab.
-        client->popup_message_box( `Test` ).
+        data(lv_row_title) = client->get( )-event_data.
+        client->popup_message_box( `event: test - ` && lv_row_title ).
 
       WHEN 'SELCHANGE'.
         DATA(lt_sel) = t_tab.
         DELETE lt_sel WHERE selected = abap_false.
-        client->popup_message_box( `go to details for item ` && lt_sel[ 1 ]-title ).
+        client->popup_message_box( `event: selection change -` && lt_sel[ 1 ]-title ).
 
 
       WHEN 'BACK'.
@@ -92,7 +92,7 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
               ( n = 'wrapping'      v = `true` )
               ( n = 'wrapCharLimit'      v = `{WRAPCHARLIMIT}` )
               ( n = 'selected'    v = `{SELECTED}` )
-              ( n = 'detailPress'      v = client->_event( 'TEST' ) )
+              ( n = 'detailPress'      v = client->_event( val = 'TEST' data = `${TITLE}` ) )
 
               ) ).
     client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).

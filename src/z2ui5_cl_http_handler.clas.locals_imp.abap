@@ -1720,7 +1720,11 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
+    if data is INITIAL.
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
+    else.
+     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } ,` && data && `)`.
+    endif.
 
   ENDMETHOD.
 
