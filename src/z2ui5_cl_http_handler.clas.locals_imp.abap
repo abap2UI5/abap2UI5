@@ -359,17 +359,15 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     CLEAR t_result.
 
-    DATA lr_row TYPE REF TO data.
-    CREATE DATA lr_row LIKE LINE OF t_result.
-    ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
-
-    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <row> ).
-    DATA(lo_struc) = CAST cl_abap_structdescr( lo_descr ).
+    DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( t_result ) ).
+    DATA(lo_struc) = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
     DATA(lt_components) = lo_struc->get_components( ).
 
     LOOP AT <lt_from> INTO DATA(lr_from).
 
-      CLEAR <row>.
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row LIKE LINE OF t_result.
+      ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
 
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
       raise( when = xsdbool( sy-subrc <> 0 ) ).
