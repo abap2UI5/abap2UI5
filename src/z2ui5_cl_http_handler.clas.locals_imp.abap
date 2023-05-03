@@ -283,7 +283,9 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDLOOP.
 
     LOOP AT lt_attri INTO ls_attri.
-      DATA(ls_attri2) = CORRESPONDING ty_attri( ls_attri ).
+
+      DATA(ls_attri2) = VALUE ty_attri( ).
+      MOVE-CORRESPONDING ls_attri TO ls_attri2.
 
       FIELD-SYMBOLS <any> TYPE any.
       UNASSIGN <any>.

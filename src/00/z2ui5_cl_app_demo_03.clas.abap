@@ -76,7 +76,7 @@ CLASS z2ui5_cl_app_demo_03 IMPLEMENTATION.
             icon        = '{ICON}'
             info        = '{INFO}'
             press       = client->_event( 'TEST' )
-            type        = `Navigation`
+         "   type        = `Navigation`
             selected    = `{SELECTED}`
             ).
 
