@@ -91,6 +91,7 @@ INTERFACE z2ui5_if_client
   METHODS _event
     IMPORTING
       val           TYPE clike
+      data          type clike optional
     RETURNING
       VALUE(result) TYPE string.
 
