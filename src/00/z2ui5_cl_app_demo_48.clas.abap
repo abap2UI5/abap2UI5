@@ -48,7 +48,7 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'TEST'.
-        DATA(lt_sel1) = t_tab.
+       " DATA(lt_sel1) = t_tab.
         client->popup_message_box( `Test` ).
 
       WHEN 'SELCHANGE'.
