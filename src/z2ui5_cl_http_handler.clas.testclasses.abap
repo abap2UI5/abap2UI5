@@ -10,8 +10,40 @@ CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
     METHODS test_json_struc     FOR TESTING RAISING cx_static_check.
     METHODS test_json_trans     FOR TESTING RAISING cx_static_check.
     METHODS test_json_trans_gen FOR TESTING RAISING cx_static_check.
-    METHODS test_utility        FOR TESTING RAISING cx_static_check.
+    METHODS test_util_uuid_session        FOR TESTING RAISING cx_static_check.
+    METHODS test_util_attri_by_ref     FOR TESTING RAISING cx_static_check.
 ENDCLASS.
+
+CLASS ltcl_unit_04_deep_data DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    DATA check_initialized TYPE abap_bool.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        descr    TYPE string,
+        icon     TYPE string,
+        info     TYPE string,
+        selected TYPE abap_bool,
+        checkbox TYPE abap_bool,
+      END OF ty_row.
+
+    CLASS-DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    CLASS-DATA sv_status TYPE string.
+
+  PRIVATE SECTION.
+    METHODS test_app_deep_data        FOR TESTING RAISING cx_static_check.
+    METHODS test_app_deep_data_change FOR TESTING RAISING cx_static_check.
+    METHODS test_app_all              FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
 
 
 CLASS ltcl_unit_01_json IMPLEMENTATION.
@@ -137,7 +169,27 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_utility.
+  METHOD test_util_attri_by_ref.
+
+    DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+
+    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( lo_app ).
+
+    DATA(lt_test) = VALUE z2ui5_lcl_utility=>ty_t_attri(
+( name = `Z2UI5_IF_APP~ID` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+( name = `CHECK_INITIALIZED` type_kind = `C` type = `ABAP_BOOL` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+( name = `SV_STATUS` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+( name = `T_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+ ).
+
+    IF lt_test <> lt_attri.
+      cl_abap_unit_assert=>fail( msg = 'utility - get t_attri table wrong' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD test_util_uuid_session.
 
     DATA(lv_one) = z2ui5_lcl_utility=>get_uuid_session( ).
     DATA(lv_two) = z2ui5_lcl_utility=>get_uuid_session( ).
@@ -860,37 +912,6 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
 ENDCLASS.
 
-CLASS ltcl_unit_04_deep_data DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL HARMLESS.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    DATA check_initialized TYPE abap_bool.
-
-    TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        icon     TYPE string,
-        info     TYPE string,
-        selected TYPE abap_bool,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
-
-    CLASS-DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    CLASS-DATA sv_status TYPE string.
-
-  PRIVATE SECTION.
-    METHODS test_app_deep_data        FOR TESTING RAISING cx_static_check.
-    METHODS test_app_deep_data_change FOR TESTING RAISING cx_static_check.
-    METHODS test_app_all              FOR TESTING RAISING cx_static_check.
-ENDCLASS.
-
-
 CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
 
 
@@ -1106,5 +1127,6 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
 
 
   ENDMETHOD.
+
 
 ENDCLASS.
