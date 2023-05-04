@@ -5,7 +5,9 @@ CLASS z2ui5_cl_app_demo_35 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     DATA mt_table TYPE REF TO data.
+    DATA mt_cols TYPE string_table.
     DATA mv_name TYPE string.
+    DATA mv_input TYPE string.
 
   PROTECTED SECTION.
 
@@ -60,10 +62,17 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
 
     CASE app-get-event.
 
+      WHEN 'BUTTON_TABLE'.
+        FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+        CREATE DATA mt_table TYPE STANDARD TABLE OF (mv_name).
+        ASSIGN mt_table->* TO <tab>.
+        mt_cols = lcl_db=>get_fieldlist_by_table( <tab> ).
+
+
       WHEN 'BUTTON_POST'.
 
         CREATE DATA mt_table TYPE STANDARD TABLE OF (mv_name).
-        FIELD-SYMBOLS <tab> TYPE table.
+        "FIELD-SYMBOLS <tab> TYPE table.
         ASSIGN mt_table->* TO <tab>.
 
         SELECT FROM (mv_name)
@@ -116,6 +125,18 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
 
     lo_view->button(
                 text  = 'search'
+                press = client->_event( 'BUTTON_TABLE' )
+            ).
+  lo_view = lo_view->get_parent( )->get_parent( )->simple_form( title = 'cols' editable = abap_true
+                )->content( 'form' ).
+
+    LOOP AT mt_cols REFERENCE INTO DATA(lr_col).
+      lo_view->label( lr_col->* ).
+      lo_view->input( value = mv_input ).
+    ENDLOOP.
+
+    lo_view->button(
+                text  = 'search'
                 press = client->_event( 'BUTTON_POST' )
             ).
 
@@ -128,15 +149,15 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
                   items = client->_bind( val = <tab>  check_gen_data = abap_true )
               ).
 
-      DATA(lt_fields) = lcl_db=>get_fieldlist_by_table( <tab> ).
+      " DATA(lt_fields) = lcl_db=>get_fieldlist_by_table( <tab> ).
 
       DATA(lo_columns) = tab->columns( ).
-      LOOP AT lt_fields INTO DATA(lv_field) FROM 2.
+      LOOP AT mt_cols INTO DATA(lv_field) FROM 2.
         lo_columns->column( )->text( lv_field ).
       ENDLOOP.
 
       DATA(lo_cells) = tab->items( )->column_list_item( selected = '{SELKZ}' )->cells( ).
-      LOOP AT lt_fields INTO lv_field FROM 2.
+      LOOP AT mt_cols INTO lv_field FROM 2.
         lo_cells->input( `{` && lv_field && `}` ).
       ENDLOOP.
 
