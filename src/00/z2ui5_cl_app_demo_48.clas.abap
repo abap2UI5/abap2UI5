@@ -50,13 +50,10 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
       WHEN 'TEST'.
         data(lv_row_title) = client->get( )-event_data.
         client->popup_message_box( `event: test - ` && lv_row_title ).
-
       WHEN 'SELCHANGE'.
         DATA(lt_sel) = t_tab.
         DELETE lt_sel WHERE selected = abap_false.
         client->popup_message_box( `event: selection change -` && lt_sel[ 1 ]-title ).
-
-
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
