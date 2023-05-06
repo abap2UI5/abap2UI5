@@ -29,7 +29,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mt_cols TYPE STANDARD TABLE OF ty_S_cols.
 
 "    DATA mv_name TYPE string.
-    DATA mv_input TYPE string.
+*    DATA mv_input TYPE string.
 
   PROTECTED SECTION.
 
@@ -296,7 +296,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *            ).
 
  data(tab) = lo_view->title( ns = `core` text = 'Content - Tablename' )->table(
-                  items = client->_bind( val = <tab> ) " check_gen_data = abap_true )
+                  items = client->_bind( val = <tab> )
               ).
 
   tab->header_toolbar(
