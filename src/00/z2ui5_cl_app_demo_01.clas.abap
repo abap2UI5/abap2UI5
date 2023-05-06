@@ -32,7 +32,8 @@ CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
     ENDCASE.
 
-    client->set_next( VALUE #( xml_main = Z2UI5_CL_XML_VIEW=>factory( )->shell(
+    client->set_next( VALUE #( xml_main = Z2UI5_CL_XML_VIEW=>factory(
+        )->shell(
         )->page(
                 title          = 'abap2UI5 - First Example'
                 navbuttonpress = client->_event( 'BACK' )
@@ -47,7 +48,7 @@ CLASS Z2UI5_CL_APP_DEMO_01 IMPLEMENTATION.
                 )->content( 'form'
                     )->title( 'Input'
                     )->label( 'quantity'
-                    )->input( client->_bind( quantity )
+                    )->input( value = client->_bind( quantity )
                     )->label( 'product'
                     )->input(
                         value   = product
