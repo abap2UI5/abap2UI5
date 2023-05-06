@@ -585,9 +585,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS simple_form
       IMPORTING
-        title         TYPE clike OPTIONAL
-        layout        TYPE clike OPTIONAL
-        editable      TYPE clike OPTIONAL
+        title       TYPE clike OPTIONAL
+        layout      TYPE clike OPTIONAL
+        editable    TYPE clike OPTIONAL
+        columnsXL   TYPE clike OPTIONAL
+        columnsL    TYPE clike OPTIONAL
+        columnsM    TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1906,6 +1909,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       t_prop = VALUE #(
         ( n = `title`    v = title )
         ( n = `layout`   v = layout )
+        ( n = `columnsXL`   v = columnsXL )
+        ( n = `columnsL`   v = columnsL )
+        ( n = `columnsM`   v = columnsm )
         ( n = `editable` v = lcl_utility=>get_json_boolean( editable ) )
       ) ).
 
