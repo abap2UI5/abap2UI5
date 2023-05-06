@@ -131,7 +131,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 "    mv_name = `Z2UI5_T_DRAFT`.
 
     DATA(lt_cols)   = lcl_db=>get_fieldlist_by_table( mt_table ).
-    LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
+    LOOP AT lt_cols REFERENCE INTO DATA(lr_col) FROM 2.
 
       INSERT VALUE #(
         name = lr_col->*
