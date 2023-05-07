@@ -203,6 +203,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header
+        importing
+        ns type clike default `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -343,6 +345,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         stretch       TYPE clike OPTIONAL
         contentheight TYPE clike OPTIONAL
         contentwidth  TYPE clike OPTIONAL
+        resizable     TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -470,10 +473,32 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         valign        TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS cells
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS bar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS content_left
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS content_middle
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS content_right
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS custom_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -520,6 +545,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         class         TYPE clike OPTIONAL
         id            TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS search_field
+      IMPORTING
+        search        TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -710,7 +742,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS input_list_item
       IMPORTING
-        label         TYPE clike optional
+        label         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -961,7 +993,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic(
         name   = `header`
-        ns     = `f`
+        ns     = ns
       ).
 
   ENDMETHOD.
@@ -1120,6 +1152,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name = `ColumnListItem`
         t_prop = VALUE #( ( n = `vAlign`   v = valign )
                           ( n = `selected` v = selected )
+                          ( n = `type`     v = type )
+                          ( n = `press`    v = press )
        ) ).
 
   ENDMETHOD.
@@ -1192,6 +1226,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `showHeader`  v = showheader )
           ( n = `contentWidth`  v = contentwidth )
           ( n = `contentHeight`  v = contentheight )
+          ( n = `resizable`  v = lcl_utility=>get_json_boolean( resizable ) )
           ) ).
 
   ENDMETHOD.
@@ -1348,6 +1383,45 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD bar.
+
+    result = _generic(
+        name = `Bar`
+         ).
+
+  ENDMETHOD.
+
+  METHOD content_left.
+
+    result = _generic(
+        name = `contentLeft`
+         ).
+
+  ENDMETHOD.
+
+  METHOD content_middle.
+
+    result = _generic(
+        name = `contentMiddle`
+         ).
+
+  ENDMETHOD.
+
+  METHOD content_right.
+
+    result = _generic(
+        name = `contentRight`
+         ).
+
+  ENDMETHOD.
+
+  METHOD custom_Header.
+
+    result = _generic(
+        name = `customHeader`
+         ).
+
+  ENDMETHOD.
 
   METHOD header_content.
 
@@ -2421,6 +2495,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          t_prop = VALUE #(
             ( n = `items`      v = items )
             ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
+    ) ).
+
+  ENDMETHOD.
+
+  METHOD search_field.
+
+    result = me.
+    _generic(
+         name  = `SearchField`
+         t_prop = VALUE #(
+            ( n = `width`      v = width )
+            ( n = `search` v = search )
     ) ).
 
   ENDMETHOD.

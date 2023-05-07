@@ -7,7 +7,22 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mt_table TYPE STANDARD TABLE OF z2ui5_t_draft.
     DATA mv_check_columns TYPE abap_bool.
     DATA mv_check_sort TYPE abap_bool.
+    DATA mv_check_table TYPE abap_bool.
     DATA mv_check_group TYPE abap_bool.
+
+    DATA mv_contentheight TYPE string VALUE `70%`.
+    DATA mv_contentwidth TYPE string VALUE `70%`.
+
+    TYPES:
+      BEGIN OF ty_S_cols,
+        visible  TYPE abap_bool,
+        name     TYPE string,
+        length   TYPE string,
+        title    TYPE string,
+        editable TYPE abap_bool,
+      END OF ty_S_cols.
+
+    DATA mt_cols TYPE STANDARD TABLE OF ty_S_cols.
 
     TYPES:
       BEGIN OF ty_S_filter,
@@ -18,28 +33,28 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     DATA mt_filter TYPE STANDARD TABLE OF ty_S_filter.
 
-    TYPES:
-      BEGIN OF ty_S_cols,
-        selkz  TYPE abap_bool,
-        name   TYPE string,
-        length TYPE string,
-      END OF ty_S_cols.
 
-    DATA mt_cols TYPE STANDARD TABLE OF ty_S_cols.
+    DATA:
+      BEGIN OF ms_table,
+        check_zebra   TYPE abap_bool,
+        title         TYPE string,
+        sticky_header TYPE abap_bool,
+        selmode       TYPE string,
+      END OF ms_table.
 
 
     TYPES:
       BEGIN OF ty_S_sort,
-      "  selkz      TYPE abap_bool,
-        name             TYPE string,
-        type          type string,
-       " descr      TYPE string,
-      "  check_descending TYPE string,
+        "  selkz      TYPE abap_bool,
+        name TYPE string,
+        type TYPE string,
+        " descr      TYPE string,
+        "  check_descending TYPE string,
       END OF ty_S_sort.
 
     DATA mt_sort TYPE STANDARD TABLE OF ty_S_sort.
 
-  TYPES:
+    TYPES:
       BEGIN OF s_combobox,
         key  TYPE string,
         text TYPE string,
@@ -63,6 +78,8 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS z2ui5_on_render.
+    METHODS init_table_output.
+    METHODS z2ui5_on_render_main.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -107,6 +124,10 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *        ASSIGN mt_table->* TO <tab>.
 
 
+    when 'TEST'.
+        data(lv_row_title) = client->get( )-event_data.
+        client->popup_message_box( `test` && lv_row_title ).
+
 
       WHEN 'BUTTON_POST'.
 
@@ -129,6 +150,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       WHEN 'POPUP_FILTER_CONTINUE'.
         " app-view_popup = 'POPUP_FILTER'.
 
+      WHEN 'BUTTON_INIT'.
+        init_table_output( ).
+
       WHEN 'BUTTON_CANCEL'.
         client->popup_message_toast( |cancel| ).
         app-view_popup = ''.
@@ -145,27 +169,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     app-view_main = 'VIEW_MAIN'.
     "    mv_name = `Z2UI5_T_DRAFT`.
-
-    DATA(lt_cols)   = lcl_db=>get_fieldlist_by_table( mt_table ).
-    LOOP AT lt_cols REFERENCE INTO DATA(lr_col) FROM 2.
-
-      INSERT VALUE #(
-        name = lr_col->*
-      ) INTO TABLE mt_filter.
-
-      INSERT VALUE #(
-         selkz = abap_true
-         name = lr_col->*
-         length = `10px`
-       ) INTO TABLE mt_cols.
-
-      INSERT VALUE #(
-       "  selkz = abap_true
-         name = lr_col->*
-      "   length = `10px`
-       ) INTO TABLE mt_sort.
-
-    ENDLOOP.
+    init_table_output( ).
 
   ENDMETHOD.
 
@@ -204,60 +208,93 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
       WHEN `POPUP_SETUP`.
 
-        lo_popup = lo_popup->dialog( title = 'View Setup'  contentheight = `70%` contentwidth = `70%` ).
+        lo_popup = lo_popup->dialog( title = 'View Setup'  resizable = abap_true
+             contentheight = client->_bind( mv_contentheight ) contentwidth = client->_bind( mv_contentwidth ) ).
 
-         data(lo_tab) = lo_popup->tab_container( ).
+        lo_popup->custom_header(
+              )->bar(
+                  )->content_right(
+              )->button( text = `zurücksetzten` press = client->_event( 'BUTTON_INIT' ) ).
 
-            lo_tab->tab(
-                        text     = 'Columns'
-                        selected = client->_bind( mv_check_columns )
-               )->table(
-                mode = 'MultiSelect'
-                items = client->_bind( mt_cols )
-                )->columns(
-                    )->column( )->text( 'Title' )->get_parent(
-                    )->column( )->text( 'Color' )->get_parent(
-                    )->column( )->text( 'Info' )->get_parent(
-                    )->column( )->text( 'Description' )->get_parent(
-                )->get_parent(
-                )->items( )->column_list_item( selected = '{SELKZ}'
-                    )->cells(
-                 "       )->checkbox( '{SELKZ}'
-                        )->text( '{NAME}'
-                        )->text( '{VALUE}'
-                 "       )->text( '{DESCR}'
-            )->get_parent( )->get_parent( )->get_parent( )->get_parent(  )->get_parent( ).
 
-          data(lo_hbox) = lo_tab->tab(
-                        text     = 'Sort'
-                        selected = client->_bind( mv_check_sort )
+        DATA(lo_tab) = lo_popup->tab_container( ).
 
-                )->list(
-                 items           = client->_bind( mt_sort )
-                 selectionchange = client->_event( 'SELCHANGE' )
-                    )->custom_list_item(
-                       )->hbox( ).
+        DATA(lo_cont) = lo_tab->tab(
+                    text     = 'Table'
+                    selected = client->_bind( mv_check_table ) ).
 
-                   lo_hbox->combobox(
-                                selectedkey = `{NAME}`
-                                items       = client->_bind( mt_cols )
+        lo_cont->hbox(
+           )->text( `zebra mode`
+           )->checkbox( client->_bind( ms_table-check_zebra ) ).
+
+        lo_cont->hbox(
+                  )->text( `sticky header`
+                  )->checkbox( client->_bind( ms_table-sticky_header ) ).
+
+
+        lo_cont->hbox(
+           )->text( `Title`
+           )->Input( client->_bind( ms_table-title ) ).
+
+        lo_cont->hbox(
+         )->text( `SelMode`
+         )->input( client->_bind( ms_table-selmode ) ).
+
+        lo_tab->tab(
+                    text     = 'Columns'
+                    selected = client->_bind( mv_check_columns )
+           )->table(
+          "  mode = 'MultiSelect'
+            items = client->_bind( mt_cols )
+            )->columns(
+                )->column( )->text( 'Visible' )->get_parent(
+                )->column( )->text( 'Name' )->get_parent(
+                )->column( )->text( 'Title' )->get_parent(
+                )->column( )->text( 'Editable' )->get_parent(
+                )->column( )->text( 'Length' )->get_parent(
+            )->get_parent(
+            )->items( )->column_list_item( "selected = '{SELKZ}'
+                )->cells(
+                    )->checkbox( '{VISIBLE}'
+                    )->text( '{NAME}'
+                    )->Input( '{TITLE}'
+                      )->checkbox( '{EDITABLE}'
+                      )->Input( '{LENGTH}'
+             "       )->text( '{DESCR}'
+        )->get_parent( )->get_parent( )->get_parent( )->get_parent(  )->get_parent( ).
+
+        DATA(lo_hbox) = lo_tab->tab(
+                      text     = 'Sort'
+                      selected = client->_bind( mv_check_sort )
+
+              )->list(
+               items           = client->_bind( mt_sort )
+               selectionchange = client->_event( 'SELCHANGE' )
+                  )->custom_list_item(
+                     )->hbox( ).
+
+        lo_hbox->combobox(
+                     selectedkey = `{NAME}`
+                     items       = client->_bind( mt_cols )
 *                                    ( key = 'BLUE'  text = 'green' )
 *                                    ( key = 'GREEN' text = 'blue' )
 *                                    ( key = 'BLACK' text = 'red' )
 *                                    ( key = 'GRAY'  text = 'gray' ) ) )
-                            )->item(
-                                    key = '{NAME}'
-                                    text = '{NAME}'
-                            )->get_parent(
-                             )->segmented_button( `{TYPE}`
-            )->items(
-                )->segmented_button_item(
-                    key = 'DESCENDING'
-                    icon = 'sap-icon://sort-descending'
-                )->segmented_button_item(
-                    key = 'ASCENDING'
-                    icon = 'sap-icon://sort-ascending'
-       )->get_parent( )->get_parent( ).
+                 )->item(
+                         key = '{NAME}'
+                         text = '{NAME}'
+                 )->get_parent(
+                  )->segmented_button( `{TYPE}`
+ )->items(
+     )->segmented_button_item(
+         key = 'DESCENDING'
+         icon = 'sap-icon://sort-descending'
+     )->segmented_button_item(
+         key = 'ASCENDING'
+         icon = 'sap-icon://sort-ascending'
+)->get_parent( )->get_parent(
+)->text( text = `{TYPE}`
+)->button( text = 'close' ).
 *            )->get_parent( )->get_parent( )->get_parent(
 
 *           )->button(
@@ -276,14 +313,61 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *                        selected = client->_bind( mv_check_group )
 *                 )->get_parent( )->get_parent( ).
 
-          lo_popup->footer( )->overflow_toolbar(
-                )->toolbar_spacer(
-                )->button(
-                    text  = 'continue'
-                    press = client->_event( 'POPUP_FILTER_CONTINUE' )
-                    type  = 'Emphasized' ).
+        lo_popup->footer( )->overflow_toolbar(
+              )->toolbar_spacer(
+              )->button(
+                  text  = 'continue'
+                  press = client->_event( 'POPUP_FILTER_CONTINUE' )
+                  type  = 'Emphasized' ).
 
     ENDCASE.
+
+    z2ui5_on_render_main( ).
+
+    app-next-xml_popup = lo_popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+  METHOD init_table_output.
+
+    CLEAR mt_filter.
+    CLEAR mt_cols.
+    CLEAR mt_sort.
+
+
+
+    SELECT FROM z2ui5_t_draft
+        FIELDS uuid, uuid_prev, timestampl, uname
+      INTO CORRESPONDING FIELDS OF TABLE @mt_table
+        UP TO 5 ROWS.
+
+
+    DATA(lt_cols)   = lcl_db=>get_fieldlist_by_table( mt_table ).
+    LOOP AT lt_cols REFERENCE INTO DATA(lr_col) FROM 2.
+
+      INSERT VALUE #(
+        name = lr_col->*
+      ) INTO TABLE mt_filter.
+
+      INSERT VALUE #(
+         visible = abap_true
+         name = lr_col->*
+       "  length = `10px`
+         title = lr_col->*
+       ) INTO TABLE mt_cols.
+
+      INSERT VALUE #(
+       "  selkz = abap_true
+         name = lr_col->*
+      "   length = `10px`
+       ) INTO TABLE mt_sort.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_render_main.
 
     DATA(lo_view) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
              title          = 'abap2UI5 - Change the table type with RTTI'
@@ -340,26 +424,29 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *    IF mt_table IS not INITIAL.
 
 
-    SELECT FROM z2ui5_t_draft
-        FIELDS *
-      INTO CORRESPONDING FIELDS OF TABLE @mt_table
-        UP TO 5 ROWS.
-
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    ASSIGN mt_table TO <tab>.
-*   DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
-*              )->content( 'form' )->table(
-*                items = client->_bind( val = <tab> ) " check_gen_data = abap_true )
-*            ).
-
     DATA(tab) = lo_view->title( ns = `core` text = 'Content - Tablename' )->table(
-                     items = client->_bind( val = <tab> )
+                     items = client->_bind( val = mt_table )
                  ).
 
     tab->header_toolbar(
           )->overflow_toolbar(
-            "  )->title( 'title of the table'
-              )->toolbar_spacer(
+
+              )->button(
+                  icon = 'sap-icon://refresh'
+                  press = client->_event( 'BUTTON_REFRESH' )
+              )->search_field(
+                    search = client->_event( 'BUTTON_SEARCH' )
+                    width = `17.5rem`
+
+             )->toolbar_spacer(
+                    )->button(
+               "   icon = 'sap-icon://refresh'
+                text = `custom action`
+                  press = client->_event( 'BUTTON_REFRESH' )
+             )->toolbar_spacer(
+              )->button(
+                  icon = 'sap-icon://download'
+                  press = client->_event( 'BUTTON_DOWNLOAD' )
               )->button(
                   icon = 'sap-icon://action-settings'
                   press = client->_event( 'BUTTON_SETUP' )
@@ -368,20 +455,26 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     DATA(lo_columns) = tab->columns( ).
     LOOP AT mt_cols REFERENCE INTO DATA(lr_field)
-          WHERE selkz = abap_true.
-      lo_columns->column( width = lr_field->length )->button(  text = lr_field->name ).
+          WHERE visible = abap_true.
+      lo_columns->column( width = lr_field->length )->title(  text = lr_field->title
+        )->footer(
+        )->object_number( number = `10` unit = 'ST' state = `Warning` ).
     ENDLOOP.
 
-    DATA(lo_cells) = tab->items( )->column_list_item( )->cells( ).
+    DATA(lo_cells) = tab->items( )->column_list_item(
+        press = client->_event( val = 'TEST' data = `${UUID}` )
+        type = `Navigation` )->cells( ).
     LOOP AT mt_cols REFERENCE INTO lr_field
-          WHERE selkz = abap_true.
-      lo_cells->input( `{` && lr_field->name && `}` ).
+          WHERE visible = abap_true.
+      IF lr_field->editable = abap_true.
+        lo_cells->input( `{` && lr_field->name && `}` ).
+      ELSE.
+        lo_cells->text(  `{` && lr_field->name && `}` ).
+      ENDIF.
     ENDLOOP.
-*
-*    ENDIF.
 
     app-next-xml_main = lo_view->get_root( )->xml_get( ).
-    app-next-xml_popup = lo_popup->get_root( )->xml_get( ).
 
   ENDMETHOD.
+
 ENDCLASS.
