@@ -1522,7 +1522,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDLOOP.
 
     IF type = cs_bind_type-two_way.
-      z2ui5_lcl_utility=>raise( `Binding Error - two way binding used but no attribute found (` && lr_attri->name && `)` ).
+      z2ui5_lcl_utility=>raise( `Binding Error - two way binding used but no attribute found` ).
     ENDIF.
 
     "one time when not global class attribute

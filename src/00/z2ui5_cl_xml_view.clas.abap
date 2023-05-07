@@ -586,12 +586,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS simple_form
       IMPORTING
-        title       TYPE clike OPTIONAL
-        layout      TYPE clike OPTIONAL
-        editable    TYPE clike OPTIONAL
-        columnsXL   TYPE clike OPTIONAL
-        columnsL    TYPE clike OPTIONAL
-        columnsM    TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        layout        TYPE clike OPTIONAL
+        editable      TYPE clike OPTIONAL
+        columnsXL     TYPE clike OPTIONAL
+        columnsL      TYPE clike OPTIONAL
+        columnsM      TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -700,9 +700,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         headertext      TYPE clike OPTIONAL
         items           TYPE clike OPTIONAL
         mode            TYPE clike OPTIONAL
-        selectionChange type clike optional
+        selectionChange TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
+        VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view.
+
+    METHODS custom_list_item
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS input_list_item
+      IMPORTING
+        label         TYPE clike optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS standard_list_item
       IMPORTING
@@ -1950,6 +1960,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD custom_list_item.
+
+    result = _generic(
+        name = `CustomListItem`
+     ).
+
+  ENDMETHOD.
+
+
+  METHOD input_list_item.
+
+    result = _generic(
+        name = `InputListItem`
+        t_prop = VALUE #(
+            ( n = `label`       v = label )
+       ) ).
+
+  ENDMETHOD.
 
   METHOD standard_list_item.
 

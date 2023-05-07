@@ -4,12 +4,11 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    "   DATA mt_table TYPE REF TO data.
     DATA mt_table TYPE STANDARD TABLE OF z2ui5_t_draft.
-    "   DATA mt_cols TYPE string_table.
-    data mv_check_columns type abap_bool.
-    data mv_check_sort type abap_bool.
-    data mv_check_group type abap_bool.
+    DATA mv_check_columns TYPE abap_bool.
+    DATA mv_check_sort TYPE abap_bool.
+    DATA mv_check_group TYPE abap_bool.
+
     TYPES:
       BEGIN OF ty_S_filter,
         selkz TYPE abap_bool,
@@ -28,8 +27,25 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     DATA mt_cols TYPE STANDARD TABLE OF ty_S_cols.
 
-"    DATA mv_name TYPE string.
-*    DATA mv_input TYPE string.
+
+    TYPES:
+      BEGIN OF ty_S_sort,
+      "  selkz      TYPE abap_bool,
+        name             TYPE string,
+        type          type string,
+       " descr      TYPE string,
+      "  check_descending TYPE string,
+      END OF ty_S_sort.
+
+    DATA mt_sort TYPE STANDARD TABLE OF ty_S_sort.
+
+  TYPES:
+      BEGIN OF s_combobox,
+        key  TYPE string,
+        text TYPE string,
+      END OF s_combobox.
+
+    TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
 
   PROTECTED SECTION.
 
@@ -128,7 +144,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
   METHOD z2ui5_on_init.
 
     app-view_main = 'VIEW_MAIN'.
-"    mv_name = `Z2UI5_T_DRAFT`.
+    "    mv_name = `Z2UI5_T_DRAFT`.
 
     DATA(lt_cols)   = lcl_db=>get_fieldlist_by_table( mt_table ).
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col) FROM 2.
@@ -142,6 +158,12 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
          name = lr_col->*
          length = `10px`
        ) INTO TABLE mt_cols.
+
+      INSERT VALUE #(
+       "  selkz = abap_true
+         name = lr_col->*
+      "   length = `10px`
+       ) INTO TABLE mt_sort.
 
     ENDLOOP.
 
@@ -182,9 +204,11 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
       WHEN `POPUP_SETUP`.
 
-        lo_popup->dialog( title = 'View Setup'  contentheight = `70%` contentwidth = `70%`
-                  )->tab_container(
-                  )->tab(
+        lo_popup = lo_popup->dialog( title = 'View Setup'  contentheight = `70%` contentwidth = `70%` ).
+
+         data(lo_tab) = lo_popup->tab_container( ).
+
+            lo_tab->tab(
                         text     = 'Columns'
                         selected = client->_bind( mv_check_columns )
                )->table(
@@ -202,24 +226,57 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
                         )->text( '{NAME}'
                         )->text( '{VALUE}'
                  "       )->text( '{DESCR}'
-            )->get_parent( )->get_parent( )->get_parent( )->get_parent(    )->get_parent(
-            )->tab(
+            )->get_parent( )->get_parent( )->get_parent( )->get_parent(  )->get_parent( ).
+
+          data(lo_hbox) = lo_tab->tab(
                         text     = 'Sort'
                         selected = client->_bind( mv_check_sort )
-           )->button(
-                text  = 'counter descending'
-                icon = 'sap-icon://sort-descending'
-                press = client->_event( 'SORT_DESCENDING' )
-            )->button(
-                text  = 'counter ascending'
-                icon = 'sap-icon://sort-ascending'
-                press = client->_event( 'SORT_ASCENDING' )
-              )->get_parent(
-                 )->tab(
-                        text     = 'Group'
-                        selected = client->_bind( mv_check_group )
-                 )->get_parent( )->get_parent(
-            )->footer( )->overflow_toolbar(
+
+                )->list(
+                 items           = client->_bind( mt_sort )
+                 selectionchange = client->_event( 'SELCHANGE' )
+                    )->custom_list_item(
+                       )->hbox( ).
+
+                   lo_hbox->combobox(
+                                selectedkey = `{NAME}`
+                                items       = client->_bind( mt_cols )
+*                                    ( key = 'BLUE'  text = 'green' )
+*                                    ( key = 'GREEN' text = 'blue' )
+*                                    ( key = 'BLACK' text = 'red' )
+*                                    ( key = 'GRAY'  text = 'gray' ) ) )
+                            )->item(
+                                    key = '{NAME}'
+                                    text = '{NAME}'
+                            )->get_parent(
+                             )->segmented_button( `{TYPE}`
+            )->items(
+                )->segmented_button_item(
+                    key = 'DESCENDING'
+                    icon = 'sap-icon://sort-descending'
+                )->segmented_button_item(
+                    key = 'ASCENDING'
+                    icon = 'sap-icon://sort-ascending'
+       )->get_parent( )->get_parent( ).
+*            )->get_parent( )->get_parent( )->get_parent(
+
+*           )->button(
+*                text  = 'counter descending'
+*                icon = 'sap-icon://sort-descending'
+*                press = client->_event( 'SORT_DESCENDING' )
+*            )->button(
+*                text  = 'counter ascending'
+*                icon = 'sap-icon://sort-ascending'
+*                press = client->_event( 'SORT_ASCENDING' )
+*              )->get_parent( ).
+
+
+*        lo_tab->tab(
+*                        text     = 'Group'
+*                        selected = client->_bind( mv_check_group )
+*                 )->get_parent( )->get_parent( ).
+
+          lo_popup->footer( )->overflow_toolbar(
                 )->toolbar_spacer(
                 )->button(
                     text  = 'continue'
@@ -248,7 +305,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *                 )->title( ns = `core` text = `Table`
 *                 )->label( 'Name' ).
 
-  "  lo_view->input( client->_bind( mv_name  ) ).
+    "  lo_view->input( client->_bind( mv_name  ) ).
 
 *    lo_view->button(
 *                text  = 'search'
@@ -283,43 +340,43 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *    IF mt_table IS not INITIAL.
 
 
-        SELECT FROM z2ui5_t_draft
-            FIELDS *
-          INTO CORRESPONDING FIELDS OF TABLE @mt_table
-            UP TO 5 ROWS.
+    SELECT FROM z2ui5_t_draft
+        FIELDS *
+      INTO CORRESPONDING FIELDS OF TABLE @mt_table
+        UP TO 5 ROWS.
 
-      FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-      ASSIGN mt_table TO <tab>.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mt_table TO <tab>.
 *   DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
 *              )->content( 'form' )->table(
 *                items = client->_bind( val = <tab> ) " check_gen_data = abap_true )
 *            ).
 
- data(tab) = lo_view->title( ns = `core` text = 'Content - Tablename' )->table(
-                  items = client->_bind( val = <tab> )
+    DATA(tab) = lo_view->title( ns = `core` text = 'Content - Tablename' )->table(
+                     items = client->_bind( val = <tab> )
+                 ).
+
+    tab->header_toolbar(
+          )->overflow_toolbar(
+            "  )->title( 'title of the table'
+              )->toolbar_spacer(
+              )->button(
+                  icon = 'sap-icon://action-settings'
+                  press = client->_event( 'BUTTON_SETUP' )
               ).
 
-  tab->header_toolbar(
-        )->overflow_toolbar(
-          "  )->title( 'title of the table'
-            )->toolbar_spacer(
-            )->button(
-                icon = 'sap-icon://action-settings'
-                press = client->_event( 'BUTTON_SETUP' )
-            ).
 
+    DATA(lo_columns) = tab->columns( ).
+    LOOP AT mt_cols REFERENCE INTO DATA(lr_field)
+          WHERE selkz = abap_true.
+      lo_columns->column( width = lr_field->length )->button(  text = lr_field->name ).
+    ENDLOOP.
 
-      DATA(lo_columns) = tab->columns( ).
-      LOOP AT mt_cols REFERENCE INTO DATA(lr_field)
-            where selkz = abap_true.
-        lo_columns->column( width = lr_field->length )->button(  text = lr_field->name ).
-      ENDLOOP.
-
-      DATA(lo_cells) = tab->items( )->column_list_item( )->cells( ).
-      LOOP AT mt_cols REFERENCE INTO lr_field
-            where selkz = abap_true.
-        lo_cells->input( `{` && lr_field->name && `}` ).
-      ENDLOOP.
+    DATA(lo_cells) = tab->items( )->column_list_item( )->cells( ).
+    LOOP AT mt_cols REFERENCE INTO lr_field
+          WHERE selkz = abap_true.
+      lo_cells->input( `{` && lr_field->name && `}` ).
+    ENDLOOP.
 *
 *    ENDIF.
 
