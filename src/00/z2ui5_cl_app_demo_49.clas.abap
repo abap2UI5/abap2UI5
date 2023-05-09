@@ -369,23 +369,23 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_main.
 
-    DATA(lo_view) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
-             title          = 'abap2UI5 - Change the table type with RTTI'
-             navbuttonpress = client->_event( 'BACK' )
-             shownavbutton  = abap_true
-         )->header_content(
-             )->link(
-                 text = 'Source_Code' target = '_blank'
-                 href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
-         )->get_parent(
-         )->simple_form(
-                title = 'SE16'
-                editable = abap_true
-                columnsm = `1`
-                columnsl = `1`
-                columnsxl = `1`
-                layout = `ResponsiveGridLayout`
-             )->content( `form` ).
+*    DATA(lo_view) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
+*             title          = 'abap2UI5 - Change the table type with RTTI'
+*             navbuttonpress = client->_event( 'BACK' )
+*             shownavbutton  = abap_true
+*         )->header_content(
+*             )->link(
+*                 text = 'Source_Code' target = '_blank'
+*                 href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
+*         )->get_parent(
+*         )->simple_form(
+*                title = 'SE16'
+*                editable = abap_true
+*                columnsm = `1`
+*                columnsl = `1`
+*                columnsxl = `1`
+*                layout = `ResponsiveGridLayout`
+*             )->content( `form` ).
 *                 )->title( ns = `core` text = `Table`
 *                 )->label( 'Name' ).
 
@@ -396,25 +396,107 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 *                press = client->_event( 'BUTTON_TABLE' )
 *            ).
 
+      DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->object_page_layout(
+             showtitleinheadercontent = abap_true
+             showeditheaderbutton     = abap_true
+             editheaderbuttonpress    =  client->_event( 'EDIT_HEADER_PRESS' )
+             uppercaseanchorbar       =  abap_false
+         ).
 
+        DATA(header_title) = page->header_title(  )->object_page_dyn_header_title( ).
+
+        header_title->expanded_heading(
+                )->hbox(
+
+                    )->title( text = 'Oblomov Dev' wrapping = abap_true ).
+
+        header_title->snapped_heading(
+                )->flex_box( alignitems = `Center`
+                  )->avatar( src = `` class = 'sapUiTinyMarginEnd'
+                    )->title( text = 'Oblomov Dev' wrapping = abap_true ).
+
+        header_title->expanded_content( ns = `uxap` )->text( `abap2UI5 Developer` ).
+        header_title->snapped_Content( ns = `uxap` )->text( `abap2UI5 Developer` ).
+        header_title->snapped_Title_On_Mobile( )->title( `abap2UI5 Developer` ).
+
+        header_title->actions( ns = `uxap` )->overflow_toolbar(
+             )->overflow_toolbar_button(
+                 icon    = `sap-icon://edit`
+                 text    = 'edit header'
+                 type    = 'Emphasized'
+                 tooltip = 'edit'
+             )->overflow_toolbar_button(
+                 icon    = `sap-icon://pull-down`
+                 text    = 'show section'
+                 type    = 'Emphasized'
+                 tooltip = 'pull-down'
+             )->overflow_toolbar_button(
+                 icon = `sap-icon://show`
+                 text = 'show state'
+                 tooltip = 'show'
+             )->button(
+                " icon = `sap-icon://edit`
+                 text = 'Go Back'
+                 press = client->_event( 'BACK' )
+             ).
+
+        DATA(header_content) = page->header_Content( ns = 'uxap' ).
+
+        header_content->flex_box( wrap = 'Wrap'
+           )->avatar( src = `` class = 'sapUiSmallMarginEnd' displaySize = 'layout'
+            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->link(  text    = '+33 6 4512 5158'
+                )->link(  text    = 'email@email.com'
+            )->get_parent(
+            )->horizontal_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->label( text    = 'Hello! I an abap2UI5 developer'
+                )->label( text    = 'San Jose, USA'
+            )->get_parent(
+            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->label(  text    = 'Hello! I an abap2UI5 developer'
+                )->vbox(
+                    )->label( 'Achived goals'
+                    )->progress_indicator( percentvalue = '30%' displayvalue = '30%'
+            )->get_parent(  )->get_parent(
+          "  )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'layout'
+            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+                )->label(  text    = 'San Jose, USA'
+            )->get_parent(
+        ).
+
+*            lo_view->title( ns = `core` text = 'Filter' ).
+*
+*    lo_view->button(
+*            text  = 'filter'
+*            press = client->_event( 'POPUP_FILTER' )
+*        ).
+*
+*    LOOP AT mt_filter REFERENCE INTO DATA(lr_col)
+*        WHERE selkz = abap_true.
+*      lo_view->label( lr_col->name ).
+*      lo_view->input( lr_col->value ).
+*    ENDLOOP.
+
+
+        data(sections) = page->sections( ).
+
+        data(section) = sections->object_page_section( titleuppercase = abap_false id = 'goalsSectionSS1'
+          "  title = '2014 Goals Plan'
+         "   )->heading( ns = `uxap`
+               " )->message_strip( text = 'this is a message strip'
+           " )->get_parent(
+             )->sub_sections(
+                )->object_page_sub_section(
+                    id = 'personalSectionSS1'
+                  "  title = 'Connect'
+                    ).
 
 
 
 *    lo_view = lo_view->get_parent( )->get_parent( )->simple_form( title = 'cols' editable = abap_true
 *            )->content( 'form' ).
 
-    lo_view->title( ns = `core` text = 'Filter' ).
 
-    lo_view->button(
-            text  = 'filter'
-            press = client->_event( 'POPUP_FILTER' )
-        ).
-
-    LOOP AT mt_filter REFERENCE INTO DATA(lr_col)
-        WHERE selkz = abap_true.
-      lo_view->label( lr_col->name ).
-      lo_view->input( lr_col->value ).
-    ENDLOOP.
 
 *    lo_view->button(
 *                text  = 'search'
@@ -423,8 +505,8 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
 *    IF mt_table IS not INITIAL.
 
-
-    DATA(tab) = lo_view->title( ns = `core` text = 'Content - Tablename' )->table(
+"->title( ns = `core` text = 'Content - Tablename' )
+    DATA(tab) = section->table(
                      items = client->_bind( val = mt_table )
                  ).
 
@@ -473,7 +555,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       ENDIF.
     ENDLOOP.
 
-    app-next-xml_main = lo_view->get_root( )->xml_get( ).
+    app-next-xml_main = page->get_root( )->xml_get( ).
 
   ENDMETHOD.
 
