@@ -14,6 +14,8 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mv_contentheight TYPE string VALUE `70%`.
     DATA mv_contentwidth TYPE string VALUE `70%`.
 
+    DATA mv_check_download_csv TYPE abap_bool.
+
     DATA:
       BEGIN OF ms_view,
         headerpinned   TYPE abap_bool,
@@ -126,6 +128,10 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
 
     CASE app-get-event.
+
+      WHEN 'BUTTON_DOWNLOAD'.
+        mv_check_download_csv = abap_true.
+
 
       WHEN 'BUTTON_SEARCH'.
         app-next-s_cursor_pos-id = 'SEARCH'.
@@ -424,26 +430,46 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
                     text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
            )->get_parent( ).
 
-DATA: lv_bas64enc TYPE string VALUE 'Teststring'.
-DATA: lv_base64dec TYPE string.
+    IF mv_check_download_csv = abap_true.
+      DATA: lv_bas64enc TYPE string VALUE 'Teststring'.
+      DATA: lv_base64dec TYPE string.
 
-"WRITE: / 'Plain:', lv_bas64enc.
+      DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( ms_view-t_tab[ 1 ] ) ).
+      DATA(lt_components) = lo_struc->get_components( ).
 
-cl_web_http_utility=>encode_base64( EXPORTING
-                                  unencoded = lv_bas64enc
-                                RECEIVING
-                                  encoded   = lv_bas64enc ).
+            DATA(lv_row) = ``.
+       loop at lt_components into data(lv_name).
+       lv_row = lv_row && lv_name-name && `;`.
+       endloop.
+    lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
 
-"WRITE: / 'Base64 enc:', lv_bas64enc.
 
-cl_web_http_utility=>decode_base64( EXPORTING
-                                  encoded = lv_bas64enc
-                                RECEIVING
-                                  decoded = lv_base64dec ).
-*
+      LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
 
-    view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" />`).
+        DATA(lv_index) = 1.
+        DO.
+          ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO FIELD-SYMBOL(<field>).
+          IF sy-subrc <> 0.
+            EXIT.
+          ENDIF.
+          lv_row = lv_row && <field>.
+          lv_index = lv_index + 1.
+          lv_row = lv_row && `;`.
+        ENDDO.
 
+        lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
+      ENDLOOP.
+
+      cl_web_http_utility=>encode_base64(
+                              EXPORTING
+                                unencoded = lv_row
+                              RECEIVING
+                                encoded   = lv_bas64enc ).
+
+      view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" hidden="hidden" />`).
+
+      mv_check_download_csv = abap_false.
+    ENDIF.
     DATA(page) = view->dynamic_page(
             headerexpanded = client->_bind( ms_view-headerexpanded )
             headerpinned   = client->_bind(  ms_view-headerpinned  ) ).
@@ -571,7 +597,7 @@ cl_web_http_utility=>decode_base64( EXPORTING
 *
 *DATA: text TYPE string VALUE 'TestString.'.
 
-"START-OF-SELECTION.
+    "START-OF-SELECTION.
 
 *  "WRITE: / text.
 *

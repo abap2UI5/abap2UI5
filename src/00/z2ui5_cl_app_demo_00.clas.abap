@@ -113,7 +113,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
 
     grid->simple_form( title = 'HowTo - More I' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Side Effects'         press = client->_event( 'z2ui5_cl_app_demo_27' )
-         )->button( text = 'Integer and Decimals' press = client->_event( 'z2ui5_cl_app_demo_47' )
+         )->button( text = 'Integer, Decimals, Dates, Time' press = client->_event( 'z2ui5_cl_app_demo_47' )
          )->button( text = 'FE Table' press = client->_event( 'z2ui5_cl_app_demo_49' )
     ).
 
