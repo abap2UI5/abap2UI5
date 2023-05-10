@@ -126,6 +126,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         mode                TYPE clike OPTIONAL
         width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
+        delete              TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -2174,6 +2175,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
            ( n = `mode`             v = mode )
            ( n = `width`            v = width )
            ( n = `selectionChange`  v = selectionchange )
+           ( n = `delete`  v = delete )
      ) ).
 
   ENDMETHOD.

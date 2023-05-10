@@ -16,12 +16,24 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     DATA mv_check_download_csv TYPE abap_bool.
 
+    TYPES:
+      BEGIN OF ty_S_out,
+        selkz               TYPE abap_bool,
+        uuid                TYPE string,
+        uuid_prev           TYPE string,
+        uuid_prev_app       TYPE string,
+        uuid_prev_app_stack TYPE string,
+        timestampl          TYPE string,
+        uname               TYPE string,
+        data                TYPE string,
+      END OF ty_s_out.
+
     DATA:
       BEGIN OF ms_view,
         headerpinned   TYPE abap_bool,
         headerexpanded TYPE abap_bool,
         search_val     TYPE string,
-        t_tab          TYPE STANDARD TABLE OF z2ui5_t_draft WITH EMPTY KEY,
+        t_tab          TYPE STANDARD TABLE OF ty_S_out WITH EMPTY KEY,
       END OF ms_view.
     TYPES:
       BEGIN OF ty_S_cols,
@@ -129,6 +141,11 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     CASE app-get-event.
 
+    when 'BUTTON_DELETE'.
+        delete ms_view-t_tab where selkz = abap_true.
+
+
+
       WHEN 'BUTTON_DOWNLOAD'.
         mv_check_download_csv = abap_true.
 
@@ -138,7 +155,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         app-next-s_cursor_pos-cursorpos = '99'.
         app-next-s_cursor_pos-selectionend = '99'.
         app-next-s_cursor_pos-selectionstart = '99'.
-        ms_view-t_tab = mt_table.
+        ms_view-t_tab = CORRESPONDING #( mt_table ).
         IF ms_view-search_val IS NOT INITIAL.
           LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
             DATA(lv_row) = ``.
@@ -207,7 +224,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     app-view_main  = 'MAIN'.
     init_table_output( ).
-    ms_view-t_tab = mt_table.
+    ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   ENDMETHOD.
 
@@ -276,7 +293,18 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
         lo_cont->hbox(
          )->text( `SelMode`
-         )->input( client->_bind( ms_table-selmode ) ).
+       "  )->input( client->_bind( ms_table-selmode ) ).
+            )->combobox(
+            selectedkey = client->_bind( ms_table-selmode )
+            items       = client->_bind_one( VALUE ty_t_combo(
+                    ( key = 'None'  text = 'None' )
+                    ( key = 'SingleSelect' text = 'SingleSelect' )
+                    ( key = 'SingleSelectLeft' text = 'SingleSelectLeft' )
+                    ( key = 'MultiSelect'  text = 'MultiSelect' ) ) )
+                )->item(
+                    key = '{KEY}'
+                    text = '{TEXT}'
+        )->get_parent( )->get_parent( ).
 
         lo_tab->tab(
                     text     = 'Columns'
@@ -437,11 +465,11 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( ms_view-t_tab[ 1 ] ) ).
       DATA(lt_components) = lo_struc->get_components( ).
 
-            DATA(lv_row) = ``.
-       loop at lt_components into data(lv_name).
-       lv_row = lv_row && lv_name-name && `;`.
-       endloop.
-    lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
+      DATA(lv_row) = ``.
+      LOOP AT lt_components INTO DATA(lv_name).
+        lv_row = lv_row && lv_name-name && `;`.
+      ENDLOOP.
+      lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
 
 
       LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
@@ -531,7 +559,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     DATA(cont) = page->content( ns = 'f' ).
 
-    DATA(tab) = cont->table( items = client->_bind( val = ms_view-t_tab ) ). "mt_table ) ).
+    DATA(tab) = cont->table(
+        items = client->_bind( val = ms_view-t_tab )
+        mode = ms_table-selmode ). "mt_table ) ).
 
     tab->header_toolbar(
           )->toolbar(
@@ -579,6 +609,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     DATA(lo_cells) = tab->items( )->column_list_item(
         press = client->_event( val = 'DETAIL' data = `${UUID}` )
+        selected = `{SELKZ}`
         type = `Navigation` )->cells( ).
     LOOP AT mt_cols REFERENCE INTO lr_field
           WHERE visible = abap_true.
