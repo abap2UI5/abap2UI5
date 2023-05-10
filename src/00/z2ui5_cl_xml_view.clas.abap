@@ -58,6 +58,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS Dynamic_Page
       IMPORTING
         headerExpanded           TYPE clike OPTIONAL
+        headerPinned             TYPE clike OPTIONAL
         toggleHeaderOnTitleClick TYPE clike OPTIONAL
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
@@ -550,8 +551,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS search_field
       IMPORTING
-        search        TYPE clike OPTIONAL
+        search         TYPE clike OPTIONAL
         width          TYPE clike OPTIONAL
+        value          TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
+        change         TYPE clike OPTIONAL
+        liveChange     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -645,6 +650,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         ns            TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
         wrapping      TYPE clike OPTIONAL
+        level         type clike optional
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -898,6 +904,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_toolbar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1446,6 +1456,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD toolbar.
+
+    result = _generic( `Toolbar` ).
+
+  ENDMETHOD.
 
   METHOD header_toolbar.
 
@@ -2230,6 +2245,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          t_prop = VALUE #(
              ( n = `text`     v = text )
              ( n = `wrapping` v = lcl_utility=>get_json_boolean( wrapping ) )
+             ( n = `level` v = level )
       ) ).
 
   ENDMETHOD.
@@ -2378,6 +2394,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       ns     = `f`
       t_prop = VALUE #(
          (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
+         (  n = `headerPinned`           v = lcl_utility=>get_json_boolean( headerPinned ) )
          (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
       ) ).
 
@@ -2509,8 +2526,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     _generic(
          name  = `SearchField`
          t_prop = VALUE #(
-            ( n = `width`      v = width )
+            ( n = `width`  v = width )
             ( n = `search` v = search )
+            ( n = `value`  v = value )
+            ( n = `id`     v = id )
+            ( n = `change` v = change )
+            ( n = `liveChange` v = liveChange )
     ) ).
 
   ENDMETHOD.

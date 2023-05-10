@@ -1363,14 +1363,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                     json             = `"` && <val> && `"`
                   CHANGING
                     data             = <attribute>  ).
-            WHEN 'C'.
-              CASE lr_attri->type.
-                WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
-                  <attribute> = xsdbool( <val> = `true` ).
-                WHEN OTHERS.
-                  <attribute> = <val>.
-              ENDCASE.
-            WHEN OTHERS.
+           " WHEN 'C'.
+            "  CASE lr_attri->type.
+             "   WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+             "     <attribute> = xsdbool( <val> = `true` ).
+            "    WHEN OTHERS.
+            "      <attribute> = <val>.
+            "°  ENDCASE.
+           WHEN OTHERS.
               <attribute> = <val>.
           ENDCASE.
       ENDCASE.

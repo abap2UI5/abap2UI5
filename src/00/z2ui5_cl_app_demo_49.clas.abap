@@ -5,6 +5,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     INTERFACES z2ui5_if_app.
 
     DATA mt_table TYPE STANDARD TABLE OF z2ui5_t_draft.
+    DATA ms_detail TYPE z2ui5_t_draft.
     DATA mv_check_columns TYPE abap_bool.
     DATA mv_check_sort TYPE abap_bool.
     DATA mv_check_table TYPE abap_bool.
@@ -13,6 +14,13 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mv_contentheight TYPE string VALUE `70%`.
     DATA mv_contentwidth TYPE string VALUE `70%`.
 
+    DATA:
+      BEGIN OF ms_view,
+        headerpinned   TYPE abap_bool,
+        headerexpanded TYPE abap_bool,
+        search_val     TYPE string,
+        t_tab          TYPE STANDARD TABLE OF z2ui5_t_draft WITH EMPTY KEY,
+      END OF ms_view.
     TYPES:
       BEGIN OF ty_S_cols,
         visible  TYPE abap_bool,
@@ -80,6 +88,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     METHODS z2ui5_on_render.
     METHODS init_table_output.
     METHODS z2ui5_on_render_main.
+    METHODS z2ui5_on_render_detail.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -118,15 +127,38 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     CASE app-get-event.
 
-      WHEN 'BUTTON_TABLE'.
-*        FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-*        CREATE DATA mt_table TYPE STANDARD TABLE OF (mv_name).
-*        ASSIGN mt_table->* TO <tab>.
+      WHEN 'BUTTON_SEARCH'.
+        app-next-s_cursor_pos-id = 'SEARCH'.
+        app-next-s_cursor_pos-cursorpos = '99'.
+        app-next-s_cursor_pos-selectionend = '99'.
+        app-next-s_cursor_pos-selectionstart = '99'.
+        ms_view-t_tab = mt_table.
+        IF ms_view-search_val IS NOT INITIAL.
+          LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
+            DATA(lv_row) = ``.
+            DATA(lv_index) = 1.
+            DO.
+              ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO FIELD-SYMBOL(<field>).
+              IF sy-subrc <> 0.
+                EXIT.
+              ENDIF.
+              lv_row = lv_row && <field>.
+              lv_index = lv_index + 1.
+            ENDDO.
 
+            IF lv_row NS ms_view-search_val.
+              DELETE ms_view-t_tab.
+            ENDIF.
+          ENDLOOP.
+        ENDIF.
 
-    when 'TEST'.
-        data(lv_row_title) = client->get( )-event_data.
-        client->popup_message_box( `test` && lv_row_title ).
+      WHEN 'MAIN'.
+        app-view_main = 'MAIN'.
+
+      WHEN 'DETAIL'.
+        " DATA(lv_row_title) = client->get( )-event_data.
+        ms_detail = mt_table[ uuid = client->get( )-event_data ].
+        app-view_main = 'DETAIL'.
 
 
       WHEN 'BUTTON_POST'.
@@ -167,9 +199,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    app-view_main = 'VIEW_MAIN'.
-    "    mv_name = `Z2UI5_T_DRAFT`.
+    app-view_main  = 'MAIN'.
     init_table_output( ).
+    ms_view-t_tab = mt_table.
 
   ENDMETHOD.
 
@@ -322,9 +354,15 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     ENDCASE.
 
-    z2ui5_on_render_main( ).
-
     app-next-xml_popup = lo_popup->get_root( )->xml_get( ).
+
+
+    CASE app-view_main.
+      WHEN 'MAIN'.
+        z2ui5_on_render_main( ).
+      WHEN 'DETAIL'.
+        z2ui5_on_render_detail( ).
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -334,6 +372,8 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     CLEAR mt_cols.
     CLEAR mt_sort.
 
+    ms_view-headerexpanded = abap_true.
+    ms_view-headerpinned   = abap_true.
 
 
     SELECT FROM z2ui5_t_draft
@@ -369,182 +409,150 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_on_render_main.
 
-*    DATA(lo_view) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
-*             title          = 'abap2UI5 - Change the table type with RTTI'
-*             navbuttonpress = client->_event( 'BACK' )
-*             shownavbutton  = abap_true
-*         )->header_content(
-*             )->link(
-*                 text = 'Source_Code' target = '_blank'
-*                 href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
-*         )->get_parent(
-*         )->simple_form(
-*                title = 'SE16'
-*                editable = abap_true
-*                columnsm = `1`
-*                columnsl = `1`
-*                columnsxl = `1`
-*                layout = `ResponsiveGridLayout`
-*             )->content( `form` ).
-*                 )->title( ns = `core` text = `Table`
-*                 )->label( 'Name' ).
+    "   DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
 
-    "  lo_view->input( client->_bind( mv_name  ) ).
+    DATA(view) = z2ui5_cl_xml_view=>factory(
+        )->page(
+                title          = 'abap2UI5 - Popups'
+                navbuttonpress = client->_event( 'BACK' )
+                shownavbutton  = abap_true
+            )->header_content(
+                )->link(
+                    text = 'Demo' target = '_blank'
+                    href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
+                )->link(
+                    text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
+           )->get_parent( ).
 
-*    lo_view->button(
-*                text  = 'search'
-*                press = client->_event( 'BUTTON_TABLE' )
-*            ).
+DATA: lv_bas64enc TYPE string VALUE 'Teststring'.
+DATA: lv_base64dec TYPE string.
 
-      DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->object_page_layout(
-             showtitleinheadercontent = abap_true
-             showeditheaderbutton     = abap_true
-             editheaderbuttonpress    =  client->_event( 'EDIT_HEADER_PRESS' )
-             uppercaseanchorbar       =  abap_false
-         ).
+"WRITE: / 'Plain:', lv_bas64enc.
 
-        DATA(header_title) = page->header_title(  )->object_page_dyn_header_title( ).
+cl_web_http_utility=>encode_base64( EXPORTING
+                                  unencoded = lv_bas64enc
+                                RECEIVING
+                                  encoded   = lv_bas64enc ).
 
-        header_title->expanded_heading(
-                )->hbox(
+"WRITE: / 'Base64 enc:', lv_bas64enc.
 
-                    )->title( text = 'Oblomov Dev' wrapping = abap_true ).
-
-        header_title->snapped_heading(
-                )->flex_box( alignitems = `Center`
-                  )->avatar( src = `` class = 'sapUiTinyMarginEnd'
-                    )->title( text = 'Oblomov Dev' wrapping = abap_true ).
-
-        header_title->expanded_content( ns = `uxap` )->text( `abap2UI5 Developer` ).
-        header_title->snapped_Content( ns = `uxap` )->text( `abap2UI5 Developer` ).
-        header_title->snapped_Title_On_Mobile( )->title( `abap2UI5 Developer` ).
-
-        header_title->actions( ns = `uxap` )->overflow_toolbar(
-             )->overflow_toolbar_button(
-                 icon    = `sap-icon://edit`
-                 text    = 'edit header'
-                 type    = 'Emphasized'
-                 tooltip = 'edit'
-             )->overflow_toolbar_button(
-                 icon    = `sap-icon://pull-down`
-                 text    = 'show section'
-                 type    = 'Emphasized'
-                 tooltip = 'pull-down'
-             )->overflow_toolbar_button(
-                 icon = `sap-icon://show`
-                 text = 'show state'
-                 tooltip = 'show'
-             )->button(
-                " icon = `sap-icon://edit`
-                 text = 'Go Back'
-                 press = client->_event( 'BACK' )
-             ).
-
-        DATA(header_content) = page->header_Content( ns = 'uxap' ).
-
-        header_content->flex_box( wrap = 'Wrap'
-           )->avatar( src = `` class = 'sapUiSmallMarginEnd' displaySize = 'layout'
-            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
-                )->link(  text    = '+33 6 4512 5158'
-                )->link(  text    = 'email@email.com'
-            )->get_parent(
-            )->horizontal_layout( class = 'sapUiSmallMarginBeginEnd'
-                )->label( text    = 'Hello! I an abap2UI5 developer'
-                )->label( text    = 'San Jose, USA'
-            )->get_parent(
-            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
-                )->label(  text    = 'Hello! I an abap2UI5 developer'
-                )->vbox(
-                    )->label( 'Achived goals'
-                    )->progress_indicator( percentvalue = '30%' displayvalue = '30%'
-            )->get_parent(  )->get_parent(
-          "  )->avatar( src = lcl_help=>get_avatar( ) class = 'sapUiSmallMarginEnd' displaySize = 'layout'
-            )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
-                )->label(  text    = 'San Jose, USA'
-            )->get_parent(
-        ).
-
-*            lo_view->title( ns = `core` text = 'Filter' ).
+cl_web_http_utility=>decode_base64( EXPORTING
+                                  encoded = lv_bas64enc
+                                RECEIVING
+                                  decoded = lv_base64dec ).
 *
-*    lo_view->button(
-*            text  = 'filter'
-*            press = client->_event( 'POPUP_FILTER' )
-*        ).
+
+    view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" />`).
+
+    DATA(page) = view->dynamic_page(
+            headerexpanded = client->_bind( ms_view-headerexpanded )
+            headerpinned   = client->_bind(  ms_view-headerpinned  ) ).
+
+    DATA(header_title) = page->title( ns = 'f' )->get( )->dynamic_page_title( ).
+
+    header_title->heading( ns = 'f' )->title( 'Header Title' ).
+
+    header_title->expanded_content( 'f'
+             )->label( text = 'this is a subheading' ).
+
+    header_title->snapped_content( ns = 'f'
+             )->label( text = 'this is a subheading' ).
+
+*    header_title->actions( ns = 'f' )->overflow_toolbar(
+*         )->overflow_toolbar_button(
+*             icon    = `sap-icon://edit`
+*             text    = 'edit header'
+*             type    = 'Emphasized'
+*             tooltip = 'edit'
+*         )->overflow_toolbar_button(
+*             icon    = `sap-icon://pull-down`
+*             text    = 'show section'
+*             type    = 'Emphasized'
+*             tooltip = 'pull-down'
+*         )->overflow_toolbar_button(
+*             icon = `sap-icon://show`
+*             text = 'show state'
+*             tooltip = 'show'
+*         )->button(
+*            " icon = `sap-icon://edit`
+*             text = 'Go Back'
+*             press = client->_event( 'BACK' )
+*         ).
 *
-*    LOOP AT mt_filter REFERENCE INTO DATA(lr_col)
-*        WHERE selkz = abap_true.
-*      lo_view->label( lr_col->name ).
-*      lo_view->input( lr_col->value ).
-*    ENDLOOP.
+*    header_title->navigation_actions(
+*            )->button( icon = 'sap-icon://full-screen' type  = 'Transparent'
+*            )->button( icon = 'sap-icon://exit-full-screen' type  = 'Transparent'
+*            )->button( icon = 'sap-icon://decline' type  = 'Transparent'
+*    ).
 
+    page->header( )->dynamic_page_header(  pinnable = abap_true
+       )->horizontal_layout(
+           )->vertical_layout(
+                  )->object_attribute( title = 'Location' text = 'Warehouse A'
+                  )->object_attribute( title = 'Halway' text = '23L'
+                  )->object_attribute( title = 'Rack' text = '34'
+            )->get_parent(
+              )->vertical_layout(
+                   )->object_attribute( title = 'Location' text = 'Warehouse A'
+                   )->object_attribute( title = 'Halway' text = '23L'
+                   )->object_attribute( title = 'Rack' text = '34'
+            )->get_parent(
+             )->vertical_layout(
+                  )->object_attribute( title = 'Location' text = 'Warehouse A'
+                  )->object_attribute( title = 'Halway' text = '23L'
+                  )->object_attribute( title = 'Rack' text = '34'
+            ).
 
-        data(sections) = page->sections( ).
+    DATA(cont) = page->content( ns = 'f' ).
 
-        data(section) = sections->object_page_section( titleuppercase = abap_false id = 'goalsSectionSS1'
-          "  title = '2014 Goals Plan'
-         "   )->heading( ns = `uxap`
-               " )->message_strip( text = 'this is a message strip'
-           " )->get_parent(
-             )->sub_sections(
-                )->object_page_sub_section(
-                    id = 'personalSectionSS1'
-                  "  title = 'Connect'
-                    ).
-
-
-
-*    lo_view = lo_view->get_parent( )->get_parent( )->simple_form( title = 'cols' editable = abap_true
-*            )->content( 'form' ).
-
-
-
-*    lo_view->button(
-*                text  = 'search'
-*                press = client->_event( 'BUTTON_POST' )
-*            ).
-
-*    IF mt_table IS not INITIAL.
-
-"->title( ns = `core` text = 'Content - Tablename' )
-    DATA(tab) = section->table(
-                     items = client->_bind( val = mt_table )
-                 ).
+    DATA(tab) = cont->table( items = client->_bind( val = ms_view-t_tab ) ). "mt_table ) ).
 
     tab->header_toolbar(
-          )->overflow_toolbar(
-
+          )->toolbar(
+              )->title( text = `Drafts (23)` level = `H2`
+                  )->toolbar_spacer(
               )->button(
                   icon = 'sap-icon://refresh'
                   press = client->_event( 'BUTTON_REFRESH' )
               )->search_field(
+                    value = client->_bind( ms_view-search_val )
                     search = client->_event( 'BUTTON_SEARCH' )
+                    change = client->_event( 'BUTTON_SEARCH' )
+*                    liveChange = client->_event( 'BUTTON_SEARCH' )
                     width = `17.5rem`
+                    id    = `SEARCH`
 
-             )->toolbar_spacer(
+      )->toolbar_spacer(
                     )->button(
                "   icon = 'sap-icon://refresh'
-                text = `custom action`
-                  press = client->_event( 'BUTTON_REFRESH' )
-             )->toolbar_spacer(
+                text = `Custom Action`
+                  press = client->_event( 'BUTTON_CUSTOM' )
+
               )->button(
-                  icon = 'sap-icon://download'
-                  press = client->_event( 'BUTTON_DOWNLOAD' )
+                  text = `Anlegen`
+                  press = client->_event( 'BUTTON_CREATE' )
+                     )->button(
+                  text = `Löschen`
+                  press = client->_event( 'BUTTON_DELETE' )
               )->button(
                   icon = 'sap-icon://action-settings'
                   press = client->_event( 'BUTTON_SETUP' )
+              )->button(
+                  icon = 'sap-icon://download'
+                  press = client->_event( 'BUTTON_DOWNLOAD' )
               ).
 
 
     DATA(lo_columns) = tab->columns( ).
     LOOP AT mt_cols REFERENCE INTO DATA(lr_field)
           WHERE visible = abap_true.
-      lo_columns->column( width = lr_field->length )->title(  text = lr_field->title
+      lo_columns->column( width = lr_field->length )->text(  text = CONV char10( lr_field->title )
         )->footer(
         )->object_number( number = `10` unit = 'ST' state = `Warning` ).
     ENDLOOP.
 
     DATA(lo_cells) = tab->items( )->column_list_item(
-        press = client->_event( val = 'TEST' data = `${UUID}` )
+        press = client->_event( val = 'DETAIL' data = `${UUID}` )
         type = `Navigation` )->cells( ).
     LOOP AT mt_cols REFERENCE INTO lr_field
           WHERE visible = abap_true.
@@ -556,6 +564,227 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     ENDLOOP.
 
     app-next-xml_main = page->get_root( )->xml_get( ).
+
+
+
+*"WRITE: / 'Base64 dec:', lv_base64dec.
+*
+*DATA: text TYPE string VALUE 'TestString.'.
+
+"START-OF-SELECTION.
+
+*  "WRITE: / text.
+*
+*  DATA(o_base64) = NEW cl_hard_wired_encryptor( ).
+*
+*  DATA(enc_string) = o_base64->encrypt_string2string( text ).
+* " WRITE: / 'Base64 encrypt_string2string: ', enc_string.
+*
+*  DATA(dec_string) = o_base64->decrypt_string2string( enc_string ).
+* " WRITE: / 'Base64 decrypt_string2string: ', dec_string.
+*
+*  DATA(enc_xstring) = o_base64->encrypt_string2bytes( dec_string ).
+* " WRITE: / 'Base64 encrypt_string2bytes:  ', enc_xstring.
+*
+*  DATA(enc_bytes) = o_base64->encrypt_bytes2bytes( enc_xstring ).
+* "
+*  DATA(dec_bytes) = o_base64->decrypt_bytes2bytes( enc_bytes ).
+* " WRITE: / 'Base64 decrypt_bytes2bytes:   ', dec_bytes.
+*
+*  DATA(dec_string2) = o_base64->decrypt_bytes2string( dec_bytes ).
+* " WRITE: / 'Base64 decrypt_bytes2string:  ', dec_string2.
+*
+*data lv_xstring type xstring.
+*data lv_base64 type string.
+*
+*CALL FUNCTION 'SCMS_BASE64_ENCODE_STR'
+*        EXPORTING
+*          input  = lv_xstring
+*        IMPORTING
+*          output = lv_base64.
+*
+*         CALL METHOD cl_http_utility=>if_http_utility~decode_x_base64
+*    EXPORTING
+*      encoded = lv_base64
+*    RECEIVING
+*      decoded = lv_xstring.
+*
+*      DATA: xstr TYPE xstring,
+*      str  TYPE string.
+*TRY.
+*
+*str = cl_abap_codepage=>convert_from( source = xstr ). " default is UTF-8
+*
+*xstr = cl_abap_codepage=>convert_to( source = str ). " default is UTF-8
+*
+*CATCH cx_root.
+*  " handle conversion errors
+*ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_render_detail.
+
+    "  DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
+
+    DATA(view) = z2ui5_cl_xml_view=>factory(
+        )->page(
+                title          = 'abap2UI5 - Popups'
+                navbuttonpress = client->_event( 'MAIN' )
+                shownavbutton  = abap_true
+            )->header_content(
+                )->link(
+                    text = 'Demo' target = '_blank'
+                    href = 'https://twitter.com/OblomovDev/status/1637163852264624139'
+                )->link(
+                    text = 'Source_Code' target = '_blank' href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
+           )->get_parent( ).
+
+    DATA(page) = view->object_page_layout(
+         showtitleinheadercontent = abap_true
+         showeditheaderbutton     = abap_true
+         editheaderbuttonpress    =  client->_event( 'EDIT_HEADER_PRESS' )
+         uppercaseanchorbar       =  abap_false
+     ).
+
+    DATA(header_title) = page->header_title(  )->object_page_dyn_header_title( ).
+
+    header_title->expanded_heading(
+            )->hbox(
+                )->title( text = 'Oblomov Dev' wrapping = abap_true ).
+
+    header_title->snapped_heading(
+            )->flex_box( alignitems = `Center`
+              )->avatar( src = `` class = 'sapUiTinyMarginEnd'
+                )->title( text = 'Oblomov Dev' wrapping = abap_true ).
+
+    header_title->expanded_content( ns = `uxap` )->text( `abap2UI5 Developer` ).
+    header_title->snapped_Content( ns = `uxap` )->text( `abap2UI5 Developer` ).
+    header_title->snapped_Title_On_Mobile( )->title( `abap2UI5 Developer` ).
+
+    header_title->actions( ns = `uxap` )->overflow_toolbar(
+         )->overflow_toolbar_button(
+             icon    = `sap-icon://edit`
+             text    = 'edit header'
+             type    = 'Emphasized'
+             tooltip = 'edit'
+         )->overflow_toolbar_button(
+             icon    = `sap-icon://pull-down`
+             text    = 'show section'
+             type    = 'Emphasized'
+             tooltip = 'pull-down'
+         )->overflow_toolbar_button(
+             icon = `sap-icon://show`
+             text = 'show state'
+             tooltip = 'show'
+         )->button(
+            " icon = `sap-icon://edit`
+             text = 'Go Back'
+             press = client->_event( 'MAIN' )
+         ).
+
+    DATA(header_content) = page->header_Content( ns = 'uxap' ).
+
+    header_content->flex_box( wrap = 'Wrap'
+       )->avatar( src = `` class = 'sapUiSmallMarginEnd' displaySize = 'layout'
+        )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+            )->link(  text    = '+33 6 4512 5158'
+            )->link(  text    = 'email@email.com'
+        )->get_parent(
+        )->horizontal_layout( class = 'sapUiSmallMarginBeginEnd'
+            )->label( text    = 'Hello! I an abap2UI5 developer'
+            )->label( text    = 'San Jose, USA'
+        )->get_parent(
+        )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+            )->label(  text    = 'Hello! I an abap2UI5 developer'
+            )->vbox(
+                )->label( 'Achived goals'
+                )->progress_indicator( percentvalue = '30%' displayvalue = '30%'
+        )->get_parent(  )->get_parent(
+        )->vertical_layout( class = 'sapUiSmallMarginBeginEnd'
+            )->label(  text    = 'San Jose, USA'
+        )->get_parent(
+    ).
+
+
+    DATA(sections) = page->sections( ).
+
+    sections->object_page_section( titleuppercase = abap_false id = 'goalsSectionSS1' title = '2014 Goals Plan'
+        )->heading( ns = `uxap`
+            )->message_strip( text = 'this is a message strip'
+        )->get_parent(
+        )->sub_sections(
+            )->object_page_sub_section( id = 'goalssubSectionSS1' title = 'goals1'
+                )->blocks(
+                      )->vbox(
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+                      )->label( text    = 'goals1'
+
+            )->get_parent( )->get_parent( )->get_parent(
+            )->object_page_sub_section( id = 'goalsSectionWS1' title = 'goals2'
+                  )->blocks(
+                        )->vbox(
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2'
+                      )->label( text    = 'goals2').
+
+    sections->object_page_section( titleuppercase = abap_false id = 'PersonalSection' title = 'Personal'
+       )->heading( ns = `uxap`
+      "     )->message_strip( text = 'this is a message strip'
+       )->get_parent(
+       )->sub_sections(
+           )->object_page_sub_section( id = 'personalSectionSS1' title = 'Connect'
+               )->blocks(
+                     )->label( text    = 'telefon'
+                     )->label( text    = 'email'
+           )->get_parent( )->get_parent(
+           )->object_page_sub_section( id = 'personalSectionWS2' title = 'Payment information  '
+                 )->blocks(
+                     )->label( text    = 'Hello! I an abap2UI5 developer'
+                     )->label( text    = 'San Jose, USA' ).
+
+
+    sections->object_page_section( titleuppercase = abap_false id = 'employmentSection' title = 'Employment'
+     )->heading( ns = `uxap`
+    "     )->message_strip( text = 'this is a message strip'
+     )->get_parent(
+     )->sub_sections(
+         )->object_page_sub_section( id = 'empSectionSS1' title = 'Job information'
+             )->blocks(
+                   )->label( text    = 'info'
+                   )->label( text    = 'info'
+                   )->label( text    = 'info'
+                   )->label( text    = 'info'
+                   )->label( text    = 'info'
+         )->get_parent( )->get_parent(
+         )->object_page_sub_section( id = 'empSectionWS2' title = 'Employee Details '
+               )->blocks(
+                     )->vbox(
+                   )->label( text    = 'details'
+                   )->label( text    = 'details'
+                   )->label( text    = 'details'
+                   )->label( text    = 'details'
+                   )->label( text    = 'details'
+                   )->label( text    = 'details'
+                   )->label( text    = 'details'
+                   )->label( text    = 'details' ).
+
+    app-next-xml_main = view->get_root( )->xml_get( ).
+
 
   ENDMETHOD.
 
