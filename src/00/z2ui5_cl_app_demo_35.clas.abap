@@ -7,7 +7,6 @@ CLASS z2ui5_cl_app_demo_35 DEFINITION PUBLIC.
     DATA mt_table TYPE REF TO data.
     DATA mt_cols TYPE string_table.
     DATA mv_name TYPE string.
-    DATA mv_input TYPE string.
 
   PROTECTED SECTION.
 
@@ -20,7 +19,6 @@ CLASS z2ui5_cl_app_demo_35 DEFINITION PUBLIC.
         get               TYPE z2ui5_if_client=>ty_s_get,
         next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
-
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.

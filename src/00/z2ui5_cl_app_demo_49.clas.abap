@@ -676,8 +676,6 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   METHOD z2ui5_download_csv.
 
-    DATA lv_bas64enc TYPE string VALUE 'Teststring'.
-
     DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( ms_view-t_tab[ 1 ] ) ).
     DATA(lt_components) = lo_struc->get_components( ).
 
@@ -704,7 +702,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
       lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
     ENDLOOP.
 
-    lv_bas64enc = cl_web_http_utility=>encode_base64( lv_row ).
+    data(lv_bas64enc) = cl_web_http_utility=>encode_base64( lv_row ).
 
     i_view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" hidden="hidden" />`).
 
