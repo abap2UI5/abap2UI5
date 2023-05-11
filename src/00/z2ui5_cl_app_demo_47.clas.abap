@@ -12,7 +12,6 @@ CLASS z2ui5_cl_app_demo_47 DEFINITION PUBLIC.
     DATA dec2    TYPE p LENGTH 10 DECIMALS 4.
     DATA dec_sum TYPE p LENGTH 10 DECIMALS 4.
 
-    DATA boolean TYPE abap_bool.
     DATA date    TYPE d.
     DATA time    TYPE t.
 
@@ -74,8 +73,6 @@ CLASS z2ui5_cl_app_demo_47 IMPLEMENTATION.
                     )->input( client->_bind( date )
                     )->label( 'time'
                     )->input( client->_bind( time )
-                    )->label( 'boolean'
-                    )->input( client->_bind( boolean )
          )->get_root( )->xml_get( ) ) ).
 
 
