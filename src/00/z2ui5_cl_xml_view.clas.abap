@@ -58,6 +58,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS Dynamic_Page
       IMPORTING
         headerExpanded           TYPE clike OPTIONAL
+        headerPinned             TYPE clike OPTIONAL
         toggleHeaderOnTitleClick TYPE clike OPTIONAL
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
@@ -125,6 +126,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         mode                TYPE clike OPTIONAL
         width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
+        alternateRowColors     TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -203,6 +205,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header
+        importing
+        ns type clike default `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -343,6 +347,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         stretch       TYPE clike OPTIONAL
         contentheight TYPE clike OPTIONAL
         contentwidth  TYPE clike OPTIONAL
+        resizable     TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -470,10 +475,32 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         valign        TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS cells
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS bar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS content_left
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS content_middle
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS content_right
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS custom_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -520,6 +547,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
         class         TYPE clike OPTIONAL
         id            TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS search_field
+      IMPORTING
+        search         TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
+        value          TYPE clike OPTIONAL
+        id             TYPE clike OPTIONAL
+        change         TYPE clike OPTIONAL
+        liveChange     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -586,12 +624,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS simple_form
       IMPORTING
-        title       TYPE clike OPTIONAL
-        layout      TYPE clike OPTIONAL
-        editable    TYPE clike OPTIONAL
-        columnsXL   TYPE clike OPTIONAL
-        columnsL    TYPE clike OPTIONAL
-        columnsM    TYPE clike OPTIONAL
+        title         TYPE clike OPTIONAL
+        layout        TYPE clike OPTIONAL
+        editable      TYPE clike OPTIONAL
+        columnsXL     TYPE clike OPTIONAL
+        columnsL      TYPE clike OPTIONAL
+        columnsM      TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -613,6 +651,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         ns            TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
         wrapping      TYPE clike OPTIONAL
+        level         type clike optional
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -652,6 +691,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS label
       IMPORTING
         text          TYPE clike OPTIONAL
+        labelfor          TYPE clike OPTIONAL
+        PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -700,9 +741,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         headertext      TYPE clike OPTIONAL
         items           TYPE clike OPTIONAL
         mode            TYPE clike OPTIONAL
-        selectionChange type clike optional
+        selectionChange TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
+        VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view.
+
+    METHODS custom_list_item
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS input_list_item
+      IMPORTING
+        label         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS standard_list_item
       IMPORTING
@@ -859,6 +910,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS toolbar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS text
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -882,7 +937,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS zz_file_uploader
+    METHODS cc_file_uploader
       IMPORTING
         value         TYPE clike OPTIONAL
         path          TYPE clike OPTIONAL
@@ -890,6 +945,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         upload        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
+
+  class-METHODS cc_file_uploader_get_js
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS xml_get
       RETURNING
@@ -951,7 +1010,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic(
         name   = `header`
-        ns     = `f`
+        ns     = ns
       ).
 
   ENDMETHOD.
@@ -1110,6 +1169,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name = `ColumnListItem`
         t_prop = VALUE #( ( n = `vAlign`   v = valign )
                           ( n = `selected` v = selected )
+                          ( n = `type`     v = type )
+                          ( n = `press`    v = press )
        ) ).
 
   ENDMETHOD.
@@ -1182,6 +1243,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `showHeader`  v = showheader )
           ( n = `contentWidth`  v = contentwidth )
           ( n = `contentHeight`  v = contentheight )
+          ( n = `resizable`  v = lcl_utility=>get_json_boolean( resizable ) )
           ) ).
 
   ENDMETHOD.
@@ -1338,6 +1400,45 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD bar.
+
+    result = _generic(
+        name = `Bar`
+         ).
+
+  ENDMETHOD.
+
+  METHOD content_left.
+
+    result = _generic(
+        name = `contentLeft`
+         ).
+
+  ENDMETHOD.
+
+  METHOD content_middle.
+
+    result = _generic(
+        name = `contentMiddle`
+         ).
+
+  ENDMETHOD.
+
+  METHOD content_right.
+
+    result = _generic(
+        name = `contentRight`
+         ).
+
+  ENDMETHOD.
+
+  METHOD custom_Header.
+
+    result = _generic(
+        name = `customHeader`
+         ).
+
+  ENDMETHOD.
 
   METHOD header_content.
 
@@ -1358,6 +1459,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD toolbar.
+
+    result = _generic( `Toolbar` ).
+
+  ENDMETHOD.
 
   METHOD header_toolbar.
 
@@ -1554,6 +1660,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        name  = `Label`
        t_prop = VALUE #(
            ( n = `text` v = text )
+           ( n = `labelFor` v = labelfor )
         ) ).
 
   ENDMETHOD.
@@ -1951,6 +2058,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD custom_list_item.
+
+    result = _generic(
+        name = `CustomListItem`
+     ).
+
+  ENDMETHOD.
+
+
+  METHOD input_list_item.
+
+    result = _generic(
+        name = `InputListItem`
+        t_prop = VALUE #(
+            ( n = `label`       v = label )
+       ) ).
+
+  ENDMETHOD.
+
   METHOD standard_list_item.
 
     result = me.
@@ -2052,6 +2178,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
            ( n = `mode`             v = mode )
            ( n = `width`            v = width )
            ( n = `selectionChange`  v = selectionchange )
+           ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
      ) ).
 
   ENDMETHOD.
@@ -2123,6 +2250,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          t_prop = VALUE #(
              ( n = `text`     v = text )
              ( n = `wrapping` v = lcl_utility=>get_json_boolean( wrapping ) )
+             ( n = `level` v = level )
       ) ).
 
   ENDMETHOD.
@@ -2234,7 +2362,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zz_file_uploader.
+  METHOD cc_file_uploader.
 
     result = me.
     _generic(
@@ -2271,6 +2399,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       ns     = `f`
       t_prop = VALUE #(
          (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
+         (  n = `headerPinned`           v = lcl_utility=>get_json_boolean( headerPinned ) )
          (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
       ) ).
 
@@ -2396,6 +2525,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD search_field.
+
+    result = me.
+    _generic(
+         name  = `SearchField`
+         t_prop = VALUE #(
+            ( n = `width`  v = width )
+            ( n = `search` v = search )
+            ( n = `value`  v = value )
+            ( n = `id`     v = id )
+            ( n = `change` v = change )
+            ( n = `liveChange` v = liveChange )
+    ) ).
+
+  ENDMETHOD.
+
   METHOD message_view.
 
     result = _generic(
@@ -2411,6 +2556,117 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result  = lcl_utility=>get_replace( iv_val = xml
     iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
+
+  ENDMETHOD.
+
+  METHOD cc_file_uploader_get_js.
+
+   result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
+                         |\n|  &&
+                         `        sap.ui.define([` && |\n|  &&
+                         `            "sap/ui/core/Control",` && |\n|  &&
+                         `            "sap/m/Button",` && |\n|  &&
+                         `            "sap/ui/unified/FileUploader"` && |\n|  &&
+                         `        ], function (Control, Button, FileUploader) {` && |\n|  &&
+                         `            "use strict";` && |\n|  &&
+                         |\n|  &&
+                         `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
+                         |\n|  &&
+                         `                metadata: {` && |\n|  &&
+                         `                    properties: {` && |\n|  &&
+                         `                        value: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        path: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        tooltip: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        fileType: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        placeholder: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        buttonText: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: "Upload"` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        enabled: {` && |\n|  &&
+                         `                            type: "boolean",` && |\n|  &&
+                         `                            defaultValue: true` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        multiple: {` && |\n|  &&
+                         `                            type: "boolean",` && |\n|  &&
+                         `                            defaultValue: false` && |\n|  &&
+                         `                        }` && |\n|  &&
+                         `                    },` && |\n|  &&
+                         |\n|  &&
+                         |\n|  &&
+                         `                    aggregations: {` && |\n|  &&
+                         `                    },` && |\n|  &&
+                         `                    events: {` && |\n|  &&
+                         `                        "upload": {` && |\n|  &&
+                         `                            allowPreventDefault: true,` && |\n|  &&
+                         `                            parameters: {}` && |\n|  &&
+                         `                        }` && |\n|  &&
+                         `                    },` && |\n|  &&
+                         `                    renderer: null` && |\n|  &&
+                         `                },` && |\n|  &&
+                         |\n|  &&
+                         `                renderer: function (oRm, oControl) {` && |\n|  &&
+                         |\n|  &&
+                         `                    oControl.oUploadButton = new Button({` && |\n|  &&
+                         `                        text: oControl.getProperty("buttonText"),` && |\n|  &&
+                         `                        enabled: oControl.getProperty("path") !== "",` && |\n|  &&
+                         `                        press: function (oEvent) {` && |\n|  &&
+                         |\n|  &&
+                         `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
+                         |\n|  &&
+                         `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n|  &&
+                         `                            var reader = new FileReader();` && |\n|  &&
+                         |\n|  &&
+                         `                            reader.onload = function (evt) {` && |\n|  &&
+                         `                                var vContent = evt.currentTarget.result;` && |\n|  &&
+                         `                                this.setProperty("value", vContent);` && |\n|  &&
+                         `                                this.fireUpload();` && |\n|  &&
+                         `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n|  &&
+                         `                            }.bind(this)` && |\n|  &&
+                         |\n|  &&
+                         `                            reader.readAsDataURL(file);` && |\n|  &&
+                         `                        }.bind(oControl)` && |\n|  &&
+                         `                    });` && |\n|  &&
+                         |\n|  &&
+                         `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
+                         `                        icon: "sap-icon://browse-folder",` && |\n|  &&
+                         `                        iconOnly: true,` && |\n|  &&
+                         `                        value: oControl.getProperty("path"),` && |\n|  &&
+                         `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
+                         `                        change: function (oEvent) {` && |\n|  &&
+                         `                            var value = oEvent.getSource().getProperty("value");` && |\n|  &&
+                         `                            this.setProperty("path", value);` && |\n|  &&
+                         `                            if (value) {` && |\n|  &&
+                         `                                this.oUploadButton.setEnabled();` && |\n|  &&
+                         `                            } else {` && |\n|  &&
+                         `                                this.oUploadButton.setEnabled(false);` && |\n|  &&
+                         `                            }` && |\n|  &&
+                         `                            this.oUploadButton.rerender();` && |\n|  &&
+                         `                        }.bind(oControl)` && |\n|  &&
+                         `                    });` && |\n|  &&
+                         |\n|  &&
+                         `                    var hbox = new sap.m.HBox();` && |\n|  &&
+                         `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
+                         `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
+                         `                    oRm.renderControl(hbox);` && |\n|  &&
+                         `                }` && |\n|  &&
+                         `            });` && |\n|  &&
+                         `        });`.
 
   ENDMETHOD.
 

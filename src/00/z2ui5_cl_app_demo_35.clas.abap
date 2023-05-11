@@ -7,7 +7,6 @@ CLASS z2ui5_cl_app_demo_35 DEFINITION PUBLIC.
     DATA mt_table TYPE REF TO data.
     DATA mt_cols TYPE string_table.
     DATA mv_name TYPE string.
-    DATA mv_input TYPE string.
 
   PROTECTED SECTION.
 
@@ -20,7 +19,6 @@ CLASS z2ui5_cl_app_demo_35 DEFINITION PUBLIC.
         get               TYPE z2ui5_if_client=>ty_s_get,
         next              TYPE z2ui5_if_client=>ty_s_next,
       END OF app.
-
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
@@ -116,7 +114,7 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
                  text = 'Source_Code' target = '_blank'
                  href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
          )->get_parent(
-         )->simple_form( title = 'SE16' editable = abap_true
+         )->simple_form(  editable = abap_true
              )->content( `form`
                  )->title( 'Table'
                  )->label( 'Name' ).
@@ -124,19 +122,7 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
     lo_view->input( client->_bind( mv_name  ) ).
 
     lo_view->button(
-                text  = 'search'
-                press = client->_event( 'BUTTON_TABLE' )
-            ).
-  lo_view = lo_view->get_parent( )->get_parent( )->simple_form( title = 'cols' editable = abap_true
-                )->content( 'form' ).
-
-    LOOP AT mt_cols REFERENCE INTO DATA(lr_col).
-      lo_view->label( lr_col->* ).
-      lo_view->input( value = mv_input ).
-    ENDLOOP.
-
-    lo_view->button(
-                text  = 'search'
+                text  = 'read'
                 press = client->_event( 'BUTTON_POST' )
             ).
 
@@ -144,14 +130,14 @@ CLASS z2ui5_cl_app_demo_35 IMPLEMENTATION.
 
       FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
       ASSIGN mt_table->* TO <tab>.
-      DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( title = 'Table' editable = abap_true
+      DATA(tab) = lo_view->get_parent( )->get_parent( )->simple_form( editable = abap_true
                 )->content( 'form' )->table(
                   items = client->_bind( val = <tab>  check_gen_data = abap_true )
               ).
 
-      " DATA(lt_fields) = lcl_db=>get_fieldlist_by_table( <tab> ).
-
       DATA(lo_columns) = tab->columns( ).
+      mt_cols = lcl_db=>get_fieldlist_by_table( <tab> ).
+
       LOOP AT mt_cols INTO DATA(lv_field) FROM 2.
         lo_columns->column( )->text( lv_field ).
       ENDLOOP.
