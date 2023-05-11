@@ -126,7 +126,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         mode                TYPE clike OPTIONAL
         width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
-        delete              TYPE clike OPTIONAL
+        alternateRowColors     TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -691,6 +691,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS label
       IMPORTING
         text          TYPE clike OPTIONAL
+        labelfor          TYPE clike OPTIONAL
+        PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1658,6 +1660,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        name  = `Label`
        t_prop = VALUE #(
            ( n = `text` v = text )
+           ( n = `labelFor` v = labelfor )
         ) ).
 
   ENDMETHOD.
@@ -2175,7 +2178,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
            ( n = `mode`             v = mode )
            ( n = `width`            v = width )
            ( n = `selectionChange`  v = selectionchange )
-           ( n = `delete`  v = delete )
+           ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
      ) ).
 
   ENDMETHOD.
