@@ -9,7 +9,6 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mv_check_columns TYPE abap_bool.
     DATA mv_check_sort TYPE abap_bool.
     DATA mv_check_table TYPE abap_bool.
-    DATA mv_check_group TYPE abap_bool.
 
     DATA mv_contentheight TYPE string VALUE `70%`.
     DATA mv_contentwidth TYPE string VALUE `70%`.
@@ -374,7 +373,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
         items = client->_bind( val = ms_view-t_tab )
         alternaterowcolors = ms_layout-s_table-check_zebra
         sticky = ms_layout-s_table-sticky_header
-        mode = ms_layout-s_table-selmode ). "mt_table ) ).
+        mode = ms_layout-s_table-selmode ).
 
     tab->header_toolbar(
           )->toolbar(
@@ -535,7 +534,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     DATA(lo_tab) = ro_popup->tab_container( ).
 
     lo_tab->tab( text = 'Table' selected = client->_bind( mv_check_table )
-       )->simple_form( editable = abap_true "title = 'Table'
+       )->simple_form( editable = abap_true
            )->content( 'form'
                )->label( 'zebra mode'
                )->checkbox( client->_bind( ms_layout-s_table-check_zebra )
@@ -570,7 +569,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
             )->column( )->text( 'Editable' )->get_parent(
             )->column( )->text( 'Length' )->get_parent(
         )->get_parent(
-        )->items( )->column_list_item( "selected = '{SELKZ}'
+        )->items( )->column_list_item(
             )->cells(
                 )->checkbox( '{VISIBLE}'
                 )->text( '{NAME}'
@@ -677,8 +676,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   METHOD z2ui5_download_csv.
 
-    DATA: lv_bas64enc TYPE string VALUE 'Teststring'.
-    DATA: lv_base64dec TYPE string.
+    DATA lv_bas64enc TYPE string VALUE 'Teststring'.
 
     DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( ms_view-t_tab[ 1 ] ) ).
     DATA(lt_components) = lo_struc->get_components( ).
@@ -706,11 +704,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
       lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
     ENDLOOP.
 
-    cl_web_http_utility=>encode_base64(
-                            EXPORTING
-                              unencoded = lv_row
-                            RECEIVING
-                              encoded   = lv_bas64enc ).
+    lv_bas64enc = cl_web_http_utility=>encode_base64( lv_row ).
 
     i_view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" hidden="hidden" />`).
 

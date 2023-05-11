@@ -117,8 +117,9 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
          )->button( text = 'FE Table' press = client->_event( 'z2ui5_cl_app_demo_49' )
     ).
 
-    grid->simple_form( title = 'HowTo - More II' layout = 'ResponsiveGridLayout' )->content( 'form'
-         )->button( text = 'Change CSS'         press = client->_event( 'z2ui5_cl_app_demo_50' )
+    grid->simple_form( title = 'HowTo - More II'     layout = 'ResponsiveGridLayout' )->content( 'form'
+         )->button( text = 'Change CSS'              press = client->_event( 'z2ui5_cl_app_demo_50' )
+         )->button( text = 'Change Model at Runtime' press = client->_event( 'z2ui5_cl_app_demo_35' )
     ).
 
     DATA(form) = page->grid( 'L9 M12 S12'
