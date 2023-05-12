@@ -74,16 +74,16 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     DATA mt_sort TYPE STANDARD TABLE OF ty_S_sort.
 
-data:
-  begin of ms_layout,
-       BEGIN OF s_table,
-        check_zebra   TYPE abap_bool,
-        title         TYPE string,
-        sticky_header TYPE string,
-        selmode       TYPE string,
-      END OF s_table,
-       t_filter TYPE STANDARD TABLE OF ty_S_filter,
-  end of ms_layout.
+    DATA:
+      BEGIN OF ms_layout,
+        BEGIN OF s_table,
+          check_zebra   TYPE abap_bool,
+          title         TYPE string,
+          sticky_header TYPE string,
+          selmode       TYPE string,
+        END OF s_table,
+        t_filter TYPE STANDARD TABLE OF ty_S_filter,
+      END OF ms_layout.
 
     TYPES:
       BEGIN OF s_combobox,
@@ -92,6 +92,12 @@ data:
       END OF s_combobox.
 
     TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
+
+    CLASS-METHODS encode_base64
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -160,13 +166,13 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       WHEN 'BUTTON_CUSTOM'.
         client->popup_message_box( `custom action called` ).
 
-     when  'BUTTON_START'.
+      WHEN  'BUTTON_START'.
 
-    SELECT FROM z2ui5_t_draft
-        FIELDS uuid, uuid_prev, timestampl, uname
-      INTO CORRESPONDING FIELDS OF TABLE @mt_table
-        UP TO 50 ROWS.
-ms_view-t_tab = CORRESPONDING #( mt_table ).
+        SELECT FROM z2ui5_t_draft
+            FIELDS uuid, uuid_prev, timestampl, uname
+          INTO CORRESPONDING FIELDS OF TABLE @mt_table
+            UP TO 50 ROWS.
+        ms_view-t_tab = CORRESPONDING #( mt_table ).
 
       WHEN 'BUTTON_DOWNLOAD'.
         mv_check_download_csv = abap_true.
@@ -249,10 +255,10 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     init_table_output( ).
 
     ms_layout-s_table-selmode = 'MultiSelect'.
-     ms_layout-s_table-check_zebra = abap_true.
+    ms_layout-s_table-check_zebra = abap_true.
     ms_view-t_tab = CORRESPONDING #( mt_table ).
-     ms_layout-s_table-sticky_header = `HeaderToolbar,InfoToolbar,ColumnHeaders`.
-     ms_layout-s_table-title = `Drafts`.
+    ms_layout-s_table-sticky_header = `HeaderToolbar,InfoToolbar,ColumnHeaders`.
+    ms_layout-s_table-title = `Drafts`.
 
   ENDMETHOD.
 
@@ -277,7 +283,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   METHOD init_table_output.
 
-   " CLEAR  ms_layout-s_table.
+    " CLEAR  ms_layout-s_table.
     CLEAR mt_cols.
     CLEAR mt_sort.
 
@@ -345,25 +351,25 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     header_title->snapped_content( ns = 'f'
              )->label( text = 'Drafts of abap2UI5' ).
 
-  header_title->actions( ns = 'f' )->overflow_toolbar(
-      )->button( text = `Layout` type = `Emphasized`
-      )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized`
-      ).
+    header_title->actions( ns = 'f' )->overflow_toolbar(
+        )->button( text = `Layout` type = `Emphasized`
+        )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized`
+        ).
 
-  data(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
-       )->flex_box( alignItems = `Start` justifyContent = `SpaceBetween` ).
-
-
-    data(lt_filter) = ms_layout-t_filter.
-    DELETE lt_filter where selkz = abap_false.
-
-       loop at lt_filter REFERENCE INTO data(lr_filter)
-        where selkz = abap_true.
-        lo_box->input( description = lr_filter->name ).
-       endloop.
+    DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
+         )->flex_box( alignItems = `Start` justifyContent = `SpaceBetween` ).
 
 
-    lo_box->button( text = `Change Filter (` && shift_right( conv string( lines( lt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )  ).
+    DATA(lt_filter) = ms_layout-t_filter.
+    DELETE lt_filter WHERE selkz = abap_false.
+
+    LOOP AT lt_filter REFERENCE INTO DATA(lr_filter)
+     WHERE selkz = abap_true.
+      lo_box->input( description = lr_filter->name ).
+    ENDLOOP.
+
+
+    lo_box->button( text = `Change Filter (` && shift_right( CONV string( lines( lt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )  ).
 
 
 
@@ -702,11 +708,36 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
       lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
     ENDLOOP.
 
-    data(lv_bas64enc) = cl_web_http_utility=>encode_base64( lv_row ).
+    DATA lv_bas64enc TYPE string.
+
+    lv_bas64enc = encode_base64( lv_row ).
 
     i_view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" hidden="hidden" />`).
 
     mv_check_download_csv = abap_false.
+
+  ENDMETHOD.
+
+
+  METHOD encode_base64.
+
+    TRY.
+        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>encode_base64
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(classname) = 'CL_HTTP_UTILITY'.
+        CALL METHOD (classname)=>encode_base64
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+    ENDTRY.
 
   ENDMETHOD.
 
