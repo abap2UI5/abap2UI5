@@ -24,7 +24,6 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         uuid_prev_app_stack TYPE string,
         timestampl          TYPE string,
         uname               TYPE string,
-        data                TYPE string,
       END OF ty_s_out.
 
     DATA:
@@ -32,8 +31,10 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         headerpinned   TYPE abap_bool,
         headerexpanded TYPE abap_bool,
         search_val     TYPE string,
+        title type string,
         t_tab          TYPE STANDARD TABLE OF ty_S_out WITH EMPTY KEY,
       END OF ms_view.
+
     TYPES:
       BEGIN OF ty_S_cols,
         visible  TYPE abap_bool,
@@ -43,25 +44,12 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         editable TYPE abap_bool,
       END OF ty_S_cols.
 
-    DATA mt_cols TYPE STANDARD TABLE OF ty_S_cols.
-
     TYPES:
       BEGIN OF ty_S_filter,
         selkz TYPE abap_bool,
         name  TYPE string,
         value TYPE string,
       END OF ty_S_filter.
-
-*    DATA mt_filter TYPE STANDARD TABLE OF ty_S_filter.
-
-
-*    DATA:
-*      BEGIN OF ms_table,
-*        check_zebra   TYPE abap_bool,
-*        title         TYPE string,
-*        sticky_header TYPE string,
-*        selmode       TYPE string,
-*      END OF ms_table.
 
     TYPES:
       BEGIN OF ty_S_sort,
@@ -72,18 +60,16 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         "  check_descending TYPE string,
       END OF ty_S_sort.
 
-    DATA mt_sort TYPE STANDARD TABLE OF ty_S_sort.
-
-data:
-  begin of ms_layout,
-       BEGIN OF s_table,
+    DATA:
+      BEGIN OF ms_layout,
         check_zebra   TYPE abap_bool,
         title         TYPE string,
         sticky_header TYPE string,
         selmode       TYPE string,
-      END OF s_table,
-       t_filter TYPE STANDARD TABLE OF ty_S_filter,
-  end of ms_layout.
+        t_filter      TYPE STANDARD TABLE OF ty_S_filter,
+        t_cols        TYPE STANDARD TABLE OF ty_S_cols,
+        t_sort        TYPE STANDARD TABLE OF ty_S_sort,
+      END OF ms_layout.
 
     TYPES:
       BEGIN OF s_combobox,
@@ -92,6 +78,24 @@ data:
       END OF s_combobox.
 
     TYPES ty_t_combo TYPE STANDARD TABLE OF s_combobox WITH EMPTY KEY.
+
+    CLASS-METHODS encode_base64
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    TYPES:
+      BEGIN OF ty_S_db_layout,
+        SELKZ   TYPE ABap_bool,
+        name    TYPE string,
+        user    TYPE string,
+        default TYPE abap_bool,
+        data    TYPE string,
+      END OF ty_S_db_layout.
+    DATA mt_db_layout TYPE STANDARD TABLE OF ty_S_db_layout.
+
+    DATA mv_layout_name TYPE string.
 
   PROTECTED SECTION.
 
@@ -114,9 +118,12 @@ data:
     METHODS z2ui5_on_render_detail.
     METHODS z2ui5_on_render_pop_setup.
     METHODS z2ui5_on_render_pop_filter.
-    METHODS z2ui5_download_csv
+    METHODS z2ui5_on_render_pop_layout.
+    METHODS z2ui5_set_download_csv
       IMPORTING
         i_view TYPE REF TO z2ui5_cl_xml_view.
+    METHODS z2ui5_set_search.
+    METHODS z2ui5_set_detail.
 
 ENDCLASS.
 
@@ -151,7 +158,6 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
-
     CASE app-get-event.
 
       WHEN 'BUTTON_DELETE'.
@@ -160,64 +166,50 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       WHEN 'BUTTON_CUSTOM'.
         client->popup_message_box( `custom action called` ).
 
-     when  'BUTTON_START'.
+      WHEN  'BUTTON_START'.
 
-    SELECT FROM z2ui5_t_draft
-        FIELDS uuid, uuid_prev, timestampl, uname
-      INTO CORRESPONDING FIELDS OF TABLE @mt_table
-        UP TO 50 ROWS.
-ms_view-t_tab = CORRESPONDING #( mt_table ).
+        SELECT FROM z2ui5_t_draft
+            FIELDS uuid, uuid_prev, timestampl, uname
+          INTO CORRESPONDING FIELDS OF TABLE @mt_table
+            UP TO 50 ROWS.
+        ms_view-t_tab = CORRESPONDING #( mt_table ).
 
       WHEN 'BUTTON_DOWNLOAD'.
         mv_check_download_csv = abap_true.
+
+      WHEN `POPUP_LAYOUT_LOAD`.
+        data(ls_layout2) = mt_db_layout[ selkz = abap_true ].
+        z2ui5_lcl_utility=>trans_xml_2_object(
+          EXPORTING
+            xml  = ls_layout2-data
+          IMPORTING
+             data = ms_layout
+        ).
+        ms_view-title = ls_layout2-name.
+
+      WHEN `BUTTON_SAVE_LAYOUT`.
+        DATA(ls_layout) = VALUE ty_s_db_layout(
+          data = z2ui5_lcl_utility=>trans_data_2_xml( ms_layout )
+          name = mv_layout_name
+          ).
+        INSERT ls_layout INTO TABLE mt_db_layout.
 
       WHEN 'BUTTON_SEARCH'.
         app-next-s_cursor_pos-id = 'SEARCH'.
         app-next-s_cursor_pos-cursorpos = '99'.
         app-next-s_cursor_pos-selectionend = '99'.
         app-next-s_cursor_pos-selectionstart = '99'.
-        ms_view-t_tab = CORRESPONDING #( mt_table ).
-        IF ms_view-search_val IS NOT INITIAL.
-          LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
-            DATA(lv_row) = ``.
-            DATA(lv_index) = 1.
-            DO.
-              ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO FIELD-SYMBOL(<field>).
-              IF sy-subrc <> 0.
-                EXIT.
-              ENDIF.
-              lv_row = lv_row && <field>.
-              lv_index = lv_index + 1.
-            ENDDO.
-
-            IF lv_row NS ms_view-search_val.
-              DELETE ms_view-t_tab.
-            ENDIF.
-          ENDLOOP.
-        ENDIF.
+        z2ui5_set_search( ).
 
       WHEN 'MAIN'.
         app-view_main = 'MAIN'.
 
       WHEN 'DETAIL'.
-
-        ms_detail = mt_table[ uuid = client->get( )-event_data ].
-
-        SELECT SINGLE FROM z2ui5_t_draft
-          FIELDS *
-          WHERE uuid = @ms_detail-uuid
-        INTO CORRESPONDING FIELDS OF @ms_detail
-        .
-
+        z2ui5_set_detail( ).
         app-view_main = 'DETAIL'.
 
-      WHEN 'BUTTON_POST'.
-
-        SELECT FROM z2ui5_t_draft
-            FIELDS *
-          INTO CORRESPONDING FIELDS OF TABLE @mt_table
-            UP TO 100 ROWS.
-
+      WHEN 'POPUP_LAYOUT'.
+        app-view_popup = 'POPUP_LAYOUT'.
 
       WHEN 'POPUP_FILTER'.
         app-view_popup = 'POPUP_FILTER'.
@@ -240,6 +232,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
     ENDCASE.
 
+
   ENDMETHOD.
 
 
@@ -248,11 +241,14 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     app-view_main  = 'MAIN'.
     init_table_output( ).
 
-    ms_layout-s_table-selmode = 'MultiSelect'.
-     ms_layout-s_table-check_zebra = abap_true.
+    ms_view-title = `Standart`.
+    ms_layout-selmode = 'MultiSelect'.
+    ms_layout-check_zebra = abap_true.
     ms_view-t_tab = CORRESPONDING #( mt_table ).
-     ms_layout-s_table-sticky_header = `HeaderToolbar,InfoToolbar,ColumnHeaders`.
-     ms_layout-s_table-title = `Drafts`.
+    ms_layout-sticky_header = `HeaderToolbar,InfoToolbar,ColumnHeaders`.
+    ms_layout-title = `Drafts`.
+
+    app-next-t_scroll_pos = VALUE #( ( name = `page_main` ) ).
 
   ENDMETHOD.
 
@@ -264,6 +260,8 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
         z2ui5_on_render_pop_filter( ).
       WHEN `POPUP_SETUP`.
         z2ui5_on_render_pop_setup( ).
+      WHEN `POPUP_LAYOUT`.
+        z2ui5_on_render_pop_layout( ).
     ENDCASE.
 
     CASE app-view_main.
@@ -277,9 +275,9 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   METHOD init_table_output.
 
-   " CLEAR  ms_layout-s_table.
-    CLEAR mt_cols.
-    CLEAR mt_sort.
+    " CLEAR  ms_layout-s_table.
+    " CLEAR mt_cols.
+    "  CLEAR  ms_layout-t_cols.
 
     ms_view-headerexpanded = abap_true.
     ms_view-headerpinned   = abap_true.
@@ -296,13 +294,13 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
          name = lr_col->*
        "  length = `10px`
          title = lr_col->*
-       ) INTO TABLE mt_cols.
+       ) INTO TABLE ms_layout-t_cols.
 
       INSERT VALUE #(
        "  selkz = abap_true
          name = lr_col->*
       "   length = `10px`
-       ) INTO TABLE mt_sort.
+       ) INTO TABLE  ms_layout-t_cols.
 
     ENDLOOP.
 
@@ -314,7 +312,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     "   DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
 
     DATA(view) = z2ui5_cl_xml_view=>factory(
-        )->page(
+        )->page( id = `page_main`
                 title          = 'abap2UI5 - List Report'
                 navbuttonpress = client->_event( 'BACK' )
                 shownavbutton  = abap_true
@@ -327,7 +325,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
            )->get_parent( ).
 
     IF mv_check_download_csv = abap_true.
-      z2ui5_download_csv( view ).
+      z2ui5_set_download_csv( view ).
     ENDIF.
 
     DATA(page) = view->dynamic_page(
@@ -337,7 +335,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     DATA(header_title) = page->title( ns = 'f'
             )->get( )->dynamic_page_title( ).
 
-    header_title->heading( ns = 'f' )->title( 'Standart' ).
+    header_title->heading( ns = 'f' )->title( ms_view-title ).
 
     header_title->expanded_content( 'f'
              )->label( text = 'Drafts of abap2UI5' ).
@@ -345,25 +343,25 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
     header_title->snapped_content( ns = 'f'
              )->label( text = 'Drafts of abap2UI5' ).
 
-  header_title->actions( ns = 'f' )->overflow_toolbar(
-      )->button( text = `Layout` type = `Emphasized`
-      )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized`
-      ).
+    header_title->actions( ns = 'f' )->overflow_toolbar(
+        )->button( text = `Layout` type = `Emphasized`  press = client->_event( `POPUP_LAYOUT` )
+        )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized`
+        ).
 
-  data(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
-       )->flex_box( alignItems = `Start` justifyContent = `SpaceBetween` ).
-
-
-    data(lt_filter) = ms_layout-t_filter.
-    DELETE lt_filter where selkz = abap_false.
-
-       loop at lt_filter REFERENCE INTO data(lr_filter)
-        where selkz = abap_true.
-        lo_box->input( description = lr_filter->name ).
-       endloop.
+    DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
+         )->flex_box( alignItems = `Start` justifyContent = `SpaceBetween` ).
 
 
-    lo_box->button( text = `Change Filter (` && shift_right( conv string( lines( lt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )  ).
+    DATA(lt_filter) = ms_layout-t_filter.
+    DELETE lt_filter WHERE selkz = abap_false.
+
+    LOOP AT lt_filter REFERENCE INTO DATA(lr_filter)
+     WHERE selkz = abap_true.
+      lo_box->input( description = lr_filter->name ).
+    ENDLOOP.
+
+
+    lo_box->button( text = `Change Filter (` && shift_right( CONV string( lines( lt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )  ).
 
 
 
@@ -371,13 +369,13 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
     DATA(tab) = cont->table(
         items = client->_bind( val = ms_view-t_tab )
-        alternaterowcolors = ms_layout-s_table-check_zebra
-        sticky = ms_layout-s_table-sticky_header
-        mode = ms_layout-s_table-selmode ).
+        alternaterowcolors = ms_layout-check_zebra
+        sticky = ms_layout-sticky_header
+        mode = ms_layout-selmode ).
 
     tab->header_toolbar(
           )->toolbar(
-              )->title( text = ms_layout-s_table-title && ` (` && shift_right( CONV string( lines( ms_view-t_tab ) ) ) && `)` level = `H2`
+              )->title( text = ms_layout-title && ` (` && shift_right( CONV string( lines( ms_view-t_tab ) ) ) && `)` level = `H2`
                   )->toolbar_spacer(
               )->button(
                   icon = 'sap-icon://refresh'
@@ -386,10 +384,8 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
                     value = client->_bind( ms_view-search_val )
                     search = client->_event( 'BUTTON_SEARCH' )
                     change = client->_event( 'BUTTON_SEARCH' )
-*                    liveChange = client->_event( 'BUTTON_SEARCH' )
                     width = `17.5rem`
                     id    = `SEARCH`
-
       )->toolbar_spacer(
              )->button(
                 text = `Custom Action`
@@ -412,7 +408,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
 
     DATA(lo_columns) = tab->columns( ).
-    LOOP AT mt_cols REFERENCE INTO DATA(lr_field)
+    LOOP AT ms_layout-t_cols REFERENCE INTO DATA(lr_field)
           WHERE visible = abap_true.
       lo_columns->column( width = lr_field->length )->text(  text = CONV char10( lr_field->title )
         )->footer(
@@ -423,7 +419,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
         press = client->_event( val = 'DETAIL' data = `${UUID}` )
         selected = `{SELKZ}`
         type = `Navigation` )->cells( ).
-    LOOP AT mt_cols REFERENCE INTO lr_field
+    LOOP AT ms_layout-t_cols REFERENCE INTO lr_field
           WHERE visible = abap_true.
       IF lr_field->editable = abap_true.
         lo_cells->input( `{` && lr_field->name && `}` ).
@@ -537,14 +533,14 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
        )->simple_form( editable = abap_true
            )->content( 'form'
                )->label( 'zebra mode'
-               )->checkbox( client->_bind( ms_layout-s_table-check_zebra )
+               )->checkbox( client->_bind( ms_layout-check_zebra )
                )->label( 'sticky header'
-               )->input( client->_bind( ms_layout-s_table-sticky_header )
+               )->input( client->_bind( ms_layout-sticky_header )
                )->label( text = `Title`
-               )->Input( value = client->_bind( ms_layout-s_table-title )
+               )->Input( value = client->_bind( ms_layout-title )
                )->label( 'sel mode'
                )->combobox(
-                   selectedkey = client->_bind( ms_layout-s_table-selmode )
+                   selectedkey = client->_bind( ms_layout-selmode )
                    items       = client->_bind_one( VALUE ty_t_combo(
                        ( key = 'None'  text = 'None' )
                        ( key = 'SingleSelect' text = 'SingleSelect' )
@@ -561,7 +557,7 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
                 selected = client->_bind( mv_check_columns )
        )->table(
       "  mode = 'MultiSelect'
-        items = client->_bind( mt_cols )
+        items = client->_bind( ms_layout-t_cols )
         )->columns(
             )->column( )->text( 'Visible' )->get_parent(
             )->column( )->text( 'Name' )->get_parent(
@@ -584,14 +580,14 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
                   selected = client->_bind( mv_check_sort )
 
           )->list(
-           items           = client->_bind( mt_sort )
+           items           = client->_bind( ms_layout-t_cols )
            selectionchange = client->_event( 'SELCHANGE' )
               )->custom_list_item(
                  )->hbox( ).
 
     lo_hbox->combobox(
                  selectedkey = `{NAME}`
-                 items       = client->_bind( mt_cols )
+                 items       = client->_bind( ms_layout-t_cols )
 *                                    ( key = 'BLUE'  text = 'green' )
 *                                    ( key = 'GREEN' text = 'blue' )
 *                                    ( key = 'BLACK' text = 'red' )
@@ -673,8 +669,46 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   ENDMETHOD.
 
+  METHOD z2ui5_on_render_pop_layout.
 
-  METHOD z2ui5_download_csv.
+    DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
+
+    lo_popup->dialog( title = 'abap2UI5 - Layout'  contentwidth = `50%`
+        )->input( description = `Name` value = client->_bind( mv_layout_name )
+        )->button( text = `Save` press = client->_event( `BUTTON_SAVE_LAYOUT` )
+        )->table(
+            mode = 'SingleSelectLeft'
+            items = client->_bind( mt_db_layout )
+            )->columns(
+                )->column( )->text( 'Name' )->get_parent(
+                )->column( )->text( 'User' )->get_parent(
+                )->column( )->text( 'Default' )->get_parent(
+             "   )->column( )->text( 'Description' )->get_parent(
+            )->get_parent(
+            )->items( )->column_list_item( selected = '{SELKZ}'
+                )->cells(
+             "       )->checkbox( '{SELKZ}'
+                    )->text( '{NAME}'
+                    )->text( '{USER}'
+                    )->text( '{DEFAULT}'
+             "       )->text( '{DESCR}'
+        )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+        )->footer( )->overflow_toolbar(
+            )->toolbar_spacer(
+             )->button(
+                text  = 'load'
+                press = client->_event( 'POPUP_LAYOUT_LOAD' )
+                type  = 'Emphasized'
+            )->button(
+                text  = 'close'
+                press = client->_event( 'POPUP_LAYOUT_CONTINUE' )
+                type  = 'Emphasized' ).
+
+    app-next-xml_popup = lo_popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_set_download_csv.
 
     DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_data( ms_view-t_tab[ 1 ] ) ).
     DATA(lt_components) = lo_struc->get_components( ).
@@ -702,11 +736,74 @@ ms_view-t_tab = CORRESPONDING #( mt_table ).
       lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
     ENDLOOP.
 
-    data(lv_bas64enc) = cl_web_http_utility=>encode_base64( lv_row ).
+    DATA lv_bas64enc TYPE string.
+
+    lv_bas64enc = encode_base64( lv_row ).
 
     i_view->zz_plain( `<html:iframe src="data:text/csv;base64,` && lv_bas64enc && `" hidden="hidden" />`).
 
     mv_check_download_csv = abap_false.
+
+  ENDMETHOD.
+
+
+  METHOD encode_base64.
+
+    TRY.
+        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>encode_base64
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(classname) = 'CL_HTTP_UTILITY'.
+        CALL METHOD (classname)=>encode_base64
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_set_search.
+
+    ms_view-t_tab = CORRESPONDING #( mt_table ).
+    IF ms_view-search_val IS NOT INITIAL.
+      LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
+        DATA(lv_row) = ``.
+        DATA(lv_index) = 1.
+        DO.
+          ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO FIELD-SYMBOL(<field>).
+          IF sy-subrc <> 0.
+            EXIT.
+          ENDIF.
+          lv_row = lv_row && <field>.
+          lv_index = lv_index + 1.
+        ENDDO.
+
+        IF lv_row NS ms_view-search_val.
+          DELETE ms_view-t_tab.
+        ENDIF.
+      ENDLOOP.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_set_detail.
+
+    ms_detail = mt_table[ uuid = client->get( )-event_data ].
+
+    SELECT SINGLE FROM z2ui5_t_draft
+      FIELDS *
+      WHERE uuid = @ms_detail-uuid
+    INTO CORRESPONDING FIELDS OF @ms_detail
+    .
 
   ENDMETHOD.
 

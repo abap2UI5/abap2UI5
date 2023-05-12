@@ -678,6 +678,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
+   " DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
