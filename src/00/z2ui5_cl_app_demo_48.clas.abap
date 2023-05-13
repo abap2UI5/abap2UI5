@@ -47,7 +47,7 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
     ENDIF.
 
     CASE client->get( )-event.
-      WHEN 'TEST'.
+      WHEN 'EDIT'.
         data(lv_row_title) = client->get( )-event_data.
         client->popup_message_box( `EDIT - ` && lv_row_title ).
       WHEN 'SELCHANGE'.
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
               ( n = 'wrapping'      v = `true` )
               ( n = 'wrapCharLimit'      v = `{WRAPCHARLIMIT}` )
               ( n = 'selected'    v = `{SELECTED}` )
-              ( n = 'detailPress'      v = client->_event( val = 'TEST' data = `${TITLE}` ) )
+              ( n = 'detailPress'      v = client->_event( val = 'EDIT' data = `${TITLE}` ) )
 
               ) ).
     client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
