@@ -19,11 +19,12 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS http_get
       IMPORTING
-        title           TYPE clike DEFAULT `abap2UI5`
-        t_config        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-        check_logging   TYPE abap_bool DEFAULT abap_false
+        title                   TYPE clike DEFAULT `abap2UI5`
+        t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        content_security_policy TYPE clike OPTIONAL
+        check_logging           TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(r_result) TYPE string ##NEEDED.
+        VALUE(r_result)         TYPE string.
 
     CLASS-METHODS http_post
       RETURNING
@@ -36,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD http_post.
@@ -75,6 +76,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
   METHOD http_get.
 
     DATA(lt_Config) = t_config.
+
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
         (  name = `data-sap-ui-theme`         value = `sap_horizon` )
@@ -86,12 +88,19 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           ).
     ENDIF.
 
+    IF content_security_policy IS NOT SUPPLIED.
+      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' ui5.sap.com *.ui5.sap.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net"/>`.
+    ELSE.
+      lv_sec_policy = content_security_policy.
+    ENDIF.
+
     DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
     DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
     z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
+                  lv_sec_policy && |\n| &&
                `    <meta charset="UTF-8">` && |\n|  &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n|  &&
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
