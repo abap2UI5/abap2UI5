@@ -64,6 +64,9 @@ CLASS z2ui5_cl_app_demo_48 IMPLEMENTATION.
             navbuttonpress = client->_event( 'BACK' )
               shownavbutton = abap_true
             )->header_content(
+                  )->link(
+                    text = 'Demo'  target = '_blank'
+                    href = `https://twitter.com/OblomovDev/status/1657279838586109953`
                 )->link(
                     text = 'Source_Code'  target = '_blank'
                     href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
