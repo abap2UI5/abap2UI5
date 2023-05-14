@@ -31,7 +31,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         headerpinned   TYPE abap_bool,
         headerexpanded TYPE abap_bool,
         search_val     TYPE string,
-        title type string,
+        title          TYPE string,
         t_tab          TYPE STANDARD TABLE OF ty_S_out WITH EMPTY KEY,
       END OF ms_view.
 
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     TYPES:
       BEGIN OF ty_S_db_layout,
-        SELKZ   TYPE ABap_bool,
+        selkz   TYPE ABap_bool,
         name    TYPE string,
         user    TYPE string,
         default TYPE abap_bool,
@@ -124,6 +124,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         i_view TYPE REF TO z2ui5_cl_xml_view.
     METHODS z2ui5_set_search.
     METHODS z2ui5_set_detail.
+    METHODS z2ui5_set_sort.
 
 ENDCLASS.
 
@@ -160,6 +161,14 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     CASE app-get-event.
 
+      WHEN 'SORT_ADD'.
+        INSERT VALUE #( ) INTO TABLE ms_layout-t_sort.
+        app-view_popup = 'POPUP_SETUP'.
+
+      WHEN `SORT_DELETE`.
+        DELETE ms_layout-t_sort WHERE name = app-get-event_data.
+        app-view_popup = 'POPUP_SETUP'.
+
       WHEN 'BUTTON_DELETE'.
         DELETE ms_view-t_tab WHERE selkz = abap_true.
 
@@ -178,7 +187,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         mv_check_download_csv = abap_true.
 
       WHEN `POPUP_LAYOUT_LOAD`.
-        data(ls_layout2) = mt_db_layout[ selkz = abap_true ].
+        DATA(ls_layout2) = mt_db_layout[ selkz = abap_true ].
         z2ui5_lcl_utility=>trans_xml_2_object(
           EXPORTING
             xml  = ls_layout2-data
@@ -231,7 +240,6 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
 
     ENDCASE.
-
 
   ENDMETHOD.
 
@@ -296,11 +304,11 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
          title = lr_col->*
        ) INTO TABLE ms_layout-t_cols.
 
-      INSERT VALUE #(
-       "  selkz = abap_true
-         name = lr_col->*
-      "   length = `10px`
-       ) INTO TABLE  ms_layout-t_cols.
+*      INSERT VALUE #(
+*       "  selkz = abap_true
+*         name = lr_col->*
+*      "   length = `10px`
+*       ) INTO TABLE  ms_layout-t_cols.
 
     ENDLOOP.
 
@@ -308,6 +316,8 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_render_main.
+
+    z2ui5_set_sort( ).
 
     "   DATA(view) = z2ui5_cl_xml_view=>factory( )->shell( ).
 
@@ -575,12 +585,14 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
          "       )->text( '{DESCR}'
     )->get_parent( )->get_parent( )->get_parent( )->get_parent(  )->get_parent( ).
 
-    DATA(lo_hbox) = lo_tab->tab(
-                  text     = 'Sort'
-                  selected = client->_bind( mv_check_sort )
+    DATA(lo_tab_sort) = lo_tab->tab(
+                   text     = 'Sort'
+                   selected = client->_bind( mv_check_sort ) ).
 
-          )->list(
-           items           = client->_bind( ms_layout-t_cols )
+    lo_tab_sort->button( icon = `sap-icon://add` press = client->_event(  `SORT_ADD`  ) ).
+
+    DATA(lo_hbox) = lo_tab_sort->list(
+           items           = client->_bind( ms_layout-t_sort )
            selectionchange = client->_event( 'SELCHANGE' )
               )->custom_list_item(
                  )->hbox( ).
@@ -605,8 +617,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
      key = 'ASCENDING'
      icon = 'sap-icon://sort-ascending'
 )->get_parent( )->get_parent(
-)->text( text = `{TYPE}`
-)->button( text = 'close' ).
+)->button( type = `Transparent` icon = 'sap-icon://decline' press = client->_event( val = `SORT_DELETE` data = `${NAME}` ) ).
 *            )->get_parent( )->get_parent( )->get_parent(
 
 *           )->button(
@@ -804,6 +815,29 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       WHERE uuid = @ms_detail-uuid
     INTO CORRESPONDING FIELDS OF @ms_detail
     .
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_set_sort.
+
+    "quick and dirty, only works for 4 conditions
+    TRY.
+        IF ms_layout-t_sort IS NOT INITIAL.
+          DATA(ls_field1) = VALUE #( ms_layout-t_sort[ 1 ] OPTIONAL ).
+          DATA(ls_field2) = VALUE #( ms_layout-t_sort[ 2 ] OPTIONAL ).
+          DATA(ls_field3) = VALUE #( ms_layout-t_sort[ 3 ] OPTIONAL ).
+          DATA(ls_field4) = VALUE #( ms_layout-t_sort[ 4 ] OPTIONAL ).
+
+          SORT ms_view-t_tab BY
+            (ls_field1-name) (ls_field1-type)
+            (ls_field2-name) (ls_field2-type)
+            (ls_field3-name) (ls_field3-type)
+            (ls_field4-name) (ls_field4-type).
+
+        ENDIF.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
