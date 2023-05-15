@@ -16,6 +16,14 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mv_check_download_csv TYPE abap_bool.
 
     TYPES:
+      BEGIN OF ty_s_token,
+        key     TYPE string,
+        text    TYPE string,
+        visible TYPE abap_bool,
+        selkz   TYPE abap_bool,
+      END OF ty_S_token.
+
+    TYPES:
       BEGIN OF ty_S_out,
         selkz               TYPE abap_bool,
         uuid                TYPE string,
@@ -45,10 +53,18 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
       END OF ty_S_cols.
 
     TYPES:
-      BEGIN OF ty_S_filter,
+      BEGIN OF ty_S_filter_show,
         selkz TYPE abap_bool,
         name  TYPE string,
         value TYPE string,
+        " t_value TYPE STANDARD TABLE OF ty_S_token WITH EMPTY KEY,
+      END OF ty_S_filter_show.
+
+    TYPES:
+      BEGIN OF ty_S_filter,
+        uuid      TYPE string,
+        uuid_prev TYPE string,
+        "STANDARD TABLE OF ty_s_token WITH EMPTY KEY,
       END OF ty_S_filter.
 
     TYPES:
@@ -66,7 +82,8 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
         title         TYPE string,
         sticky_header TYPE string,
         selmode       TYPE string,
-        t_filter      TYPE STANDARD TABLE OF ty_S_filter,
+        t_filter_show TYPE STANDARD TABLE OF ty_S_filter_show,
+        s_filter      TYPE ty_s_filter,
         t_cols        TYPE STANDARD TABLE OF ty_S_cols,
         t_sort        TYPE STANDARD TABLE OF ty_S_sort,
       END OF ms_layout.
@@ -125,6 +142,10 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     METHODS z2ui5_set_search.
     METHODS z2ui5_set_detail.
     METHODS z2ui5_set_sort.
+    METHODS z2ui5_set_filter
+      IMPORTING
+        io_box TYPE REF TO z2ui5_cl_xml_view.
+    METHODS z2ui5_set_data.
 
 ENDCLASS.
 
@@ -176,12 +197,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         client->popup_message_box( `custom action called` ).
 
       WHEN  'BUTTON_START'.
-
-        SELECT FROM z2ui5_t_draft
-            FIELDS uuid, uuid_prev, timestampl, uname
-          INTO CORRESPONDING FIELDS OF TABLE @mt_table
-            UP TO 50 ROWS.
-        ms_view-t_tab = CORRESPONDING #( mt_table ).
+        z2ui5_set_data( ).
 
       WHEN 'BUTTON_DOWNLOAD'.
         mv_check_download_csv = abap_true.
@@ -295,7 +311,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
       INSERT VALUE #(
         name = lr_col->*
-      ) INTO TABLE  ms_layout-t_filter.
+      ) INTO TABLE  ms_layout-t_filter_show.
 
       INSERT VALUE #(
          visible = abap_true
@@ -355,23 +371,17 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     header_title->actions( ns = 'f' )->overflow_toolbar(
         )->button( text = `Layout` type = `Emphasized`  press = client->_event( `POPUP_LAYOUT` )
-        )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized`
+
         ).
 
     DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
-         )->flex_box( alignItems = `Start` justifyContent = `SpaceBetween` ).
+         )->flex_box( alignitems = `Start` justifycontent = `SpaceBetween` )->flex_box( alignItems = `Start` ). " justifyContent = `SpaceBetween` ).
 
 
-    DATA(lt_filter) = ms_layout-t_filter.
-    DELETE lt_filter WHERE selkz = abap_false.
+    "DATA lt_filter LIKE z2ui5_cl_app_demo_49=>ms_layout-t_filter.
 
-    LOOP AT lt_filter REFERENCE INTO DATA(lr_filter)
-     WHERE selkz = abap_true.
-      lo_box->input( description = lr_filter->name ).
-    ENDLOOP.
+    z2ui5_set_filter( lo_box ).
 
-
-    lo_box->button( text = `Change Filter (` && shift_right( CONV string( lines( lt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )  ).
 
 
 
@@ -655,7 +665,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     lo_popup->dialog( 'abap2UI5 - Popup to select entry'
         )->table(
             mode = 'MultiSelect'
-            items = client->_bind( ms_layout-t_filter )
+            items = client->_bind( ms_layout-t_filter_show )
             )->columns(
                 )->column( )->text( 'Title' )->get_parent(
                 )->column( )->text( 'Color' )->get_parent(
@@ -838,6 +848,55 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         ENDIF.
       CATCH cx_root.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_set_filter.
+
+    IF line_exists( ms_layout-t_filter_show[  name = `UUID` selkz = abap_true  ] ).
+      io_box->input( value = client->_bind( ms_layout-s_filter-uuid ) description = `UUID` ).
+    ENDIF.
+
+    IF line_exists( ms_layout-t_filter_show[  name = `UUID_PREV` selkz = abap_true ] ).
+      io_box->input( value = client->_bind( ms_layout-s_filter-uuid_prev ) description = `UUID_PREV` ).
+    ENDIF.
+
+    "todo other columns...
+
+    DATA(rt_filter)  = ms_layout-t_filter_show.
+    DELETE rt_filter WHERE selkz = abap_false.
+
+    io_box->get_parent( )->hbox( justifycontent = `End`
+        )->button( text = `Change Filter (` && shift_right( CONV string( lines(  rt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )
+        )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized` ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_set_data.
+
+    "dirty solution
+    "todo: map filters to rangetab and make a nice select
+
+    IF ms_layout-s_filter-uuid IS INITIAL.
+
+      SELECT FROM z2ui5_t_draft
+          FIELDS uuid, uuid_prev, timestampl, uname
+        INTO CORRESPONDING FIELDS OF TABLE @mt_table
+          UP TO 50 ROWS.
+
+    ELSE.
+
+      SELECT FROM z2ui5_t_draft
+      FIELDS uuid, uuid_prev, timestampl, uname
+      WHERE uuid = @ms_layout-s_filter-uuid
+            INTO CORRESPONDING FIELDS OF TABLE @mt_table
+                    UP TO 50 ROWS.
+
+    ENDIF.
+
+    ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   ENDMETHOD.
 
