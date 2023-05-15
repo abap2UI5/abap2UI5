@@ -138,7 +138,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
 
         DATA(grid) = page->grid( 'L12 M12 S12' )->content( 'layout' ).
 
-        grid->simple_form( 'More Controls' )->content( 'form'
+        grid->simple_form( title = 'More Controls' editable = abap_true )->content( 'form'
             )->label( 'ProgressIndicator'
             )->progress_indicator(
                 percentvalue    = screen-progress_value
@@ -169,7 +169,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                 class         = 'sapUiTinyMargin'
             )->label( 'MultiInput'
             )->multi_input(
-                    tokens = client->_bind( mt_token )
+                    tokens          = client->_bind( mt_token )
                     showclearicon   = abap_true
                     showvaluehelp   = abap_true
                     suggestionitems = client->_bind( mt_token_sugg )
@@ -184,7 +184,7 @@ CLASS Z2UI5_CL_APP_DEMO_05 IMPLEMENTATION.
                         visible = `{VISIBLE}`
         ).
 
-        grid->simple_form( 'Text Area' )->content( 'form'
+        grid->simple_form( title = 'Text Area' editable = abap_true )->content( 'form'
             )->label( 'text area'
             )->text_area(
                 value = `Lorem ipsum dolor st amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magn` &&

@@ -607,7 +607,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS hbox
       IMPORTING
-        class         TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
+        justifycontent TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1396,6 +1397,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           name   = `HBox`
           t_prop = VALUE #(
             ( n = `class` v = class )
+            ( n = `justifyContent` v = justifycontent )
         ) ).
 
   ENDMETHOD.
