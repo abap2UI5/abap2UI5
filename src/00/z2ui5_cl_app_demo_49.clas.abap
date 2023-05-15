@@ -419,7 +419,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
           WHERE visible = abap_true.
       lo_columns->column( width = lr_field->length )->text(  text = CONV char10( lr_field->title )
         )->footer(
-        )->object_number( number = `10` unit = 'ST' state = `Warning` ).
+        )->object_number( number = `Summe` unit = 'ST' state = `Warning` ).
     ENDLOOP.
 
     DATA(lo_cells) = tab->items( )->column_list_item(
@@ -722,15 +722,15 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     DATA(lt_components) = lo_struc->get_components( ).
 
     DATA(lv_row) = ``.
-    LOOP AT lt_components INTO DATA(lv_name).
+    LOOP AT lt_components INTO DATA(lv_name) from 2.
       lv_row = lv_row && lv_name-name && `;`.
     ENDLOOP.
     lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
 
 
-    LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row).
+    LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row) from 2.
 
-      DATA(lv_index) = 1.
+      DATA(lv_index) = 2.
       DO.
         ASSIGN COMPONENT lv_index OF STRUCTURE lr_row->* TO FIELD-SYMBOL(<field>).
         IF sy-subrc <> 0.
@@ -818,19 +818,16 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_set_sort.
 
-    "quick and dirty, only works for 4 conditions
+    "quick and dirty - todo
+    "only works for 2 conditions
     TRY.
         IF ms_layout-t_sort IS NOT INITIAL.
           DATA(ls_field1) = VALUE #( ms_layout-t_sort[ 1 ] OPTIONAL ).
           DATA(ls_field2) = VALUE #( ms_layout-t_sort[ 2 ] OPTIONAL ).
-          DATA(ls_field3) = VALUE #( ms_layout-t_sort[ 3 ] OPTIONAL ).
-          DATA(ls_field4) = VALUE #( ms_layout-t_sort[ 4 ] OPTIONAL ).
 
           SORT ms_view-t_tab BY
             (ls_field1-name) (ls_field1-type)
-            (ls_field2-name) (ls_field2-type)
-            (ls_field3-name) (ls_field3-type)
-            (ls_field4-name) (ls_field4-type).
+            (ls_field2-name) (ls_field2-type).
 
         ENDIF.
       CATCH cx_root.
