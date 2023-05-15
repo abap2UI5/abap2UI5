@@ -16,14 +16,6 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     DATA mv_check_download_csv TYPE abap_bool.
 
     TYPES:
-      BEGIN OF ty_s_token,
-        key     TYPE string,
-        text    TYPE string,
-        visible TYPE abap_bool,
-        selkz   TYPE abap_bool,
-      END OF ty_S_token.
-
-    TYPES:
       BEGIN OF ty_S_out,
         selkz               TYPE abap_bool,
         uuid                TYPE string,
@@ -375,14 +367,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         ).
 
     DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
-         )->flex_box( alignitems = `Start` justifycontent = `SpaceBetween` )->flex_box( alignItems = `Start` ). " justifyContent = `SpaceBetween` ).
-
-
-    "DATA lt_filter LIKE z2ui5_cl_app_demo_49=>ms_layout-t_filter.
+         )->flex_box( alignitems = `Start` justifycontent = `SpaceBetween` )->flex_box( alignItems = `Start` ).
 
     z2ui5_set_filter( lo_box ).
-
-
 
 
     DATA(cont) = page->content( ns = 'f' ).
