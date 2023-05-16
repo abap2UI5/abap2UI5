@@ -1483,7 +1483,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lr_in) = REF #( value ).
 
-    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri).
+    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+        where bind_type <> cs_bind_type-one_time.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).

@@ -9,6 +9,7 @@ CLASS z2ui5_cl_app_demo_02 DEFINITION PUBLIC.
         check_is_active TYPE abap_bool,
         colour          TYPE string,
         combo_key       TYPE string,
+        combo_key2      TYPE string,
         segment_key     TYPE string,
         date            TYPE string,
         date_time       TYPE string,
@@ -51,7 +52,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_02 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -109,14 +110,14 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
   METHOD z2ui5_on_rendering.
 
-    DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
+    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
          )->page(
             title          = 'abap2UI5 - Selection-Screen Example'
             navbuttonpress = client->_event( 'BACK' )
               shownavbutton = abap_true
             )->header_content(
                 )->link( text = 'Demo'    target = '_blank'    href = `https://twitter.com/OblomovDev/status/1628701535222865922`
-                )->link( text = 'Source_Code'  target = '_blank' href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
+                )->link( text = 'Source_Code'  target = '_blank' href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
             )->get_parent( ).
 
     DATA(grid) = page->grid( 'L6 M12 S12'
@@ -151,13 +152,13 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
             )->simple_form( 'Input with select options'
                 )->content( 'form' ).
 
-    form->label( 'Checkbox'
+   data(lv_test) = form->label( 'Checkbox'
         )->checkbox(
             selected = client->_bind( screen-check_is_active )
             text     = 'this is a checkbox'
-            enabled  = abap_true
+            enabled  = abap_true ).
 
-        )->label( 'Combobox'
+      lv_test->label( 'Combobox'
         )->combobox(
             selectedkey = client->_bind( screen-combo_key )
             items       = client->_bind_one( VALUE ty_t_combo(
@@ -168,9 +169,22 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
                 )->item(
                     key = '{KEY}'
                     text = '{TEXT}'
-        )->get_parent( )->get_parent(
+        )->get_parent( )->get_parent( ).
 
-        )->label( 'Segmented Button'
+      lv_test->label( 'Combobox2'
+        )->combobox(
+            selectedkey = client->_bind( screen-combo_key2 )
+            items       = client->_bind_one( VALUE ty_t_combo(
+                    ( key = 'BLUE'  text = 'green' )
+                    ( key = 'GREEN' text = 'blue' )
+                    ( key = 'BLACK' text = 'red' )
+                    ( key = 'GRAY'  text = 'gray' ) ) )
+                )->item(
+                    key = '{KEY}'
+                    text = '{TEXT}'
+        )->get_parent( )->get_parent( ).
+
+        lv_test->label( 'Segmented Button'
         )->segmented_button( client->_bind( screen-segment_key )
             )->items(
                 )->segmented_button_item(
@@ -216,7 +230,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
              press = client->_event( 'BUTTON_SEND' )
              type  = 'Success' ).
 
-    client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
+    client->set_next( VALUE #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
 
 
@@ -245,7 +259,7 @@ CLASS Z2UI5_CL_APP_DEMO_02 IMPLEMENTATION.
 
 
 
-    client->set_next( value #( xml_main = page->get_root(  )->xml_get( ) ) ).
+    client->set_next( VALUE #( xml_main = page->get_root(  )->xml_get( ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
