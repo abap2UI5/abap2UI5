@@ -13,7 +13,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
       END OF ty_S_token.
 
     DATA mt_token            TYPE STANDARD TABLE OF ty_S_token WITH EMPTY KEY.
-    DATA mt_token_sugg       TYPE STANDARD TABLE OF ty_S_token WITH EMPTY KEY.
+*    DATA mt_token_sugg       TYPE STANDARD TABLE OF ty_S_token WITH EMPTY KEY.
 
     DATA mt_table TYPE STANDARD TABLE OF z2ui5_t_draft.
     DATA ms_detail TYPE z2ui5_t_draft.
