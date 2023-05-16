@@ -4,6 +4,17 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
+    TYPES:
+      BEGIN OF ty_s_token,
+        key     TYPE string,
+        text    TYPE string,
+        visible TYPE abap_bool,
+        selkz   TYPE abap_bool,
+      END OF ty_S_token.
+
+    DATA mt_token            TYPE STANDARD TABLE OF ty_S_token WITH EMPTY KEY.
+    DATA mt_token_sugg       TYPE STANDARD TABLE OF ty_S_token WITH EMPTY KEY.
+
     DATA mt_table TYPE STANDARD TABLE OF z2ui5_t_draft.
     DATA ms_detail TYPE z2ui5_t_draft.
     DATA mv_check_columns TYPE abap_bool.
@@ -266,6 +277,21 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     app-next-t_scroll_pos = VALUE #( ( name = `page_main` ) ).
 
+    mt_token = VALUE #(
+                   ( key = 'VAL1' text = 'value_1' selkz = abap_true  visible = abap_true )
+                   ( key = 'VAL3' text = 'value_3' selkz = abap_false visible = abap_true )
+                   ( key = 'VAL4' text = 'value_4' selkz = abap_true )
+                   ( key = '<500' text = '<500'    selkz = abap_true )
+               ).
+
+*    mt_token_sugg = VALUE #(
+*        ( key = 'VAL1' text = 'value_1' )
+*        ( key = 'VAL2' text = 'value_2' )
+*        ( key = 'VAL3' text = 'value_3' )
+*        ( key = 'VAL4' text = 'value_4' )
+*    ).
+
+
   ENDMETHOD.
 
 
@@ -353,7 +379,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     DATA(header_title) = page->title( ns = 'f'
             )->get( )->dynamic_page_title( ).
 
-    header_title->heading( ns = 'f' )->title( ms_view-title ).
+    header_title->heading( ns = 'f' )->hbox( )->title( ms_view-title )->button( type = `Transparent` icon = `sap-icon://dropdown` ).
 
     header_title->expanded_content( 'f'
              )->label( text = 'Drafts of abap2UI5' ).
@@ -374,6 +400,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
     DATA(cont) = page->content( ns = 'f' ).
 
+
     DATA(tab) = cont->table(
         items = client->_bind( val = ms_view-t_tab )
         alternaterowcolors = ms_layout-check_zebra
@@ -387,6 +414,21 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
               )->button(
                   icon = 'sap-icon://refresh'
                   press = client->_event( 'BUTTON_REFRESH' )
+              )->multi_input(
+                    tokens = client->_bind( mt_token )
+                    showclearicon   = abap_true
+*                    showvaluehelp   = abap_true
+*                    suggestionitems = client->_bind( mt_token_sugg )
+                )->item(
+                        key = `{KEY}`
+                        text = `{TEXT}`
+                )->tokens(
+                    )->token(
+                        key = `{KEY}`
+                        text = `{TEXT}`
+                        selected = `{SELKZ}`
+*                        visible = `{VISIBLE}`
+               )->get_parent( )->get_parent(
               )->search_field(
                     value = client->_bind( ms_view-search_val )
                     search = client->_event( 'BUTTON_SEARCH' )
@@ -722,13 +764,13 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     DATA(lt_components) = lo_struc->get_components( ).
 
     DATA(lv_row) = ``.
-    LOOP AT lt_components INTO DATA(lv_name) from 2.
+    LOOP AT lt_components INTO DATA(lv_name) FROM 2.
       lv_row = lv_row && lv_name-name && `;`.
     ENDLOOP.
     lv_row = lv_row && cl_abap_char_utilities=>cr_lf.
 
 
-    LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row) from 2.
+    LOOP AT ms_view-t_tab REFERENCE INTO DATA(lr_row) FROM 2.
 
       DATA(lv_index) = 2.
       DO.
@@ -852,8 +894,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     DELETE rt_filter WHERE selkz = abap_false.
 
     io_box->get_parent( )->hbox( justifycontent = `End`
-        )->button( text = `Change Filter (` && shift_right( CONV string( lines(  rt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )
-        )->button( text = `Start` press = client->_event( `BUTTON_START` ) type = `Emphasized` ).
+        )->button( text = `Go` press = client->_event( `BUTTON_START` ) type = `Emphasized`
+        )->button( text = `Adapt Filters (` && shift_right( CONV string( lines(  rt_filter ) ) ) && `)`  press = client->_event( `POPUP_FILTER` )
+        ).
 
   ENDMETHOD.
 
