@@ -678,7 +678,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
-   " DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
+    " DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -1022,6 +1022,12 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
           source_line  = DATA(lv_line)
       ).
 
+      if  client->get_app( client->get( )-id_prev_app ) is bound.
+        data(lv_check_back) = `true`.
+      else.
+      lv_check_back = `false`.
+      endif.
+
       DATA(lv_descr) = ms_error-x_error->get_text( ) &&
             ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
             lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
@@ -1040,7 +1046,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                            ` /> <Button ` && |\n|  &&
                            `  press="` &&  client->_event( `BUTTON_BACK` ) && `" ` && |\n|  &&
                            `  text="BACK" ` && |\n|  &&
-                           `  type="Emphasized" ` && |\n|  &&
+                           `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n|  &&
                            ` /></buttons></MessagePage></Shell></mvc:View>`.
 
       client->set_next( VALUE #( xml_main = lv_xml_error ) ).
@@ -1364,14 +1370,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                     json             = `"` && <val> && `"`
                   CHANGING
                     data             = <attribute>  ).
-           " WHEN 'C'.
-            "  CASE lr_attri->type.
-             "   WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
-             "     <attribute> = xsdbool( <val> = `true` ).
-            "    WHEN OTHERS.
-            "      <attribute> = <val>.
-            "°  ENDCASE.
-           WHEN OTHERS.
+              " WHEN 'C'.
+              "  CASE lr_attri->type.
+              "   WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+              "     <attribute> = xsdbool( <val> = `true` ).
+              "    WHEN OTHERS.
+              "      <attribute> = <val>.
+              "°  ENDCASE.
+            WHEN OTHERS.
               <attribute> = <val>.
           ENDCASE.
       ENDCASE.
@@ -1477,7 +1483,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lr_in) = REF #( value ).
 
-    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri).
+    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+        where bind_type <> cs_bind_type-one_time.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
@@ -1721,11 +1728,11 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    if data is INITIAL.
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
-    else.
-     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } ,` && data && `)`.
-    endif.
+    IF data IS INITIAL.
+      result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
+    ELSE.
+      result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } ,` && data && `)`.
+    ENDIF.
 
   ENDMETHOD.
 
