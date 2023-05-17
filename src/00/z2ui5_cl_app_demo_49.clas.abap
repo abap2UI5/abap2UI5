@@ -138,6 +138,7 @@ CLASS z2ui5_cl_app_demo_49 DEFINITION PUBLIC.
     METHODS z2ui5_on_render_detail.
     METHODS z2ui5_on_render_pop_setup.
     METHODS z2ui5_on_render_pop_filter.
+    METHODS z2ui5_on_render_pop_detail.
     METHODS z2ui5_on_render_pop_layout.
     METHODS z2ui5_set_download_csv
       IMPORTING
@@ -162,6 +163,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     me->client     = client.
     app-get        = client->get( ).
     app-view_popup = ``.
+    app-next-path = `/z2ui5_cl_app_demo_49`.
+    app-next-title = `List Report`.
+
 
     IF app-check_initialized = abap_false.
       app-check_initialized = abap_true.
@@ -173,6 +177,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     ENDIF.
 
     z2ui5_on_render( ).
+
 
     client->set_next( app-next ).
     CLEAR app-get.
@@ -199,7 +204,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       WHEN 'BUTTON_CUSTOM'.
         client->popup_message_box( `custom action called` ).
 
-      WHEN  'BUTTON_START'.
+      WHEN 'BUTTON_START'.
         z2ui5_set_data( ).
 
       WHEN 'BUTTON_DOWNLOAD'.
@@ -236,7 +241,12 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         z2ui5_set_detail( ).
         app-view_main = 'DETAIL'.
 
+      WHEN 'POPUP_DETAIL'.
+        app-next-popup_open_by_id = app-get-event_data.
+        app-view_popup = 'POPUP_LAYOUT'.
+
       WHEN 'POPUP_LAYOUT'.
+        app-next-popup_open_by_id = `btn_layout`.
         app-view_popup = 'POPUP_LAYOUT'.
 
       WHEN 'POPUP_FILTER'.
@@ -256,6 +266,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         app-view_popup = ''.
 
       WHEN 'BACK'.
+        "  app-next-path = `test`.
         client->nav_app_leave( client->get_app( app-get-id_prev_app_stack ) ).
 
     ENDCASE.
@@ -265,7 +276,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    app-view_main  = 'MAIN'.
+
     init_table_output( ).
 
     ms_view-title = `Standart`.
@@ -283,6 +294,35 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
                    ( key = 'VAL4' text = 'value_4' selkz = abap_true )
                    ( key = '<500' text = '<500'    selkz = abap_true )
                ).
+
+
+
+    " IF app-view_main IS INITIAL.
+    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
+    SPLIT lv_url AT `/z2ui5_cl_app_demo_49/` INTO DATA(lv_dummy1) DATA(lv_dummy2).
+    SPLIT lv_dummy2 AT `(` INTO DATA(lv_view) DATA(lv_token).
+    IF lv_view IS NOT INITIAL.
+      app-view_main = lv_view.
+      SPLIT lv_token AT `(` INTO DATA(lv_token2) lv_dummy1.
+      SPLIT lv_token2 AT `)` INTO lv_token lv_dummy1.
+      ms_detail-uuid = lv_token.
+      IF ms_detail-uuid IS NOT INITIAL.
+        z2ui5_set_data( ).
+
+        ms_detail = mt_table[ uuid = ms_detail-uuid ].
+
+        SELECT SINGLE FROM z2ui5_t_draft
+          FIELDS *
+          WHERE uuid = @ms_detail-uuid
+        INTO CORRESPONDING FIELDS OF @ms_detail
+        .
+
+      ENDIF.
+      "    ENDIF.
+    ELSE.
+      app-view_main  = 'MAIN'.
+    ENDIF.
+
 
 *    mt_token_sugg = VALUE #(
 *        ( key = 'VAL1' text = 'value_1' )
@@ -304,7 +344,11 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         z2ui5_on_render_pop_setup( ).
       WHEN `POPUP_LAYOUT`.
         z2ui5_on_render_pop_layout( ).
+      WHEN `POPUP_DETAIL`.
+        z2ui5_on_render_pop_detail( ).
     ENDCASE.
+
+    app-next-path = app-next-path && `/` &&  app-view_main.
 
     CASE app-view_main.
       WHEN 'MAIN'.
@@ -312,6 +356,8 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       WHEN 'DETAIL'.
         z2ui5_on_render_detail( ).
     ENDCASE.
+
+
 
   ENDMETHOD.
 
@@ -379,7 +425,8 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     DATA(header_title) = page->title( ns = 'f'
             )->get( )->dynamic_page_title( ).
 
-    header_title->heading( ns = 'f' )->hbox( )->title( ms_view-title )->button( type = `Transparent` icon = `sap-icon://dropdown` ).
+    header_title->heading( ns = 'f' )->hbox( )->title( ms_view-title
+         )->button( id = `btn_layout` press = client->_event( `POPUP_LAYOUT` ) type = `Transparent` icon = `sap-icon://dropdown` ).
 
     header_title->expanded_content( 'f'
              )->label( text = 'Drafts of abap2UI5' ).
@@ -388,8 +435,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
              )->label( text = 'Drafts of abap2UI5' ).
 
     header_title->actions( ns = 'f' )->overflow_toolbar(
-        )->button( text = `Layout` type = `Emphasized`  press = client->_event( `POPUP_LAYOUT` )
-
+        )->button( text = `Custom Function`   press = client->_event( `BUTTON_CUSTOM` )
         ).
 
     DATA(lo_box) = page->header( )->dynamic_page_header( pinnable = abap_true
@@ -436,9 +482,9 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
                     width = `17.5rem`
                     id    = `SEARCH`
       )->toolbar_spacer(
-             )->button(
-                text = `Custom Action`
-                  press = client->_event( 'BUTTON_CUSTOM' )
+*             )->button(
+*                text = `Custom Action`
+*                  press = client->_event( 'BUTTON_CUSTOM' )
 
               )->button(
                   text = `Anlegen`
@@ -473,7 +519,11 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
       IF lr_field->editable = abap_true.
         lo_cells->input( `{` && lr_field->name && `}` ).
       ELSE.
-        lo_cells->text(  `{` && lr_field->name && `}` ).
+        " lo_cells->text(  `{` && lr_field->name && `}` ).
+        lo_cells->link( text = `{` && lr_field->name && `}`
+        "   press = client->_event( val = `POPUP_DETAIL` data = `${` && lr_field->name && `}` ) ).
+           press = client->_event( val = `POPUP_DETAIL` data = `${$source>/id}` ) ).
+          " press = client->_event( val = `POPUP_DETAIL` data = `$event` ) ).
       ENDIF.
     ENDLOOP.
 
@@ -483,6 +533,8 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
 
   METHOD z2ui5_on_render_detail.
+
+    app-next-path = app-next-path && `(` && ms_detail-uuid && `)`.
 
     DATA(view) = z2ui5_cl_xml_view=>factory(
         )->page(
@@ -719,11 +771,50 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_on_render_pop_detail.
+
+    DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
+
+    lo_popup->popover( placement = `Bottom` title = 'abap2UI5 - Layout'  contentwidth = `50%`
+        )->input( description = `Name` value = client->_bind( mv_layout_name )
+        )->button( text = `Save` press = client->_event( `BUTTON_SAVE_LAYOUT` )
+        )->table(
+            mode = 'SingleSelectLeft'
+            items = client->_bind( mt_db_layout )
+            )->columns(
+                )->column( )->text( 'Name' )->get_parent(
+                )->column( )->text( 'User' )->get_parent(
+                )->column( )->text( 'Default' )->get_parent(
+             "   )->column( )->text( 'Description' )->get_parent(
+            )->get_parent(
+            )->items( )->column_list_item( selected = '{SELKZ}'
+                )->cells(
+             "       )->checkbox( '{SELKZ}'
+                    )->text( '{NAME}'
+                    )->text( '{USER}'
+                    )->text( '{DEFAULT}'
+             "       )->text( '{DESCR}'
+        )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+        )->footer( )->overflow_toolbar(
+            )->toolbar_spacer(
+             )->button(
+                text  = 'load'
+                press = client->_event( 'POPUP_LAYOUT_LOAD' )
+                type  = 'Emphasized'
+            )->button(
+                text  = 'close'
+                press = client->_event( 'POPUP_LAYOUT_CONTINUE' )
+                type  = 'Emphasized' ).
+
+    app-next-xml_popup = lo_popup->get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_on_render_pop_layout.
 
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
-    lo_popup->dialog( title = 'abap2UI5 - Layout'  contentwidth = `50%`
+    lo_popup->popover( placement = `Bottom` title = 'abap2UI5 - Layout'  contentwidth = `50%`
         )->input( description = `Name` value = client->_bind( mv_layout_name )
         )->button( text = `Save` press = client->_event( `BUTTON_SAVE_LAYOUT` )
         )->table(

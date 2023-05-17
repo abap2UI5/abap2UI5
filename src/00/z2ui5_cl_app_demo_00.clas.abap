@@ -260,6 +260,8 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
                      growfactor = '3'
                      styleclass = 'sapUiTinyMargin' ).
 
-    client->set_next( VALUE #( xml_main = page->get_root( )->xml_get( ) ) ).
+    client->set_next( VALUE #(
+        path = `/`
+        xml_main = page->get_root( )->xml_get( ) ) ).
   ENDMETHOD.
 ENDCLASS.
