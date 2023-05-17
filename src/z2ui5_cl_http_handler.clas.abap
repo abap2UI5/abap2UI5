@@ -19,10 +19,10 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS http_get
       IMPORTING
-        title                   TYPE clike DEFAULT `abap2UI5`
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         content_security_policy TYPE clike OPTIONAL
         check_logging           TYPE abap_bool DEFAULT abap_false
+        title                   TYPE string DEFAULT `abap2UI5`
       RETURNING
         VALUE(r_result)         TYPE string.
 
@@ -89,13 +89,18 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ENDIF.
 
     IF content_security_policy IS NOT SUPPLIED.
-      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ui5.sap.com *.ui5.sap.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net"/>`.
+      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+        `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net"/>`.
     ELSE.
       lv_sec_policy = content_security_policy.
     ENDIF.
 
     DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
     DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
+    IF lv_app IS INITIAL.
+      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+      SPLIT lv_path AT `/` INTO lv_app DATA(lv_dummy).
+    ENDIF.
     z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
@@ -129,6 +134,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            sap.ui.controller("z2ui5_controller", {` && |\n|  &&
                            |\n|  &&
                            `                onAfterRendering: function () {` && |\n|  &&
+                           `                  if(sap.z2ui5.oResponse.title != ""){ document.title = sap.z2ui5.oResponse.title; }` && |\n|  &&
+                           `                  if(sap.z2ui5.oResponse.path != ""){ window.history.replaceState( "" , "" , window.location.origin + sap.z2ui5.oResponse.path + window.location.search ); }` && |\n|  &&
                            `                    var oView = this.getView();` && |\n|  &&
                            `                    try {` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n|  &&
@@ -310,6 +317,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
                            `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
+                           `        sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
                            `        sap.z2ui5.Roundtrip();` && |\n|  &&
                            |\n|  &&
                            `    });` && |\n|  &&

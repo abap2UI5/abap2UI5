@@ -733,6 +733,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         href          TYPE clike OPTIONAL
         target        TYPE clike OPTIONAL
         enabled       TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
         ns            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1688,6 +1690,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ( n = `text`    v = text )
          ( n = `target`  v = target )
          ( n = `href`    v = href )
+         ( n = `press`   v = press )
+         ( n = `id`      v = id )
          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
        ) ).
 

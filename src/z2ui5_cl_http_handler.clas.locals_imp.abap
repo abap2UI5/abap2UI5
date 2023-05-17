@@ -247,7 +247,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   METHOD get_header_val.
 
-    result  = z2ui5_cl_http_handler=>client-t_header[ name = v ]-value.
+    result  = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = v ]-value ).
 
   ENDMETHOD.
 
@@ -1022,11 +1022,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
           source_line  = DATA(lv_line)
       ).
 
-      if  client->get_app( client->get( )-id_prev_app ) is bound.
-        data(lv_check_back) = `true`.
-      else.
-      lv_check_back = `false`.
-      endif.
+      IF  client->get_app( client->get( )-id_prev_app ) IS BOUND.
+        DATA(lv_check_back) = `true`.
+      ELSE.
+        lv_check_back = `false`.
+      ENDIF.
 
       DATA(lv_descr) = ms_error-x_error->get_text( ) &&
             ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
@@ -1306,6 +1306,20 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
     ENDIF.
 
+
+
+    IF ms_next-s_set-path IS NOT INITIAL.
+      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+      DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+      REPLACE lv_path_info IN lv_path WITH ``.
+      SHIFT lv_path RIGHT DELETING TRAILING `/`.
+      SHIFT lv_path LEFT DELETING LEADING ` `.
+      ms_next-s_set-path = lv_path && ms_next-s_set-path.
+    ENDIF.
+
+    lo_ui5_model->add_attribute( n = `path` v = ms_next-s_set-path ).
+    lo_ui5_model->add_attribute( n = `title` v = ms_next-s_set-title ).
+
     result = lo_ui5_model->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
@@ -1431,7 +1445,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result = NEW #( ).
 
     result->ms_db-o_app = ms_next-o_call_app.
-    CLEAR ms_next.
+
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
     DATA(ls_draft) = z2ui5_lcl_fw_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
@@ -1442,6 +1456,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-o_app->id   = result->ms_db-id.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.
+
+    "    result->ms_next-s_set-path = `test`. "ms_next-s_set-path.
+    CLEAR ms_next.
 
   ENDMETHOD.
 
@@ -1484,7 +1501,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     DATA(lr_in) = REF #( value ).
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        where bind_type <> cs_bind_type-one_time.
+        WHERE bind_type <> cs_bind_type-one_time.
 
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
