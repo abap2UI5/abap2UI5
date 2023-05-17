@@ -17,27 +17,29 @@ INTERFACE z2ui5_if_client
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
       t_scroll_pos      TYPE ty_t_name_value,
-      t_req_param       type ty_t_name_value,
-      t_req_header      type ty_t_name_value,
+      t_req_param       TYPE ty_t_name_value,
+      t_req_header      TYPE ty_t_name_value,
     END OF ty_s_get.
 
   TYPES:
     BEGIN OF ty_S_next,
       xml_main            TYPE string,
       xml_popup           TYPE string,
-      popup_open_by_id    type string,
+      popup_open_by_id    TYPE string,
       check_set_prev_view TYPE abap_bool,
       t_scroll_pos        TYPE ty_t_name_value,
-      BEGIN OF s_cursor_pos,
-        id             TYPE string,
-        cursorpos      TYPE string,
-        selectionstart TYPE string,
-        selectionend   TYPE string,
-      END OF s_cursor_pos,
-      begin of s_timer,
-        interval_ms    type string,
-        event_finished type string,
-      end of s_timer,
+      title               TYPE string,
+      path                TYPE string,
+      begin OF s_cursor_pos,
+      id                  TYPE string,
+      cursorpos           TYPE string,
+      selectionstart      TYPE string,
+      selectionend        TYPE string,
+    END OF s_cursor_pos,
+    BEGIN OF s_timer,
+      interval_ms    TYPE string,
+      event_finished TYPE string,
+    END OF s_timer,
     END OF ty_s_next.
 
   METHODS set_next
@@ -56,7 +58,7 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_app_leave
     IMPORTING
-      app type ref to z2ui5_if_app.
+      app TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_call
     IMPORTING
@@ -77,9 +79,9 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val            TYPE data
       path           TYPE abap_bool DEFAULT abap_false
-      check_gen_data type abap_bool OPTIONAL
+      check_gen_data TYPE abap_bool OPTIONAL
     RETURNING
-      VALUE(result) TYPE string.
+      VALUE(result)  TYPE string.
 
   METHODS _bind_one
     IMPORTING
@@ -91,7 +93,7 @@ INTERFACE z2ui5_if_client
   METHODS _event
     IMPORTING
       val           TYPE clike
-      data          type clike optional
+      data          TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
