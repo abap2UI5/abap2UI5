@@ -127,6 +127,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
         alternateRowColors     TYPE clike OPTIONAL
+         autoPopinMode    TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -381,6 +382,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS column
       IMPORTING
         width         TYPE clike OPTIONAL
+        minScreenWidth         TYPE clike OPTIONAL
+        demandPopin   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1187,8 +1190,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     result = _generic(
         name  = `Column`
-          t_prop = VALUE #( ( n = `width` v = width ) )
-     ).
+          t_prop = VALUE #(
+             ( n = `width` v = width )
+             ( n = `minScreenWidth` v = minScreenWidth )
+             ( n = `demandPopin` v = Lcl_utility=>get_json_boolean( demandPopin ) )
+      ) ).
 
   ENDMETHOD.
 
@@ -2262,6 +2268,7 @@ METHOD overflow_toolbar_menu_button.
            ( n = `width`            v = width )
            ( n = `selectionChange`  v = selectionchange )
            ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
+           ( n = `autoPopinMode`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
      ) ).
 
   ENDMETHOD.

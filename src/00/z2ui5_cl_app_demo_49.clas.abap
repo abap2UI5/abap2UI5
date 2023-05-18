@@ -155,7 +155,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_49 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -361,6 +361,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD init_table_output.
 
     " CLEAR  ms_layout-s_table.
@@ -451,6 +452,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
         items = client->_bind( val = ms_view-t_tab )
         alternaterowcolors = ms_layout-check_zebra
         sticky = ms_layout-sticky_header
+        autopopinmode = abap_true
         mode = ms_layout-selmode ).
 
     tab->header_toolbar(
@@ -475,12 +477,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
                         selected = `{SELKZ}`
 *                        visible = `{VISIBLE}`
                )->get_parent( )->get_parent(
-              )->search_field(
-                    value = client->_bind( ms_view-search_val )
-                    search = client->_event( 'BUTTON_SEARCH' )
-                    change = client->_event( 'BUTTON_SEARCH' )
-                    width = `17.5rem`
-                    id    = `SEARCH`
+
       )->toolbar_spacer(
 *             )->button(
 *                text = `Custom Action`
@@ -502,12 +499,16 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
               ).
 
 
+    data(lv_width) = 10.
     DATA(lo_columns) = tab->columns( ).
     LOOP AT ms_layout-t_cols REFERENCE INTO DATA(lr_field)
           WHERE visible = abap_true.
-      lo_columns->column( width = lr_field->length )->text(  text = CONV char10( lr_field->title )
+      lo_columns->column(
+            minscreenwidth = shift_right( conv string( lv_width ) ) && `px`
+            demandpopin = abap_true width = lr_field->length )->text( text = CONV char10( lr_field->title )
         )->footer(
         )->object_number( number = `Summe` unit = 'ST' state = `Warning` ).
+        lv_width = lv_width + 10.
     ENDLOOP.
 
     DATA(lo_cells) = tab->items( )->column_list_item(
@@ -771,6 +772,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_render_pop_detail.
 
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
@@ -810,6 +812,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_on_render_pop_layout.
 
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
@@ -848,6 +851,7 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     app-next-xml_popup = lo_popup->get_root( )->xml_get( ).
 
   ENDMETHOD.
+
 
   METHOD z2ui5_set_download_csv.
 
@@ -971,6 +975,14 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
 
   METHOD z2ui5_set_filter.
 
+      io_box->search_field(
+                    value = client->_bind( ms_view-search_val )
+                    search = client->_event( 'BUTTON_SEARCH' )
+                    change = client->_event( 'BUTTON_SEARCH' )
+                    width = `17.5rem`
+                    id    = `SEARCH`
+              ).
+
     IF line_exists( ms_layout-t_filter_show[  name = `UUID` selkz = abap_true  ] ).
       io_box->input( value = client->_bind( ms_layout-s_filter-uuid ) description = `UUID` ).
     ENDIF.
@@ -1017,5 +1029,4 @@ CLASS z2ui5_cl_app_demo_49 IMPLEMENTATION.
     ms_view-t_tab = CORRESPONDING #( mt_table ).
 
   ENDMETHOD.
-
 ENDCLASS.
