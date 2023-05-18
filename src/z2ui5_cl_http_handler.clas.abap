@@ -22,7 +22,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         content_security_policy TYPE clike OPTIONAL
         check_logging           TYPE abap_bool DEFAULT abap_false
-        title                   TYPE string DEFAULT `abap2UI5`
       RETURNING
         VALUE(r_result)         TYPE string.
 
@@ -96,11 +95,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     ENDIF.
 
     DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-    DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
-    IF lv_app IS INITIAL.
+  "  DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
+ "   IF lv_app IS INITIAL.
       DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-      SPLIT lv_path AT `/` INTO lv_app DATA(lv_dummy).
-    ENDIF.
+      SPLIT lv_path AT `/` INTO data(lv_app) DATA(lv_dummy).
+ "   ENDIF.
     z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&
@@ -109,7 +108,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                `    <meta charset="UTF-8">` && |\n|  &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n|  &&
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
-               `    <title>` && title && `</title>` && |\n| &&
+               `    <title>abap2UI5</title>` && |\n| &&
                `    <style>` && |\n|  &&
                `        html, body, body > div, #container, #container-uiarea {` && |\n|  &&
                `            height: 100%;` && |\n|  &&

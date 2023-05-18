@@ -23,22 +23,22 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_S_next,
-      xml_main            TYPE string,
-      xml_popup           TYPE string,
-      popup_open_by_id    TYPE string,
-      t_scroll_pos        TYPE ty_t_name_value,
-      title               TYPE string,
-      path                TYPE string,
-      begin OF s_cursor_pos,
-      id                  TYPE string,
-      cursorpos           TYPE string,
-      selectionstart      TYPE string,
-      selectionend        TYPE string,
-    END OF s_cursor_pos,
-    BEGIN OF s_timer,
-      interval_ms    TYPE string,
-      event_finished TYPE string,
-    END OF s_timer,
+      xml_main         TYPE string,
+      xml_popup        TYPE string,
+      popup_open_by_id TYPE string,
+      t_scroll_pos     TYPE ty_t_name_value,
+      title            TYPE string,
+      path             TYPE string,
+      BEGIN OF s_cursor_pos,
+        id             TYPE string,
+        cursorpos      TYPE string,
+        selectionstart TYPE string,
+        selectionend   TYPE string,
+      END OF s_cursor_pos,
+      BEGIN OF s_timer,
+        interval_ms    TYPE string,
+        event_finished TYPE string,
+      END OF s_timer,
     END OF ty_s_next.
 
   METHODS set_next
@@ -93,7 +93,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE clike
       data          TYPE clike OPTIONAL
-      hold_view     type abap_bool default abap_false
+      hold_view     TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result) TYPE string.
 
