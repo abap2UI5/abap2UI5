@@ -94,11 +94,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       lv_sec_policy = content_security_policy.
     ENDIF.
 
-    DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+  "  DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
   "  DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
  "   IF lv_app IS INITIAL.
-      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-      SPLIT lv_path AT `/` INTO data(lv_app) DATA(lv_dummy).
+   "   DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+    "  SPLIT lv_path AT `/` INTO data(lv_app) DATA(lv_dummy).
  "   ENDIF.
     z2ui5_lcl_fw_db=>cleanup( ).
 
@@ -203,12 +203,13 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                   sap.z2ui5.checkTimerActive = false;` && |\n|  &&
                            `                    if (sap.z2ui5.oView && !isHoldView){ sap.z2ui5.oView.destroy( ); }` && |\n|  &&
                            `                    var xhr = new XMLHttpRequest();` && |\n|  &&
-                           `                   if ( sap.startApp ) { var app = sap.startApp;   }else` && |\n|  &&
-                           `                      {   ` && |\n|  &&
-                           `                         app = ' ` && lv_app && `'; ` && |\n|  &&
-                           `                         }` && |\n|  &&
-                           `                    var url = '` && lv_url && `?app=' + app;` && |\n|  &&
-                           `                    xhr.open("POST", url, true);` && |\n|  &&
+                       "    `                   if ( sap.startApp ) { var app = sap.startApp;   }else` && |\n|  &&
+                       "    `                      {   ` && |\n|  &&
+                      "     `                         app = ' ` && lv_app && `'; ` && |\n|  &&
+                       "    `                         }` && |\n|  &&
+                      "     `                    var url = '` && lv_url && `?app=' + app;` && |\n|  &&
+                           `                 //   xhr.open("POST", url, true);` && |\n|  &&
+                           `                    xhr.open("POST" , window.location.pathname , true );` && |\n|  &&
                            `                    xhr.onload = function (that) {` && |\n|  &&
                            |\n|  &&
                            `                        if (that.target.status !== 200) {` && |\n|  &&

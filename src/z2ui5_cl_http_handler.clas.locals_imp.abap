@@ -1056,9 +1056,9 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-    shift lv_url right DELETING TRAILING `/`.
+    SHIFT lv_url RIGHT DELETING TRAILING `/`.
     DATA(lv_link) = lv_url && `/` && ms_home-classname. " && `?sap-client=` &&  sy-mandt.
-   " DATA(lv_link) = lv_url && `?sap-client=` &&  sy-mandt && `&app=` && ms_home-classname.
+    " DATA(lv_link) = lv_url && `?sap-client=` &&  sy-mandt && `&app=` && ms_home-classname.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1264,9 +1264,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
-   " IF ms_next-s_set-xml_popup IS NOT INITIAL.
-      lo_ui5_model->add_attribute_instance( request_end_model( ) ).
-  "  ENDIF.
+    " IF ms_next-s_set-xml_popup IS NOT INITIAL.
+    lo_ui5_model->add_attribute_instance( request_end_model( ) ).
+    "  ENDIF.
 
     IF ms_next-s_set-xml_main IS NOT INITIAL.
       lo_ui5_model->add_attribute( n = `vView` v = ms_next-s_set-xml_main ).
@@ -1341,68 +1341,68 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lo_app) = CAST object( result->ms_db-o_app ) ##NEEDED.
 
-try.
+    TRY.
 
-    DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
+        DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
 
-    LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = cs_bind_type-two_way.
+        LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+            WHERE bind_type = cs_bind_type-two_way.
 
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+          FIELD-SYMBOLS <attribute> TYPE any.
+          DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
+          ASSIGN (lv_name) TO <attribute>.
+          z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-      IF lr_attri->gen_kind IS NOT INITIAL.
+          IF lr_attri->gen_kind IS NOT INITIAL.
 
-        CASE lr_attri->gen_kind.
-          WHEN cl_abap_datadescr=>kind_elem.
-            CREATE DATA <attribute> TYPE (lr_attri->gen_type).
-            ASSIGN <attribute>->* TO <attribute>.
-          WHEN cl_abap_datadescr=>kind_table.
-            DATA lr_data TYPE REF TO data.
-            CREATE DATA lr_data TYPE (lr_attri->gen_type).
-            ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
-            CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
-            ASSIGN <attribute>->* TO <attribute>.
-        ENDCASE.
-      ENDIF.
-
-      CASE lr_attri->type_kind.
-
-        WHEN `h`.
-          z2ui5_lcl_utility=>trans_ref_tab_2_tab(
-               EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-               IMPORTING t_result    = <attribute> ).
-
-        WHEN OTHERS.
-
-          DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
-          FIELD-SYMBOLS <val> TYPE any.
-          ASSIGN lo_attri->mr_actual->* TO <val>.
+            CASE lr_attri->gen_kind.
+              WHEN cl_abap_datadescr=>kind_elem.
+                CREATE DATA <attribute> TYPE (lr_attri->gen_type).
+                ASSIGN <attribute>->* TO <attribute>.
+              WHEN cl_abap_datadescr=>kind_table.
+                DATA lr_data TYPE REF TO data.
+                CREATE DATA lr_data TYPE (lr_attri->gen_type).
+                ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
+                CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
+                ASSIGN <attribute>->* TO <attribute>.
+            ENDCASE.
+          ENDIF.
 
           CASE lr_attri->type_kind.
-            WHEN 'D' OR 'T'.
-              /ui2/cl_json=>deserialize(
-                  EXPORTING
-                    json             = `"` && <val> && `"`
-                  CHANGING
-                    data             = <attribute>  ).
-              " WHEN 'C'.
-              "  CASE lr_attri->type.
-              "   WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
-              "     <attribute> = xsdbool( <val> = `true` ).
-              "    WHEN OTHERS.
-              "      <attribute> = <val>.
-              "°  ENDCASE.
-            WHEN OTHERS.
-              <attribute> = <val>.
-          ENDCASE.
-      ENDCASE.
-    ENDLOOP.
 
-catch cx_root.
-endtry.
+            WHEN `h`.
+              z2ui5_lcl_utility=>trans_ref_tab_2_tab(
+                   EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
+                   IMPORTING t_result    = <attribute> ).
+
+            WHEN OTHERS.
+
+              DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
+              FIELD-SYMBOLS <val> TYPE any.
+              ASSIGN lo_attri->mr_actual->* TO <val>.
+
+              CASE lr_attri->type_kind.
+                WHEN 'D' OR 'T'.
+                  /ui2/cl_json=>deserialize(
+                      EXPORTING
+                        json             = `"` && <val> && `"`
+                      CHANGING
+                        data             = <attribute>  ).
+                  " WHEN 'C'.
+                  "  CASE lr_attri->type.
+                  "   WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+                  "     <attribute> = xsdbool( <val> = `true` ).
+                  "    WHEN OTHERS.
+                  "      <attribute> = <val>.
+                  "°  ENDCASE.
+                WHEN OTHERS.
+                  <attribute> = <val>.
+              ENDCASE.
+          ENDCASE.
+        ENDLOOP.
+
+      CATCH cx_root.
+    ENDTRY.
 
     TRY.
         result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
@@ -1426,13 +1426,26 @@ endtry.
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-    TRY.
-        DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value  ).
-        z2ui5_lcl_utility=>raise( when = xsdbool( lv_classname = `` ) ).
-      CATCH cx_root.
-        result = result->set_app_system( ).
+*    TRY.
+        "    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value  ).
+        DATA(lv_classname) = ``.
+        "    z2ui5_lcl_utility=>raise( when = xsdbool( lv_classname = `` ) ).
+
+        " DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+        SPLIT lv_path_info AT `/` INTO lv_classname DATA(lv_dummy).
+        " SHIFT lv_path RIGHT DELETING TRAILING `/`.
+        " SHIFT lv_path LEFT DELETING LEADING ` `.
+        lv_classname = to_upper( lv_classname ).
+
+        if lv_classname is INITIAL.
+         result = result->set_app_system( ).
         RETURN.
-    ENDTRY.
+        ENDIF.
+*      CATCH cx_root.
+*        result = result->set_app_system( ).
+*        RETURN.
+*    ENDTRY.
 
     TRY.
         CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
@@ -1752,19 +1765,19 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-  "  IF data IS INITIAL.
-  "    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
-  "  ELSE.
+    "  IF data IS INITIAL.
+    "    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
+    "  ELSE.
 
-    if data is INITIAL.
-    data(lv_data) = `''`.
-    else.
-     lv_data = data.
-    endif.
+    IF data IS INITIAL.
+      DATA(lv_data) = `''`.
+    ELSE.
+      lv_data = data.
+    ENDIF.
 
-      result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && lv_data && ` , `
-        && z2ui5_lcl_utility=>get_json_boolean( hold_view ) && ` )`.
-  "  ENDIF.
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && lv_data && ` , `
+      && z2ui5_lcl_utility=>get_json_boolean( hold_view ) && ` )`.
+    "  ENDIF.
 
   ENDMETHOD.
 
