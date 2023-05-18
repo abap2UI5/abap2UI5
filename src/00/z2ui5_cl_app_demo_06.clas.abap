@@ -57,16 +57,24 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
         SORT t_tab BY count DESCENDING.
         client->popup_message_toast( 'sort descending' ).
 
+      WHEN 'BUTTON_MENU1'.
+        client->popup_message_box( 'button menu 01 was pressed' ).
+
+      WHEN 'BUTTON_MENU2'.
+        client->popup_message_box( 'button menu 02 was pressed' ).
+
+      WHEN `BUTTON_MENU_DEFAULT`.
+        client->popup_message_box( 'button menu default was pressed' ).
+
       WHEN 'BUTTON_POST'.
         client->popup_message_box( 'button post was pressed' ).
-
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
     ENDCASE.
 
 
-    DATA(page) = Z2UI5_CL_XML_VIEW=>factory( )->shell(
+    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
         )->page(
             title          = 'abap2UI5 - Scroll Container with Table and Toolbar'
             navbuttonpress = client->_event( 'BACK' )
@@ -74,7 +82,7 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
             )->header_content(
                 )->link(
                     text = 'Source_Code'  target = '_blank'
-                    href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
+                    href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
         )->get_parent( ).
 
     DATA(tab) = page->scroll_container( height = '70%' vertical = abap_true
@@ -117,14 +125,33 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
                     unit       = 'EUR'
             )->get_parent(
             )->toolbar_spacer(
-            )->button(
-                text  = 'counter descending'
+            )->overflow_toolbar_button(
                 icon = 'sap-icon://sort-descending'
                 press = client->_event( 'SORT_DESCENDING' )
-                        )->button(
-                text  = 'counter ascending'
+            )->overflow_toolbar_button(
                 icon = 'sap-icon://sort-ascending'
                 press = client->_event( 'SORT_ASCENDING' )
+
+            )->overflow_toolbar_toggle_button(
+                icon = 'sap-icon://sort-ascending'
+                press = client->_event( 'SORT_ASCENDING' )
+
+            )->overflow_toolbar_menu_button(
+                  tooltip = `Export`
+                  type = `Transparent`
+                  text = `Export`
+                  buttonMode = `Split`
+                  icon = `sap-icon://share`
+                  defaultaction = client->_event( `BUTTON_MENU_DEFAULT`)
+                  )->_generic( `menu` )->_generic( `Menu`
+                        )->menu_item(
+                            text = `Export as PDF`
+                            icon = `sap-icon://pdf-attachment`
+                            press = client->_event( `BUTTON_MENU1`)
+                        )->menu_item(
+                            text = `Export to Excel`
+                            icon = `sap-icon://excel-attachment`
+                            press = client->_event( `BUTTON_MENU2`)
             ).
 
     tab->columns(

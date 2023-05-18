@@ -672,6 +672,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS overflow_toolbar_toggle_button
+      IMPORTING
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
+        tooltip       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS overflow_toolbar_button
       IMPORTING
         text          TYPE clike OPTIONAL
@@ -680,6 +691,26 @@ CLASS z2ui5_cl_xml_view DEFINITION
         enabled       TYPE clike OPTIONAL
         press         TYPE clike OPTIONAL
         tooltip       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS overflow_toolbar_menu_button
+      IMPORTING
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        buttonmode    type clike optional
+        type          TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        tooltip       TYPE clike OPTIONAl
+        defaultaction type clike optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS menu_item
+      IMPORTING
+        press         TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -964,7 +995,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+
 
   METHOD constructor.
 
@@ -986,6 +1018,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
      ).
 
   ENDMETHOD.
+
 
   METHOD factory.
 
@@ -1017,6 +1050,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       ).
 
   ENDMETHOD.
+
 
   METHOD navigation_actions.
 
@@ -1404,6 +1438,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD bar.
 
     result = _generic(
@@ -1411,6 +1446,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ).
 
   ENDMETHOD.
+
 
   METHOD content_left.
 
@@ -1420,6 +1456,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD content_middle.
 
     result = _generic(
@@ -1427,6 +1464,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ).
 
   ENDMETHOD.
+
 
   METHOD content_right.
 
@@ -1436,6 +1474,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD custom_Header.
 
     result = _generic(
@@ -1443,6 +1482,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ).
 
   ENDMETHOD.
+
 
   METHOD header_content.
 
@@ -1463,11 +1503,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD toolbar.
 
     result = _generic( `Toolbar` ).
 
   ENDMETHOD.
+
 
   METHOD header_toolbar.
 
@@ -1845,6 +1887,23 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD overflow_toolbar_toggle_button.
+
+    result = me.
+    _generic(
+       name   = `OverflowToolbarToggleButton`
+       t_prop = VALUE #(
+          ( n = `press`   v = press )
+          ( n = `text`    v = text )
+          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
+          ( n = `icon`    v = icon )
+          ( n = `type`    v = type )
+          ( n = `tooltip` v = tooltip )
+       ) ).
+
+  ENDMETHOD.
+
+
   METHOD overflow_toolbar_button.
 
     result = me.
@@ -1852,6 +1911,23 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        name   = `OverflowToolbarButton`
        t_prop = VALUE #(
           ( n = `press`   v = press )
+          ( n = `text`    v = text )
+          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
+          ( n = `icon`    v = icon )
+          ( n = `type`    v = type )
+          ( n = `tooltip` v = tooltip )
+       ) ).
+
+  ENDMETHOD.
+
+
+METHOD overflow_toolbar_menu_button.
+
+    result = _generic(
+       name   = `OverflowToolbarMenuButton`
+       t_prop = VALUE #(
+          ( n = `buttonMode` v = buttonMode )
+          ( n = `defaultAction` v = defaultAction )
           ( n = `text`    v = text )
           ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
@@ -2083,6 +2159,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD standard_list_item.
 
     result = me.
@@ -2197,6 +2274,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         ns   = `webc` ).
 
   ENDMETHOD.
+
 
   METHOD text.
 
@@ -2383,6 +2461,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _generic.
 
     DATA(result2) = NEW z2ui5_cl_xml_view( ).
@@ -2398,6 +2477,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD dynamic_page.
 
     result = _generic(
@@ -2411,6 +2491,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD dynamic_page_header.
 
     result = _generic(
@@ -2422,6 +2503,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD dynamic_page_title.
 
     result = _generic(
@@ -2430,6 +2512,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
        ).
 
   ENDMETHOD.
+
 
   METHOD object_attribute.
 
@@ -2444,6 +2527,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD zz_plain.
 
     result = me.
@@ -2454,6 +2538,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD shell.
 
     result = _generic(
@@ -2462,6 +2547,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       ).
 
   ENDMETHOD.
+
 
   METHOD hlp_get_source_code_url.
 
@@ -2472,6 +2558,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD additional_content.
 
     result = _generic(
@@ -2479,6 +2566,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ).
 
   ENDMETHOD.
+
 
   METHOD illustrated_message.
 
@@ -2490,6 +2578,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ) ).
 
   ENDMETHOD.
+
 
   METHOD factory_popup.
 
@@ -2506,6 +2595,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD message_item.
 
     result = _generic(
@@ -2520,6 +2610,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD message_popover.
 
     result = _generic(
@@ -2530,6 +2621,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ) ).
 
   ENDMETHOD.
+
 
   METHOD search_field.
 
@@ -2547,6 +2639,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD message_view.
 
     result = _generic(
@@ -2558,12 +2651,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD hlp_replace_controller_name.
 
     result  = lcl_utility=>get_replace( iv_val = xml
     iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
 
   ENDMETHOD.
+
 
   METHOD cc_file_uploader_get_js.
 
@@ -2673,6 +2768,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                          `                }` && |\n|  &&
                          `            });` && |\n|  &&
                          `        });`.
+
+  ENDMETHOD.
+
+  METHOD MENU_ITEM.
+
+    result = me.
+    _generic(
+       name   = `MenuItem`
+       t_prop = VALUE #(
+          ( n = `press`   v = press )
+          ( n = `text`    v = text )
+          ( n = `icon`    v = icon )
+       ) ).
 
   ENDMETHOD.
 
