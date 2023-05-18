@@ -133,9 +133,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            sap.ui.controller("z2ui5_controller", {` && |\n|  &&
                            |\n|  &&
                            `                onAfterRendering: function () {` && |\n|  &&
-                           `                sap.z2ui5.onAfter( ); },` && |\n|  &&
-                           `                onInit: function () {` && |\n|  &&
-                           ` },` && |\n|  &&
+                "           `                sap.z2ui5.onAfter( ); },` && |\n|  &&
+                           `              sap.z2ui5.onAfter( ); },` && |\n|  &&
                            |\n|  &&
                            `                onEventFrontend: function (vAction) {` && |\n|  &&
                            |\n|  &&
@@ -270,6 +269,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
+                           `        jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n|  &&
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
                            `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
@@ -309,7 +309,10 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                            sap.z2ui5.oView.addDependent(oFragment);` && |\n|  &&
                            `                            if (!sap.z2ui5.oResponse.OPENBY) { oFragment.open(); } else {` && |\n|  &&
                            `                           //     oFragment.openBy(this.getView().byId(sap.z2ui5.oResponse.OPENBY))` && |\n|  &&
-                           `                              oFragment.openBy( sap.ui.getCore().byId(sap.z2ui5.oResponse.OPENBY) );` && |\n|  &&
+                           `                          var oControl =  sap.ui.getCore().byId(sap.z2ui5.oResponse.OPENBY); ` && |\n|  &&
+                           `                          if ( oControl === undefined ) { oControl = sap.z2ui5.oView.byId( sap.z2ui5.oResponse.OPENBY ); }` && |\n|  &&
+                           `                              oFragment.openBy( oControl );` && |\n|  &&
+                           `                         //     oFragment.openBy( sap.ui.getCore().byId(sap.z2ui5.oResponse.OPENBY) );` && |\n|  &&
                            `                            }` && |\n|  &&
                            `                            sap.z2ui5.oResponse.oViewPopup = oFragment;` && |\n|  &&
                            `                            sap.ui.core.BusyIndicator.hide();` && |\n|  &&
