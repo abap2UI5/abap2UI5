@@ -161,7 +161,6 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
     DATA(ls_next) = VALUE z2ui5_if_client=>ty_s_next(
          xml_main  = lo_main->get_root( )->xml_get( )
          xml_popup = COND #( WHEN mv_popup_view IS NOT INITIAL THEN lo_popup->get_root( )->xml_get( ) )
-         check_set_prev_view = mv_set_prev_view
         ) .
     IF mv_main_view = ``.
       ls_next-xml_main = ``.

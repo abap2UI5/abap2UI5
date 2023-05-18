@@ -26,7 +26,6 @@ INTERFACE z2ui5_if_client
       xml_main            TYPE string,
       xml_popup           TYPE string,
       popup_open_by_id    TYPE string,
-      check_set_prev_view TYPE abap_bool,
       t_scroll_pos        TYPE ty_t_name_value,
       title               TYPE string,
       path                TYPE string,
