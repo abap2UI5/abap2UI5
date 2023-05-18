@@ -245,7 +245,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                                this.oView = oView;` && |\n|  &&
                            `                                sap.z2ui5.oView = oView;` && |\n|  &&
                            `                            });` && |\n|  &&
-                           `                        } {   sap.z2ui5.onAfter( ); }` && |\n|  &&
+                           `                        }else{   sap.z2ui5.onAfter( ); }` && |\n|  &&
                            `           //             } else if (sap.z2ui5.oResponse.SET_PREV_VIEW == true) {` && |\n|  &&
                            `           //                 var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponseOld.oViewModel);` && |\n|  &&
                            `           //                 var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
@@ -276,7 +276,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.Roundtrip(false);` && |\n|  &&
                            `        sap.z2ui5.onAfter =  () => {  if(sap.z2ui5.oResponse.title != ""){ document.title = sap.z2ui5.oResponse.title; }` && |\n|  &&
                            `                  if(sap.z2ui5.oResponse.path != ""){ window.history.replaceState( "" , "" , window.location.origin + sap.z2ui5.oResponse.path + window.location.search ); }` && |\n|  &&
-                           `                    var oView = sap.z2ui5.oView();` && |\n|  &&
+                           `                    var oView = sap.z2ui5.oView;` && |\n|  &&
                            `                    try {` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.oCursor) {` && |\n|  &&
                            `                            var ofocus = oView.byId(sap.z2ui5.oResponse.oCursor.ID).getFocusInfo();` && |\n|  &&
@@ -302,10 +302,10 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        ` && |\n|  &&
                            `                         sap.ui.core.Fragment.load({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
-                           `                            controller: this,` && |\n|  &&
+                           `                            controller: sap.z2ui5.oView.getController(),` && |\n|  &&
                            `                        }).then(function (oFragment) {` && |\n|  &&
                            `                            oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.oViewModel))` && |\n|  &&
-                           `                            this.getView().addDependent(oFragment);` && |\n|  &&
+                           `                            sap.z2ui5.oView.addDependent(oFragment);` && |\n|  &&
                            `                            if (!sap.z2ui5.oResponse.OPENBY) { oFragment.open(); } else {` && |\n|  &&
                            `                           //     oFragment.openBy(this.getView().byId(sap.z2ui5.oResponse.OPENBY))` && |\n|  &&
                            `                              oFragment.openBy( sap.ui.getCore().byId(sap.z2ui5.oResponse.OPENBY) );` && |\n|  &&
