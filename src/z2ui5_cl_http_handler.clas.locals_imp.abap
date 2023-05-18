@@ -1262,11 +1262,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lo_ui5_model) = z2ui5_lcl_utility_tree_json=>factory( ).
 
-    IF ms_next-s_set-check_set_prev_view = abap_false OR ms_next-s_set-xml_popup IS NOT INITIAL.
+   " IF ms_next-s_set-xml_popup IS NOT INITIAL.
       lo_ui5_model->add_attribute_instance( request_end_model( ) ).
-    ENDIF.
+  "  ENDIF.
 
-    IF ms_next-s_set-xml_main IS NOT INITIAL AND ms_next-s_set-check_set_prev_view = abap_false.
+    IF ms_next-s_set-xml_main IS NOT INITIAL.
       lo_ui5_model->add_attribute( n = `vView` v = ms_next-s_set-xml_main ).
     ENDIF.
 
@@ -1277,7 +1277,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    IF ms_next-s_set-check_set_prev_view = abap_false AND ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL.
+    IF ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL.
       z2ui5_lcl_utility=>raise( `No view or popup found. Check your view rendering!` ).
     ENDIF.
 
@@ -1302,9 +1302,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       lo_ui5_model->add_attribute_object( `oTimer` )->add_attribute_struc( ms_next-s_set-s_timer ).
     ENDIF.
 
-    IF ms_next-s_set-check_set_prev_view = abap_true.
-      lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
-    ENDIF.
+*    IF ms_next-s_set-check_set_prev_view = abap_true.
+*      lo_ui5_model->add_attribute( n = `SET_PREV_VIEW` v = `true` apos_active = abap_false ).
+*    ENDIF.
 
 
 
@@ -1338,6 +1338,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     DATA(lo_app) = CAST object( result->ms_db-o_app ) ##NEEDED.
+
+try.
 
     DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
 
@@ -1396,6 +1398,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
           ENDCASE.
       ENDCASE.
     ENDLOOP.
+
+catch cx_root.
+endtry.
 
     TRY.
         result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
