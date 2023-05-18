@@ -1279,9 +1279,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ENDIF.
     ENDIF.
 
-    IF ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL.
-      z2ui5_lcl_utility=>raise( `No view or popup found. Check your view rendering!` ).
-    ENDIF.
+*    IF ms_next-s_set-xml_popup IS INITIAL AND ms_next-s_set-xml_main IS INITIAL.
+*      z2ui5_lcl_utility=>raise( `No view or popup found. Check your view rendering!` ).
+*    ENDIF.
 
     lo_ui5_model->add_attribute_object( `oSystem` )->add_attribute( n = `ID` v = ms_db-id ).
 
@@ -1324,6 +1324,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     result = lo_ui5_model->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
+
+
+    DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
+    lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
+    lo_resp->add_attribute( n = `ID`   v = ms_db-id ).
+    lo_resp->add_attribute_object( `OVIEWMODEL` )->add_attribute_instance( request_end_model( ) ).
+    data(lv_test) = lo_resp->get_root( )->stringify( ).
 
   ENDMETHOD.
 
@@ -1427,21 +1434,21 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
 *    TRY.
-        "    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value  ).
-        DATA(lv_classname) = ``.
-        "    z2ui5_lcl_utility=>raise( when = xsdbool( lv_classname = `` ) ).
+    "    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value  ).
+    DATA(lv_classname) = ``.
+    "    z2ui5_lcl_utility=>raise( when = xsdbool( lv_classname = `` ) ).
 
-        " DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-        SPLIT lv_path_info AT `/` INTO lv_classname DATA(lv_dummy).
-        " SHIFT lv_path RIGHT DELETING TRAILING `/`.
-        " SHIFT lv_path LEFT DELETING LEADING ` `.
-        lv_classname = to_upper( lv_classname ).
+    " DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+    DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+    SPLIT lv_path_info AT `/` INTO lv_classname DATA(lv_dummy).
+    " SHIFT lv_path RIGHT DELETING TRAILING `/`.
+    " SHIFT lv_path LEFT DELETING LEADING ` `.
+    lv_classname = to_upper( lv_classname ).
 
-        if lv_classname is INITIAL.
-         result = result->set_app_system( ).
-        RETURN.
-        ENDIF.
+    IF lv_classname IS INITIAL.
+      result = result->set_app_system( ).
+      RETURN.
+    ENDIF.
 *      CATCH cx_root.
 *        result = result->set_app_system( ).
 *        RETURN.
