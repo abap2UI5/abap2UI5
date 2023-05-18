@@ -94,6 +94,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE clike
       data          TYPE clike OPTIONAL
+      hold_view     type abap_bool default abap_false
     RETURNING
       VALUE(result) TYPE string.
 
