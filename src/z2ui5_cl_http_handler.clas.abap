@@ -272,6 +272,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        var oView  = sap.ui.xmlview({viewContent:xml});` && |\n|  &&
                            `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
+                           `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
                            `        sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
                            `        sap.z2ui5.Roundtrip(false);` && |\n|  &&
                            `        sap.z2ui5.onAfter =  () => {  if(sap.z2ui5.oResponse.title != ""){ document.title = sap.z2ui5.oResponse.title; }` && |\n|  &&
@@ -302,7 +303,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        ` && |\n|  &&
                            `                         sap.ui.core.Fragment.load({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.vViewPopup,` && |\n|  &&
-                           `                            controller: sap.z2ui5.oView.getController(),` && |\n|  &&
+                           `                            controller: sap.z2ui5.oController, //sap.z2ui5.oView.getController(),` && |\n|  &&
                            `                        }).then(function (oFragment) {` && |\n|  &&
                            `                            oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.oViewModel))` && |\n|  &&
                            `                            sap.z2ui5.oView.addDependent(oFragment);` && |\n|  &&

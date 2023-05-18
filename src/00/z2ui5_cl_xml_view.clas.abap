@@ -381,9 +381,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column
       IMPORTING
-        width         TYPE clike OPTIONAL
-        minScreenWidth         TYPE clike OPTIONAL
-        demandPopin   TYPE clike OPTIONAL
+        width          TYPE clike OPTIONAL
+        minScreenWidth TYPE clike OPTIONAL
+        demandPopin    TYPE clike OPTIONAL
+        PREFERRED PARAMETER width
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 

@@ -11,7 +11,7 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
         i_cancel_event             TYPE string
         i_confirm_text             TYPE string
         i_confirm_event            TYPE string
-        i_check_show_previous_view TYPE abap_bool DEFAULT abap_true
+    "    i_check_show_previous_view TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_app_demo_20.
 
@@ -42,7 +42,7 @@ CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
     result->mv_cancel_event = i_cancel_event.
     result->mv_confirm_text = i_confirm_text.
     result->mv_confirm_event = i_confirm_event.
-    result->mv_check_show_previous_view = i_check_show_previous_view.
+  "  result->mv_check_show_previous_view = i_check_show_previous_view.
 
   ENDMETHOD.
 
@@ -61,7 +61,7 @@ CLASS Z2UI5_CL_APP_DEMO_20 IMPLEMENTATION.
     ENDCASE.
 
     client->set_next( VALUE #(
-        check_set_prev_view = mv_check_show_previous_view
+      "  check_set_prev_view = mv_check_show_previous_view
         xml_main = Z2UI5_CL_XML_VIEW=>factory( )->get_root( )->xml_get( )
         xml_popup = Z2UI5_CL_XML_VIEW=>factory_popup(
          )->dialog( 'abap2UI5 - Popup to decide'

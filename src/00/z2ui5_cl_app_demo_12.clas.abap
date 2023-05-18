@@ -7,14 +7,14 @@ CLASS z2ui5_cl_app_demo_12 DEFINITION PUBLIC.
     DATA mv_popup_view TYPE string.
     DATA mv_main_view  TYPE string.
     DATA mv_check_initialized TYPE abap_bool.
-    data mv_set_prev_view type abap_bool.
+    DATA mv_set_prev_view TYPE abap_bool.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
+CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -50,7 +50,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
         mv_popup_view = 'POPUP_INFO_FRONTEND_CLOSE'.
 
       WHEN 'BUTTON_POPUP_04'.
-        mv_set_prev_view = abap_true.
+        mv_main_view = ``.
         mv_popup_view = 'POPUP_DECIDE'.
 
       WHEN 'BUTTON_POPUP_05'.
@@ -60,7 +60,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
           i_cancel_event  = 'POPUP_DECIDE_CANCEL'
           i_confirm_text  = 'Continue'
           i_confirm_event = 'POPUP_DECIDE_CONTINUE'
-          i_check_show_previous_view = abap_false ) ).
+          ) ).
 
       WHEN 'BUTTON_POPUP_06'.
         client->nav_app_call( z2ui5_cl_app_demo_20=>factory(
@@ -75,7 +75,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
     ENDCASE.
 
-    DATA(lo_main) = Z2UI5_CL_XML_VIEW=>factory( )->shell( ).
+    DATA(lo_main) = z2ui5_cl_xml_view=>factory( )->shell( ).
 
     CASE mv_main_view.
 
@@ -88,7 +88,7 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                 )->header_content(
                     )->link(
                         text = 'Source_Code' target = '_blank'
-                        href = Z2UI5_CL_XML_VIEW=>hlp_get_source_code_url( app = me get = client->get( ) )
+                        href = z2ui5_cl_xml_view=>hlp_get_source_code_url( app = me get = client->get( ) )
                 )->get_parent( ).
 
         DATA(grid) = page->grid( 'L7 M12 S12' )->content( 'layout'
@@ -107,8 +107,8 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                     press = client->_event( 'BUTTON_POPUP_03' )
                 )->label( 'Demo'
                 )->button(
-                    text  = 'popup rendering, background rendering (previous view)'
-                    press = client->_event( 'BUTTON_POPUP_04' )
+                    text  = 'popup rendering, hold background view'
+                    press = client->_event( val = 'BUTTON_POPUP_04' hold_view = abap_true )
             )->get_parent( )->get_parent( ).
 
         grid->simple_form( 'Popup in new App' )->content( 'form'
@@ -118,12 +118,12 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
                 press = client->_event( 'BUTTON_POPUP_05' )
             )->label( 'Demo'
             )->button(
-                text  = 'popup rendering, background rendering (previous view)'
-                press = client->_event( 'BUTTON_POPUP_06' ) ).
+                text  = 'popup rendering, hold previous view'
+                press = client->_event( val = 'BUTTON_POPUP_06' hold_view = abap_true ) ).
 
     ENDCASE.
 
-    DATA(lo_popup) = Z2UI5_CL_XML_VIEW=>factory_popup( ).
+    DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     CASE mv_popup_view.
 
@@ -158,11 +158,15 @@ CLASS Z2UI5_CL_APP_DEMO_12 IMPLEMENTATION.
 
     ENDCASE.
 
-    client->set_next( VALUE #(
-        xml_main  = lo_main->get_root( )->xml_get( )
-        xml_popup = cond #( when mv_popup_view is not INITIAL then lo_popup->get_root( )->xml_get( ) )
-        check_set_prev_view = mv_set_prev_view
-       ) ).
+    DATA(ls_next) = VALUE z2ui5_if_client=>ty_s_next(
+         xml_main  = lo_main->get_root( )->xml_get( )
+         xml_popup = COND #( WHEN mv_popup_view IS NOT INITIAL THEN lo_popup->get_root( )->xml_get( ) )
+         check_set_prev_view = mv_set_prev_view
+        ) .
+    IF mv_main_view = ``.
+      ls_next-xml_main = ``.
+    ENDIF.
+    client->set_next( ls_next ).
 
   ENDMETHOD.
 ENDCLASS.
