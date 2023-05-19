@@ -1277,7 +1277,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`   v = ms_db-id ).
     lo_resp->add_attribute_object( `OVIEWMODEL` )->add_attribute_instance( request_end_model( ) ).
-    data(lv_test) = lo_resp->get_root( )->stringify( ).
+    DATA(lv_test) = lo_resp->get_root( )->stringify( ).
     result = lo_resp->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
@@ -1382,33 +1382,22 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-*    TRY.
-    "    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( z2ui5_cl_http_handler=>client-t_param[ name = `app` ]-value  ).
     DATA(lv_classname) = ``.
-    "    z2ui5_lcl_utility=>raise( when = xsdbool( lv_classname = `` ) ).
-
     DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
     DATA(lv_origin) = z2ui5_lcl_utility=>get_header_val( 'origin' ).
     DATA(lv_referer) = z2ui5_lcl_utility=>get_header_val( 'referer' ).
-    replace lv_origin in lv_referer with ``.
-    replace lv_path in lv_referer with ``.
+    REPLACE lv_origin IN lv_referer WITH ``.
+    REPLACE lv_path IN lv_referer WITH ``.
     SPLIT lv_referer AT `/` INTO lv_classname DATA(lv_dummy).
-    " SHIFT lv_path RIGHT DELETING TRAILING `/`.
-    " SHIFT lv_path LEFT DELETING LEADING ` `.
     lv_classname = to_upper( lv_classname ).
 
     IF lv_classname IS INITIAL.
       result = result->set_app_system( ).
       RETURN.
     ENDIF.
-*      CATCH cx_root.
-*        result = result->set_app_system( ).
-*        RETURN.
-*    ENDTRY.
 
-   TRY.
+    TRY.
         CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-
       CATCH cx_root.
         result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
         RETURN.
