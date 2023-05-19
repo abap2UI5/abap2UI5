@@ -23,12 +23,12 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_S_next,
-      xml_main         TYPE string,
-      xml_popup        TYPE string,
-      popup_open_by_id TYPE string,
-      t_scroll_pos     TYPE ty_t_name_value,
-      title            TYPE string,
-      path             TYPE string,
+      xml_main           TYPE string,
+      xml_popup          TYPE string,
+      popover_open_by_id TYPE string,
+      t_scroll_pos       TYPE ty_t_name_value,
+      title              TYPE string,
+      path               TYPE string,
       BEGIN OF s_cursor_pos,
         id             TYPE string,
         cursorpos      TYPE string,
