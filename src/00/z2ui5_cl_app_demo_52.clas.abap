@@ -113,24 +113,7 @@ CLASS z2ui5_cl_app_demo_52 IMPLEMENTATION.
       DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
       lo_popup->popover( placement = `Bottom` title = 'abap2UI5 - Layout'  contentwidth = `50%`
-         " )->input( description = `Name` value = client->_bind( mv_layout_name )
           )->button( text = `Save` press = client->_event( `BUTTON_SAVE_LAYOUT` )
-*          )->table(
-*              mode = 'SingleSelectLeft'
-*              items = client->_bind( mt_db_layout )
-*              )->columns(
-*                  )->column( )->text( 'Name' )->get_parent(
-*                  )->column( )->text( 'User' )->get_parent(
-*                  )->column( )->text( 'Default' )->get_parent(
-*               "   )->column( )->text( 'Description' )->get_parent(
-*              )->get_parent(
-*              )->items( )->column_list_item( selected = '{SELKZ}'
-*                  )->cells(
-*               "       )->checkbox( '{SELKZ}'
-*                      )->text( '{NAME}'
-*                      )->text( '{USER}'
-*                      )->text( '{DEFAULT}'
-*               "       )->text( '{DESCR}'
           )->footer( )->overflow_toolbar(
               )->toolbar_spacer(
                )->button(
