@@ -94,12 +94,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
       lv_sec_policy = content_security_policy.
     ENDIF.
 
-    DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-    DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
-    IF lv_app IS INITIAL.
-      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-      SPLIT lv_path AT `/` INTO lv_app DATA(lv_dummy).
-    ENDIF.
+*    DATA(lv_url) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+*    DATA(lv_app) = z2ui5_lcl_utility=>get_param_val( 'app' ).
+*    IF lv_app IS INITIAL.
+*      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+*      SPLIT lv_path AT `/` INTO lv_app DATA(lv_dummy).
+*    ENDIF.
     z2ui5_lcl_fw_db=>cleanup( ).
 
     r_result = `<html>` && |\n| &&

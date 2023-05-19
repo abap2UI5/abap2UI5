@@ -1263,6 +1263,15 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_end.
 
+    IF ms_next-s_set-path IS NOT INITIAL.
+      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+      DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+      REPLACE lv_path_info IN lv_path WITH ``.
+      SHIFT lv_path RIGHT DELETING TRAILING `/`.
+      SHIFT lv_path LEFT DELETING LEADING ` `.
+      ms_next-s_set-path = lv_path && ms_next-s_set-path.
+    ENDIF.
+
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
@@ -1378,9 +1387,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     DATA(lv_classname) = ``.
     "    z2ui5_lcl_utility=>raise( when = xsdbool( lv_classname = `` ) ).
 
-    " DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-    DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-    SPLIT lv_path_info AT `/` INTO lv_classname DATA(lv_dummy).
+    DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+    DATA(lv_origin) = z2ui5_lcl_utility=>get_header_val( 'origin' ).
+    DATA(lv_referer) = z2ui5_lcl_utility=>get_header_val( 'referer' ).
+    replace lv_origin in lv_referer with ``.
+    replace lv_path in lv_referer with ``.
+    SPLIT lv_referer AT `/` INTO lv_classname DATA(lv_dummy).
     " SHIFT lv_path RIGHT DELETING TRAILING `/`.
     " SHIFT lv_path LEFT DELETING LEADING ` `.
     lv_classname = to_upper( lv_classname ).
@@ -1394,7 +1406,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 *        RETURN.
 *    ENDTRY.
 
-    TRY.
+   TRY.
         CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
 
       CATCH cx_root.
