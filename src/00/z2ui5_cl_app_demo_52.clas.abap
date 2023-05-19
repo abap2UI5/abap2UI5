@@ -55,7 +55,7 @@ CLASS z2ui5_cl_app_demo_52 IMPLEMENTATION.
       WHEN `POPOVER_DETAIL`.
         DATA(lv_id) = client->get( )-event_data.
         mv_check_popover = abap_true.
-        next-popup_open_by_id = lv_id.
+        next-popover_open_by_id = lv_id.
 
       WHEN 'BUTTON_POST'.
         client->popup_message_box( 'button post was pressed' ).
