@@ -77,7 +77,7 @@ CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
         app-s_next-t_scroll = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
       WHEN 'BUTTON_SCROLL_DOWN'.
-        lv_pos = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ) + 500.
+        lv_pos = CONV i( value #( app-s_get-t_scroll_pos[ name = `id_page` ]-value optional ) ) + 500.
         app-s_next-t_scroll = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
       WHEN 'BUTTON_SCROLL_HOLD'.

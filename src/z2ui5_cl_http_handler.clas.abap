@@ -161,8 +161,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    this.oBody.oUpdate = sap.z2ui5.oView.getModel().oData.oUpdate;` && |\n|  &&
                            `                }` && |\n|  &&
                            |\n|  &&
-                           `                if (sap.z2ui5.oResponse.oScroll) {` && |\n|  &&
-                           `                    this.oBody.oScroll = sap.z2ui5.oResponse.oScroll;` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n|  &&
+                           `                    this.oBody.oScroll = sap.z2ui5.oResponse.PARAMS.T_SCROLL;` && |\n|  &&
                            `                    this.oBody.oScroll.forEach(item => {` && |\n|  &&
                            `                        try {` && |\n|  &&
                            `                            item.VALUE = this.getView().byId(item.NAME).getScrollDelegate().getScrollTop();` && |\n|  &&
