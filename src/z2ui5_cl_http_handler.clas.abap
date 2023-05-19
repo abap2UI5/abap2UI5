@@ -185,9 +185,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                sap.z2ui5.oBody = this.oBody;` && |\n|  &&
                            `                sap.z2ui5.Roundtrip(isHoldView);` && |\n|  &&
                            `            },` && |\n|  &&
-                           |\n|  &&
                            `            Roundtrip: function (isHoldView) {` && |\n|  &&
-                           |\n|  &&
                            `                sap.z2ui5.checkTimerActive = false;` && |\n|  &&
                            `                if (sap.z2ui5.oView && !isHoldView) {` && |\n|  &&
                            `                    sap.z2ui5.oView.destroy();` && |\n|  &&
@@ -216,7 +214,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                            console.log(sap.z2ui5.oResponse.PARAMS.XML_POPUP);` && |\n|  &&
                            `                        }` && |\n|  &&
                            `                    }` && |\n|  &&
-                           |\n|  &&
                            `                    if (sap.z2ui5.oResponse.S_MSG.CONTROL !== '' ) {` && |\n|  &&
                            `                        sap.m[sap.z2ui5.oResponse.S_MSG.CONTROL][sap.z2ui5.oResponse.S_MSG.TYPE](sap.z2ui5.oResponse.S_MSG.TEXT);` && |\n|  &&
                            `                    }` && |\n|  &&
@@ -285,7 +282,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                );` && |\n|  &&
                            `            }` && |\n|  &&
                            `            if (sap.z2ui5.oResponse.PARAMS.XML_POPUP) {` && |\n|  &&
-                           |\n|  &&
                            `                sap.ui.core.Fragment.load({` && |\n|  &&
                            `                    definition: sap.z2ui5.oResponse.PARAMS.XML_POPUP,` && |\n|  &&
                            `                    controller: sap.z2ui5.oController,` && |\n|  &&
@@ -317,8 +313,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }, parseInt(sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS), oEvent);` && |\n|  &&
                            `            }` && |\n|  &&
                            `            sap.ui.core.BusyIndicator.hide();` && |\n|  &&
-                           `        };` && |\n|  &&
-                           `        ` && |\n|  &&
+                           `        };` &&
                            `        sap.z2ui5.checkLogActive = true;` && |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&

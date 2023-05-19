@@ -228,10 +228,10 @@ CLASS Z2UI5_CL_APP_DEMO_49 IMPLEMENTATION.
         INSERT ls_layout INTO TABLE mt_db_layout.
 
       WHEN 'BUTTON_SEARCH'.
-        app-next-s_cursor_pos-id = 'SEARCH'.
-        app-next-s_cursor_pos-cursorpos = '99'.
-        app-next-s_cursor_pos-selectionend = '99'.
-        app-next-s_cursor_pos-selectionstart = '99'.
+        app-next-s_cursor-id = 'SEARCH'.
+        app-next-s_cursor-cursorpos = '99'.
+        app-next-s_cursor-selectionend = '99'.
+        app-next-s_cursor-selectionstart = '99'.
         z2ui5_set_search( ).
 
       WHEN 'MAIN'.
@@ -242,11 +242,11 @@ CLASS Z2UI5_CL_APP_DEMO_49 IMPLEMENTATION.
         app-view_main = 'DETAIL'.
 
       WHEN 'POPUP_DETAIL'.
-        app-next-popup_open_by_id = app-get-event_data.
+        app-next-popover_open_by_id = app-get-event_data.
         app-view_popup = 'POPUP_LAYOUT'.
 
       WHEN 'POPUP_LAYOUT'.
-        app-next-popup_open_by_id = `btn_layout`.
+        app-next-popover_open_by_id = `btn_layout`.
         app-view_popup = 'POPUP_LAYOUT'.
 
       WHEN 'POPUP_FILTER'.
@@ -286,7 +286,7 @@ CLASS Z2UI5_CL_APP_DEMO_49 IMPLEMENTATION.
     ms_layout-sticky_header = `HeaderToolbar,InfoToolbar,ColumnHeaders`.
     ms_layout-title = `Drafts`.
 
-    app-next-t_scroll_pos = VALUE #( ( name = `page_main` ) ).
+    app-next-t_scroll = VALUE #( ( name = `page_main` ) ).
 
     mt_token = VALUE #(
                    ( key = 'VAL1' text = 'value_1' selkz = abap_true  visible = abap_true )
