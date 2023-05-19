@@ -103,6 +103,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
          )->button( text = 'Views - Normal, Generic, XML' press = client->_event( 'z2ui5_cl_app_demo_23' )
          )->button( text = 'Import UI5-XML-View' press = client->_event( 'z2ui5_cl_app_demo_31' )
          )->button( text = 'Custom Control' press = client->_event( 'z2ui5_cl_app_demo_37' )
+         )->button( text = 'Change CSS'              press = client->_event( 'z2ui5_cl_app_demo_50' )
     ).
 
     grid->simple_form( title = 'HowTo - Extensions II' layout = 'ResponsiveGridLayout' )->content( 'form'
@@ -111,15 +112,19 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
          )->button( text = 'ext. Library' press = client->_event( 'z2ui5_cl_app_demo_40' )
     ).
 
-    grid->simple_form( title = 'HowTo - More I' layout = 'ResponsiveGridLayout' )->content( 'form'
+    grid->simple_form( title = 'HowTo - More' layout = 'ResponsiveGridLayout' )->content( 'form'
          )->button( text = 'Side Effects'         press = client->_event( 'z2ui5_cl_app_demo_27' )
          )->button( text = 'Integer, Decimals, Dates, Time' press = client->_event( 'z2ui5_cl_app_demo_47' )
+         )->button( text = 'Change Model at Runtime' press = client->_event( 'z2ui5_cl_app_demo_35' )
       "   )->button( text = 'FE Table' press = client->_event( 'z2ui5_cl_app_demo_49' )
     ).
 
-    grid->simple_form( title = 'HowTo - More II'     layout = 'ResponsiveGridLayout' )->content( 'form'
-         )->button( text = 'Change CSS'              press = client->_event( 'z2ui5_cl_app_demo_50' )
-         )->button( text = 'Change Model at Runtime' press = client->_event( 'z2ui5_cl_app_demo_35' )
+    grid->simple_form( title = 'HowTo -List Report'     layout = 'ResponsiveGridLayout' )->content( 'form'
+         )->button( text = 'Cell with Popover' press = client->_event( 'z2ui5_cl_app_demo_52' )
+         )->button( text = 'Filter'     press = client->_event( 'z2ui5_cl_app_demo_53' )
+         )->button( text = 'Layout'     press = client->_event( 'z2ui5_cl_app_demo_55' )
+         )->button( text = 'Navigation' press = client->_event( 'z2ui5_cl_app_demo_54' )
+
     ).
 
     DATA(form) = page->grid( 'L9 M12 S12'
