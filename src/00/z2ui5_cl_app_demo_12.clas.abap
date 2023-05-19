@@ -8,6 +8,9 @@ CLASS z2ui5_cl_app_demo_12 DEFINITION PUBLIC.
     DATA mv_main_view  TYPE string.
     DATA mv_check_initialized TYPE abap_bool.
     DATA mv_set_prev_view TYPE abap_bool.
+
+    DATA mv_check_popup TYPE abap_bool.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -26,6 +29,12 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
 
     mv_set_prev_view = ''.
     mv_popup_view = ''.
+
+    IF mv_check_popup = abap_true.
+      mv_check_popup = abap_false.
+      DATA(app) = CAST z2ui5_cl_app_demo_20( client->get_app( client->get( )-id_prev_app )  ).
+      client->popup_message_toast( app->mv_event && ` pressed` ).
+    ENDIF.
 
     CASE client->get( )-event.
 
@@ -54,6 +63,7 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
         mv_popup_view = 'POPUP_DECIDE'.
 
       WHEN 'BUTTON_POPUP_05'.
+        mv_check_popup = abap_true.
         client->nav_app_call( z2ui5_cl_app_demo_20=>factory(
           i_text          = '(new app )this is a popup to decide, the text is send from the previous app and the answer will be send back'
           i_cancel_text   = 'Cancel '
@@ -61,14 +71,17 @@ CLASS z2ui5_cl_app_demo_12 IMPLEMENTATION.
           i_confirm_text  = 'Continue'
           i_confirm_event = 'POPUP_DECIDE_CONTINUE'
           ) ).
+        RETURN.
 
       WHEN 'BUTTON_POPUP_06'.
+        mv_check_popup = abap_true.
         client->nav_app_call( z2ui5_cl_app_demo_20=>factory(
           i_text          = '(new app )this is a popup to decide, the text is send from the previous app and the answer will be send back'
           i_cancel_text   = 'Cancel'
           i_cancel_event  = 'POPUP_DECIDE_CANCEL'
           i_confirm_text  = 'Continue'
           i_confirm_event = 'POPUP_DECIDE_CONTINUE' ) ).
+        RETURN.
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
