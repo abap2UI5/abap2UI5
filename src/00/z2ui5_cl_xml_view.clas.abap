@@ -126,8 +126,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         mode                TYPE clike OPTIONAL
         width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
-        alternateRowColors     TYPE clike OPTIONAL
-         autoPopinMode    TYPE clike OPTIONAL
+        alternateRowColors  TYPE clike OPTIONAL
+        autoPopinMode    TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -1002,76 +1002,21 @@ ENDCLASS.
 CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
-  METHOD constructor.
-
-    mt_prop = VALUE #(
-    ( n = `xmlns`        v = `sap.m` )
-    ( n = `xmlns:z2ui5`  v = `z2ui5` )
-    ( n = `xmlns:core`   v = `sap.ui.core` )
-    ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
-    ( n = `xmlns:layout` v = `sap.ui.layout` )
-    ( n = `xmlns:f`      v = `sap.f` )
-    ( n = `xmlns:form`   v = `sap.ui.layout.form` )
-    ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
-    ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
-    ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
-    ( n = `xmlns:uxap`   v = `sap.uxap` )
-    ( n = `xmlns:sap`    v = `sap` )
-    ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
-    ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
-     ).
-
-  ENDMETHOD.
-
-
-  METHOD factory.
-
-    result = NEW #( ).
-
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
-
-    result->mt_prop = VALUE #( BASE result->mt_prop
-        (  n = 'displayBlock'   v = 'true' )
-        (  n = 'height'         v = '100%' )
-        (  n = 'controllerName' v = z2ui5_cl_http_handler=>config-controller_name )
-    ).
-
-    result->m_name   = `View`.
-    result->m_ns     = `mvc`.
-    result->m_root   = result.
-    result->m_parent = result.
-
-  ENDMETHOD.
-
-
-  METHOD header.
-
-    result = _generic(
-        name   = `header`
-        ns     = ns
-      ).
-
-  ENDMETHOD.
-
-
-  METHOD navigation_actions.
-
-    result = _generic(
-        name   = `navigationActions`
-        ns     = `f`
-      ).
-
-  ENDMETHOD.
-
-
   METHOD actions.
 
     result = _generic(
         name   = `actions`
         ns     = ns
       ).
+
+  ENDMETHOD.
+
+
+  METHOD additional_content.
+
+    result = _generic(
+         name  = `additionalContent`
+    ).
 
   ENDMETHOD.
 
@@ -1100,6 +1045,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
           ( n = `value`    v = value )
           ( n = `visible`  v = lcl_utility=>get_json_boolean( visible ) )
        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD bar.
+
+    result = _generic(
+        name = `Bar`
+         ).
 
   ENDMETHOD.
 
@@ -1145,6 +1099,134 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD buttons.
 
     result = _generic( `buttons` ).
+
+  ENDMETHOD.
+
+
+  METHOD cc_file_uploader.
+
+    result = me.
+    _generic(
+      name   = `FileUploader`
+      ns     = `z2ui5`
+      t_prop = VALUE #(
+         (  n = `placeholder` v = placeholder )
+         (  n = `upload`      v = upload )
+         (  n = `path`        v = path )
+         (  n = `value`       v = value )
+      ) ).
+
+  ENDMETHOD.
+
+
+  METHOD cc_file_uploader_get_js.
+
+   result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
+                         |\n|  &&
+                         `        sap.ui.define([` && |\n|  &&
+                         `            "sap/ui/core/Control",` && |\n|  &&
+                         `            "sap/m/Button",` && |\n|  &&
+                         `            "sap/ui/unified/FileUploader"` && |\n|  &&
+                         `        ], function (Control, Button, FileUploader) {` && |\n|  &&
+                         `            "use strict";` && |\n|  &&
+                         |\n|  &&
+                         `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
+                         |\n|  &&
+                         `                metadata: {` && |\n|  &&
+                         `                    properties: {` && |\n|  &&
+                         `                        value: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        path: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        tooltip: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        fileType: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        placeholder: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: ""` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        buttonText: {` && |\n|  &&
+                         `                            type: "string",` && |\n|  &&
+                         `                            defaultValue: "Upload"` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        enabled: {` && |\n|  &&
+                         `                            type: "boolean",` && |\n|  &&
+                         `                            defaultValue: true` && |\n|  &&
+                         `                        },` && |\n|  &&
+                         `                        multiple: {` && |\n|  &&
+                         `                            type: "boolean",` && |\n|  &&
+                         `                            defaultValue: false` && |\n|  &&
+                         `                        }` && |\n|  &&
+                         `                    },` && |\n|  &&
+                         |\n|  &&
+                         |\n|  &&
+                         `                    aggregations: {` && |\n|  &&
+                         `                    },` && |\n|  &&
+                         `                    events: {` && |\n|  &&
+                         `                        "upload": {` && |\n|  &&
+                         `                            allowPreventDefault: true,` && |\n|  &&
+                         `                            parameters: {}` && |\n|  &&
+                         `                        }` && |\n|  &&
+                         `                    },` && |\n|  &&
+                         `                    renderer: null` && |\n|  &&
+                         `                },` && |\n|  &&
+                         |\n|  &&
+                         `                renderer: function (oRm, oControl) {` && |\n|  &&
+                         |\n|  &&
+                         `                    oControl.oUploadButton = new Button({` && |\n|  &&
+                         `                        text: oControl.getProperty("buttonText"),` && |\n|  &&
+                         `                        enabled: oControl.getProperty("path") !== "",` && |\n|  &&
+                         `                        press: function (oEvent) {` && |\n|  &&
+                         |\n|  &&
+                         `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
+                         |\n|  &&
+                         `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n|  &&
+                         `                            var reader = new FileReader();` && |\n|  &&
+                         |\n|  &&
+                         `                            reader.onload = function (evt) {` && |\n|  &&
+                         `                                var vContent = evt.currentTarget.result;` && |\n|  &&
+                         `                                this.setProperty("value", vContent);` && |\n|  &&
+                         `                                this.fireUpload();` && |\n|  &&
+                         `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n|  &&
+                         `                            }.bind(this)` && |\n|  &&
+                         |\n|  &&
+                         `                            reader.readAsDataURL(file);` && |\n|  &&
+                         `                        }.bind(oControl)` && |\n|  &&
+                         `                    });` && |\n|  &&
+                         |\n|  &&
+                         `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
+                         `                        icon: "sap-icon://browse-folder",` && |\n|  &&
+                         `                        iconOnly: true,` && |\n|  &&
+                         `                        value: oControl.getProperty("path"),` && |\n|  &&
+                         `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
+                         `                        change: function (oEvent) {` && |\n|  &&
+                         `                            var value = oEvent.getSource().getProperty("value");` && |\n|  &&
+                         `                            this.setProperty("path", value);` && |\n|  &&
+                         `                            if (value) {` && |\n|  &&
+                         `                                this.oUploadButton.setEnabled();` && |\n|  &&
+                         `                            } else {` && |\n|  &&
+                         `                                this.oUploadButton.setEnabled(false);` && |\n|  &&
+                         `                            }` && |\n|  &&
+                         `                            this.oUploadButton.rerender();` && |\n|  &&
+                         `                        }.bind(oControl)` && |\n|  &&
+                         `                    });` && |\n|  &&
+                         |\n|  &&
+                         `                    var hbox = new sap.m.HBox();` && |\n|  &&
+                         `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
+                         `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
+                         `                    oRm.renderControl(hbox);` && |\n|  &&
+                         `                }` && |\n|  &&
+                         `            });` && |\n|  &&
+                         `        });`.
 
   ENDMETHOD.
 
@@ -1234,9 +1316,58 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD constructor.
+
+    mt_prop = VALUE #(
+    ( n = `xmlns`        v = `sap.m` )
+    ( n = `xmlns:z2ui5`  v = `z2ui5` )
+    ( n = `xmlns:core`   v = `sap.ui.core` )
+    ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
+    ( n = `xmlns:layout` v = `sap.ui.layout` )
+    ( n = `xmlns:f`      v = `sap.f` )
+    ( n = `xmlns:form`   v = `sap.ui.layout.form` )
+    ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
+    ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
+    ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
+    ( n = `xmlns:uxap`   v = `sap.uxap` )
+    ( n = `xmlns:sap`    v = `sap` )
+    ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
+    ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
+     ).
+
+  ENDMETHOD.
+
+
   METHOD content.
 
     result = _generic( ns = ns name = `content` ).
+
+  ENDMETHOD.
+
+
+  METHOD content_left.
+
+    result = _generic(
+        name = `contentLeft`
+         ).
+
+  ENDMETHOD.
+
+
+  METHOD content_middle.
+
+    result = _generic(
+        name = `contentMiddle`
+         ).
+
+  ENDMETHOD.
+
+
+  METHOD content_right.
+
+    result = _generic(
+        name = `contentRight`
+         ).
 
   ENDMETHOD.
 
@@ -1246,6 +1377,24 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic(
        `customData`
     ).
+
+  ENDMETHOD.
+
+
+  METHOD custom_Header.
+
+    result = _generic(
+        name = `customHeader`
+         ).
+
+  ENDMETHOD.
+
+
+  METHOD custom_list_item.
+
+    result = _generic(
+        name = `CustomListItem`
+     ).
 
   ENDMETHOD.
 
@@ -1293,6 +1442,42 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD dynamic_page.
+
+    result = _generic(
+      name   = `DynamicPage`
+      ns     = `f`
+      t_prop = VALUE #(
+         (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
+         (  n = `headerPinned`           v = lcl_utility=>get_json_boolean( headerPinned ) )
+         (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
+      ) ).
+
+  ENDMETHOD.
+
+
+  METHOD dynamic_page_header.
+
+    result = _generic(
+      name   = `DynamicPageHeader`
+      ns     = `f`
+      t_prop = VALUE #(
+         (  n = `pinnable`           v = lcl_utility=>get_json_boolean( pinnable ) )
+      ) ).
+
+  ENDMETHOD.
+
+
+  METHOD dynamic_page_title.
+
+    result = _generic(
+       name   = `DynamicPageTitle`
+       ns     = `f`
+       ).
+
+  ENDMETHOD.
+
+
   METHOD expanded_content.
 
     result = _generic(
@@ -1309,6 +1494,44 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         name   = `expandedHeading`
         ns     = `uxap`
     ).
+
+  ENDMETHOD.
+
+
+  METHOD factory.
+
+    result = NEW #( ).
+
+    IF t_ns IS NOT INITIAL.
+      result->mt_prop = t_ns.
+    ENDIF.
+
+    result->mt_prop = VALUE #( BASE result->mt_prop
+        (  n = 'displayBlock'   v = 'true' )
+        (  n = 'height'         v = '100%' )
+        (  n = 'controllerName' v = z2ui5_cl_http_handler=>config-controller_name )
+    ).
+
+    result->m_name   = `View`.
+    result->m_ns     = `mvc`.
+    result->m_root   = result.
+    result->m_parent = result.
+
+  ENDMETHOD.
+
+
+  METHOD factory_popup.
+
+    result = NEW #( ).
+
+    IF t_ns IS NOT INITIAL.
+      result->mt_prop = t_ns.
+    ENDIF.
+
+    result->m_name = `FragmentDefinition`.
+    result->m_ns = `core`.
+    result->m_root = result.
+    result->m_parent = result.
 
   ENDMETHOD.
 
@@ -1446,47 +1669,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD bar.
+  METHOD header.
 
     result = _generic(
-        name = `Bar`
-         ).
-
-  ENDMETHOD.
-
-
-  METHOD content_left.
-
-    result = _generic(
-        name = `contentLeft`
-         ).
-
-  ENDMETHOD.
-
-
-  METHOD content_middle.
-
-    result = _generic(
-        name = `contentMiddle`
-         ).
-
-  ENDMETHOD.
-
-
-  METHOD content_right.
-
-    result = _generic(
-        name = `contentRight`
-         ).
-
-  ENDMETHOD.
-
-
-  METHOD custom_Header.
-
-    result = _generic(
-        name = `customHeader`
-         ).
+        name   = `header`
+        ns     = ns
+      ).
 
   ENDMETHOD.
 
@@ -1511,13 +1699,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD toolbar.
-
-    result = _generic( `Toolbar` ).
-
-  ENDMETHOD.
-
-
   METHOD header_toolbar.
 
     result = _generic( `headerToolbar` ).
@@ -1536,6 +1717,24 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD hlp_get_source_code_url.
+
+    DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+
+    result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( app ) && `/source/main`.
+
+  ENDMETHOD.
+
+
+  METHOD hlp_replace_controller_name.
+
+    result  = lcl_utility=>get_replace( iv_val = xml
+    iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
+
+  ENDMETHOD.
+
+
   METHOD horizontal_layout.
 
     result = _generic(
@@ -1545,6 +1744,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                      ( n = `class`  v = class )
                      ( n = `width`  v = width )
         ) ).
+
+  ENDMETHOD.
+
+
+  METHOD illustrated_message.
+
+    result = _generic(
+         name  = `IllustratedMessage`
+         t_prop = VALUE #(
+            ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
+            ( n = `illustrationType`             v = illustrationType )
+    ) ).
 
   ENDMETHOD.
 
@@ -1583,6 +1794,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
            ( n = `class`            v = class )
         ) ).
+
+  ENDMETHOD.
+
+
+  METHOD input_list_item.
+
+    result = _generic(
+        name = `InputListItem`
+        t_prop = VALUE #(
+            ( n = `label`       v = label )
+       ) ).
 
   ENDMETHOD.
 
@@ -1774,6 +1996,35 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD MENU_ITEM.
+
+    result = me.
+    _generic(
+       name   = `MenuItem`
+       t_prop = VALUE #(
+          ( n = `press`   v = press )
+          ( n = `text`    v = text )
+          ( n = `icon`    v = icon )
+       ) ).
+
+  ENDMETHOD.
+
+
+  METHOD message_item.
+
+    result = _generic(
+         name  = `MessageItem`
+         t_prop = VALUE #(
+            ( n = `type`        v = type )
+            ( n = `title`       v = title )
+            ( n = `subtitle`    v = subtitle )
+            ( n = `description` v = description )
+            ( n = `groupName`   v = groupName )
+    ) ).
+
+  ENDMETHOD.
+
+
   METHOD message_page.
 
     result = _generic(
@@ -1785,6 +2036,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            ( n = `text`                v = text )
            ( n = `enableFormattedText` v = lcl_utility=>get_json_boolean( enableformattedtext ) )
       ) ).
+
+  ENDMETHOD.
+
+
+  METHOD message_popover.
+
+    result = _generic(
+         name  = `MessagePopover`
+         t_prop = VALUE #(
+            ( n = `items`      v = items )
+            ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
+    ) ).
 
   ENDMETHOD.
 
@@ -1804,6 +2067,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD message_view.
+
+    result = _generic(
+         name  = `MessageView`
+         t_prop = VALUE #(
+            ( n = `items`      v = items )
+            ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
+    ) ).
+
+  ENDMETHOD.
+
+
   METHOD multi_input.
 
     result = _generic(
@@ -1815,6 +2090,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
             ( n = `suggestionItems` v = suggestionitems )
             ( n = `width` v = width )
     ) ).
+
+  ENDMETHOD.
+
+
+  METHOD navigation_actions.
+
+    result = _generic(
+        name   = `navigationActions`
+        ns     = `f`
+      ).
+
+  ENDMETHOD.
+
+
+  METHOD object_attribute.
+
+    result = me.
+
+    _generic(
+       name   = `ObjectAttribute`
+       t_prop = VALUE #(
+         (  n = `title`       v = title )
+         (  n = `text`           v = text )
+       ) ).
 
   ENDMETHOD.
 
@@ -1894,23 +2193,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD overflow_toolbar_toggle_button.
-
-    result = me.
-    _generic(
-       name   = `OverflowToolbarToggleButton`
-       t_prop = VALUE #(
-          ( n = `press`   v = press )
-          ( n = `text`    v = text )
-          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
-          ( n = `icon`    v = icon )
-          ( n = `type`    v = type )
-          ( n = `tooltip` v = tooltip )
-       ) ).
-
-  ENDMETHOD.
-
-
   METHOD overflow_toolbar_button.
 
     result = me.
@@ -1935,6 +2217,23 @@ METHOD overflow_toolbar_menu_button.
        t_prop = VALUE #(
           ( n = `buttonMode` v = buttonMode )
           ( n = `defaultAction` v = defaultAction )
+          ( n = `text`    v = text )
+          ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
+          ( n = `icon`    v = icon )
+          ( n = `type`    v = type )
+          ( n = `tooltip` v = tooltip )
+       ) ).
+
+  ENDMETHOD.
+
+
+  METHOD overflow_toolbar_toggle_button.
+
+    result = me.
+    _generic(
+       name   = `OverflowToolbarToggleButton`
+       t_prop = VALUE #(
+          ( n = `press`   v = press )
           ( n = `text`    v = text )
           ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
           ( n = `icon`    v = icon )
@@ -2054,6 +2353,23 @@ METHOD overflow_toolbar_menu_button.
   ENDMETHOD.
 
 
+  METHOD search_field.
+
+    result = me.
+    _generic(
+         name  = `SearchField`
+         t_prop = VALUE #(
+            ( n = `width`  v = width )
+            ( n = `search` v = search )
+            ( n = `value`  v = value )
+            ( n = `id`     v = id )
+            ( n = `change` v = change )
+            ( n = `liveChange` v = liveChange )
+    ) ).
+
+  ENDMETHOD.
+
+
   METHOD sections.
 
     result = _generic(
@@ -2095,6 +2411,16 @@ METHOD overflow_toolbar_menu_button.
     result = _generic(
         name = `segments`
         ns   = `mchart` ).
+
+  ENDMETHOD.
+
+
+  METHOD shell.
+
+    result = _generic(
+        name   = `Shell`
+        ns     = ns
+      ).
 
   ENDMETHOD.
 
@@ -2143,26 +2469,6 @@ METHOD overflow_toolbar_menu_button.
          name   = `snappedTitleOnMobile`
          ns     = `uxap`
       ).
-
-  ENDMETHOD.
-
-
-  METHOD custom_list_item.
-
-    result = _generic(
-        name = `CustomListItem`
-     ).
-
-  ENDMETHOD.
-
-
-  METHOD input_list_item.
-
-    result = _generic(
-        name = `InputListItem`
-        t_prop = VALUE #(
-            ( n = `label`       v = label )
-       ) ).
 
   ENDMETHOD.
 
@@ -2269,7 +2575,7 @@ METHOD overflow_toolbar_menu_button.
            ( n = `width`            v = width )
            ( n = `selectionChange`  v = selectionchange )
            ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
-           ( n = `autoPopinMode`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
+           ( n = `autoPopinMode`  v = lcl_utility=>get_json_boolean( autoPopinMode ) )
      ) ).
 
   ENDMETHOD.
@@ -2387,6 +2693,13 @@ METHOD overflow_toolbar_menu_button.
   ENDMETHOD.
 
 
+  METHOD toolbar.
+
+    result = _generic( `Toolbar` ).
+
+  ENDMETHOD.
+
+
   METHOD toolbar_spacer.
 
     result = me.
@@ -2454,18 +2767,13 @@ METHOD overflow_toolbar_menu_button.
   ENDMETHOD.
 
 
-  METHOD cc_file_uploader.
+  METHOD zz_plain.
 
     result = me.
     _generic(
-      name   = `FileUploader`
-      ns     = `z2ui5`
-      t_prop = VALUE #(
-         (  n = `placeholder` v = placeholder )
-         (  n = `upload`      v = upload )
-         (  n = `path`        v = path )
-         (  n = `value`       v = value )
-      ) ).
+         name  = `ZZPLAIN`
+         t_prop = VALUE #( ( n = `VALUE` v = val ) )
+    ).
 
   ENDMETHOD.
 
@@ -2484,312 +2792,4 @@ METHOD overflow_toolbar_menu_button.
     result = result2.
 
   ENDMETHOD.
-
-
-  METHOD dynamic_page.
-
-    result = _generic(
-      name   = `DynamicPage`
-      ns     = `f`
-      t_prop = VALUE #(
-         (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
-         (  n = `headerPinned`           v = lcl_utility=>get_json_boolean( headerPinned ) )
-         (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
-      ) ).
-
-  ENDMETHOD.
-
-
-  METHOD dynamic_page_header.
-
-    result = _generic(
-      name   = `DynamicPageHeader`
-      ns     = `f`
-      t_prop = VALUE #(
-         (  n = `pinnable`           v = lcl_utility=>get_json_boolean( pinnable ) )
-      ) ).
-
-  ENDMETHOD.
-
-
-  METHOD dynamic_page_title.
-
-    result = _generic(
-       name   = `DynamicPageTitle`
-       ns     = `f`
-       ).
-
-  ENDMETHOD.
-
-
-  METHOD object_attribute.
-
-    result = me.
-
-    _generic(
-       name   = `ObjectAttribute`
-       t_prop = VALUE #(
-         (  n = `title`       v = title )
-         (  n = `text`           v = text )
-       ) ).
-
-  ENDMETHOD.
-
-
-  METHOD zz_plain.
-
-    result = me.
-    _generic(
-         name  = `ZZPLAIN`
-         t_prop = VALUE #( ( n = `VALUE` v = val ) )
-    ).
-
-  ENDMETHOD.
-
-
-  METHOD shell.
-
-    result = _generic(
-        name   = `Shell`
-        ns     = ns
-      ).
-
-  ENDMETHOD.
-
-
-  METHOD hlp_get_source_code_url.
-
-    DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
-    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
-
-    result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( app ) && `/source/main`.
-
-  ENDMETHOD.
-
-
-  METHOD additional_content.
-
-    result = _generic(
-         name  = `additionalContent`
-    ).
-
-  ENDMETHOD.
-
-
-  METHOD illustrated_message.
-
-    result = _generic(
-         name  = `IllustratedMessage`
-         t_prop = VALUE #(
-            ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
-            ( n = `illustrationType`             v = illustrationType )
-    ) ).
-
-  ENDMETHOD.
-
-
-  METHOD factory_popup.
-
-    result = NEW #( ).
-
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
-
-    result->m_name = `FragmentDefinition`.
-    result->m_ns = `core`.
-    result->m_root = result.
-    result->m_parent = result.
-
-  ENDMETHOD.
-
-
-  METHOD message_item.
-
-    result = _generic(
-         name  = `MessageItem`
-         t_prop = VALUE #(
-            ( n = `type`        v = type )
-            ( n = `title`       v = title )
-            ( n = `subtitle`    v = subtitle )
-            ( n = `description` v = description )
-            ( n = `groupName`   v = groupName )
-    ) ).
-
-  ENDMETHOD.
-
-
-  METHOD message_popover.
-
-    result = _generic(
-         name  = `MessagePopover`
-         t_prop = VALUE #(
-            ( n = `items`      v = items )
-            ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
-    ) ).
-
-  ENDMETHOD.
-
-
-  METHOD search_field.
-
-    result = me.
-    _generic(
-         name  = `SearchField`
-         t_prop = VALUE #(
-            ( n = `width`  v = width )
-            ( n = `search` v = search )
-            ( n = `value`  v = value )
-            ( n = `id`     v = id )
-            ( n = `change` v = change )
-            ( n = `liveChange` v = liveChange )
-    ) ).
-
-  ENDMETHOD.
-
-
-  METHOD message_view.
-
-    result = _generic(
-         name  = `MessageView`
-         t_prop = VALUE #(
-            ( n = `items`      v = items )
-            ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) )
-    ) ).
-
-  ENDMETHOD.
-
-
-  METHOD hlp_replace_controller_name.
-
-    result  = lcl_utility=>get_replace( iv_val = xml
-    iv_begin = 'controllerName="' iv_end = '"' iv_replace = `controllerName="` && z2ui5_cl_http_handler=>config-controller_name && `"` ).
-
-  ENDMETHOD.
-
-
-  METHOD cc_file_uploader_get_js.
-
-   result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
-                         |\n|  &&
-                         `        sap.ui.define([` && |\n|  &&
-                         `            "sap/ui/core/Control",` && |\n|  &&
-                         `            "sap/m/Button",` && |\n|  &&
-                         `            "sap/ui/unified/FileUploader"` && |\n|  &&
-                         `        ], function (Control, Button, FileUploader) {` && |\n|  &&
-                         `            "use strict";` && |\n|  &&
-                         |\n|  &&
-                         `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
-                         |\n|  &&
-                         `                metadata: {` && |\n|  &&
-                         `                    properties: {` && |\n|  &&
-                         `                        value: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        path: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        tooltip: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        fileType: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        placeholder: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        buttonText: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: "Upload"` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        enabled: {` && |\n|  &&
-                         `                            type: "boolean",` && |\n|  &&
-                         `                            defaultValue: true` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        multiple: {` && |\n|  &&
-                         `                            type: "boolean",` && |\n|  &&
-                         `                            defaultValue: false` && |\n|  &&
-                         `                        }` && |\n|  &&
-                         `                    },` && |\n|  &&
-                         |\n|  &&
-                         |\n|  &&
-                         `                    aggregations: {` && |\n|  &&
-                         `                    },` && |\n|  &&
-                         `                    events: {` && |\n|  &&
-                         `                        "upload": {` && |\n|  &&
-                         `                            allowPreventDefault: true,` && |\n|  &&
-                         `                            parameters: {}` && |\n|  &&
-                         `                        }` && |\n|  &&
-                         `                    },` && |\n|  &&
-                         `                    renderer: null` && |\n|  &&
-                         `                },` && |\n|  &&
-                         |\n|  &&
-                         `                renderer: function (oRm, oControl) {` && |\n|  &&
-                         |\n|  &&
-                         `                    oControl.oUploadButton = new Button({` && |\n|  &&
-                         `                        text: oControl.getProperty("buttonText"),` && |\n|  &&
-                         `                        enabled: oControl.getProperty("path") !== "",` && |\n|  &&
-                         `                        press: function (oEvent) {` && |\n|  &&
-                         |\n|  &&
-                         `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
-                         |\n|  &&
-                         `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n|  &&
-                         `                            var reader = new FileReader();` && |\n|  &&
-                         |\n|  &&
-                         `                            reader.onload = function (evt) {` && |\n|  &&
-                         `                                var vContent = evt.currentTarget.result;` && |\n|  &&
-                         `                                this.setProperty("value", vContent);` && |\n|  &&
-                         `                                this.fireUpload();` && |\n|  &&
-                         `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n|  &&
-                         `                            }.bind(this)` && |\n|  &&
-                         |\n|  &&
-                         `                            reader.readAsDataURL(file);` && |\n|  &&
-                         `                        }.bind(oControl)` && |\n|  &&
-                         `                    });` && |\n|  &&
-                         |\n|  &&
-                         `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
-                         `                        icon: "sap-icon://browse-folder",` && |\n|  &&
-                         `                        iconOnly: true,` && |\n|  &&
-                         `                        value: oControl.getProperty("path"),` && |\n|  &&
-                         `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
-                         `                        change: function (oEvent) {` && |\n|  &&
-                         `                            var value = oEvent.getSource().getProperty("value");` && |\n|  &&
-                         `                            this.setProperty("path", value);` && |\n|  &&
-                         `                            if (value) {` && |\n|  &&
-                         `                                this.oUploadButton.setEnabled();` && |\n|  &&
-                         `                            } else {` && |\n|  &&
-                         `                                this.oUploadButton.setEnabled(false);` && |\n|  &&
-                         `                            }` && |\n|  &&
-                         `                            this.oUploadButton.rerender();` && |\n|  &&
-                         `                        }.bind(oControl)` && |\n|  &&
-                         `                    });` && |\n|  &&
-                         |\n|  &&
-                         `                    var hbox = new sap.m.HBox();` && |\n|  &&
-                         `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
-                         `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
-                         `                    oRm.renderControl(hbox);` && |\n|  &&
-                         `                }` && |\n|  &&
-                         `            });` && |\n|  &&
-                         `        });`.
-
-  ENDMETHOD.
-
-  METHOD MENU_ITEM.
-
-    result = me.
-    _generic(
-       name   = `MenuItem`
-       t_prop = VALUE #(
-          ( n = `press`   v = press )
-          ( n = `text`    v = text )
-          ( n = `icon`    v = icon )
-       ) ).
-
-  ENDMETHOD.
-
 ENDCLASS.

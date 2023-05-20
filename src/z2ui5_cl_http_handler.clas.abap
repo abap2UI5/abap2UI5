@@ -314,7 +314,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            }` && |\n|  &&
                            `            sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `        };` &&
-                           `        sap.z2ui5.checkLogActive = true;` && |\n|  &&
+
+                           `        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
                            `</html>`.

@@ -11,7 +11,6 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
         i_cancel_event             TYPE string
         i_confirm_text             TYPE string
         i_confirm_event            TYPE string
-    "    i_check_show_previous_view TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_app_demo_20.
 
@@ -22,7 +21,6 @@ CLASS z2ui5_cl_app_demo_20 DEFINITION PUBLIC.
     DATA mv_cancel_event TYPE string.
     DATA mv_confirm_text TYPE string.
     DATA mv_confirm_event TYPE string.
-    DATA mv_check_show_previous_view TYPE abap_bool.
     data mv_event type string.
   PROTECTED SECTION.
   PRIVATE SECTION.

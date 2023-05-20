@@ -1057,8 +1057,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
     SHIFT lv_url RIGHT DELETING TRAILING `/`.
-    DATA(lv_link) = lv_url && `/` && ms_home-classname. " && `?sap-client=` &&  sy-mandt.
-    " DATA(lv_link) = lv_url && `?sap-client=` &&  sy-mandt && `&app=` && ms_home-classname.
+    DATA(lv_link) = lv_url && `/` && ms_home-classname.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1277,7 +1276,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`   v = ms_db-id ).
     lo_resp->add_attribute_object( `OVIEWMODEL` )->add_attribute_instance( request_end_model( ) ).
-    DATA(lv_test) = lo_resp->get_root( )->stringify( ).
     result = lo_resp->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
