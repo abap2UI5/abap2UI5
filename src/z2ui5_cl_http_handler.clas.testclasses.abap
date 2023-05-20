@@ -371,8 +371,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
       client->set_next( VALUE #(
        xml_main = `test`
-       s_cursor_pos  = VALUE #( id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10' )
-       t_scroll_pos = VALUE #(
+       s_cursor  = VALUE #( id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10' )
+       t_scroll = VALUE #(
                 ( name = 'id_page'  value = '99999' )
                 ( name = 'id_text3' value = '99999' )
                )

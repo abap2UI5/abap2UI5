@@ -64,7 +64,7 @@ CLASS Z2UI5_CL_APP_DEMO_26 IMPLEMENTATION.
 
       WHEN 'POPOVER'.
         app-view_popup = 'POPOVER'.
-        app-s_next-popup_open_by_id = 'TEST'.
+        app-s_next-popover_open_by_id = 'TEST'.
 
       WHEN 'BUTTON_CONFIRM'.
         client->popup_message_toast( |confirm| ).

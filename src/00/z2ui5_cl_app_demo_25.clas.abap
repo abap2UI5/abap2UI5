@@ -90,7 +90,7 @@ CLASS Z2UI5_CL_APP_DEMO_25 IMPLEMENTATION.
 
       WHEN 'SECOND'.
 
-        page = Z2UI5_CL_XML_VIEW=>factory(
+        page = Z2UI5_CL_XML_VIEW=>factory( )->shell(
             )->page(
                     title          = 'abap2UI5 - flow logic - APP 02'
                     navbuttonpress = client->_event( 'BACK' ) shownavbutton = abap_true
