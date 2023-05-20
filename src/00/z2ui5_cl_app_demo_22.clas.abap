@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_DEMO_22 IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -59,7 +59,7 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
 
     ENDIF.
 
-     app-s_next-t_scroll_pos = VALUE #(
+     app-s_next-t_scroll = VALUE #(
              ( name = 'id_page'  )
              ( name = 'id_text3'  )
             ).
@@ -70,32 +70,33 @@ CLASS z2ui5_cl_app_demo_22 IMPLEMENTATION.
         "nothing to do, default mode
 
       WHEN 'BUTTON_SCROLL_BOTTOM'.
-        app-s_next-t_scroll_pos = VALUE #( ( name = 'id_page' value = '99999' ) ).
+        app-s_next-t_scroll = VALUE #( ( name = 'id_page' value = '99999' ) ).
 
       WHEN 'BUTTON_SCROLL_UP'.
         DATA(lv_pos) = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ) - 500.
-        app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
+        app-s_next-t_scroll = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
       WHEN 'BUTTON_SCROLL_DOWN'.
-        lv_pos = CONV i( app-s_get-t_scroll_pos[ name = `id_page` ]-value ) + 500.
-        app-s_next-t_scroll_pos = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
+        lv_pos = CONV i( value #( app-s_get-t_scroll_pos[ name = `id_page` ]-value optional ) ) + 500.
+        app-s_next-t_scroll = VALUE #( (  name = 'id_page'  value = lv_pos ) ).
 
       WHEN 'BUTTON_SCROLL_HOLD'.
-        app-s_next-t_scroll_pos = app-s_get-t_scroll_pos.
+        app-s_next-t_scroll = app-s_get-t_scroll_pos.
 
       WHEN 'BUTTON_FOCUS_FIRST'.
-        app-s_next-s_cursor_pos =  VALUE #( id = 'id_text1'  cursorpos = '3' selectionstart = '3' selectionend = '3' ).
+        app-s_next-s_cursor =  VALUE #( id = 'id_text1'  cursorpos = '3' selectionstart = '3' selectionend = '3' ).
 
       WHEN 'BUTTON_FOCUS_SECOND'.
-        app-s_next-s_cursor_pos  = VALUE #( id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10' ).
+        app-s_next-s_cursor  = VALUE #( id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10' ).
 
       WHEN 'BUTTON_FOCUS_END'.
-        app-s_next-s_cursor_pos =  VALUE #( id = 'id_text3'  cursorpos = '99999' selectionstart = '99999' selectionend = '999999' ).
+        app-s_next-s_cursor =  VALUE #( id = 'id_text3'  cursorpos = '99999' selectionstart = '99999' selectionend = '999999' ).
 
-        app-s_next-t_scroll_pos = VALUE #(
+        app-s_next-t_scroll = VALUE #(
              ( name = 'id_page'  value = '99999' )
              ( name = 'id_text3' value = '99999' )
             ).
+
 
 
 

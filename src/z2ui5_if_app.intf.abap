@@ -1,6 +1,4 @@
-INTERFACE z2ui5_if_app
-  PUBLIC .
-
+INTERFACE z2ui5_if_app public.
   INTERFACES if_serializable_object.
 
   DATA id TYPE string.
