@@ -1,6 +1,5 @@
 CLASS z2ui5_cl_http_handler DEFINITION
   PUBLIC
-  FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
@@ -191,9 +190,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.z2ui5.oView.destroy();` && |\n|  &&
                            `                }` && |\n|  &&
                            `                var xhr = new XMLHttpRequest();` && |\n|  &&
-                           `                var url = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
-                           `                xhr.open("POST", url, true);` && |\n|  &&
-                           `                //  xhr.open("POST", window.location.pathname, true);` && |\n|  &&
+                           `             //   var url = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
+                           `             //   xhr.open("POST", url, true);` && |\n|  &&
+                           `                xhr.open("POST", window.location.pathname, true);` && |\n|  &&
                            `                xhr.onload = function (that) {` && |\n|  &&
                            |\n|  &&
                            `                    if (that.target.status !== 200) {` && |\n|  &&
