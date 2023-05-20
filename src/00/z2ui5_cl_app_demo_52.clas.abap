@@ -6,7 +6,7 @@ CLASS z2ui5_cl_app_demo_52 DEFINITION PUBLIC.
 
     TYPES:
       BEGIN OF ty_row,
-        count    TYPE i,
+        count    TYPE string,
         value    TYPE string,
         descr    TYPE string,
         icon     TYPE string,
@@ -68,7 +68,7 @@ CLASS z2ui5_cl_app_demo_52 IMPLEMENTATION.
 
     DATA(page) = z2ui5_cl_xml_view=>factory( )->shell(
         )->page(
-            title          = 'abap2UI5 - Scroll Container with Table and Toolbar'
+            title          = 'abap2UI5 - Demo displaying popver without rerendering the main view'
             navbuttonpress = client->_event( 'BACK' )
             shownavbutton  = abap_true
             )->header_content(
@@ -98,7 +98,7 @@ CLASS z2ui5_cl_app_demo_52 IMPLEMENTATION.
             )->text( 'Counter' ).
 
     tab->items( )->column_list_item( )->cells(
-       )->link( text = '{VALUE}' press = client->_event( val = `POPOVER_DETAIL` data = `${$source>/id}` hold_view = abap_true )
+       )->link( text = '{COUNT}' press = client->_event( val = `POPOVER_DETAIL` data = `${$source>/id}` hold_view = abap_true )
        )->text( '{INFO}'
        )->text( '{DESCR}'
        )->checkbox( selected = '{CHECKBOX}' enabled = abap_false
@@ -112,18 +112,26 @@ CLASS z2ui5_cl_app_demo_52 IMPLEMENTATION.
 
       DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
-      lo_popup->popover( placement = `Bottom` title = 'abap2UI5 - Layout'  contentwidth = `50%`
-          )->button( text = `Save` press = client->_event( `BUTTON_SAVE_LAYOUT` )
-          )->footer( )->overflow_toolbar(
+      lo_popup->popover( placement = `Bottom` title = 'abap2UI5 - this is a popover'  contentwidth = `50%`
+        )->simple_form( editable = abap_true
+        )->content( 'form'
+            )->label( 'info1'
+            )->text(  `this is a text`
+            )->label( 'info2'
+            )->text(  `this is a text`
+            )->label( 'info3'
+            )->text(  `this is a text`
+            )->text(  `this is a text`
+          )->get_parent( )->get_parent(
+          )->footer(
+           )->overflow_toolbar(
               )->toolbar_spacer(
-               )->button(
-                  text  = 'load'
-                  press = client->_event( 'POPUP_LAYOUT_LOAD' )
-                  type  = 'Emphasized'
               )->button(
-                  text  = 'close'
-                  press = client->_event( 'POPUP_LAYOUT_CONTINUE' )
-                  type  = 'Emphasized' ).
+                  text  = 'details'
+                  press = client->_event( 'BUTTON_DETAILS' )
+                  type  = 'Emphasized'
+
+                  ).
 
       next-xml_popup = lo_popup->get_root( )->xml_get( ).
     ENDIF.

@@ -70,7 +70,7 @@ CLASS Z2UI5_CL_APP_DEMO_00 IMPLEMENTATION.
     grid->simple_form( title = 'HowTo - Tables I' layout = 'ResponsiveGridLayout' )->content( 'form'
         )->button( text = 'List I'                    press = client->_event( 'z2ui5_cl_app_demo_03' )
         )->button( text = 'List II'                   press = client->_event( 'z2ui5_cl_app_demo_48' )
-        )->button( text = 'Toolbar, Container, Sort'  press = client->_event( 'z2ui5_cl_app_demo_06' )
+        )->button( text = 'Toolbar & Container'  press = client->_event( 'z2ui5_cl_app_demo_06' )
     ).
 
    grid->simple_form( title = 'HowTo - Tables II' layout = 'ResponsiveGridLayout' )->content( 'form'
