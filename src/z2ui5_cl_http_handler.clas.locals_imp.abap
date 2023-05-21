@@ -947,6 +947,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_home-btn_event_id = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
       ms_home-btn_icon = `sap-icon://validate`.
+      ms_home-classname = `z2ui5_cl_app_hello_world`.
     ELSE.
       mv_view_name = 'ERROR'.
     ENDIF.
@@ -1080,33 +1081,37 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                         `  text="GitHub" ` && |\n|  &&
                         `  target="_blank" ` && |\n|  &&
                         `  href="https://github.com/oblomov-dev/abap2ui5" ` && |\n|  &&
-                        ` /></headerContent> <l:Grid ` && |\n|  &&
-                        `  defaultSpan="XL7 L7 M12 S12" ` && |\n|  &&
-                        ` > <l:content ` && |\n|  &&
-                        ` > <f:SimpleForm ` && |\n|  &&
-                        `  title="Quick Start" ` && |\n|  &&
-                        `  layout="ResponsiveGridLayout" ` && |\n|  &&
-                        `  editable="true" ` && |\n|  &&
-                        ` > <f:content ` && |\n|  &&
-                        ` > <Label ` && |\n|  &&
-                        `  text="Step 1" ` && |\n|  &&
-                        ` /> <Text ` && |\n|  &&
-                        `  text="Create a global class in your abap system" ` && |\n|  &&
-                        ` /> <Label ` && |\n|  &&
-                        `  text="Step 2" ` && |\n|  &&
-                        ` /> <Text ` && |\n|  &&
-                        `  text="Add the interface: Z2UI5_IF_APP" ` && |\n|  &&
-                        ` /> <Label ` && |\n|  &&
-                        `  text="Step 3" ` && |\n|  &&
-                        ` /> <Text ` && |\n|  &&
-                        `  text="Define view, implement behaviour" ` && |\n|  &&
-                        ` /> <Link ` && |\n|  &&
-                        `  text="(Example)" ` && |\n|  &&
-                        `  target="_blank" ` && |\n|  &&
-                        `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap" ` && |\n|  &&
-                        ` /> <Label ` && |\n|  &&
-                        `  text="Step 4" ` && |\n|  &&
-                        ` /> `.
+                        ` /></headerContent>`.
+
+
+
+    lv_xml_main = lv_xml_main && ` <l:Grid ` && |\n|  &&
+    `  defaultSpan="XL7 L7 M12 S12" ` && |\n|  &&
+    ` > <l:content ` && |\n|  &&
+    ` > <f:SimpleForm ` && |\n|  &&
+    `  title="Quick Start" ` && |\n|  &&
+    `  layout="ResponsiveGridLayout" ` && |\n|  &&
+    `  editable="true" ` && |\n|  &&
+    ` > <f:content ` && |\n|  &&
+    ` > <Label ` && |\n|  &&
+    `  text="Step 1" ` && |\n|  &&
+    ` /> <Text ` && |\n|  &&
+    `  text="Create a global class in your abap system" ` && |\n|  &&
+    ` /> <Label ` && |\n|  &&
+    `  text="Step 2" ` && |\n|  &&
+    ` /> <Text ` && |\n|  &&
+    `  text="Add the interface: Z2UI5_IF_APP" ` && |\n|  &&
+    ` /> <Label ` && |\n|  &&
+    `  text="Step 3" ` && |\n|  &&
+    ` /> <Text ` && |\n|  &&
+    `  text="Define view, implement behaviour" ` && |\n|  &&
+    ` /> <Link ` && |\n|  &&
+    `  text="(Example)" ` && |\n|  &&
+    `  target="_blank" ` && |\n|  &&
+    `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap" ` && |\n|  &&
+    ` /> <Label ` && |\n|  &&
+    `  text="Step 4" ` && |\n|  &&
+    ` /> `.
 
     IF ms_home-class_editable = abap_true.
       lv_xml_main = lv_xml_main &&   `<Input ` && |\n|  &&
@@ -1120,6 +1125,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     ENDIF.
 
+
     lv_xml_main = lv_xml_main &&  `<Button ` && |\n|  &&
        `  press="`  && client->_event( ms_home-btn_event_id ) && `" ` && |\n|  &&
        `  text="` && ms_home-btn_text && `" ` && |\n|  &&
@@ -1131,14 +1137,33 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        `  target="_blank" ` && |\n|  &&
        `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n|  &&
        `  enabled="` && z2ui5_lcl_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n|  &&
-       ` /></f:content></f:SimpleForm> <f:SimpleForm ` && |\n|  &&
-       `  title="Demo Section" ` && |\n|  &&
-       `  layout="ResponsiveGridLayout" ` && |\n|  &&
-       ` > <f:content ` && |\n|  &&
-       ` > <Button ` && |\n|  &&
-       `  press="` && client->_event( `DEMOS` ) && `" ` && |\n|  &&
-       `  text="Continue..." ` && |\n|  &&
-       ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
+       ` /></f:content></f:SimpleForm>`.
+
+
+
+    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n|  &&
+   `  title="Demo Section" ` && |\n|  &&
+   `  layout="ResponsiveGridLayout" ` && |\n|  &&
+   ` >`.
+
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    TRY.
+        CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+        DATA(lv_check_demo) = abap_true.
+      CATCH cx_root.
+        lv_check_demo = abap_false.
+    ENDTRY.
+    IF lv_check_demo = abap_false.
+      lv_xml_main = lv_xml_main && `<MessageStrip text="Oh no! The abap2UI5 demos are not ready! Install additionally this demo repository." type="Warning" > <link> ` &&
+         `   <Link text="(LINK)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
+      `  </link> </MessageStrip>`.
+    ENDIF.
+
+    lv_xml_main = lv_xml_main && ` <f:content ` && |\n|  &&
+    ` > <Label/><Button ` && |\n|  &&
+    `  press="` && client->_event( `DEMOS` ) && `" ` && |\n|  &&
+    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n|  &&
+    ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
     client->set_next( VALUE #( xml_main = lv_xml_main ) ).
 
@@ -1377,37 +1402,65 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_start.
 
+    DATA lo_object TYPE REF TO object.
+
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-    DATA(lv_classname) = ``.
     DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-    data lt_tab type string_table.
-    split lv_path at `/` into table lt_tab.
-    lv_classname = lt_tab[ lines( lt_tab ) ].
-    data(lv_test) = lt_tab[ lines( lt_tab ) - 1 ].
+    lv_path = to_upper( lv_path ).
 
-*    DATA(lv_origin) = z2ui5_lcl_utility=>get_header_val( 'origin' ).
-*    DATA(lv_referer) = z2ui5_lcl_utility=>get_header_val( 'referer' ).
-*    REPLACE lv_origin IN lv_referer WITH ``.
-*    REPLACE lv_path IN lv_referer WITH ``.
-*    SPLIT lv_referer AT `/` INTO lv_classname DATA(lv_dummy).
-    IF lv_classname IS NOT INITIAL AND lv_classname(1) <> `?` and lv_test <> `sap`. .
-      lv_classname = to_upper( lv_classname ).
-    ELSE.
-      result = result->set_app_system( ).
-      RETURN.
-    ENDIF.
+    SPLIT lv_path AT `/` INTO TABLE DATA(lt_tab).
+    DELETE lt_tab WHERE table_line IS INITIAL.
 
-    TRY.
-        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-      CATCH cx_root.
-        result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
-        RETURN.
-    ENDTRY.
+    LOOP AT lt_tab INTO DATA(lr_path).
+      TRY.
+          lr_path = z2ui5_lcl_utility=>get_trim_upper( lr_path ).
+          IF lr_path(1) <> `Z` AND lr_path(1) <> 'Y'.
+            DELETE lt_tab.
+            CONTINUE.
+          ENDIF.
+        CATCH cx_root.
+      ENDTRY.
+    ENDLOOP.
 
-    result->ms_db-o_app->id = result->ms_db-id.
-    result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+
+    DATA(lv_index) = lines( lt_tab ).
+    DO.
+      TRY.
+          DATA(lv_classname) = lt_tab[ lv_index ].
+        CATCH cx_root.
+          EXIT.
+      ENDTRY.
+
+      IF lv_classname CP `?`.
+        SPLIT lv_classname AT `?` INTO lv_classname DATA(lv_dummy).
+      ENDIF.
+
+      TRY.
+          CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+          result->ms_db-o_app->id = result->ms_db-id.
+          result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+          RETURN.
+
+        CATCH cx_root.
+      ENDTRY.
+
+      TRY.
+          lv_classname = VALUE #( lt_tab[ lv_index + 1 ] OPTIONAL ).
+          IF lv_classname IS NOT INITIAL.
+            result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
+          ELSE.
+            result = result->set_app_system( ).
+          ENDIF.
+
+        CATCH cx_root.
+          ASSERT 1 = 0.
+      ENDTRY.
+
+      lv_index = lv_index - 1.
+    ENDDO.
+
 
   ENDMETHOD.
 
