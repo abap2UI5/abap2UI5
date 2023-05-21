@@ -1382,6 +1382,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lv_classname) = ``.
     DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+    lv_path = to_upper( lv_path ).
     data lt_tab type string_table.
     split lv_path at `/` into table lt_tab.
     lv_classname = lt_tab[ lines( lt_tab ) ].
@@ -1392,7 +1393,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 *    REPLACE lv_origin IN lv_referer WITH ``.
 *    REPLACE lv_path IN lv_referer WITH ``.
 *    SPLIT lv_referer AT `/` INTO lv_classname DATA(lv_dummy).
-    IF lv_classname IS NOT INITIAL AND lv_classname(1) <> `?` and lv_test(1) = `z`.
+    IF lv_classname IS NOT INITIAL AND lv_classname(1) <> `?` and ( lv_test(1) = `Z` or lv_test(1) = `Y` ).
       lv_classname = to_upper( lv_classname ).
     ELSE.
       result = result->set_app_system( ).
