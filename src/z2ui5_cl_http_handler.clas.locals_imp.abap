@@ -1392,7 +1392,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 *    REPLACE lv_origin IN lv_referer WITH ``.
 *    REPLACE lv_path IN lv_referer WITH ``.
 *    SPLIT lv_referer AT `/` INTO lv_classname DATA(lv_dummy).
-    IF lv_classname IS NOT INITIAL AND lv_classname(1) <> `?` and lv_test <> `sap`. .
+    IF lv_classname IS NOT INITIAL AND lv_classname(1) <> `?` and lv_test <> `sap` and lv_test <> 'bc'.
       lv_classname = to_upper( lv_classname ).
     ELSE.
       result = result->set_app_system( ).
