@@ -60,6 +60,15 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
       WHEN 'BUTTON_POST'.
         client->popup_message_box( 'button post was pressed' ).
 
+      WHEN 'MENU_DEFAULT'.
+        client->popup_message_box( 'menu default pressed' ).
+
+           WHEN 'MENU_01'.
+        client->popup_message_box( 'menu 01 pressed' ).
+
+           WHEN 'MENU_02'.
+        client->popup_message_box( 'menu 02 pressed' ).
+
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
 
@@ -117,15 +126,30 @@ CLASS Z2UI5_CL_APP_DEMO_06 IMPLEMENTATION.
                     unit       = 'EUR'
             )->get_parent(
             )->toolbar_spacer(
-            )->button(
-                text  = 'counter descending'
+            )->overflow_toolbar_toggle_button(
                 icon = 'sap-icon://sort-descending'
                 press = client->_event( 'SORT_DESCENDING' )
-                        )->button(
-                text  = 'counter ascending'
+            )->overflow_toolbar_toggle_button(
                 icon = 'sap-icon://sort-ascending'
                 press = client->_event( 'SORT_ASCENDING' )
-            ).
+
+            )->overflow_toolbar_menu_button(
+        text          = `Export`
+        type          = `Transparent`
+        tooltip       = `Export`
+        defaultaction = client->_event( 'MENU_DEFAULT' )
+        icon = `sap-icon://share`
+         buttonMode  = `Split`
+     )->_generic( `menu` )->_generic( `Menu`
+        )->menu_item(
+            press  = client->_event( 'MENU_01' )
+            text   = `Export as PDF`
+            icon   = `sap-icon://pdf-attachment`
+      )->menu_item(
+            press  = client->_event( 'MENU_02' )
+            text   = `Export to Excel`
+            icon   = `sap-icon://excel-attachment`
+    ).
 
     tab->columns(
         )->column(

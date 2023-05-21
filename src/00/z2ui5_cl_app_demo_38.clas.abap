@@ -58,7 +58,7 @@ CLASS Z2UI5_CL_APP_DEMO_38 IMPLEMENTATION.
         app-view_popup = 'POPUP'.
       WHEN 'POPOVER'.
         app-view_popup = 'POPOVER'.
-        app-next-popup_open_by_id = 'test'.
+        app-next-popover_open_by_id = 'test'.
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.

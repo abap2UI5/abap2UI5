@@ -58,6 +58,7 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
 
+
   METHOD ui5_on_event.
 
     CASE client->get( )-event.
@@ -85,12 +86,10 @@ CLASS Z2UI5_CL_APP_DEMO_07 IMPLEMENTATION.
       WHEN 'POPUP_DESCR'.
         ms_file_edit = mt_file[ selkz = abap_true ].
         app-view_popup = 'DESCR'.
-        app-next-check_set_prev_view = abap_true.
 
       WHEN 'POPUP_DATA'.
         ms_file_edit = mt_file[ selkz = abap_true ].
         app-view_popup = 'DATA'.
-        app-next-check_set_prev_view = abap_true.
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
