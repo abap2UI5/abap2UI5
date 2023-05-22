@@ -1775,7 +1775,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     ENDIF.
 
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && z2ui5_lcl_utility=>get_json_boolean( hold_view )
-      &&  ` , ` && lv_data &&  ` , ` && lv_data2 && ` , ` && lv_data3 && ` )` .
+      &&  ` , ` && lv_data &&  ` , ` && lv_data2 && ` , ` && lv_data3 && ` )`.
 
   ENDMETHOD.
 

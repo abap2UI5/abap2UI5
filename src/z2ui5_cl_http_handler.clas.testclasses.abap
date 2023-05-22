@@ -262,7 +262,7 @@ CLASS ltcl_unit_01_utility IMPLEMENTATION.
 
   METHOD test_util_03_get_t_attri_struc.
 
-*  DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+* DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
 *
 *    lcl_utility=>_get_t_attri_by_struc
 
