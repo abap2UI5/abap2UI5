@@ -32,10 +32,10 @@ CLASS Z2UI5_CL_APP_HELLO_WORLD IMPLEMENTATION.
 
     client->set_next( VALUE #( xml_main = Z2UI5_CL_XML_VIEW=>factory(
         )->shell(
-        )->page( title = 'abap2UI5 - First Example'
-            )->simple_form( title = 'Form Title' editable = abap_true
-                )->content( 'form'
-                    )->title( 'Input'
+        )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
+            )->simple_form( title = 'Hello World' editable = abap_true
+                )->content( ns = `form`
+                    )->title( 'Make an input here and send it to the server...'
                     )->label( 'quantity'
                     )->input( value = client->_bind( quantity )
                     )->label( 'product'
