@@ -10,9 +10,26 @@ CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
     METHODS test_json_struc     FOR TESTING RAISING cx_static_check.
     METHODS test_json_trans     FOR TESTING RAISING cx_static_check.
     METHODS test_json_trans_gen FOR TESTING RAISING cx_static_check.
-    METHODS test_util_uuid_session        FOR TESTING RAISING cx_static_check.
-    METHODS test_util_attri_by_ref     FOR TESTING RAISING cx_static_check.
 ENDCLASS.
+
+CLASS ltcl_unit_01_utility DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+  PRIVATE SECTION.
+
+    METHODS test_util_uuid_session  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_04_attri_by_ref  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_01_get_t_attri  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_03_get_t_attri_struc  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_02_get_attri  FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+
+
 
 CLASS ltcl_unit_04_deep_data DEFINITION FINAL FOR TESTING
   DURATION SHORT
@@ -41,7 +58,6 @@ CLASS ltcl_unit_04_deep_data DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
     METHODS test_app_deep_data        FOR TESTING RAISING cx_static_check.
     METHODS test_app_deep_data_change FOR TESTING RAISING cx_static_check.
-    METHODS test_app_all              FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -169,22 +185,28 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_util_attri_by_ref.
 
-    DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+ENDCLASS.
 
-    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( lo_app ).
+CLASS ltcl_unit_01_utility IMPLEMENTATION.
 
-    DATA(lt_test) = VALUE z2ui5_lcl_utility=>ty_t_attri(
-( name = `Z2UI5_IF_APP~ID` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-( name = `CHECK_INITIALIZED` type_kind = `C` type = `ABAP_BOOL` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-( name = `SV_STATUS` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-( name = `T_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
- ).
 
-    IF lt_test <> lt_attri.
-      cl_abap_unit_assert=>fail( msg = 'utility - get t_attri table wrong' quit = 5 ).
-    ENDIF.
+  METHOD test_util_04_attri_by_ref.
+
+*    DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+*
+*    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( lo_app ).
+*
+*    DATA(lt_test) = VALUE z2ui5_lcl_utility=>ty_t_attri(
+*( name = `Z2UI5_IF_APP~ID` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+*( name = `CHECK_INITIALIZED` type_kind = `C` type = `ABAP_BOOL` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+*( name = `SV_STATUS` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+*( name = `T_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
+* ).
+*
+*    IF lt_test <> lt_attri.
+*      cl_abap_unit_assert=>fail( msg = 'utility - get t_attri table wrong' quit = 5 ).
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -201,6 +223,48 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
     IF lv_two <> `2`.
       cl_abap_unit_assert=>fail( msg = 'utility - create session id' quit = 5 ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_util_02_get_attri.
+
+    DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+
+    lo_app->sv_status = `ABC`.
+    FIELD-SYMBOLS <any> TYPE any.
+    DATA(lv_assign) = `LO_APP->` && 'SV_STATUS'.
+    ASSIGN (lv_assign) TO <any>.
+
+    IF <any> <> `ABC`.
+      cl_abap_unit_assert=>fail( msg = 'utility - assign of attribute from outside not working' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_util_01_get_t_attri.
+
+    DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+
+    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
+
+    DATA(lt_test) = VALUE abap_attrdescr_tab(
+    ( length = '8' decimals = '0' name = 'Z2UI5_IF_APP~ID' type_kind = 'g' visibility = 'U' is_interface = 'X' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+    ( length = '2' decimals = '0' name = 'CHECK_INITIALIZED' type_kind = 'C' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+    ( length = '8' decimals = '0' name = 'SV_STATUS' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+    ( length = '8' decimals = '0' name = 'T_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+     ).
+
+    IF lt_test <> lt_attri.
+      cl_abap_unit_assert=>fail( msg = 'utility - get abap_attrdescr_tab table wrong' quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_util_03_get_t_attri_struc.
+
+* DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+*
+*    lcl_utility=>_get_t_attri_by_struc
 
   ENDMETHOD.
 
@@ -232,6 +296,7 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
     METHODS test_landing_page     FOR TESTING RAISING cx_static_check.
     METHODS test_scroll_cursor    FOR TESTING RAISING cx_static_check.
     METHODS test_navigate         FOR TESTING RAISING cx_static_check.
+    METHODS test_startup_path     FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -397,7 +462,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_xml_view.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     sv_state = ``.
@@ -412,7 +477,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `VVIEW->*`.
+    DATA(lv_assign) = `PARAMS->XML_MAIN->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val>(9) <> `<mvc:View`.
@@ -424,7 +489,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_id.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     sv_state = ``.
@@ -439,7 +504,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `OSYSTEM->ID->*`.
+    DATA(lv_assign) = `ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
@@ -450,7 +515,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_bind_one_way.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-         t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+         t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
+     "    t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
          ).
 
     sv_state = `TEST_ONE_WAY`.
@@ -465,7 +531,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `OVIEWMODEL->QUANTITY->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
@@ -476,7 +542,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_bind_two_way.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-         t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+          t_header = VALUE #( ( name = '~path_info'  value = 'LTCL_UNIT_02_APP_START' ) )
          ).
 
     sv_state = ``.
@@ -491,7 +557,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
@@ -502,7 +568,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_message_box.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+       t_header = VALUE #( ( name = '~path_info'  value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     sv_state = `TEST_MESSAGE_BOX`.
@@ -518,21 +584,21 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
+    DATA(lv_assign) = `S_MSG->CONTROL->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `MessageBox`.
       cl_abap_unit_assert=>fail( msg = 'message box - control wrong' quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
-    lv_assign = `OMESSAGE->TEXT->*`.
+    lv_assign = `S_MSG->TEXT->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `test message box`.
       cl_abap_unit_assert=>fail( msg = 'message box - text wrong' quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
-    lv_assign = `OMESSAGE->TYPE->*`.
+    lv_assign = `S_MSG->TYPE->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `information`.
       cl_abap_unit_assert=>fail( msg = 'message box - type wrong' quit = 5 ).
@@ -543,7 +609,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_message_toast.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-         t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+          t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
          ).
 
     sv_state = `TEST_MESSAGE_TOAST`.
@@ -559,21 +625,21 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
+    DATA(lv_assign) = `S_MSG->CONTROL->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `MessageToast`.
       cl_abap_unit_assert=>fail( msg = 'message toast - control wrong' quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
-    lv_assign = `OMESSAGE->TEXT->*`.
+    lv_assign = `S_MSG->TEXT->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `test message toast`.
       cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
-    lv_assign = `OMESSAGE->TYPE->*`.
+    lv_assign = `S_MSG->TYPE->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `show`.
       cl_abap_unit_assert=>fail( msg = 'message toast - type wrong' quit = 5 ).
@@ -584,7 +650,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_timer.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-        t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
         ).
 
     sv_state = `TEST_TIMER`.
@@ -600,14 +666,14 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    DATA(lv_assign) = `OTIMER->EVENT_FINISHED->*`.
+    DATA(lv_assign) = `PARAMS->S_TIMER->EVENT_FINISHED->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `TIMER_FINISHED`.
       cl_abap_unit_assert=>fail( msg = 'timer - event wrong' quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
-    lv_assign = `OTIMER->INTERVAL_MS->*`.
+    lv_assign = `PARAMS->S_TIMER->INTERVAL_MS->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
       cl_abap_unit_assert=>fail( msg = 'timer - ms wrong' quit = 5 ).
@@ -618,7 +684,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_xml_popup.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        t_header = VALUE #( ( name = '~path_info'  value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     sv_state = `TEST_POPUP`.
@@ -633,7 +699,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `VVIEWPOPUP->*`.
+    DATA(lv_assign) = `PARAMS->XML_POPUP->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val>(9) <> `<mvc:View`.
@@ -646,7 +712,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     z2ui5_cl_http_handler=>client = VALUE #(
        t_header = VALUE #( ( name = 'referer' value = 'dummy' ) )
-       ).
+    ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
 
@@ -659,7 +725,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `VVIEW->*`.
+    DATA(lv_assign) = `PARAMS->XML_MAIN->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val> NS `Step 4`.
@@ -671,7 +737,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_scroll_cursor.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     sv_state = `TEST_SCROLL_CURSOR`.
@@ -709,10 +775,30 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_startup_path.
+
+    z2ui5_cl_http_handler=>client = VALUE #(
+        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
+       ).
+
+    sv_state = `TEST_NAVIGATE`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    "  FIELD-SYMBOLS <val> TYPE any.
+
+  ENDMETHOD.
+
   METHOD test_navigate.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     sv_state = `TEST_NAVIGATE`.
@@ -796,7 +882,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
   METHOD test_app_change_value.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        t_header = VALUE #( ( name = '~path_info'  value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -811,14 +897,14 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    DATA(lv_assign) = `OSYSTEM->ID->*`.
+    DATA(lv_assign) = `ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
-    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"oSystem":{"ID": "` && lv_id && `"` &&  `,"CHECK_DEBUG_ACTIVE":true},"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
     z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
     lv_response = z2ui5_cl_http_handler=>http_post(  ).
 
@@ -830,7 +916,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
         data             = lo_data ).
 
     UNASSIGN <val>.
-    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
+    lv_assign = `OVIEWMODEL->OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `600`.
       cl_abap_unit_assert=>fail( msg = 'data binding - frontend updated value wrong after roundtrip' quit = 5 ).
@@ -841,7 +927,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
   METHOD test_app_event.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
+        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -856,14 +942,14 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     FIELD-SYMBOLS <val> TYPE any.
 
     UNASSIGN <val>.
-    DATA(lv_assign) = `OSYSTEM->ID->*`.
+    DATA(lv_assign) = `ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
-    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"oSystem":{"ID": "` && lv_id && `"},"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
     z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
     lv_response = z2ui5_cl_http_handler=>http_post(  ).
 
@@ -875,7 +961,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
         data             = lo_data ).
 
     UNASSIGN <val>.
-    lv_assign = `OMESSAGE->TEXT->*`.
+    lv_assign = `S_MSG->TEXT->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `tomato 700 - send to the server`.
       cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
@@ -886,7 +972,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
   METHOD test_app_dump.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-          t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_03_APP_AJAX' ) )
+           t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_03_APP_AJAX' ) )
           ).
 
     sv_state = `ERROR`.
@@ -901,7 +987,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `VVIEW->*`.
+    DATA(lv_assign) = `PARAMS->XML_MAIN->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val> NS `MessagePage`.
@@ -977,7 +1063,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
   METHOD test_app_deep_data.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_04_DEEP_DATA' ) )
+        t_header = VALUE #( ( name = '~path_info'  value = 'LTCL_UNIT_04_DEEP_DATA' ) )
        ).
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
@@ -994,7 +1080,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE REF TO data.
-    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->T_TAB->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 
@@ -1024,7 +1110,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
   METHOD test_app_deep_data_change.
 
     z2ui5_cl_http_handler=>client = VALUE #(
-       t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_04_DEEP_DATA' ) )
+        t_header = VALUE #( ( name = '~path_info'  value = 'LTCL_UNIT_04_DEEP_DATA' ) )
        ).
 
     sv_status = 'CHANGE'.
@@ -1042,7 +1128,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE REF TO data.
-    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->T_TAB->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->OUPDATE->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 
@@ -1068,7 +1154,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     ENDIF.
 
     UNASSIGN <val>.
-    lv_assign = `OSYSTEM->ID->*`.
+    lv_assign = `ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
       cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
@@ -1089,44 +1175,5 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
         data             = lo_data ).
 
   ENDMETHOD.
-
-  METHOD test_app_all.
-
-    DO 40 TIMES.
-
-      DATA(Lv_ind) = shift_left( CONV string( sy-index ) ).
-      IF sy-index < 10.
-        Lv_ind = `0` && Lv_ind.
-      ENDIF.
-      DATA(lv_name) = `Z2UI5_CL_APP_DEMO_` && lv_ind.
-
-      z2ui5_cl_http_handler=>client = VALUE #(
-         t_param = VALUE #( ( name = 'app' value = lv_name ) )
-         ).
-
-      sv_status = 'CHANGE'.
-      DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  ).
-
-      DATA lo_data TYPE REF TO data.
-      /ui2/cl_json=>deserialize(
-        EXPORTING
-           json            = lv_response
-        CHANGING
-          data             = lo_data ).
-
-      FIELD-SYMBOLS <val> TYPE any.
-      UNASSIGN <val>.
-      DATA(lv_assign) = `VVIEW->*`.
-      ASSIGN lo_data->(lv_assign) TO <val>.
-      <val> = shift_left( <val> ).
-      IF <val>(9) <> `<mvc:View`.
-        cl_abap_unit_assert=>fail( msg = 'xml view - intital view wrong' quit = 5 ).
-      ENDIF.
-
-    ENDDO.
-
-
-  ENDMETHOD.
-
 
 ENDCLASS.

@@ -118,16 +118,18 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(result) TYPE string.
 
-  PROTECTED SECTION.
-
-    CLASS-DATA mv_counter TYPE i.
-
-    CLASS-METHODS _get_t_attri
+    CLASS-METHODS _get_t_attri_by_struc
       IMPORTING
         io_app        TYPE REF TO object
         iv_attri      TYPE csequence
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
+
+
+  PROTECTED SECTION.
+
+    CLASS-DATA mv_counter TYPE i.
+
 
   PRIVATE SECTION.
 
@@ -276,7 +278,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
       DELETE lt_attri INDEX sy-tabix.
 
-      INSERT LINES OF _get_t_attri(
+      INSERT LINES OF _get_t_attri_by_struc(
         io_app = io_app
         iv_attri = ls_attri-name ) INTO TABLE lt_attri.
 
@@ -302,7 +304,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _get_t_attri.
+  METHOD _get_t_attri_by_struc.
 
     CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
     FIELD-SYMBOLS <attribute> TYPE any.
@@ -319,7 +321,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       DATA(lv_element) = iv_attri && `-` && lr_comp->name.
 
       IF lr_comp->as_include = abap_true.
-        INSERT LINES OF _get_t_attri( io_app   = io_app
+        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
                                       iv_attri = lv_element ) INTO TABLE result.
 
       ELSE.
@@ -947,6 +949,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_home-btn_event_id = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
       ms_home-btn_icon = `sap-icon://validate`.
+      ms_home-classname = `z2ui5_cl_app_hello_world`.
     ELSE.
       mv_view_name = 'ERROR'.
     ENDIF.
@@ -1053,16 +1056,19 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
-    DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
-    REPLACE lv_path_info IN lv_url WITH ``.
-    SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
+    TRY.
+        DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
+        DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
+        REPLACE lv_path_info IN lv_url WITH ``.
+        SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
 
-    SHIFT lv_url RIGHT DELETING TRAILING `/`.
-    DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
-    IF lv_params IS NOT INITIAL.
-      lv_link = lv_link  && `?` && lv_params.
-    ENDIF.
+        SHIFT lv_url RIGHT DELETING TRAILING `/`.
+        DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
+        IF lv_params IS NOT INITIAL.
+          lv_link = lv_link  && `?` && lv_params.
+        ENDIF.
+      CATCH cx_root.
+    ENDTRY.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1085,33 +1091,37 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                         `  text="GitHub" ` && |\n|  &&
                         `  target="_blank" ` && |\n|  &&
                         `  href="https://github.com/oblomov-dev/abap2ui5" ` && |\n|  &&
-                        ` /></headerContent> <l:Grid ` && |\n|  &&
-                        `  defaultSpan="XL7 L7 M12 S12" ` && |\n|  &&
-                        ` > <l:content ` && |\n|  &&
-                        ` > <f:SimpleForm ` && |\n|  &&
-                        `  title="Quick Start" ` && |\n|  &&
-                        `  layout="ResponsiveGridLayout" ` && |\n|  &&
-                        `  editable="true" ` && |\n|  &&
-                        ` > <f:content ` && |\n|  &&
-                        ` > <Label ` && |\n|  &&
-                        `  text="Step 1" ` && |\n|  &&
-                        ` /> <Text ` && |\n|  &&
-                        `  text="Create a global class in your abap system" ` && |\n|  &&
-                        ` /> <Label ` && |\n|  &&
-                        `  text="Step 2" ` && |\n|  &&
-                        ` /> <Text ` && |\n|  &&
-                        `  text="Add the interface: Z2UI5_IF_APP" ` && |\n|  &&
-                        ` /> <Label ` && |\n|  &&
-                        `  text="Step 3" ` && |\n|  &&
-                        ` /> <Text ` && |\n|  &&
-                        `  text="Define view, implement behaviour" ` && |\n|  &&
-                        ` /> <Link ` && |\n|  &&
-                        `  text="(Example)" ` && |\n|  &&
-                        `  target="_blank" ` && |\n|  &&
-                        `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/00/z2ui5_cl_app_demo_01.clas.abap" ` && |\n|  &&
-                        ` /> <Label ` && |\n|  &&
-                        `  text="Step 4" ` && |\n|  &&
-                        ` /> `.
+                        ` /></headerContent>`.
+
+
+
+    lv_xml_main = lv_xml_main && ` <l:Grid ` && |\n|  &&
+    `  defaultSpan="XL7 L7 M12 S12" ` && |\n|  &&
+    ` > <l:content ` && |\n|  &&
+    ` > <f:SimpleForm ` && |\n|  &&
+    `  title="Quick Start" ` && |\n|  &&
+    `  layout="ResponsiveGridLayout" ` && |\n|  &&
+    `  editable="true" ` && |\n|  &&
+    ` > <f:content ` && |\n|  &&
+    ` > <Label ` && |\n|  &&
+    `  text="Step 1" ` && |\n|  &&
+    ` /> <Text ` && |\n|  &&
+    `  text="Create a global class in your abap system" ` && |\n|  &&
+    ` /> <Label ` && |\n|  &&
+    `  text="Step 2" ` && |\n|  &&
+    ` /> <Text ` && |\n|  &&
+    `  text="Add the interface: Z2UI5_IF_APP" ` && |\n|  &&
+    ` /> <Label ` && |\n|  &&
+    `  text="Step 3" ` && |\n|  &&
+    ` /> <Text ` && |\n|  &&
+    `  text="Define view, implement behaviour" ` && |\n|  &&
+    ` /> <Link ` && |\n|  &&
+    `  text="(Example)" ` && |\n|  &&
+    `  target="_blank" ` && |\n|  &&
+    `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap" ` && |\n|  &&
+    ` /> <Label ` && |\n|  &&
+    `  text="Step 4" ` && |\n|  &&
+    ` /> `.
 
     IF ms_home-class_editable = abap_true.
       lv_xml_main = lv_xml_main &&   `<Input ` && |\n|  &&
@@ -1125,6 +1135,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     ENDIF.
 
+
     lv_xml_main = lv_xml_main &&  `<Button ` && |\n|  &&
        `  press="`  && client->_event( ms_home-btn_event_id ) && `" ` && |\n|  &&
        `  text="` && ms_home-btn_text && `" ` && |\n|  &&
@@ -1136,14 +1147,33 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        `  target="_blank" ` && |\n|  &&
        `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n|  &&
        `  enabled="` && z2ui5_lcl_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n|  &&
-       ` /></f:content></f:SimpleForm> <f:SimpleForm ` && |\n|  &&
-       `  title="Demo Section" ` && |\n|  &&
-       `  layout="ResponsiveGridLayout" ` && |\n|  &&
-       ` > <f:content ` && |\n|  &&
-       ` > <Button ` && |\n|  &&
-       `  press="` && client->_event( `DEMOS` ) && `" ` && |\n|  &&
-       `  text="Continue..." ` && |\n|  &&
-       ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
+       ` /></f:content></f:SimpleForm>`.
+
+
+
+    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n|  &&
+   `  title="Demo Section" ` && |\n|  &&
+   `  layout="ResponsiveGridLayout" ` && |\n|  &&
+   ` >`.
+
+    DATA li_app TYPE REF TO z2ui5_if_app.
+    TRY.
+        CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+        DATA(lv_check_demo) = abap_true.
+      CATCH cx_root.
+        lv_check_demo = abap_false.
+    ENDTRY.
+    IF lv_check_demo = abap_false.
+      lv_xml_main = lv_xml_main && `<MessageStrip text="The abap2UI5 demos aren't ready! Make sure to install this additional demo repository." type="Warning" > <link> ` &&
+         `   <Link text="(LINK)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
+      `  </link> </MessageStrip>`.
+    ENDIF.
+
+    lv_xml_main = lv_xml_main && ` <f:content ` && |\n|  &&
+    ` > <Label/><Button ` && |\n|  &&
+    `  press="` && client->_event( `DEMOS` ) && `" ` && |\n|  &&
+    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n|  &&
+    ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
     client->set_next( VALUE #( xml_main = lv_xml_main ) ).
 
@@ -1253,7 +1283,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     mo_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ).
 
     TRY.
-*        DATA(lv_id_prev) = mo_body->get_attribute( `OSYSTEM` )->get_attribute( `ID` )->get_val( ).
         DATA(lv_id_prev) = mo_body->get_attribute( `ID` )->get_val( ).
       CATCH cx_root.
         result = set_app_start( ).
@@ -1366,6 +1395,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     TRY.
         result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
         result->ms_actual-event_data = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
+        result->ms_actual-event_data2 = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData2` )->get_val( ).
+        result->ms_actual-event_data3 = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData3` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1382,8 +1413,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_start.
 
-    DATA lo_object TYPE REF TO object.
-
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
@@ -1396,13 +1425,19 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
     SHIFT lv_classname LEFT DELETING LEADING `/`.
 
-    IF lv_Classname IS INITIAL.
+    IF lv_classname IS INITIAL.
       result = result->set_app_system( ).
       RETURN.
     ENDIF.
 
     TRY.
-        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+
+        TRY.
+            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+          CATCH cx_root.
+            SPLIT lv_classname AT `/` INTO lv_classname lv_dummy.
+            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+        ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
         RETURN.
@@ -1676,6 +1711,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
          event             = mo_handler->ms_actual-event
          event_data        = mo_handler->ms_actual-event_data
+         event_data2       = mo_handler->ms_actual-event_data2
+         event_data3       = mo_handler->ms_actual-event_data3
          t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
          t_req_header      = z2ui5_cl_http_handler=>client-t_header
          t_req_param       = z2ui5_cl_http_handler=>client-t_param
@@ -1719,19 +1756,26 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    "  IF data IS INITIAL.
-    "    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
-    "  ELSE.
-
     IF data IS INITIAL.
       DATA(lv_data) = `''`.
     ELSE.
       lv_data = data.
     ENDIF.
 
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && lv_data && ` , `
-      && z2ui5_lcl_utility=>get_json_boolean( hold_view ) && ` )`.
-    "  ENDIF.
+       IF data2 IS INITIAL.
+      DATA(lv_data2) = `''`.
+    ELSE.
+      lv_data2 = data2.
+    ENDIF.
+
+       IF data3 IS INITIAL.
+      DATA(lv_data3) = `''`.
+    ELSE.
+      lv_data3 = data3.
+    ENDIF.
+
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && z2ui5_lcl_utility=>get_json_boolean( hold_view )
+      &&  ` , ` && lv_data &&  ` , ` && lv_data2 && ` , ` && lv_data3 && ` )`.
 
   ENDMETHOD.
 
