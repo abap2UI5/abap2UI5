@@ -1429,7 +1429,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     TRY.
-        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+
+        TRY.
+            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+          CATCH cx_root.
+            SPLIT lv_classname AT `/` INTO lv_classname lv_dummy.
+            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+        ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
         RETURN.
