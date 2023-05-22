@@ -1054,11 +1054,19 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
-    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+    TRY.
+        DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
+        DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
+        REPLACE lv_path_info IN lv_url WITH ``.
+        SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
 
-    SHIFT lv_url RIGHT DELETING TRAILING `/`.
-    DATA(lv_link) = lv_url && `/` && ms_home-classname.
+        SHIFT lv_url RIGHT DELETING TRAILING `/`.
+        DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
+        IF lv_params IS NOT INITIAL.
+          lv_link = lv_link  && `?` && lv_params.
+        ENDIF.
+      CATCH cx_root.
+    ENDTRY.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1273,7 +1281,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     mo_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ).
 
     TRY.
-*        DATA(lv_id_prev) = mo_body->get_attribute( `OSYSTEM` )->get_attribute( `ID` )->get_val( ).
         DATA(lv_id_prev) = mo_body->get_attribute( `ID` )->get_val( ).
       CATCH cx_root.
         result = set_app_start( ).
@@ -1402,65 +1409,35 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_start.
 
-    DATA lo_object TYPE REF TO object.
+DATA lo_object TYPE REF TO object.
 
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-    DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-    lv_path = to_upper( lv_path ).
+    TRY.
+        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+      CATCH cx_root.
+    ENDTRY.
 
-    SPLIT lv_path AT `/` INTO TABLE DATA(lt_tab).
-    DELETE lt_tab WHERE table_line IS INITIAL.
+    SPLIT lv_path_info AT `?` INTO lv_path_info DATA(lv_dummy).
+    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
+    SHIFT lv_classname LEFT DELETING LEADING `/`.
 
-    LOOP AT lt_tab INTO DATA(lr_path).
-      TRY.
-          lr_path = z2ui5_lcl_utility=>get_trim_upper( lr_path ).
-          IF lr_path(1) <> `Z` AND lr_path(1) <> 'Y'.
-            DELETE lt_tab.
-            CONTINUE.
-          ENDIF.
-        CATCH cx_root.
-      ENDTRY.
-    ENDLOOP.
+    IF lv_Classname IS INITIAL.
+      result = result->set_app_system( ).
+      RETURN.
+    ENDIF.
 
+    TRY.
+        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+        result->ms_db-o_app->id = result->ms_db-id.
+        result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+        RETURN.
 
-    DATA(lv_index) = lines( lt_tab ).
-    DO.
-      TRY.
-          DATA(lv_classname) = lt_tab[ lv_index ].
-        CATCH cx_root.
-          EXIT.
-      ENDTRY.
-
-      IF lv_classname CP `?`.
-        SPLIT lv_classname AT `?` INTO lv_classname DATA(lv_dummy).
-      ENDIF.
-
-      TRY.
-          CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-          result->ms_db-o_app->id = result->ms_db-id.
-          result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
-          RETURN.
-
-        CATCH cx_root.
-      ENDTRY.
-
-      TRY.
-          lv_classname = VALUE #( lt_tab[ lv_index + 1 ] OPTIONAL ).
-          IF lv_classname IS NOT INITIAL.
-            result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
-          ELSE.
-            result = result->set_app_system( ).
-          ENDIF.
-
-        CATCH cx_root.
-          ASSERT 1 = 0.
-      ENDTRY.
-
-      lv_index = lv_index - 1.
-    ENDDO.
-
+      CATCH cx_root.
+        result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
+        RETURN.
+    ENDTRY.
 
   ENDMETHOD.
 
