@@ -12,6 +12,8 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_get,
       event             TYPE string,
       event_data        TYPE string,
+      event_data2       TYPE string,
+      event_data3       TYPE string,
       id                TYPE string,
       id_prev           TYPE string,
       id_prev_app       TYPE string,
@@ -93,6 +95,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE clike
       data          TYPE clike OPTIONAL
+      data2         TYPE clike OPTIONAL
+      data3         TYPE clike OPTIONAL
       hold_view     TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result) TYPE string.
