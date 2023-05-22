@@ -1711,6 +1711,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
          event             = mo_handler->ms_actual-event
          event_data        = mo_handler->ms_actual-event_data
+         event_data2       = mo_handler->ms_actual-event_data2
+         event_data3       = mo_handler->ms_actual-event_data3
          t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
          t_req_header      = z2ui5_cl_http_handler=>client-t_header
          t_req_param       = z2ui5_cl_http_handler=>client-t_param
