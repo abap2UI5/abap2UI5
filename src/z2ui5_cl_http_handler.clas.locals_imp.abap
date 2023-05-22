@@ -1054,19 +1054,16 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    TRY.
-        DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
-        DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
-        REPLACE lv_path_info IN lv_url WITH ``.
-        SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
+    DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
+    DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
+    REPLACE lv_path_info IN lv_url WITH ``.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
 
-        SHIFT lv_url RIGHT DELETING TRAILING `/`.
-        DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
-        IF lv_params IS NOT INITIAL.
-          lv_link = lv_link  && `?` && lv_params.
-        ENDIF.
-      CATCH cx_root.
-    ENDTRY.
+    SHIFT lv_url RIGHT DELETING TRAILING `/`.
+    DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
+    IF lv_params IS NOT INITIAL.
+      lv_link = lv_link  && `?` && lv_params.
+    ENDIF.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1409,7 +1406,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_start.
 
-DATA lo_object TYPE REF TO object.
+    DATA lo_object TYPE REF TO object.
 
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
