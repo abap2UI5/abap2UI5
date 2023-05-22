@@ -1395,6 +1395,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     TRY.
         result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
         result->ms_actual-event_data = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
+        result->ms_actual-event_data2 = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData2` )->get_val( ).
+        result->ms_actual-event_data3 = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData3` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1752,19 +1754,26 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    "  IF data IS INITIAL.
-    "    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } )`.
-    "  ELSE.
-
     IF data IS INITIAL.
       DATA(lv_data) = `''`.
     ELSE.
       lv_data = data.
     ENDIF.
 
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && lv_data && ` , `
-      && z2ui5_lcl_utility=>get_json_boolean( hold_view ) && ` )`.
-    "  ENDIF.
+       IF data2 IS INITIAL.
+      DATA(lv_data2) = `''`.
+    ELSE.
+      lv_data2 = data2.
+    ENDIF.
+
+       IF data3 IS INITIAL.
+      DATA(lv_data3) = `''`.
+    ELSE.
+      lv_data3 = data3.
+    ENDIF.
+
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && z2ui5_lcl_utility=>get_json_boolean( hold_view )
+      &&  ` , ` && lv_data &&  ` , ` && lv_data2 && ` , ` && lv_data3 && ` )` .
 
   ENDMETHOD.
 

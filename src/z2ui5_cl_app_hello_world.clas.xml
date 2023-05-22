@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_APP_HELLO_WORLD</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - hello world example</DESCRIPT>
+    <DESCRIPT>abap2UI5 - hello world demo</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

@@ -107,7 +107,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
                            |\n|  &&
-                           `            onEvent: function (oEvent, vData, isHoldView) {` && |\n|  &&
+                           `            onEvent: function (oEvent, isHoldView, vData , vData2 , vData3 ) {` && |\n|  &&
                            |\n|  &&
                            `                if (!window.navigator.onLine) {` && |\n|  &&
                            `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
@@ -141,6 +141,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                this.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
                            `                this.oBody.oEvent = oEvent;` && |\n|  &&
                            `                this.oBody.oEvent.vData = vData;` && |\n|  &&
+                           `                this.oBody.oEvent.vData2 = vData2;` && |\n|  &&
+                           `                this.oBody.oEvent.vData3 = vData3;` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                    console.log('Request Object:');` && |\n|  &&
@@ -173,7 +175,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        console.log(sap.z2ui5.oResponse);` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.PARAMS.XML_VIEW !== '' ) {` && |\n|  &&
                            `                            console.log('UI5-XML-View:');` && |\n|  &&
-                           `                            console.log(sap.z2ui5.oResponse.PARAMS.XML_VIEW);` && |\n|  &&
+                           `                            console.log(sap.z2ui5.oResponse.PARAMS.XML_MAIN);` && |\n|  &&
                            `                        }` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.PARAMS.XML_POPUP !== '' ) {` && |\n|  &&
                            `                            console.log('UI5-XML-Popup:');` && |\n|  &&
