@@ -1387,15 +1387,19 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-    DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+    TRY.
+        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+      CATCH cx_root.
+    ENDTRY.
     SPLIT lv_path_info AT `?` INTO lv_path_info DATA(lv_dummy).
-    SPLIT lv_path_info AT `/` INTO lv_path_info DATA(lv_dummy2).
     DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
 
     IF lv_Classname IS INITIAL.
       result = result->set_app_system( ).
       RETURN.
     ENDIF.
+
+    SPLIT lv_path_info AT `/` INTO lv_path_info DATA(lv_dummy2).
 
     TRY.
         CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
