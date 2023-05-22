@@ -1164,7 +1164,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         lv_check_demo = abap_false.
     ENDTRY.
     IF lv_check_demo = abap_false.
-      lv_xml_main = lv_xml_main && `<MessageStrip text="Oh no! The abap2UI5 demos are not ready! Install additionally this demo repository." type="Warning" > <link> ` &&
+      lv_xml_main = lv_xml_main && `<MessageStrip text="The abap2UI5 demos aren't ready! Make sure to install this additional demo repository." type="Warning" > <link> ` &&
          `   <Link text="(LINK)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
       `  </link> </MessageStrip>`.
     ENDIF.
