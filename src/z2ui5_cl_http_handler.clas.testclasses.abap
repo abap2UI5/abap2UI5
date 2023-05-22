@@ -21,9 +21,10 @@ CLASS ltcl_unit_01_utility DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
 
     METHODS test_util_uuid_session  FOR TESTING RAISING cx_static_check.
-    METHODS test_util_attri_by_ref_03  FOR TESTING RAISING cx_static_check.
-    METHODS test_util_get_t_attri_01  FOR TESTING RAISING cx_static_check.
-    METHODS test_util_get_attri_02  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_04_attri_by_ref  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_01_get_t_attri  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_03_get_t_attri_struc  FOR TESTING RAISING cx_static_check.
+    METHODS test_util_02_get_attri  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -190,7 +191,7 @@ ENDCLASS.
 CLASS ltcl_unit_01_utility IMPLEMENTATION.
 
 
-  METHOD test_util_attri_by_ref_03.
+  METHOD test_util_04_attri_by_ref.
 
     DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
 
@@ -225,7 +226,7 @@ CLASS ltcl_unit_01_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_util_get_attri_02.
+  METHOD test_util_02_get_attri.
 
     DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
 
@@ -240,7 +241,7 @@ CLASS ltcl_unit_01_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_util_get_t_attri_01.
+  METHOD test_util_01_get_t_attri.
 
     DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
 
@@ -256,6 +257,14 @@ CLASS ltcl_unit_01_utility IMPLEMENTATION.
     IF lt_test <> lt_attri.
       cl_abap_unit_assert=>fail( msg = 'utility - get abap_attrdescr_tab table wrong' quit = 5 ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_util_03_get_t_attri_struc.
+
+*  DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
+*
+*    lcl_utility=>_get_t_attri_by_struc
 
   ENDMETHOD.
 

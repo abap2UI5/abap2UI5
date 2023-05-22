@@ -118,16 +118,18 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING
         VALUE(result) TYPE string.
 
-  PROTECTED SECTION.
-
-    CLASS-DATA mv_counter TYPE i.
-
-    CLASS-METHODS _get_t_attri
+    CLASS-METHODS _get_t_attri_by_struc
       IMPORTING
         io_app        TYPE REF TO object
         iv_attri      TYPE csequence
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
+
+
+  PROTECTED SECTION.
+
+    CLASS-DATA mv_counter TYPE i.
+
 
   PRIVATE SECTION.
 
@@ -276,7 +278,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
       DELETE lt_attri INDEX sy-tabix.
 
-      INSERT LINES OF _get_t_attri(
+      INSERT LINES OF _get_t_attri_by_struc(
         io_app = io_app
         iv_attri = ls_attri-name ) INTO TABLE lt_attri.
 
@@ -302,7 +304,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _get_t_attri.
+  METHOD _get_t_attri_by_struc.
 
     CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
     FIELD-SYMBOLS <attribute> TYPE any.
@@ -319,7 +321,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       DATA(lv_element) = iv_attri && `-` && lr_comp->name.
 
       IF lr_comp->as_include = abap_true.
-        INSERT LINES OF _get_t_attri( io_app   = io_app
+        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
                                       iv_attri = lv_element ) INTO TABLE result.
 
       ELSE.
