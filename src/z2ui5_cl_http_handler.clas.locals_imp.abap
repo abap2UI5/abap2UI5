@@ -1391,6 +1391,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
       CATCH cx_root.
     ENDTRY.
+   
     SPLIT lv_path_info AT `?` INTO lv_path_info DATA(lv_dummy).
     DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
 
@@ -1398,7 +1399,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       result = result->set_app_system( ).
       RETURN.
     ENDIF.
-
+    
+    shift lv_path_info left deleting leading `/`.
     SPLIT lv_path_info AT `/` INTO lv_path_info DATA(lv_dummy2).
 
     TRY.
