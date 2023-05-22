@@ -1053,11 +1053,16 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
-    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+    DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
+    DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
+    REPLACE lv_path_info IN lv_url WITH ``.
+    SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
 
     SHIFT lv_url RIGHT DELETING TRAILING `/`.
-    DATA(lv_link) = lv_url && `/` && ms_home-classname.
+    DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
+    IF lv_params IS NOT INITIAL.
+      lv_link = lv_link  && `?` && lv_params.
+    ENDIF.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n|  &&
@@ -1377,38 +1382,31 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_start.
 
+    DATA lo_object TYPE REF TO object.
+
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-    DATA(lv_classname) = ``.
-    DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-    lv_path = to_upper( lv_path ).
-    data lt_tab type string_table.
-    split lv_path at `/` into table lt_tab.
-    lv_classname = lt_tab[ lines( lt_tab ) ].
-    data(lv_test) = lt_tab[ lines( lt_tab ) - 1 ].
+    DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+    SPLIT lv_path_info AT `?` INTO lv_path_info DATA(lv_dummy).
+    SPLIT lv_path_info AT `/` INTO lv_path_info DATA(lv_dummy2).
+    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
 
-*    DATA(lv_origin) = z2ui5_lcl_utility=>get_header_val( 'origin' ).
-*    DATA(lv_referer) = z2ui5_lcl_utility=>get_header_val( 'referer' ).
-*    REPLACE lv_origin IN lv_referer WITH ``.
-*    REPLACE lv_path IN lv_referer WITH ``.
-*    SPLIT lv_referer AT `/` INTO lv_classname DATA(lv_dummy).
-    IF lv_classname IS NOT INITIAL AND lv_classname(1) <> `?` and ( lv_test(1) = `Z` or lv_test(1) = `Y` ).
-      lv_classname = to_upper( lv_classname ).
-    ELSE.
+    IF lv_Classname IS INITIAL.
       result = result->set_app_system( ).
       RETURN.
     ENDIF.
 
     TRY.
         CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+        result->ms_db-o_app->id = result->ms_db-id.
+        result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+        RETURN.
+
       CATCH cx_root.
         result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
         RETURN.
     ENDTRY.
-
-    result->ms_db-o_app->id = result->ms_db-id.
-    result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
 
   ENDMETHOD.
 
