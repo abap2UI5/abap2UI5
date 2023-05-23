@@ -28,6 +28,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -36,39 +37,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
-
-
-  METHOD http_post.
-
-    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin(  ).
-
-    DO.
-      TRY.
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
-          ROLLBACK WORK.
-
-          IF lo_handler->ms_next-check_app_leave IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_leave( ).
-            CONTINUE.
-          ENDIF.
-
-          IF lo_handler->ms_next-o_call_app IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_call( ).
-            CONTINUE.
-          ENDIF.
-
-          result = lo_handler->request_end( ).
-
-        CATCH cx_root INTO DATA(x).
-          lo_handler = lo_handler->set_app_system( x ).
-          CONTINUE.
-      ENDTRY.
-
-      EXIT.
-    ENDDO.
-
-  ENDMETHOD.
 
 
   METHOD http_get.
@@ -140,7 +108,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
                            |\n|  &&
-                           `            onEvent: function (oEvent, vData, isHoldView) {` && |\n|  &&
+                           `            onEvent: function (oEvent, isHoldView, vData , vData2 , vData3 ) {` && |\n|  &&
                            |\n|  &&
                            `                if (!window.navigator.onLine) {` && |\n|  &&
                            `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
@@ -174,6 +142,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                this.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
                            `                this.oBody.oEvent = oEvent;` && |\n|  &&
                            `                this.oBody.oEvent.vData = vData;` && |\n|  &&
+                           `                this.oBody.oEvent.vData2 = vData2;` && |\n|  &&
+                           `                this.oBody.oEvent.vData3 = vData3;` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                    console.log('Request Object:');` && |\n|  &&
@@ -206,7 +176,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        console.log(sap.z2ui5.oResponse);` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.PARAMS.XML_VIEW !== '' ) {` && |\n|  &&
                            `                            console.log('UI5-XML-View:');` && |\n|  &&
-                           `                            console.log(sap.z2ui5.oResponse.PARAMS.XML_VIEW);` && |\n|  &&
+                           `                            console.log(sap.z2ui5.oResponse.PARAMS.XML_MAIN);` && |\n|  &&
                            `                        }` && |\n|  &&
                            `                        if (sap.z2ui5.oResponse.PARAMS.XML_POPUP !== '' ) {` && |\n|  &&
                            `                            console.log('UI5-XML-Popup:');` && |\n|  &&
@@ -318,6 +288,39 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
                            `</html>`.
+
+  ENDMETHOD.
+
+
+  METHOD http_post.
+
+    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin(  ).
+
+    DO.
+      TRY.
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
+          ROLLBACK WORK.
+
+          IF lo_handler->ms_next-check_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_leave( ).
+            CONTINUE.
+          ENDIF.
+
+          IF lo_handler->ms_next-o_call_app IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_call( ).
+            CONTINUE.
+          ENDIF.
+
+          result = lo_handler->request_end( ).
+
+        CATCH cx_root INTO DATA(x).
+          lo_handler = lo_handler->set_app_system( x ).
+          CONTINUE.
+      ENDTRY.
+
+      EXIT.
+    ENDDO.
 
   ENDMETHOD.
 ENDCLASS.
