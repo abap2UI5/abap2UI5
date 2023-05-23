@@ -28,6 +28,7 @@ Developing UI5 Apps in pure ABAP. Follow this project on [Twitter](https://twitt
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Static Analysis & Continuous Integration with abaplint [(abaplint.app/abap2UI5)](https://abaplint.app/stats/oblomov-dev/abap2UI5)
+* Check out the abap2UI5 demo repository [(github)](https://github.com/oblomov-dev/abap2UI5-demos)
 * Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Try abap2UI5 transpiled to JS running on open-abap under nodejs [(twitter - 19.04.2023)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
