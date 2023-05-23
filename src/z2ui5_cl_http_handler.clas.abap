@@ -28,6 +28,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 

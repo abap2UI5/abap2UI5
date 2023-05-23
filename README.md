@@ -1,6 +1,5 @@
 # abap2UI5
-Developing UI5 Apps in pure ABAP. Follow this project on [Twitter](https://twitter.com/OblomovDev)
- to keep up to date! 
+Developing UI5 Apps in pure ABAP - follow this project on [twitter](https://twitter.com/OblomovDev) to keep up to date and check out the demo [repository.](https://github.com/oblomov-dev/abap2UI5-demos)
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
@@ -14,7 +13,7 @@ Developing UI5 Apps in pure ABAP. Follow this project on [Twitter](https://twitt
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [low syntax branch](https://github.com/oblomov-dev/ABAP2UI5/tree/main_v702)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport branch](https://github.com/oblomov-dev/abap2UI5/blob/main_downport)
 
 #### Information (Blog Series)
 1. Introduction: Developing UI5 Apps in pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
