@@ -301,8 +301,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showclearicon   TYPE clike OPTIONAL
         showValueHelp   TYPE clike OPTIONAL
         suggestionitems TYPE clike OPTIONAL
+        tokenUpdate     TYPE clike OPTIONAL
         width           TYPE clike OPTIONAL
+        id              TYPE clike OPTIONAL
+        value           TYPE clike OPTIONAL
         tokens          TYPE clike OPTIONAL
+        submit          TYPE clike OPTIONAL
+        valueHelpRequest TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2088,7 +2093,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
             ( n = `showClearIcon` v = lcl_utility=>get_json_boolean( showclearicon ) )
             ( n = `showValueHelp` v = lcl_utility=>get_json_boolean( showvaluehelp ) )
             ( n = `suggestionItems` v = suggestionitems )
+            ( n = `tokenUpdate` v = tokenUpdate )
+            ( n = `submit` v = submit )
             ( n = `width` v = width )
+            ( n = `value` v = value )
+            ( n = `id` v = id )
+            ( n = `valueHelpRequest` v = valueHelpRequest )
     ) ).
 
   ENDMETHOD.
