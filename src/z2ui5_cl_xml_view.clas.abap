@@ -308,6 +308,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         tokens          TYPE clike OPTIONAL
         submit          TYPE clike OPTIONAL
         valueHelpRequest TYPE clike OPTIONAL
+        enabled        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -321,6 +322,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         text          TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
         visible       TYPE clike OPTIONAL
+        editable      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2092,6 +2094,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
             ( n = `tokens` v = tokens )
             ( n = `showClearIcon` v = lcl_utility=>get_json_boolean( showclearicon ) )
             ( n = `showValueHelp` v = lcl_utility=>get_json_boolean( showvaluehelp ) )
+            ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
             ( n = `suggestionItems` v = suggestionitems )
             ( n = `tokenUpdate` v = tokenUpdate )
             ( n = `submit` v = submit )
@@ -2691,6 +2694,7 @@ METHOD overflow_toolbar_menu_button.
             ( n = `text`     v = text )
             ( n = `selected` v = selected )
             ( n = `visible`  v = visible )
+            ( n = `editable`  v = editable )
     ) ).
 
   ENDMETHOD.
