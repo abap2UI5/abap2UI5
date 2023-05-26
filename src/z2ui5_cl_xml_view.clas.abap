@@ -343,6 +343,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showvaluehelp    TYPE clike OPTIONAL
         valuehelprequest TYPE clike OPTIONAL
         class            TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -1792,6 +1793,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            ( n = `description`      v = description )
            ( n = `editable`         v = lcl_utility=>get_json_boolean( editable ) )
            ( n = `enabled`          v = lcl_utility=>get_json_boolean( enabled ) )
+           ( n = `visible`          v = lcl_utility=>get_json_boolean( visible ) )
            ( n = `valueState`       v = valuestate )
            ( n = `valueStateText`   v = valuestatetext )
            ( n = `value`            v = value )
