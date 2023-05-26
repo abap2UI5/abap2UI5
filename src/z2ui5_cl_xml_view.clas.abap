@@ -609,10 +609,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    methods panel
+        importing
+        expandable type clike OPTIONAL
+        expanded type clike OPTIONAL
+        headertext type clike optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS vbox
       IMPORTING
-        height        TYPE clike OPTIONAL
-        class         TYPE clike OPTIONAL
+        height         TYPE clike OPTIONAL
+        justifyContent TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -788,6 +797,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         items           TYPE clike OPTIONAL
         mode            TYPE clike OPTIONAL
         selectionChange TYPE clike OPTIONAL
+        noData          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view.
 
@@ -1987,6 +1997,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
           ( n = `items`           v = items )
           ( n = `mode`            v = mode )
           ( n = `selectionChange` v = selectionchange )
+          ( n = `noData` v = noData )
       ) ).
 
   ENDMETHOD.
@@ -2726,6 +2737,17 @@ METHOD overflow_toolbar_menu_button.
 
   ENDMETHOD.
 
+  METHOD panel.
+
+    result = _generic(
+         name   = `Panel`
+         t_prop = VALUE #(
+            ( n = `expandable` v = expandable )
+            ( n = `expanded`   v = expanded )
+            ( n = `headerText` v = headertext )
+         ) ).
+
+  ENDMETHOD.
 
   METHOD vbox.
 
@@ -2733,6 +2755,7 @@ METHOD overflow_toolbar_menu_button.
          name   = `VBox`
          t_prop = VALUE #(
             ( n = `height` v = height )
+            ( n = `justifyContent`  v = justifyContent )
             ( n = `class`  v = class )
          ) ).
 
