@@ -478,12 +478,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS add_list_val
-      IMPORTING
-        v             TYPE string
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
     METHODS add_attribute
       IMPORTING
         n             TYPE clike
@@ -501,20 +495,6 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION.
     METHODS add_attribute_struc
       IMPORTING
         val           TYPE data
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS add_list_object
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS add_list_list
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS add_attribute_list
-      IMPORTING
-        name          TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
 
@@ -577,15 +557,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD add_attribute_list.
-
-    result = add_attribute_object( name ).
-    result->mv_check_list = abap_true.
-
-  ENDMETHOD.
-
-
   METHOD add_attribute_struc.
 
     FIELD-SYMBOLS <value> TYPE any.
@@ -609,35 +580,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     result = lo_attri.
 
   ENDMETHOD.
-
-
-  METHOD add_list_list.
-
-    result = add_attribute_list( CONV string( lines( mt_values ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD add_list_object.
-
-    result = add_attribute_object( CONV string( lines( mt_values ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD add_list_val.
-
-    DATA(lo_attri) = new( io_root = mo_root iv_name = lines( mt_values ) ).
-    lo_attri->mv_value = v.
-    lo_attri->mv_apost_active = abap_true.
-
-    mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
-    lo_attri->mo_parent = me.
-    result = lo_attri.
-    result = me.
-
-  ENDMETHOD.
-
 
   METHOD constructor.
 

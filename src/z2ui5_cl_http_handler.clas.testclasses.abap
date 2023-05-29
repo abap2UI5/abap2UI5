@@ -23,7 +23,6 @@ CLASS ltcl_unit_01_utility DEFINITION FINAL FOR TESTING
     METHODS test_util_uuid_session  FOR TESTING RAISING cx_static_check.
     METHODS test_util_04_attri_by_ref  FOR TESTING RAISING cx_static_check.
     METHODS test_util_01_get_t_attri  FOR TESTING RAISING cx_static_check.
-    METHODS test_util_03_get_t_attri_struc  FOR TESTING RAISING cx_static_check.
     METHODS test_util_02_get_attri  FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -257,14 +256,6 @@ CLASS ltcl_unit_01_utility IMPLEMENTATION.
     IF lt_test <> lt_attri.
       cl_abap_unit_assert=>fail( msg = 'utility - get abap_attrdescr_tab table wrong' quit = 5 ).
     ENDIF.
-
-  ENDMETHOD.
-
-  METHOD test_util_03_get_t_attri_struc.
-
-* DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
-*
-*    lcl_utility=>_get_t_attri_by_struc
 
   ENDMETHOD.
 
