@@ -1019,7 +1019,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                         ` > <headerContent ` && |\n|  &&
                         ` > <Title ` && |\n|  &&
                         ` /> <Title ` && |\n|  &&
-                        `  text="abap2UI5 - Development of UI5 Apps in pure ABAP" ` && |\n|  &&
+                        `  text="abap2UI5 - Developing UI5 Apps in pure ABAP" ` && |\n|  &&
                         ` /> <ToolbarSpacer ` && |\n|  &&
                         ` /> <Link ` && |\n|  &&
                         `  text="SCN" ` && |\n|  &&
@@ -1106,8 +1106,8 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         lv_check_demo = abap_false.
     ENDTRY.
     IF lv_check_demo = abap_false.
-      lv_xml_main = lv_xml_main && `<MessageStrip text="The abap2UI5 demos aren't ready! Make sure to install this additional demo repository." type="Warning" > <link> ` &&
-         `   <Link text="(LINK)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
+      lv_xml_main = lv_xml_main && `<MessageStrip text="Oops! You need to install abap2UI5 demos before continuing..." type="Warning" > <link> ` &&
+         `   <Link text="(HERE)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
       `  </link> </MessageStrip>`.
     ENDIF.
 
