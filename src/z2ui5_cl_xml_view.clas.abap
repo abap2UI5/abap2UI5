@@ -308,6 +308,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         tokens          TYPE clike OPTIONAL
         submit          TYPE clike OPTIONAL
         valueHelpRequest TYPE clike OPTIONAL
+        enabled        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -321,6 +322,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         text          TYPE clike OPTIONAL
         selected      TYPE clike OPTIONAL
         visible       TYPE clike OPTIONAL
+        editable      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -341,6 +343,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showvaluehelp    TYPE clike OPTIONAL
         valuehelprequest TYPE clike OPTIONAL
         class            TYPE clike OPTIONAL
+        visible            TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -606,10 +609,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    methods panel
+        importing
+        expandable type clike OPTIONAL
+        expanded type clike OPTIONAL
+        headertext type clike optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS vbox
       IMPORTING
-        height        TYPE clike OPTIONAL
-        class         TYPE clike OPTIONAL
+        height         TYPE clike OPTIONAL
+        justifyContent TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -785,6 +797,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         items           TYPE clike OPTIONAL
         mode            TYPE clike OPTIONAL
         selectionChange TYPE clike OPTIONAL
+        noData          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO  z2ui5_cl_xml_view.
 
@@ -1790,6 +1803,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            ( n = `description`      v = description )
            ( n = `editable`         v = lcl_utility=>get_json_boolean( editable ) )
            ( n = `enabled`          v = lcl_utility=>get_json_boolean( enabled ) )
+           ( n = `visible`          v = lcl_utility=>get_json_boolean( visible ) )
            ( n = `valueState`       v = valuestate )
            ( n = `valueStateText`   v = valuestatetext )
            ( n = `value`            v = value )
@@ -1983,6 +1997,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
           ( n = `items`           v = items )
           ( n = `mode`            v = mode )
           ( n = `selectionChange` v = selectionchange )
+          ( n = `noData` v = noData )
       ) ).
 
   ENDMETHOD.
@@ -2092,6 +2107,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
             ( n = `tokens` v = tokens )
             ( n = `showClearIcon` v = lcl_utility=>get_json_boolean( showclearicon ) )
             ( n = `showValueHelp` v = lcl_utility=>get_json_boolean( showvaluehelp ) )
+            ( n = `enabled` v = lcl_utility=>get_json_boolean( enabled ) )
             ( n = `suggestionItems` v = suggestionitems )
             ( n = `tokenUpdate` v = tokenUpdate )
             ( n = `submit` v = submit )
@@ -2691,6 +2707,7 @@ METHOD overflow_toolbar_menu_button.
             ( n = `text`     v = text )
             ( n = `selected` v = selected )
             ( n = `visible`  v = visible )
+            ( n = `editable`  v = editable )
     ) ).
 
   ENDMETHOD.
@@ -2720,6 +2737,17 @@ METHOD overflow_toolbar_menu_button.
 
   ENDMETHOD.
 
+  METHOD panel.
+
+    result = _generic(
+         name   = `Panel`
+         t_prop = VALUE #(
+            ( n = `expandable` v = expandable )
+            ( n = `expanded`   v = expanded )
+            ( n = `headerText` v = headertext )
+         ) ).
+
+  ENDMETHOD.
 
   METHOD vbox.
 
@@ -2727,6 +2755,7 @@ METHOD overflow_toolbar_menu_button.
          name   = `VBox`
          t_prop = VALUE #(
             ( n = `height` v = height )
+            ( n = `justifyContent`  v = justifyContent )
             ( n = `class`  v = class )
          ) ).
 
