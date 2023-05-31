@@ -58,6 +58,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS Dynamic_Page
       IMPORTING
         headerExpanded           TYPE clike OPTIONAL
+        showFooter               TYPE clike OPTIONAL
         headerPinned             TYPE clike OPTIONAL
         toggleHeaderOnTitleClick TYPE clike OPTIONAL
       RETURNING
@@ -1470,6 +1471,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       t_prop = VALUE #(
          (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
          (  n = `headerPinned`           v = lcl_utility=>get_json_boolean( headerPinned ) )
+         (  n = `showFooter`           v = lcl_utility=>get_json_boolean( showFooter ) )
          (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
       ) ).
 
