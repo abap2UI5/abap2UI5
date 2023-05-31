@@ -201,7 +201,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        definition: sap.z2ui5.oResponse.PARAMS.XML_MAIN,` && |\n|  &&
                            `                    }).then(oView => {` && |\n|  &&
                            `                        oView.setModel(oModel);` && |\n|  &&
-                           `                        oView.placeAt("content");` && |\n|  &&
+                           `                        if (sap.z2ui5.oParent) { ` && |\n|  &&
+                           `                         sap.z2ui5.oParent.removeAllPages(); ` && |\n|  &&
+                           `                         sap.z2ui5.oParent.insertPage( oView ); ` && |\n|  &&
+                           `                         }else{` && |\n|  &&
+                           `                        oView.placeAt("content")};` && |\n|  &&
                            `                        sap.z2ui5.oView = oView;` && |\n|  &&
                            `                    });` && |\n|  &&
                            `                }.bind(this);` && |\n|  &&
