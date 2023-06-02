@@ -58,6 +58,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS Dynamic_Page
       IMPORTING
         headerExpanded           TYPE clike OPTIONAL
+        showFooter               TYPE clike OPTIONAL
         headerPinned             TYPE clike OPTIONAL
         toggleHeaderOnTitleClick TYPE clike OPTIONAL
       RETURNING
@@ -127,7 +128,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         width               TYPE clike OPTIONAL
         selectionchange     TYPE clike OPTIONAL
         alternateRowColors  TYPE clike OPTIONAL
-        autoPopinMode    TYPE clike OPTIONAL
+        autoPopinMode       TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
@@ -143,6 +144,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS footer
+      IMPORTING
+        ns            TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -206,8 +209,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header
-        importing
-        ns type clike default `f`
+      IMPORTING
+        ns            TYPE clike DEFAULT `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -298,19 +301,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS multi_input
       IMPORTING
-        showclearicon   TYPE clike OPTIONAL
-        showValueHelp   TYPE clike OPTIONAL
-        suggestionitems TYPE clike OPTIONAL
-        tokenUpdate     TYPE clike OPTIONAL
-        width           TYPE clike OPTIONAL
-        id              TYPE clike OPTIONAL
-        value           TYPE clike OPTIONAL
-        tokens          TYPE clike OPTIONAL
-        submit          TYPE clike OPTIONAL
+        showclearicon    TYPE clike OPTIONAL
+        showValueHelp    TYPE clike OPTIONAL
+        suggestionitems  TYPE clike OPTIONAL
+        tokenUpdate      TYPE clike OPTIONAL
+        width            TYPE clike OPTIONAL
+        id               TYPE clike OPTIONAL
+        value            TYPE clike OPTIONAL
+        tokens           TYPE clike OPTIONAL
+        submit           TYPE clike OPTIONAL
         valueHelpRequest TYPE clike OPTIONAL
-        enabled        TYPE clike OPTIONAL
+        enabled          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tokens
       RETURNING
@@ -343,7 +346,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         showvaluehelp    TYPE clike OPTIONAL
         valuehelprequest TYPE clike OPTIONAL
         class            TYPE clike OPTIONAL
-        visible            TYPE clike OPTIONAL
+        visible          TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -392,9 +395,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         width          TYPE clike OPTIONAL
         minScreenWidth TYPE clike OPTIONAL
         demandPopin    TYPE clike OPTIONAL
-        PREFERRED PARAMETER width
+          PREFERRED PARAMETER width
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS items
       RETURNING
@@ -564,12 +567,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS search_field
       IMPORTING
-        search         TYPE clike OPTIONAL
-        width          TYPE clike OPTIONAL
-        value          TYPE clike OPTIONAL
-        id             TYPE clike OPTIONAL
-        change         TYPE clike OPTIONAL
-        liveChange     TYPE clike OPTIONAL
+        search        TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        change        TYPE clike OPTIONAL
+        liveChange    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -609,11 +612,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
-    methods panel
-        importing
-        expandable type clike OPTIONAL
-        expanded type clike OPTIONAL
-        headertext type clike optional
+    METHODS panel
+      IMPORTING
+        expandable    TYPE clike OPTIONAL
+        expanded      TYPE clike OPTIONAL
+        headertext    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -624,14 +627,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         class          TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS hbox
       IMPORTING
         class          TYPE clike OPTIONAL
         justifycontent TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS scroll_container
       IMPORTING
@@ -673,7 +676,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         ns            TYPE clike OPTIONAL
         text          TYPE clike OPTIONAL
         wrapping      TYPE clike OPTIONAL
-        level         type clike optional
+        level         TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -719,11 +722,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         text          TYPE clike OPTIONAL
         icon          TYPE clike OPTIONAL
-        buttonmode    type clike optional
+        buttonmode    TYPE clike OPTIONAL
         type          TYPE clike OPTIONAL
         enabled       TYPE clike OPTIONAL
-        tooltip       TYPE clike OPTIONAl
-        defaultaction type clike optional
+        tooltip       TYPE clike OPTIONAL
+        defaultaction TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -744,8 +747,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS label
       IMPORTING
         text          TYPE clike OPTIONAL
-        labelfor          TYPE clike OPTIONAL
-        PREFERRED PARAMETER text
+        labelfor      TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1002,7 +1005,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
-  class-METHODS cc_file_uploader_get_js
+    CLASS-METHODS cc_file_uploader_get_js
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1017,7 +1020,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1139,112 +1142,112 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD cc_file_uploader_get_js.
 
-   result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
-                         |\n|  &&
-                         `        sap.ui.define([` && |\n|  &&
-                         `            "sap/ui/core/Control",` && |\n|  &&
-                         `            "sap/m/Button",` && |\n|  &&
-                         `            "sap/ui/unified/FileUploader"` && |\n|  &&
-                         `        ], function (Control, Button, FileUploader) {` && |\n|  &&
-                         `            "use strict";` && |\n|  &&
-                         |\n|  &&
-                         `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
-                         |\n|  &&
-                         `                metadata: {` && |\n|  &&
-                         `                    properties: {` && |\n|  &&
-                         `                        value: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        path: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        tooltip: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        fileType: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        placeholder: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: ""` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        buttonText: {` && |\n|  &&
-                         `                            type: "string",` && |\n|  &&
-                         `                            defaultValue: "Upload"` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        enabled: {` && |\n|  &&
-                         `                            type: "boolean",` && |\n|  &&
-                         `                            defaultValue: true` && |\n|  &&
-                         `                        },` && |\n|  &&
-                         `                        multiple: {` && |\n|  &&
-                         `                            type: "boolean",` && |\n|  &&
-                         `                            defaultValue: false` && |\n|  &&
-                         `                        }` && |\n|  &&
-                         `                    },` && |\n|  &&
-                         |\n|  &&
-                         |\n|  &&
-                         `                    aggregations: {` && |\n|  &&
-                         `                    },` && |\n|  &&
-                         `                    events: {` && |\n|  &&
-                         `                        "upload": {` && |\n|  &&
-                         `                            allowPreventDefault: true,` && |\n|  &&
-                         `                            parameters: {}` && |\n|  &&
-                         `                        }` && |\n|  &&
-                         `                    },` && |\n|  &&
-                         `                    renderer: null` && |\n|  &&
-                         `                },` && |\n|  &&
-                         |\n|  &&
-                         `                renderer: function (oRm, oControl) {` && |\n|  &&
-                         |\n|  &&
-                         `                    oControl.oUploadButton = new Button({` && |\n|  &&
-                         `                        text: oControl.getProperty("buttonText"),` && |\n|  &&
-                         `                        enabled: oControl.getProperty("path") !== "",` && |\n|  &&
-                         `                        press: function (oEvent) {` && |\n|  &&
-                         |\n|  &&
-                         `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
-                         |\n|  &&
-                         `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n|  &&
-                         `                            var reader = new FileReader();` && |\n|  &&
-                         |\n|  &&
-                         `                            reader.onload = function (evt) {` && |\n|  &&
-                         `                                var vContent = evt.currentTarget.result;` && |\n|  &&
-                         `                                this.setProperty("value", vContent);` && |\n|  &&
-                         `                                this.fireUpload();` && |\n|  &&
-                         `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n|  &&
-                         `                            }.bind(this)` && |\n|  &&
-                         |\n|  &&
-                         `                            reader.readAsDataURL(file);` && |\n|  &&
-                         `                        }.bind(oControl)` && |\n|  &&
-                         `                    });` && |\n|  &&
-                         |\n|  &&
-                         `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
-                         `                        icon: "sap-icon://browse-folder",` && |\n|  &&
-                         `                        iconOnly: true,` && |\n|  &&
-                         `                        value: oControl.getProperty("path"),` && |\n|  &&
-                         `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
-                         `                        change: function (oEvent) {` && |\n|  &&
-                         `                            var value = oEvent.getSource().getProperty("value");` && |\n|  &&
-                         `                            this.setProperty("path", value);` && |\n|  &&
-                         `                            if (value) {` && |\n|  &&
-                         `                                this.oUploadButton.setEnabled();` && |\n|  &&
-                         `                            } else {` && |\n|  &&
-                         `                                this.oUploadButton.setEnabled(false);` && |\n|  &&
-                         `                            }` && |\n|  &&
-                         `                            this.oUploadButton.rerender();` && |\n|  &&
-                         `                        }.bind(oControl)` && |\n|  &&
-                         `                    });` && |\n|  &&
-                         |\n|  &&
-                         `                    var hbox = new sap.m.HBox();` && |\n|  &&
-                         `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
-                         `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
-                         `                    oRm.renderControl(hbox);` && |\n|  &&
-                         `                }` && |\n|  &&
-                         `            });` && |\n|  &&
-                         `        });`.
+    result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
+                          |\n|  &&
+                          `        sap.ui.define([` && |\n|  &&
+                          `            "sap/ui/core/Control",` && |\n|  &&
+                          `            "sap/m/Button",` && |\n|  &&
+                          `            "sap/ui/unified/FileUploader"` && |\n|  &&
+                          `        ], function (Control, Button, FileUploader) {` && |\n|  &&
+                          `            "use strict";` && |\n|  &&
+                          |\n|  &&
+                          `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
+                          |\n|  &&
+                          `                metadata: {` && |\n|  &&
+                          `                    properties: {` && |\n|  &&
+                          `                        value: {` && |\n|  &&
+                          `                            type: "string",` && |\n|  &&
+                          `                            defaultValue: ""` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        path: {` && |\n|  &&
+                          `                            type: "string",` && |\n|  &&
+                          `                            defaultValue: ""` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        tooltip: {` && |\n|  &&
+                          `                            type: "string",` && |\n|  &&
+                          `                            defaultValue: ""` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        fileType: {` && |\n|  &&
+                          `                            type: "string",` && |\n|  &&
+                          `                            defaultValue: ""` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        placeholder: {` && |\n|  &&
+                          `                            type: "string",` && |\n|  &&
+                          `                            defaultValue: ""` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        buttonText: {` && |\n|  &&
+                          `                            type: "string",` && |\n|  &&
+                          `                            defaultValue: "Upload"` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        enabled: {` && |\n|  &&
+                          `                            type: "boolean",` && |\n|  &&
+                          `                            defaultValue: true` && |\n|  &&
+                          `                        },` && |\n|  &&
+                          `                        multiple: {` && |\n|  &&
+                          `                            type: "boolean",` && |\n|  &&
+                          `                            defaultValue: false` && |\n|  &&
+                          `                        }` && |\n|  &&
+                          `                    },` && |\n|  &&
+                          |\n|  &&
+                          |\n|  &&
+                          `                    aggregations: {` && |\n|  &&
+                          `                    },` && |\n|  &&
+                          `                    events: {` && |\n|  &&
+                          `                        "upload": {` && |\n|  &&
+                          `                            allowPreventDefault: true,` && |\n|  &&
+                          `                            parameters: {}` && |\n|  &&
+                          `                        }` && |\n|  &&
+                          `                    },` && |\n|  &&
+                          `                    renderer: null` && |\n|  &&
+                          `                },` && |\n|  &&
+                          |\n|  &&
+                          `                renderer: function (oRm, oControl) {` && |\n|  &&
+                          |\n|  &&
+                          `                    oControl.oUploadButton = new Button({` && |\n|  &&
+                          `                        text: oControl.getProperty("buttonText"),` && |\n|  &&
+                          `                        enabled: oControl.getProperty("path") !== "",` && |\n|  &&
+                          `                        press: function (oEvent) {` && |\n|  &&
+                          |\n|  &&
+                          `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
+                          |\n|  &&
+                          `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n|  &&
+                          `                            var reader = new FileReader();` && |\n|  &&
+                          |\n|  &&
+                          `                            reader.onload = function (evt) {` && |\n|  &&
+                          `                                var vContent = evt.currentTarget.result;` && |\n|  &&
+                          `                                this.setProperty("value", vContent);` && |\n|  &&
+                          `                                this.fireUpload();` && |\n|  &&
+                          `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n|  &&
+                          `                            }.bind(this)` && |\n|  &&
+                          |\n|  &&
+                          `                            reader.readAsDataURL(file);` && |\n|  &&
+                          `                        }.bind(oControl)` && |\n|  &&
+                          `                    });` && |\n|  &&
+                          |\n|  &&
+                          `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
+                          `                        icon: "sap-icon://browse-folder",` && |\n|  &&
+                          `                        iconOnly: true,` && |\n|  &&
+                          `                        value: oControl.getProperty("path"),` && |\n|  &&
+                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
+                          `                        change: function (oEvent) {` && |\n|  &&
+                          `                            var value = oEvent.getSource().getProperty("value");` && |\n|  &&
+                          `                            this.setProperty("path", value);` && |\n|  &&
+                          `                            if (value) {` && |\n|  &&
+                          `                                this.oUploadButton.setEnabled();` && |\n|  &&
+                          `                            } else {` && |\n|  &&
+                          `                                this.oUploadButton.setEnabled(false);` && |\n|  &&
+                          `                            }` && |\n|  &&
+                          `                            this.oUploadButton.rerender();` && |\n|  &&
+                          `                        }.bind(oControl)` && |\n|  &&
+                          `                    });` && |\n|  &&
+                          |\n|  &&
+                          `                    var hbox = new sap.m.HBox();` && |\n|  &&
+                          `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
+                          `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
+                          `                    oRm.renderControl(hbox);` && |\n|  &&
+                          `                }` && |\n|  &&
+                          `            });` && |\n|  &&
+                          `        });`.
 
   ENDMETHOD.
 
@@ -1468,6 +1471,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
       t_prop = VALUE #(
          (  n = `headerExpanded`           v = lcl_utility=>get_json_boolean( headerexpanded ) )
          (  n = `headerPinned`           v = lcl_utility=>get_json_boolean( headerPinned ) )
+         (  n = `showFooter`           v = lcl_utility=>get_json_boolean( showFooter ) )
          (  n = `toggleHeaderOnTitleClick` v = toggleHeaderOnTitleClick )
       ) ).
 
@@ -1591,7 +1595,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD footer.
 
-    result = _generic( `footer` ).
+    result = _generic(
+                ns   = ns
+                name = `footer` ).
 
   ENDMETHOD.
 
@@ -2016,7 +2022,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD MENU_ITEM.
+  METHOD menu_item.
 
     result = me.
     _generic(
@@ -2236,7 +2242,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-METHOD overflow_toolbar_menu_button.
+  METHOD overflow_toolbar_menu_button.
 
     result = _generic(
        name   = `OverflowToolbarMenuButton`

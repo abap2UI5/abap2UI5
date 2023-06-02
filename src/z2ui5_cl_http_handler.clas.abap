@@ -86,7 +86,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
         `</html>` && |\n|.
-    r_result = r_result && `<script id="z2ui5">` && |\n|  &&
+    r_result = r_result && `<abc/><script id="z2ui5">` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
                            |\n|  &&
@@ -166,7 +166,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                var xhr = new XMLHttpRequest();` && |\n|  &&
                            `             //   var url = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
                            `             //   xhr.open("POST", url, true);` && |\n|  &&
-                           `                xhr.open("POST", window.location.pathname, true);` && |\n|  &&
+                           `                xhr.open("POST", sap.z2ui5.pathname , true);` && |\n|  &&
                            `                xhr.onload = function (that) {` && |\n|  &&
                            |\n|  &&
                            `                    if (that.target.status !== 200) {` && |\n|  &&
@@ -201,7 +201,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        definition: sap.z2ui5.oResponse.PARAMS.XML_MAIN,` && |\n|  &&
                            `                    }).then(oView => {` && |\n|  &&
                            `                        oView.setModel(oModel);` && |\n|  &&
-                           `                        oView.placeAt("content");` && |\n|  &&
+                           `                        if (sap.z2ui5.oParent) { ` && |\n|  &&
+                           `                         sap.z2ui5.oParent.removeAllPages(); ` && |\n|  &&
+                           `                         sap.z2ui5.oParent.insertPage( oView ); ` && |\n|  &&
+                           `                         }else{` && |\n|  &&
+                           `                        oView.placeAt("content")};` && |\n|  &&
                            `                        sap.z2ui5.oView = oView;` && |\n|  &&
                            `                    });` && |\n|  &&
                            `                }.bind(this);` && |\n|  &&
@@ -212,10 +216,13 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        if (!sap.z2ui5) {` && |\n|  &&
                            `            sap.z2ui5 = {};` && |\n|  &&
                            `        }` && |\n|  &&
+                           `        if (!sap.z2ui5.pathname){ sap.z2ui5.pathname = window.location.pathname; }` && |\n|  &&
+
                            `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
                            `        if (xml == '') {` && |\n|  &&
                            `            xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />'` && |\n|  &&
                            `        }` && |\n|  &&
+                           `       debugger;` && |\n|  &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
@@ -223,7 +230,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
                            `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                           `        sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
+                           `    //    sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
                            `        sap.z2ui5.Roundtrip(false);` && |\n|  &&
                            `        sap.z2ui5.onAfter = () => {` && |\n|  &&
                            `            if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
@@ -292,7 +299,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
                            `        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `    });` && |\n|  &&
-                           `</script>` && |\n|  &&
+                           `</script><abc/>` && |\n|  &&
                            `</html>`.
 
   ENDMETHOD.
