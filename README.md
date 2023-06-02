@@ -38,7 +38,7 @@ Developing UI5 Apps in pure ABAP - follow this project on [**twitter**](https://
 <img src="https://user-images.githubusercontent.com/102328295/235298442-7e444942-3063-43ff-ad4d-6434ddcc169e.gif" style="width: 55vw; min-width: 330px;"/>
 
 #### Installation
-Install with [abapGit](https://abapgit.org), create a new HTTP service and replace the handler method with the following snippet. For more information, check out this [documentation.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
+Install with [abapGit](https://abapgit.org), create a new HTTP service and replace the handler method with the following code snippet. For more information, check out this [documentation.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 
 ##### ABAP for Cloud:
 ```abap
