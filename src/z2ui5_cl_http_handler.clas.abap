@@ -217,12 +217,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            sap.z2ui5 = {};` && |\n|  &&
                            `        }` && |\n|  &&
                            `        if (!sap.z2ui5.pathname){ sap.z2ui5.pathname = window.location.pathname; }` && |\n|  &&
-
-                           `        var xml = '<mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />';` && |\n|  &&
-                           `        if (xml == '') {` && |\n|  &&
-                           `            xml = '&lt;mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" />'` && |\n|  &&
-                           `        }` && |\n|  &&
-                           `       debugger;` && |\n|  &&
+                                       `       debugger;` && |\n|  &&
+                         `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
