@@ -27,13 +27,13 @@ Developing UI5 Apps in pure ABAP - follow this project on [**twitter**](https://
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Static Analysis & Continuous Integration with abaplint [(abaplint.app/abap2UI5)](https://abaplint.app/stats/oblomov-dev/abap2UI5)
-* [work-in-progress] Launchpads are supported with the follwowing extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
 * Check out the open-source game engine axage using abap2UI5 [(SCN - 31.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-4/td-p/263470)
 * Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Check out abap2UI5 transpiled to JS running on open-abap under nodejs [(twitter - 19.04.2023)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Development of UI5 Selection Screens in pure ABAP (former version) [(SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
+* [work-in-progress] Launchpad integration is supported with the following extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
 
 #### Demo
 <img src="https://user-images.githubusercontent.com/102328295/235298442-7e444942-3063-43ff-ad4d-6434ddcc169e.gif" style="width: 55vw; min-width: 330px;"/>
