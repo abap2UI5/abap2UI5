@@ -1449,7 +1449,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lr_in) = REF #( value ).
+    DATA lr_in TYPE REF TO data.
+    GET REFERENCE OF value INTO lr_in.
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type <> cs_bind_type-one_time.
@@ -1704,13 +1705,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
       lv_data = data.
     ENDIF.
 
-       IF data2 IS INITIAL.
+    IF data2 IS INITIAL.
       DATA(lv_data2) = `''`.
     ELSE.
       lv_data2 = data2.
     ENDIF.
 
-       IF data3 IS INITIAL.
+    IF data3 IS INITIAL.
       DATA(lv_data3) = `''`.
     ELSE.
       lv_data3 = data3.
