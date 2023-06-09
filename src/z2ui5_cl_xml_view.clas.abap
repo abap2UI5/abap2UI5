@@ -312,6 +312,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         submit           TYPE clike OPTIONAL
         valueHelpRequest TYPE clike OPTIONAL
         enabled          TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1020,7 +1021,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2121,6 +2122,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `value` v = value )
             ( n = `id` v = id )
             ( n = `valueHelpRequest` v = valueHelpRequest )
+            ( n = `class` v = class )
     ) ).
 
   ENDMETHOD.
@@ -2743,6 +2745,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD panel.
 
     result = _generic(
@@ -2754,6 +2757,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
          ) ).
 
   ENDMETHOD.
+
 
   METHOD vbox.
 
