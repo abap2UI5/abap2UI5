@@ -110,7 +110,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
                            |\n|  &&
-                           `            onEvent: function (oEvent, isHoldView, vData , vData2 , vData3 ) {` && |\n|  &&
+                           `            onEvent: function (oEvent) {` && |\n|  &&
                            |\n|  &&
                            `                if (!window.navigator.onLine) {` && |\n|  &&
                            `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
@@ -144,10 +144,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n|  &&
                            `                }` && |\n|  &&
                            `                this.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `                this.oBody.oEvent = oEvent;` && |\n|  &&
-                           `                this.oBody.oEvent.vData = vData;` && |\n|  &&
-                           `                this.oBody.oEvent.vData2 = vData2;` && |\n|  &&
-                           `                this.oBody.oEvent.vData3 = vData3;` && |\n|  &&
+                           `                this.oBody.ARGUMENTS = arguments;` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                    console.log('Request Object:');` && |\n|  &&
@@ -156,7 +153,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                            `                sap.z2ui5.oResponse = {};` && |\n|  &&
                            `                sap.z2ui5.oBody = this.oBody;` && |\n|  &&
-                           `                sap.z2ui5.Roundtrip(isHoldView);` && |\n|  &&
+                           `                sap.z2ui5.Roundtrip(oEvent.isHoldView);` && |\n|  &&
                            `            },` && |\n|  &&
                            `            Roundtrip: function (isHoldView) {` && |\n|  &&
                            `                sap.z2ui5.checkTimerActive = false;` && |\n|  &&
@@ -164,8 +161,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.z2ui5.oView.destroy();` && |\n|  &&
                            `                } }` && |\n|  &&
                            `                var xhr = new XMLHttpRequest();` && |\n|  &&
-                           `             //   var url = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
-                           `             //   xhr.open("POST", url, true);` && |\n|  &&
                            `                xhr.open("POST", sap.z2ui5.pathname , true);` && |\n|  &&
                            `                xhr.onload = function (that) {` && |\n|  &&
                            |\n|  &&
@@ -226,7 +221,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
                            `        sap.z2ui5.Roundtrip = oView.getController().Roundtrip;` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                           `    //    sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
                            `        sap.z2ui5.Roundtrip(false);` && |\n|  &&
                            `        sap.z2ui5.onAfter = () => {` && |\n|  &&
                            `            if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
