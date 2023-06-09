@@ -1168,36 +1168,30 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
   METHOD read.
 
     IF check_load_app = abap_true.
-
       SELECT SINGLE *
         FROM z2ui5_t_draft
         WHERE uuid = @id
       INTO @result.
-      z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
     ELSE.
-
       SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
         WHERE uuid = @id
       INTO CORRESPONDING FIELDS OF @result.
-      z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
     ENDIF.
+    z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
 
   METHOD cleanup.
 
-    DATA lv_timestampl TYPE timestampl.
+    DATA lv_ts_now TYPE timestampl.
+    GET TIME STAMP FIELD lv_ts_now.
 
-    DATA(lv_time) = sy-uzeit.
-    lv_time = lv_time - ( 60 * 60 * 4 ).
+    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs(
+        tstmp = lv_ts_now
+        secs  = 60 * 60 * 4 ).
 
-    CONVERT DATE sy-datum TIME lv_time
-       INTO TIME STAMP lv_timestampl TIME ZONE sy-zonlo.
-
-    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_timestampl.
+    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
     COMMIT WORK.
 
   ENDMETHOD.
@@ -1318,13 +1312,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                         json             = `"` && <val> && `"`
                       CHANGING
                         data             = <attribute>  ).
-                  " WHEN 'C'.
-                  "  CASE lr_attri->type.
-                  "   WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
-                  "     <attribute> = xsdbool( <val> = `true` ).
-                  "    WHEN OTHERS.
-                  "      <attribute> = <val>.
-                  "°  ENDCASE.
                 WHEN OTHERS.
                   <attribute> = <val>.
               ENDCASE.
@@ -1334,11 +1321,18 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+
+    DATA(lo_arg) = mo_body->get_attribute( `ARGUMENTS` ).
     TRY.
-        result->ms_actual-event = mo_body->get_attribute( `OEVENT` )->get_attribute( `EVENT` )->get_val( ).
-        result->ms_actual-event_data = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData` )->get_val( ).
-        result->ms_actual-event_data2 = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData2` )->get_val( ).
-        result->ms_actual-event_data3 = mo_body->get_attribute( `OEVENT` )->get_attribute( `vData3` )->get_val( ).
+        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DO.
+          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
+          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
+        ENDDO.
       CATCH cx_root.
     ENDTRY.
 
@@ -1408,7 +1402,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.
 
-    "    result->ms_next-s_set-path = `test`. "ms_next-s_set-path.
     CLEAR ms_next.
 
   ENDMETHOD.
@@ -1449,7 +1442,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lr_in) = REF #( value ).
+    DATA lr_in TYPE REF TO data.
+    GET REFERENCE OF value INTO lr_in.
 
     LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type <> cs_bind_type-one_time.
@@ -1652,9 +1646,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
          event             = mo_handler->ms_actual-event
-         event_data        = mo_handler->ms_actual-event_data
-         event_data2       = mo_handler->ms_actual-event_data2
-         event_data3       = mo_handler->ms_actual-event_data3
+         t_event_arg       = mo_handler->ms_actual-t_event_arg
          t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
          t_req_header      = z2ui5_cl_http_handler=>client-t_header
          t_req_param       = z2ui5_cl_http_handler=>client-t_param
@@ -1698,26 +1690,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    IF data IS INITIAL.
-      DATA(lv_data) = `''`.
-    ELSE.
-      lv_data = data.
-    ENDIF.
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'isHoldView' : ` && z2ui5_lcl_utility=>get_json_boolean( hold_view ) && ` }`.
 
-       IF data2 IS INITIAL.
-      DATA(lv_data2) = `''`.
-    ELSE.
-      lv_data2 = data2.
-    ENDIF.
+    LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
+      result = result && `,` && lr_arg->*.
+    ENDLOOP.
 
-       IF data3 IS INITIAL.
-      DATA(lv_data3) = `''`.
-    ELSE.
-      lv_data3 = data3.
-    ENDIF.
-
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' } , ` && z2ui5_lcl_utility=>get_json_boolean( hold_view )
-      &&  ` , ` && lv_data &&  ` , ` && lv_data2 && ` , ` && lv_data3 && ` )`.
+    result = result && `)`.
 
   ENDMETHOD.
 
