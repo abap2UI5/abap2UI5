@@ -1274,8 +1274,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
 
-*        DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
-
         LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
             WHERE bind_type = cs_bind_type-two_way.
 
@@ -1458,7 +1456,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     TRY.
-
         TRY.
             CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
           CATCH cx_root.
@@ -1809,7 +1806,6 @@ CLASS  z2ui5_lcl_fw_view_app DEFINITION.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA value TYPE string VALUE `green`.
     DATA quantity TYPE string VALUE `10`.
 ENDCLASS.
 
@@ -1844,4 +1840,3 @@ CLASS z2ui5_lcl_fw_view_app IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
-
