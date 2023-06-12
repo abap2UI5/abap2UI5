@@ -95,9 +95,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            onAfterRendering: function () {` && |\n|  &&
                            `                sap.z2ui5.onAfter();` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            do: function (value) {` && |\n|  &&
-                           `                return value;` && |\n|  &&
-                           `            },` && |\n|  &&
                            `            onEventFrontend: function (vAction) {` && |\n|  &&
                            |\n|  &&
                            `                if (vAction == 'POPUP_CLOSE') {` && |\n|  &&
@@ -191,7 +188,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        return;` && |\n|  &&
                            `                    }` && |\n|  &&
                            |\n|  &&
-                           `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL.oViewModel);` && |\n|  &&
+                           `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                            `                    var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                            `                        definition: sap.z2ui5.oResponse.PARAMS.XML_MAIN,` && |\n|  &&
                            `                    }).then(oView => {` && |\n|  &&
