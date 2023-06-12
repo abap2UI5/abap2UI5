@@ -1,5 +1,5 @@
 # abap2UI5
-Developing UI5 Apps in pure ABAP - follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository**.](https://github.com/oblomov-dev/abap2UI5-demos)
+Follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository**.](https://github.com/oblomov-dev/abap2UI5-demos)
 <br><br>
 <img width="1200" alt="image" src="https://github.com/oblomov-dev/abap2UI5/assets/102328295/189f06e0-1668-4bec-820e-58b9528ea568">
 
