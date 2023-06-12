@@ -1261,7 +1261,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute(  n = `OVIEWMODEL` v = bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) apos_active = abap_false ).
     result = lo_resp->get_root( )->stringify( ).
 
-    DELETE ms_db-t_attri WHERE bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-one_time.
+    DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
