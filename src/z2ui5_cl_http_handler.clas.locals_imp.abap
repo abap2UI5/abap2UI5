@@ -733,7 +733,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
 
-    CLASS-DATA mo_body TYPE REF TO z2ui5_lcl_utility_tree_json.
+    class-DATA mo_body TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     CLASS-METHODS request_begin
       RETURNING
@@ -781,6 +781,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
 
     CLASS-METHODS bind_front_2_back
       IMPORTING
+        lo_model TYPE REF TO z2ui5_lcl_utility_tree_json
         lo_app  TYPE REF TO object
         t_attri TYPE z2ui5_lcl_utility=>ty_t_attri.
 
@@ -1273,7 +1274,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
 
-        DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
+*        DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
 
         LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
             WHERE bind_type = cs_bind_type-two_way.
@@ -1407,6 +1408,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     bind_front_2_back(
+        lo_model = mo_body->get_attribute( `OUPDATE` )
         lo_app  = result->ms_db-o_app
         t_attri = result->ms_db-t_attri
     ).
