@@ -348,6 +348,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         valuehelprequest TYPE clike OPTIONAL
         class            TYPE clike OPTIONAL
         visible          TYPE clike OPTIONAL
+        submit           TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -1819,6 +1820,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            ( n = `valueHelpRequest` v = valuehelprequest )
            ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
            ( n = `class`            v = class )
+           ( n = `submit`           v = submit )
         ) ).
 
   ENDMETHOD.
