@@ -761,6 +761,11 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
 
+    CLASS-METHODS bind_front_2_back
+      IMPORTING
+        lo_app  TYPE REF TO object
+        t_attri TYPE z2ui5_lcl_utility=>ty_t_attri.
+
     METHODS set_app_leave
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
@@ -777,9 +782,12 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
 
-    METHODS request_end_model
+    class-METHODS bind_back_2_front
+      IMPORTING
+        lo_app  TYPE REF TO object
+        t_attri TYPE z2ui5_lcl_utility=>ty_t_attri
       RETURNING
-        VALUE(r_view_model) TYPE REF TO z2ui5_lcl_utility_tree_json.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -1150,6 +1158,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
     ENDLOOP.
 
+
     DATA(ls_db) = VALUE z2ui5_t_draft(
         uuid       = id
         uuid_prev     = db-id_prev
@@ -1245,8 +1254,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`   v = ms_db-id ).
-    lo_resp->add_attribute_object( `OVIEWMODEL` )->add_attribute_instance( request_end_model( ) ).
+
+    lo_resp->add_attribute(  n = `OVIEWMODEL` v = bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) apos_active = abap_false ).
     result = lo_resp->get_root( )->stringify( ).
+
+    DELETE ms_db-t_attri WHERE bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-one_time.
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
@@ -1263,64 +1275,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    DATA(lo_app) = CAST object( result->ms_db-o_app ) ##NEEDED.
-
-    TRY.
-
-        DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
-
-        LOOP AT result->ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-            WHERE bind_type = cs_bind_type-two_way.
-
-          FIELD-SYMBOLS <attribute> TYPE any.
-          DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-          ASSIGN (lv_name) TO <attribute>.
-          z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-          IF lr_attri->gen_kind IS NOT INITIAL.
-
-            CASE lr_attri->gen_kind.
-              WHEN cl_abap_datadescr=>kind_elem.
-                CREATE DATA <attribute> TYPE (lr_attri->gen_type).
-                ASSIGN <attribute>->* TO <attribute>.
-              WHEN cl_abap_datadescr=>kind_table.
-                DATA lr_data TYPE REF TO data.
-                CREATE DATA lr_data TYPE (lr_attri->gen_type).
-                ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
-                CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
-                ASSIGN <attribute>->* TO <attribute>.
-            ENDCASE.
-          ENDIF.
-
-          CASE lr_attri->type_kind.
-
-            WHEN `h`.
-              z2ui5_lcl_utility=>trans_ref_tab_2_tab(
-                   EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-                   IMPORTING t_result    = <attribute> ).
-
-            WHEN OTHERS.
-
-              DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
-              FIELD-SYMBOLS <val> TYPE any.
-              ASSIGN lo_attri->mr_actual->* TO <val>.
-
-              CASE lr_attri->type_kind.
-                WHEN 'D' OR 'T'.
-                  /ui2/cl_json=>deserialize(
-                      EXPORTING
-                        json             = `"` && <val> && `"`
-                      CHANGING
-                        data             = <attribute>  ).
-                WHEN OTHERS.
-                  <attribute> = <val>.
-              ENDCASE.
-          ENDCASE.
-        ENDLOOP.
-
-      CATCH cx_root.
-    ENDTRY.
-
+    bind_front_2_back(
+        lo_app  = result->ms_db-o_app
+        t_attri = result->ms_db-t_attri
+    ).
 
     DATA(lo_arg) = mo_body->get_attribute( `ARGUMENTS` ).
     TRY.
@@ -1540,16 +1498,15 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD request_end_model.
+  METHOD bind_back_2_front.
 
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
-    DATA(lo_app) = CAST object( ms_db-o_app ) ##NEEDED.
-    r_view_model  = z2ui5_lcl_utility_tree_json=>factory( ).
+    data(r_view_model)  = z2ui5_lcl_utility_tree_json=>factory( ).
     r_view_model->mv_name = `oViewModel`.
     DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
 
-    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+    LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
       IF lr_attri->bind_type = cs_bind_type-one_time.
         r_view_model->add_attribute( n = lr_attri->name v = lr_attri->data_stringify apos_active = abap_false ).
@@ -1599,7 +1556,70 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ENDCASE.
     ENDLOOP.
 
-    DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
+    result = r_view_model->stringify( ).
+
+  ENDMETHOD.
+
+
+  METHOD bind_front_2_back.
+
+    CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
+
+    TRY.
+
+        DATA(lo_model) = mo_body->get_attribute( `OUPDATE` ).
+
+        LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
+            WHERE bind_type = cs_bind_type-two_way.
+
+          FIELD-SYMBOLS <attribute> TYPE any.
+          DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
+          ASSIGN (lv_name) TO <attribute>.
+          z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+          IF lr_attri->gen_kind IS NOT INITIAL.
+
+            CASE lr_attri->gen_kind.
+              WHEN cl_abap_datadescr=>kind_elem.
+                CREATE DATA <attribute> TYPE (lr_attri->gen_type).
+                ASSIGN <attribute>->* TO <attribute>.
+              WHEN cl_abap_datadescr=>kind_table.
+                DATA lr_data TYPE REF TO data.
+                CREATE DATA lr_data TYPE (lr_attri->gen_type).
+                ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
+                CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
+                ASSIGN <attribute>->* TO <attribute>.
+            ENDCASE.
+          ENDIF.
+
+          CASE lr_attri->type_kind.
+
+            WHEN `h`.
+              z2ui5_lcl_utility=>trans_ref_tab_2_tab(
+                   EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
+                   IMPORTING t_result    = <attribute> ).
+
+            WHEN OTHERS.
+
+              DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
+              FIELD-SYMBOLS <val> TYPE any.
+              ASSIGN lo_attri->mr_actual->* TO <val>.
+
+              CASE lr_attri->type_kind.
+                WHEN 'D' OR 'T'.
+                  /ui2/cl_json=>deserialize(
+                      EXPORTING
+                        json             = `"` && <val> && `"`
+                      CHANGING
+                        data             = <attribute>  ).
+                WHEN OTHERS.
+                  <attribute> = <val>.
+              ENDCASE.
+          ENDCASE.
+        ENDLOOP.
+
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
