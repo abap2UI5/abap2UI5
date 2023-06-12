@@ -733,7 +733,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
 
-    class-DATA mo_body TYPE REF TO z2ui5_lcl_utility_tree_json.
+    CLASS-DATA mo_body TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     CLASS-METHODS request_begin
       RETURNING
@@ -782,13 +782,13 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
     CLASS-METHODS bind_front_2_back
       IMPORTING
         lo_model TYPE REF TO z2ui5_lcl_utility_tree_json
-        lo_app  TYPE REF TO object
-        t_attri TYPE z2ui5_lcl_utility=>ty_t_attri.
+        lo_app   TYPE REF TO object
+        t_attri  TYPE z2ui5_lcl_utility=>ty_t_attri.
 
-    class-METHODS bind_back_2_front
+    CLASS-METHODS bind_back_2_front
       IMPORTING
-        lo_app  TYPE REF TO object
-        t_attri TYPE z2ui5_lcl_utility=>ty_t_attri
+        lo_app        TYPE REF TO object
+        t_attri       TYPE z2ui5_lcl_utility=>ty_t_attri
       RETURNING
         VALUE(result) TYPE string.
 
@@ -1331,11 +1331,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
- METHOD bind_back_2_front.
+  METHOD bind_back_2_front.
 
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
-    data(r_view_model)  = z2ui5_lcl_utility_tree_json=>factory( ).
+    DATA(r_view_model)  = z2ui5_lcl_utility_tree_json=>factory( ).
     r_view_model->mv_name = `oViewModel`.
     DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
 
@@ -1407,12 +1407,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id = lv_id.
     result->ms_db-id_prev = id_prev.
 
-    bind_front_2_back(
-        lo_model = mo_body->get_attribute( `OUPDATE` )
-        lo_app  = result->ms_db-o_app
-        t_attri = result->ms_db-t_attri
-    ).
-
     DATA(lo_arg) = mo_body->get_attribute( `ARGUMENTS` ).
     TRY.
         result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
@@ -1434,6 +1428,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
             IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
       CATCH cx_root.
     ENDTRY.
+
+    bind_front_2_back(
+        lo_model = mo_body->get_attribute( `OUPDATE` )
+        lo_app   = result->ms_db-o_app
+        t_attri  = result->ms_db-t_attri
+    ).
 
   ENDMETHOD.
 
@@ -1790,7 +1790,7 @@ CLASS z2ui5_lcl_fw_view IMPLEMENTATION.
              ` /> <Label ` && |\n|  &&
              `  text="quantity" ` && |\n|  &&
              ` /> <Input ` && |\n|  &&
-             `  value="{/oUpdate/QUANTITY}" ` && |\n|  &&
+             `  value="onEvent( {/oUpdate/QUANTITY} )` && |\n|  &&
              ` /> <Label ` && |\n|  &&
              `  text="product" ` && |\n|  &&
              ` /> <Input ` && |\n|  &&
