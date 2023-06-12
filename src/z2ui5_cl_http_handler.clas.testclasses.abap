@@ -522,7 +522,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->QUANTITY->*`.
+    DATA(lv_assign) = `OVIEWMODEL->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
@@ -548,7 +548,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     FIELD-SYMBOLS <val> TYPE any.
     UNASSIGN <val>.
-    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->OUPDATE->QUANTITY->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
       cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
@@ -907,7 +907,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
         data             = lo_data ).
 
     UNASSIGN <val>.
-    lv_assign = `OVIEWMODEL->OVIEWMODEL->OUPDATE->QUANTITY->*`.
+    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `600`.
       cl_abap_unit_assert=>fail( msg = 'data binding - frontend updated value wrong after roundtrip' quit = 5 ).
@@ -1071,7 +1071,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE REF TO data.
-    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->T_TAB->*`.
+    DATA(lv_assign) = `OVIEWMODEL->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 
@@ -1119,7 +1119,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     UNASSIGN <val>.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row> TYPE REF TO data.
-    DATA(lv_assign) = `OVIEWMODEL->OVIEWMODEL->OUPDATE->T_TAB->*`.
+    DATA(lv_assign) = `OVIEWMODEL->OUPDATE->T_TAB->*`.
     ASSIGN lo_data->(lv_assign) TO <tab>.
     ASSIGN <tab>[ 1 ] TO <row>.
 
