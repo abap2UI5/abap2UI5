@@ -1,7 +1,7 @@
 # abap2UI5
 Follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository**.](https://github.com/oblomov-dev/abap2UI5-demos)
 <br><br>
-<img width="1200" alt="image" src="https://github.com/oblomov-dev/abap2UI5/assets/102328295/189f06e0-1668-4bec-820e-58b9528ea568">
+<img width="800" alt="image" src="https://github.com/oblomov-dev/abap2UI5/assets/102328295/6adde0de-fe8d-4a9b-8c1e-cf0316e1de8b">
 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
@@ -39,7 +39,7 @@ Follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up 
 * [work-in-progress] Launchpad integration with the following extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
 
 #### Installation
-Install with [abapGit](https://abapgit.org), create a new HTTP service and replace the handler method with the following code snippet. For more information, check out this [documentation.](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
+Install with [abapGit](https://abapgit.org), create a new HTTP service and replace the handler method with the following code snippet:
 ##### Standard ABAP:
 ```abap
 METHOD if_http_extension~handle_request.
@@ -82,6 +82,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
+* check out this [documentation](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/) for detailed installation guidelines<br>
 * read these [instructions](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/) when you develop your first app<br>
 * want to configure the theme, bootstrapping, language and title? see [configuration & debugging](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
