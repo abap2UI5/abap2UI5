@@ -95,9 +95,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            onAfterRendering: function () {` && |\n|  &&
                            `                sap.z2ui5.onAfter();` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            do: function (value) {` && |\n|  &&
-                           `                return value;` && |\n|  &&
-                           `            },` && |\n|  &&
                            `            onEventFrontend: function (vAction) {` && |\n|  &&
                            |\n|  &&
                            `                if (vAction == 'POPUP_CLOSE') {` && |\n|  &&
