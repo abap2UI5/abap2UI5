@@ -1768,7 +1768,7 @@ CLASS z2ui5_lcl_fw_view IMPLEMENTATION.
              `  text="product" ` && |\n|  &&
              ` /> <Input ` && |\n|  &&
              `  enabled="false" ` && |\n|  &&
-             `  value="tomato" ` && |\n|  &&
+             `  value="{VALUE}" ` && |\n|  &&
              ` /> <Button ` && |\n|  &&
              `  press="onEvent( { &apos;EVENT&apos; : &apos;BUTTON_POST&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; , &apos;isHoldView&apos; : false })" ` && |\n|  &&
              `  text="post" ` && |\n|  &&
@@ -1781,13 +1781,38 @@ CLASS  z2ui5_lcl_fw_view_app DEFINITION.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
+
+    DATA value TYPE string VALUE `green`.
+    DATA quantity TYPE string VALUE `10`.
 ENDCLASS.
 
 CLASS z2ui5_lcl_fw_view_app IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    client->set_next( VALUE #( xml_main = z2ui5_lcl_fw_view=>read_view( ) ) ).
+    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( me ).
+    DATA(lv_view)  = z2ui5_lcl_fw_view=>read_view( ).
+
+    SPLIT lv_view AT `{` INTO TABLE DATA(lt_view).
+    DELETE lt_view INDEX 1.
+
+    LOOP AT lt_view  INTO DATA(lr_view).
+      SPLIT lr_view AT `}` INTO lr_view DATA(lv_dummy).
+
+      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+        IF lr_view = `/oUpdate/` && lr_attri->name.
+          lr_attri->bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way.
+          CONTINUE.
+        ENDIF.
+
+        IF lr_view = lr_attri->name.
+          lr_attri->bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way.
+          CONTINUE.
+        ENDIF.
+      ENDLOOP.
+    ENDLOOP.
+
+    client->set_next( VALUE #( xml_main = lv_view  ) ).
 
   ENDMETHOD.
 
