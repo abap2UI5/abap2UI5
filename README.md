@@ -1,6 +1,6 @@
 # abap2UI5
 <img width="800" alt="image" src="https://github.com/oblomov-dev/abap2UI5/assets/102328295/6adde0de-fe8d-4a9b-8c1e-cf0316e1de8b"><br><br>
-Follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/oblomov-dev/abap2UI5-demos) 
+Follow this project on [**twitter** :sound:](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/oblomov-dev/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
