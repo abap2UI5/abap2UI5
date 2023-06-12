@@ -783,14 +783,14 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       IMPORTING
         lo_model TYPE REF TO z2ui5_lcl_utility_tree_json
         lo_app   TYPE REF TO object
-        t_attri  TYPE z2ui5_lcl_utility=>ty_t_attri.
+        t_attri  TYPE z2ui5_lcl_utility=>ty_t_attri ##needed.
 
     CLASS-METHODS bind_back_2_front
       IMPORTING
         lo_app        TYPE REF TO object
         t_attri       TYPE z2ui5_lcl_utility=>ty_t_attri
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##needed.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -1267,7 +1267,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD bind_front_2_back.
 
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
@@ -1392,11 +1391,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
 
-
-
   METHOD set_app_client.
-
-    CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
@@ -1806,7 +1801,7 @@ CLASS  z2ui5_lcl_fw_view_app DEFINITION.
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    DATA quantity TYPE string VALUE `10`.
+    DATA quantity TYPE string VALUE `10` ##needed.
 ENDCLASS.
 
 CLASS z2ui5_lcl_fw_view_app IMPLEMENTATION.
