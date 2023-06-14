@@ -38,7 +38,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         app           TYPE REF TO z2ui5_if_app
          get          TYPE z2ui5_if_client=>ty_s_get
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##NEEDED.
 
     CLASS-METHODS hlp_replace_controller_name
       IMPORTING
