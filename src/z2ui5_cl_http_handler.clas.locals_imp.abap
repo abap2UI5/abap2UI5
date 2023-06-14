@@ -711,7 +711,6 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         id_prev           TYPE string,
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
-
         t_attri           TYPE z2ui5_lcl_utility=>ty_t_attri,
         o_app             TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
@@ -759,8 +758,6 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         id_prev       TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
-
-
 
     METHODS set_app_leave
       RETURNING
@@ -1282,7 +1279,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
           z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
           FIELD-SYMBOLS <frontend>  TYPE any.
-          lv_name = `LR_MODEL->` && lr_attri->name.
+          lv_name = `LR_MODEL->` && replace( val = lr_attri->name sub = `-` with = `_` occ = 0 )..
           ASSIGN (lv_name) TO <frontend>.
           z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -1737,102 +1734,6 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
 
     result = CAST #( z2ui5_lcl_fw_db=>load_app( id )-o_app ).
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-CLASS z2ui5_lcl_fw_view DEFINITION.
-
-  PUBLIC SECTION.
-    CLASS-METHODS read_view
-      RETURNING
-        VALUE(result) TYPE string.
-ENDCLASS.
-
-CLASS z2ui5_lcl_fw_view IMPLEMENTATION.
-
-  METHOD read_view.
-
-    result = `<mvc:View ` && |\n|  &&
-             `  xmlns="sap.m" ` && |\n|  &&
-             `  xmlns:z2ui5="z2ui5" ` && |\n|  &&
-             `  xmlns:core="sap.ui.core" ` && |\n|  &&
-             `  xmlns:mvc="sap.ui.core.mvc" ` && |\n|  &&
-             `  xmlns:layout="sap.ui.layout" ` && |\n|  &&
-             `  xmlns:f="sap.f" ` && |\n|  &&
-             `  xmlns:form="sap.ui.layout.form" ` && |\n|  &&
-             `  xmlns:editor="sap.ui.codeeditor" ` && |\n|  &&
-             `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n|  &&
-             `  xmlns:webc="sap.ui.webc.main" ` && |\n|  &&
-             `  xmlns:uxap="sap.uxap" ` && |\n|  &&
-             `  xmlns:sap="sap" ` && |\n|  &&
-             `  xmlns:text="sap.ui.richtextedito" ` && |\n|  &&
-             `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n|  &&
-             `  displayBlock="true" ` && |\n|  &&
-             `  height="100%" ` && |\n|  &&
-             `  controllerName="z2ui5_controller" ` && |\n|  &&
-             ` > <Shell ` && |\n|  &&
-             ` > <Page ` && |\n|  &&
-             `  title="abap2UI5 - z2ui5_cl_app_hello_world" ` && |\n|  &&
-             ` > <form:SimpleForm ` && |\n|  &&
-             `  title="Hello World" ` && |\n|  &&
-             `  editable="true" ` && |\n|  &&
-             ` > <form:content ` && |\n|  &&
-             ` > <Title ` && |\n|  &&
-             `  text="Make an input here and send it to the server..." ` && |\n|  &&
-             ` /> <Label ` && |\n|  &&
-             `  text="quantity" ` && |\n|  &&
-             ` /> <Input ` && |\n|  &&
-             `  value="onEvent( {/oUpdate/QUANTITY} )"` && |\n|  &&
-             ` /> <Label ` && |\n|  &&
-             `  text="product" ` && |\n|  &&
-             ` /> <Input ` && |\n|  &&
-             `  enabled="false" ` && |\n|  &&
-             `  value="{VALUE}" ` && |\n|  &&
-             ` /> <Button ` && |\n|  &&
-             `  press="onEvent( { &apos;EVENT&apos; : &apos;BUTTON_POST&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; , &apos;isHoldView&apos; : false } )" ` && |\n|  &&
-             `  text="post" ` && |\n|  &&
-             ` /></form:content></form:SimpleForm></Page></Shell></mvc:View>`.
-  ENDMETHOD.
-
-ENDCLASS.
-
-CLASS  z2ui5_lcl_fw_view_app DEFINITION.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    DATA quantity TYPE string VALUE `10` ##NEEDED.
-ENDCLASS.
-
-CLASS z2ui5_lcl_fw_view_app IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main.
-
-    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( me ).
-    DATA(lv_view)  = z2ui5_lcl_fw_view=>read_view( ).
-
-    SPLIT lv_view AT `{` INTO TABLE DATA(lt_view).
-    DELETE lt_view INDEX 1.
-
-    LOOP AT lt_view  INTO DATA(lr_view).
-      SPLIT lr_view AT `}` INTO lr_view DATA(lv_dummy).
-
-      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
-        IF lr_view = `/oUpdate/` && lr_attri->name.
-          lr_attri->bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way.
-          CONTINUE.
-        ENDIF.
-
-        IF lr_view = lr_attri->name.
-          lr_attri->bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way.
-          CONTINUE.
-        ENDIF.
-      ENDLOOP.
-    ENDLOOP.
-
-    client->set_next( VALUE #( xml_main = lv_view  ) ).
 
   ENDMETHOD.
 
