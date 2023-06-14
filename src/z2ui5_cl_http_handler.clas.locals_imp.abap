@@ -622,7 +622,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
-    " DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -712,7 +711,6 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         id_prev           TYPE string,
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
-
         t_attri           TYPE z2ui5_lcl_utility=>ty_t_attri,
         o_app             TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
@@ -761,8 +759,6 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
 
-
-
     METHODS set_app_leave
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
@@ -781,7 +777,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
 
     CLASS-METHODS bind_front_2_back
       IMPORTING
-        lo_model TYPE REF TO z2ui5_lcl_utility_tree_json
+        lr_model TYPE REF TO data
         lo_app   TYPE REF TO object
         t_attri  TYPE z2ui5_lcl_utility=>ty_t_attri ##NEEDED.
 
@@ -1254,11 +1250,16 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
+
+    DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL THEN ms_next-s_set-_viewmodel
+        ELSE bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) ).
+    lo_resp->add_attribute(  n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
+    CLEAR ms_next-s_set-_viewmodel.
+
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
-    lo_resp->add_attribute( n = `ID`   v = ms_db-id ).
+    lo_resp->add_attribute( n = `ID`     v = ms_db-id ).
 
-    lo_resp->add_attribute(  n = `OVIEWMODEL` v = bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) apos_active = abap_false ).
     result = lo_resp->get_root( )->stringify( ).
 
     DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
@@ -1269,30 +1270,31 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD bind_front_2_back.
 
-    CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
+    LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
+        WHERE bind_type = cs_bind_type-two_way.
+      TRY.
+          FIELD-SYMBOLS <backend> TYPE any.
+          DATA(lv_name) = `LO_APP->` && lr_attri->name.
+          ASSIGN (lv_name) TO <backend>.
+          z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    TRY.
-
-        LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
-            WHERE bind_type = cs_bind_type-two_way.
-
-          FIELD-SYMBOLS <attribute> TYPE any.
-          DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
-          ASSIGN (lv_name) TO <attribute>.
+          FIELD-SYMBOLS <frontend>  TYPE any.
+          lv_name = `LR_MODEL->` && replace( val = lr_attri->name sub = `-` with = `_` occ = 0 ).
+          ASSIGN (lv_name) TO <frontend>.
           z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
           IF lr_attri->gen_kind IS NOT INITIAL.
 
             CASE lr_attri->gen_kind.
               WHEN cl_abap_datadescr=>kind_elem.
-                CREATE DATA <attribute> TYPE (lr_attri->gen_type).
-                ASSIGN <attribute>->* TO <attribute>.
+                CREATE DATA <backend> TYPE (lr_attri->gen_type).
+                ASSIGN <backend>->* TO <backend>.
               WHEN cl_abap_datadescr=>kind_table.
                 DATA lr_data TYPE REF TO data.
                 CREATE DATA lr_data TYPE (lr_attri->gen_type).
                 ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
-                CREATE DATA <attribute> LIKE STANDARD TABLE OF <field>.
-                ASSIGN <attribute>->* TO <attribute>.
+                CREATE DATA <backend> LIKE STANDARD TABLE OF <field>.
+                ASSIGN <backend>->* TO <backend>.
             ENDCASE.
           ENDIF.
 
@@ -1300,30 +1302,27 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
             WHEN `h`.
               z2ui5_lcl_utility=>trans_ref_tab_2_tab(
-                   EXPORTING ir_tab_from = lo_model->get_attribute( lr_attri->name )->mr_actual
-                   IMPORTING t_result    = <attribute> ).
+                   EXPORTING ir_tab_from = <frontend>
+                   IMPORTING t_result    = <backend> ).
 
             WHEN OTHERS.
 
-              DATA(lo_attri) = lo_model->get_attribute( lr_attri->name ).
-              FIELD-SYMBOLS <val> TYPE any.
-              ASSIGN lo_attri->mr_actual->* TO <val>.
-
+              ASSIGN <frontend>->* TO <frontend>.
               CASE lr_attri->type_kind.
                 WHEN 'D' OR 'T'.
                   /ui2/cl_json=>deserialize(
                       EXPORTING
-                        json             = `"` && <val> && `"`
+                        json             = `"` && <frontend> && `"`
                       CHANGING
-                        data             = <attribute>  ).
+                        data             = <backend>  ).
                 WHEN OTHERS.
-                  <attribute> = <val>.
+                  <backend> = <frontend>.
               ENDCASE.
           ENDCASE.
-        ENDLOOP.
 
-      CATCH cx_root.
-    ENDTRY.
+        CATCH cx_root.
+      ENDTRY.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1333,7 +1332,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     DATA(r_view_model)  = z2ui5_lcl_utility_tree_json=>factory( ).
-    r_view_model->mv_name = `oViewModel`.
     DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
@@ -1423,10 +1421,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     bind_front_2_back(
-        lo_model = mo_body->get_attribute( `OUPDATE` )
+        lr_model = mo_body->get_attribute( `OUPDATE` )->mr_actual
         lo_app   = result->ms_db-o_app
         t_attri  = result->ms_db-t_attri
     ).
+
+    result->ms_actual-_viewmodel = mo_body->get_attribute( `OUPDATE` )->mr_actual.
 
   ENDMETHOD.
 
@@ -1667,8 +1667,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
          event             = mo_handler->ms_actual-event
          t_event_arg       = mo_handler->ms_actual-t_event_arg
          t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
-         t_req_header      = z2ui5_cl_http_handler=>client-t_header
-         t_req_param       = z2ui5_cl_http_handler=>client-t_param
+         _viewmodel        = mo_handler->ms_actual-_viewmodel
      ).
 
   ENDMETHOD.
@@ -1735,102 +1734,6 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
 
     result = CAST #( z2ui5_lcl_fw_db=>load_app( id )-o_app ).
-
-  ENDMETHOD.
-
-ENDCLASS.
-
-CLASS z2ui5_lcl_fw_view DEFINITION.
-
-  PUBLIC SECTION.
-    CLASS-METHODS read_view
-      RETURNING
-        VALUE(result) TYPE string.
-ENDCLASS.
-
-CLASS z2ui5_lcl_fw_view IMPLEMENTATION.
-
-  METHOD read_view.
-
-    result = `<mvc:View ` && |\n|  &&
-             `  xmlns="sap.m" ` && |\n|  &&
-             `  xmlns:z2ui5="z2ui5" ` && |\n|  &&
-             `  xmlns:core="sap.ui.core" ` && |\n|  &&
-             `  xmlns:mvc="sap.ui.core.mvc" ` && |\n|  &&
-             `  xmlns:layout="sap.ui.layout" ` && |\n|  &&
-             `  xmlns:f="sap.f" ` && |\n|  &&
-             `  xmlns:form="sap.ui.layout.form" ` && |\n|  &&
-             `  xmlns:editor="sap.ui.codeeditor" ` && |\n|  &&
-             `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n|  &&
-             `  xmlns:webc="sap.ui.webc.main" ` && |\n|  &&
-             `  xmlns:uxap="sap.uxap" ` && |\n|  &&
-             `  xmlns:sap="sap" ` && |\n|  &&
-             `  xmlns:text="sap.ui.richtextedito" ` && |\n|  &&
-             `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n|  &&
-             `  displayBlock="true" ` && |\n|  &&
-             `  height="100%" ` && |\n|  &&
-             `  controllerName="z2ui5_controller" ` && |\n|  &&
-             ` > <Shell ` && |\n|  &&
-             ` > <Page ` && |\n|  &&
-             `  title="abap2UI5 - z2ui5_cl_app_hello_world" ` && |\n|  &&
-             ` > <form:SimpleForm ` && |\n|  &&
-             `  title="Hello World" ` && |\n|  &&
-             `  editable="true" ` && |\n|  &&
-             ` > <form:content ` && |\n|  &&
-             ` > <Title ` && |\n|  &&
-             `  text="Make an input here and send it to the server..." ` && |\n|  &&
-             ` /> <Label ` && |\n|  &&
-             `  text="quantity" ` && |\n|  &&
-             ` /> <Input ` && |\n|  &&
-             `  value="onEvent( {/oUpdate/QUANTITY} )` && |\n|  &&
-             ` /> <Label ` && |\n|  &&
-             `  text="product" ` && |\n|  &&
-             ` /> <Input ` && |\n|  &&
-             `  enabled="false" ` && |\n|  &&
-             `  value="{VALUE}" ` && |\n|  &&
-             ` /> <Button ` && |\n|  &&
-             `  press="onEvent( { &apos;EVENT&apos; : &apos;BUTTON_POST&apos;, &apos;METHOD&apos; : &apos;UPDATE&apos; , &apos;isHoldView&apos; : false })" ` && |\n|  &&
-             `  text="post" ` && |\n|  &&
-             ` /></form:content></form:SimpleForm></Page></Shell></mvc:View>`.
-  ENDMETHOD.
-
-ENDCLASS.
-
-CLASS  z2ui5_lcl_fw_view_app DEFINITION.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-
-    DATA quantity TYPE string VALUE `10` ##NEEDED.
-ENDCLASS.
-
-CLASS z2ui5_lcl_fw_view_app IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main.
-
-    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( me ).
-    DATA(lv_view)  = z2ui5_lcl_fw_view=>read_view( ).
-
-    SPLIT lv_view AT `{` INTO TABLE DATA(lt_view).
-    DELETE lt_view INDEX 1.
-
-    LOOP AT lt_view  INTO DATA(lr_view).
-      SPLIT lr_view AT `}` INTO lr_view DATA(lv_dummy).
-
-      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
-        IF lr_view = `/oUpdate/` && lr_attri->name.
-          lr_attri->bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way.
-          CONTINUE.
-        ENDIF.
-
-        IF lr_view = lr_attri->name.
-          lr_attri->bind_type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way.
-          CONTINUE.
-        ENDIF.
-      ENDLOOP.
-    ENDLOOP.
-
-    client->set_next( VALUE #( xml_main = lv_view  ) ).
 
   ENDMETHOD.
 

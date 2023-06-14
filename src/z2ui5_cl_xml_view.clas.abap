@@ -36,9 +36,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
     CLASS-METHODS hlp_get_source_code_url
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
-        get           TYPE z2ui5_if_client=>ty_s_get
+         get          TYPE z2ui5_if_client=>ty_s_get
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##NEEDED.
 
     CLASS-METHODS hlp_replace_controller_name
       IMPORTING
@@ -348,7 +348,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
         valuehelprequest TYPE clike OPTIONAL
         class            TYPE clike OPTIONAL
         visible          TYPE clike OPTIONAL
-        submit           TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -1745,7 +1744,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD hlp_get_source_code_url.
 
-    DATA(lv_url) = get-t_req_header[ name = `referer` ]-value.
+    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
     result  = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value  && `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( app ) && `/source/main`.
@@ -1820,7 +1819,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            ( n = `valueHelpRequest` v = valuehelprequest )
            ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
            ( n = `class`            v = class )
-           ( n = `submit`           v = submit )
         ) ).
 
   ENDMETHOD.

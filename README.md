@@ -1,6 +1,6 @@
 # abap2UI5
-<img width="800" alt="image" src="https://github.com/oblomov-dev/abap2UI5/assets/102328295/6adde0de-fe8d-4a9b-8c1e-cf0316e1de8b"><br><br>
-Follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/oblomov-dev/abap2UI5-demos) 
+![bild](https://github.com/oblomov-dev/abap2UI5/assets/102328295/8cf3f160-2881-45b9-a38b-80abda0d8bb0)
+Follow this project on [**twitter** :sound:](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/oblomov-dev/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
@@ -37,8 +37,8 @@ Follow this project on [**twitter**](https://twitter.com/OblomovDev) to keep up 
 * [work-in-progress] Launchpad integration with the following extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
 
 #### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png), create a new HTTP service and replace the handler method with the following code snippet:
-##### Standard ABAP :computer:
+Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png), create a new HTTP service and replace the handler method with the following code:
+##### Standard ABAP  🏠
 ```abap
 METHOD if_http_extension~handle_request.
 
@@ -62,7 +62,7 @@ METHOD if_http_extension~handle_request.
 
 ENDMETHOD.
 ```
-##### ABAP for Cloud :cloud:
+##### ABAP for Cloud  :cloud:
 ```abap
 METHOD if_http_service_extension~handle_request.
 
