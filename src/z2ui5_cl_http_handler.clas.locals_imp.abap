@@ -1335,7 +1335,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     DATA(r_view_model)  = z2ui5_lcl_utility_tree_json=>factory( ).
-*    r_view_model->mv_name = `oViewModel`.
     DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
@@ -1785,7 +1784,7 @@ CLASS z2ui5_lcl_fw_view IMPLEMENTATION.
              ` /> <Label ` && |\n|  &&
              `  text="quantity" ` && |\n|  &&
              ` /> <Input ` && |\n|  &&
-             `  value="onEvent( {/oUpdate/QUANTITY} )` && |\n|  &&
+             `  value="onEvent( {/oUpdate/QUANTITY} )"` && |\n|  &&
              ` /> <Label ` && |\n|  &&
              `  text="product" ` && |\n|  &&
              ` /> <Input ` && |\n|  &&
