@@ -1254,11 +1254,16 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
+
+    DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL THEN ms_next-s_set-_viewmodel
+        ELSE bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) ).
+    lo_resp->add_attribute(  n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
+    CLEAR ms_next-s_set-_viewmodel.
+
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
-    lo_resp->add_attribute( n = `ID`   v = ms_db-id ).
+    lo_resp->add_attribute( n = `ID`     v = ms_db-id ).
 
-    lo_resp->add_attribute(  n = `OVIEWMODEL` v = bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) apos_active = abap_false ).
     result = lo_resp->get_root( )->stringify( ).
 
     DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
@@ -1427,6 +1432,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         lo_app   = result->ms_db-o_app
         t_attri  = result->ms_db-t_attri
     ).
+
+    result->ms_actual-_viewmodel = mo_body->get_attribute( `OUPDATE` )->mr_actual.
 
   ENDMETHOD.
 
@@ -1667,8 +1674,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
          event             = mo_handler->ms_actual-event
          t_event_arg       = mo_handler->ms_actual-t_event_arg
          t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
-         t_req_header      = z2ui5_cl_http_handler=>client-t_header
-         t_req_param       = z2ui5_cl_http_handler=>client-t_param
+         _viewmodel        = mo_handler->ms_actual-_viewmodel
      ).
 
   ENDMETHOD.

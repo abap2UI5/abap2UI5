@@ -17,8 +17,7 @@ INTERFACE z2ui5_if_client
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
       t_scroll_pos      TYPE ty_t_name_value,
-      t_req_param       TYPE ty_t_name_value,
-      t_req_header      TYPE ty_t_name_value,
+      _viewmodel        TYPE REF TO data,
     END OF ty_s_get.
 
   TYPES:
@@ -39,6 +38,7 @@ INTERFACE z2ui5_if_client
         interval_ms    TYPE string,
         event_finished TYPE string,
       END OF s_timer,
+      _viewmodel         TYPE string,
     END OF ty_s_next.
 
   METHODS set_next
@@ -91,9 +91,9 @@ INTERFACE z2ui5_if_client
 
   METHODS _event
     IMPORTING
-      val       TYPE clike
-      hold_view TYPE abap_bool DEFAULT abap_false
-      t_arg     TYPE string_table OPTIONAL
+      val           TYPE clike
+      hold_view     TYPE abap_bool DEFAULT abap_false
+      t_arg         TYPE string_table OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
