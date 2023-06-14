@@ -38,7 +38,7 @@ Follow this project on [**twitter** :sound:](https://twitter.com/OblomovDev) to 
 
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png), create a new HTTP service and replace the handler method with the following code:
-##### Standard ABAP 🏠
+##### Standard ABAP  🏠
 ```abap
 METHOD if_http_extension~handle_request.
 
@@ -62,7 +62,7 @@ METHOD if_http_extension~handle_request.
 
 ENDMETHOD.
 ```
-##### ABAP for Cloud :cloud:
+##### ABAP for Cloud  :cloud:
 ```abap
 METHOD if_http_service_extension~handle_request.
 
