@@ -17,7 +17,6 @@ INTERFACE z2ui5_if_client
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
       t_scroll_pos      TYPE ty_t_name_value,
-      _viewmodel        TYPE REF TO data,
     END OF ty_s_get.
 
   TYPES:

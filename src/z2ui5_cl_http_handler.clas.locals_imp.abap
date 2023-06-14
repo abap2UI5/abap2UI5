@@ -1426,8 +1426,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         t_attri  = result->ms_db-t_attri
     ).
 
-    result->ms_actual-_viewmodel = mo_body->get_attribute( `OUPDATE` )->mr_actual.
-
   ENDMETHOD.
 
 
@@ -1667,7 +1665,6 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
          event             = mo_handler->ms_actual-event
          t_event_arg       = mo_handler->ms_actual-t_event_arg
          t_scroll_pos      = mo_handler->ms_actual-t_scroll_pos
-         _viewmodel        = mo_handler->ms_actual-_viewmodel
      ).
 
   ENDMETHOD.
