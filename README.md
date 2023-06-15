@@ -1,5 +1,5 @@
 # abap2UI5
-![bild](https://github.com/oblomov-dev/abap2UI5/assets/102328295/8cf3f160-2881-45b9-a38b-80abda0d8bb0)
+![image](https://github.com/oblomov-dev/abap2UI5/assets/102328295/493ef53f-b2ce-43fd-b4ad-fe863f547b80)
 Follow this project on [**twitter** :sound:](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/oblomov-dev/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
