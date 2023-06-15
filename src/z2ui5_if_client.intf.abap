@@ -1,5 +1,5 @@
 INTERFACE z2ui5_if_client
-  PUBLIC .
+  PUBLIC.
 
   TYPES:
     BEGIN OF ty_s_name_value,
@@ -41,63 +41,48 @@ INTERFACE z2ui5_if_client
     END OF ty_s_next.
 
   METHODS set_next
-    IMPORTING
-      val TYPE ty_S_next.
+    IMPORTING val TYPE ty_S_next.
 
   METHODS get
-    RETURNING
-      VALUE(result) TYPE ty_s_get.
+    RETURNING VALUE(result) TYPE ty_s_get.
 
   METHODS get_app
-    IMPORTING
-      id            TYPE clike
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_if_app.
+    IMPORTING id            TYPE clike
+    RETURNING VALUE(result) TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_leave
-    IMPORTING
-      app TYPE REF TO z2ui5_if_app.
+    IMPORTING app TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_call
-    IMPORTING
-      app TYPE REF TO z2ui5_if_app.
+    IMPORTING app TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_home.
 
   METHODS popup_message_box
-    IMPORTING
-      text TYPE string
-      type TYPE string DEFAULT 'information'.
+    IMPORTING text TYPE string
+              type TYPE string DEFAULT 'information'.
 
   METHODS popup_message_toast
-    IMPORTING
-      text TYPE string.
+    IMPORTING text TYPE string.
 
   METHODS _bind
-    IMPORTING
-      val            TYPE data
-      path           TYPE abap_bool DEFAULT abap_false
-      check_gen_data TYPE abap_bool OPTIONAL
-    RETURNING
-      VALUE(result)  TYPE string.
+    IMPORTING val            TYPE data
+              path           TYPE abap_bool DEFAULT abap_false
+              check_gen_data TYPE abap_bool OPTIONAL
+    RETURNING VALUE(result)  TYPE string.
 
   METHODS _bind_one
-    IMPORTING
-      val           TYPE data
-      path          TYPE abap_bool DEFAULT abap_false
-    RETURNING
-      VALUE(result) TYPE string.
+    IMPORTING val           TYPE data
+              path          TYPE abap_bool DEFAULT abap_false
+    RETURNING VALUE(result) TYPE string.
 
   METHODS _event
-    IMPORTING
-      val           TYPE clike
-      hold_view     TYPE abap_bool DEFAULT abap_false
-      t_arg         TYPE string_table OPTIONAL
-    RETURNING
-      VALUE(result) TYPE string.
+    IMPORTING val           TYPE clike
+              hold_view     TYPE abap_bool    DEFAULT abap_false
+              t_arg         TYPE string_table OPTIONAL
+    RETURNING VALUE(result) TYPE string.
 
   METHODS _event_close_popup
-    RETURNING
-      VALUE(result) TYPE string.
+    RETURNING VALUE(result) TYPE string.
 
 ENDINTERFACE.
