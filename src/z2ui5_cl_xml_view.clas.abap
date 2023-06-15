@@ -771,16 +771,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS _generic
-      IMPORTING name          TYPE clike
-                ns            TYPE clike           OPTIONAL
-                t_prop        TYPE ty_t_name_value OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        name          TYPE clike
+        ns            TYPE clike           OPTIONAL
+        t_prop        TYPE ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS cc_file_uploader
-      IMPORTING value         TYPE clike OPTIONAL
-                path          TYPE clike OPTIONAL
-                placeholder   TYPE clike OPTIONAL
-                upload        TYPE clike OPTIONAL
+      IMPORTING
+        value         TYPE clike OPTIONAL
+        path          TYPE clike OPTIONAL
+        placeholder   TYPE clike OPTIONAL
+        upload        TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     CLASS-METHODS cc_file_uploader_get_js
