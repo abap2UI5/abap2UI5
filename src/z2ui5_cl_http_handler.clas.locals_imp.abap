@@ -182,7 +182,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_uuid_session.
-    mv_counter += 1.
+    mv_counter = mv_counter + 1.
     result = get_trim_upper( mv_counter ).
   ENDMETHOD.
 
@@ -349,7 +349,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     IF when = abap_false.
       RETURN.
     ENDIF.
-    RAISE EXCEPTION NEW z2ui5_lcl_utility( val = v ).
+    RAISE EXCEPTION type z2ui5_lcl_utility exporting val = v.
   ENDMETHOD.
 ENDCLASS.
 
