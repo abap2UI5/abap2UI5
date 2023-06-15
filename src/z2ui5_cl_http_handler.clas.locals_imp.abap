@@ -475,7 +475,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     /ui2/cl_json=>deserialize( EXPORTING json         = CONV string( iv_json )
                                          assoc_arrays = abap_true
-                               "    conversion_exits = abap_true
                                CHANGING  data         = result->mr_actual ).
   ENDMETHOD.
 
