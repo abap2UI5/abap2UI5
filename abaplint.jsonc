@@ -45,7 +45,7 @@
     "classic_exceptions_overlap": true,
     "cloud_types": true,
     "colon_missing_space": true,
-    "commented_code": true,
+    "commented_code": false,
     "constant_classes": {
       "exclude": [],
       "severity": "Error",
