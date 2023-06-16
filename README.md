@@ -1,6 +1,6 @@
 # abap2UI5
 ![image](https://github.com/oblomov-dev/abap2UI5/assets/102328295/493ef53f-b2ce-43fd-b4ad-fe863f547b80)
-Follow this project on [**twitter** :sound:](https://twitter.com/OblomovDev) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/oblomov-dev/abap2UI5-demos) 
+Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/abap2UI5/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
@@ -14,7 +14,7 @@ Follow this project on [**twitter** :sound:](https://twitter.com/OblomovDev) to 
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [**downport repository**](https://github.com/oblomov-dev/abap2UI5-downport)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [**downport repository**](https://github.com/abap2UI5/abap2UI5-downport)
 
 #### Information (Blog Series)
 1. Introduction: Developing UI5 Apps in pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
@@ -83,4 +83,4 @@ ENDMETHOD.
 * check out this [documentation](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/) for detailed installation guidelines<br>
 * read these [instructions](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/) when you develop your first app<br>
 * want to configure the theme, bootstrapping, language and title? see [configuration & debugging](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
-* as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/oblomov-dev/ABAP2UI5/issues)
+* as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
