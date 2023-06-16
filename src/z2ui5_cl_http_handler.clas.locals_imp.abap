@@ -1426,7 +1426,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get.
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
-                      event                    = mo_handler->ms_actual-event
+                      event                  = mo_handler->ms_actual-event
                       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
                       t_event_arg            = mo_handler->ms_actual-t_event_arg
                       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos ).
