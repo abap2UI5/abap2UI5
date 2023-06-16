@@ -37,8 +37,10 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
           PREFERRED PARAMETER v.
 
     CLASS-METHODS get_header_val
-      IMPORTING v             TYPE clike
-      RETURNING VALUE(result) TYPE z2ui5_if_client=>ty_s_name_value-value.
+      IMPORTING
+        v             TYPE clike
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_s_name_value-value.
 
     CLASS-METHODS get_param_val
       IMPORTING v             TYPE clike
