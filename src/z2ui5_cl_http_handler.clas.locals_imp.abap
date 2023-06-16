@@ -1,6 +1,7 @@
 CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
   PUBLIC SECTION.
+
     TYPES:
       BEGIN OF ty_attri,
         name           TYPE string,
@@ -22,16 +23,18 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       END OF ms_error.
 
     METHODS constructor
-      IMPORTING val      TYPE any            OPTIONAL
-                previous TYPE REF TO cx_root OPTIONAL
-                  PREFERRED PARAMETER val.
+      IMPORTING
+        val      TYPE any            OPTIONAL
+        previous TYPE REF TO cx_root OPTIONAL
+          PREFERRED PARAMETER val.
 
     METHODS get_text REDEFINITION.
 
     CLASS-METHODS raise
-      IMPORTING v    TYPE clike     DEFAULT `CX_SY_SUBRC`
-                when TYPE abap_bool DEFAULT abap_true
-                  PREFERRED PARAMETER v.
+      IMPORTING
+        v    TYPE clike     DEFAULT `CX_SY_SUBRC`
+        when TYPE abap_bool DEFAULT abap_true
+          PREFERRED PARAMETER v.
 
     CLASS-METHODS get_header_val
       IMPORTING v             TYPE clike
