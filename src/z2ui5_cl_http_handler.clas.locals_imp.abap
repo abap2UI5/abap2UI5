@@ -50,7 +50,8 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING VALUE(result) TYPE string.
 
     CLASS-METHODS get_uuid_session
-      RETURNING VALUE(result) TYPE string.
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS get_user_tech
       RETURNING VALUE(result) TYPE string.
