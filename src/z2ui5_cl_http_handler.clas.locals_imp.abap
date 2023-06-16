@@ -1217,9 +1217,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    bind_front_2_back( lr_model = mo_body->get_attribute( `OUPDATE` )->mr_actual
-                       lo_app   = result->ms_db-o_app
-                       t_attri  = result->ms_db-t_attri ).
+    TRY.
+        bind_front_2_back( lr_model = mo_body->get_attribute( `OUPDATE` )->mr_actual
+                           lo_app   = result->ms_db-o_app
+                           t_attri  = result->ms_db-t_attri ).
+      CATCH cx_root.
+    ENDTRY.
+
   ENDMETHOD.
 
   METHOD set_app_start.
