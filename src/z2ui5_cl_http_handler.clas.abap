@@ -139,6 +139,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    });` && |\n| &&
                            `                }` && |\n| &&
                            `                this.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
+                           `               this.oBody.CHECKLAUNCHPADACTIVE = false;` && |\n| &&
+                                  `  if ( sap.z2ui5.checkLaunchpadActive ) { if ( sap.z2ui5.checkLaunchpadActive == true ) { ` && |\n| &&
+                           `                   this.oBody.CHECKLAUNCHPADACTIVE = true; ` && |\n| &&
+                           `                } }` && |\n| &&
                            `                this.oBody.ARGUMENTS = arguments;` && |\n| &&
                            |\n| &&
                            `                if (sap.z2ui5.checkLogActive) {` && |\n| &&
