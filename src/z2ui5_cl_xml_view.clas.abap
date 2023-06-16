@@ -780,10 +780,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS cc_file_uploader
       IMPORTING
-        value         TYPE clike OPTIONAL
-        path          TYPE clike OPTIONAL
-        placeholder   TYPE clike OPTIONAL
-        upload        TYPE clike OPTIONAL
+                value         TYPE clike OPTIONAL
+                path          TYPE clike OPTIONAL
+                placeholder   TYPE clike OPTIONAL
+                upload        TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO  z2ui5_cl_xml_view.
 
     CLASS-METHODS cc_file_uploader_get_js
