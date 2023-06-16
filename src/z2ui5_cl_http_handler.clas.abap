@@ -3,6 +3,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+
     CLASS-DATA:
       BEGIN OF client,
         body     TYPE string,
@@ -16,23 +17,29 @@ CLASS z2ui5_cl_http_handler DEFINITION
       END OF config.
 
     CLASS-METHODS http_get
-      IMPORTING t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-                content_security_policy TYPE clike                            OPTIONAL
-                check_logging           TYPE abap_bool                        DEFAULT abap_false
-      RETURNING VALUE(r_result)         TYPE string.
+      IMPORTING
+        t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        content_security_policy TYPE clike                            OPTIONAL
+        check_logging           TYPE abap_bool                        DEFAULT abap_false
+      RETURNING
+        VALUE(r_result)         TYPE string.
 
     CLASS-METHODS http_post
-      RETURNING VALUE(result) TYPE string.
+      RETURNING
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-
   PRIVATE SECTION.
 
 ENDCLASS.
 
 
+
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+
+
   METHOD http_get.
+
     DATA(lt_Config) = t_config.
 
     IF lt_config IS INITIAL.
@@ -132,6 +139,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    });` && |\n| &&
                            `                }` && |\n| &&
                            `                this.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
+                           `               this.oBody.CHECKLAUNCHPADACTIVE = false;` && |\n| &&
+                                  `  if ( sap.z2ui5.checkLaunchpadActive ) { if ( sap.z2ui5.checkLaunchpadActive == true ) { ` && |\n| &&
+                           `                   this.oBody.CHECKLAUNCHPADACTIVE = true; ` && |\n| &&
+                           `                } }` && |\n| &&
                            `                this.oBody.ARGUMENTS = arguments;` && |\n| &&
                            |\n| &&
                            `                if (sap.z2ui5.checkLogActive) {` && |\n| &&
@@ -200,8 +211,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            sap.z2ui5 = {};` && |\n| &&
                            `        }` && |\n| &&
                            `        if (!sap.z2ui5.pathname){ sap.z2ui5.pathname = window.location.pathname; }` && |\n| &&
-                                       `       debugger;` && |\n| &&
-                         `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n| &&
+                           `              debugger;` && |\n| &&
+                           `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n| &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n| &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n| &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n| &&
@@ -274,13 +285,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            }` && |\n| &&
                            `            sap.ui.core.BusyIndicator.hide();` && |\n| &&
                            `        };` &&
-`        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+                           `        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
                            `    });` && |\n| &&
                            `</script><abc/>` && |\n| &&
                            `</html>`.
   ENDMETHOD.
 
+
   METHOD http_post.
+
     DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( ).
 
     DO.
@@ -308,5 +321,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
       EXIT.
     ENDDO.
+
   ENDMETHOD.
 ENDCLASS.

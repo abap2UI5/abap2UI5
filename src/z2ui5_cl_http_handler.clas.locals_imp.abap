@@ -1,6 +1,7 @@
 CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
   PUBLIC SECTION.
+
     TYPES:
       BEGIN OF ty_attri,
         name           TYPE string,
@@ -22,16 +23,18 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       END OF ms_error.
 
     METHODS constructor
-      IMPORTING val      TYPE any            OPTIONAL
-                previous TYPE REF TO cx_root OPTIONAL
-                  PREFERRED PARAMETER val.
+      IMPORTING
+        val      TYPE any            OPTIONAL
+        previous TYPE REF TO cx_root OPTIONAL
+          PREFERRED PARAMETER val.
 
     METHODS get_text REDEFINITION.
 
     CLASS-METHODS raise
-      IMPORTING v    TYPE clike     DEFAULT `CX_SY_SUBRC`
-                when TYPE abap_bool DEFAULT abap_true
-                  PREFERRED PARAMETER v.
+      IMPORTING
+        v    TYPE clike     DEFAULT `CX_SY_SUBRC`
+        when TYPE abap_bool DEFAULT abap_true
+          PREFERRED PARAMETER v.
 
     CLASS-METHODS get_header_val
       IMPORTING v             TYPE clike
@@ -1176,12 +1179,19 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_app_client.
+
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
     DATA(lv_id) = result->ms_db-id.
     result->ms_db = z2ui5_lcl_fw_db=>load_app( id_prev ).
     result->ms_db-id      = lv_id.
     result->ms_db-id_prev = id_prev.
+
+
+    TRY.
+        result->ms_actual-check_launchpad_active = mo_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
 
     DATA(lo_arg) = mo_body->get_attribute( `ARGUMENTS` ).
     TRY.
@@ -1276,6 +1286,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
     result->ms_next-s_msg = ms_next-s_msg.
+    RESUlt->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
 
     result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
     CLEAR ms_next.
@@ -1415,9 +1426,10 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get.
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
-                      event        = mo_handler->ms_actual-event
-                      t_event_arg  = mo_handler->ms_actual-t_event_arg
-                      t_scroll_pos = mo_handler->ms_actual-t_scroll_pos ).
+                      event                  = mo_handler->ms_actual-event
+                      check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
+                      t_event_arg            = mo_handler->ms_actual-t_event_arg
+                      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos ).
   ENDMETHOD.
 
   METHOD z2ui5_if_client~nav_app_call.

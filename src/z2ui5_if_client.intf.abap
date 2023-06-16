@@ -12,6 +12,7 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_get,
       event             TYPE string,
       t_event_arg       TYPE string_table,
+      check_launchpad_active type abap_bool,
       id                TYPE string,
       id_prev           TYPE string,
       id_prev_app       TYPE string,
