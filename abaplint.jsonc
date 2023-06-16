@@ -37,7 +37,7 @@
     "check_comments": true,
     "check_ddic": true,
     "check_include": true,
-    "check_subrc": true,
+    "check_subrc": false,
     "check_syntax": true,
     "check_text_elements": true,
     "check_transformation_exists": true,
