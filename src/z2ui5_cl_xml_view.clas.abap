@@ -287,6 +287,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
                   PREFERRED PARAMETER title
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS carousel
+      IMPORTING
+        height        TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        loop          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS buttons
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1079,6 +1087,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     _generic( name   = `DateTimePicker`
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `placeholder`  v = placeholder ) ) ).
+  ENDMETHOD.
+
+  METHOD carousel.
+
+    result = _generic( name   = `Carousel`
+                       t_prop = VALUE #( ( n = `loop`  v = lcl_utility=>get_json_boolean( loop )  )
+                                         ( n = `class`  v = class )
+                                         ( n = `height`  v = height )
+               ) ).
+
   ENDMETHOD.
 
   METHOD dialog.
