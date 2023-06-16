@@ -29,9 +29,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS hlp_get_source_code_url
-      IMPORTING app           TYPE REF TO z2ui5_if_app
-                get           TYPE z2ui5_if_client=>ty_s_get
-      RETURNING VALUE(result) TYPE string ##NEEDED.
+      IMPORTING
+        app           TYPE REF TO z2ui5_if_app
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS hlp_replace_controller_name
       IMPORTING xml           TYPE string
