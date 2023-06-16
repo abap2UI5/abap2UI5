@@ -24,14 +24,14 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
     METHODS constructor
       IMPORTING val      TYPE any            OPTIONAL
                 previous TYPE REF TO cx_root OPTIONAL
-          PREFERRED PARAMETER val.
+                  PREFERRED PARAMETER val.
 
     METHODS get_text REDEFINITION.
 
     CLASS-METHODS raise
       IMPORTING v    TYPE clike     DEFAULT `CX_SY_SUBRC`
                 when TYPE abap_bool DEFAULT abap_true
-          PREFERRED PARAMETER v.
+                  PREFERRED PARAMETER v.
 
     CLASS-METHODS get_header_val
       IMPORTING v             TYPE clike
@@ -164,13 +164,15 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         TRY.
             CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c32
-              RECEIVING uuid = uuid.
+              RECEIVING
+                uuid = uuid.
 
           CATCH cx_sy_dyn_call_illegal_class.
 
             DATA(lv_fm) = `GUID_CREATE`.
             CALL FUNCTION lv_fm
-              IMPORTING ev_guid_32 = uuid.
+              IMPORTING
+                ev_guid_32 = uuid.
 
         ENDTRY.
 
@@ -349,7 +351,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     IF when = abap_false.
       RETURN.
     ENDIF.
-    RAISE EXCEPTION type z2ui5_lcl_utility exporting val = v.
+    RAISE EXCEPTION TYPE z2ui5_lcl_utility EXPORTING val = v.
   ENDMETHOD.
 ENDCLASS.
 
@@ -621,7 +623,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
     METHODS set_app_system
       IMPORTING VALUE(ix)     TYPE REF TO cx_root OPTIONAL
                 error_text    TYPE string         OPTIONAL
-          PREFERRED PARAMETER ix
+                  PREFERRED PARAMETER ix
       RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
 
     CLASS-METHODS bind_front_2_back
