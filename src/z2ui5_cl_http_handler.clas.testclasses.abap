@@ -68,8 +68,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
   METHOD test_json_object.
     DATA(lo_tree) = NEW z2ui5_lcl_utility_tree_json( ).
 
-    lo_tree->add_attribute_object( `CCC`
-         )->add_attribute( n = `AAA` v = `BBB` ).
+    lo_tree->add_attribute_object( `CCC` )->add_attribute( n = `AAA` v = `BBB` ).
 
     DATA(lv_result) = lo_tree->stringify( ).
     IF `{"CCC":{"AAA":"BBB"}}` <> lv_result.
@@ -88,8 +87,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(ls_test) = VALUE ty_S_test( comp1 = `AAA` comp2 = `BBB` ).
 
-    lo_tree->add_attribute_object( `CCC`
-        )->add_attribute_struc( ls_test ).
+    lo_tree->add_attribute_object( `CCC` )->add_attribute_struc( ls_test ).
 
     DATA(lv_result) = lo_tree->stringify( ).
     IF `{"CCC":{"COMP1":"AAA","COMP2":"BBB"}}` <> lv_result.
@@ -106,7 +104,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
       END OF ty_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true  )
+    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
                                    ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
@@ -130,7 +128,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
       END OF ty_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true  )
+    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
                                    ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
@@ -153,20 +151,7 @@ ENDCLASS.
 
 CLASS ltcl_unit_01_utility IMPLEMENTATION.
   METHOD test_util_04_attri_by_ref.
-*    DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
-*
-*    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( lo_app ).
-*
-*    DATA(lt_test) = VALUE z2ui5_lcl_utility=>ty_t_attri(
-*( name = `Z2UI5_IF_APP~ID` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-*( name = `CHECK_INITIALIZED` type_kind = `C` type = `ABAP_BOOL` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-*( name = `SV_STATUS` type_kind = `g` type = `STRING` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-*( name = `T_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` gen_type_kind = `` gen_type = `` gen_kind = `` )
-* ).
-*
-*    IF lt_test <> lt_attri.
-*      cl_abap_unit_assert=>fail( msg = 'utility - get t_attri table wrong' quit = 5 ).
-*    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_util_uuid_session.
@@ -273,7 +258,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
       WHEN 'BUTTON_POST'.
         client->popup_message_toast( |{ product } { quantity } - send to the server| ).
       WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
     IF sv_state = 'TEST_MESSAGE_BOX'.
@@ -422,10 +407,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD test_bind_one_way.
+
     z2ui5_cl_http_handler=>client = VALUE #(
-        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) )
-        "    t_param = VALUE #( ( name = 'app' value = 'LTCL_UNIT_02_APP_START' ) )
-            ).
+        t_header = VALUE #( ( name = '~path_info' value = 'LTCL_UNIT_02_APP_START' ) ) ).
 
     sv_state = `TEST_ONE_WAY`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post( ).
@@ -612,28 +596,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
                                CHANGING  data = lo_data ).
 
-    " FIELD-SYMBOLS <val> TYPE any.
 
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `OMESSAGE->CONTROL->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `MessageBox`.
-*      cl_abap_unit_assert=>fail( msg = 'message box - control wrong' quit = 5 ).
-*    ENDIF.
-*
-*    UNASSIGN <val>.
-*    lv_assign = `OMESSAGE->TEXT->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `test message box`.
-*      cl_abap_unit_assert=>fail( msg = 'message box - text wrong' quit = 5 ).
-*    ENDIF.
-*
-*    UNASSIGN <val>.
-*    lv_assign = `OMESSAGE->TYPE->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `information`.
-*      cl_abap_unit_assert=>fail( msg = 'message box - type wrong' quit = 5 ).
-*    ENDIF.
+
+
   ENDMETHOD.
 
   METHOD test_startup_path.
@@ -647,7 +612,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
                                CHANGING  data = lo_data ).
 
-    "  FIELD-SYMBOLS <val> TYPE any.
+
   ENDMETHOD.
 
   METHOD test_navigate.
@@ -661,7 +626,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
                                CHANGING  data = lo_data ).
 
-    "  FIELD-SYMBOLS <val> TYPE any.
+
   ENDMETHOD.
 ENDCLASS.
 
@@ -700,7 +665,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
       WHEN 'BUTTON_POST'.
         client->popup_message_toast( |{ product } { quantity } - send to the server| ).
       WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack  ) ).
+        client->nav_app_leave( client->get_app( client->get( )-id_prev_app_stack ) ).
     ENDCASE.
 
     IF sv_state = 'ERROR'.

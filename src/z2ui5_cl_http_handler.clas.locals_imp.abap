@@ -208,7 +208,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
 
     LOOP AT lt_attri INTO DATA(ls_attri)
-         WHERE    type_kind = cl_abap_classdescr=>typekind_struct2
+         WHERE type_kind = cl_abap_classdescr=>typekind_struct2
                OR type_kind = cl_abap_classdescr=>typekind_struct1.
 
       DELETE lt_attri INDEX sy-tabix.
@@ -809,10 +809,10 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       DATA(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv` &&
   `c" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <MessagePage ` && |\n|
   &&
-                           `  description="` && lv_descr && `" ` && |\n|  &&
+                           `  description="` && lv_descr && `" ` && |\n| &&
                            `  icon="sap-icon://message-error" ` && |\n| &&
                            `  text="500 Internal Server Error" ` && |\n| &&
-                           `  enableFormattedText="true" ` && |\n|  &&
+                           `  enableFormattedText="true" ` && |\n| &&
                            ` > <buttons ` && |\n| &&
                            ` > <Button ` && |\n| &&
                            `  press="` && client->_event( `BUTTON_HOME` ) && `" ` && |\n| &&
@@ -845,52 +845,52 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n| &&
                         `  showNavButton="false" ` && |\n| &&
                         `  class="sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" ` && |\n| &&
-                        ` > <headerContent ` && |\n|  &&
-                        ` > <Title ` && |\n|  &&
-                        ` /> <Title ` && |\n|  &&
+                        ` > <headerContent ` && |\n| &&
+                        ` > <Title ` && |\n| &&
+                        ` /> <Title ` && |\n| &&
                         `  text="abap2UI5 - Developing UI5 Apps in pure ABAP" ` && |\n| &&
                         ` /> <ToolbarSpacer ` && |\n| &&
-                        ` /> <Link ` && |\n|  &&
-                        `  text="SCN" ` && |\n|  &&
-                        `  target="_blank" ` && |\n|  &&
+                        ` /> <Link ` && |\n| &&
+                        `  text="SCN" ` && |\n| &&
+                        `  target="_blank" ` && |\n| &&
                         `  href="https://blogs.sap.com/tag/abap2ui5/" ` && |\n| &&
-                        ` /> <Link ` && |\n|  &&
+                        ` /> <Link ` && |\n| &&
                         `  text="Twitter" ` && |\n| &&
-                        `  target="_blank" ` && |\n|  &&
-                        `  href="https://twitter.com/OblomovDev" ` && |\n|  &&
-                        ` /> <Link ` && |\n|  &&
+                        `  target="_blank" ` && |\n| &&
+                        `  href="https://twitter.com/OblomovDev" ` && |\n| &&
+                        ` /> <Link ` && |\n| &&
                         `  text="GitHub" ` && |\n| &&
-                        `  target="_blank" ` && |\n|  &&
+                        `  target="_blank" ` && |\n| &&
                         `  href="https://github.com/oblomov-dev/abap2ui5" ` && |\n| &&
                         ` /></headerContent>`.
 
     lv_xml_main = lv_xml_main && ` <l:Grid ` && |\n| &&
     `  defaultSpan="XL7 L7 M12 S12" ` && |\n| &&
-    ` > <l:content ` && |\n|  &&
-    ` > <f:SimpleForm ` && |\n|  &&
-    `  title="Quick Start" ` && |\n|  &&
-    `  layout="ResponsiveGridLayout" ` && |\n|  &&
+    ` > <l:content ` && |\n| &&
+    ` > <f:SimpleForm ` && |\n| &&
+    `  title="Quick Start" ` && |\n| &&
+    `  layout="ResponsiveGridLayout" ` && |\n| &&
     `  editable="true" ` && |\n| &&
-    ` > <f:content ` && |\n|  &&
-    ` > <Label ` && |\n|  &&
-    `  text="Step 1" ` && |\n|  &&
-    ` /> <Text ` && |\n|  &&
+    ` > <f:content ` && |\n| &&
+    ` > <Label ` && |\n| &&
+    `  text="Step 1" ` && |\n| &&
+    ` /> <Text ` && |\n| &&
     `  text="Create a global class in your abap system" ` && |\n| &&
-    ` /> <Label ` && |\n|  &&
-    `  text="Step 2" ` && |\n|  &&
-    ` /> <Text ` && |\n|  &&
+    ` /> <Label ` && |\n| &&
+    `  text="Step 2" ` && |\n| &&
+    ` /> <Text ` && |\n| &&
     `  text="Add the interface: Z2UI5_IF_APP" ` && |\n| &&
-    ` /> <Label ` && |\n|  &&
-    `  text="Step 3" ` && |\n|  &&
-    ` /> <Text ` && |\n|  &&
+    ` /> <Label ` && |\n| &&
+    `  text="Step 3" ` && |\n| &&
+    ` /> <Text ` && |\n| &&
     " TODO: check spelling: behaviour (BE) -> behavior (ABAP cleaner)
-    `  text="Define view, implement behaviour" ` && |\n|  &&
-    ` /> <Link ` && |\n|  &&
+    `  text="Define view, implement behaviour" ` && |\n| &&
+    ` /> <Link ` && |\n| &&
     `  text="(Example)" ` && |\n| &&
     `  target="_blank" ` && |\n| &&
     `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap" ` && |\n| &&
-    ` /> <Label ` && |\n|  &&
-    `  text="Step 4" ` && |\n|  &&
+    ` /> <Label ` && |\n| &&
+    `  text="Step 4" ` && |\n| &&
     ` /> `.
 
     IF ms_home-class_editable = abap_true.
@@ -909,9 +909,9 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        `  press="`  && client->_event( ms_home-btn_event_id ) && `" ` && |\n| &&
        `  text="` && ms_home-btn_text && `" ` && |\n| &&
        `  icon="` && ms_home-btn_icon && `" ` && |\n| &&
-       ` /> <Label ` && |\n|  &&
+       ` /> <Label ` && |\n| &&
        `  text="Step 5" ` && |\n| &&
-       ` /> <Link ` && |\n|  &&
+       ` /> <Link ` && |\n| &&
        `  text="Link to the Application" ` && |\n| &&
        `  target="_blank" ` && |\n| &&
        `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n| &&
@@ -919,7 +919,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        ` /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
-   `  title="Demo Section" ` && |\n|  &&
+   `  title="Demo Section" ` && |\n| &&
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
@@ -1052,7 +1052,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
                                  THEN ms_next-s_set-_viewmodel
                                  ELSE bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) ).
-    lo_resp->add_attribute(  n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
+    lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     CLEAR ms_next-s_set-_viewmodel.
 
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
@@ -1106,7 +1106,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
               CASE lr_attri->type_kind.
                 WHEN 'D' OR 'T'.
                   /ui2/cl_json=>deserialize( EXPORTING json = `"` && <frontend> && `"`
-                                             CHANGING  data = <backend>  ).
+                                             CHANGING  data = <backend> ).
                 WHEN OTHERS.
                   <backend> = <frontend>.
               ENDCASE.

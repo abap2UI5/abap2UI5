@@ -872,68 +872,68 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD cc_file_uploader_get_js.
-    result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n|  &&
+    result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
                           |\n| &&
-                          `        sap.ui.define([` && |\n|  &&
-                          `            "sap/ui/core/Control",` && |\n|  &&
-                          `            "sap/m/Button",` && |\n|  &&
-                          `            "sap/ui/unified/FileUploader"` && |\n|  &&
+                          `        sap.ui.define([` && |\n| &&
+                          `            "sap/ui/core/Control",` && |\n| &&
+                          `            "sap/m/Button",` && |\n| &&
+                          `            "sap/ui/unified/FileUploader"` && |\n| &&
                           `        ], function (Control, Button, FileUploader) {` && |\n| &&
-                          `            "use strict";` && |\n|  &&
+                          `            "use strict";` && |\n| &&
                           |\n| &&
-                          `            return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
+                          `            return Control.extend("z2ui5.FileUploader", {` && |\n| &&
                           |\n| &&
-                          `                metadata: {` && |\n|  &&
-                          `                    properties: {` && |\n|  &&
-                          `                        value: {` && |\n|  &&
-                          `                            type: "string",` && |\n|  &&
-                          `                            defaultValue: ""` && |\n|  &&
-                          `                        },` && |\n|  &&
-                          `                        path: {` && |\n|  &&
-                          `                            type: "string",` && |\n|  &&
-                          `                            defaultValue: ""` && |\n|  &&
-                          `                        },` && |\n|  &&
-                          `                        tooltip: {` && |\n|  &&
-                          `                            type: "string",` && |\n|  &&
-                          `                            defaultValue: ""` && |\n|  &&
-                          `                        },` && |\n|  &&
-                          `                        fileType: {` && |\n|  &&
-                          `                            type: "string",` && |\n|  &&
-                          `                            defaultValue: ""` && |\n|  &&
-                          `                        },` && |\n|  &&
-                          `                        placeholder: {` && |\n|  &&
-                          `                            type: "string",` && |\n|  &&
-                          `                            defaultValue: ""` && |\n|  &&
-                          `                        },` && |\n|  &&
-                          `                        buttonText: {` && |\n|  &&
-                          `                            type: "string",` && |\n|  &&
+                          `                metadata: {` && |\n| &&
+                          `                    properties: {` && |\n| &&
+                          `                        value: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        path: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        tooltip: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        fileType: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        placeholder: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        buttonText: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
                           `                            defaultValue: "Upload"` && |\n| &&
-                          `                        },` && |\n|  &&
-                          `                        enabled: {` && |\n|  &&
-                          `                            type: "boolean",` && |\n|  &&
-                          `                            defaultValue: true` && |\n|  &&
-                          `                        },` && |\n|  &&
-                          `                        multiple: {` && |\n|  &&
-                          `                            type: "boolean",` && |\n|  &&
-                          `                            defaultValue: false` && |\n|  &&
-                          `                        }` && |\n|  &&
-                          `                    },` && |\n|  &&
+                          `                        },` && |\n| &&
+                          `                        enabled: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: true` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        multiple: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
                           |\n| &&
                           |\n| &&
-                          `                    aggregations: {` && |\n|  &&
-                          `                    },` && |\n|  &&
-                          `                    events: {` && |\n|  &&
-                          `                        "upload": {` && |\n|  &&
-                          `                            allowPreventDefault: true,` && |\n|  &&
-                          `                            parameters: {}` && |\n|  &&
-                          `                        }` && |\n|  &&
-                          `                    },` && |\n|  &&
-                          `                    renderer: null` && |\n|  &&
-                          `                },` && |\n|  &&
+                          `                    aggregations: {` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    events: {` && |\n| &&
+                          `                        "upload": {` && |\n| &&
+                          `                            allowPreventDefault: true,` && |\n| &&
+                          `                            parameters: {}` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    renderer: null` && |\n| &&
+                          `                },` && |\n| &&
                           |\n| &&
-                          `                renderer: function (oRm, oControl) {` && |\n|  &&
+                          `                renderer: function (oRm, oControl) {` && |\n| &&
                           |\n| &&
-                          `                    oControl.oUploadButton = new Button({` && |\n|  &&
+                          `                    oControl.oUploadButton = new Button({` && |\n| &&
                           `                        text: oControl.getProperty("buttonText"),` && |\n| &&
                           `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
                           `                        press: function (oEvent) {` && |\n| &&
@@ -941,41 +941,41 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
                           |\n| &&
                           `                            var file = this.oFileUploader.oFileUpload.files[0];` && |\n| &&
-                          `                            var reader = new FileReader();` && |\n|  &&
+                          `                            var reader = new FileReader();` && |\n| &&
                           |\n| &&
-                          `                            reader.onload = function (evt) {` && |\n|  &&
+                          `                            reader.onload = function (evt) {` && |\n| &&
                           `                                var vContent = evt.currentTarget.result;` && |\n| &&
                           `                                this.setProperty("value", vContent);` && |\n| &&
                           `                                this.fireUpload();` && |\n| &&
                           `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n| &&
-                          `                            }.bind(this)` && |\n|  &&
+                          `                            }.bind(this)` && |\n| &&
                           |\n| &&
-                          `                            reader.readAsDataURL(file);` && |\n|  &&
-                          `                        }.bind(oControl)` && |\n|  &&
-                          `                    });` && |\n|  &&
+                          `                            reader.readAsDataURL(file);` && |\n| &&
+                          `                        }.bind(oControl)` && |\n| &&
+                          `                    });` && |\n| &&
                           |\n| &&
-                          `                    oControl.oFileUploader = new FileUploader({` && |\n|  &&
-                          `                        icon: "sap-icon://browse-folder",` && |\n|  &&
-                          `                        iconOnly: true,` && |\n|  &&
-                          `                        value: oControl.getProperty("path"),` && |\n|  &&
-                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n|  &&
-                          `                        change: function (oEvent) {` && |\n|  &&
+                          `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
+                          `                        icon: "sap-icon://browse-folder",` && |\n| &&
+                          `                        iconOnly: true,` && |\n| &&
+                          `                        value: oControl.getProperty("path"),` && |\n| &&
+                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
+                          `                        change: function (oEvent) {` && |\n| &&
                           `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
-                          `                            this.setProperty("path", value);` && |\n|  &&
-                          `                            if (value) {` && |\n|  &&
-                          `                                this.oUploadButton.setEnabled();` && |\n|  &&
-                          `                            } else {` && |\n|  &&
+                          `                            this.setProperty("path", value);` && |\n| &&
+                          `                            if (value) {` && |\n| &&
+                          `                                this.oUploadButton.setEnabled();` && |\n| &&
+                          `                            } else {` && |\n| &&
                           `                                this.oUploadButton.setEnabled(false);` && |\n| &&
-                          `                            }` && |\n|  &&
-                          `                            this.oUploadButton.rerender();` && |\n|  &&
-                          `                        }.bind(oControl)` && |\n|  &&
-                          `                    });` && |\n|  &&
+                          `                            }` && |\n| &&
+                          `                            this.oUploadButton.rerender();` && |\n| &&
+                          `                        }.bind(oControl)` && |\n| &&
+                          `                    });` && |\n| &&
                           |\n| &&
-                          `                    var hbox = new sap.m.HBox();` && |\n|  &&
-                          `                    hbox.addItem(oControl.oFileUploader);` && |\n|  &&
-                          `                    hbox.addItem(oControl.oUploadButton);` && |\n|  &&
-                          `                    oRm.renderControl(hbox);` && |\n|  &&
-                          `                }` && |\n|  &&
+                          `                    var hbox = new sap.m.HBox();` && |\n| &&
+                          `                    hbox.addItem(oControl.oFileUploader);` && |\n| &&
+                          `                    hbox.addItem(oControl.oUploadButton);` && |\n| &&
+                          `                    oRm.renderControl(hbox);` && |\n| &&
+                          `                }` && |\n| &&
                           `            });` && |\n| &&
                           `        });`.
   ENDMETHOD.
@@ -1092,7 +1092,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD carousel.
 
     result = _generic( name   = `Carousel`
-                       t_prop = VALUE #( ( n = `loop`  v = lcl_utility=>get_json_boolean( loop )  )
+                       t_prop = VALUE #( ( n = `loop`  v = lcl_utility=>get_json_boolean( loop ) )
                                          ( n = `class`  v = class )
                                          ( n = `height`  v = height )
                ) ).
@@ -1278,11 +1278,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD hlp_get_source_code_url.
     DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
-    " TODO: variable is assigned but never used (ABAP cleaner)
+
     SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
 
-    result = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value && `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref(
-                                                                                                                 app ) && `/source/main`.
+    result = z2ui5_cl_http_handler=>client-t_header[ name = `origin` ]-value &&
+       `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( app ) &&
+       `/source/main`.
+
   ENDMETHOD.
 
   METHOD hlp_replace_controller_name.
@@ -1675,7 +1677,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `width`       v = width )
                                          ( n = `vertical`    v = lcl_utility=>get_json_boolean( vertical ) )
                                          ( n = `horizontal`  v = lcl_utility=>get_json_boolean( horizontal ) )
-                                         ( n = `focusable`   v = lcl_utility=>get_json_boolean( focusable  ) ) ) ).
+                                         ( n = `focusable`   v = lcl_utility=>get_json_boolean( focusable ) ) ) ).
   ENDMETHOD.
 
   METHOD search_field.
