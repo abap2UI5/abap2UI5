@@ -1,7 +1,7 @@
 name: Use a different repository directory
 on: 
   push:
-    branches: [_github_action_test]
+    branches: [_action_test]
 
 jobs:
   run:
