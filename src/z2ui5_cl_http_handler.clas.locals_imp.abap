@@ -863,11 +863,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                         ` /> <Link ` && |\n| &&
                         `  text="Twitter" ` && |\n| &&
                         `  target="_blank" ` && |\n| &&
-                        `  href="https://twitter.com/OblomovDev" ` && |\n| &&
+                        `  href="https://twitter.com/abap2UI5" ` && |\n| &&
                         ` /> <Link ` && |\n| &&
                         `  text="GitHub" ` && |\n| &&
                         `  target="_blank" ` && |\n| &&
-                        `  href="https://github.com/oblomov-dev/abap2ui5" ` && |\n| &&
+                        `  href="https://github.com/abap2ui5/abap2ui5" ` && |\n| &&
                         ` /></headerContent>`.
 
     lv_xml_main = lv_xml_main && ` <l:Grid ` && |\n| &&
