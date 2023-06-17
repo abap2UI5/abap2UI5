@@ -26,7 +26,7 @@ Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to ke
 
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Static Analysis & Continuous Integration with abaplint [(abaplint.app/abap2UI5)](https://abaplint.app/stats/oblomov-dev/abap2UI5)
+* Static Analysis & Continuous Integration with abaplint [(abaplint.app/abap2UI5)](https://abaplint.app/stats/abap2UI5/abap2UI5)
 * Check out the open-source game engine Axage using abap2UI5 [(SCN - 31.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-4/td-p/263470)
 * Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Check out abap2UI5 transpiled to JS running on open-abap under nodejs [(twitter - 19.04.2023)](https://twitter.com/LarsHvam/status/1648575595897405446)
