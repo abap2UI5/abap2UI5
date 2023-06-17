@@ -1,4 +1,4 @@
-name: test2
+name: downport
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  downport:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
