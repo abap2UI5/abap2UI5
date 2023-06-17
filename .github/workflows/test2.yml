@@ -2,7 +2,7 @@ name: downport
 
 on:
   push:
-    branches: [main]
+    branches: [_action_test]
     
 permissions:
   contents: read
