@@ -1,0 +1,31 @@
+name: build_downport
+
+on:
+  push:
+    branches: [_action_test]
+
+permissions:
+  contents: read
+
+jobs:
+  build_downport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20
+    - run: npm ci
+    - run: npm run downport
+    - name: update downport repository
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        deploy_key: ${{ secrets.DEPLOY_KEY }}
+        external_repository: abap2UI5/abap2UI5-downport
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        publish_branch: main
+        force_orphan: true
+        publish_dir: ./build
+
