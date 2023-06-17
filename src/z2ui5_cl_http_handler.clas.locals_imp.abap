@@ -1074,6 +1074,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   METHOD bind_front_2_back.
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
          WHERE bind_type = cs_bind_type-two_way.
+
+         data(lv_type_kind) = lr_attri->type_kind.
       TRY.
           FIELD-SYMBOLS <backend> TYPE any.
           DATA(lv_name) = `LO_APP->` && lr_attri->name.
@@ -1097,10 +1099,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                 ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
                 CREATE DATA <backend> LIKE STANDARD TABLE OF <field>.
                 ASSIGN <backend>->* TO <backend>.
+                lv_type_kind = `h`.
             ENDCASE.
           ENDIF.
 
-          CASE lr_attri->type_kind.
+          CASE lv_type_kind.
 
             WHEN `h`.
               z2ui5_lcl_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = <frontend>
@@ -1148,7 +1151,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       IF lr_attri->gen_kind IS NOT INITIAL.
         lv_name = '<ATTRIBUTE>->*'.
         ASSIGN (lv_name) TO <attribute>.
-        lr_attri->type_kind = lr_attri->gen_type_kind.
+    "    lr_attri->type_kind = lr_attri->gen_type_kind.
       ENDIF.
 
       CASE lr_attri->type_kind.
