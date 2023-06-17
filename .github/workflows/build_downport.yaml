@@ -21,7 +21,6 @@ jobs:
     - name: update downport repository
       uses: peaceiris/actions-gh-pages@v3
       with:
-        deploy_key: ${{ secrets.DEPLOY_KEY }}
         external_repository: abap2UI5/abap2UI5-downport
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
