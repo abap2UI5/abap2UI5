@@ -16,7 +16,13 @@
   "rules": {
     "7bit_ascii": false,
     "abapdoc": false,
+    "sql_value_conversion" : true,
+    "select_single_full_key" : true,
+    "strict_sql" : true,
+    "easy_to_find_messages" : true,
+    "fully_type_itabs" : true,
     "align_parameters": true,
+    "smim_consistency": true,
     "allowed_object_naming": true,
     "allowed_object_types": true,
     "ambiguous_statement": true,
