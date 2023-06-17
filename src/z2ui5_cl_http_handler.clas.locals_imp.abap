@@ -1151,7 +1151,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       IF lr_attri->gen_kind IS NOT INITIAL.
         lv_name = '<ATTRIBUTE>->*'.
         ASSIGN (lv_name) TO <attribute>.
-    "    lr_attri->type_kind = lr_attri->gen_type_kind.
       ENDIF.
 
       CASE lr_attri->type_kind.
