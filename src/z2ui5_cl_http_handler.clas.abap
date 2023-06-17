@@ -257,7 +257,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    definition: sap.z2ui5.oResponse.PARAMS.XML_POPUP,` && |\n| &&
                            `                    controller: sap.z2ui5.oController,` && |\n| &&
                            `                }).then(function (oFragment) {` && |\n| &&
-                           `                    oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL.oViewModel))` && |\n| &&
+                           `                    oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL ))` && |\n| &&
                            `                    sap.z2ui5.oView.addDependent(oFragment);` && |\n| &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID == '' ) {` && |\n| &&
                            `                        oFragment.open();` && |\n| &&
