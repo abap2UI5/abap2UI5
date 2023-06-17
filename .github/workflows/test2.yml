@@ -19,5 +19,4 @@ jobs:
     - run: npm ci
     - run: npm run downport
     - run: touch test.txt
-    - name: Commit files
     - uses: stefanzweifel/git-auto-commit-action@v4
