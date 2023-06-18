@@ -1,7 +1,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://img.shields.io/github/v/release/abap2ui5/abap2ui5)](https://github.com/abap2ui5/abap2ui5/releases/)
 [![](https://img.shields.io/badge/tested_with-abaplint-red)](https://abaplint.app/stats/abap2UI5/abap2UI5)
-[![](https://img.shields.io/badge/follow-twitter-blue)](https://twitter.com/abap2UI5)
+[![](https://img.shields.io/badge/PRs-welcome-green)](https://github.com/abap2UI5/abap2UI5/pulls)
+![](https://img.shields.io/github/contributors/abap2ui5/abap2ui5)
+![](https://img.shields.io/twitter/follow/abap2UI5)
+
 # abap2UI5
 Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/abap2UI5/abap2UI5-demos) 
 #### Features
