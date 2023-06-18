@@ -1,6 +1,7 @@
 [![](https://img.shields.io/github/v/release/abap2ui5/abap2ui5)](https://github.com/abap2ui5/abap2ui5/releases/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://img.shields.io/badge/tested_with-abaplint-red)](https://abaplint.app/stats/abap2UI5/abap2UI5)
+[![](https://img.shields.io/badge/follow-twitter-blue)](https://twitter.com/abap2UI5)
 # abap2UI5
 Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/abap2UI5/abap2UI5-demos) 
 #### Features
@@ -29,7 +30,6 @@ Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to ke
 
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Static Analysis & Continuous Integration with abaplint [(abaplint.app/abap2UI5)](https://abaplint.app/stats/abap2UI5/abap2UI5)
 * Check out the open-source game engine Axage using abap2UI5 [(SCN - 31.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-4/td-p/263470)
 * Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Check out abap2UI5 transpiled to JS running on open-abap under nodejs [(twitter - 19.04.2023)](https://twitter.com/LarsHvam/status/1648575595897405446)
