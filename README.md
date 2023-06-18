@@ -1,5 +1,5 @@
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 # abap2UI5
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)<br>
 Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to keep up to date and don't forget to explore the [**demo repository** :flashlight:](https://github.com/abap2UI5/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
