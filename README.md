@@ -6,7 +6,7 @@
 [![](https://img.shields.io/twitter/follow/abap2UI5)](https://twitter.com/abap2UI5)
 
 # abap2UI5
-Developing UI5 Apps in pure ABAP. Don't forget to explore the [**demo repository.** :flashlight:](https://github.com/abap2UI5/abap2UI5-demos) 
+Developing UI5 Apps in pure ABAP. Don't forget to explore the [**demo repository.** 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
