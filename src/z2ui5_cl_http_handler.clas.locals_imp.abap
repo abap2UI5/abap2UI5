@@ -632,12 +632,12 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
                   PREFERRED PARAMETER ix
       RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
 
-    CLASS-METHODS bind_front_2_back
+    CLASS-METHODS model_set_backend
       IMPORTING lr_model TYPE REF TO data
                 lo_app   TYPE REF TO object
                 t_attri  TYPE z2ui5_lcl_utility=>ty_t_attri ##NEEDED.
 
-    CLASS-METHODS bind_back_2_front
+    CLASS-METHODS model_set_frontend
       IMPORTING lo_app        TYPE REF TO object
                 t_attri       TYPE z2ui5_lcl_utility=>ty_t_attri
       RETURNING VALUE(result) TYPE string ##NEEDED.
@@ -1030,6 +1030,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
+
   METHOD request_begin.
     mo_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ).
 
@@ -1057,7 +1058,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
                                  THEN ms_next-s_set-_viewmodel
-                                 ELSE bind_back_2_front( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) ).
+                                 ELSE model_set_frontend( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) ).
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     CLEAR ms_next-s_set-_viewmodel.
 
@@ -1071,7 +1072,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
   ENDMETHOD.
 
-  METHOD bind_front_2_back.
+  METHOD model_set_backend.
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
          WHERE bind_type = cs_bind_type-two_way.
 
@@ -1126,7 +1127,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
-  METHOD bind_back_2_front.
+  METHOD model_set_frontend.
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     DATA(r_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
@@ -1220,7 +1221,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        bind_front_2_back( lr_model = mo_body->get_attribute( `OUPDATE` )->mr_actual
+        model_set_backend( lr_model = mo_body->get_attribute( `OUPDATE` )->mr_actual
                            lo_app   = result->ms_db-o_app
                            t_attri  = result->ms_db-t_attri ).
       CATCH cx_root.
