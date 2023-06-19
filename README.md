@@ -1,12 +1,15 @@
-[![](https://img.shields.io/github/v/release/abap2ui5/abap2ui5)](https://github.com/abap2ui5/abap2ui5/releases/)
-[![](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![](https://img.shields.io/badge/tested_with-abaplint-red)](https://abaplint.app/stats/abap2UI5/abap2UI5)
-[![](https://img.shields.io/badge/PRs-welcome-green)](https://github.com/abap2UI5/abap2UI5/pulls)
-[![](https://img.shields.io/github/contributors/abap2ui5/abap2ui5)](https://github.com/abap2UI5/abap2UI5/graphs/contributors)
-[![](https://img.shields.io/twitter/follow/abap2UI5)](https://twitter.com/abap2UI5)
+<p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
 
-# abap2UI5
-Developing UI5 Apps in pure ABAP. Don't forget to explore the [**demo repository 🧭** ](https://github.com/abap2UI5/abap2UI5-demos) 
+<p align="center">
+<a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5"></a>
+<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+<a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/badge/tested_with-abaplint-red"></a>
+   <br>
+<a href="https://github.com/abap2UI5/abap2UI5/pulls"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
+<a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
+<a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
+</p>
+
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
@@ -40,6 +43,7 @@ Developing UI5 Apps in pure ABAP. Don't forget to explore the [**demo repository
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Development of UI5 Selection Screens in pure ABAP (former version) [(SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 * [work-in-progress] Launchpad integration with the following extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
+* And finally: Don't forget to explore the [**demo repository 🧭** ](https://github.com/abap2UI5/abap2UI5-demos) 
 
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png), create a new HTTP service and replace the handler method with the following code:
