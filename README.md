@@ -1,5 +1,5 @@
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://img.shields.io/github/v/release/abap2ui5/abap2ui5)](https://github.com/abap2ui5/abap2ui5/releases/)
+[![](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![](https://img.shields.io/badge/tested_with-abaplint-red)](https://abaplint.app/stats/abap2UI5/abap2UI5)
 [![](https://img.shields.io/badge/PRs-welcome-green)](https://github.com/abap2UI5/abap2UI5/pulls)
 [![](https://img.shields.io/github/contributors/abap2ui5/abap2ui5)](https://github.com/abap2UI5/abap2UI5/graphs/contributors)
