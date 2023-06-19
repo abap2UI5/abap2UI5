@@ -7,7 +7,7 @@
    <br>
 <a href="https://github.com/abap2UI5/abap2UI5/pulls"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
-<a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/badge/twitter-@abap2UI5-blue"></a>
+<a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
 #### Features
