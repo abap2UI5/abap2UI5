@@ -7,7 +7,7 @@
    <br>
 <a href="https://github.com/abap2UI5/abap2UI5/pulls"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
-<a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
+<a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/badge/twitter-@abap2UI5-blue"></a>
 </p>
 
 #### Features
@@ -43,7 +43,7 @@
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Development of UI5 Selection Screens in pure ABAP (former version) [(SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
 * [work-in-progress] Launchpad integration with the following extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
-* And finally: Don't forget to explore the [**demo repository 🧭** ](https://github.com/abap2UI5/abap2UI5-demos) 
+* And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
 
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png), create a new HTTP service and replace the handler method with the following code:
