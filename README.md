@@ -1,16 +1,14 @@
+<p align="center"><a href="https://abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="220"></a></p>
+
 <p align="center">
-<a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5" alt="Build Status"></a>
+<a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5"></a>
+<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
+<a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/badge/tested_with-abaplint-red"></a>
+<a href="https://github.com/abap2UI5/abap2UI5/pulls"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
+<a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
+<a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![](https://img.shields.io/github/v/release/abap2ui5/abap2ui5)](https://github.com/abap2ui5/abap2ui5/releases/)
-[![](https://img.shields.io/badge/tested_with-abaplint-red)](https://abaplint.app/stats/abap2UI5/abap2UI5)
-[![](https://img.shields.io/badge/PRs-welcome-green)](https://github.com/abap2UI5/abap2UI5/pulls)
-[![](https://img.shields.io/github/contributors/abap2ui5/abap2ui5)](https://github.com/abap2UI5/abap2UI5/graphs/contributors)
-[![](https://img.shields.io/twitter/follow/abap2UI5)](https://twitter.com/abap2UI5)
-
-# abap2UI5
-Developing UI5 Apps in pure ABAP. Don't forget to explore the [**demo repository.** :flashlight:](https://github.com/abap2UI5/abap2UI5-demos) 
 #### Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
