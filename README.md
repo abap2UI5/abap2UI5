@@ -3,7 +3,7 @@
 <p align="center">
 <a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
-<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/tested_with-abaplint-red"></a>
+<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/tested_with-abaplint-green"></a>
    <br>
 <a href="https://github.com/abap2UI5/abap2UI5/pulls"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
