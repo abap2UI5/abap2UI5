@@ -230,7 +230,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            }` && |\n| &&
                            `            var oView = sap.z2ui5.oView;` && |\n| &&
                            `            try {` && |\n| &&
-                           `jQuery.sap.delayedCall(50, this, function() {` && |\n|  &&
+                           `jQuery.sap.delayedCall(50, this, function() {` && |\n| &&
 *                            `oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).addEventDelegate({` && |\n|  &&
 *                            `    onAfterRendering: function(){` && |\n|  &&
                             `        var ofocus = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n|  &&
