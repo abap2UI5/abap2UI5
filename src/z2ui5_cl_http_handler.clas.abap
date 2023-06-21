@@ -230,13 +230,22 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            }` && |\n| &&
                            `            var oView = sap.z2ui5.oView;` && |\n| &&
                            `            try {` && |\n| &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n| &&
-                           `                    var ofocus = oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n| &&
-                           `                    ofocus.cursorPos = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.CURSORPOS);` && |\n| &&
-                           `                    ofocus.selectionStart = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART);` && |\n| &&
-                           `                    ofocus.selectionEnd = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND);` && |\n| &&
-                           `                }` && |\n| &&
-                           `                oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).applyFocusInfo(ofocus);` && |\n| &&
+                           `jQuery.sap.delayedCall(50, this, function() {` && |\n| &&
+*                            `oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).addEventDelegate({` && |\n|  &&
+*                            `    onAfterRendering: function(){` && |\n|  &&
+                            `        var ofocus = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n| &&
+                            `        ofocus.selectionStart = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART);` && |\n| &&
+                            `        ofocus.selectionEnd = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND);` && |\n| &&
+                            `        sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).applyFocusInfo(ofocus);` && |\n| &&
+                            `    } );` && |\n| &&
+*                            `});` &&
+*                           `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n| &&
+*                           `                    var ofocus = oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n| &&
+*                           `                    ofocus.cursorPos = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.CURSORPOS);` && |\n| &&
+*                           `                    ofocus.selectionStart = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART);` && |\n| &&
+*                           `                    ofocus.selectionEnd = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND);` && |\n| &&
+*                           `                }` && |\n| &&
+*                           `                oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).applyFocusInfo(ofocus);` && |\n| &&
                            `            } catch (error) { }` && |\n| &&
                            `            ; try { } catch (error) { }` && |\n| &&
                            `            ; if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
