@@ -9,7 +9,7 @@ public section.
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value .
-  types:
+  types
     ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY .
 
   data M_NAME type STRING .
