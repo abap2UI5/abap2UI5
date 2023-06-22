@@ -2162,7 +2162,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD tree_table.
-    result = _generic( name   = `TreeTable`
+    result = _generic( name  = `TreeTable`
                       ns     = `table`
                       t_prop = VALUE #(
                                         ( n = `rows`                    v = rows )
