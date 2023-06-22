@@ -2150,7 +2150,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD tree_column.
     result = _generic( name = `Column`
                   ns        = `table`
-                  t_prop = VALUE #(
+                  t_prop    = VALUE #(
                           ( n = `label` v = label ) ) ).
   ENDMETHOD.
 
