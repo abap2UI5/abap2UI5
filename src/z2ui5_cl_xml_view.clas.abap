@@ -9,7 +9,7 @@ public section.
         n TYPE string,
         v TYPE string,
       END OF ty_s_name_value .
-  types
+  types:
     ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY .
 
   data M_NAME type STRING .
@@ -18,7 +18,7 @@ public section.
   data M_ROOT type ref to Z2UI5_CL_XML_VIEW .
   data M_LAST type ref to Z2UI5_CL_XML_VIEW .
   data M_PARENT type ref to Z2UI5_CL_XML_VIEW .
-  data
+  data:
     t_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY .
 
   class-methods FACTORY
@@ -893,9 +893,9 @@ public section.
   methods TREE_TABLE
     importing
       !ROWS type CLIKE
-      !SELECTIONMODE type clike default 'Single'
-      !ENABLECOLUMNREORDERING type clike default 'false'
-      !EXPANDFIRSTLEVEL type clike default 'false'
+      !SELECTIONMODE type CLIKE default 'Single'
+      !ENABLECOLUMNREORDERING type CLIKE default 'false'
+      !EXPANDFIRSTLEVEL type CLIKE default 'false'
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TREE_COLUMNS
@@ -907,6 +907,41 @@ public section.
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TREE_TEMPLATE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods FILTER_BAR
+    importing
+      !USETOOLBAR type CLIKE default 'false'
+      !SEARCH type CLIKE optional
+      !FILTERCHANGE type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods FILTER_GROUP_ITEMS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods FILTER_GROUP_ITEM
+    importing
+      !NAME type CLIKE
+      !LABEL type CLIKE
+      !GROUPNAME type CLIKE
+      !VISIBLEINFILTERBAR type CLIKE default 'true'
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods FILTER_CONTROL
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods FLEXIBLE_COLUMN_LAYOUT
+    importing
+      !LAYOUT type CLIKE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods BEGIN_COLUMN_PAGES
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods MID_COLUMN_PAGES
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods END_COLUMN_PAGES
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
@@ -955,6 +990,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD bars.
     result = _generic( name = `bars`
                        ns   = `mchart` ).
+  ENDMETHOD.
+
+
+  METHOD begin_column_pages.
+    result = _generic( name   = `beginColumnPages`
+                       ns     = `f` ).
   ENDMETHOD.
 
 
@@ -1189,7 +1230,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` ) ).
 
 ****** EXTENSION *******************
-    APPEND VALUE #( n = `xmlns:table`   v = `sap.ui.table` ) TO mt_prop.
+    APPEND VALUE #( n = `xmlns:table`   v = `sap.ui.table` )          TO mt_prop.
+    APPEND VALUE #( n = `xmlns:fb`      v = `sap.ui.comp.filterbar` ) TO mt_prop.
 ************************************
   ENDMETHOD.
 
@@ -1282,6 +1324,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD END_COLUMN_PAGES.
+    result = _generic( name   = `endColumnPages`
+                       ns     = `f` ).
+  ENDMETHOD.
+
+
   METHOD expanded_content.
     result = _generic( name = `expandedContent`
                        ns   = ns ).
@@ -1324,6 +1372,44 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result->m_ns     = `core`.
     result->m_root   = result.
     result->m_parent = result.
+  ENDMETHOD.
+
+
+  METHOD filter_bar.
+    result = _generic(  name   = `FilterBar`
+                        ns     = 'fb'
+                        t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
+                                          ( n = 'search'        v = search )
+                                          ( n = 'filterChange'  v = filterchange ) ) ).
+  ENDMETHOD.
+
+
+  METHOD filter_control.
+    result = _generic(  name   = `control`
+                        ns     = 'fb' ).
+  ENDMETHOD.
+
+
+  METHOD filter_group_item.
+    result = _generic(  name   = `FilterGroupItem`
+                        ns     = 'fb'
+                        t_prop = VALUE #( ( n = 'name'                v  = name )
+                                          ( n = 'label'               v  = label )
+                                          ( n = 'groupName'           v  = groupname )
+                                          ( n = 'visibleInFilterBar'  v  = visibleinfilterbar ) ) ).
+  ENDMETHOD.
+
+
+  METHOD filter_group_items.
+    result = _generic(  name  = `filterGroupItems`
+                        ns    = 'fb' ).
+  ENDMETHOD.
+
+
+  METHOD flexible_column_layout.
+    result = _generic( name   = `FlexibleColumnLayout`
+                       ns     = `f`
+                       t_prop = VALUE #( (  n = `layout` v = layout ) ) ).
   ENDMETHOD.
 
 
@@ -1698,6 +1784,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `MessageView`
                        t_prop = VALUE #( ( n = `items`      v = items )
                                          ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD MID_COLUMN_PAGES.
+    result = _generic( name   = `midColumnPages`
+                       ns     = `f` ).
   ENDMETHOD.
 
 
@@ -2149,20 +2241,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD tree_column.
     result = _generic( name = `Column`
-                  ns        = `table`
-                  t_prop    = VALUE #(
+                  ns = `table`
+                  t_prop = VALUE #(
                           ( n = `label` v = label ) ) ).
   ENDMETHOD.
 
 
   METHOD tree_columns.
     result = _generic( name = `columns`
-                  ns        = `table` ).
+                  ns = `table` ).
   ENDMETHOD.
 
 
   METHOD tree_table.
-    result = _generic( name  = `TreeTable`
+    result = _generic( name   = `TreeTable`
                       ns     = `table`
                       t_prop = VALUE #(
                                         ( n = `rows`                    v = rows )
@@ -2174,7 +2266,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD TREE_TEMPLATE.
     result = _generic( name = `template`
-                  ns        = `table` ).
+                  ns = `table` ).
   ENDMETHOD.
 
 
