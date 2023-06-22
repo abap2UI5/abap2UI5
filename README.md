@@ -41,8 +41,6 @@
 * Check out abap2UI5 transpiled to JS running on open-abap under nodejs [(twitter - 19.04.2023)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Development of UI5 Selection Screens in pure ABAP (former version) [(SCN - 22.01.2023)](https://blogs.sap.com/2023/01/22/abap2ui5-project-development-of-ui5-selection-screens-in-pure-abap-no-app-deployment-or-javascript-needed/)
-* [work-in-progress] Launchpad integration with the following extension [(abap2UI5_ext-launchpad)](https://github.com/oblomov-dev/abap2UI5_ext-launchpad_app)
 * And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
 
 #### Installation
