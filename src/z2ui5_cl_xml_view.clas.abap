@@ -2174,7 +2174,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD TREE_TEMPLATE.
     result = _generic( name = `template`
-                  ns = `table` ).
+                  ns        = `table` ).
   ENDMETHOD.
 
 
