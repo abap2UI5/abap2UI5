@@ -18,7 +18,7 @@ public section.
   data M_ROOT type ref to Z2UI5_CL_XML_VIEW .
   data M_LAST type ref to Z2UI5_CL_XML_VIEW .
   data M_PARENT type ref to Z2UI5_CL_XML_VIEW .
-  data:
+  data
     t_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY .
 
   class-methods FACTORY
