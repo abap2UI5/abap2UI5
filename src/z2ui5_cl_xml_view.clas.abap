@@ -893,9 +893,9 @@ public section.
   methods TREE_TABLE
     importing
       !ROWS type CLIKE
-      !SELECTIONMODE type STRINGVAL default 'Single'
-      !ENABLECOLUMNREORDERING type STRINGVAL default 'false'
-      !EXPANDFIRSTLEVEL type STRINGVAL default 'false'
+      !SELECTIONMODE type clike default 'Single'
+      !ENABLECOLUMNREORDERING type clike default 'false'
+      !EXPANDFIRSTLEVEL type clike default 'false'
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TREE_COLUMNS
