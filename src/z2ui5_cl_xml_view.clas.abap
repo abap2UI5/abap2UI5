@@ -2157,7 +2157,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD tree_columns.
     result = _generic( name = `columns`
-                  ns = `table` ).
+                  ns        = `table` ).
   ENDMETHOD.
 
 
