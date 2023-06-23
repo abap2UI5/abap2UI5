@@ -1041,10 +1041,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_end.
 
-*    IF ms_next-s_set-path IS NOT INITIAL.
-*
-*    ENDIF.
-
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
 
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
