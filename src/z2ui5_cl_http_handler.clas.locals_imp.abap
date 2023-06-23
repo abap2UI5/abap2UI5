@@ -9,9 +9,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         type           TYPE string,
         bind_type      TYPE string,
         data_stringify TYPE string,
-        gen_type_kind  TYPE string,
-        gen_type       TYPE string,
-        gen_kind       TYPE string,
+        check_ref_data TYPE abap_bool,
       END OF ty_attri.
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
@@ -107,6 +105,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_lcl_utility IMPLEMENTATION.
+
   METHOD get_trim_upper.
     result = CONV #( val ).
     result = to_upper( shift_left( shift_right( result ) ) ).
@@ -195,20 +194,21 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_header_val.
-    result = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = v ]-value ).
+*    result = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = v ]-value ).
   ENDMETHOD.
 
   METHOD get_param_val.
-    DATA(lt_param) = VALUE z2ui5_if_client=>ty_t_name_value(
-                               LET tab = z2ui5_cl_http_handler=>client-t_param IN FOR row IN tab
-                               ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
-    TRY.
-        result = lt_param[ name = get_trim_upper( v ) ]-value.
-      CATCH cx_root.
-    ENDTRY.
+*    DATA(lt_param) = VALUE z2ui5_if_client=>ty_t_name_value(
+*                               LET tab = z2ui5_cl_http_handler=>client-t_param IN FOR row IN tab
+*                               ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
+*    TRY.
+*        result = lt_param[ name = get_trim_upper( v ) ]-value.
+*      CATCH cx_root.
+*    ENDTRY.
   ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
+
     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
 
     DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
@@ -233,14 +233,18 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       UNASSIGN <any>.
       DATA(lv_assign) = `IO_APP->` && ls_attri-name.
       ASSIGN (lv_assign) TO <any>.
+
       DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
-      CASE lo_descr->kind.
-        WHEN lo_descr->kind_elem.
-          ls_attri2-type = CAST cl_abap_elemdescr( lo_descr )->get_relative_name( ).
-      ENDCASE.
+      TRY.
+          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
+          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ).
+          ls_attri2-check_ref_data = abap_true.
+        CATCH cx_root.
+      ENDTRY.
 
       APPEND ls_attri2 TO result.
     ENDLOOP.
+
   ENDMETHOD.
 
   METHOD _get_t_attri_by_struc.
@@ -275,6 +279,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD trans_object_2_xml.
+
     FIELD-SYMBOLS <object> TYPE any.
 
     ASSIGN object->* TO <object>.
@@ -284,6 +289,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
          SOURCE data = <object>
          RESULT XML result
          OPTIONS data_refs = `heap-or-create`.
+
   ENDMETHOD.
 
   METHOD trans_ref_tab_2_tab.
@@ -582,6 +588,8 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         o_app             TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
 
+    CLASS-DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
+
     DATA ms_db TYPE ty_s_db.
 
     TYPES:
@@ -599,7 +607,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
 
-    CLASS-DATA mo_body TYPE REF TO z2ui5_lcl_utility_tree_json.
+    CLASS-DATA so_body TYPE REF TO z2ui5_lcl_utility_tree_json.
 
     CLASS-METHODS request_begin
       RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
@@ -608,10 +616,9 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       RETURNING VALUE(result) TYPE string.
 
     METHODS _create_binding
-      IMPORTING value          TYPE data
-                type           TYPE string    DEFAULT cs_bind_type-two_way
-                check_gen_data TYPE abap_bool OPTIONAL
-      RETURNING VALUE(result)  TYPE string.
+      IMPORTING value         TYPE data
+                type          TYPE string    DEFAULT cs_bind_type-two_way
+      RETURNING VALUE(result) TYPE string.
 
     CLASS-METHODS set_app_start
       RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
@@ -647,9 +654,11 @@ ENDCLASS.
 CLASS z2ui5_lcl_fw_db DEFINITION.
 
   PUBLIC SECTION.
+
     CLASS-METHODS create
-      IMPORTING id TYPE string
-                db TYPE z2ui5_lcl_fw_handler=>ty_s_db.
+      IMPORTING
+        id TYPE string
+        db TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING id            TYPE string
@@ -668,12 +677,12 @@ ENDCLASS.
 CLASS z2ui5_lcl_fw_app DEFINITION.
 
   PUBLIC SECTION.
+
     INTERFACES z2ui5_if_app.
 
     DATA:
       BEGIN OF ms_error,
         x_error   TYPE REF TO cx_root,
-        app       TYPE REF TO z2ui5_if_app,
         classname TYPE string,
         kind      TYPE string,
       END OF ms_error.
@@ -691,9 +700,10 @@ CLASS z2ui5_lcl_fw_app DEFINITION.
       END OF ms_home.
 
     CLASS-METHODS factory_error
-      IMPORTING error         TYPE REF TO cx_root
-                app           TYPE REF TO object OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_app.
+      IMPORTING
+        error         TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_lcl_fw_app.
 
     DATA mv_is_initialized TYPE abap_bool.
     DATA mv_view_name      TYPE string.
@@ -710,7 +720,9 @@ ENDCLASS.
 
 
 CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
+
   METHOD z2ui5_if_app~main.
+
     IF mv_is_initialized = abap_false.
       mv_is_initialized = abap_true.
       z2ui5_on_init( ).
@@ -718,15 +730,18 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     z2ui5_on_event( client ).
     z2ui5_on_rendering( client ).
+
   ENDMETHOD.
 
   METHOD factory_error.
+
     result = NEW #( ).
     result->ms_error-x_error = error.
-    result->ms_error-app     = CAST #( app ).
+
   ENDMETHOD.
 
   METHOD z2ui5_on_init.
+
     IF ms_error-x_error IS NOT BOUND.
       mv_view_name = 'HOME'.
       ms_home-is_initialized = abap_true.
@@ -738,9 +753,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ELSE.
       mv_view_name = 'ERROR'.
     ENDIF.
+
   ENDMETHOD.
 
   METHOD z2ui5_on_event.
+
     CASE mv_view_name.
 
       WHEN `HOME`.
@@ -796,17 +813,14 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_on_rendering.
+
     IF ms_error-x_error IS BOUND.
 
       ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
                                                        include_name = DATA(lv_incl)
                                                        source_line  = DATA(lv_line) ).
 
-      IF client->get_app( client->get( )-id_prev_app ) IS BOUND.
-        DATA(lv_check_back) = `true`.
-      ELSE.
-        lv_check_back = `false`.
-      ENDIF.
+      DATA(lv_check_back) = `false`.
 
       DATA(lv_descr) = ms_error-x_error->get_text( ) &&
             ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
@@ -821,29 +835,30 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                            `  enableFormattedText="true" ` && |\n| &&
                            ` > <buttons ` && |\n| &&
                            ` > <Button ` && |\n| &&
-                           `  press="` && client->_event( `BUTTON_HOME` ) && `" ` && |\n| &&
+                           `  press="` && client->__event( `BUTTON_HOME` ) && `" ` && |\n| &&
                            `  text="HOME" ` && |\n| &&
                            ` /> <Button ` && |\n| &&
-                           `  press="` && client->_event( `BUTTON_BACK` ) && `" ` && |\n| &&
+                           `  press="` && client->__event( `BUTTON_BACK` ) && `" ` && |\n| &&
                            `  text="BACK" ` && |\n| &&
                            `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n| &&
                            ` /></buttons></MessagePage></Shell></mvc:View>`.
 
-      client->set_next( VALUE #( xml_main = lv_xml_error ) ).
+      client->set_view( lv_xml_error ).
       RETURN.
     ENDIF.
 
     TRY.
-        DATA(lv_url) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value ).
-        DATA(lv_path_info) = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = `~path_info` ]-value ).
+
+        DATA(lv_url) = to_lower( z2ui5_lcl_fw_handler=>ss_config-origin && z2ui5_lcl_fw_handler=>ss_config-pathname ).
+        DATA(lv_path_info) = to_lower( z2ui5_lcl_fw_handler=>ss_config-path_info ).
         REPLACE lv_path_info IN lv_url WITH ``.
         SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
-
         SHIFT lv_url RIGHT DELETING TRAILING `/`.
         DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
         IF lv_params IS NOT INITIAL.
           lv_link = lv_link && `?` && lv_params.
         ENDIF.
+
       CATCH cx_root.
     ENDTRY.
 
@@ -903,7 +918,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       lv_xml_main = lv_xml_main && `<Input ` && |\n| &&
      `  placeholder="` && `fill in the class name and press 'check' ` && `" ` && |\n| &&
      `  editable="` && z2ui5_lcl_utility=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n| &&
-     `  value="` && client->_bind( ms_home-classname ) && `" ` && |\n| &&
+     `  value="` && client->__bind_edit( ms_home-classname ) && `" ` && |\n| &&
      ` /> `.
     ELSE.
       lv_xml_main = lv_xml_main && `<Text ` && |\n| &&
@@ -912,7 +927,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ENDIF.
 
     lv_xml_main = lv_xml_main && `<Button ` && |\n| &&
-       `  press="`  && client->_event( ms_home-btn_event_id ) && `" ` && |\n| &&
+       `  press="`  && client->__event( ms_home-btn_event_id ) && `" ` && |\n| &&
        `  text="` && ms_home-btn_text && `" ` && |\n| &&
        `  icon="` && ms_home-btn_icon && `" ` && |\n| &&
        ` /> <Label ` && |\n| &&
@@ -945,34 +960,27 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
-    `  press="` && client->_event( `DEMOS` ) && `" ` && |\n| &&
+    `  press="` && client->__event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
     `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
-    client->set_next( VALUE #( xml_main = lv_xml_main ) ).
+    client->set_view( lv_xml_main ).
   ENDMETHOD.
 ENDCLASS.
 
 
 CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
+
   METHOD load_app.
+
     DATA(ls_db) = read( id ).
 
     z2ui5_lcl_utility=>trans_xml_2_object( EXPORTING xml  = ls_db-data
                                            IMPORTING data = result ).
+
   ENDMETHOD.
 
   METHOD create.
-    DATA(lo_app) = CAST object( db-o_app ) ##NEEDED.
-
-    LOOP AT db-t_attri REFERENCE INTO DATA(lr_attri) WHERE gen_type IS NOT INITIAL.
-
-      FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = 'LO_APP->' && to_upper( lr_attri->name ).
-      ASSIGN (lv_name) TO <attribute>.
-      CLEAR <attribute>.
-
-    ENDLOOP.
 
     DATA(ls_db) = VALUE z2ui5_t_draft( uuid                = id
                                        uuid_prev           = db-id_prev
@@ -988,11 +996,14 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD read.
+
     IF check_load_app = abap_true.
+
       SELECT SINGLE *
         FROM z2ui5_t_draft
         WHERE uuid = @id
       INTO @result.
+
     ELSE.
       SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
@@ -1000,9 +1011,11 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
       INTO CORRESPONDING FIELDS OF @result.
     ENDIF.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
   ENDMETHOD.
 
   METHOD cleanup.
+
     DATA lv_ts_now TYPE timestampl.
 
     GET TIME STAMP FIELD lv_ts_now.
@@ -1012,6 +1025,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
     DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
     COMMIT WORK.
+
   ENDMETHOD.
 ENDCLASS.
 
@@ -1032,10 +1046,11 @@ ENDCLASS.
 CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_begin.
-    mo_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_cl_http_handler=>client-body ).
+
+    so_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_lcl_fw_handler=>ss_config-body ).
 
     TRY.
-        DATA(lv_id_prev) = mo_body->get_attribute( `ID` )->get_val( ).
+        DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
       CATCH cx_root.
         result = set_app_start( ).
         RETURN.
@@ -1046,12 +1061,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_end.
     IF ms_next-s_set-path IS NOT INITIAL.
-      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-      DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-      REPLACE lv_path_info IN lv_path WITH ``.
-      SHIFT lv_path RIGHT DELETING TRAILING `/`.
-      SHIFT lv_path LEFT DELETING LEADING ` `.
-      ms_next-s_set-path = lv_path && ms_next-s_set-path.
+*      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
+*      DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+*      REPLACE lv_path_info IN lv_path WITH ``.
+*      SHIFT lv_path RIGHT DELETING TRAILING `/`.
+*      SHIFT lv_path LEFT DELETING LEADING ` `.
+*      ms_next-s_set-path = lv_path && ms_next-s_set-path.
     ENDIF.
 
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
@@ -1073,10 +1088,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD model_set_backend.
+
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
          WHERE bind_type = cs_bind_type-two_way.
 
-         data(lv_type_kind) = lr_attri->type_kind.
+      DATA(lv_type_kind) = lr_attri->type_kind.
       TRY.
           FIELD-SYMBOLS <backend> TYPE any.
           DATA(lv_name) = `LO_APP->` && lr_attri->name.
@@ -1088,20 +1104,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
           ASSIGN (lv_name) TO <frontend>.
           z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-          IF lr_attri->gen_kind IS NOT INITIAL.
+          IF lr_attri->check_ref_data IS NOT INITIAL.
+            ASSIGN <backend>->* TO <backend>.
 
-            CASE lr_attri->gen_kind.
-              WHEN cl_abap_datadescr=>kind_elem.
-                CREATE DATA <backend> TYPE (lr_attri->gen_type).
-                ASSIGN <backend>->* TO <backend>.
-              WHEN cl_abap_datadescr=>kind_table.
-                DATA lr_data TYPE REF TO data.
-                CREATE DATA lr_data TYPE (lr_attri->gen_type).
-                ASSIGN lr_data->* TO FIELD-SYMBOL(<field>).
-                CREATE DATA <backend> LIKE STANDARD TABLE OF <field>.
-                ASSIGN <backend>->* TO <backend>.
+            TRY.
+                DATA(lo_tab)  = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( <backend> ) ).
                 lv_type_kind = `h`.
-            ENDCASE.
+              CATCH cx_root.
+            ENDTRY.
           ENDIF.
 
           CASE lv_type_kind.
@@ -1119,15 +1129,16 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                                              CHANGING  data = <backend> ).
                 WHEN OTHERS.
                   <backend> = <frontend>.
+
               ENDCASE.
           ENDCASE.
-
         CATCH cx_root.
       ENDTRY.
     ENDLOOP.
   ENDMETHOD.
 
   METHOD model_set_frontend.
+
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     DATA(r_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
@@ -1148,11 +1159,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       DATA(lv_name) = c_prefix && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
       z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-      IF lr_attri->gen_kind IS NOT INITIAL.
-        lv_name = '<ATTRIBUTE>->*'.
-        ASSIGN (lv_name) TO <attribute>.
-      ENDIF.
 
       CASE lr_attri->type_kind.
 
@@ -1195,11 +1201,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
 
     TRY.
-        result->ms_actual-check_launchpad_active = mo_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
+        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
-    DATA(lo_arg) = mo_body->get_attribute( `ARGUMENTS` ).
+    DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
     TRY.
         result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
       CATCH cx_root.
@@ -1214,14 +1220,31 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA(lo_scroll) = mo_body->get_attribute( `OSCROLL` ).
+        DATA(lo_scroll) = so_body->get_attribute( `OSCROLL` ).
         z2ui5_lcl_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_scroll->mr_actual
                                                 IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
       CATCH cx_root.
     ENDTRY.
 
     TRY.
-        model_set_backend( lr_model = mo_body->get_attribute( `OUPDATE` )->mr_actual
+        DATA(lo_cursor) = so_body->get_attribute( `OCURSOR` ).
+        result->ms_actual-s_cursor-id = lo_cursor->get_attribute( `ID` )->get_val( ).
+        result->ms_actual-s_cursor-cursorpos = lo_cursor->get_attribute( `CURSORPOS` )->get_val( ).
+        result->ms_actual-s_cursor-selectionend = lo_cursor->get_attribute( `SELECTIONEND` )->get_val( ).
+        result->ms_actual-s_cursor-selectionstart = lo_cursor->get_attribute( `SELECTIONSTART` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_location) = so_body->get_attribute( `OLOCATION` ).
+        z2ui5_lcl_fw_handler=>ss_config-origin = lo_location->get_attribute( `ORIGIN` )->get_val( ).
+        z2ui5_lcl_fw_handler=>ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
+        z2ui5_lcl_fw_handler=>ss_config-search = lo_location->get_attribute( `SEARCH` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        model_set_backend( lr_model = so_body->get_attribute( `OUPDATE` )->mr_actual
                            lo_app   = result->ms_db-o_app
                            t_attri  = result->ms_db-t_attri ).
       CATCH cx_root.
@@ -1230,16 +1253,22 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_app_start.
+
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-    TRY.
-        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-      CATCH cx_root.
-    ENDTRY.
+*    TRY.
+**        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
+*        FIELD-SYMBOLS <path> TYPE string.
+*        ASSIGN ('SO_BODY->MR_ACTUAL->OLOCATION->PATHNAME->*') TO <path>.
+*        SPLIT <path> AT z2ui5_cl_http_handler=>config-handler && '/' INTO DATA(lv_dummy) <path>.
+**        SPLIT <path> AT `/` INTO TABLE DATA(lt_tab).
+*        DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( <path> ).
+*      CATCH cx_root.
+*    ENDTRY.
 
     " TODO: variable is assigned but never used (ABAP cleaner)
-    SPLIT lv_path_info AT `?` INTO lv_path_info DATA(lv_dummy).
+    SPLIT z2ui5_lcl_fw_handler=>ss_config-path_info AT `?` INTO DATA(lv_path_info) DATA(lv_dummy).
     DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
     SHIFT lv_classname LEFT DELETING LEADING `/`.
 
@@ -1252,8 +1281,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         TRY.
             CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
           CATCH cx_root.
-            SPLIT lv_classname AT `/` INTO lv_classname lv_dummy.
-            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+*            SPLIT lv_classname AT `/` INTO lv_classname data(lv_dummy).
+*            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
         ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
@@ -1330,30 +1359,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       DATA lr_ref TYPE REF TO data.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
-      IF check_gen_data = abap_true.
-        TRY.
-            FIELD-SYMBOLS <field> TYPE any.
-            ASSIGN lr_ref->* TO <field>.
-            lr_ref = CAST data( <field> ).
-            IF lr_attri->gen_type IS INITIAL.
-              FIELD-SYMBOLS <field2> TYPE any.
-              ASSIGN lr_ref->* TO <field2>.
-              DATA(lo_datadescr) = cl_abap_datadescr=>describe_by_data( <field2> ).
-              lr_attri->gen_type_kind = lo_datadescr->type_kind.
-              lr_attri->gen_kind      = lo_datadescr->kind.
-              CASE lo_datadescr->kind.
-                WHEN lo_datadescr->kind_elem.
-                  " TODO: variable is assigned but never used (ABAP cleaner)
-                  SPLIT lo_datadescr->absolute_name AT '=' INTO DATA(lv_dummy) lr_attri->gen_type.
-                WHEN lo_datadescr->kind_table.
-                  DATA(lo_tab) = CAST cl_abap_tabledescr( lo_datadescr ).
-                  DATA(lo_struc) = lo_tab->get_table_line_type( ).
-                  SPLIT lo_struc->absolute_name AT '=' INTO lv_dummy lr_attri->gen_type.
-              ENDCASE.
-            ENDIF.
-          CATCH cx_root.
-            CONTINUE.
-        ENDTRY.
+      IF lr_attri->check_ref_data IS NOT INITIAL.
+
+        FIELD-SYMBOLS <field> TYPE any.
+        ASSIGN lr_ref->* TO <field>.
+        lr_ref = CAST data( <field> ).
+
       ENDIF.
 
       IF lr_in = lr_ref.
@@ -1382,9 +1393,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_app_system.
-    IF ms_db-o_app IS BOUND.
-      z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
-    ENDIF.
 
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
@@ -1395,8 +1403,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     IF ix IS BOUND.
 
-      z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
-      result->ms_db-o_app             = z2ui5_lcl_fw_app=>factory_error( error = ix app = ms_db-o_app ).
+      result->ms_db-o_app             = z2ui5_lcl_fw_app=>factory_error( error = ix  ).
 
       result->ms_db-id_prev_app       = ms_db-id.
       result->ms_db-id_prev_app_stack = ms_db-id.
@@ -1435,47 +1442,20 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get.
+
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
                       event                  = mo_handler->ms_actual-event
                       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
                       t_event_arg            = mo_handler->ms_actual-t_event_arg
-                      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos ).
+                      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+                      s_config = z2ui5_lcl_fw_handler=>ss_config ).
+    result-s_config-app = mo_handler->ms_db-o_app.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~nav_app_call.
     mo_handler->ms_next-o_call_app = app.
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~set_next.
-    mo_handler->ms_next-s_set = val.
-  ENDMETHOD.
-
-  METHOD z2ui5_if_client~_bind.
-    result = mo_handler->_create_binding( value          = val
-                                          type           = z2ui5_lcl_fw_handler=>cs_bind_type-two_way
-                                          check_gen_data = check_gen_data ).
-    IF path = abap_false.
-      result = `{` && result && `}`.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD z2ui5_if_client~_bind_one.
-    result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
-    IF path = abap_false.
-      result = `{` && result && `}`.
-    ENDIF.
-  ENDMETHOD.
-
-  METHOD z2ui5_if_client~_event.
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'isHoldView' : ` && z2ui5_lcl_utility=>get_json_boolean(
-                                                                                                  hold_view ) && ` }`.
-
-    LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
-      result = result && `,` && lr_arg->*.
-    ENDLOOP.
-
-    result = result && `)`.
-  ENDMETHOD.
 
   METHOD z2ui5_if_client~_event_close_popup.
     result = `onEventFrontend( 'POPUP_CLOSE' )`.
@@ -1489,4 +1469,60 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
     result = CAST #( z2ui5_lcl_fw_db=>load_app( id )-o_app ).
   ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_popover.
+
+*    mo_handler->ms_next-s_set-xml_popup = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_popup.
+
+    mo_handler->ms_next-s_set-xml_popup = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_view.
+
+    mo_handler->ms_next-s_set-xml_main = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~__bind.
+
+    result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~__bind_edit.
+
+    result = mo_handler->_create_binding( value          = val
+                                            type           = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~__event_frontend.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~__event.
+
+    data(lv_hold_view) = xsdbool( check_view_transit = abap_false ).
+
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'isHoldView' : ` && z2ui5_lcl_utility=>get_json_boolean( lv_hold_view ) && ` }`.
+
+    LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
+      result = result && `,` && lr_arg->*.
+    ENDLOOP.
+
+    result = result && `)`.
+
+  ENDMETHOD.
+
 ENDCLASS.

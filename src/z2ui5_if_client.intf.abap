@@ -1,6 +1,25 @@
 INTERFACE z2ui5_if_client
   PUBLIC.
 
+  CONSTANTS:
+    BEGIN OF cs_event,
+      event_popup_close   TYPE string VALUE `POPUP_CLOSE`,
+      event_popover_close TYPE string VALUE `POPOVER_CLOSE`,
+      go_back             TYPE string VALUE `GO_BACK`,
+      go_forward          TYPE string VALUE `GO_FORWARD`,
+    END OF cs_event.
+
+  TYPES:
+    BEGIN OF ty_S_config,
+      controller_name TYPE string, " VALUE `z2ui5_controller`,
+      pathname        TYPE string,
+      origin          TYPE string,
+      search          TYPE string,
+      path_info       TYPE string,
+      body            TYPE string,
+      app             TYPE REF TO z2ui5_if_app,
+    END OF ty_S_config.
+
   TYPES:
     BEGIN OF ty_s_name_value,
       name  TYPE string,
@@ -10,14 +29,21 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_get,
-      event             TYPE string,
-      t_event_arg       TYPE string_table,
-      check_launchpad_active type abap_bool,
-      id                TYPE string,
-      id_prev           TYPE string,
-      id_prev_app       TYPE string,
-      id_prev_app_stack TYPE string,
-      t_scroll_pos      TYPE ty_t_name_value,
+      event                  TYPE string,
+      t_event_arg            TYPE string_table,
+      id                     TYPE string,
+      id_prev                TYPE string,
+      id_prev_app            TYPE string,
+      id_prev_app_stack      TYPE string,
+      check_launchpad_active TYPE abap_bool,
+      t_scroll_pos           TYPE ty_t_name_value,
+      BEGIN OF s_cursor,
+        id             TYPE string,
+        cursorpos      TYPE string,
+        selectionstart TYPE string,
+        selectionend   TYPE string,
+      END OF s_cursor,
+      s_config               TYPE ty_S_config,
     END OF ty_s_get.
 
   TYPES:
@@ -41,8 +67,17 @@ INTERFACE z2ui5_if_client
       _viewmodel         TYPE string,
     END OF ty_s_next.
 
-  METHODS set_next
-    IMPORTING val TYPE ty_S_next.
+  METHODS set_view
+    IMPORTING
+      val TYPE string.
+
+  METHODS set_popup
+    IMPORTING
+      val TYPE string.
+
+  METHODS set_popover
+    IMPORTING
+      val TYPE string.
 
   METHODS get
     RETURNING VALUE(result) TYPE ty_s_get.
@@ -66,24 +101,31 @@ INTERFACE z2ui5_if_client
   METHODS popup_message_toast
     IMPORTING text TYPE string.
 
-  METHODS _bind
-    IMPORTING val            TYPE data
-              path           TYPE abap_bool DEFAULT abap_false
-              check_gen_data TYPE abap_bool OPTIONAL
-    RETURNING VALUE(result)  TYPE string.
+  METHODS _event_close_popup
+    RETURNING VALUE(result) TYPE string.
 
-  METHODS _bind_one
+  METHODS __event
+    IMPORTING
+      val               TYPE clike
+      check_view_transit TYPE abap_bool DEFAULT abap_false
+      t_arg             TYPE string_table OPTIONAL
+    RETURNING
+      VALUE(result)     TYPE string.
+
+  METHODS __bind
     IMPORTING val           TYPE data
               path          TYPE abap_bool DEFAULT abap_false
     RETURNING VALUE(result) TYPE string.
 
-  METHODS _event
-    IMPORTING val           TYPE clike
-              hold_view     TYPE abap_bool    DEFAULT abap_false
-              t_arg         TYPE string_table OPTIONAL
+
+  METHODS __bind_edit
+    IMPORTING val           TYPE data
+              path          TYPE abap_bool DEFAULT abap_false
     RETURNING VALUE(result) TYPE string.
 
-  METHODS _event_close_popup
+
+  METHODS __event_frontend
+    IMPORTING val           TYPE string
     RETURNING VALUE(result) TYPE string.
 
 ENDINTERFACE.
