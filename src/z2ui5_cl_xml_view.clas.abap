@@ -869,24 +869,33 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+  METHOD end_column_pages.
+    RETURN. " todo, implement method
+  ENDMETHOD.
+  METHOD mid_column_pages.
+    RETURN. " todo, implement method
+  ENDMETHOD.
+  METHOD begin_column_pages.
+    RETURN. " todo, implement method
+  ENDMETHOD.
 
 
   METHOD tree_column.
     result = _generic( name = `Column`
-                  ns = `table`
-                  t_prop = VALUE #(
+                  ns        = `table`
+                  t_prop    = VALUE #(
                           ( n = `label` v = label ) ) ).
   ENDMETHOD.
 
 
   METHOD tree_columns.
     result = _generic( name = `columns`
-                  ns = `table` ).
+                  ns        = `table` ).
   ENDMETHOD.
 
 
   METHOD tree_table.
-    result = _generic( name   = `TreeTable`
+    result = _generic( name  = `TreeTable`
                       ns     = `table`
                       t_prop = VALUE #(
                                         ( n = `rows`                    v = rows )
@@ -898,11 +907,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD TREE_TEMPLATE.
     result = _generic( name = `template`
-                  ns = `table` ).
+                  ns        = `table` ).
   ENDMETHOD.
 
   METHOD filter_bar.
-    result = _generic(  name   = `FilterBar`
+    result = _generic( name    = `FilterBar`
                         ns     = 'fb'
                         t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
                                           ( n = 'search'        v = search )
@@ -911,13 +920,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD filter_control.
-    result = _generic(  name   = `control`
-                        ns     = 'fb' ).
+    result = _generic( name = `control`
+                        ns  = 'fb' ).
   ENDMETHOD.
 
 
   METHOD filter_group_item.
-    result = _generic(  name   = `FilterGroupItem`
+    result = _generic( name    = `FilterGroupItem`
                         ns     = 'fb'
                         t_prop = VALUE #( ( n = 'name'                v  = name )
                                           ( n = 'label'               v  = label )
@@ -927,8 +936,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD filter_group_items.
-    result = _generic(  name  = `filterGroupItems`
-                        ns    = 'fb' ).
+    result = _generic( name = `filterGroupItems`
+                        ns  = 'fb' ).
   ENDMETHOD.
 
 
@@ -1468,9 +1477,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD hlp_get_source_code_url.
-*    DATA(lv_url) = z2ui5_cl_http_handler=>client-t_header[ name = `referer` ]-value.
 
-*    SPLIT lv_url AT '?' INTO lv_url DATA(lv_dummy).
+
+
 
     result = ss_config-origin &&
       `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( ss_config-app ) &&

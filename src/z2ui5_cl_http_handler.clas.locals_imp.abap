@@ -194,17 +194,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_header_val.
-*    result = to_lower( z2ui5_cl_http_handler=>client-t_header[ name = v ]-value ).
+
   ENDMETHOD.
 
   METHOD get_param_val.
-*    DATA(lt_param) = VALUE z2ui5_if_client=>ty_t_name_value(
-*                               LET tab = z2ui5_cl_http_handler=>client-t_param IN FOR row IN tab
-*                               ( name = to_upper( row-name ) value = to_upper( row-value ) ) ).
-*    TRY.
-*        result = lt_param[ name = get_trim_upper( v ) ]-value.
-*      CATCH cx_root.
-*    ENDTRY.
+
   ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
@@ -1047,7 +1041,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_begin.
 
-    so_body = z2ui5_lcl_utility_tree_json=>factory( z2ui5_lcl_fw_handler=>ss_config-body ).
+    so_body = z2ui5_lcl_utility_tree_json=>factory( ss_config-body ).
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
@@ -1061,12 +1055,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_end.
     IF ms_next-s_set-path IS NOT INITIAL.
-*      DATA(lv_path) = z2ui5_lcl_utility=>get_header_val( '~path' ).
-*      DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-*      REPLACE lv_path_info IN lv_path WITH ``.
-*      SHIFT lv_path RIGHT DELETING TRAILING `/`.
-*      SHIFT lv_path LEFT DELETING LEADING ` `.
-*      ms_next-s_set-path = lv_path && ms_next-s_set-path.
+
     ENDIF.
 
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
@@ -1237,9 +1226,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(lo_location) = so_body->get_attribute( `OLOCATION` ).
-        z2ui5_lcl_fw_handler=>ss_config-origin = lo_location->get_attribute( `ORIGIN` )->get_val( ).
-        z2ui5_lcl_fw_handler=>ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
-        z2ui5_lcl_fw_handler=>ss_config-search = lo_location->get_attribute( `SEARCH` )->get_val( ).
+        ss_config-origin = lo_location->get_attribute( `ORIGIN` )->get_val( ).
+        ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
+        ss_config-search = lo_location->get_attribute( `SEARCH` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1257,18 +1246,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result = NEW #( ).
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-*    TRY.
-**        DATA(lv_path_info) = z2ui5_lcl_utility=>get_header_val( '~path_info' ).
-*        FIELD-SYMBOLS <path> TYPE string.
-*        ASSIGN ('SO_BODY->MR_ACTUAL->OLOCATION->PATHNAME->*') TO <path>.
-*        SPLIT <path> AT z2ui5_cl_http_handler=>config-handler && '/' INTO DATA(lv_dummy) <path>.
-**        SPLIT <path> AT `/` INTO TABLE DATA(lt_tab).
-*        DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( <path> ).
-*      CATCH cx_root.
-*    ENDTRY.
+
 
     " TODO: variable is assigned but never used (ABAP cleaner)
-    SPLIT z2ui5_lcl_fw_handler=>ss_config-path_info AT `?` INTO DATA(lv_path_info) DATA(lv_dummy).
+    SPLIT ss_config-path_info AT `?` INTO DATA(lv_path_info) DATA(lv_dummy).
     DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
     SHIFT lv_classname LEFT DELETING LEADING `/`.
 
@@ -1281,8 +1262,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         TRY.
             CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
           CATCH cx_root.
-*            SPLIT lv_classname AT `/` INTO lv_classname data(lv_dummy).
-*            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
+
         ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
@@ -1403,7 +1383,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     IF ix IS BOUND.
 
-      result->ms_db-o_app             = z2ui5_lcl_fw_app=>factory_error( error = ix  ).
+      result->ms_db-o_app             = z2ui5_lcl_fw_app=>factory_error( error = ix ).
 
       result->ms_db-id_prev_app       = ms_db-id.
       result->ms_db-id_prev_app_stack = ms_db-id.
@@ -1448,7 +1428,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
                       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
                       t_event_arg            = mo_handler->ms_actual-t_event_arg
                       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
-                      s_config = z2ui5_lcl_fw_handler=>ss_config ).
+                      s_config               = z2ui5_lcl_fw_handler=>ss_config ).
     result-s_config-app = mo_handler->ms_db-o_app.
   ENDMETHOD.
 
@@ -1472,7 +1452,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_popover.
 
-*    mo_handler->ms_next-s_set-xml_popup = val.
+
 
   ENDMETHOD.
 
@@ -1499,8 +1479,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~__bind_edit.
 
-    result = mo_handler->_create_binding( value          = val
-                                            type           = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+    result = mo_handler->_create_binding( value  = val
+                                            type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
     IF path = abap_false.
       result = `{` && result && `}`.
     ENDIF.
