@@ -10,7 +10,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         content_security_policy TYPE clike                            OPTIONAL
         check_logging           TYPE abap_bool                        DEFAULT abap_false
       RETURNING
-        VALUE(r_result)         TYPE string.
+        VALUE(r_result)         TYPE string ##NEEDED.
 
     CLASS-METHODS http_post
       IMPORTING

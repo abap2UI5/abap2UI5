@@ -872,17 +872,20 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD end_column_pages.
-    RETURN. " todo, implement method
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 
   METHOD mid_column_pages.
-    RETURN. " todo, implement method
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 
   METHOD begin_column_pages.
-    RETURN. " todo, implement method
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 

@@ -11,7 +11,7 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_S_config,
-      controller_name TYPE string, " VALUE `z2ui5_controller`,
+      controller_name TYPE string,
       pathname        TYPE string,
       origin          TYPE string,
       search          TYPE string,

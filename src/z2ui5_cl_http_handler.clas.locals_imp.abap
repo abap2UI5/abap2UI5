@@ -34,16 +34,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         when TYPE abap_bool DEFAULT abap_true
           PREFERRED PARAMETER v.
 
-    CLASS-METHODS get_header_val
-      IMPORTING
-        v             TYPE clike
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_client=>ty_s_name_value-value.
-
-    CLASS-METHODS get_param_val
-      IMPORTING v             TYPE clike
-      RETURNING VALUE(result) TYPE z2ui5_if_client=>ty_s_name_value-value.
-
     CLASS-METHODS get_uuid
       RETURNING VALUE(result) TYPE string.
 
@@ -189,17 +179,12 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_uuid_session.
+
     mv_counter = mv_counter + 1.
     result = get_trim_upper( mv_counter ).
-  ENDMETHOD.
-
-  METHOD get_header_val.
 
   ENDMETHOD.
 
-  METHOD get_param_val.
-
-  ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
 
@@ -231,7 +216,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
       DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
       TRY.
           DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
-          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ).
+          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
           ls_attri2-check_ref_data = abap_true.
         CATCH cx_root.
       ENDTRY.
@@ -242,6 +227,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _get_t_attri_by_struc.
+
     CONSTANTS c_prefix TYPE string VALUE `IO_APP->`.
     FIELD-SYMBOLS <attribute> TYPE any.
 
@@ -1054,15 +1040,17 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD request_end.
-    IF ms_next-s_set-path IS NOT INITIAL.
 
-    ENDIF.
+*    IF ms_next-s_set-path IS NOT INITIAL.
+*
+*    ENDIF.
 
     DATA(lo_resp) = z2ui5_lcl_utility_tree_json=>factory( ).
 
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
                                  THEN ms_next-s_set-_viewmodel
                                  ELSE model_set_frontend( lo_app = ms_db-o_app t_attri = ms_db-t_attri ) ).
+
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     CLEAR ms_next-s_set-_viewmodel.
 
@@ -1074,6 +1062,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
+
   ENDMETHOD.
 
   METHOD model_set_backend.
@@ -1097,7 +1086,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
             ASSIGN <backend>->* TO <backend>.
 
             TRY.
-                DATA(lo_tab)  = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( <backend> ) ).
+                DATA(lo_tab)  = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( <backend> ) ) ##NEEDED.
                 lv_type_kind = `h`.
               CATCH cx_root.
             ENDTRY.
@@ -1229,6 +1218,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         ss_config-origin = lo_location->get_attribute( `ORIGIN` )->get_val( ).
         ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
         ss_config-search = lo_location->get_attribute( `SEARCH` )->get_val( ).
+        ss_config-controller_name = `z2ui5_controller`.
       CATCH cx_root.
     ENDTRY.
 
