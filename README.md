@@ -64,6 +64,12 @@ METHOD if_http_extension~handle_request.
       WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
       WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( ) ).
 
+   server->response->set_header_field(
+     exporting
+       name  = 'cache-control'
+       value = 'no-cache'
+   ).
+
    server->response->set_cdata( lv_resp ).
    server->response->set_status( code = 200 reason = 'success' ).
 
