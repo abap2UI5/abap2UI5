@@ -1493,7 +1493,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~__event.
 
-    data(lv_hold_view) = xsdbool( check_view_transit = abap_false ).
+    DATA(lv_hold_view) = xsdbool( check_view_transit = abap_false ).
 
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'isHoldView' : ` && z2ui5_lcl_utility=>get_json_boolean( lv_hold_view ) && ` }`.
 

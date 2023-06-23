@@ -807,60 +807,60 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS stringify
       RETURNING VALUE(result) TYPE string.
 
- methods TREE_TABLE
-    importing
-      !ROWS type CLIKE
-      !SELECTIONMODE type CLIKE default 'Single'
-      !ENABLECOLUMNREORDERING type CLIKE default 'false'
-      !EXPANDFIRSTLEVEL type CLIKE default 'false'
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods TREE_COLUMNS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods TREE_COLUMN
-    importing
-      !LABEL type CLIKE
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods TREE_TEMPLATE
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods FILTER_BAR
-    importing
-      !USETOOLBAR type CLIKE default 'false'
-      !SEARCH type CLIKE optional
-      !FILTERCHANGE type CLIKE optional
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods FILTER_GROUP_ITEMS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods FILTER_GROUP_ITEM
-    importing
-      !NAME type CLIKE
-      !LABEL type CLIKE
-      !GROUPNAME type CLIKE
-      !VISIBLEINFILTERBAR type CLIKE default 'true'
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods FILTER_CONTROL
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods FLEXIBLE_COLUMN_LAYOUT
-    importing
-      !LAYOUT type CLIKE
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods BEGIN_COLUMN_PAGES
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods MID_COLUMN_PAGES
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods END_COLUMN_PAGES
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+    METHODS tree_table
+      IMPORTING
+        !rows                   TYPE clike
+        !selectionmode          TYPE clike DEFAULT 'Single'
+        !enablecolumnreordering TYPE clike DEFAULT 'false'
+        !expandfirstlevel       TYPE clike DEFAULT 'false'
+      RETURNING
+        VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
+    METHODS tree_columns
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS tree_column
+      IMPORTING
+        !label        TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS tree_template
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS filter_bar
+      IMPORTING
+        !usetoolbar   TYPE clike DEFAULT 'false'
+        !search       TYPE clike OPTIONAL
+        !filterchange TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS filter_group_items
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS filter_group_item
+      IMPORTING
+        !name               TYPE clike
+        !label              TYPE clike
+        !groupname          TYPE clike
+        !visibleinfilterbar TYPE clike DEFAULT 'true'
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+    METHODS filter_control
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS flexible_column_layout
+      IMPORTING
+        !layout       TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS begin_column_pages
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS mid_column_pages
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS end_column_pages
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -869,12 +869,18 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+
+
   METHOD end_column_pages.
     RETURN. " todo, implement method
   ENDMETHOD.
+
+
   METHOD mid_column_pages.
     RETURN. " todo, implement method
   ENDMETHOD.
+
+
   METHOD begin_column_pages.
     RETURN. " todo, implement method
   ENDMETHOD.
@@ -905,10 +911,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD TREE_TEMPLATE.
+  METHOD tree_template.
     result = _generic( name = `template`
                   ns        = `table` ).
   ENDMETHOD.
+
 
   METHOD filter_bar.
     result = _generic( name    = `FilterBar`
@@ -946,6 +953,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `f`
                        t_prop = VALUE #( (  n = `layout` v = layout ) ) ).
   ENDMETHOD.
+
 
   METHOD actions.
     result = _generic( name = `actions`
@@ -2253,5 +2261,4 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = get_root( )->xml_get( ).
 
   ENDMETHOD.
-
 ENDCLASS.

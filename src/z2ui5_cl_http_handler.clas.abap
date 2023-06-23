@@ -25,13 +25,15 @@ CLASS z2ui5_cl_http_handler DEFINITION
 ENDCLASS.
 
 
-
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
 
     DATA(lt_Config) = t_config.
+
+
+
 
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
