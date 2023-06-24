@@ -71,6 +71,14 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE string.
 
+  METHODS set_cursor
+    IMPORTING
+      val TYPE ty_s_get-s_cursor.
+
+  METHODS set_scroll_pos
+    IMPORTING
+      val TYPE ty_s_get-t_scroll_pos.
+
   METHODS set_popup
     IMPORTING
       val TYPE string.

@@ -1489,11 +1489,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD hlp_get_source_code_url.
 
-
-
-
-    result = ss_config-origin &&
-      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( ss_config-app ) &&
+    result = m_root->ss_config-origin &&
+      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( m_root->ss_config-app ) &&
        `/source/main`.
 
   ENDMETHOD.

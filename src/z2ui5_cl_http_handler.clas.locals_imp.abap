@@ -1493,4 +1493,16 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~set_cursor.
+
+      mo_handler->ms_next-s_set-s_cursor = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~set_scroll_pos.
+
+  mo_handler->ms_next-s_set-t_scroll = val.
+
+  ENDMETHOD.
+
 ENDCLASS.
