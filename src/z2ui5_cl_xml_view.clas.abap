@@ -65,8 +65,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS Illustrated_Message
-      IMPORTING enableVerticalResponsiveness TYPE clike OPTIONAL
-                illustrationType             TYPE clike OPTIONAL
+      IMPORTING
+        enableVerticalResponsiveness TYPE clike OPTIONAL
+        enableFormattedText TYPE clike OPTIONAL
+        illustrationType             TYPE clike OPTIONAL
+        title type clike optional
+        description type clike optional
+        illustrationsize type clike optional
       RETURNING VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS additional_Content
@@ -1523,7 +1528,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD illustrated_message.
     result = _generic( name   = `IllustratedMessage`
                        t_prop = VALUE #( ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
-                                         ( n = `illustrationType`             v = illustrationType ) ) ).
+                      ( n = `illustrationType`             v = illustrationType )
+                      ( n = `enableFormattedText`             v = lcl_utility=>get_json_boolean( enableFormattedText ) )
+                      ( n = `illustrationSize`             v = illustrationType )
+                      ( n = `description`             v = description )
+                      ( n = `title`             v = title )
+
+                       ) ).
   ENDMETHOD.
 
 
