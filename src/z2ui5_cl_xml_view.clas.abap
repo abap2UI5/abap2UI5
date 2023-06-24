@@ -24,12 +24,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-                t_ns          TYPE ty_t_name_value OPTIONAL
-                client        TYPE REF TO z2ui5_if_client
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+         t_ns          TYPE ty_t_name_value OPTIONAL
+         client        TYPE REF TO z2ui5_if_client
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS factory_popup
-      IMPORTING t_ns          TYPE ty_t_name_value OPTIONAL
+      IMPORTING
+        t_ns          TYPE ty_t_name_value OPTIONAL
+         client        TYPE REF TO z2ui5_if_client
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS hlp_get_source_code_url
@@ -1354,12 +1357,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD factory_popup.
+
     result = NEW #( ).
 
     IF t_ns IS NOT INITIAL.
       result->mt_prop = t_ns.
     ENDIF.
 
+    result->ss_config = client->get( )-s_config.
     result->m_name   = `FragmentDefinition`.
     result->m_ns     = `core`.
     result->m_root   = result.

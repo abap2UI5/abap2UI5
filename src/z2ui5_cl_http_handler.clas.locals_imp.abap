@@ -1446,7 +1446,12 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_popup.
 
-    mo_handler->ms_next-s_set-xml_popup = val.
+*    mo_handler->ms_next-s_set-xml_popup = val.
+
+    mo_handler->ms_next-s_set-s_popup-xml = val.
+    IF val IS INITIAL.
+      mo_handler->ms_next-s_set-s_popup-check_close = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -1495,13 +1500,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_cursor.
 
-      mo_handler->ms_next-s_set-s_cursor = val.
+    mo_handler->ms_next-s_set-s_cursor = val.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~set_scroll_pos.
 
-  mo_handler->ms_next-s_set-t_scroll = val.
+    mo_handler->ms_next-s_set-t_scroll = val.
 
   ENDMETHOD.
 
