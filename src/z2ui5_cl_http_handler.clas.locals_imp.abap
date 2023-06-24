@@ -1056,7 +1056,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     result = lo_resp->get_root( )->stringify( ).
 
-    DELETE ms_db-t_attri WHERE bind_type = cs_bind_type-one_time.
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
@@ -1233,7 +1232,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
 
-
     " TODO: variable is assigned but never used (ABAP cleaner)
     SPLIT ss_config-path_info AT `?` INTO DATA(lv_path_info) DATA(lv_dummy).
     DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
@@ -1248,7 +1246,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         TRY.
             CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
           CATCH cx_root.
-
+            SPLIT lv_classname AT `/` INTO lv_classname lv_dummy.
+            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
         ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
@@ -1291,6 +1290,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
     result->ms_next-s_msg = ms_next-s_msg.
+
+    result->ms_actual-s_config = CAST z2ui5_if_client( NEW z2ui5_lcl_fw_client( me ) )->get( )-s_config.
+    result->ms_actual-s_config-app = result->ms_db-o_app.
     RESUlt->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
 
     result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).

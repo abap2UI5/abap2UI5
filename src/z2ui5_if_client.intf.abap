@@ -106,11 +106,11 @@ INTERFACE z2ui5_if_client
 
   METHODS __event
     IMPORTING
-      val               TYPE clike
+      val                TYPE clike
       check_view_transit TYPE abap_bool DEFAULT abap_false
-      t_arg             TYPE string_table OPTIONAL
+      t_arg              TYPE string_table OPTIONAL
     RETURNING
-      VALUE(result)     TYPE string.
+      VALUE(result)      TYPE string.
 
   METHODS __bind
     IMPORTING val           TYPE data
@@ -122,7 +122,6 @@ INTERFACE z2ui5_if_client
     IMPORTING val           TYPE data
               path          TYPE abap_bool DEFAULT abap_false
     RETURNING VALUE(result) TYPE string.
-
 
   METHODS __event_frontend
     IMPORTING val           TYPE string
