@@ -59,6 +59,12 @@ INTERFACE z2ui5_if_client
         id          TYPE string,
         check_close TYPE abap_bool,
       END OF s_popup,
+      BEGIN OF s_popover,
+        xml         TYPE string,
+        id          TYPE string,
+        open_by_id  TYPE string,
+        check_close TYPE abap_bool,
+      END OF s_popover,
       BEGIN OF s_cursor,
         id             TYPE string,
         cursorpos      TYPE string,
@@ -90,7 +96,8 @@ INTERFACE z2ui5_if_client
 
   METHODS set_popover
     IMPORTING
-      val TYPE string.
+      xml        TYPE string
+      open_by_id TYPE string optional.
 
   METHODS get
     RETURNING VALUE(result) TYPE ty_s_get.

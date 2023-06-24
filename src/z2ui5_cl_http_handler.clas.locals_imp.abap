@@ -1440,13 +1440,15 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_popover.
 
-
+    mo_handler->ms_next-s_set-s_popover-xml = xml.
+    mo_handler->ms_next-s_set-s_popover-open_by_id = open_by_id.
+    IF xml IS INITIAL.
+      mo_handler->ms_next-s_set-s_popover-check_close = abap_true.
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~set_popup.
-
-*    mo_handler->ms_next-s_set-xml_popup = val.
 
     mo_handler->ms_next-s_set-s_popup-xml = val.
     IF val IS INITIAL.
