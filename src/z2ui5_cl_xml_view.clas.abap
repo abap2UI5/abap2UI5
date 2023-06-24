@@ -1526,11 +1526,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD illustrated_message.
+
     result = _generic( name   = `IllustratedMessage`
                        t_prop = VALUE #( ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
                       ( n = `illustrationType`             v = illustrationType )
                       ( n = `enableFormattedText`             v = lcl_utility=>get_json_boolean( enableFormattedText ) )
-                      ( n = `illustrationSize`             v = illustrationType )
+                      ( n = `illustrationSize`             v = illustrationSize )
                       ( n = `description`             v = description )
                       ( n = `title`             v = title )
 

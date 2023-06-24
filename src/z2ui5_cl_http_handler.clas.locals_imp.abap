@@ -800,10 +800,12 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                                                        include_name = DATA(lv_incl)
                                                        source_line  = DATA(lv_line) ).
 
+
       DATA(lv_check_back) = `false`.
-    DATA(lv_descr) = ms_error-x_error->get_text( ) &&
-            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
-            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
+    DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ).
+*     &&
+*            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
+*            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
 
 data(lv_xml) = `<mvc:View ` && |\n|  &&
                `  xmlns="sap.m" ` && |\n|  &&
@@ -1373,8 +1375,15 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
-          z2ui5_lcl_utility=>raise(
-              `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used` ).
+
+        data(lv_error) = `<p>Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used <a href="https://www.sap.com" style="color:green; font-weight:600;">link to sap.com</a> - links open in `` &&` && |\n|  &&
+                         `    ``a new window.</p><p>paragraph: <strong>strong</strong> and <em>emphasized</em>.</p><p>list:</p><ul`` &&` && |\n|  &&
+                         `  ``><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a ref` &&
+`erence to a source</cite></p>`` &&` && |\n|  &&
+                         `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
+
+          z2ui5_lcl_utility=>raise( lv_error ).
+*              `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used` ).
         ENDIF.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
