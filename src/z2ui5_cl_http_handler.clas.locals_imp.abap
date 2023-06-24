@@ -783,7 +783,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         CASE client->get( )-event.
 
           WHEN `BUTTON_HOME`.
-            client->nav_app_home( ).
+*            client->__nav_app_home( ).
 
           WHEN `BUTTON_BACK`.
             client->nav_app_leave( client->get_app( client->get( )-id_prev_app ) ).
@@ -801,10 +801,46 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                                                        source_line  = DATA(lv_line) ).
 
       DATA(lv_check_back) = `false`.
-
-      DATA(lv_descr) = ms_error-x_error->get_text( ) &&
+    DATA(lv_descr) = ms_error-x_error->get_text( ) &&
             ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
             lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
+
+data(lv_xml) = `<mvc:View ` && |\n|  &&
+               `  xmlns="sap.m" ` && |\n|  &&
+               `  xmlns:z2ui5="z2ui5" ` && |\n|  &&
+               `  xmlns:core="sap.ui.core" ` && |\n|  &&
+               `  xmlns:mvc="sap.ui.core.mvc" ` && |\n|  &&
+               `  xmlns:layout="sap.ui.layout" ` && |\n|  &&
+               `  xmlns:f="sap.f" ` && |\n|  &&
+               `  xmlns:form="sap.ui.layout.form" ` && |\n|  &&
+               `  xmlns:editor="sap.ui.codeeditor" ` && |\n|  &&
+               `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n|  &&
+               `  xmlns:webc="sap.ui.webc.main" ` && |\n|  &&
+               `  xmlns:uxap="sap.uxap" ` && |\n|  &&
+               `  xmlns:sap="sap" ` && |\n|  &&
+               `  xmlns:text="sap.ui.richtextedito" ` && |\n|  &&
+               `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n|  &&
+               `  displayBlock="true" ` && |\n|  &&
+               `  height="100%" ` && |\n|  &&
+               `  controllerName="z2ui5_controller" ` && |\n|  &&
+               ` > <Shell ` && |\n|  &&
+               ` > <Page ` && |\n|  &&
+               ` > <IllustratedMessage ` && |\n|  &&
+               `  illustrationType="sapIllus-ErrorScreen" ` && |\n|  &&
+               `  enableFormattedText="true" ` && |\n|  &&
+               `  illustrationSize="sapIllus-ErrorScreen" ` && |\n|  &&
+               `  description="` && lv_descr && `"` && |\n|  &&
+               `  title="HTTP 500 - Server Error" ` && |\n|  &&
+               ` > <additionalContent ` && |\n|  &&
+               ` > <Button ` && |\n|  &&
+               `  press="` && client->__event_frontend(  client->cs_event-leave_home )  && `" ` && |\n|  &&
+               `  text="Home" ` && |\n|  &&
+               `  type="Emphasized" ` && |\n|  &&
+               ` /></additionalContent></IllustratedMessage></Page></Shell></mvc:View>`.
+
+ client->set_view( lv_xml ).
+return.
+
 
       DATA(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv` &&
   `c" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <MessagePage ` && |\n|
@@ -1483,6 +1519,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~__event_frontend.
+
+    result = `onEventFrontend( { 'EVENT' : '` && val && `' } )`.
 
   ENDMETHOD.
 

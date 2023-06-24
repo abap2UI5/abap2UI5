@@ -3,10 +3,10 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
-      event_popup_close   TYPE string VALUE `POPUP_CLOSE`,
-      event_popover_close TYPE string VALUE `POPOVER_CLOSE`,
-      go_back             TYPE string VALUE `GO_BACK`,
-      go_forward          TYPE string VALUE `GO_FORWARD`,
+      popup_close   TYPE string VALUE `POPUP_CLOSE`,
+      popover_close TYPE string VALUE `POPOVER_CLOSE`,
+      leave_home    type string value `LEAVE_HOME`,
+      leave_restart type string value `LEAVE_RESTART`,
     END OF cs_event.
 
   TYPES:
@@ -112,17 +112,12 @@ INTERFACE z2ui5_if_client
   METHODS nav_app_call
     IMPORTING app TYPE REF TO z2ui5_if_app.
 
-  METHODS nav_app_home.
-
   METHODS popup_message_box
     IMPORTING text TYPE string
               type TYPE string DEFAULT 'information'.
 
   METHODS popup_message_toast
     IMPORTING text TYPE string.
-
-  METHODS _event_close_popup
-    RETURNING VALUE(result) TYPE string.
 
   METHODS __event
     IMPORTING
@@ -144,7 +139,9 @@ INTERFACE z2ui5_if_client
     RETURNING VALUE(result) TYPE string.
 
   METHODS __event_frontend
-    IMPORTING val           TYPE string
-    RETURNING VALUE(result) TYPE string.
+    IMPORTING
+        val           TYPE string
+    RETURNING
+        VALUE(result) TYPE string.
 
 ENDINTERFACE.
