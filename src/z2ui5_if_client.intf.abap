@@ -100,7 +100,7 @@ INTERFACE z2ui5_if_client
   METHODS popover_open
     IMPORTING
       xml   TYPE string
-      by_id TYPE string OPTIONAL.
+      by_id TYPE string.
 
   METHODS popover_close.
 
