@@ -54,7 +54,7 @@ INTERFACE z2ui5_if_client
       t_scroll           TYPE ty_t_name_value,
       title              TYPE string,
       path               TYPE string,
-      url                type string,
+      url                TYPE string,
       BEGIN OF s_popup,
         xml         TYPE string,
         id          TYPE string,
@@ -79,25 +79,25 @@ INTERFACE z2ui5_if_client
       _viewmodel         TYPE string,
     END OF ty_s_next.
 
-  METHODS set_view
+  METHODS view_set
     IMPORTING
       val TYPE string.
 
-  METHODS set_cursor
+  METHODS cursor_set
     IMPORTING
       val TYPE ty_s_get-s_cursor.
 
-  METHODS set_scroll_pos
+  METHODS scroll_position_set
     IMPORTING
       val TYPE ty_s_get-t_scroll_pos.
 
-  METHODS popup_open
+  METHODS popup_display
     IMPORTING
       val TYPE string.
 
   METHODS popup_close.
 
-  METHODS popover_open
+  METHODS popover_display
     IMPORTING
       xml   TYPE string
       by_id TYPE string.
@@ -105,24 +105,31 @@ INTERFACE z2ui5_if_client
   METHODS popover_close.
 
   METHODS get
-    RETURNING VALUE(result) TYPE ty_s_get.
+    RETURNING
+      VALUE(result) TYPE ty_s_get.
 
   METHODS get_app
-    IMPORTING id            TYPE clike
-    RETURNING VALUE(result) TYPE REF TO z2ui5_if_app.
+    IMPORTING
+      id            TYPE clike
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_leave
-    IMPORTING app TYPE REF TO z2ui5_if_app.
+    IMPORTING
+      app TYPE REF TO z2ui5_if_app.
 
   METHODS nav_app_call
-    IMPORTING app TYPE REF TO z2ui5_if_app.
+    IMPORTING
+      app TYPE REF TO z2ui5_if_app.
 
-  METHODS popup_message_box
-    IMPORTING text TYPE string
-              type TYPE string DEFAULT 'information'.
+  METHODS popup_display_message_box
+    IMPORTING
+      text TYPE string
+      type TYPE string DEFAULT 'information'.
 
-  METHODS popup_message_toast
-    IMPORTING text TYPE string.
+  METHODS popup_display_message_toast
+    IMPORTING
+      text TYPE string.
 
   METHODS _event
     IMPORTING
@@ -133,15 +140,18 @@ INTERFACE z2ui5_if_client
       VALUE(result)      TYPE string.
 
   METHODS _bind
-    IMPORTING val           TYPE data
-              path          TYPE abap_bool DEFAULT abap_false
-    RETURNING VALUE(result) TYPE string.
-
+    IMPORTING
+      val           TYPE data
+      path          TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS _bind_edit
-    IMPORTING val           TYPE data
-              path          TYPE abap_bool DEFAULT abap_false
-    RETURNING VALUE(result) TYPE string.
+    IMPORTING
+      val           TYPE data
+      path          TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS _event_client
     IMPORTING
