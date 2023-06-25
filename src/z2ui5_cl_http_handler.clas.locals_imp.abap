@@ -730,7 +730,7 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
         VALUE(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS load_app
-      IMPORTING id            TYPE string
+      IMPORTING id            TYPE clike
       RETURNING VALUE(result) TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS read
@@ -871,11 +871,16 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       WHEN `ERROR`.
         CASE client->get( )-event.
 
-          WHEN `BUTTON_HOME`.
-*            client->__nav_app_home( ).
-
           WHEN `BUTTON_BACK`.
-            client->nav_app_leave( client->get_app( client->get( )-id_prev_app ) ).
+*            TRY.
+*                DATA(ls_Db) = z2ui5_lcl_fw_db=>read( id = client->get( )-id_prev_app check_load_app = abap_false ).
+*                DATA(ls_app) = z2ui5_lcl_fw_db=>load_app( ls_Db-uuid_prev  ).
+*
+*                client->nav_app_leave( ls_app-o_app ).
+*
+*              CATCH cx_root.
+*                client->message_box_display( text = `Error - going back not possible` type = `error` ).
+*            ENDTRY.
 
         ENDCASE.
     ENDCASE.
@@ -889,8 +894,14 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                                                        include_name = DATA(lv_incl)
                                                        source_line  = DATA(lv_line) ).
 
+*      TRY.
+*          DATA(ls_Db) = z2ui5_lcl_fw_db=>read( id = client->get( )-id_prev_app check_load_app = abap_false ).
+*          z2ui5_lcl_fw_db=>read( id = ls_Db-uuid_prev check_load_app = abap_false ).
+*          DATA(lv_check_back) = `true`.
+*        CATCH cx_root.
+*          lv_check_back = `false`.
+*      ENDTRY.
 
-      DATA(lv_check_back) = `false`.
       DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ).
 *     &&
 *            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
@@ -914,44 +925,53 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                      `  displayBlock="true" ` && |\n|  &&
                      `  height="100%" ` && |\n|  &&
                      `  controllerName="z2ui5_controller" ` && |\n|  &&
-                     ` > <Shell ` && |\n|  &&
-                     ` > <Page ` && |\n|  &&
-                     ` > <IllustratedMessage ` && |\n|  &&
+                     ` > <Shell>` && |\n|  &&
+*                     ` <Page ` && |\n|  &&
+                     `<IllustratedMessage ` && |\n|  &&
                      `  illustrationType="sapIllus-ErrorScreen" ` && |\n|  &&
                      `  enableFormattedText="true" ` && |\n|  &&
                      `  illustrationSize="sapIllus-ErrorScreen" ` && |\n|  &&
                      `  description="` && lv_descr && `"` && |\n|  &&
                      `  title="500 Internal Server Error" ` && |\n|  &&
                      ` > <additionalContent ` && |\n|  &&
-                     ` > <Button ` && |\n|  &&
+                     ` > ` &&
+                     `<Button ` && |\n|  &&
                      `  press="` && client->_event_client(  client->cs_event-leave_home )  && `" ` && |\n|  &&
                      `  text="Home" ` && |\n|  &&
                      `  type="Emphasized" ` && |\n|  &&
-                     ` /></additionalContent></IllustratedMessage></Page></Shell></mvc:View>`.
+                     ` />` &&
+                     `<Button ` && |\n|  &&
+*                    `  enabled="` && lv_check_back && `"`  &&
+                     `  press="` && client->_event_client( client->cs_event-leave_restart ) && `" ` && |\n|  &&
+                     `  text="Restart" ` && |\n|  &&
+                     `  ` && |\n|  &&
+                     ` /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
 
       client->view_display( lv_xml ).
       RETURN.
 
-
-      DATA(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv` &&
-  `c" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <MessagePage ` && |\n|
-  &&
-                           `  description="` && lv_descr && `" ` && |\n| &&
-                           `  icon="sap-icon://message-error" ` && |\n| &&
-                           `  text="500 Internal Server Error" ` && |\n| &&
-                           `  enableFormattedText="true" ` && |\n| &&
-                           ` > <buttons ` && |\n| &&
-                           ` > <Button ` && |\n| &&
-                           `  press="` && client->_event( `BUTTON_HOME` ) && `" ` && |\n| &&
-                           `  text="HOME" ` && |\n| &&
-                           ` /> <Button ` && |\n| &&
-                           `  press="` && client->_event( `BUTTON_BACK` ) && `" ` && |\n| &&
-                           `  text="BACK" ` && |\n| &&
-                           `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n| &&
-                           ` /></buttons></MessagePage></Shell></mvc:View>`.
-
-      client->view_display( lv_xml_error ).
-      RETURN.
+*
+*      DATA(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv`
+"&&
+*  `c" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <MessagePage ` && |\
+"n|
+*  &&
+*                           `  description="` && lv_descr && `" ` && |\n| &&
+*                           `  icon="sap-icon://message-error" ` && |\n| &&
+*                           `  text="500 Internal Server Error" ` && |\n| &&
+*                           `  enableFormattedText="true" ` && |\n| &&
+*                           ` > <buttons ` && |\n| &&
+*                           ` > <Button ` && |\n| &&
+*                           `  press="` && client->_event( `BUTTON_HOME` ) && `" ` && |\n| &&
+*                           `  text="HOME" ` && |\n| &&
+*                           ` /> <Button ` && |\n| &&
+*                           `  press="` && client->_event( `BUTTON_BACK` ) && `" ` && |\n| &&
+*                           `  text="BACK" ` && |\n| &&
+*                           `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n| &&
+*                           ` /></buttons></MessagePage></Shell></mvc:View>`.
+*
+*      client->view_display( lv_xml_error ).
+*      RETURN.
     ENDIF.
 
     TRY.
@@ -1537,7 +1557,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
           DATA(lv_error) = `<p>Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used <a href="https://www.sap.com" style="color:green; font-weight:600;">link to sap.com</a> - links open in `` &&` && |\n|  &&
                            `    ``a new window.</p><p>paragraph: <strong>strong</strong> and <em>emphasized</em>.</p><p>list:</p><ul`` &&` && |\n|  &&
-                           `  ``><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a ref` &&
+                           `  ``><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a ref`
+&&
   `erence to a source</cite></p>`` &&` && |\n|  &&
                            `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
 
@@ -1574,8 +1595,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     IF ix IS BOUND.
+      ms_next-o_call_app = z2ui5_lcl_fw_app=>factory_error( error = ix ).
+      result = set_app_call(  ).
+      RETURN.
 
-      result->ms_db-o_app             = z2ui5_lcl_fw_app=>factory_error( error = ix ).
+      result->ms_db-o_app   = z2ui5_lcl_fw_app=>factory_error( error = ix ).
+
+
 
       result->ms_db-id_prev_app       = ms_db-id.
       result->ms_db-id_prev_app_stack = ms_db-id.
