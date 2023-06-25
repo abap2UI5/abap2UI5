@@ -24,10 +24,10 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
-        client->popup_message_toast( |{ product } { quantity } - send to the server| ).
+        client->message_toast_display( |{ product } { quantity } - send to the server| ).
     ENDCASE.
 
-    client->set_view( z2ui5_cl_xml_view=>factory( client
+    client->view_display( z2ui5_cl_xml_view=>factory( client
         )->shell(
         )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
             )->simple_form( title = 'Hello World' editable = abap_true
