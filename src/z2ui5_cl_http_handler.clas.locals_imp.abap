@@ -1390,6 +1390,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+    result->ms_actual-check_navigated_to = abap_false.
+
   ENDMETHOD.
 
   METHOD set_app_start.
@@ -1417,6 +1419,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+        result->ms_actual-check_navigated_to = abap_true.
         RETURN.
 
       CATCH cx_root.
@@ -1445,10 +1448,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.
 
+    result->ms_actual-check_navigated_to = abap_true.
+
     CLEAR ms_next.
   ENDMETHOD.
 
   METHOD set_app_call.
+
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
     result = NEW #( ).
@@ -1464,6 +1470,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_actual-s_config = CAST z2ui5_if_client( NEW z2ui5_lcl_fw_client( me ) )->get( )-s_config.
     result->ms_actual-s_config-app = result->ms_db-o_app.
     RESUlt->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
+
+    result->ms_actual-check_navigated_to = abap_true.
 
     result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
     CLEAR ms_next.
