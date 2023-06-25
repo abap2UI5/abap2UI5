@@ -91,6 +91,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    case 'LEAVE_HOME':` && |\n|  &&
                            `                       window.location = window.location.href.split( sap.z2ui5.oResponse.PARAMS.PATH )[ 0 ];` && |\n|  &&
                            `                        break;` && |\n|  &&
+                            `                    case 'LEAVE_RESTART':` && |\n|  &&
+                           `                       window.location.reload();` && |\n|  &&
+                           `                        break;` && |\n|  &&
                            `                    case 'POPUP_CLOSE':` && |\n|  &&
                            `                        if (sap.z2ui5.oViewPopup.close) {` && |\n|  &&
                            `                            sap.z2ui5.oViewPopup.close();` && |\n|  &&

@@ -46,39 +46,6 @@ INTERFACE z2ui5_if_client
       s_config               TYPE ty_S_config,
     END OF ty_s_get.
 
-  TYPES:
-    BEGIN OF ty_S_next,
-      xml_main           TYPE string,
-      xml_popup          TYPE string,
-      popover_open_by_id TYPE string,
-      t_scroll           TYPE ty_t_name_value,
-      title              TYPE string,
-      path               TYPE string,
-      url                TYPE string,
-      BEGIN OF s_popup,
-        xml         TYPE string,
-        id          TYPE string,
-        check_close TYPE abap_bool,
-      END OF s_popup,
-      BEGIN OF s_popover,
-        xml         TYPE string,
-        id          TYPE string,
-        open_by_id  TYPE string,
-        check_close TYPE abap_bool,
-      END OF s_popover,
-      BEGIN OF s_cursor,
-        id             TYPE string,
-        cursorpos      TYPE string,
-        selectionstart TYPE string,
-        selectionend   TYPE string,
-      END OF s_cursor,
-      BEGIN OF s_timer,
-        interval_ms    TYPE string,
-        event_finished TYPE string,
-      END OF s_timer,
-      _viewmodel         TYPE string,
-    END OF ty_s_next.
-
   METHODS view_display
     IMPORTING
       val TYPE string.

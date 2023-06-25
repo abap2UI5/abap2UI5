@@ -606,12 +606,46 @@ CLASS z2ui5_lcl_fw_handler DEFINITION DEFERRED.
 CLASS z2ui5_lcl_fw_handler DEFINITION.
 
   PUBLIC SECTION.
+
     CONSTANTS:
       BEGIN OF cs_bind_type,
         one_way  TYPE string VALUE 'ONE_WAY',
         two_way  TYPE string VALUE 'TWO_WAY',
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
+
+  TYPES:
+    BEGIN OF ty_S_next2,
+      xml_main           TYPE string,
+      xml_popup          TYPE string,
+      popover_open_by_id TYPE string,
+      t_scroll           TYPE z2ui5_if_client=>ty_t_name_value,
+      title              TYPE string,
+      path               TYPE string,
+      url                TYPE string,
+      BEGIN OF s_popup,
+        xml         TYPE string,
+        id          TYPE string,
+        check_close TYPE abap_bool,
+      END OF s_popup,
+      BEGIN OF s_popover,
+        xml         TYPE string,
+        id          TYPE string,
+        open_by_id  TYPE string,
+        check_close TYPE abap_bool,
+      END OF s_popover,
+      BEGIN OF s_cursor,
+        id             TYPE string,
+        cursorpos      TYPE string,
+        selectionstart TYPE string,
+        selectionend   TYPE string,
+      END OF s_cursor,
+      BEGIN OF s_timer,
+        interval_ms    TYPE string,
+        event_finished TYPE string,
+      END OF s_timer,
+      _viewmodel         TYPE string,
+    END OF ty_s_next2.
 
     TYPES:
       BEGIN OF ty_s_db,
@@ -631,7 +665,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       BEGIN OF ty_s_next,
         check_app_leave TYPE abap_bool,
         o_call_app      TYPE REF TO z2ui5_if_app,
-        s_set           TYPE z2ui5_if_client=>ty_S_next,
+        s_set           TYPE ty_S_next2,
         BEGIN OF s_msg,
           control TYPE string,
           type    TYPE string,
