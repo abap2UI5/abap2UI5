@@ -5,8 +5,8 @@ INTERFACE z2ui5_if_client
     BEGIN OF cs_event,
       popup_close   TYPE string VALUE `POPUP_CLOSE`,
       popover_close TYPE string VALUE `POPOVER_CLOSE`,
-      leave_home    type string value `LEAVE_HOME`,
-      leave_restart type string value `LEAVE_RESTART`,
+      leave_home    TYPE string VALUE `LEAVE_HOME`,
+      leave_restart TYPE string VALUE `LEAVE_RESTART`,
     END OF cs_event.
 
   TYPES:
@@ -90,14 +90,18 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE ty_s_get-t_scroll_pos.
 
-  METHODS set_popup
+  METHODS popup_open
     IMPORTING
       val TYPE string.
 
-  METHODS set_popover
+  METHODS popup_close.
+
+  METHODS popover_open
     IMPORTING
-      xml        TYPE string
-      open_by_id TYPE string optional.
+      xml   TYPE string
+      by_id TYPE string OPTIONAL.
+
+  METHODS popover_close.
 
   METHODS get
     RETURNING VALUE(result) TYPE ty_s_get.
@@ -119,7 +123,7 @@ INTERFACE z2ui5_if_client
   METHODS popup_message_toast
     IMPORTING text TYPE string.
 
-  METHODS __event
+  METHODS _event
     IMPORTING
       val                TYPE clike
       check_view_transit TYPE abap_bool DEFAULT abap_false
@@ -127,21 +131,21 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result)      TYPE string.
 
-  METHODS __bind
+  METHODS _bind
     IMPORTING val           TYPE data
               path          TYPE abap_bool DEFAULT abap_false
     RETURNING VALUE(result) TYPE string.
 
 
-  METHODS __bind_edit
+  METHODS _bind_edit
     IMPORTING val           TYPE data
               path          TYPE abap_bool DEFAULT abap_false
     RETURNING VALUE(result) TYPE string.
 
-  METHODS __event_frontend
+  METHODS _event_client
     IMPORTING
-        val           TYPE string
+      val           TYPE string
     RETURNING
-        VALUE(result) TYPE string.
+      VALUE(result) TYPE string.
 
 ENDINTERFACE.

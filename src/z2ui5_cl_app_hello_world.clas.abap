@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
-      product  = 'tomato'.
+      product  = 'tomatos'.
       quantity = '500'.
     ENDIF.
 
@@ -34,12 +34,12 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
                 )->content( ns = `form`
                     )->title( 'Make an input here and send it to the server...'
                     )->label( 'quantity'
-                    )->input( value = client->__bind_edit( quantity )
+                    )->input( value = client->_bind_edit( quantity )
                     )->label( 'product'
                     )->input( value   = product
                               enabled = abap_false
                     )->button( text  = 'post'
-                               press = client->__event( 'BUTTON_POST' )
+                               press = client->_event( 'BUTTON_POST' )
          )->stringify( ) ).
 
   ENDMETHOD.

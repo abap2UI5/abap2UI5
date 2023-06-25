@@ -890,7 +890,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                      `  title="HTTP 500 - Server Error" ` && |\n|  &&
                      ` > <additionalContent ` && |\n|  &&
                      ` > <Button ` && |\n|  &&
-                     `  press="` && client->__event_frontend(  client->cs_event-leave_home )  && `" ` && |\n|  &&
+                     `  press="` && client->_event_client(  client->cs_event-leave_home )  && `" ` && |\n|  &&
                      `  text="Home" ` && |\n|  &&
                      `  type="Emphasized" ` && |\n|  &&
                      ` /></additionalContent></IllustratedMessage></Page></Shell></mvc:View>`.
@@ -908,10 +908,10 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                            `  enableFormattedText="true" ` && |\n| &&
                            ` > <buttons ` && |\n| &&
                            ` > <Button ` && |\n| &&
-                           `  press="` && client->__event( `BUTTON_HOME` ) && `" ` && |\n| &&
+                           `  press="` && client->_event( `BUTTON_HOME` ) && `" ` && |\n| &&
                            `  text="HOME" ` && |\n| &&
                            ` /> <Button ` && |\n| &&
-                           `  press="` && client->__event( `BUTTON_BACK` ) && `" ` && |\n| &&
+                           `  press="` && client->_event( `BUTTON_BACK` ) && `" ` && |\n| &&
                            `  text="BACK" ` && |\n| &&
                            `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n| &&
                            ` /></buttons></MessagePage></Shell></mvc:View>`.
@@ -991,7 +991,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       lv_xml_main = lv_xml_main && `<Input ` && |\n| &&
      `  placeholder="` && `fill in the class name and press 'check' ` && `" ` && |\n| &&
      `  editable="` && z2ui5_lcl_utility=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n| &&
-     `  value="` && client->__bind_edit( ms_home-classname ) && `" ` && |\n| &&
+     `  value="` && client->_bind_edit( ms_home-classname ) && `" ` && |\n| &&
      ` /> `.
     ELSE.
       lv_xml_main = lv_xml_main && `<Text ` && |\n| &&
@@ -1000,7 +1000,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ENDIF.
 
     lv_xml_main = lv_xml_main && `<Button ` && |\n| &&
-       `  press="`  && client->__event( ms_home-btn_event_id ) && `" ` && |\n| &&
+       `  press="`  && client->_event( ms_home-btn_event_id ) && `" ` && |\n| &&
        `  text="` && ms_home-btn_text && `" ` && |\n| &&
        `  icon="` && ms_home-btn_icon && `" ` && |\n| &&
        ` /> <Label ` && |\n| &&
@@ -1033,7 +1033,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
-    `  press="` && client->__event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
+    `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
     `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
@@ -1070,7 +1070,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
            e_data    = <ref>
       ).
 
-      clear lr_attri->data_rtti.
+      CLEAR lr_attri->data_rtti.
 
     ENDLOOP.
 
@@ -1568,10 +1568,6 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
                                          text    = text ).
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~nav_app_home.
-    z2ui5_if_client~nav_app_call( NEW z2ui5_lcl_fw_app( ) ).
-  ENDMETHOD.
-
   METHOD z2ui5_if_client~get.
 
     result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
@@ -1587,11 +1583,6 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     mo_handler->ms_next-o_call_app = app.
   ENDMETHOD.
 
-
-  METHOD z2ui5_if_client~_event_close_popup.
-    result = `onEventFrontend( 'POPUP_CLOSE' )`.
-  ENDMETHOD.
-
   METHOD z2ui5_if_client~nav_app_leave.
     z2ui5_if_client~nav_app_call( app ).
     mo_handler->ms_next-check_app_leave = abap_true.
@@ -1601,22 +1592,11 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     result = CAST #( z2ui5_lcl_fw_db=>load_app( id )-o_app ).
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~set_popover.
 
-    mo_handler->ms_next-s_set-s_popover-xml = xml.
-    mo_handler->ms_next-s_set-s_popover-open_by_id = open_by_id.
-    IF xml IS INITIAL.
-      mo_handler->ms_next-s_set-s_popover-check_close = abap_true.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_if_client~set_popup.
+  METHOD z2ui5_if_client~popup_open.
 
     mo_handler->ms_next-s_set-s_popup-xml = val.
-    IF val IS INITIAL.
-      mo_handler->ms_next-s_set-s_popup-check_close = abap_true.
-    ENDIF.
+
 
   ENDMETHOD.
 
@@ -1626,7 +1606,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~__bind.
+  METHOD z2ui5_if_client~_bind.
 
     result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
     IF path = abap_false.
@@ -1635,7 +1615,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~__bind_edit.
+  METHOD z2ui5_if_client~_bind_edit.
 
     result = mo_handler->_create_binding( value  = val
                                             type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
@@ -1645,13 +1625,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~__event_frontend.
+  METHOD z2ui5_if_client~_event_client.
 
     result = `onEventFrontend( { 'EVENT' : '` && val && `' } )`.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~__event.
+  METHOD z2ui5_if_client~_event.
 
     DATA(lv_hold_view) = xsdbool( check_view_transit = abap_false ).
 
@@ -1674,6 +1654,25 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~set_scroll_pos.
 
     mo_handler->ms_next-s_set-t_scroll = val.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~popover_close.
+
+    mo_handler->ms_next-s_set-s_popover-check_close = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~popover_open.
+
+    mo_handler->ms_next-s_set-s_popover-xml = xml.
+    mo_handler->ms_next-s_set-s_popover-open_by_id = by_id.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~popup_close.
+
+    mo_handler->ms_next-s_set-s_popup-check_close = abap_true.
 
   ENDMETHOD.
 
