@@ -614,38 +614,38 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
-  TYPES:
-    BEGIN OF ty_S_next2,
-      xml_main           TYPE string,
-      xml_popup          TYPE string,
-      popover_open_by_id TYPE string,
-      t_scroll           TYPE z2ui5_if_client=>ty_t_name_value,
-      title              TYPE string,
-      path               TYPE string,
-      url                TYPE string,
-      BEGIN OF s_popup,
-        xml         TYPE string,
-        id          TYPE string,
-        check_close TYPE abap_bool,
-      END OF s_popup,
-      BEGIN OF s_popover,
-        xml         TYPE string,
-        id          TYPE string,
-        open_by_id  TYPE string,
-        check_close TYPE abap_bool,
-      END OF s_popover,
-      BEGIN OF s_cursor,
-        id             TYPE string,
-        cursorpos      TYPE string,
-        selectionstart TYPE string,
-        selectionend   TYPE string,
-      END OF s_cursor,
-      BEGIN OF s_timer,
-        interval_ms    TYPE string,
-        event_finished TYPE string,
-      END OF s_timer,
-      _viewmodel         TYPE string,
-    END OF ty_s_next2.
+    TYPES:
+      BEGIN OF ty_S_next2,
+        xml_main           TYPE string,
+        xml_popup          TYPE string,
+        popover_open_by_id TYPE string,
+        t_scroll           TYPE z2ui5_if_client=>ty_t_name_value,
+        title              TYPE string,
+        path               TYPE string,
+        url                TYPE string,
+        BEGIN OF s_popup,
+          xml         TYPE string,
+          id          TYPE string,
+          check_close TYPE abap_bool,
+        END OF s_popup,
+        BEGIN OF s_popover,
+          xml         TYPE string,
+          id          TYPE string,
+          open_by_id  TYPE string,
+          check_close TYPE abap_bool,
+        END OF s_popover,
+        BEGIN OF s_cursor,
+          id             TYPE string,
+          cursorpos      TYPE string,
+          selectionstart TYPE string,
+          selectionend   TYPE string,
+        END OF s_cursor,
+        BEGIN OF s_timer,
+          interval_ms    TYPE string,
+          event_finished TYPE string,
+        END OF s_timer,
+        _viewmodel         TYPE string,
+      END OF ty_s_next2.
 
     TYPES:
       BEGIN OF ty_s_db,
@@ -1452,17 +1452,21 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_app_leave.
-    result = NEW #( ).
-
-    result->ms_db-o_app = ms_next-o_call_app.
 
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
-    DATA(ls_draft) = z2ui5_lcl_fw_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
-    result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
+    result = NEW #( ).
+    result->ms_db-o_app = ms_next-o_call_app.
 
-    result->ms_db-t_attri           = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
-    result->ms_db-id                = z2ui5_lcl_utility=>get_uuid( ).
+    TRY.
+        DATA(ls_draft) = z2ui5_lcl_fw_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
+        result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
+      CATCH cx_root.
+        result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
+    ENDTRY.
+
+    result->ms_db-t_attri     = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+    result->ms_db-id          = z2ui5_lcl_utility=>get_uuid( ).
     result->ms_db-o_app->id   = result->ms_db-id.
     result->ms_db-id_prev_app = ms_db-id.
     result->ms_db-id_prev     = ms_db-id.

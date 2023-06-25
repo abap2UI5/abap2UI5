@@ -89,8 +89,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                switch (oEvent.EVENT) {` && |\n|  &&
                            |\n|  &&
                            `                    case 'LEAVE_HOME':` && |\n|  &&
+                           `                      if(sap.z2ui5.oResponse.PARAMS.PATH != '' ){` && |\n|  &&
                            `                       window.location = window.location.href.split( sap.z2ui5.oResponse.PARAMS.PATH )[ 0 ];` && |\n|  &&
-                           `                        break;` && |\n|  &&
+                           `                        } else {  window.location.reload(); } break;` && |\n|  &&
                             `                    case 'LEAVE_RESTART':` && |\n|  &&
                            `                       window.location.reload();` && |\n|  &&
                            `                        break;` && |\n|  &&
