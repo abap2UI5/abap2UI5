@@ -887,7 +887,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                      `  enableFormattedText="true" ` && |\n|  &&
                      `  illustrationSize="sapIllus-ErrorScreen" ` && |\n|  &&
                      `  description="` && lv_descr && `"` && |\n|  &&
-                     `  title="HTTP 500 - Server Error" ` && |\n|  &&
+                     `  title="500 Internal Server Error" ` && |\n|  &&
                      ` > <additionalContent ` && |\n|  &&
                      ` > <Button ` && |\n|  &&
                      `  press="` && client->_event_client(  client->cs_event-leave_home )  && `" ` && |\n|  &&
@@ -1205,6 +1205,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     CLEAR ms_next-s_set-_viewmodel.
 
+
+    ms_next-s_set-path = ss_config-path_info.
+
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`     v = ms_db-id ).
@@ -1409,7 +1412,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         RETURN.
 
       CATCH cx_root.
-        result = result->set_app_system( error_text = `class with name ` && lv_classname && ` not found` ).
+        result = result->set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
         RETURN.
     ENDTRY.
   ENDMETHOD.
