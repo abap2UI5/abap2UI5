@@ -9,6 +9,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
         type           TYPE string,
         bind_type      TYPE string,
         data_stringify TYPE string,
+        data_rtti      TYPE string,
         check_ref_data TYPE abap_bool,
       END OF ty_attri.
     TYPES ty_T_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
@@ -60,8 +61,11 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       RETURNING VALUE(result) TYPE ty_t_attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
-      IMPORTING object        TYPE data
-      RETURNING VALUE(result) TYPE string.
+      IMPORTING
+                object        TYPE data
+      RETURNING
+                VALUE(result) TYPE string
+      RAISING   cx_xslt_serialization_error.
 
     CLASS-METHODS get_abap_2_json
       IMPORTING val           TYPE any
@@ -98,7 +102,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       IMPORTING
         rtti_data TYPE string
       EXPORTING
-        e_data    TYPE ref to data.
+        e_data    TYPE REF TO data.
 
   PROTECTED SECTION.
     CLASS-DATA mv_counter TYPE i.
@@ -270,7 +274,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     result = /ui2/cl_json=>serialize( any ).
   ENDMETHOD.
 
-METHOD rtti_get.
+  METHOD rtti_get.
 
     TRY.
 
@@ -316,27 +320,10 @@ METHOD rtti_get.
     ASSIGN object->* TO <object>.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    TRY.
-
-        CALL TRANSFORMATION id
-             SOURCE data = <object>
-             RESULT XML result
-             OPTIONS data_refs = `heap-or-create`.
-
-      CATCH cx_xslt_serialization_error INTO DATA(x).
-
-        ASSIGN ('OBJECT->O_APP') TO FIELD-SYMBOL(<obj>).
-        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
-        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
-        IF <obj2> IS ASSIGNED.
-          ASSERT 1 = 0.
-        ENDIF.
-
-        "rtti here
-
-        RAISE EXCEPTION x.
-
-    ENDTRY.
+    CALL TRANSFORMATION id
+         SOURCE data = <object>
+         RESULT XML result
+         OPTIONS data_refs = `heap-or-create`.
 
   ENDMETHOD.
 
@@ -706,7 +693,7 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
     CLASS-METHODS create
       IMPORTING
         id TYPE string
-        db TYPE z2ui5_lcl_fw_handler=>ty_s_db.
+        value(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING id            TYPE string
@@ -1068,13 +1055,52 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
   METHOD create.
 
+    TRY.
+
+        DATA(lv_xml) = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
+
+      CATCH cx_xslt_serialization_error INTO DATA(x).
+
+        ASSIGN ('DB-O_APP') TO FIELD-SYMBOL(<obj>).
+
+        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
+        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
+        IF <obj2> IS ASSIGNED.
+          ASSERT 1 = 0.
+        ENDIF.
+
+        IF NOT line_exists( db-t_attri[ check_ref_data = abap_true ] ).
+          RAISE EXCEPTION x.
+        ENDIF.
+
+        LOOP AT db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
+          RAISE EXCEPTION x.
+        ENDLOOP.
+
+        lo_app = CAST object( db-o_app ).
+        LOOP AT db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
+
+          DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+          ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
+          assign <attri>->* to FIELD-SYMBOL(<attri2>).
+
+          lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
+          clear <attri2>.
+          clear <attri>.
+
+        ENDLOOP.
+
+      lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
+
+    ENDTRY.
+
     DATA(ls_db) = VALUE z2ui5_t_draft( uuid                = id
                                        uuid_prev           = db-id_prev
                                        uuid_prev_app       = db-id_prev_app
                                        uuid_prev_app_stack = db-id_prev_app_stack
                                        uname               = z2ui5_lcl_utility=>get_user_tech( )
                                        timestampl          = z2ui5_lcl_utility=>get_timestampl( )
-                                       data                = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ) ).
+                                       data                = lv_xml ).
 
     MODIFY z2ui5_t_draft FROM @ls_db.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -1498,6 +1524,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-t_attri = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
     result->ms_db-o_app->id = result->ms_db-id.
   ENDMETHOD.
+
 ENDCLASS.
 
 
