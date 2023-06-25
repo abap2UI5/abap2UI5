@@ -825,7 +825,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       mv_view_name = 'ERROR'.
     ENDIF.
 
-    LV_CHECK_DEMO = abap_true.
+    lv_check_demo = abap_true.
 
   ENDMETHOD.
 
@@ -863,40 +863,18 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
             ENDTRY.
 
           WHEN `DEMOS`.
-*            DATA li_app TYPE REF TO z2ui5_if_app.
-*            TRY.
-*                CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-*                client->nav_app_call( li_app ).
-*              CATCH cx_root.
-*                client->message_box_display( `Demos not available. Check the demo folder or you release is lower v750` ).
-*            ENDTRY.
 
-                DATA li_app TYPE REF TO z2ui5_if_app.
-    TRY.
-        CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-        lv_check_demo = abap_true.
-        client->nav_app_call( li_app ).
-      CATCH cx_root.
-        LV_CHECK_DEMO = abap_false.
-    ENDTRY.
+            DATA li_app TYPE REF TO z2ui5_if_app.
+            TRY.
+                CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+                lv_check_demo = abap_true.
+                client->nav_app_call( li_app ).
+              CATCH cx_root.
+                lv_check_demo = abap_false.
+            ENDTRY.
 
         ENDCASE.
 
-      WHEN `ERROR`.
-        CASE client->get( )-event.
-
-          WHEN `BUTTON_BACK`.
-*            TRY.
-*                DATA(ls_Db) = z2ui5_lcl_fw_db=>read( id = client->get( )-id_prev_app check_load_app = abap_false ).
-*                DATA(ls_app) = z2ui5_lcl_fw_db=>load_app( ls_Db-uuid_prev  ).
-*
-*                client->nav_app_leave( ls_app-o_app ).
-*
-*              CATCH cx_root.
-*                client->message_box_display( text = `Error - going back not possible` type = `error` ).
-*            ENDTRY.
-
-        ENDCASE.
     ENDCASE.
   ENDMETHOD.
 
@@ -907,14 +885,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
                                                        include_name = DATA(lv_incl)
                                                        source_line  = DATA(lv_line) ).
-
-*      TRY.
-*          DATA(ls_Db) = z2ui5_lcl_fw_db=>read( id = client->get( )-id_prev_app check_load_app = abap_false ).
-*          z2ui5_lcl_fw_db=>read( id = ls_Db-uuid_prev check_load_app = abap_false ).
-*          DATA(lv_check_back) = `true`.
-*        CATCH cx_root.
-*          lv_check_back = `false`.
-*      ENDTRY.
 
       DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ).
 *     &&
@@ -964,28 +934,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       client->view_display( lv_xml ).
       RETURN.
 
-*
-*      DATA(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv`
-"&&
-*  `c" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <MessagePage ` && |\
-"n|
-*  &&
-*                           `  description="` && lv_descr && `" ` && |\n| &&
-*                           `  icon="sap-icon://message-error" ` && |\n| &&
-*                           `  text="500 Internal Server Error" ` && |\n| &&
-*                           `  enableFormattedText="true" ` && |\n| &&
-*                           ` > <buttons ` && |\n| &&
-*                           ` > <Button ` && |\n| &&
-*                           `  press="` && client->_event( `BUTTON_HOME` ) && `" ` && |\n| &&
-*                           `  text="HOME" ` && |\n| &&
-*                           ` /> <Button ` && |\n| &&
-*                           `  press="` && client->_event( `BUTTON_BACK` ) && `" ` && |\n| &&
-*                           `  text="BACK" ` && |\n| &&
-*                           `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n| &&
-*                           ` /></buttons></MessagePage></Shell></mvc:View>`.
-*
-*      client->view_display( lv_xml_error ).
-*      RETURN.
     ENDIF.
 
     TRY.
@@ -1085,7 +1033,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
-    IF LV_CHECK_DEMO = abap_false.
+    IF lv_check_demo = abap_false.
       lv_xml_main = lv_xml_main && `<MessageStrip text="Oops! You need to install abap2UI5 demos before continuing..." type="Warning" > <link> ` &&
          `   <Link text="(HERE)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
       `  </link> </MessageStrip>`.
@@ -1094,7 +1042,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
-    `  text="Continue..." enabled="` && COND #( WHEN LV_CHECK_DEMO = abap_true THEN `true` ELSE `false` ) && |" \n| &&
+    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
     client->view_display( lv_xml_main ).
