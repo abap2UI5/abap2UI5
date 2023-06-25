@@ -784,6 +784,8 @@ CLASS z2ui5_lcl_fw_app DEFINITION.
 
     METHODS z2ui5_on_rendering
       IMPORTING client TYPE REF TO z2ui5_if_client.
+  PRIVATE SECTION.
+    DATA: lv_check_demo TYPE abap_bool.
 
 ENDCLASS.
 
@@ -823,6 +825,8 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       mv_view_name = 'ERROR'.
     ENDIF.
 
+    LV_CHECK_DEMO = abap_true.
+
   ENDMETHOD.
 
   METHOD z2ui5_on_event.
@@ -859,13 +863,23 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
             ENDTRY.
 
           WHEN `DEMOS`.
-            DATA li_app TYPE REF TO z2ui5_if_app.
-            TRY.
-                CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-                client->nav_app_call( li_app ).
-              CATCH cx_root.
-                client->message_box_display( `Demos not available. Check the demo folder or you release is lower v750` ).
-            ENDTRY.
+*            DATA li_app TYPE REF TO z2ui5_if_app.
+*            TRY.
+*                CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+*                client->nav_app_call( li_app ).
+*              CATCH cx_root.
+*                client->message_box_display( `Demos not available. Check the demo folder or you release is lower v750` ).
+*            ENDTRY.
+
+                DATA li_app TYPE REF TO z2ui5_if_app.
+    TRY.
+        CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+        lv_check_demo = abap_true.
+        client->nav_app_call( li_app ).
+      CATCH cx_root.
+        LV_CHECK_DEMO = abap_false.
+    ENDTRY.
+
         ENDCASE.
 
       WHEN `ERROR`.
@@ -1071,15 +1085,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    DATA li_app TYPE REF TO z2ui5_if_app.
-    TRY.
-        CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-        DATA(lv_check_demo) = abap_true.
-      CATCH cx_root.
-        lv_check_demo = abap_false.
-    ENDTRY.
-    IF lv_check_demo = abap_false.
+    IF LV_CHECK_DEMO = abap_false.
       lv_xml_main = lv_xml_main && `<MessageStrip text="Oops! You need to install abap2UI5 demos before continuing..." type="Warning" > <link> ` &&
          `   <Link text="(HERE)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
       `  </link> </MessageStrip>`.
@@ -1088,7 +1094,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
-    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
+    `  text="Continue..." enabled="` && COND #( WHEN LV_CHECK_DEMO = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
     client->view_display( lv_xml_main ).
