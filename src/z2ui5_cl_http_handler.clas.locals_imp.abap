@@ -692,8 +692,8 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
 
     CLASS-METHODS create
       IMPORTING
-        id TYPE string
-        value(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db.
+        id        TYPE string
+        VALUE(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING id            TYPE string
@@ -1051,6 +1051,29 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
     z2ui5_lcl_utility=>trans_xml_2_object( EXPORTING xml  = ls_db-data
                                            IMPORTING data = result ).
 
+    LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
+    ENDLOOP.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = CAST object( result-o_app ).
+    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
+
+      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+      ASSIGN (lv_assign) TO FIELD-SYMBOL(<ref>).
+
+      z2ui5_lcl_utility=>rtti_set(
+        EXPORTING
+          rtti_data = lr_attri->data_rtti
+         IMPORTING
+           e_data    = <ref>
+      ).
+
+      clear lr_attri->data_rtti.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
   METHOD create.
@@ -1082,15 +1105,15 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
           DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
           ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
-          assign <attri>->* to FIELD-SYMBOL(<attri2>).
+          ASSIGN <attri>->* TO FIELD-SYMBOL(<attri2>).
 
           lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
-          clear <attri2>.
-          clear <attri>.
+          CLEAR <attri2>.
+          CLEAR <attri>.
 
         ENDLOOP.
 
-      lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
+        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
 
     ENDTRY.
 
