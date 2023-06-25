@@ -79,7 +79,7 @@ INTERFACE z2ui5_if_client
       _viewmodel         TYPE string,
     END OF ty_s_next.
 
-  METHODS view_set
+  METHODS view_display
     IMPORTING
       val TYPE string.
 
@@ -122,12 +122,12 @@ INTERFACE z2ui5_if_client
     IMPORTING
       app TYPE REF TO z2ui5_if_app.
 
-  METHODS popup_display_message_box
+  METHODS message_box_display
     IMPORTING
       text TYPE string
       type TYPE string DEFAULT 'information'.
 
-  METHODS popup_display_message_toast
+  METHODS message_toast_display
     IMPORTING
       text TYPE string.
 

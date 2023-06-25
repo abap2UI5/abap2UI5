@@ -811,7 +811,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                 ms_home-classname = z2ui5_lcl_utility=>get_trim_upper( ms_home-classname ).
                 CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
-                client->popup_open_message_toast( `App is ready to start!` ).
+                client->message_toast_display( `App is ready to start!` ).
                 ms_home-btn_text          = `edit`.
                 ms_home-btn_event_id      = `BUTTON_CHANGE`.
                 ms_home-btn_icon          = `sap-icon://edit`.
@@ -821,7 +821,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
               CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
                 ms_home-class_value_state_text = lx->get_text( ).
                 ms_home-class_value_state      = `Warning`.
-                client->popup_open_message_box( text = ms_home-class_value_state_text type = `error` ).
+                client->message_box_display( text = ms_home-class_value_state_text type = `error` ).
             ENDTRY.
 
           WHEN `DEMOS`.
@@ -830,7 +830,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                 CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
                 client->nav_app_call( li_app ).
               CATCH cx_root.
-                client->popup_open_message_box( `Demos not available. Check the demo folder or you release is lower v750` ).
+                client->message_box_display( `Demos not available. Check the demo folder or you release is lower v750` ).
             ENDTRY.
         ENDCASE.
 
@@ -895,7 +895,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                      `  type="Emphasized" ` && |\n|  &&
                      ` /></additionalContent></IllustratedMessage></Page></Shell></mvc:View>`.
 
-      client->view_set( lv_xml ).
+      client->view_display( lv_xml ).
       RETURN.
 
 
@@ -916,7 +916,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                            `  type="Emphasized" enabled="` && lv_check_back && `"` && |\n| &&
                            ` /></buttons></MessagePage></Shell></mvc:View>`.
 
-      client->view_set( lv_xml_error ).
+      client->view_display( lv_xml_error ).
       RETURN.
     ENDIF.
 
@@ -1037,7 +1037,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
 
-    client->view_set( lv_xml_main ).
+    client->view_display( lv_xml_main ).
   ENDMETHOD.
 ENDCLASS.
 
@@ -1458,6 +1458,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _create_binding.
+
     CONSTANTS c_prefix TYPE string VALUE `LO_APP->`.
 
     DATA(lo_app) = CAST object( ms_db-o_app ) ##NEEDED.
@@ -1559,13 +1560,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     mo_handler = handler.
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~popup_message_toast.
+  METHOD z2ui5_if_client~message_toast_display.
     mo_handler->ms_next-s_msg = VALUE #( control = `MessageToast`
                                          type    = `show`
                                          text    = text ).
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~popup_message_box.
+  METHOD z2ui5_if_client~message_box_display.
     mo_handler->ms_next-s_msg = VALUE #( control = `MessageBox`
                                          type    = type
                                          text    = text ).
@@ -1596,14 +1597,14 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~popup_open.
+  METHOD z2ui5_if_client~popup_display.
 
     mo_handler->ms_next-s_set-s_popup-xml = val.
 
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~set_view.
+  METHOD z2ui5_if_client~view_display.
 
     mo_handler->ms_next-s_set-xml_main = val.
 
@@ -1648,13 +1649,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~set_cursor.
+  METHOD z2ui5_if_client~cursor_set.
 
     mo_handler->ms_next-s_set-s_cursor = val.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~set_scroll_pos.
+  METHOD z2ui5_if_client~scroll_position_set.
 
     mo_handler->ms_next-s_set-t_scroll = val.
 
@@ -1666,7 +1667,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~popover_open.
+  METHOD z2ui5_if_client~popover_display.
 
     mo_handler->ms_next-s_set-s_popover-xml = xml.
     mo_handler->ms_next-s_set-s_popover-open_by_id = by_id.

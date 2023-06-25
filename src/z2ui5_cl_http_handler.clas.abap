@@ -32,9 +32,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     DATA(lt_Config) = t_config.
 
-
-
-
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
           (  name = `data-sap-ui-theme`         value = `sap_horizon` )
