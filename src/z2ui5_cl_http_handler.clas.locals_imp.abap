@@ -1517,15 +1517,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
 
-          DATA(lv_error) = `<p>Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used <a href="https://www.sap.com" style="color:green; font-weight:600;">link to sap.com</a> - links open in `` &&` && |\n|  &&
-                           `    ``a new window.</p><p>paragraph: <strong>strong</strong> and <em>emphasized</em>.</p><p>list:</p><ul`` &&` && |\n|  &&
-                           `  ``><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a ref`
-&&
-  `erence to a source</cite></p>`` &&` && |\n|  &&
-                           `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
-
-          z2ui5_lcl_utility=>raise( lv_error ).
-*              `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used` ).
+          z2ui5_lcl_utility=>raise(  `<p>Binding Error - Two diffferent binding types for same attribute used (` && lr_attri->name
+          && `).` ).
         ENDIF.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
@@ -1535,7 +1528,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDLOOP.
 
     IF type = cs_bind_type-two_way.
-      z2ui5_lcl_utility=>raise( `Binding Error - two way binding used but no attribute found` ).
+      z2ui5_lcl_utility=>raise( `Binding Error - Two way binding used but no attribute found` ).
     ENDIF.
 
     " one time when not global class attribute
