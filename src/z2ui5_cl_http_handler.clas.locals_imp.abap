@@ -88,6 +88,18 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
                 iv_attri      TYPE csequence
       RETURNING VALUE(result) TYPE abap_attrdescr_tab.
 
+    CLASS-METHODS rtti_get
+      IMPORTING
+        data          TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_set
+      IMPORTING
+        rtti_data TYPE string
+      EXPORTING
+        e_data    TYPE ref to data.
+
   PROTECTED SECTION.
     CLASS-DATA mv_counter TYPE i.
 
@@ -258,6 +270,45 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     result = /ui2/cl_json=>serialize( any ).
   ENDMETHOD.
 
+METHOD rtti_get.
+
+    TRY.
+
+        DATA srtti TYPE REF TO object.
+
+        CALL METHOD ('ZCL_SRTTI_TYPEDESCR')=>('CREATE_BY_DATA_OBJECT')
+          EXPORTING
+            data_object = data
+          RECEIVING
+            srtti       = srtti.
+
+        CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
+
+      CATCH cx_root INTO DATA(x).
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_set.
+
+    DATA srtti TYPE REF TO object.
+    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
+
+    DATA rtti_type TYPE REF TO cl_abap_typedescr.
+    CALL METHOD srtti->('GET_RTTI')
+      RECEIVING
+        rtti = rtti_type.
+
+    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
+    lo_datadescr ?= rtti_type.
+
+    CREATE DATA e_data TYPE HANDLE lo_datadescr.
+    ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
+    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
+
+  ENDMETHOD.
+
   METHOD trans_object_2_xml.
 
     FIELD-SYMBOLS <object> TYPE any.
@@ -265,10 +316,27 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ASSIGN object->* TO <object>.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    CALL TRANSFORMATION id
-         SOURCE data = <object>
-         RESULT XML result
-         OPTIONS data_refs = `heap-or-create`.
+    TRY.
+
+        CALL TRANSFORMATION id
+             SOURCE data = <object>
+             RESULT XML result
+             OPTIONS data_refs = `heap-or-create`.
+
+      CATCH cx_xslt_serialization_error INTO DATA(x).
+
+        ASSIGN ('OBJECT->O_APP') TO FIELD-SYMBOL(<obj>).
+        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
+        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
+        IF <obj2> IS ASSIGNED.
+          ASSERT 1 = 0.
+        ENDIF.
+
+        "rtti here
+
+        RAISE EXCEPTION x.
+
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -802,46 +870,46 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
 
       DATA(lv_check_back) = `false`.
-    DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ).
+      DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ).
 *     &&
 *            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
 *            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
 
-data(lv_xml) = `<mvc:View ` && |\n|  &&
-               `  xmlns="sap.m" ` && |\n|  &&
-               `  xmlns:z2ui5="z2ui5" ` && |\n|  &&
-               `  xmlns:core="sap.ui.core" ` && |\n|  &&
-               `  xmlns:mvc="sap.ui.core.mvc" ` && |\n|  &&
-               `  xmlns:layout="sap.ui.layout" ` && |\n|  &&
-               `  xmlns:f="sap.f" ` && |\n|  &&
-               `  xmlns:form="sap.ui.layout.form" ` && |\n|  &&
-               `  xmlns:editor="sap.ui.codeeditor" ` && |\n|  &&
-               `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n|  &&
-               `  xmlns:webc="sap.ui.webc.main" ` && |\n|  &&
-               `  xmlns:uxap="sap.uxap" ` && |\n|  &&
-               `  xmlns:sap="sap" ` && |\n|  &&
-               `  xmlns:text="sap.ui.richtextedito" ` && |\n|  &&
-               `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n|  &&
-               `  displayBlock="true" ` && |\n|  &&
-               `  height="100%" ` && |\n|  &&
-               `  controllerName="z2ui5_controller" ` && |\n|  &&
-               ` > <Shell ` && |\n|  &&
-               ` > <Page ` && |\n|  &&
-               ` > <IllustratedMessage ` && |\n|  &&
-               `  illustrationType="sapIllus-ErrorScreen" ` && |\n|  &&
-               `  enableFormattedText="true" ` && |\n|  &&
-               `  illustrationSize="sapIllus-ErrorScreen" ` && |\n|  &&
-               `  description="` && lv_descr && `"` && |\n|  &&
-               `  title="HTTP 500 - Server Error" ` && |\n|  &&
-               ` > <additionalContent ` && |\n|  &&
-               ` > <Button ` && |\n|  &&
-               `  press="` && client->__event_frontend(  client->cs_event-leave_home )  && `" ` && |\n|  &&
-               `  text="Home" ` && |\n|  &&
-               `  type="Emphasized" ` && |\n|  &&
-               ` /></additionalContent></IllustratedMessage></Page></Shell></mvc:View>`.
+      DATA(lv_xml) = `<mvc:View ` && |\n|  &&
+                     `  xmlns="sap.m" ` && |\n|  &&
+                     `  xmlns:z2ui5="z2ui5" ` && |\n|  &&
+                     `  xmlns:core="sap.ui.core" ` && |\n|  &&
+                     `  xmlns:mvc="sap.ui.core.mvc" ` && |\n|  &&
+                     `  xmlns:layout="sap.ui.layout" ` && |\n|  &&
+                     `  xmlns:f="sap.f" ` && |\n|  &&
+                     `  xmlns:form="sap.ui.layout.form" ` && |\n|  &&
+                     `  xmlns:editor="sap.ui.codeeditor" ` && |\n|  &&
+                     `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n|  &&
+                     `  xmlns:webc="sap.ui.webc.main" ` && |\n|  &&
+                     `  xmlns:uxap="sap.uxap" ` && |\n|  &&
+                     `  xmlns:sap="sap" ` && |\n|  &&
+                     `  xmlns:text="sap.ui.richtextedito" ` && |\n|  &&
+                     `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n|  &&
+                     `  displayBlock="true" ` && |\n|  &&
+                     `  height="100%" ` && |\n|  &&
+                     `  controllerName="z2ui5_controller" ` && |\n|  &&
+                     ` > <Shell ` && |\n|  &&
+                     ` > <Page ` && |\n|  &&
+                     ` > <IllustratedMessage ` && |\n|  &&
+                     `  illustrationType="sapIllus-ErrorScreen" ` && |\n|  &&
+                     `  enableFormattedText="true" ` && |\n|  &&
+                     `  illustrationSize="sapIllus-ErrorScreen" ` && |\n|  &&
+                     `  description="` && lv_descr && `"` && |\n|  &&
+                     `  title="HTTP 500 - Server Error" ` && |\n|  &&
+                     ` > <additionalContent ` && |\n|  &&
+                     ` > <Button ` && |\n|  &&
+                     `  press="` && client->__event_frontend(  client->cs_event-leave_home )  && `" ` && |\n|  &&
+                     `  text="Home" ` && |\n|  &&
+                     `  type="Emphasized" ` && |\n|  &&
+                     ` /></additionalContent></IllustratedMessage></Page></Shell></mvc:View>`.
 
- client->set_view( lv_xml ).
-return.
+      client->set_view( lv_xml ).
+      RETURN.
 
 
       DATA(lv_xml_error) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mv` &&
@@ -1376,11 +1444,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
 
-        data(lv_error) = `<p>Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used <a href="https://www.sap.com" style="color:green; font-weight:600;">link to sap.com</a> - links open in `` &&` && |\n|  &&
-                         `    ``a new window.</p><p>paragraph: <strong>strong</strong> and <em>emphasized</em>.</p><p>list:</p><ul`` &&` && |\n|  &&
-                         `  ``><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a ref` &&
-`erence to a source</cite></p>`` &&` && |\n|  &&
-                         `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
+          DATA(lv_error) = `<p>Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used <a href="https://www.sap.com" style="color:green; font-weight:600;">link to sap.com</a> - links open in `` &&` && |\n|  &&
+                           `    ``a new window.</p><p>paragraph: <strong>strong</strong> and <em>emphasized</em>.</p><p>list:</p><ul`` &&` && |\n|  &&
+                           `  ``><li>list item 1</li><li>list item 2<ul><li>sub item 1</li><li>sub item 2</li></ul></li></ul><p>pre:</p><pre>abc    def    ghi</pre><p>code: <code>var el = document.getElementById("myId");</code></p><p>cite: <cite>a ref` &&
+  `erence to a source</cite></p>`` &&` && |\n|  &&
+                           `<dl><dt>definition:</dt><dd>definition list of terms and descriptions</dd>`.
 
           z2ui5_lcl_utility=>raise( lv_error ).
 *              `Binding Error - two diffferent binding types for same attribute (` && lr_attri->name && `) used` ).
