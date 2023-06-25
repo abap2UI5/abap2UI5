@@ -37,7 +37,7 @@ INTERFACE z2ui5_if_client
       id_prev                TYPE string,
       id_prev_app            TYPE string,
       id_prev_app_stack      TYPE string,
-      check_navigated_to     TYPE abap_bool,
+      check_on_navigated     TYPE abap_bool,
       BEGIN OF s_cursor,
         id             TYPE string,
         cursorpos      TYPE string,
