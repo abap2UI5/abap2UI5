@@ -55,8 +55,8 @@ METHOD if_http_extension~handle_request.
    DATA(lv_resp) = SWITCH #( server->request->get_method( )
       WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
       WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post(
-            body      = server->request->get_cdata( ) 
-            path_info = lt_header[ name = `~path_info` ]-value ) ).
+         body      = server->request->get_cdata( ) 
+         path_info = lt_header[ name = `~path_info` ]-value ) ).
 
    server->response->set_header_field( name  = 'cache-control' value = 'no-cache' ).
    server->response->set_cdata( lv_resp ).
@@ -68,16 +68,16 @@ ENDMETHOD.
 ```abap
 METHOD if_http_service_extension~handle_request.
 
-    DATA(lt_header) = request->get_header_fields( ).
+   DATA(lt_header) = request->get_header_fields( ).
 
-    DATA(lv_resp) = SWITCH #( request->get_method( )
-        WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( check_logging = abap_true )
-        WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post(
-            body      = request->get_text( )
-            path_info = lt_header[ name = `~path_info` ]-value ) ).
+   DATA(lv_resp) = SWITCH #( request->get_method( )
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( check_logging = abap_true )
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post(
+         body      = request->get_text( )
+         path_info = lt_header[ name = `~path_info` ]-value ) ).
 
-    response->set_header_field( i_name = 'cache-control' i_value = 'no-cache' ).
-    response->set_status( 200 )->set_text( lv_resp ).
+   response->set_header_field( i_name = 'cache-control' i_value = 'no-cache' ).
+   response->set_status( 200 )->set_text( lv_resp ).
 
 ENDMETHOD.
 ```
