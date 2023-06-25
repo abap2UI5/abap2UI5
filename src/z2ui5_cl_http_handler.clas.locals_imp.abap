@@ -1605,6 +1605,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
                       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
                       t_event_arg            = mo_handler->ms_actual-t_event_arg
                       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+                      check_navigated_to     = mo_handler->ms_actual-check_navigated_to
                       s_config               = z2ui5_lcl_fw_handler=>ss_config ).
     result-s_config-app = mo_handler->ms_db-o_app.
   ENDMETHOD.
