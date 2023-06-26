@@ -1125,10 +1125,10 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
     ENDTRY.
 
-    DATA(ls_db) = VALUE z2ui5_t_draft( id                = id
-                                       id_prev           = db-id_prev
-                                       id_prev_app       = db-id_prev_app
-                                       id_prev_app_stack = db-id_prev_app_stack
+    DATA(ls_db) = VALUE z2ui5_t_draft( uuid                = id
+                                       uuid_prev           = db-id_prev
+                                       uuid_prev_app       = db-id_prev_app
+                                       uuid_prev_app_stack = db-id_prev_app_stack
                                        uname               = z2ui5_lcl_utility=>get_user_tech( )
                                        timestampl          = z2ui5_lcl_utility=>get_timestampl( )
                                        data                = lv_xml ).
@@ -1144,13 +1144,13 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
       SELECT SINGLE *
         FROM z2ui5_t_draft
-        WHERE id = @id
+        WHERE uuid = @id
       INTO @result.
 
     ELSE.
-      SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack
+      SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
-        WHERE id = @id
+        WHERE uuid = @id
       INTO CORRESPONDING FIELDS OF @result.
     ENDIF.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -1437,7 +1437,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(ls_draft) = z2ui5_lcl_fw_db=>read( id = result->ms_db-o_app->id check_load_app = abap_false ).
-        result->ms_db-id_prev_app_stack = ls_draft-id_prev_app_stack.
+        result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
       CATCH cx_root.
         result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
     ENDTRY.
