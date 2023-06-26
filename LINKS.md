@@ -3,7 +3,7 @@
 * downport of abap2UI5 for NW 7.02 to NW 7.42 [(github/abap2UI5/abap2UI5-downport)](https://github.com/abap2UI5/abap2UI5-downport)
 
 #### Demos
-* Examples of how to use UI5 Controls in abap2UI5 [(github/abap2UI5/demo-demos)](https://github.com/orgs/abap2UI5/repositories)
+* Examples of how to create apps in abap2UI5 [(github/abap2UI5/demo-demos)](https://github.com/orgs/abap2UI5/repositories)
 * Open-source project Mustache used with abap2UI5 [(github/abap2UI5/demo-mustache)](https://github.com/abap2UI5/demo-mustache)
 
 #### More
