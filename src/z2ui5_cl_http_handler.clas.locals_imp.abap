@@ -1029,7 +1029,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        ` /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
-   `  title="Demo Section" ` && |\n| &&
+   `  title="HowTo" ` && |\n| &&
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
@@ -1042,8 +1042,16 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
-    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
-    ` /></f:content></f:SimpleForm></l:content></l:Grid></Page></Shell></mvc:View>`.
+    `  text="Continue to demos..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
+    ` /></f:content></f:SimpleForm>`.
+
+        lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
+   `  title="More" ` && |\n| &&
+   `  layout="ResponsiveGridLayout" ` && |\n| &&
+   ` > <f:content> <Link text="Apps using abap2UI5"  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /> </f:content></f:SimpleForm>`.
+
+
+    lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 
     client->view_display( lv_xml_main ).
   ENDMETHOD.
