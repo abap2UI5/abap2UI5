@@ -58,9 +58,9 @@ METHOD if_http_extension~handle_request.
          body      = server->request->get_cdata( ) 
          path_info = lt_header[ name = `~path_info` ]-value ) ).
 
-   server->response->set_header_field( name = 'cache-control' value = 'no-cache' ).
+   server->response->set_header_field( name = `cache-control` value = `no-cache` ).
    server->response->set_cdata( lv_resp ).
-   server->response->set_status( code = 200 reason = 'success' ).
+   server->response->set_status( code = 200 reason = `success` ).
 
 ENDMETHOD.
 ```
@@ -76,7 +76,7 @@ METHOD if_http_service_extension~handle_request.
          body      = request->get_text( )
          path_info = lt_header[ name = `~path_info` ]-value ) ).
 
-   response->set_header_field( i_name = 'cache-control' i_value = 'no-cache' ).
+   response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
    response->set_status( 200 )->set_text( lv_resp ).
 
 ENDMETHOD.
