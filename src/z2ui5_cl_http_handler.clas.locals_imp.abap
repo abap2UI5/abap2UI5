@@ -1029,8 +1029,8 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        `  enabled="` && z2ui5_lcl_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n| &&
        ` /></f:content></f:SimpleForm>`.
 
-    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
-   `  title="HowTo" ` && |\n| &&
+    lv_xml_main = lv_xml_main && `<f:SimpleForm  editable="true" ` && |\n| &&
+   `  title="Demos" ` && |\n| &&
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
@@ -1043,14 +1043,14 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
-    `  text="Continue to demos..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
-    ` /></f:content></f:SimpleForm>`.
+    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
+    ` /><Button visible="false"/><Link text="More on github..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /></f:content></f:SimpleForm>`.
 
-    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
-`  title="More" ` && |\n| &&
-`  layout="ResponsiveGridLayout" ` && |\n| &&
-` > <f:content> <Link text="Apps using abap2UI5"  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /> </f:content></f:SimpleForm>`.
-
+*    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
+*`  title="More" ` && |\n| &&
+*`  layout="ResponsiveGridLayout" ` && |\n| &&
+*` > <f:content> <Link text="Apps using abap2UI5"  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /> </f:content></f:SimpleForm>`.
+*
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 
