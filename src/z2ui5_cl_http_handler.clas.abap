@@ -192,17 +192,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                sap.m[sap.z2ui5.oResponse.S_MSG.CONTROL][sap.z2ui5.oResponse.S_MSG.TYPE](sap.z2ui5.oResponse.S_MSG.TEXT);` && |\n|  &&
                            `            }` && |\n|  &&
                            |\n|  &&
-                           `            if (!sap.z2ui5.oResponse.PARAMS.XML_MAIN) {` && |\n|  &&
-                           `                if (sap.z2ui5.isHoldView) {` && |\n|  &&
-                           `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-                           `                    sap.z2ui5.oView.setModel(oModel);` && |\n|  &&
-                           `                    sap.z2ui5.onAfter();` && |\n|  &&
-                           `                    return;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `            }` && |\n|  &&
-                           `            if (sap.z2ui5.isHoldView) { sap.z2ui5.oView.destroy(); }` && |\n|  &&
-                           |\n|  &&
-                           `            var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+                     `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+
+                          `            if (sap.z2ui5.oResponse.PARAMS.XML_MAIN !== '') {` && |\n|  &&
+                          `            if (sap.z2ui5.oView) { sap.z2ui5.oView.destroy( ); delete sap.z2ui5.oView; }` && |\n|  &&
                            `            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                            `                definition: sap.z2ui5.oResponse.PARAMS.XML_MAIN,` && |\n|  &&
                            `            }).then(oView => {` && |\n|  &&
@@ -215,7 +208,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                };` && |\n|  &&
                            `                sap.z2ui5.oView = oView;` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            );` && |\n|  &&
+                           `            ); }else{  sap.z2ui5.oView.setModel(oModel);  sap.z2ui5.onAfter(); }` && |\n|  &&
                            `        },` && |\n|  &&
                            |\n|  &&
                            `        readHttp: function () {` && |\n|  &&
@@ -304,21 +297,22 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            );` && |\n|  &&
                            `        }` && |\n|  &&
                            `        if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML) {` && |\n|  &&
+                           `   if(sap.z2ui5.oViewPopup) { sap.z2ui5.oViewPopup.destroy( );  delete sap.z2ui5.oViewPopup; }` && |\n|  &&
                            `            sap.ui.core.Fragment.load({` && |\n|  &&
                            `                definition: sap.z2ui5.oResponse.PARAMS.S_POPUP.XML,` && |\n|  &&
                            `                controller: sap.z2ui5.oController,` && |\n|  &&
                            `            }).then(function (oFragment) {` && |\n|  &&
                            `                oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n|  &&
                            `                sap.z2ui5.oView.addDependent(oFragment);` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID == '') {` && |\n|  &&
+*                           `                if (sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID == '') {` && |\n|  &&
                            `                    oFragment.open();` && |\n|  &&
-                           `                } else {` && |\n|  &&
-                           `                    var oControl = sap.ui.getCore().byId(sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID);` && |\n|  &&
-                           `                    if (oControl === undefined) {` && |\n|  &&
-                           `                        oControl = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                    oFragment.openBy(oControl);` && |\n|  &&
-                           `                }` && |\n|  &&
+*                           `                } else {` && |\n|  &&
+*                           `                    var oControl = sap.ui.getCore().byId(sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID);` && |\n|  &&
+*                           `                    if (oControl === undefined) {` && |\n|  &&
+*                           `                        oControl = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.POPOVER_OPEN_BY_ID);` && |\n|  &&
+*                           `                    }` && |\n|  &&
+*                           `                    oFragment.openBy(oControl);` && |\n|  &&
+*                           `                }` && |\n|  &&
                            `                sap.z2ui5.oViewPopup = oFragment;` && |\n|  &&
                            `                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
                            `            }` && |\n|  &&
@@ -334,6 +328,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        }` && |\n|  &&
                            |\n|  &&
                            `        if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML) {` && |\n|  &&
+                           `   if(sap.z2ui5.oViewPopover) { sap.z2ui5.oViewPopover.destroy( );  delete sap.z2ui5.oViewPopover; }` && |\n|  &&
                            `            sap.ui.core.Fragment.load({` && |\n|  &&
                            `                definition: sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML,` && |\n|  &&
                            `                controller: sap.z2ui5.oController,` && |\n|  &&
