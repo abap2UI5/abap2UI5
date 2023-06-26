@@ -179,13 +179,13 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                console.log('Response Object:');` && |\n|  &&
                            `                console.log(sap.z2ui5.oResponse);` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.XML_VIEW !== '') {` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
                            `                    console.log('UI5-XML-View:');` && |\n|  &&
-                           `                    console.log(sap.z2ui5.oResponse.PARAMS.XML_MAIN);` && |\n|  &&
+                           `                    console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML);` && |\n|  &&
                            `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.XML_POPUP !== '') {` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML !== '') {` && |\n|  &&
                            `                    console.log('UI5-XML-Popup:');` && |\n|  &&
-                           `                    console.log(sap.z2ui5.oResponse.PARAMS.XML_POPUP);` && |\n|  &&
+                           `                    console.log(sap.z2ui5.oResponse.PARAMS.S_POPUP.XML);` && |\n|  &&
                            `                }` && |\n|  &&
                            `            }` && |\n|  &&
                            `            if (sap.z2ui5.oResponse.PARAMS.S_MSG.CONTROL !== '') {` && |\n|  &&

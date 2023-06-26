@@ -1221,11 +1221,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD constructor.
+
     mt_prop = VALUE #( ( n = `xmlns`        v = `sap.m` )
                        ( n = `xmlns:z2ui5`  v = `z2ui5` )
                        ( n = `xmlns:core`   v = `sap.ui.core` )
                        ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
                        ( n = `xmlns:layout` v = `sap.ui.layout` )
+                       ( n = `xmlns:table ` v = `sap.ui.table` )
                        ( n = `xmlns:f`      v = `sap.f` )
                        ( n = `xmlns:form`   v = `sap.ui.layout.form` )
                        ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
