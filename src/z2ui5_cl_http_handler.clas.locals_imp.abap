@@ -1092,7 +1092,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
         DATA(lv_xml) = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
 
-      CATCH cx_xslt_serialization_error INTO DATA(x).
+      CATCH cx_xslt_serialization_error.
 
 *        DATA(ls_db) = db.
 *
