@@ -726,8 +726,8 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
 
     CLASS-METHODS create
       IMPORTING
-        id        TYPE string
-        VALUE(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db ##NEEDED.
+        id  TYPE string
+        db  TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING id            TYPE clike
@@ -994,7 +994,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ` /> <Label ` && |\n| &&
     `  text="Step 3" ` && |\n| &&
     ` /> <Text ` && |\n| &&
-    " TODO: check spelling: behaviour (BE) -> behavior (ABAP cleaner)
     `  text="Define view, implement behaviour" ` && |\n| &&
     ` /> <Link ` && |\n| &&
     `  text="(Example)" ` && |\n| &&
@@ -1044,13 +1043,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
     `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
-    ` /><Button visible="false"/><Link text="More on github..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /></f:content></f:SimpleForm>`.
-
-*    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
-*`  title="More" ` && |\n| &&
-*`  layout="ResponsiveGridLayout" ` && |\n| &&
-*` > <f:content> <Link text="Apps using abap2UI5"  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /> </f:content></f:SimpleForm>`.
-*
+    ` /><Button visible="false"/><Link text="More on github..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/LINKS.md" /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 
@@ -1101,7 +1094,9 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
 
-        ASSIGN ('DB-O_APP') TO FIELD-SYMBOL(<obj>).
+        data(ls_db) = db.
+
+        ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
 
         DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
         ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
@@ -1109,16 +1104,16 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
           ASSERT 1 = 0.
         ENDIF.
 
-        IF NOT line_exists( db-t_attri[ check_ref_data = abap_true ] ).
+        IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
           RAISE EXCEPTION x.
         ENDIF.
 
-        LOOP AT db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
+        LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
           RAISE EXCEPTION x.
         ENDLOOP.
 
-        lo_app = CAST object( db-o_app ).
-        LOOP AT db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
+        lo_app = CAST object( ls_db-o_app ).
+        LOOP AT ls_db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
 
           DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
           ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
@@ -1130,11 +1125,11 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
         ENDLOOP.
 
-        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
+        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
 
     ENDTRY.
 
-    DATA(ls_db) = VALUE z2ui5_t_draft( uuid                = id
+    DATA(ls_draft) = VALUE z2ui5_t_draft( uuid                = id
                                        uuid_prev           = db-id_prev
                                        uuid_prev_app       = db-id_prev_app
                                        uuid_prev_app_stack = db-id_prev_app_stack
@@ -1142,7 +1137,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
                                        timestampl          = z2ui5_lcl_utility=>get_timestampl( )
                                        data                = lv_xml ).
 
-    MODIFY z2ui5_t_draft FROM @ls_db.
+    MODIFY z2ui5_t_draft FROM @ls_draft.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
     COMMIT WORK AND WAIT.
   ENDMETHOD.
