@@ -1068,21 +1068,21 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_app) = CAST object( result-o_app ) ##NEEDED.
-    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
-
-      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-      ASSIGN (lv_assign) TO FIELD-SYMBOL(<ref>).
-
-      z2ui5_lcl_utility=>rtti_set(
-        EXPORTING
-          rtti_data = lr_attri->data_rtti
-         IMPORTING
-           e_data   = <ref> ).
-
-      CLEAR lr_attri->data_rtti.
-
-    ENDLOOP.
+*    DATA(lo_app) = CAST object( result-o_app ) ##NEEDED.
+*    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
+*
+*      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+*      ASSIGN (lv_assign) TO FIELD-SYMBOL(<ref>).
+*
+*      z2ui5_lcl_utility=>rtti_set(
+*        EXPORTING
+*          rtti_data = lr_attri->data_rtti
+*         IMPORTING
+*           e_data   = <ref> ).
+*
+*      CLEAR lr_attri->data_rtti.
+*
+*    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1094,38 +1094,38 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
 
-        DATA(ls_db) = db.
-
-        ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
-
-        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
-        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
-        IF <obj2> IS ASSIGNED.
-          ASSERT 1 = 0.
-        ENDIF.
-
-        IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
-          RAISE EXCEPTION x.
-        ENDIF.
-
-        LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
-          RAISE EXCEPTION x.
-        ENDLOOP.
-
-        lo_app = CAST object( ls_db-o_app ).
-        LOOP AT ls_db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
-
-          DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-          ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
-          ASSIGN <attri>->* TO FIELD-SYMBOL(<attri2>).
-
-          lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
-          CLEAR <attri2>.
-          CLEAR <attri>.
-
-        ENDLOOP.
-
-        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
+*        DATA(ls_db) = db.
+*
+*        ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
+*
+*        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
+*        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
+*        IF <obj2> IS ASSIGNED.
+*          ASSERT 1 = 0.
+*        ENDIF.
+*
+*        IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
+*          RAISE EXCEPTION x.
+*        ENDIF.
+*
+*        LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
+*          RAISE EXCEPTION x.
+*        ENDLOOP.
+*
+*        lo_app = CAST object( ls_db-o_app ).
+*        LOOP AT ls_db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
+*
+*          DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+*          ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
+*          ASSIGN <attri>->* TO FIELD-SYMBOL(<attri2>).
+*
+*          lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
+*          CLEAR <attri2>.
+*          CLEAR <attri>.
+*
+*        ENDLOOP.
+*
+*        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
 
     ENDTRY.
 
