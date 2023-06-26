@@ -322,7 +322,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        } else if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_CLOSE == true) {` && |\n|  &&
                            |\n|  &&
                            `            if (sap.z2ui5.oViewPopup.close) {` && |\n|  &&
-                           `                sap.z2ui5.oViewPopup.close();` && |\n|  &&
+                           `               try { sap.z2ui5.oViewPopup.close(); } catch (e) { }` && |\n|  &&
                            `            }` && |\n|  &&
                            `            sap.z2ui5.oViewPopup.destroy();` && |\n|  &&
                            `            delete sap.z2ui5.oViewPopup;` && |\n|  &&

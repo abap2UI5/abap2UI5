@@ -1630,6 +1630,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_display.
 
+    mo_handler->ms_next-s_set-s_popup-check_close = abap_false.
     mo_handler->ms_next-s_set-s_popup-xml = val.
 
 
@@ -1700,6 +1701,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popover_display.
 
+    mo_handler->ms_next-s_set-s_popover-check_close = abap_false.
     mo_handler->ms_next-s_set-s_popover-xml = xml.
     mo_handler->ms_next-s_set-s_popover-open_by_id = by_id.
 
