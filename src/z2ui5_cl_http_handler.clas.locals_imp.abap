@@ -1709,4 +1709,11 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~timer_set.
+
+   mo_handler->ms_next-s_set-s_timer-interval_ms = interval_ms.
+   mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
+
+  ENDMETHOD.
+
 ENDCLASS.

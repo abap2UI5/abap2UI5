@@ -97,6 +97,11 @@ INTERFACE z2ui5_if_client
       text TYPE string
       type TYPE string DEFAULT 'information'.
 
+    methods timer_set
+        importing
+            interval_ms    type string
+            event_finished type string.
+
   METHODS message_toast_display
     IMPORTING
       text TYPE string.
