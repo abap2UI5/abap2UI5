@@ -288,8 +288,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-      CATCH cx_root INTO DATA(x).
-
+      CATCH cx_root.
     ENDTRY.
 
   ENDMETHOD.
@@ -728,7 +727,7 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
     CLASS-METHODS create
       IMPORTING
         id        TYPE string
-        VALUE(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db.
+        VALUE(db) TYPE z2ui5_lcl_fw_handler=>ty_s_db ##NEEDED.
 
     CLASS-METHODS load_app
       IMPORTING id            TYPE clike
@@ -886,8 +885,9 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
                                                        include_name = DATA(lv_incl)
                                                        source_line  = DATA(lv_line) ).
+                                                      data(lv_source) = `(` && lv_prog && `/` && lv_incl && `/` && lv_line && `)`.
 
-      DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ).
+      DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ) && lv_source.
 *     &&
 *            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
 *            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
@@ -1069,12 +1069,13 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
                                            IMPORTING data = result ).
 
     LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
+      DATA(lv_check_rtti) = abap_true.
     ENDLOOP.
-    IF sy-subrc <> 0.
+    IF lv_check_rtti = abap_false.
       RETURN.
     ENDIF.
 
-    DATA(lo_app) = CAST object( result-o_app ).
+    DATA(lo_app) = CAST object( result-o_app ) ##NEEDED.
     LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
 
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
@@ -1084,8 +1085,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
         EXPORTING
           rtti_data = lr_attri->data_rtti
          IMPORTING
-           e_data    = <ref>
-      ).
+           e_data    = <ref> ).
 
       CLEAR lr_attri->data_rtti.
 
@@ -1564,16 +1564,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ms_next-o_call_app = z2ui5_lcl_fw_app=>factory_error( error = ix ).
       result = set_app_call(  ).
       RETURN.
-
-      result->ms_db-o_app   = z2ui5_lcl_fw_app=>factory_error( error = ix ).
-
-
-
-      result->ms_db-id_prev_app       = ms_db-id.
-      result->ms_db-id_prev_app_stack = ms_db-id.
-*      result->ms_next-s_msg = ms_next-s_msg.
-      result->ms_db-id_prev_app = ms_db-id.
-
     ELSE.
       result->ms_db-o_app = NEW z2ui5_lcl_fw_app( ).
     ENDIF.
