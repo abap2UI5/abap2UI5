@@ -1,14 +1,15 @@
-#### Apps using abap2UI5
-* [Axage](https://github.com/nomssi/axage/) by [nomssi](https://github.com/nomssi)  <br>  A wizard's adventure game based on a fork of the [AXAGE game engine](https://github.com/Ennowulff/axage) (ABAP teXt Adventure Game Engine) by [ennowulff](https://github.com/Ennowulff)
-* pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
-* low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF or RAP)
-* cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2305)
-* easy installation – abapGit project, no additional app deployment needed
+#### Repository
+* abap2UI5 [(github/abap2UI5/abap2UI5)](https://github.com/abap2UI5/abap2UI5)
+* downport of abap2UI5 for NW 7.02 to NW 7.42 [(github/abap2UI5/abap2UI5-downport)](https://github.com/abap2UI5/abap2UI5-downport)
 
-#### Compatibility
-* BTP ABAP Environment (ABAP for Cloud)
-* S/4 Public Cloud ABAP Environment (ABAP for Cloud)
-* S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
+#### Demos
+* Examples of how to use UI5 Controls in abap2UI5 [(github/abap2UI5/demo-demos)](https://github.com/orgs/abap2UI5/repositories)
+* Open-source project Mustache used with abap2UI5 [(github/abap2UI5/demo-mustache)](https://github.com/abap2UI5/demo-mustache)
+
+#### More
+* [abap2UI5-web](https://github.com/larshp/abap2ui5-web) by [larshp](https://github.com/larshp) <br> abap2ui5 compiled to JS running on [openabap](https://github.com/open-abap) under nodejs
+* [Axage](https://github.com/nomssi/axage/) by [nomssi](https://github.com/nomssi)  <br>  A wizard's adventure game based on a fork of the [AXAGE game engine](https://github.com/Ennowulff/axage) (ABAP teXt Adventure Game Engine) by [ennowulff](https://github.com/Ennowulff)
+
+<br><br>
+_Your app not listed here? feel free to extend the list and sent a PR_
+
