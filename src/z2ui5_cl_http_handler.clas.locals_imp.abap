@@ -726,8 +726,8 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
 
     CLASS-METHODS create
       IMPORTING
-        id  TYPE string
-        db  TYPE z2ui5_lcl_fw_handler=>ty_s_db.
+        id TYPE string
+        db TYPE z2ui5_lcl_fw_handler=>ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING id            TYPE clike
@@ -885,7 +885,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
                                                        include_name = DATA(lv_incl)
                                                        source_line  = DATA(lv_line) ).
-                                                      data(lv_source) = `(` && lv_prog && `/` && lv_incl && `/` && lv_line && `)`.
+      DATA(lv_source) = `(` && lv_prog && `/` && lv_incl && `/` && lv_line && `)`.
 
       DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ) && lv_source.
 *     &&
@@ -1094,7 +1094,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
 
-        data(ls_db) = db.
+        DATA(ls_db) = db.
 
         ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
 
@@ -1130,12 +1130,12 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
     ENDTRY.
 
     DATA(ls_draft) = VALUE z2ui5_t_draft( uuid                = id
-                                       uuid_prev           = db-id_prev
-                                       uuid_prev_app       = db-id_prev_app
-                                       uuid_prev_app_stack = db-id_prev_app_stack
-                                       uname               = z2ui5_lcl_utility=>get_user_tech( )
-                                       timestampl          = z2ui5_lcl_utility=>get_timestampl( )
-                                       data                = lv_xml ).
+                                          uuid_prev           = db-id_prev
+                                          uuid_prev_app       = db-id_prev_app
+                                          uuid_prev_app_stack = db-id_prev_app_stack
+                                          uname               = z2ui5_lcl_utility=>get_user_tech( )
+                                          timestampl          = z2ui5_lcl_utility=>get_timestampl( )
+                                          data                = lv_xml ).
 
     MODIFY z2ui5_t_draft FROM @ls_draft.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -1706,8 +1706,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~timer_set.
 
-   mo_handler->ms_next-s_set-s_timer-interval_ms = interval_ms.
-   mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
+    mo_handler->ms_next-s_set-s_timer-interval_ms = interval_ms.
+    mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
 
   ENDMETHOD.
 
