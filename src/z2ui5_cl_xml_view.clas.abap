@@ -1536,8 +1536,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                       ( n = `illustrationSize`             v = illustrationSize )
                       ( n = `description`             v = description )
                       ( n = `title`             v = title )
-
-                       ) ).
+) ).
   ENDMETHOD.
 
 

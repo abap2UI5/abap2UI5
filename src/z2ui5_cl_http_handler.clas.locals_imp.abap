@@ -785,7 +785,7 @@ CLASS z2ui5_lcl_fw_app DEFINITION.
     METHODS z2ui5_on_rendering
       IMPORTING client TYPE REF TO z2ui5_if_client.
   PRIVATE SECTION.
-    DATA: lv_check_demo TYPE abap_bool.
+    DATA lv_check_demo TYPE abap_bool.
 
 ENDCLASS.
 
@@ -892,44 +892,44 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 *            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
 *            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
 
-      DATA(lv_xml) = `<mvc:View ` && |\n|  &&
-                     `  xmlns="sap.m" ` && |\n|  &&
-                     `  xmlns:z2ui5="z2ui5" ` && |\n|  &&
-                     `  xmlns:core="sap.ui.core" ` && |\n|  &&
-                     `  xmlns:mvc="sap.ui.core.mvc" ` && |\n|  &&
-                     `  xmlns:layout="sap.ui.layout" ` && |\n|  &&
-                     `  xmlns:f="sap.f" ` && |\n|  &&
-                     `  xmlns:form="sap.ui.layout.form" ` && |\n|  &&
-                     `  xmlns:editor="sap.ui.codeeditor" ` && |\n|  &&
-                     `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n|  &&
-                     `  xmlns:webc="sap.ui.webc.main" ` && |\n|  &&
-                     `  xmlns:uxap="sap.uxap" ` && |\n|  &&
-                     `  xmlns:sap="sap" ` && |\n|  &&
-                     `  xmlns:text="sap.ui.richtextedito" ` && |\n|  &&
-                     `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n|  &&
-                     `  displayBlock="true" ` && |\n|  &&
-                     `  height="100%" ` && |\n|  &&
-                     `  controllerName="z2ui5_controller" ` && |\n|  &&
-                     ` > <Shell>` && |\n|  &&
+      DATA(lv_xml) = `<mvc:View ` && |\n| &&
+                     `  xmlns="sap.m" ` && |\n| &&
+                     `  xmlns:z2ui5="z2ui5" ` && |\n| &&
+                     `  xmlns:core="sap.ui.core" ` && |\n| &&
+                     `  xmlns:mvc="sap.ui.core.mvc" ` && |\n| &&
+                     `  xmlns:layout="sap.ui.layout" ` && |\n| &&
+                     `  xmlns:f="sap.f" ` && |\n| &&
+                     `  xmlns:form="sap.ui.layout.form" ` && |\n| &&
+                     `  xmlns:editor="sap.ui.codeeditor" ` && |\n| &&
+                     `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n| &&
+                     `  xmlns:webc="sap.ui.webc.main" ` && |\n| &&
+                     `  xmlns:uxap="sap.uxap" ` && |\n| &&
+                     `  xmlns:sap="sap" ` && |\n| &&
+                     `  xmlns:text="sap.ui.richtextedito" ` && |\n| &&
+                     `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n| &&
+                     `  displayBlock="true" ` && |\n| &&
+                     `  height="100%" ` && |\n| &&
+                     `  controllerName="z2ui5_controller" ` && |\n| &&
+                     ` > <Shell>` && |\n| &&
 *                     ` <Page ` && |\n|  &&
-                     `<IllustratedMessage ` && |\n|  &&
-                     `  illustrationType="sapIllus-ErrorScreen" ` && |\n|  &&
-                     `  enableFormattedText="true" ` && |\n|  &&
-                     `  illustrationSize="sapIllus-ErrorScreen" ` && |\n|  &&
-                     `  description="` && lv_descr && `"` && |\n|  &&
-                     `  title="500 Internal Server Error" ` && |\n|  &&
-                     ` > <additionalContent ` && |\n|  &&
+                     `<IllustratedMessage ` && |\n| &&
+                     `  illustrationType="sapIllus-ErrorScreen" ` && |\n| &&
+                     `  enableFormattedText="true" ` && |\n| &&
+                     `  illustrationSize="sapIllus-ErrorScreen" ` && |\n| &&
+                     `  description="` && lv_descr && `"` && |\n| &&
+                     `  title="500 Internal Server Error" ` && |\n| &&
+                     ` > <additionalContent ` && |\n| &&
                      ` > ` &&
-                     `<Button ` && |\n|  &&
-                     `  press="` && client->_event_client(  client->cs_event-leave_home )  && `" ` && |\n|  &&
-                     `  text="Home" ` && |\n|  &&
-                     `  type="Emphasized" ` && |\n|  &&
+                     `<Button ` && |\n| &&
+                     `  press="` && client->_event_client( client->cs_event-leave_home )  && `" ` && |\n| &&
+                     `  text="Home" ` && |\n| &&
+                     `  type="Emphasized" ` && |\n| &&
                      ` />` &&
-                     `<Button ` && |\n|  &&
+                     `<Button ` && |\n| &&
 *                    `  enabled="` && lv_check_back && `"`  &&
-                     `  press="` && client->_event_client( client->cs_event-leave_restart ) && `" ` && |\n|  &&
-                     `  text="Restart" ` && |\n|  &&
-                     `  ` && |\n|  &&
+                     `  press="` && client->_event_client( client->cs_event-leave_restart ) && `" ` && |\n| &&
+                     `  text="Restart" ` && |\n| &&
+                     `  ` && |\n| &&
                      ` /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
 
       client->view_display( lv_xml ).
@@ -1085,7 +1085,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
         EXPORTING
           rtti_data = lr_attri->data_rtti
          IMPORTING
-           e_data    = <ref> ).
+           e_data   = <ref> ).
 
       CLEAR lr_attri->data_rtti.
 
@@ -1226,7 +1226,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ms_next-s_set-path = ss_config-path_info.
 
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
-*    lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
+
     lo_resp->add_attribute( n = `ID`     v = ms_db-id ).
 
     result = lo_resp->get_root( )->stringify( ).
@@ -1528,7 +1528,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
 
-          z2ui5_lcl_utility=>raise(  `<p>Binding Error - Two diffferent binding types for same attribute used (` && lr_attri->name
+          z2ui5_lcl_utility=>raise( `<p>Binding Error - Two diffferent binding types for same attribute used (` && lr_attri->name
           && `).` ).
         ENDIF.
         lr_attri->bind_type = type.
@@ -1562,7 +1562,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     IF ix IS BOUND.
       ms_next-o_call_app = z2ui5_lcl_fw_app=>factory_error( error = ix ).
-      result = set_app_call(  ).
+      result = set_app_call( ).
       RETURN.
     ELSE.
       result->ms_db-o_app = NEW z2ui5_lcl_fw_app( ).
@@ -1582,14 +1582,14 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_toast_display.
     mo_handler->ms_next-s_set-s_msg = VALUE #( control = `MessageToast`
-                                         type    = `show`
-                                         text    = text ).
+                                         type          = `show`
+                                         text          = text ).
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_box_display.
     mo_handler->ms_next-s_set-s_msg = VALUE #( control = `MessageBox`
-                                         type    = type
-                                         text    = text ).
+                                         type          = type
+                                         text          = text ).
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get.
