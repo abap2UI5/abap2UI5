@@ -645,6 +645,11 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
           interval_ms    TYPE string,
           event_finished TYPE string,
         END OF s_timer,
+        BEGIN OF s_msg,
+          control TYPE string,
+          type    TYPE string,
+          text    TYPE string,
+        END OF s_msg,
         _viewmodel TYPE string,
       END OF ty_s_next2.
 
@@ -667,11 +672,6 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         check_app_leave TYPE abap_bool,
         o_call_app      TYPE REF TO z2ui5_if_app,
         s_set           TYPE ty_S_next2,
-        BEGIN OF s_msg,
-          control TYPE string,
-          type    TYPE string,
-          text    TYPE string,
-        END OF s_msg,
       END OF ty_s_next.
 
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -1226,7 +1226,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ms_next-s_set-path = ss_config-path_info.
 
     lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
-    lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
+*    lo_resp->add_attribute( n = `S_MSG`  v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_msg ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`     v = ms_db-id ).
 
     result = lo_resp->get_root( )->stringify( ).
@@ -1571,7 +1571,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       result->ms_db-id_prev_app       = ms_db-id.
       result->ms_db-id_prev_app_stack = ms_db-id.
-      result->ms_next-s_msg = ms_next-s_msg.
+*      result->ms_next-s_msg = ms_next-s_msg.
       result->ms_db-id_prev_app = ms_db-id.
 
     ELSE.
@@ -1591,13 +1591,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_toast_display.
-    mo_handler->ms_next-s_msg = VALUE #( control = `MessageToast`
+    mo_handler->ms_next-s_set-s_msg = VALUE #( control = `MessageToast`
                                          type    = `show`
                                          text    = text ).
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_box_display.
-    mo_handler->ms_next-s_msg = VALUE #( control = `MessageBox`
+    mo_handler->ms_next-s_set-s_msg = VALUE #( control = `MessageBox`
                                          type    = type
                                          text    = text ).
   ENDMETHOD.

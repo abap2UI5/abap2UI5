@@ -188,8 +188,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    console.log(sap.z2ui5.oResponse.PARAMS.XML_POPUP);` && |\n|  &&
                            `                }` && |\n|  &&
                            `            }` && |\n|  &&
-                           `            if (sap.z2ui5.oResponse.S_MSG.CONTROL !== '') {` && |\n|  &&
-                           `                sap.m[sap.z2ui5.oResponse.S_MSG.CONTROL][sap.z2ui5.oResponse.S_MSG.TYPE](sap.z2ui5.oResponse.S_MSG.TEXT);` && |\n|  &&
+                           `            if (sap.z2ui5.oResponse.PARAMS.S_MSG.CONTROL !== '') {` && |\n|  &&
+                           `                sap.m[sap.z2ui5.oResponse.PARAMS.S_MSG.CONTROL][sap.z2ui5.oResponse.PARAMS.S_MSG.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG.TEXT);` && |\n|  &&
                            `            }` && |\n|  &&
                            |\n|  &&
                      `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
