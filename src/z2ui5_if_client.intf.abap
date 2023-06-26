@@ -47,6 +47,8 @@ INTERFACE z2ui5_if_client
       s_config               TYPE ty_S_config,
     END OF ty_s_get.
 
+  METHODS view_destroy.
+
   METHODS view_display
     IMPORTING
       val TYPE string.

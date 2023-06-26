@@ -194,10 +194,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                      `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
 
-                          `            if (sap.z2ui5.oResponse.PARAMS.XML_MAIN !== '') {` && |\n|  &&
+            `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { if (sap.z2ui5.oView) { sap.z2ui5.oView.destroy( );  }  }` && |\n|  &&
+
+                          `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
                           `            if (sap.z2ui5.oView) { sap.z2ui5.oView.destroy( ); delete sap.z2ui5.oView; }` && |\n|  &&
                            `            var oView = new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
-                           `                definition: sap.z2ui5.oResponse.PARAMS.XML_MAIN,` && |\n|  &&
+                           `                definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n|  &&
                            `            }).then(oView => {` && |\n|  &&
                            `                oView.setModel(oModel);` && |\n|  &&
                            `                if (sap.z2ui5.oParent) {` && |\n|  &&
@@ -208,7 +210,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                };` && |\n|  &&
                            `                sap.z2ui5.oView = oView;` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            ); }else{  sap.z2ui5.oView.setModel(oModel);  sap.z2ui5.onAfter(); }` && |\n|  &&
+                           `            ); }else{  if (sap.z2ui5.oView ) { sap.z2ui5.oView.setModel(oModel); }  sap.z2ui5.onAfter(); }` && |\n|  &&
                            `        },` && |\n|  &&
                            |\n|  &&
                            `        readHttp: function () {` && |\n|  &&

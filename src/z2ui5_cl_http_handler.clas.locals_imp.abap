@@ -616,13 +616,14 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
 
     TYPES:
       BEGIN OF ty_S_next2,
-        xml_main           TYPE string,
-        xml_popup          TYPE string,
-        popover_open_by_id TYPE string,
-        t_scroll           TYPE z2ui5_if_client=>ty_t_name_value,
-        title              TYPE string,
-        path               TYPE string,
-        url                TYPE string,
+        t_scroll   TYPE z2ui5_if_client=>ty_t_name_value,
+        title      TYPE string,
+        path       TYPE string,
+        url        TYPE string,
+        BEGIN OF s_view,
+          xml           TYPE string,
+          check_destroy TYPE abap_bool,
+        END OF s_view,
         BEGIN OF s_popup,
           xml         TYPE string,
           id          TYPE string,
@@ -644,7 +645,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
           interval_ms    TYPE string,
           event_finished TYPE string,
         END OF s_timer,
-        _viewmodel         TYPE string,
+        _viewmodel TYPE string,
       END OF ty_s_next2.
 
     TYPES:
@@ -1045,10 +1046,10 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     `  text="Continue to demos..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /></f:content></f:SimpleForm>`.
 
-        lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
-   `  title="More" ` && |\n| &&
-   `  layout="ResponsiveGridLayout" ` && |\n| &&
-   ` > <f:content> <Link text="Apps using abap2UI5"  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /> </f:content></f:SimpleForm>`.
+    lv_xml_main = lv_xml_main && `<f:SimpleForm ` && |\n| &&
+`  title="More" ` && |\n| &&
+`  layout="ResponsiveGridLayout" ` && |\n| &&
+` > <f:content> <Link text="Apps using abap2UI5"  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/_dev/LINKS.md" /> </f:content></f:SimpleForm>`.
 
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
@@ -1450,6 +1451,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
     ENDTRY.
 
+    result->ms_next-s_Set = ms_next-s_set.
+
     result->ms_db-t_attri     = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
     result->ms_db-id          = z2ui5_lcl_utility=>get_uuid( ).
     result->ms_db-o_app->id   = result->ms_db-id.
@@ -1473,7 +1476,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev_app       = ms_db-id.
     result->ms_db-id_prev_app_stack = ms_db-id.
 
-    result->ms_next-s_msg = ms_next-s_msg.
+    result->ms_next-s_Set = ms_next-s_set.
 
     result->ms_actual-s_config = CAST z2ui5_if_client( NEW z2ui5_lcl_fw_client( me ) )->get( )-s_config.
     result->ms_actual-s_config-app = result->ms_db-o_app.
@@ -1634,7 +1637,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~view_display.
 
-    mo_handler->ms_next-s_set-xml_main = val.
+    mo_handler->ms_next-s_set-s_view-xml = val.
 
   ENDMETHOD.
 
@@ -1705,6 +1708,12 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~popup_close.
 
     mo_handler->ms_next-s_set-s_popup-check_close = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~view_destroy.
+
+    mo_handler->ms_next-s_set-s_view-check_destroy = abap_true.
 
   ENDMETHOD.
 
