@@ -821,6 +821,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !selectionmode          TYPE clike DEFAULT 'Single'
         !enablecolumnreordering TYPE clike DEFAULT 'false'
         !expandfirstlevel       TYPE clike DEFAULT 'false'
+        !COLUMNSELECT           type CLIKE optional
+        !ROWSELECTIONCHANGE     type CLIKE optional
+        !SELECTIONBEHAVIOR      type CLIKE default 'RowSelector'
+        !SELECTEDINDEX          type CLIKE optional
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_columns
@@ -829,6 +833,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS tree_column
       IMPORTING
         !label        TYPE clike
+        !HALIGN       type CLIKE default 'Begin'
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_template
@@ -901,7 +906,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name = `Column`
                   ns        = `table`
                   t_prop    = VALUE #(
-                          ( n = `label` v = label ) ) ).
+                          ( n = `label`   v = label )
+                          ( n = `hAlign`  v = halign ) ) ).
   ENDMETHOD.
 
 
@@ -918,7 +924,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                         ( n = `rows`                    v = rows )
                                         ( n = `selectionMode`           v = selectionmode )
                                         ( n = `enableColumnReordering`  v = enablecolumnreordering )
-                                        ( n = `expandFirstLevel`        v = expandfirstlevel ) ) ).
+                                        ( n = `expandFirstLevel`        v = expandfirstlevel )
+                                        ( n = `columnSelect`            v = columnselect )
+                                        ( n = `rowSelectionChange`      v = rowselectionchange )
+                                        ( n = `selectionBehavior`       v = selectionBehavior )
+                                        ( n = `selectedIndex`           v = selectedIndex ) ) ).
   ENDMETHOD.
 
 
