@@ -177,9 +177,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    console.log(sap.z2ui5.oResponse.PARAMS.S_POPUP.XML);` && |\n| &&
                            `                }` && |\n| &&
                            `            }` && |\n| &&
-                           `            if (sap.z2ui5.oResponse.PARAMS.S_MSG.CONTROL !== '') {` && |\n| &&
-                           `                sap.m[sap.z2ui5.oResponse.PARAMS.S_MSG.CONTROL][sap.z2ui5.oResponse.PARAMS.S_MSG.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG.TEXT);` && |\n| &&
-                           `            }` && |\n| &&
                            |\n| &&
                      `                    var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
 `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { if (sap.z2ui5.oView) { sap.z2ui5.oView.destroy( );  }  }` && |\n| &&
@@ -252,6 +249,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n| &&
                            `            document.title = sap.z2ui5.oResponse.PARAMS.TITLE;` && |\n| &&
                            `        }` && |\n| &&
+                           `       if (sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT !== '') {` && |\n| &&
+                           `                sap.m.MessageToast.show( sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT ); ` &&
+                           `            }` && |\n| &&
+                           `       if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n| &&
+                           `                sap.m.MessageBox[ sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE ]( sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT ); ` &&
+                           `            }` && |\n| &&
                            `        if (sap.z2ui5.oResponse.PARAMS.PATH != "") {` && |\n| &&
                            `            //    window.history.replaceState("", "", window.location.origin + sap.z2ui5.oResponse.PARAMS.PATH + window.location.search);` && |\n| &&
                            `        }` && |\n| &&

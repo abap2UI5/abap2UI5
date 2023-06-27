@@ -644,11 +644,13 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
           interval_ms    TYPE string,
           event_finished TYPE string,
         END OF s_timer,
-        BEGIN OF s_msg,
-          control TYPE string,
-          type    TYPE string,
-          text    TYPE string,
-        END OF s_msg,
+        BEGIN OF s_msg_box,
+          type TYPE string,
+          text TYPE string,
+        END OF s_msg_box,
+        BEGIN OF s_msg_toast,
+          text TYPE string,
+        END OF s_msg_toast,
         _viewmodel TYPE string,
       END OF ty_s_next2.
 
@@ -1571,20 +1573,24 @@ ENDCLASS.
 
 
 CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
+
   METHOD constructor.
     mo_handler = handler.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_toast_display.
-    mo_handler->ms_next-s_set-s_msg = VALUE #( control = `MessageToast`
-                                         type          = `show`
-                                         text          = text ).
+
+    mo_handler->ms_next-s_set-s_msg_toast = VALUE #(
+        text = text ).
+
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_box_display.
-    mo_handler->ms_next-s_set-s_msg = VALUE #( control = `MessageBox`
-                                         type          = type
-                                         text          = text ).
+
+    mo_handler->ms_next-s_set-s_msg_box = VALUE #(
+          text = text
+          type = type ).
+
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get.
