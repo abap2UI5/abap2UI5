@@ -1,5 +1,5 @@
 ## How-to-contribute
-This tutorial explains how you transfer changes from your local system to the public abap2UI5 repository. <br>
+This tutorial explains how to transfer changes from a local ABAP system to the public abap2UI5 repository. <br>
 Pictures are made with adt-git, but the same functionality you will find in abapGit.
 **1. Create a Fork of the abap2UI5 repository:**
 <img width="700" alt="image" src="https://github.com/abap2UI5/abap2UI5/assets/102328295/c044eb38-fff7-4d82-9142-839bcae63fa9">
