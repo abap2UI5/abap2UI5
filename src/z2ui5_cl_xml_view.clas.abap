@@ -925,8 +925,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD begin_column_pages.
-    " todo, implement method
-    result = me.
+
+    result = _generic( name = `beginColumnPages`
+                        ns  = 'f' ).
   ENDMETHOD.
 
 
@@ -1254,8 +1255,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD end_column_pages.
-    " todo, implement method
-    result = me.
+
+    result = _generic( name = `endColumnPages`
+                       ns   = 'f' ).
+
   ENDMETHOD.
 
 
@@ -1728,8 +1731,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD mid_column_pages.
-    " todo, implement method
-    result = me.
+
+    result = _generic( name = `midColumnPages`
+                       ns   = 'f' ).
+
   ENDMETHOD.
 
 
