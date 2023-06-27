@@ -881,99 +881,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
-
-
-  METHOD end_column_pages.
-    " todo, implement method
-    result = me.
-  ENDMETHOD.
-
-
-  METHOD mid_column_pages.
-    " todo, implement method
-    result = me.
-  ENDMETHOD.
-
-
-  METHOD begin_column_pages.
-    " todo, implement method
-    result = me.
-  ENDMETHOD.
-
-
-  METHOD tree_column.
-    result = _generic( name = `Column`
-                  ns        = `table`
-                  t_prop    = VALUE #(
-                          ( n = `label`   v = label )
-                          ( n = `hAlign`  v = halign ) ) ).
-  ENDMETHOD.
-
-
-  METHOD tree_columns.
-    result = _generic( name = `columns`
-                  ns        = `table` ).
-  ENDMETHOD.
-
-
-  METHOD tree_table.
-    result = _generic( name  = `TreeTable`
-                      ns     = `table`
-                      t_prop = VALUE #(
-                                        ( n = `rows`                    v = rows )
-                                        ( n = `selectionMode`           v = selectionmode )
-                                        ( n = `enableColumnReordering`  v = enablecolumnreordering )
-                                        ( n = `expandFirstLevel`        v = expandfirstlevel )
-                                        ( n = `columnSelect`            v = columnselect )
-                                        ( n = `rowSelectionChange`      v = rowselectionchange )
-                                        ( n = `selectionBehavior`       v = selectionBehavior )
-                                        ( n = `selectedIndex`           v = selectedIndex ) ) ).
-  ENDMETHOD.
-
-
-  METHOD tree_template.
-    result = _generic( name = `template`
-                  ns        = `table` ).
-  ENDMETHOD.
-
-
-  METHOD filter_bar.
-    result = _generic( name    = `FilterBar`
-                        ns     = 'fb'
-                        t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
-                                          ( n = 'search'        v = search )
-                                          ( n = 'filterChange'  v = filterchange ) ) ).
-  ENDMETHOD.
-
-
-  METHOD filter_control.
-    result = _generic( name = `control`
-                        ns  = 'fb' ).
-  ENDMETHOD.
-
-
-  METHOD filter_group_item.
-    result = _generic( name    = `FilterGroupItem`
-                        ns     = 'fb'
-                        t_prop = VALUE #( ( n = 'name'                v  = name )
-                                          ( n = 'label'               v  = label )
-                                          ( n = 'groupName'           v  = groupname )
-                                          ( n = 'visibleInFilterBar'  v  = visibleinfilterbar ) ) ).
-  ENDMETHOD.
-
-
-  METHOD filter_group_items.
-    result = _generic( name = `filterGroupItems`
-                        ns  = 'fb' ).
-  ENDMETHOD.
-
-
-  METHOD flexible_column_layout.
-    result = _generic( name   = `FlexibleColumnLayout`
-                       ns     = `f`
-                       t_prop = VALUE #( (  n = `layout` v = layout ) ) ).
-  ENDMETHOD.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1013,6 +921,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD bars.
     result = _generic( name = `bars`
                        ns   = `mchart` ).
+  ENDMETHOD.
+
+
+  METHOD begin_column_pages.
+
+    result = _generic(  name   = `beginColumnPages`
+                        ns     = 'f' ).
   ENDMETHOD.
 
 
@@ -1339,6 +1254,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD end_column_pages.
+    result = _generic( name   = `endColumnPages`
+                       ns     = 'f' ).
+  ENDMETHOD.
+
+
   METHOD expanded_content.
     result = _generic( name = `expandedContent`
                        ns   = ns ).
@@ -1387,6 +1308,44 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->m_ns     = `core`.
     result->m_root   = result.
     result->m_parent = result.
+  ENDMETHOD.
+
+
+  METHOD filter_bar.
+    result = _generic( name    = `FilterBar`
+                        ns     = 'fb'
+                        t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
+                                          ( n = 'search'        v = search )
+                                          ( n = 'filterChange'  v = filterchange ) ) ).
+  ENDMETHOD.
+
+
+  METHOD filter_control.
+    result = _generic( name = `control`
+                        ns  = 'fb' ).
+  ENDMETHOD.
+
+
+  METHOD filter_group_item.
+    result = _generic( name    = `FilterGroupItem`
+                        ns     = 'fb'
+                        t_prop = VALUE #( ( n = 'name'                v  = name )
+                                          ( n = 'label'               v  = label )
+                                          ( n = 'groupName'           v  = groupname )
+                                          ( n = 'visibleInFilterBar'  v  = visibleinfilterbar ) ) ).
+  ENDMETHOD.
+
+
+  METHOD filter_group_items.
+    result = _generic( name = `filterGroupItems`
+                        ns  = 'fb' ).
+  ENDMETHOD.
+
+
+  METHOD flexible_column_layout.
+    result = _generic( name   = `FlexibleColumnLayout`
+                       ns     = `f`
+                       t_prop = VALUE #( (  n = `layout` v = layout ) ) ).
   ENDMETHOD.
 
 
@@ -1769,6 +1728,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD mid_column_pages.
+
+    result = _generic( name   = `midColumnPages`
+                       ns     = 'f' ).
+  ENDMETHOD.
+
+
   METHOD multi_input.
     result = _generic( name   = `MultiInput`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
@@ -2072,6 +2038,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD stringify.
+
+    result = get_root( )->xml_get( ).
+
+  ENDMETHOD.
+
+
   METHOD sub_header.
     result = _generic( `subHeader` ).
   ENDMETHOD.
@@ -2215,6 +2188,42 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD tree_column.
+    result = _generic( name = `Column`
+                  ns        = `table`
+                  t_prop    = VALUE #(
+                          ( n = `label`   v = label )
+                          ( n = `hAlign`  v = halign ) ) ).
+  ENDMETHOD.
+
+
+  METHOD tree_columns.
+    result = _generic( name = `columns`
+                  ns        = `table` ).
+  ENDMETHOD.
+
+
+  METHOD tree_table.
+    result = _generic( name  = `TreeTable`
+                      ns     = `table`
+                      t_prop = VALUE #(
+                                        ( n = `rows`                    v = rows )
+                                        ( n = `selectionMode`           v = selectionmode )
+                                        ( n = `enableColumnReordering`  v = enablecolumnreordering )
+                                        ( n = `expandFirstLevel`        v = expandfirstlevel )
+                                        ( n = `columnSelect`            v = columnselect )
+                                        ( n = `rowSelectionChange`      v = rowselectionchange )
+                                        ( n = `selectionBehavior`       v = selectionBehavior )
+                                        ( n = `selectedIndex`           v = selectedIndex ) ) ).
+  ENDMETHOD.
+
+
+  METHOD tree_template.
+    result = _generic( name = `template`
+                  ns        = `table` ).
+  ENDMETHOD.
+
+
   METHOD vbox.
     result = _generic( name   = `VBox`
                        t_prop = VALUE #( ( n = `height` v = height )
@@ -2282,12 +2291,5 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     m_root->m_last = result2.
     result = result2.
-  ENDMETHOD.
-
-
-  METHOD stringify.
-
-    result = get_root( )->xml_get( ).
-
   ENDMETHOD.
 ENDCLASS.
