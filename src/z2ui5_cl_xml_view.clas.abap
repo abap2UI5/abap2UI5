@@ -905,7 +905,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD tree_column.
     result = _generic( name = `Column`
                   ns        = `table`
-                  t_prop = VALUE #(
+                  t_prop    = VALUE #(
                           ( n = `label`   v = label )
                           ( n = `hAlign`  v = halign ) ) ).
   ENDMETHOD.
