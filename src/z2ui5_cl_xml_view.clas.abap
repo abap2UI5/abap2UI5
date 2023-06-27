@@ -926,7 +926,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD begin_column_pages.
 
-    result = _generic(  name = `beginColumnPages`
+    result = _generic( name = `beginColumnPages`
                         ns   = 'f' ).
   ENDMETHOD.
 
