@@ -1246,7 +1246,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ( n = `xmlns:uxap`   v = `sap.uxap` )
                        ( n = `xmlns:sap`    v = `sap` )
                        ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
-                       ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` ) 
+                       ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
                        ( n = `xmlns:fb`   v = `sap.ui.comp.filterbar` ) ).
   ENDMETHOD.
 
