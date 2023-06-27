@@ -1733,7 +1733,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD mid_column_pages.
 
     result = _generic( name = `midColumnPages`
-                       ns     = 'f' ).
+                       ns   = 'f' ).
 
   ENDMETHOD.
 
