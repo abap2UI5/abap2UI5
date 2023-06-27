@@ -1342,7 +1342,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id      = lv_id.
     result->ms_db-id_prev = id_prev.
 
-
     TRY.
         result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
       CATCH cx_root.
@@ -1379,10 +1378,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA(lo_location) = so_body->get_attribute( `OLOCATION` ).
-        ss_config-origin = lo_location->get_attribute( `ORIGIN` )->get_val( ).
+        DATA(lo_location)  = so_body->get_attribute( `OLOCATION` ).
+        ss_config-origin   = lo_location->get_attribute( `ORIGIN` )->get_val( ).
         ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
-        ss_config-search = lo_location->get_attribute( `SEARCH` )->get_val( ).
+        ss_config-search   = lo_location->get_attribute( `SEARCH` )->get_val( ).
+        ss_config-version  = lo_location->get_attribute( `VERSION` )->get_val( ).
         ss_config-controller_name = `z2ui5_controller`.
       CATCH cx_root.
     ENDTRY.
