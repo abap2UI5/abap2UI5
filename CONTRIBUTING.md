@@ -15,10 +15,7 @@ You can contribute in various ways: <br>
 Or feel free to develop something new - every [PR ](https://github.com/abap2UI5/abap2UI5/pulls) is welcome!
 
 ### How to create a PR
-1. Create a new Fork of this repository <br>
-2. Pull your new Fork to your ABAP System <br>
-3. Make changes in your ABAP System <br>
-4. Push your changes to your remote Fork <br>
-5. Open a PR so that your changes become a part of this project and can be used by everyone <br>
+See this guidelines [here.](https://github.com/abap2UI5/abap2UI5/blob/main/docs/how_to_contribute.md)
+
 
 _Just try it out and create an issue if you run into problems!_
