@@ -222,6 +222,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            sap.z2ui5.oBody.OLOCATION.ORIGIN = window.location.origin;` && |\n| &&
                            `            sap.z2ui5.oBody.OLOCATION.PATHNAME = sap.z2ui5.pathname;` && |\n| &&
                            `            sap.z2ui5.oBody.OLOCATION.SEARCH = window.location.search;` && |\n| &&
+                           `            sap.z2ui5.oBody.OLOCATION.VERSION = sap.ui.getVersionInfo().gav;` && |\n| &&
                            |\n| &&
                            `            if (sap.z2ui5.readOData) {` && |\n| &&
                            `                sap.z2ui5.readOData();` && |\n| &&
