@@ -877,16 +877,14 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
   METHOD view_display_error.
 
-    WHILE  ms_error-x_error->previous IS BOUND.
-      ms_error-x_error =  ms_error-x_error->previous.
+    WHILE ms_error-x_error->previous IS BOUND.
+      ms_error-x_error = ms_error-x_error->previous.
     ENDWHILE.
 
-    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
-                                                     include_name = DATA(lv_incl)
-                                                     source_line  = DATA(lv_line) ).
+    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
-    DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname &&  `/source/main`.
+    DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
     DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
     DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) && lv_source format = cl_abap_format=>e_xml_attr ).
 
@@ -1578,9 +1576,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_handler->ms_next-s_set-s_msg_toast = VALUE #(
-        text = text
-    ).
+    mo_handler->ms_next-s_set-s_msg_toast = VALUE #( text = text ).
 
   ENDMETHOD.
 
@@ -1588,8 +1584,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     mo_handler->ms_next-s_set-s_msg_box = VALUE #(
           text = text
-          type = type
-          ).
+          type = type  ).
 
   ENDMETHOD.
 
