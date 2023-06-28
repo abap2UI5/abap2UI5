@@ -233,7 +233,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS suggestion_items
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS suggestion_columns
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS suggestion_rows
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vertical_layout
       IMPORTING class         TYPE clike OPTIONAL
@@ -274,13 +283,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showclearicon    TYPE clike OPTIONAL
                 valuestate       TYPE clike OPTIONAL
                 valuestatetext   TYPE clike OPTIONAL
+                showTableSuggestionValueHelp   TYPE clike OPTIONAL
                 description      TYPE clike OPTIONAL
                 editable         TYPE clike OPTIONAL
                 enabled          TYPE clike OPTIONAL
                 suggestionitems  TYPE clike OPTIONAL
+                suggestionrows   TYPE clike OPTIONAL
                 showsuggestion   TYPE clike OPTIONAL
                 showvaluehelp    TYPE clike OPTIONAL
                 valuehelprequest TYPE clike OPTIONAL
+                suggest          TYPE clike OPTIONAL
                 class            TYPE clike OPTIONAL
                 visible          TYPE clike OPTIONAL
                 submit           TYPE clike OPTIONAL
@@ -925,9 +937,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD begin_column_pages.
-
-    result = _generic( name = `beginColumnPages`
-                        ns  = 'f' ).
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 
@@ -1255,10 +1266,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD end_column_pages.
-
-    result = _generic( name = `endColumnPages`
-                       ns   = 'f' ).
-
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 
@@ -1530,10 +1539,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `editable`         v = lcl_utility=>get_json_boolean( editable ) )
                                 ( n = `enabled`          v = lcl_utility=>get_json_boolean( enabled ) )
                                 ( n = `visible`          v = lcl_utility=>get_json_boolean( visible ) )
+                                ( n = `showTableSuggestionValueHelp`          v = lcl_utility=>get_json_boolean( showTableSuggestionValueHelp ) )
                                 ( n = `valueState`       v = valuestate )
                                 ( n = `valueStateText`   v = valuestatetext )
                                 ( n = `value`            v = value )
+                                ( n = `suggest`          v = suggest )
                                 ( n = `suggestionItems`  v = suggestionitems )
+                                ( n = `suggestionRows`   v = suggestionrows )
                                 ( n = `showSuggestion`   v = lcl_utility=>get_json_boolean( showsuggestion ) )
                                 ( n = `valueHelpRequest` v = valuehelprequest )
                                 ( n = `submit`           v = submit )
@@ -1731,10 +1743,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD mid_column_pages.
-
-    result = _generic( name = `midColumnPages`
-                       ns   = 'f' ).
-
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 
@@ -2059,6 +2069,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns   = `uxap` ).
   ENDMETHOD.
 
+  METHOD suggestion_columns.
+    result = _generic( `suggestionColumns` ).
+  ENDMETHOD.
+
+  METHOD suggestion_rows.
+    result = _generic( `suggestionRows` ).
+  ENDMETHOD.
 
   METHOD suggestion_items.
     result = _generic( `suggestionItems` ).
