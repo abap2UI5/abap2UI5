@@ -1045,7 +1045,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_transit = abap_true ) && `" ` && |\n| &&
     `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
-    ` /><Button visible="false"/><Link text="More on github..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/LINKS.md" /></f:content></f:SimpleForm>`.
+    ` /><Button visible="false"/><Link text="More on github..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md" /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 
@@ -1581,7 +1581,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~message_toast_display.
 
     mo_handler->ms_next-s_set-s_msg_toast = VALUE #(
-        text = text ).
+        text = text
+    ).
 
   ENDMETHOD.
 
@@ -1589,7 +1590,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     mo_handler->ms_next-s_set-s_msg_box = VALUE #(
           text = text
-          type = type ).
+          type = type
+          ).
 
   ENDMETHOD.
 
