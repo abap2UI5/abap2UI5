@@ -929,7 +929,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                    ` /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
 
     client->view_display( lv_xml ).
-*      RETURN.
 
   ENDMETHOD.
 
