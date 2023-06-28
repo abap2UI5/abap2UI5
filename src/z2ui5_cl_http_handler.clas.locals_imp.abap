@@ -754,13 +754,10 @@ CLASS z2ui5_lcl_fw_app DEFINITION.
     DATA:
       BEGIN OF ms_error,
         x_error   TYPE REF TO cx_root,
-        classname TYPE string,
-        kind      TYPE string,
       END OF ms_error.
 
     DATA:
       BEGIN OF ms_home,
-        is_initialized         TYPE abap_bool,
         btn_text               TYPE string,
         btn_event_id           TYPE string,
         btn_icon               TYPE string,
@@ -777,15 +774,14 @@ CLASS z2ui5_lcl_fw_app DEFINITION.
         VALUE(result) TYPE REF TO z2ui5_lcl_fw_app.
 
     DATA mv_is_initialized TYPE abap_bool.
-    DATA mv_view_name      TYPE string.
+
+    DATA client TYPE REF TO z2ui5_if_client.
 
     METHODS z2ui5_on_init.
+    METHODS z2ui5_on_event.
+    METHODS view_display_error.
+    METHODS view_display_start.
 
-    METHODS z2ui5_on_event
-      IMPORTING client TYPE REF TO z2ui5_if_client.
-
-    METHODS z2ui5_on_rendering
-      IMPORTING client TYPE REF TO z2ui5_if_client.
   PRIVATE SECTION.
     DATA lv_check_demo TYPE abap_bool.
 
@@ -796,13 +792,20 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
+    me->client = client.
+
     IF mv_is_initialized = abap_false.
       mv_is_initialized = abap_true.
       z2ui5_on_init( ).
     ENDIF.
 
-    z2ui5_on_event( client ).
-    z2ui5_on_rendering( client ).
+    z2ui5_on_event( ).
+
+    IF ms_error-x_error IS BOUND.
+      view_display_error( ).
+    ELSE.
+      view_display_start( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -816,15 +819,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
   METHOD z2ui5_on_init.
 
     IF ms_error-x_error IS NOT BOUND.
-      mv_view_name = 'HOME'.
-      ms_home-is_initialized = abap_true.
       ms_home-btn_text       = `check`.
       ms_home-btn_event_id   = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
       ms_home-btn_icon       = `sap-icon://validate`.
       ms_home-classname      = `z2ui5_cl_app_hello_world`.
-    ELSE.
-      mv_view_name = 'ERROR'.
     ENDIF.
 
     lv_check_demo = abap_true.
@@ -833,111 +832,109 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
-    CASE mv_view_name.
+    CASE client->get( )-event.
 
-      WHEN `HOME`.
-        CASE client->get( )-event.
+      WHEN `BUTTON_CHANGE`.
+        ms_home-btn_text       = `check`.
+        ms_home-btn_event_id   = `BUTTON_CHECK`.
+        ms_home-btn_icon       = `sap-icon://validate`.
+        ms_home-class_editable = abap_true.
 
-          WHEN `BUTTON_CHANGE`.
-            ms_home-btn_text       = `check`.
-            ms_home-btn_event_id   = `BUTTON_CHECK`.
-            ms_home-btn_icon       = `sap-icon://validate`.
-            ms_home-class_editable = abap_true.
+      WHEN `BUTTON_CHECK`.
+        TRY.
+            DATA li_app_test TYPE REF TO z2ui5_if_app.
+            ms_home-classname = z2ui5_lcl_utility=>get_trim_upper( ms_home-classname ).
+            CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
-          WHEN `BUTTON_CHECK`.
-            TRY.
-                " TODO: variable is assigned but never used (ABAP cleaner)
-                DATA li_app_test TYPE REF TO z2ui5_if_app.
-                ms_home-classname = z2ui5_lcl_utility=>get_trim_upper( ms_home-classname ).
-                CREATE OBJECT li_app_test TYPE (ms_home-classname).
+            client->message_toast_display( `App is ready to start!` ).
+            ms_home-btn_text          = `edit`.
+            ms_home-btn_event_id      = `BUTTON_CHANGE`.
+            ms_home-btn_icon          = `sap-icon://edit`.
+            ms_home-class_value_state = `Success`.
+            ms_home-class_editable    = abap_false.
 
-                client->message_toast_display( `App is ready to start!` ).
-                ms_home-btn_text          = `edit`.
-                ms_home-btn_event_id      = `BUTTON_CHANGE`.
-                ms_home-btn_icon          = `sap-icon://edit`.
-                ms_home-class_value_state = `Success`.
-                ms_home-class_editable    = abap_false.
+          CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+            ms_home-class_value_state_text = lx->get_text( ).
+            ms_home-class_value_state      = `Warning`.
+            client->message_box_display( text = ms_home-class_value_state_text type = `error` ).
+        ENDTRY.
 
-              CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
-                ms_home-class_value_state_text = lx->get_text( ).
-                ms_home-class_value_state      = `Warning`.
-                client->message_box_display( text = ms_home-class_value_state_text type = `error` ).
-            ENDTRY.
+      WHEN `DEMOS`.
 
-          WHEN `DEMOS`.
-
-            DATA li_app TYPE REF TO z2ui5_if_app.
-            TRY.
-                CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-                lv_check_demo = abap_true.
-                client->nav_app_call( li_app ).
-              CATCH cx_root.
-                lv_check_demo = abap_false.
-            ENDTRY.
-
-        ENDCASE.
+        DATA li_app TYPE REF TO z2ui5_if_app.
+        TRY.
+            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+            lv_check_demo = abap_true.
+            client->nav_app_call( li_app ).
+          CATCH cx_root.
+            lv_check_demo = abap_false.
+        ENDTRY.
 
     ENDCASE.
+
   ENDMETHOD.
 
-  METHOD z2ui5_on_rendering.
 
-    IF ms_error-x_error IS BOUND.
+  METHOD view_display_error.
 
-      ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
-                                                       include_name = DATA(lv_incl)
-                                                       source_line  = DATA(lv_line) ).
-      DATA(lv_source) = `(` && lv_prog && `/` && lv_incl && `/` && lv_line && `)`.
+    WHILE  ms_error-x_error->previous IS BOUND.
+      ms_error-x_error =  ms_error-x_error->previous.
+    ENDWHILE.
 
-      DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) format = cl_abap_format=>e_xml_attr ) && lv_source.
-*     &&
-*            ` -------------------------------------------------------------------------------------------- Source Code Position: ` &&
-*            lv_prog && ` / ` && lv_incl && ` / ` && lv_line && ` `.
+    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog)
+                                                     include_name = DATA(lv_incl)
+                                                     source_line  = DATA(lv_line) ).
 
-      DATA(lv_xml) = `<mvc:View ` && |\n| &&
-                     `  xmlns="sap.m" ` && |\n| &&
-                     `  xmlns:z2ui5="z2ui5" ` && |\n| &&
-                     `  xmlns:core="sap.ui.core" ` && |\n| &&
-                     `  xmlns:mvc="sap.ui.core.mvc" ` && |\n| &&
-                     `  xmlns:layout="sap.ui.layout" ` && |\n| &&
-                     `  xmlns:f="sap.f" ` && |\n| &&
-                     `  xmlns:form="sap.ui.layout.form" ` && |\n| &&
-                     `  xmlns:editor="sap.ui.codeeditor" ` && |\n| &&
-                     `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n| &&
-                     `  xmlns:webc="sap.ui.webc.main" ` && |\n| &&
-                     `  xmlns:uxap="sap.uxap" ` && |\n| &&
-                     `  xmlns:sap="sap" ` && |\n| &&
-                     `  xmlns:text="sap.ui.richtextedito" ` && |\n| &&
-                     `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n| &&
-                     `  displayBlock="true" ` && |\n| &&
-                     `  height="100%" ` && |\n| &&
-                     `  controllerName="z2ui5_controller" ` && |\n| &&
-                     ` > <Shell>` && |\n| &&
-*                     ` <Page ` && |\n|  &&
-                     `<IllustratedMessage ` && |\n| &&
-                     `  illustrationType="sapIllus-ErrorScreen" ` && |\n| &&
-                     `  enableFormattedText="true" ` && |\n| &&
-                     `  illustrationSize="sapIllus-ErrorScreen" ` && |\n| &&
-                     `  description="` && lv_descr && `"` && |\n| &&
-                     `  title="500 Internal Server Error" ` && |\n| &&
-                     ` > <additionalContent ` && |\n| &&
-                     ` > ` &&
-                     `<Button ` && |\n| &&
-                     `  press="` && client->_event_client( client->cs_event-leave_home )  && `" ` && |\n| &&
-                     `  text="Home" ` && |\n| &&
-                     `  type="Emphasized" ` && |\n| &&
-                     ` />` &&
-                     `<Button ` && |\n| &&
-*                    `  enabled="` && lv_check_back && `"`  &&
-                     `  press="` && client->_event_client( client->cs_event-leave_restart ) && `" ` && |\n| &&
-                     `  text="Restart" ` && |\n| &&
-                     `  ` && |\n| &&
-                     ` /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
+    SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
+    DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname &&  `/source/main`.
+    DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
+    DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) && lv_source format = cl_abap_format=>e_xml_attr ).
 
-      client->view_display( lv_xml ).
-      RETURN.
+    DATA(lv_xml) = `<mvc:View ` && |\n| &&
+                   `  xmlns="sap.m" ` && |\n| &&
+                   `  xmlns:z2ui5="z2ui5" ` && |\n| &&
+                   `  xmlns:core="sap.ui.core" ` && |\n| &&
+                   `  xmlns:mvc="sap.ui.core.mvc" ` && |\n| &&
+                   `  xmlns:layout="sap.ui.layout" ` && |\n| &&
+                   `  xmlns:f="sap.f" ` && |\n| &&
+                   `  xmlns:form="sap.ui.layout.form" ` && |\n| &&
+                   `  xmlns:editor="sap.ui.codeeditor" ` && |\n| &&
+                   `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n| &&
+                   `  xmlns:webc="sap.ui.webc.main" ` && |\n| &&
+                   `  xmlns:uxap="sap.uxap" ` && |\n| &&
+                   `  xmlns:sap="sap" ` && |\n| &&
+                   `  xmlns:text="sap.ui.richtextedito" ` && |\n| &&
+                   `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n| &&
+                   `  displayBlock="true" ` && |\n| &&
+                   `  height="100%" ` && |\n| &&
+                   `  controllerName="z2ui5_controller" ` && |\n| &&
+                   ` > <Shell>` && |\n| &&
+                   `<IllustratedMessage ` && |\n| &&
+                   `  illustrationType="sapIllus-ErrorScreen" ` && |\n| &&
+                   `  enableFormattedText="true" ` && |\n| &&
+                   `  illustrationSize="sapIllus-ErrorScreen" ` && |\n| &&
+                   `  description="` && lv_descr && `"` && |\n| &&
+                   `  title="500 Internal Server Error" ` && |\n| &&
+                   ` > <additionalContent ` && |\n| &&
+                   ` > ` &&
+                   `<Button ` && |\n| &&
+                   `  press="` && client->_event_client( client->cs_event-leave_home )  && `" ` && |\n| &&
+                   `  text="Home" ` && |\n| &&
+                   `  type="Emphasized" ` && |\n| &&
+                   ` />` &&
+                   `<Button ` && |\n| &&
+                   `  press="` && client->_event_client( client->cs_event-leave_restart ) && `" ` && |\n| &&
+                   `  text="Restart" ` && |\n| &&
+                   `  ` && |\n| &&
+                   ` /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
 
-    ENDIF.
+    client->view_display( lv_xml ).
+*      RETURN.
+
+  ENDMETHOD.
+
+
+  METHOD view_display_start.
 
     TRY.
 
@@ -1050,7 +1047,9 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 
     client->view_display( lv_xml_main ).
+
   ENDMETHOD.
+
 ENDCLASS.
 
 
