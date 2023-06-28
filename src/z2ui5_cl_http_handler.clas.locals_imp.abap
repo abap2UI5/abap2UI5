@@ -1584,7 +1584,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     mo_handler->ms_next-s_set-s_msg_box = VALUE #(
           text = text
-          type = type  ).
+          type = type ).
 
   ENDMETHOD.
 
