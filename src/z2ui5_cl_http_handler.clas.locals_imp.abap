@@ -1137,6 +1137,7 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
               ASSIGN (lv_assign) TO <attri>.
               ASSIGN <attri>->* TO <deref_attri>.
 
+
               lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <deref_attri> ).
               CLEAR <deref_attri>.
               CLEAR <attri>.
