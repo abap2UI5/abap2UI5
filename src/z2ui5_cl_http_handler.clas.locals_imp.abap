@@ -289,7 +289,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_root.
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
                          lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
@@ -321,7 +321,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
         ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
         CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
 
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_root.
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
@@ -909,7 +909,8 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     DATA(lv_txt) = ms_error-x_error->get_text( ).
-    SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
+*    SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
+    data(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
     DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
     DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
     DATA(lv_descr) = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
@@ -1096,7 +1097,8 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
     LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
 
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-      ASSIGN (lv_assign) TO FIELD-SYMBOL(<ref>).
+      FIELD-SYMBOLS <ref> type any.
+      ASSIGN (lv_assign) TO <ref>.
 
       z2ui5_lcl_utility=>rtti_set(
         EXPORTING
@@ -1130,8 +1132,10 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
             LOOP AT ls_db-t_attri REFERENCE INTO data(lr_attri) WHERE check_ref_data = abap_true.
 
               DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-              ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
-              ASSIGN <attri>->* TO FIELD-SYMBOL(<deref_attri>).
+              FIELD-SYMBOLS <attri> type any.
+              FIELD-SYMBOLS <deref_attri> type any.
+              ASSIGN (lv_assign) TO <attri>.
+              ASSIGN <attri>->* TO <deref_attri>.
 
               lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <deref_attri> ).
               CLEAR <deref_attri>.
