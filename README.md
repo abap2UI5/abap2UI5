@@ -71,7 +71,7 @@ METHOD if_http_service_extension~handle_request.
    DATA(lt_header) = request->get_header_fields( ).
 
    DATA(lv_resp) = SWITCH #( request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( check_logging = abap_true )
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
       WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post(
          body      = request->get_text( )
          path_info = lt_header[ name = `~path_info` ]-value ) ).
