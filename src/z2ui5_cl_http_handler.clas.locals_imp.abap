@@ -18,7 +18,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
-        s_msg  TYPE LINE OF bapirettab,
+        text   type string,
       END OF ms_error.
 
     METHODS constructor
@@ -118,13 +118,14 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD constructor.
+
     super->constructor( previous = previous ).
     CLEAR textid.
 
     TRY.
         ms_error-x_root ?= val.
       CATCH cx_root ##CATCH_ALL.
-        ms_error-s_msg-message = val.
+        ms_error-text = val.
     ENDTRY.
 
     TRY.
@@ -280,7 +281,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         DATA srtti TYPE REF TO object.
 
-        CALL METHOD ('ZCL_SRTTI_TYPEDESCR')=>('CREATE_BY_DATA_OBJECT')
+        CALL METHOD ('ZCL_SRTTI_TYPEDESCR2')=>('CREATE_BY_DATA_OBJECT')
           EXPORTING
             data_object = data
           RECEIVING
@@ -288,7 +289,15 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-      CATCH cx_root.
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
+        DATA(lv_text) = x->get_text( ).
+        lv_text = lv_text && `<p> Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
+
+        RAISE EXCEPTION TYPE z2ui5_lcl_utility
+          EXPORTING
+            val = lv_text.
+
     ENDTRY.
 
   ENDMETHOD.
@@ -380,11 +389,12 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_text.
+
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
       DATA(error) = abap_true.
-    ELSEIF ms_error-s_msg-message IS NOT INITIAL.
-      result = ms_error-s_msg-message.
+    ELSEIF ms_error-text IS NOT INITIAL.
+      result = ms_error-text.
       error = abap_true.
     ENDIF.
 
@@ -702,7 +712,10 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
 
     METHODS set_app_call
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+      IMPORTING
+        check_no_db_save TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
 
     METHODS set_app_system
       IMPORTING VALUE(ix)     TYPE REF TO cx_root OPTIONAL
@@ -753,7 +766,7 @@ CLASS z2ui5_lcl_fw_app DEFINITION.
 
     DATA:
       BEGIN OF ms_error,
-        x_error   TYPE REF TO cx_root,
+        x_error TYPE REF TO cx_root,
       END OF ms_error.
 
     DATA:
@@ -883,10 +896,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
+    data(lv_txt) = ms_error-x_error->get_text( ).
     SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
     DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
     DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
-    DATA(lv_descr) = escape( val = ms_error-x_error->get_text( ) && lv_source format = cl_abap_format=>e_xml_attr ).
+    DATA(lv_descr) = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -912,7 +926,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                    `  enableFormattedText="true" ` && |\n| &&
                    `  illustrationSize="sapIllus-ErrorScreen" ` && |\n| &&
                    `  description="` && lv_descr && `"` && |\n| &&
-                   `  title="500 Internal Server Error" ` && |\n| &&
+                   `  title="abap2UI5 - 500 Internal Server Error" ` && |\n| &&
                    ` > <additionalContent ` && |\n| &&
                    ` > ` &&
                    `<Button ` && |\n| &&
@@ -1066,21 +1080,21 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*    DATA(lo_app) = CAST object( result-o_app ) ##NEEDED.
-*    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
-*
-*      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-*      ASSIGN (lv_assign) TO FIELD-SYMBOL(<ref>).
-*
-*      z2ui5_lcl_utility=>rtti_set(
-*        EXPORTING
-*          rtti_data = lr_attri->data_rtti
-*         IMPORTING
-*           e_data   = <ref> ).
-*
-*      CLEAR lr_attri->data_rtti.
-*
-*    ENDLOOP.
+    DATA(lo_app) = CAST object( result-o_app ) ##NEEDED.
+    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
+
+      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+      ASSIGN (lv_assign) TO FIELD-SYMBOL(<ref>).
+
+      z2ui5_lcl_utility=>rtti_set(
+        EXPORTING
+          rtti_data = lr_attri->data_rtti
+         IMPORTING
+           e_data   = <ref> ).
+
+      CLEAR lr_attri->data_rtti.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1090,40 +1104,40 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
         DATA(lv_xml) = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
 
-      CATCH cx_xslt_serialization_error.
+      CATCH cx_xslt_serialization_error INTO DATA(x).
 
-*        DATA(ls_db) = db.
-*
-*        ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
-*
-*        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
-*        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
-*        IF <obj2> IS ASSIGNED.
-*          ASSERT 1 = 0.
-*        ENDIF.
-*
-*        IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
-*          RAISE EXCEPTION x.
-*        ENDIF.
-*
-*        LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
-*          RAISE EXCEPTION x.
-*        ENDLOOP.
-*
-*        lo_app = CAST object( ls_db-o_app ).
-*        LOOP AT ls_db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
-*
-*          DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-*          ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
-*          ASSIGN <attri>->* TO FIELD-SYMBOL(<attri2>).
-*
-*          lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
-*          CLEAR <attri2>.
-*          CLEAR <attri>.
-*
-*        ENDLOOP.
-*
-*        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
+        DATA(ls_db) = db.
+
+        ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
+
+        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
+        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
+        IF <obj2> IS ASSIGNED.
+          ASSERT 1 = 0.
+        ENDIF.
+
+        IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
+          RAISE EXCEPTION x.
+        ENDIF.
+
+        LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
+          RAISE EXCEPTION x.
+        ENDLOOP.
+
+        lo_app = CAST object( ls_db-o_app ).
+        LOOP AT ls_db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
+
+          DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+          ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
+          ASSIGN <attri>->* TO FIELD-SYMBOL(<attri2>).
+
+          lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
+          CLEAR <attri2>.
+          CLEAR <attri>.
+
+        ENDLOOP.
+
+        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
 
     ENDTRY.
 
@@ -1459,7 +1473,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_call.
 
-    z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
+    IF check_no_db_save = abap_false.
+      z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
+    ENDIF.
 
     result = NEW #( ).
     result->ms_db-id    = z2ui5_lcl_utility=>get_uuid( ).
@@ -1555,8 +1571,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     IF ix IS BOUND.
       ms_next-o_call_app = z2ui5_lcl_fw_app=>factory_error( error = ix ).
-      result = set_app_call( ).
+
+      result = set_app_call( check_no_db_save = abap_true ).
       RETURN.
+
     ELSE.
       result->ms_db-o_app = NEW z2ui5_lcl_fw_app( ).
     ENDIF.
