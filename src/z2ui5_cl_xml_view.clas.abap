@@ -24,15 +24,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-         t_ns          TYPE ty_t_name_value OPTIONAL
-         client        TYPE REF TO z2ui5_if_client
+        t_ns          TYPE ty_t_name_value OPTIONAL
+        client        TYPE REF TO z2ui5_if_client
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS factory_popup
       IMPORTING
-        t_ns          TYPE ty_t_name_value OPTIONAL
-         client        TYPE REF TO z2ui5_if_client
+                t_ns          TYPE ty_t_name_value OPTIONAL
+                client        TYPE REF TO z2ui5_if_client
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS hlp_get_source_code_url
@@ -66,12 +66,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS Illustrated_Message
       IMPORTING
-        enableVerticalResponsiveness TYPE clike OPTIONAL
-        enableFormattedText TYPE clike OPTIONAL
-        illustrationType             TYPE clike OPTIONAL
-        title type clike optional
-        description type clike optional
-        illustrationsize type clike optional
+                enableVerticalResponsiveness TYPE clike OPTIONAL
+                enableFormattedText          TYPE clike OPTIONAL
+                illustrationType             TYPE clike OPTIONAL
+                title                        TYPE clike OPTIONAL
+                description                  TYPE clike OPTIONAL
+                illustrationsize             TYPE clike OPTIONAL
       RETURNING VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS additional_Content
@@ -147,8 +147,23 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS Object_Page_Dyn_Header_Title
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS GenericTile
+      IMPORTING
+        class         TYPE clike OPTIONAL
+        header        TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
+        frametype     TYPE clike OPTIONAL
+        subheader     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS TileContent
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS expanded_heading
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS snapped_heading
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -236,11 +251,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-  METHODS suggestion_columns
+    METHODS suggestion_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-  METHODS suggestion_rows
+    METHODS suggestion_rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -276,28 +291,28 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS input
-      IMPORTING id               TYPE clike OPTIONAL
-                value            TYPE clike OPTIONAL
-                placeholder      TYPE clike OPTIONAL
-                type             TYPE clike OPTIONAL
-                showclearicon    TYPE clike OPTIONAL
-                valuestate       TYPE clike OPTIONAL
-                valuestatetext   TYPE clike OPTIONAL
-                showTableSuggestionValueHelp   TYPE clike OPTIONAL
-                description      TYPE clike OPTIONAL
-                editable         TYPE clike OPTIONAL
-                enabled          TYPE clike OPTIONAL
-                suggestionitems  TYPE clike OPTIONAL
-                suggestionrows   TYPE clike OPTIONAL
-                showsuggestion   TYPE clike OPTIONAL
-                showvaluehelp    TYPE clike OPTIONAL
-                valuehelprequest TYPE clike OPTIONAL
-                suggest          TYPE clike OPTIONAL
-                class            TYPE clike OPTIONAL
-                visible          TYPE clike OPTIONAL
-                submit           TYPE clike OPTIONAL
+      IMPORTING id                           TYPE clike OPTIONAL
+                value                        TYPE clike OPTIONAL
+                placeholder                  TYPE clike OPTIONAL
+                type                         TYPE clike OPTIONAL
+                showclearicon                TYPE clike OPTIONAL
+                valuestate                   TYPE clike OPTIONAL
+                valuestatetext               TYPE clike OPTIONAL
+                showTableSuggestionValueHelp TYPE clike OPTIONAL
+                description                  TYPE clike OPTIONAL
+                editable                     TYPE clike OPTIONAL
+                enabled                      TYPE clike OPTIONAL
+                suggestionitems              TYPE clike OPTIONAL
+                suggestionrows               TYPE clike OPTIONAL
+                showsuggestion               TYPE clike OPTIONAL
+                showvaluehelp                TYPE clike OPTIONAL
+                valuehelprequest             TYPE clike OPTIONAL
+                suggest                      TYPE clike OPTIONAL
+                class                        TYPE clike OPTIONAL
+                visible                      TYPE clike OPTIONAL
+                submit                       TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
-      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dialog
       IMPORTING title         TYPE clike OPTIONAL
@@ -833,10 +848,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !selectionmode          TYPE clike DEFAULT 'Single'
         !enablecolumnreordering TYPE clike DEFAULT 'false'
         !expandfirstlevel       TYPE clike DEFAULT 'false'
-        !COLUMNSELECT           type CLIKE optional
-        !ROWSELECTIONCHANGE     type CLIKE optional
-        !SELECTIONBEHAVIOR      type CLIKE default 'RowSelector'
-        !SELECTEDINDEX          type CLIKE optional
+        !columnselect           TYPE clike OPTIONAL
+        !rowselectionchange     TYPE clike OPTIONAL
+        !selectionbehavior      TYPE clike DEFAULT 'RowSelector'
+        !selectedindex          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_columns
@@ -845,7 +860,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS tree_column
       IMPORTING
         !label        TYPE clike
-        !HALIGN       type CLIKE default 'Begin'
+        !halign       TYPE clike DEFAULT 'Begin'
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_template
@@ -893,7 +908,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2312,4 +2327,29 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     m_root->m_last = result2.
     result = result2.
   ENDMETHOD.
+
+  METHOD generictile.
+
+    result = me.
+     _generic(
+        name  = `GenericTile`
+        ns    = ``
+        t_prop = VALUE #(
+                  ( n = `class`                    v = class )
+                  ( n = `header`           v = header )
+                  ( n = `press`  v = press )
+                                        ( n = `frameType`        v = frametype )
+                                        ( n = `subheader`            v = subheader )
+                                        ) ).
+
+  ENDMETHOD.
+
+  METHOD tilecontent.
+
+    result = _generic( name  = `TileContent`
+                      ns     = ``
+                ).
+
+  ENDMETHOD.
+
 ENDCLASS.
