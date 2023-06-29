@@ -18,7 +18,7 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
-        text   type string,
+        text   TYPE string,
       END OF ms_error.
 
     METHODS constructor
@@ -281,7 +281,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         DATA srtti TYPE REF TO object.
 
-        CALL METHOD ('ZCL_SRTTI_TYPEDESCR2')=>('CREATE_BY_DATA_OBJECT')
+        CALL METHOD ('ZCL_SRTTI_TYPEDESCR')=>('CREATE_BY_DATA_OBJECT')
           EXPORTING
             data_object = data
           RECEIVING
@@ -291,8 +291,8 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-        DATA(lv_text) = x->get_text( ).
-        lv_text = lv_text && `<p> Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
+        DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
+                         lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
         RAISE EXCEPTION TYPE z2ui5_lcl_utility
           EXPORTING
@@ -304,20 +304,32 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   METHOD rtti_set.
 
-    DATA srtti TYPE REF TO object.
-    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
+    TRY.
 
-    DATA rtti_type TYPE REF TO cl_abap_typedescr.
-    CALL METHOD srtti->('GET_RTTI')
-      RECEIVING
-        rtti = rtti_type.
+        DATA srtti TYPE REF TO object.
+        CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
 
-    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
-    lo_datadescr ?= rtti_type.
+        DATA rtti_type TYPE REF TO cl_abap_typedescr.
+        CALL METHOD srtti->('GET_RTTI')
+          RECEIVING
+            rtti = rtti_type.
 
-    CREATE DATA e_data TYPE HANDLE lo_datadescr.
-    ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
-    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
+        DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
+        lo_datadescr ?= rtti_type.
+
+        CREATE DATA e_data TYPE HANDLE lo_datadescr.
+        ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
+        CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
+
+      CATCH cx_root INTO DATA(x).
+        DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
+        DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
+
+        RAISE EXCEPTION TYPE z2ui5_lcl_utility
+          EXPORTING
+            val = lv_text.
+
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -896,7 +908,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
-    data(lv_txt) = ms_error-x_error->get_text( ).
+    DATA(lv_txt) = ms_error-x_error->get_text( ).
     SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
     DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
     DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
@@ -926,7 +938,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                    `  enableFormattedText="true" ` && |\n| &&
                    `  illustrationSize="sapIllus-ErrorScreen" ` && |\n| &&
                    `  description="` && lv_descr && `"` && |\n| &&
-                   `  title="abap2UI5 - 500 Internal Server Error" ` && |\n| &&
+                   `  title="500 Internal Server Error" ` && |\n| &&
                    ` > <additionalContent ` && |\n| &&
                    ` > ` &&
                    `<Button ` && |\n| &&
@@ -1105,40 +1117,37 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
         DATA(lv_xml) = z2ui5_lcl_utility=>trans_object_2_xml( REF #( db ) ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
+        TRY.
 
-        DATA(ls_db) = db.
+            DATA(ls_db) = db.
+            DATA(lo_app) = CAST object( ls_db-o_app ).
 
-        ASSIGN ('LS_DB-O_APP') TO FIELD-SYMBOL(<obj>).
+            IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
+              RAISE EXCEPTION x.
+            ENDIF.
 
-        DATA(lo_app) = CAST object( <obj> ) ##NEEDED.
-        ASSIGN ('LO_APP->MS_ERROR-X_ERROR') TO FIELD-SYMBOL(<obj2>).
-        IF <obj2> IS ASSIGNED.
-          ASSERT 1 = 0.
-        ENDIF.
+            lo_app = CAST object( ls_db-o_app ).
+            LOOP AT ls_db-t_attri REFERENCE INTO data(lr_attri) WHERE check_ref_data = abap_true.
 
-        IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
-          RAISE EXCEPTION x.
-        ENDIF.
+              DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+              ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
+              ASSIGN <attri>->* TO FIELD-SYMBOL(<deref_attri>).
 
-        LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE data_rtti <> ''.
-          RAISE EXCEPTION x.
-        ENDLOOP.
+              lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <deref_attri> ).
+              CLEAR <deref_attri>.
+              CLEAR <attri>.
 
-        lo_app = CAST object( ls_db-o_app ).
-        LOOP AT ls_db-t_attri REFERENCE INTO lr_attri WHERE check_ref_data = abap_true.
+            ENDLOOP.
 
-          DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-          ASSIGN (lv_assign) TO FIELD-SYMBOL(<attri>).
-          ASSIGN <attri>->* TO FIELD-SYMBOL(<attri2>).
+            lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
 
-          lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <attri2> ).
-          CLEAR <attri2>.
-          CLEAR <attri>.
+          CATCH cx_root INTO DATA(x2).
 
-        ENDLOOP.
+            RAISE EXCEPTION TYPE z2ui5_lcl_utility
+              EXPORTING
+                val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ).
 
-        lv_xml = z2ui5_lcl_utility=>trans_object_2_xml( REF #( ls_db ) ).
-
+        ENDTRY.
     ENDTRY.
 
     DATA(ls_draft) = VALUE z2ui5_t_draft( uuid                = id

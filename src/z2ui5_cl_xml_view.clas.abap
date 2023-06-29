@@ -2335,20 +2335,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name  = `GenericTile`
         ns    = ``
         t_prop = VALUE #(
-                  ( n = `class`                    v = class )
-                  ( n = `header`           v = header )
-                  ( n = `press`  v = press )
-                                        ( n = `frameType`        v = frametype )
-                                        ( n = `subheader`            v = subheader )
-                                        ) ).
+                  ( n = `class`      v = class )
+                  ( n = `header`     v = header )
+                  ( n = `press`      v = press )
+                  ( n = `frameType`  v = frametype )
+                  ( n = `subheader`  v = subheader ) ) ).
 
   ENDMETHOD.
 
   METHOD tilecontent.
 
     result = _generic( name  = `TileContent`
-                      ns     = ``
-                ).
+                       ns    = `` ).
 
   ENDMETHOD.
 
