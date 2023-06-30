@@ -26,5 +26,5 @@ jobs:
         publish_branch: main
         force_orphan: true
         publish_dir: ./build
-        deploy_key: ${{ secrets.deploy_key }}
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
 
