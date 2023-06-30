@@ -20,5 +20,5 @@
 * 3
 
 ### Productive Usage
-* Transport to the productive system
+* Transport to a productive system
 * Upgrade the project
