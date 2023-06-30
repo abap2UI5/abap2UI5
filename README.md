@@ -44,7 +44,7 @@
 * And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
 
 #### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a HTTP service with the following handler:
+Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
 ```abap
 METHOD if_http_extension~handle_request.
