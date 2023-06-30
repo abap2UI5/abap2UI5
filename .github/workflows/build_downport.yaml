@@ -25,6 +25,6 @@ jobs:
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main
-        publish_dir: ./src
+        publish_dir: ./downport
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
         destination_dir: src
