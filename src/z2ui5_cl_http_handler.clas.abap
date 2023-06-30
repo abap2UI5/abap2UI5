@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -372,12 +372,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
           ROLLBACK WORK.
 
-          IF lo_handler->ms_next-check_app_leave IS NOT INITIAL.
+          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
             lo_handler = lo_handler->set_app_leave( ).
             CONTINUE.
           ENDIF.
 
-          IF lo_handler->ms_next-o_call_app IS NOT INITIAL.
+           IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
             lo_handler = lo_handler->set_app_call( ).
             CONTINUE.
           ENDIF.

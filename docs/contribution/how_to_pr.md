@@ -1,4 +1,4 @@
-## How-to-contribute
+## How-to-PR
 This tutorial explains how to transfer changes from a local ABAP system to the public abap2UI5 repository. <br>
 
 **1. Create a Fork of the abap2UI5 repository on github:**
