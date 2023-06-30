@@ -1273,8 +1273,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD model_set_backend.
 
-    DATA(lo_app)   = CAST object( app ).
-    DATA(lr_model) = CAST data( model ).
+    DATA(lo_app)   = CAST object( app ) ##NEEDED.
+    DATA(lr_model) = CAST data( model ) ##NEEDED.
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
          WHERE bind_type = cs_bind_type-two_way.
@@ -1325,19 +1325,19 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD model_set_frontend.
 
-    DATA(lo_app) = CAST object( app ).
-    DATA(r_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
-    DATA(lo_update) = r_view_model->add_attribute_object( `oUpdate` ).
+    DATA(lo_app) = CAST object( app ) ##NEEDED.
+    DATA(lr_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
+    DATA(lo_update) = lr_view_model->add_attribute_object( `oUpdate` ).
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
       IF lr_attri->bind_type = cs_bind_type-one_time.
-        r_view_model->add_attribute( n = lr_attri->name v = lr_attri->data_stringify apos_active = abap_false ).
+        lr_view_model->add_attribute( n = lr_attri->name v = lr_attri->data_stringify apos_active = abap_false ).
         CONTINUE.
       ENDIF.
 
       DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way
-                                THEN r_view_model
+                                THEN lr_view_model
                                 ELSE lo_update ).
 
       FIELD-SYMBOLS <attribute> TYPE any.
@@ -1372,7 +1372,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       ENDCASE.
     ENDLOOP.
 
-    result = r_view_model->stringify( ).
+    result = lr_view_model->stringify( ).
+
   ENDMETHOD.
 
   METHOD set_app_client.
