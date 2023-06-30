@@ -1069,7 +1069,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           `                    oControl.oUploadButton = new Button({` && |\n| &&
                           `                        text: oControl.getProperty("buttonText"),` && |\n| &&
                           `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
-                          `                        press: function (oEvent) {` && |\n| &&
+                          `                        press: function (oEvent) { ` && |\n| &&
                           |\n| &&
                           `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
                           |\n| &&
