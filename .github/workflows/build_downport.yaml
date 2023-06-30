@@ -28,4 +28,5 @@ jobs:
         force_orphan: true
         publish_dir: ./src
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+        destination_dir: src
 
