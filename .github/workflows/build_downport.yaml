@@ -18,7 +18,7 @@ jobs:
         node-version: 20
     - run: npm ci
     - run: npm run downport
-    - name: update downport repository
+    - name: send to downport repository
       uses: peaceiris/actions-gh-pages@v3
       with:
         external_repository: abap2UI5/abap2UI5-downport
