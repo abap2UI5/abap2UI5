@@ -26,5 +26,5 @@ jobs:
         publish_branch: main
         force_orphan: true
         publish_dir: ./build
-        github_token: ${{ secrets.GITHUB_TOKEN }}
+        deploy_key: ${{ secrets.deploy_key }}
 
