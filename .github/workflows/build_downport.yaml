@@ -2,7 +2,7 @@ name: build_downport
 
 on:
   push:
-    branches: [_action_test]
+    branches: [main]
 
 permissions:
   contents: read
@@ -18,14 +18,13 @@ jobs:
         node-version: 20
     - run: npm ci
     - run: npm run downport
-    - name: update downport repository
+    - name: send to downport repository2
       uses: peaceiris/actions-gh-pages@v3
       with:
-        deploy_key: ${{ secrets.DEPLOY_KEY }}
         external_repository: abap2UI5/abap2UI5-downport
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main
-        force_orphan: true
-        publish_dir: ./build
-
+        publish_dir: ./src
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
+        destination_dir: src
