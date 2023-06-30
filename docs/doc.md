@@ -5,7 +5,7 @@
 * Create a new HTTP service (on-premise / cloud)
 
 ### First Steps
-* Create an app
+* Create your first app
 
 ### Contribution
 * Find a bug or miss a feature?
