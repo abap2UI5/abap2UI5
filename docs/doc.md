@@ -4,8 +4,10 @@
 * Install the project with abapGit (on-premise / cloud)
 * Create a new HTTP service (on-premise / cloud)
 
-### First Steps
+### Development
 * Create your first app
+* Debugging
+* Configuration
 
 ### Contribution
 * Find a bug or miss a feature?
