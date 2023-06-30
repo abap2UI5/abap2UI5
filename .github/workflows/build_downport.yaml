@@ -26,6 +26,6 @@ jobs:
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main
         force_orphan: true
-        publish_dir: ./build
+        publish_dir: .
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
 
