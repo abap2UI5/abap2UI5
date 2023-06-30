@@ -1,4 +1,4 @@
-CLASS y2ui5_cl_http_handler DEFINITION
+CLASS zcl_my_handler_cloud DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -11,7 +11,7 @@ ENDCLASS.
 
 
 
-CLASS y2ui5_cl_http_handler IMPLEMENTATION.
+CLASS zcl_my_handler_cloud IMPLEMENTATION.
 
   METHOD if_http_service_extension~handle_request.
 
@@ -27,5 +27,5 @@ CLASS y2ui5_cl_http_handler IMPLEMENTATION.
     response->set_status( 200 )->set_text( lv_resp ).
 
   ENDMETHOD.
-  
+
 ENDCLASS.
