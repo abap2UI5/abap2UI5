@@ -4,7 +4,7 @@ Follow this project on [**twitter** :sound:](https://twitter.com/abap2UI5) to ke
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
 * low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF or RAP)
-* cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
+* cloud and on-premise ready – works with both lguage versions (ABAP for Cloud, Standard ABAP)
 * high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2305)
 * easy installation – abapGit project, no additional app deployment needed
 
