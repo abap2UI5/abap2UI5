@@ -1651,8 +1651,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `suggestionRows`   v = suggestionrows )
                                 ( n = `showSuggestion`   v = lcl_utility=>get_json_boolean( showsuggestion ) )
                                 ( n = `valueHelpRequest` v = valuehelprequest )
-                                ( n = `autocomplete`           v = autocomplete )
-                                ( n = `valueLiveUpdate`           v = lcl_utility=>get_json_boolean( valueLiveUpdate ) )
+                                ( n = `autocomplete`     v = lcl_utility=>get_json_boolean( autocomplete ) )
+                                ( n = `valueLiveUpdate`  v = lcl_utility=>get_json_boolean( valueLiveUpdate ) )
                                 ( n = `submit`           v = lcl_utility=>get_json_boolean( submit ) )
                                 ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
                                 ( n = `class`            v = class ) ) ).
