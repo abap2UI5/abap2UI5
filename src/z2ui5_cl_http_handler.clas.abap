@@ -35,12 +35,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
-          (  name = `data-sap-ui-theme`         value = `sap_horizon` )
-          (  name = `src`                       value = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-          (  name = `data-sap-ui-libs`          value = `sap.m` )
-          (  name = `data-sap-ui-bindingSyntax` value = `complex` )
-          (  name = `data-sap-ui-frameOptions`  value = `trusted` )
-          (  name = `data-sap-ui-compatVersion` value = `edge` ) ).
+          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+          (  n = `data-sap-ui-libs`          v = `sap.m` )
+          (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+          (  n = `data-sap-ui-frameOptions`  v = `trusted` )
+          (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
     ENDIF.
 
     IF content_security_policy IS NOT SUPPLIED.
@@ -66,7 +66,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `    <script id="sap-ui-bootstrap"`.
 
     LOOP AT lt_config REFERENCE INTO DATA(lr_config).
-      r_result = r_result && | { lr_config->name }="{ lr_config->value }"|.
+      r_result = r_result && | { lr_config->n }="{ lr_config->v }"|.
     ENDLOOP.
 
     r_result = r_result &&

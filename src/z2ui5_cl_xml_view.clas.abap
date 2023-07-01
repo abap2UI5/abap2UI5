@@ -4,34 +4,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
   CREATE PROTECTED.
 
   PUBLIC SECTION.
-    TYPES:
-      BEGIN OF ty_s_name_value,
-        n TYPE string,
-        v TYPE string,
-      END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-
-    DATA m_name   TYPE string.
-    DATA m_ns     TYPE string.
-    DATA mt_prop  TYPE ty_t_name_value.
-
-    DATA m_root   TYPE REF TO z2ui5_cl_xml_view.
-    DATA m_last   TYPE REF TO z2ui5_cl_xml_view.
-    DATA m_parent TYPE REF TO z2ui5_cl_xml_view.
-    DATA t_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
-
-    DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
 
     CLASS-METHODS factory
       IMPORTING
-        t_ns          TYPE ty_t_name_value OPTIONAL
+        t_ns          TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         client        TYPE REF TO z2ui5_if_client
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS factory_popup
       IMPORTING
-                t_ns          TYPE ty_t_name_value OPTIONAL
+                t_ns          TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
                 client        TYPE REF TO z2ui5_if_client
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -826,7 +809,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         name          TYPE clike
         ns            TYPE clike           OPTIONAL
-        t_prop        TYPE ty_t_name_value OPTIONAL
+        t_prop        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -967,6 +950,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
   PROTECTED SECTION.
+
+    DATA mv_name  TYPE string.
+    DATA mv_ns     TYPE string.
+    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
+
+    DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_previous   TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
+    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
+
+    DATA mi_client TYPE REF TO z2ui5_if_client.
+*    DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
+
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -1383,16 +1380,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       result->mt_prop = t_ns.
     ENDIF.
 
-    result->ss_config = client->get( )-s_config.
+    result->mi_client = client.
     result->mt_prop  = VALUE #( BASE result->mt_prop
                                 (  n = 'displayBlock'   v = 'true' )
                                 (  n = 'height'         v = '100%' )
-                                (  n = 'controllerName' v = result->ss_config-controller_name ) ).
+                                (  n = 'controllerName' v = client->get( )-s_config-controller_name ) ).
 
-    result->m_name   = `View`.
-    result->m_ns     = `mvc`.
-    result->m_root   = result.
-    result->m_parent = result.
+    result->mv_name   = `View`.
+    result->mv_ns     = `mvc`.
+    result->mo_root   = result.
+    result->mo_parent = result.
 
   ENDMETHOD.
 
@@ -1405,11 +1402,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       result->mt_prop = t_ns.
     ENDIF.
 
-    result->ss_config = client->get( )-s_config.
-    result->m_name   = `FragmentDefinition`.
-    result->m_ns     = `core`.
-    result->m_root   = result.
-    result->m_parent = result.
+    result->mi_client = client.
+    result->mv_name   = `FragmentDefinition`.
+    result->mv_ns     = `core`.
+    result->mo_root   = result.
+    result->mo_parent = result.
   ENDMETHOD.
 
 
@@ -1515,22 +1512,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD get.
-    result = m_root->m_last.
+    result = mo_root->mo_previous.
   ENDMETHOD.
 
 
   METHOD get_child.
-    result = t_child[ index ].
+    result = mt_child[ index ].
   ENDMETHOD.
 
 
   METHOD get_parent.
-    result = m_parent.
+    result = mo_parent.
   ENDMETHOD.
 
 
   METHOD get_root.
-    result = m_root.
+    result = mo_root.
   ENDMETHOD.
 
 
@@ -1589,8 +1586,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD hlp_get_source_code_url.
 
-    result = m_root->ss_config-origin &&
-      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( m_root->ss_config-app ) &&
+    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
+
+    result = ls_config-origin &&
+      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( ls_config-app ) &&
        `/source/main`.
 
   ENDMETHOD.
@@ -1598,11 +1597,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD hlp_replace_controller_name.
 
+    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
+
     result = lcl_utility=>get_replace(
                  iv_val     = xml
                  iv_begin   = 'controllerName="'
                  iv_end     = '"'
-                 iv_replace = `controllerName="` && ss_config-controller_name && `"` ).
+                 iv_replace = `controllerName="` && ls_config-controller_name && `"` ).
 
   ENDMETHOD.
 
@@ -2470,13 +2471,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD xml_get.
 
-    CASE m_name.
+    CASE mv_name.
       WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
         RETURN.
     ENDCASE.
 
-    DATA(lv_tmp2) = COND #( WHEN m_ns <> `` THEN |{ m_ns }:| ).
+    DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
     DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
                           NEXT val = |{ val } { row-n }="{ escape(
                                                                val    = COND string( WHEN row-v = abap_true
@@ -2484,21 +2485,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                                                                      ELSE row-v )
                                                                format = cl_abap_format=>e_xml_attr ) }" \n | ).
 
-    result = |{ result } <{ lv_tmp2 }{ m_name } \n { lv_tmp3 }|.
+    result = |{ result } <{ lv_tmp2 }{ mv_name } \n { lv_tmp3 }|.
 
-    IF t_child IS INITIAL.
+    IF mt_child IS INITIAL.
       result = |{ result }/>|.
       RETURN.
     ENDIF.
 
     result = |{ result }>|.
 
-    LOOP AT t_child INTO DATA(lr_child).
+    LOOP AT mt_child INTO DATA(lr_child).
       result = result && CAST z2ui5_cl_xml_view( lr_child )->xml_get( ).
     ENDLOOP.
 
-    DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
-    result = |{ result }</{ lv_ns }{ m_name }>|.
+    DATA(lv_ns) = COND #( WHEN mv_ns <> || THEN |{ mv_ns }:| ).
+    result = |{ result }</{ lv_ns }{ mv_name }>|.
 
   ENDMETHOD.
 
@@ -2513,14 +2514,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD _generic.
 
     DATA(result2) = NEW z2ui5_cl_xml_view( ).
-    result2->m_name   = name.
-    result2->m_ns     = ns.
+    result2->mv_name   = name.
+    result2->mv_ns     = ns.
     result2->mt_prop  = t_prop.
-    result2->m_parent = me.
-    result2->m_root   = m_root.
-    INSERT result2 INTO TABLE t_child.
+    result2->mo_parent = me.
+    result2->mo_root   = mo_root.
+    INSERT result2 INTO TABLE mt_child.
 
-    m_root->m_last = result2.
+    mo_root->mo_previous = result2.
     result = result2.
 
   ENDMETHOD.

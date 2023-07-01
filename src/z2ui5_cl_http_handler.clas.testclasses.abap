@@ -379,9 +379,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
       client->view_display( `test` ).
       client->cursor_set( VALUE #( id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10' ) ).
 
-      client->scroll_position_set( VALUE #( value = '99999'
-                                ( name = 'id_page' )
-                                ( name = 'id_text3' ) ) ).
+      client->scroll_position_set( VALUE #( v = '99999'
+                                ( n = 'id_page' )
+                                ( n = 'id_text3' ) ) ).
 
     ENDIF.
 

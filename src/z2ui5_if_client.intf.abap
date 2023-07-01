@@ -21,12 +21,12 @@ INTERFACE z2ui5_if_client
       app             TYPE REF TO z2ui5_if_app,
     END OF ty_S_config.
 
-  TYPES:
-    BEGIN OF ty_s_name_value,
-      name  TYPE string,
-      value TYPE string,
-    END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_get,
