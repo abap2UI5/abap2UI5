@@ -1407,6 +1407,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mv_ns     = `core`.
     result->mo_root   = result.
     result->mo_parent = result.
+
   ENDMETHOD.
 
 

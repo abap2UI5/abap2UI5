@@ -10,7 +10,7 @@ INTERFACE z2ui5_if_client
     END OF cs_event.
 
   TYPES:
-    BEGIN OF ty_S_config,
+    BEGIN OF ty_s_config,
       controller_name TYPE string,
       version         TYPE string,
       pathname        TYPE string,
@@ -21,12 +21,12 @@ INTERFACE z2ui5_if_client
       app             TYPE REF TO z2ui5_if_app,
     END OF ty_S_config.
 
-    TYPES:
-      BEGIN OF ty_s_name_value,
-        n TYPE string,
-        v TYPE string,
-      END OF ty_s_name_value.
-    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES:
+    BEGIN OF ty_s_name_value,
+      n TYPE string,
+      v TYPE string,
+    END OF ty_s_name_value.
+  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_get,
@@ -52,7 +52,7 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val TYPE string.
+      val TYPE clike.
 
   METHODS cursor_set
     IMPORTING
@@ -60,18 +60,18 @@ INTERFACE z2ui5_if_client
 
   METHODS scroll_position_set
     IMPORTING
-      val TYPE ty_s_get-t_scroll_pos.
+      val TYPE ty_t_name_value.
 
   METHODS popup_display
     IMPORTING
-      val TYPE string.
+      val TYPE clike.
 
   METHODS popup_close.
 
   METHODS popover_display
     IMPORTING
-      xml   TYPE string
-      by_id TYPE string.
+      xml   TYPE clike
+      by_id TYPE clike.
 
   METHODS popover_close.
 
@@ -95,13 +95,13 @@ INTERFACE z2ui5_if_client
 
   METHODS message_box_display
     IMPORTING
-      text TYPE string
-      type TYPE string DEFAULT 'information'.
+      text TYPE clike
+      type TYPE clike DEFAULT 'information'.
 
   METHODS timer_set
     IMPORTING
-      interval_ms    TYPE string
-      event_finished TYPE string.
+      interval_ms    TYPE clike
+      event_finished TYPE clike.
 
   METHODS message_toast_display
     IMPORTING
@@ -131,7 +131,7 @@ INTERFACE z2ui5_if_client
 
   METHODS _event_client
     IMPORTING
-      val           TYPE string
+      val           TYPE clike
     RETURNING
       VALUE(result) TYPE string.
 
