@@ -8,7 +8,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
       IMPORTING
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         content_security_policy TYPE clike                            OPTIONAL
-        check_logging           TYPE abap_bool                        DEFAULT abap_false
+        check_logging           TYPE abap_bool                        OPTIONAL
       RETURNING
         VALUE(r_result)         TYPE string.
 
@@ -377,7 +377,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-           IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
+          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
             lo_handler = lo_handler->set_app_call( ).
             CONTINUE.
           ENDIF.
