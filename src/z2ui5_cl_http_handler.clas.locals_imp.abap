@@ -1256,17 +1256,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
                                  ELSE model_set_frontend( app = ms_db-o_app t_attri = ms_db-t_attri ) ).
 
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
-    CLEAR ms_next-s_set-_viewmodel.
-
+    lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
+    lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
 
     ms_next-s_set-path = ss_config-path_info.
 
-    lo_resp->add_attribute( n = `PARAMS` v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
-
-    lo_resp->add_attribute( n = `ID`     v = ms_db-id ).
-
     result = lo_resp->get_root( )->stringify( ).
-
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
@@ -1698,9 +1693,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    DATA(lv_hold_view) = xsdbool( check_view_transit = abap_false ).
-
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'isHoldView' : ` && z2ui5_lcl_utility=>get_json_boolean( lv_hold_view ) && ` }`.
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'checkViewTransit' : ` && z2ui5_lcl_utility=>get_json_boolean( check_view_transit ) && ` }`.
 
     LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
       result = result && `,` && lr_arg->*.
