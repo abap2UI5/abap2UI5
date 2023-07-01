@@ -2281,6 +2281,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD toggle_button.
+
     result = me.
     _generic( name   = `ToggleButton`
               t_prop = VALUE #( ( n = `press`   v = press )
@@ -2293,6 +2294,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD token.
+
     result = me.
     _generic( name   = `Token`
               t_prop = VALUE #( ( n = `key`      v = key )
@@ -2304,38 +2306,49 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD tokens.
+
     result = _generic( `tokens` ).
+
   ENDMETHOD.
 
 
   METHOD toolbar.
+
     result = _generic( `Toolbar` ).
+
   ENDMETHOD.
 
 
   METHOD toolbar_spacer.
+
     result = me.
     _generic( name = `ToolbarSpacer`
               ns   = ns ).
+
   ENDMETHOD.
 
 
   METHOD tree_column.
+
     result = _generic( name = `Column`
                   ns        = `table`
                   t_prop    = VALUE #(
                           ( n = `label`   v = label )
                           ( n = `hAlign`  v = halign ) ) ).
+
   ENDMETHOD.
 
 
   METHOD tree_columns.
+
     result = _generic( name = `columns`
                   ns        = `table` ).
+
   ENDMETHOD.
 
 
   METHOD tree_table.
+
     result = _generic( name  = `TreeTable`
                       ns     = `table`
                       t_prop = VALUE #(
@@ -2351,8 +2364,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD tree_template.
+
     result = _generic( name = `template`
                   ns        = `table` ).
+
   ENDMETHOD.
 
 
@@ -2396,6 +2411,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `firstVisibleRow`           v = firstvisiblerow )
                            ( n = `fixedBottomRowCount`       v = fixedbottomrowcount )
                            ( n = `fixedColumnCount`          v = fixedColumnCount )
+                           ( n = `rowactioncount`            v = rowactioncount )
                            ( n = `fixedRowCount`             v = fixedRowCount )
                            ( n = `minAutoRowCount`           v = minAutoRowCount )
                            ( n = `minAutoRowCount`           v = minAutoRowCount )
@@ -2418,12 +2434,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD ui_template.
+
     result = _generic( name   = `template`
                        ns     = 'table' ).
+
   ENDMETHOD.
 
 
   METHOD vbox.
+
     result = _generic( name   = `VBox`
                        t_prop = VALUE #( ( n = `height` v = height )
                                          ( n = `justifyContent`  v = justifyContent )
@@ -2432,6 +2451,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD vertical_layout.
+
     result = _generic( name   = `VerticalLayout`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `class`  v = class )
@@ -2440,6 +2460,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD xml_get.
+
     CASE m_name.
       WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
@@ -2469,6 +2490,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     DATA(lv_ns) = COND #( WHEN m_ns <> || THEN |{ m_ns }:| ).
     result = |{ result }</{ lv_ns }{ m_name }>|.
+
   ENDMETHOD.
 
 
@@ -2480,6 +2502,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD _generic.
+
     DATA(result2) = NEW z2ui5_cl_xml_view( ).
     result2->m_name   = name.
     result2->m_ns     = ns.
@@ -2490,5 +2513,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     m_root->m_last = result2.
     result = result2.
+
   ENDMETHOD.
+
 ENDCLASS.
