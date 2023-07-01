@@ -2419,7 +2419,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = 'u'
                     t_prop = VALUE #(
                           ( n = `value` v = value )
-                          ( n = `currency`  v = currency  ) ) ).
+                          ( n = `currency`  v = currency ) ) ).
 
   ENDMETHOD.
 
