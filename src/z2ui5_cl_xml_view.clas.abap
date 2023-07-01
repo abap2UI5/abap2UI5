@@ -317,15 +317,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dialog
-      IMPORTING title         TYPE clike OPTIONAL
-                icon          TYPE clike OPTIONAL
-                showheader    TYPE clike OPTIONAL
-                stretch       TYPE clike OPTIONAL
-                contentheight TYPE clike OPTIONAL
-                contentwidth  TYPE clike OPTIONAL
-                resizable     TYPE clike OPTIONAL
-                  PREFERRED PARAMETER title
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        title         TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        showheader    TYPE clike OPTIONAL
+        stretch       TYPE clike OPTIONAL
+        contentheight TYPE clike OPTIONAL
+        contentwidth  TYPE clike OPTIONAL
+        resizable     TYPE clike OPTIONAL
+          PREFERRED PARAMETER title
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS carousel
       IMPORTING
@@ -1317,6 +1319,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD dialog.
+
     result = _generic( name   = `Dialog`
                        t_prop = VALUE #( ( n = `title`  v = title )
                                          ( n = `icon`  v = icon )
@@ -1325,6 +1328,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `contentWidth`  v = contentwidth )
                                          ( n = `contentHeight`  v = contentheight )
                                          ( n = `resizable`  v = lcl_utility=>get_json_boolean( resizable ) ) ) ).
+
   ENDMETHOD.
 
 

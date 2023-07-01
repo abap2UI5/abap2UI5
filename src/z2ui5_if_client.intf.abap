@@ -98,10 +98,10 @@ INTERFACE z2ui5_if_client
       text TYPE string
       type TYPE string DEFAULT 'information'.
 
-    methods timer_set
-        importing
-            interval_ms    type string
-            event_finished type string.
+  METHODS timer_set
+    IMPORTING
+      interval_ms    TYPE string
+      event_finished TYPE string.
 
   METHODS message_toast_display
     IMPORTING
@@ -110,7 +110,7 @@ INTERFACE z2ui5_if_client
   METHODS _event
     IMPORTING
       val                TYPE clike
-      check_view_transit TYPE abap_bool DEFAULT abap_false
+      check_view_destroy TYPE abap_bool    DEFAULT abap_false
       t_arg              TYPE string_table OPTIONAL
     RETURNING
       VALUE(result)      TYPE string.
