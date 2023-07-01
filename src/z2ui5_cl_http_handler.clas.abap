@@ -9,6 +9,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         content_security_policy TYPE clike                            OPTIONAL
         check_logging           TYPE abap_bool                        OPTIONAL
+          PREFERRED PARAMETER t_config
       RETURNING
         VALUE(r_result)         TYPE string.
 
