@@ -14,19 +14,22 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     CLASS-METHODS factory_popup
       IMPORTING
-                t_ns          TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-                client        TYPE REF TO z2ui5_if_client
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        t_ns          TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        client        TYPE REF TO z2ui5_if_client
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS constructor.
 
     METHODS hlp_get_source_code_url
       RETURNING
         VALUE(result) TYPE string.
 
     METHODS hlp_replace_controller_name
-      IMPORTING xml           TYPE string
-      RETURNING VALUE(result) TYPE string.
-
-    METHODS constructor.
+      IMPORTING
+        xml           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS horizontal_layout
       IMPORTING class         TYPE clike OPTIONAL

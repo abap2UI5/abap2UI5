@@ -1705,7 +1705,12 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~cursor_set.
 
-    mo_handler->ms_next-s_set-s_cursor = val.
+    mo_handler->ms_next-s_set-s_cursor = value #(
+     id = id
+     cursorpos = cursorpos
+     selectionend = selectionend
+     selectionstart = selectionstart
+     ).
 
   ENDMETHOD.
 

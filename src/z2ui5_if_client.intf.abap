@@ -56,7 +56,10 @@ INTERFACE z2ui5_if_client
 
   METHODS cursor_set
     IMPORTING
-      val TYPE ty_s_get-s_cursor.
+      id             TYPE clike
+      cursorpos      TYPE clike
+      selectionstart TYPE clike
+      selectionend   TYPE clike.
 
   METHODS scroll_position_set
     IMPORTING
