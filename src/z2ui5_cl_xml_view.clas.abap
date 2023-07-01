@@ -898,9 +898,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS mid_column_pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS end_column_pages
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS ui_table
       IMPORTING
         !rows                     TYPE clike OPTIONAL
@@ -932,7 +934,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !customfilter             TYPE clike OPTIONAL
           PREFERRED PARAMETER rows
       RETURNING
-        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS ui_column
       IMPORTING
         !width               TYPE clike OPTIONAL
@@ -965,7 +968,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1270,6 +1273,16 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD currency.
+    result = _generic( name   = `Currency`
+                       ns     = 'u'
+                    t_prop = VALUE #(
+                          ( n = `value` v = value )
+                          ( n = `currency`  v = currency ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD custom_data.
     result = _generic( `customData` ).
   ENDMETHOD.
@@ -1368,7 +1381,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result->mt_prop  = VALUE #( BASE result->mt_prop
                                 (  n = 'displayBlock'   v = 'true' )
                                 (  n = 'height'         v = '100%' )
-*                                (  n = 'controllerName' v = z2ui5_cl_http_handler=>config-controller_name ) ).
                                 (  n = 'controllerName' v = result->ss_config-controller_name ) ).
 
     result->m_name   = `View`.
@@ -1467,6 +1479,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     _generic( name   = `FormattedText`
               t_prop = VALUE #( ( n = `htmlText`   v = htmltext ) ) ).
+  ENDMETHOD.
+
+
+  METHOD generictile.
+
+    result = me.
+    _generic(
+       name  = `GenericTile`
+       ns    = ``
+       t_prop = VALUE #(
+                 ( n = `class`      v = class )
+                 ( n = `header`     v = header )
+                 ( n = `press`      v = press )
+                 ( n = `frameType`  v = frametype )
+                 ( n = `subheader`  v = subheader ) ) ).
+
   ENDMETHOD.
 
 
@@ -2148,13 +2176,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD suggestion_rows.
-    result = _generic( `suggestionRows` ).
+  METHOD suggestion_items.
+    result = _generic( `suggestionItems` ).
   ENDMETHOD.
 
 
-  METHOD suggestion_items.
-    result = _generic( `suggestionItems` ).
+  METHOD suggestion_rows.
+    result = _generic( `suggestionRows` ).
   ENDMETHOD.
 
 
@@ -2221,6 +2249,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `id` v = id )
                                 ( n = `growing` v = lcl_utility=>get_json_boolean( growing ) )
                                 ( n = `growingMaxLines` v = growingmaxlines ) ) ).
+  ENDMETHOD.
+
+
+  METHOD tilecontent.
+
+    result = _generic( name  = `TileContent`
+                       ns    = `` ).
+
   ENDMETHOD.
 
 
@@ -2320,6 +2356,73 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD ui_column.
+    result = _generic( name   = `Column`
+                       ns     = 'table'
+                       t_prop = VALUE #(
+                          ( n = `width` v = width )
+                          ( n = `showSortMenuEntry`    v = showSortMenuEntry  )
+                          ( n = `sortProperty`         v = sortProperty  )
+                          ( n = `showFilterMenuEntry`  v = showFilterMenuEntry )
+                          ( n = `filterProperty`       v = filterProperty ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ui_columns.
+    result = _generic( name   = `columns`
+                       ns     = 'table' ).
+  ENDMETHOD.
+
+
+  METHOD ui_extension.
+
+    result = _generic( name   = `extension`
+                       ns     = 'table' ).
+  ENDMETHOD.
+
+
+  METHOD ui_table.
+
+    result = _generic( name   = `Table`
+                       ns     = 'table'
+                       t_prop = VALUE #(
+                           ( n = `rows`                      v = rows )
+                           ( n = `alternateRowColors`        v = lcl_utility=>get_json_boolean( alternateRowColors ) )
+                           ( n = `columnHeaderVisible`       v = columnheadervisible )
+                           ( n = `editable`                  v = lcl_utility=>get_json_boolean( editable ) )
+                           ( n = `enableCellFilter`          v = lcl_utility=>get_json_boolean( enablecellfilter ) )
+                           ( n = `enableGrouping`            v = lcl_utility=>get_json_boolean( enablegrouping ) )
+                           ( n = `senableSelectAll`          v = lcl_utility=>get_json_boolean( enableselectall ) )
+                           ( n = `firstVisibleRow`           v = firstvisiblerow )
+                           ( n = `fixedBottomRowCount`       v = fixedbottomrowcount )
+                           ( n = `fixedColumnCount`          v = fixedColumnCount )
+                           ( n = `fixedRowCount`             v = fixedRowCount )
+                           ( n = `minAutoRowCount`           v = minAutoRowCount )
+                           ( n = `minAutoRowCount`           v = minAutoRowCount )
+                           ( n = `rowHeight`                 v = rowHeight )
+                           ( n = `selectedIndex`             v = selectedIndex )
+                           ( n = `selectionMode`             v = selectionMode )
+                           ( n = `showColumnVisibilityMenu`  v = lcl_utility=>get_json_boolean( showColumnVisibilityMenu ) )
+                           ( n = `showNoData`                v = lcl_utility=>get_json_boolean( showNoData ) )
+                           ( n = `threshold`                 v = threshold )
+                           ( n = `visibleRowCount`           v = visibleRowCount )
+                           ( n = `visibleRowCountMode`       v = visibleRowCountMode )
+                           ( n = `with`                      v = with )
+                           ( n = `footer`                    v = footer )
+                           ( n = `filter`                    v = filter )
+                           ( n = `sort`                      v = sort )
+                           ( n = `customFilter`              v = customFilter )
+                           ( n = `rowSelectionChange`        v = rowSelectionChange )
+                            ) ).
+  ENDMETHOD.
+
+
+  METHOD ui_template.
+    result = _generic( name   = `template`
+                       ns     = 'table' ).
+  ENDMETHOD.
+
+
   METHOD vbox.
     result = _generic( name   = `VBox`
                        t_prop = VALUE #( ( n = `height` v = height )
@@ -2387,104 +2490,5 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     m_root->m_last = result2.
     result = result2.
-  ENDMETHOD.
-
-
-  METHOD generictile.
-
-    result = me.
-    _generic(
-       name  = `GenericTile`
-       ns    = ``
-       t_prop = VALUE #(
-                 ( n = `class`      v = class )
-                 ( n = `header`     v = header )
-                 ( n = `press`      v = press )
-                 ( n = `frameType`  v = frametype )
-                 ( n = `subheader`  v = subheader ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD tilecontent.
-
-    result = _generic( name  = `TileContent`
-                       ns    = `` ).
-
-  ENDMETHOD.
-
-
-  METHOD currency.
-    result = _generic( name   = `Currency`
-                       ns     = 'u'
-                    t_prop = VALUE #(
-                          ( n = `value` v = value )
-                          ( n = `currency`  v = currency ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD ui_column.
-    result = _generic( name   = `Column`
-                       ns     = 'table'
-                       t_prop = VALUE #(
-                          ( n = `width` v = width )
-                          ( n = `showSortMenuEntry`    v = showSortMenuEntry  )
-                          ( n = `sortProperty`         v = sortProperty  )
-                          ( n = `showFilterMenuEntry`  v = showFilterMenuEntry )
-                          ( n = `filterProperty`       v = filterProperty ) ) ).
-  ENDMETHOD.
-
-
-  METHOD ui_columns.
-    result = _generic( name   = `columns`
-                       ns     = 'table' ).
-  ENDMETHOD.
-
-
-  METHOD ui_extension.
-    result = _generic( name   = `extension`
-                       ns     = 'table' ).
-  ENDMETHOD.
-
-
-  METHOD ui_table.
-    result = _generic( name   = `Table`
-                       ns     = 'table'
-                       t_prop = VALUE #(
-                           ( n = `rows`                      v = rows )
-                           ( n = `alternateRowColors`        v = lcl_utility=>get_json_boolean( alternateRowColors ) )
-                           ( n = `columnHeaderVisible`       v = columnheadervisible )
-                           ( n = `editable`                  v = lcl_utility=>get_json_boolean( editable ) )
-                           ( n = `enableCellFilter`          v = lcl_utility=>get_json_boolean( enablecellfilter ) )
-                           ( n = `enableGrouping`            v = lcl_utility=>get_json_boolean( enablegrouping ) )
-                           ( n = `senableSelectAll`          v = lcl_utility=>get_json_boolean( enableselectall ) )
-                           ( n = `firstVisibleRow`           v = firstvisiblerow )
-                           ( n = `fixedBottomRowCount`       v = fixedbottomrowcount )
-                           ( n = `fixedColumnCount`          v = fixedColumnCount )
-                           ( n = `fixedRowCount`             v = fixedRowCount )
-                           ( n = `minAutoRowCount`           v = minAutoRowCount )
-                           ( n = `minAutoRowCount`           v = minAutoRowCount )
-                           ( n = `rowHeight`                 v = rowHeight )
-                           ( n = `selectedIndex`             v = selectedIndex )
-                           ( n = `selectionMode`             v = selectionMode )
-                           ( n = `showColumnVisibilityMenu`  v = lcl_utility=>get_json_boolean( showColumnVisibilityMenu ) )
-                           ( n = `showNoData`                v = lcl_utility=>get_json_boolean( showNoData ) )
-                           ( n = `threshold`                 v = threshold )
-                           ( n = `visibleRowCount`           v = visibleRowCount )
-                           ( n = `visibleRowCountMode`       v = visibleRowCountMode )
-                           ( n = `with`                      v = with )
-                           ( n = `footer`                    v = footer )
-                           ( n = `filter`                    v = filter )
-                           ( n = `sort`                      v = sort )
-                           ( n = `customFilter`              v = customFilter )
-                           ( n = `rowSelectionChange`        v = rowSelectionChange )
-                            ) ).
-  ENDMETHOD.
-
-
-  METHOD ui_template.
-    result = _generic( name   = `template`
-                       ns     = 'table' ).
   ENDMETHOD.
 ENDCLASS.
