@@ -427,6 +427,7 @@ ENDCLASS.
 CLASS z2ui5_lcl_utility_tree_json DEFINITION.
 
   PUBLIC SECTION.
+
     DATA mo_root         TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mo_parent       TYPE REF TO z2ui5_lcl_utility_tree_json.
     DATA mv_name         TYPE string.
@@ -492,7 +493,9 @@ ENDCLASS.
 
 
 CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
+
   METHOD add_attribute.
+
     DATA(lo_attri) = new( io_root = mo_root iv_name = n ).
 
     IF apos_active = abap_false.
@@ -505,16 +508,20 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     INSERT lo_attri INTO TABLE mt_values.
     result = me.
+
   ENDMETHOD.
 
   METHOD add_attribute_instance.
+
     val->mo_root   = mo_root.
     val->mo_parent = me.
     INSERT val INTO TABLE mt_values.
     result = val.
+
   ENDMETHOD.
 
   METHOD add_attribute_struc.
+
     FIELD-SYMBOLS <value> TYPE any.
 
     DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_datadescr=>describe_by_data( val ) ).
@@ -526,13 +533,16 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     ENDLOOP.
 
     result = me.
+
   ENDMETHOD.
 
   METHOD add_attribute_object.
+
     DATA(lo_attri) = new( io_root = mo_root iv_name = name ).
     mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
     lo_attri->mo_parent = me.
     result = lo_attri.
+
   ENDMETHOD.
 
   METHOD constructor.
@@ -540,6 +550,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD factory.
+
     result = NEW #( ).
     result->mo_root = result.
 
@@ -549,20 +560,20 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD new.
+
     result = NEW #( ).
     result->mo_root = io_root.
     result->mv_name = CONV string( iv_name ).
+
   ENDMETHOD.
 
   METHOD get_attribute.
-    CONSTANTS c_prefix TYPE string VALUE `MR_ACTUAL->`.
 
     z2ui5_lcl_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
-
     DATA(lo_attri) = new( io_root = mo_root iv_name = name ).
 
     FIELD-SYMBOLS <attribute> TYPE any.
-    DATA(lv_name) = c_prefix && replace( val = name sub = `-` with = `_` occ = 0 ).
+    DATA(lv_name) = 'MR_ACTUAL->' && replace( val = name sub = `-` with = `_` occ = 0 ).
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -570,17 +581,18 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     lo_attri->mo_parent = me.
 
     INSERT lo_attri INTO TABLE mt_values.
-
     result = lo_attri.
+
   ENDMETHOD.
 
   METHOD get_val.
-    FIELD-SYMBOLS <attribute> TYPE any.
 
+    FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
     z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
 
     result = <attribute>.
+
   ENDMETHOD.
 
   METHOD get_root.
@@ -1705,7 +1717,12 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~cursor_set.
 
-    mo_handler->ms_next-s_set-s_cursor = val.
+    mo_handler->ms_next-s_set-s_cursor = VALUE #(
+     id = id
+     cursorpos = cursorpos
+     selectionend = selectionend
+     selectionstart = selectionstart
+     ).
 
   ENDMETHOD.
 
