@@ -926,7 +926,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !visiblerowcount          TYPE clike OPTIONAL
         !visiblerowcountmode      TYPE clike OPTIONAL
         !alternaterowcolors       TYPE clike OPTIONAL
-        !with                     TYPE clike OPTIONAL
         !footer                   TYPE clike OPTIONAL
         !filter                   TYPE clike OPTIONAL
         !sort                     TYPE clike OPTIONAL
@@ -2423,13 +2422,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `threshold`                 v = threshold )
                            ( n = `visibleRowCount`           v = visibleRowCount )
                            ( n = `visibleRowCountMode`       v = visibleRowCountMode )
-                           ( n = `with`                      v = with )
                            ( n = `footer`                    v = footer )
                            ( n = `filter`                    v = filter )
                            ( n = `sort`                      v = sort )
                            ( n = `customFilter`              v = customFilter )
                            ( n = `rowSelectionChange`        v = rowSelectionChange )
                             ) ).
+
   ENDMETHOD.
 
 
