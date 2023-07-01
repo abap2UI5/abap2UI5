@@ -311,6 +311,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 class                        TYPE clike OPTIONAL
                 visible                      TYPE clike OPTIONAL
                 submit                       TYPE clike OPTIONAL
+                valueLiveUpdate              TYPE clike OPTIONAL
+                autocomplete                 TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
       RETURNING VALUE(result)                TYPE REF TO z2ui5_cl_xml_view.
 
@@ -496,6 +498,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 id            TYPE clike OPTIONAL
                 change        TYPE clike OPTIONAL
                 liveChange    TYPE clike OPTIONAL
+                autocomplete  TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_view
@@ -1648,7 +1651,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `suggestionRows`   v = suggestionrows )
                                 ( n = `showSuggestion`   v = lcl_utility=>get_json_boolean( showsuggestion ) )
                                 ( n = `valueHelpRequest` v = valuehelprequest )
-                                ( n = `submit`           v = submit )
+                                ( n = `autocomplete`           v = autocomplete )
+                                ( n = `valueLiveUpdate`           v = lcl_utility=>get_json_boolean( valueLiveUpdate ) )
+                                ( n = `submit`           v = lcl_utility=>get_json_boolean( submit ) )
                                 ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
                                 ( n = `class`            v = class ) ) ).
   ENDMETHOD.
@@ -2059,6 +2064,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `value`  v = value )
                                 ( n = `id`     v = id )
                                 ( n = `change` v = change )
+                                ( n = `autocomplete` v = lcl_utility=>get_json_boolean( autocomplete ) )
                                 ( n = `liveChange` v = liveChange ) ) ).
   ENDMETHOD.
 
