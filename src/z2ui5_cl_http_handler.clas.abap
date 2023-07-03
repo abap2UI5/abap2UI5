@@ -190,14 +190,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            onEventFrontend: function (oEvent) {` && |\n|  &&
                            |\n|  &&
                            `                switch (oEvent.EVENT) {` && |\n|  &&
-                           |\n|  &&
-                           `                    case 'LEAVE_HOME':` && |\n|  &&
-                           `                        if (sap.z2ui5.oResponse.PARAMS.PATH != '') {` && |\n|  &&
-                           `                            window.location = window.location.href.split(sap.z2ui5.oResponse.PARAMS.PATH)[0];` && |\n|  &&
-                           `                        } else { window.location.reload(); }` && |\n|  &&
-                           `                        break;` && |\n|  &&
-                           `                    case 'LEAVE_RESTART':` && |\n|  &&
-                           `                        window.location.reload();` && |\n|  &&
+                           `                    case 'LOCATION_RELOAD':` && |\n|  &&
+                           `                        window.location = arguments[ 1 ];` && |\n|  &&
                            `                        break;` && |\n|  &&
                            `                    case 'POPUP_CLOSE':` && |\n|  &&
                            `                        sap.z2ui5.oController.PopupClose();` && |\n|  &&

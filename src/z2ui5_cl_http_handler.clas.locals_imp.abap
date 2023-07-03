@@ -942,6 +942,12 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
     DATA(lv_descr) = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
 
+    DATA(ls_get) = client->get( ).
+    DATA(lv_url_app) =  ls_get-s_config-origin && ls_get-s_config-pathname.
+     DATA(lv_url) = lv_url_app.
+    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
+    SHIFT lv_url LEFT DELETING LEADING ` `.
+
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
                    `  xmlns:z2ui5="z2ui5" ` && |\n| &&
@@ -970,12 +976,12 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
                    ` > <additionalContent ` && |\n| &&
                    ` > ` &&
                    `<Button ` && |\n| &&
-                   `  press="` && client->_event_client( client->cs_event-leave_home )  && `" ` && |\n| &&
+                   `  press="` && client->_event_client( action = client->cs_event-location_reload t_arg = VALUE #( ( lv_url ) ) )  && `" ` && |\n| &&
                    `  text="Home" ` && |\n| &&
                    `  type="Emphasized" ` && |\n| &&
                    ` />` &&
                    `<Button ` && |\n| &&
-                   `  press="` && client->_event_client( client->cs_event-leave_restart ) && `" ` && |\n| &&
+                   `  press="` && client->_event_client( action = client->cs_event-location_reload t_arg = VALUE #( ( lv_url_app ) ) ) && `" ` && |\n| &&
                    `  text="Restart" ` && |\n| &&
                    `  ` && |\n| &&
                    ` /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
@@ -1251,12 +1257,57 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
+        result = set_app_client( lv_id_prev ).
+        result->ms_actual-check_on_navigated = abap_false.
       CATCH cx_root.
         result = set_app_start( ).
-        RETURN.
+        result->ms_actual-check_on_navigated = abap_true.
+*        RETURN.
     ENDTRY.
 
-    result = set_app_client( lv_id_prev ).
+
+    TRY.
+        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
+        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
+        DO.
+          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
+          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
+        ENDDO.
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_scroll) = so_body->get_attribute( `OSCROLL` ).
+        z2ui5_lcl_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_scroll->mr_actual
+                                                IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_cursor) = so_body->get_attribute( `OCURSOR` ).
+        result->ms_actual-s_cursor-id = lo_cursor->get_attribute( `ID` )->get_val( ).
+        result->ms_actual-s_cursor-cursorpos = lo_cursor->get_attribute( `CURSORPOS` )->get_val( ).
+        result->ms_actual-s_cursor-selectionend = lo_cursor->get_attribute( `SELECTIONEND` )->get_val( ).
+        result->ms_actual-s_cursor-selectionstart = lo_cursor->get_attribute( `SELECTIONSTART` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_location)  = so_body->get_attribute( `OLOCATION` ).
+        ss_config-origin   = lo_location->get_attribute( `ORIGIN` )->get_val( ).
+        ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
+        ss_config-search   = lo_location->get_attribute( `SEARCH` )->get_val( ).
+        ss_config-version  = lo_location->get_attribute( `VERSION` )->get_val( ).
+        ss_config-controller_name = `z2ui5_controller`.
+      CATCH cx_root.
+    ENDTRY.
+
+
   ENDMETHOD.
 
   METHOD request_end.
@@ -1391,54 +1442,16 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
-        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
-        DO.
-          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
-          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
-        ENDDO.
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_scroll) = so_body->get_attribute( `OSCROLL` ).
-        z2ui5_lcl_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_scroll->mr_actual
-                                                IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_cursor) = so_body->get_attribute( `OCURSOR` ).
-        result->ms_actual-s_cursor-id = lo_cursor->get_attribute( `ID` )->get_val( ).
-        result->ms_actual-s_cursor-cursorpos = lo_cursor->get_attribute( `CURSORPOS` )->get_val( ).
-        result->ms_actual-s_cursor-selectionend = lo_cursor->get_attribute( `SELECTIONEND` )->get_val( ).
-        result->ms_actual-s_cursor-selectionstart = lo_cursor->get_attribute( `SELECTIONSTART` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_location)  = so_body->get_attribute( `OLOCATION` ).
-        ss_config-origin   = lo_location->get_attribute( `ORIGIN` )->get_val( ).
-        ss_config-pathname = lo_location->get_attribute( `PATHNAME` )->get_val( ).
-        ss_config-search   = lo_location->get_attribute( `SEARCH` )->get_val( ).
-        ss_config-version  = lo_location->get_attribute( `VERSION` )->get_val( ).
-        ss_config-controller_name = `z2ui5_controller`.
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
         model_set_backend( model = so_body->get_attribute( `OUPDATE` )->mr_actual
                            app   = result->ms_db-o_app
                            t_attri  = result->ms_db-t_attri ).
       CATCH cx_root.
     ENDTRY.
 
-    result->ms_actual-check_on_navigated = abap_false.
+
+
+
+
 
   ENDMETHOD.
 
@@ -1467,13 +1480,15 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         ENDTRY.
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
-        result->ms_actual-check_on_navigated = abap_true.
+*        result->ms_actual-check_on_navigated = abap_true.
         RETURN.
 
       CATCH cx_root.
         result = result->set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
         RETURN.
     ENDTRY.
+
+
   ENDMETHOD.
 
   METHOD set_app_leave.
@@ -1611,8 +1626,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     r_result->ms_db-t_attri     = z2ui5_lcl_utility=>get_t_attri_by_ref( app ).
 
     r_result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
-    r_result->ms_next-s_Set = ms_next-s_set.
+    r_result->ms_actual-s_config = ms_actual-s_config.
     r_result->ms_actual-check_on_navigated = abap_true.
+
+    r_result->ms_next-s_Set = ms_next-s_set.
 
   ENDMETHOD.
 
@@ -1699,7 +1716,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    result = `onEventFrontend( { 'EVENT' : '` && val && `' } )`.
+    result = `onEventFrontend( { 'EVENT' : '` && action && `' }`.
+
+    LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
+      result = result && `, '` && lr_arg->* && `'`.
+    ENDLOOP.
+
+    result = result &&  ` )`.
 
   ENDMETHOD.
 

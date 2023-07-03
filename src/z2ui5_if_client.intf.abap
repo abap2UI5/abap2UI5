@@ -3,10 +3,9 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
-      popup_close   TYPE string VALUE `POPUP_CLOSE`,
-      popover_close TYPE string VALUE `POPOVER_CLOSE`,
-      leave_home    TYPE string VALUE `LEAVE_HOME`,
-      leave_restart TYPE string VALUE `LEAVE_RESTART`,
+      popup_close     TYPE string VALUE `POPUP_CLOSE`,
+      popover_close   TYPE string VALUE `POPOVER_CLOSE`,
+      location_reload TYPE string VALUE `LOCATION_RELOAD`,
     END OF cs_event.
 
   TYPES:
@@ -134,7 +133,8 @@ INTERFACE z2ui5_if_client
 
   METHODS _event_client
     IMPORTING
-      val           TYPE clike
+      action        TYPE clike
+      t_arg         TYPE string_table optional
     RETURNING
       VALUE(result) TYPE string.
 
