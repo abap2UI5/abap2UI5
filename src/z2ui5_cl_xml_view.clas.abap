@@ -878,15 +878,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS filter_control
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS flexible_column_layout
       IMPORTING
-        !layout       TYPE clike
+         layout       TYPE clike
+         id       TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS begin_column_pages
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS mid_column_pages
+    IMPORTING
+        !id                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1017,7 +1023,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD begin_column_pages.
     " todo, implement method
-    result = me.
+    result = _generic( name = `beginColumnPages`
+                       ns   = `f` ).
+
   ENDMETHOD.
 
 
@@ -1446,9 +1454,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD flexible_column_layout.
+
     result = _generic( name   = `FlexibleColumnLayout`
                        ns     = `f`
-                       t_prop = VALUE #( (  n = `layout` v = layout ) ) ).
+                       t_prop = VALUE #(
+                        (  n = `layout` v = layout )
+                        (  n = `id` v = id )
+                        ) ).
+
   ENDMETHOD.
 
 
@@ -1850,6 +1863,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD message_view.
+
     result = _generic( name   = `MessageView`
                        t_prop = VALUE #( ( n = `items`      v = items )
                                          ( n = `groupItems` v = lcl_utility=>get_json_boolean( groupItems ) ) ) ).
@@ -1857,8 +1871,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD mid_column_pages.
-    " todo, implement method
-    result = me.
+
+     result = _generic( name = `midColumnPages`
+                       ns   = `f`
+                        t_prop = VALUE #( (  n = `id` v = id ) ) ).
+
   ENDMETHOD.
 
 

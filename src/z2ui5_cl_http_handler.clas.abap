@@ -135,16 +135,22 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                if (!sap.z2ui5.checkNestAfter) {` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n|  &&
                            `                        sap.z2ui5.oController.ViewClose(sap.z2ui5.oViewNest);` && |\n|  &&
+*                            `    jQuery.sap.delayedCall(50, this, function () {  ` &&
                            `                        new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n|  &&
                            `                        }).then(oView => {` && |\n|  &&
                            `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n|  &&
                            `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n|  &&
-                           `                            oParent.addContent(oView);` && |\n|  &&
+                           `                         //   oParent.addContent(oView);` && |\n|  &&
+                           `                            oParent[ sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_DESTROY ]();` && |\n|  &&
+                           `                        //    oParent.removeAllMidColumnPages();` && |\n|  &&
+                           `                            oParent[ sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_INSERT ](oView);` && |\n|  &&
+                           `                         //   oParent.addMidColumnPage(oView);` && |\n|  &&
                            `                            sap.z2ui5.checkNestAfter = true;` && |\n|  &&
                            `                            sap.z2ui5.oViewNest = oView;` && |\n|  &&
                            `                        },` && |\n|  &&
                            `                        );` && |\n|  &&
+*                                                `   }); ` &&
                            `                    }` && |\n|  &&
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_CLOSE == true) {` && |\n|  &&
@@ -299,7 +305,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    );` && |\n|  &&
                            `                } else {` && |\n|  &&
                            `                    if (sap.z2ui5.oView) {` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) {` && |\n|  &&
                            `                        sap.z2ui5.oView.setModel(oModel);` && |\n|  &&
+                           `                    }` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                    sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
                            `                }` && |\n|  &&

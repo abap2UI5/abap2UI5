@@ -656,11 +656,14 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
         BEGIN OF s_view,
           xml           TYPE string,
           check_destroy TYPE abap_bool,
+          check_update_model type abap_bool,
         END OF s_view,
         BEGIN OF s_view_nest,
-          xml           TYPE string,
-          id            TYPE string,
-          check_destroy TYPE abap_bool,
+          xml            TYPE string,
+          id             TYPE string,
+          method_insert  TYPE string,
+          method_destroy TYPE string,
+          check_destroy  TYPE abap_bool,
         END OF s_view_nest,
         BEGIN OF s_popup,
           xml         TYPE string,
@@ -1704,6 +1707,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     mo_handler->ms_next-s_set-s_view_nest-xml = val.
     mo_handler->ms_next-s_set-s_view_nest-id = id.
+    mo_handler->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
+    mo_handler->ms_next-s_set-s_view_nest-method_insert = method_insert.
 
   ENDMETHOD.
 
@@ -1797,6 +1802,12 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     mo_handler->ms_next-s_set-s_timer-interval_ms = interval_ms.
     mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~view_model_update.
+
+    mo_handler->ms_next-s_set-s_view-check_update_model = abap_true.
 
   ENDMETHOD.
 
