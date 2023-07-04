@@ -944,7 +944,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 *    SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
     DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
     DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
-    DATA(lv_source) = `<p>Source: <a href="` && lv_link2 && `" style="color:blue; font-weight:600;">web</a></p>`.
+    DATA(lv_source) = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
     DATA(lv_descr) = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
 
     DATA(ls_get) = client->get( ).
