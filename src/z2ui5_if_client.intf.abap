@@ -53,10 +53,15 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
+ METHODS view_model_update.
+
   METHODS view_display_nested
     IMPORTING
       val TYPE clike
-      id  type clike.
+      id  type clike
+      method_insert  type clike
+      method_destroy type clike
+      .
 
   METHODS cursor_set
     IMPORTING
