@@ -37,7 +37,8 @@
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md)
-* Try out abap2ui5 compiled to JS running on [open-abap](https://github.com/open-abap) under nodejs [(abap2UI5-web)](https://github.com/larshp/abap2ui5-web)
+* Try out abap2ui5 compiled to JS running on open-abap under nodejs [(abap2UI5-web)](https://github.com/larshp/abap2ui5-web)
+* Install S-RTTI to create apps with dynamic typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Want to help out? see the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
 * Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
