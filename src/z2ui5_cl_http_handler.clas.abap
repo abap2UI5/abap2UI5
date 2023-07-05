@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -142,7 +142,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n|  &&
                            `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n|  &&
                            `                         //   oParent.addContent(oView);` && |\n|  &&
-                           `                            oParent[ sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_DESTROY ]();` && |\n|  &&
+                           `                         try {   oParent[ sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_DESTROY ](); } catch (e) {}` && |\n|  &&
                            `                        //    oParent.removeAllMidColumnPages();` && |\n|  &&
                            `                            oParent[ sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_INSERT ](oView);` && |\n|  &&
                            `                         //   oParent.addMidColumnPage(oView);` && |\n|  &&

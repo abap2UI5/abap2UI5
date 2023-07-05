@@ -60,8 +60,7 @@ INTERFACE z2ui5_if_client
       val TYPE clike
       id  type clike
       method_insert  type clike
-      method_destroy type clike
-      .
+      method_destroy type clike optional.
 
   METHODS cursor_set
     IMPORTING
