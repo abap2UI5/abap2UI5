@@ -32,11 +32,11 @@ INTERFACE z2ui5_if_client
       event                  TYPE string,
       t_event_arg            TYPE string_table,
       t_scroll_pos           TYPE ty_t_name_value,
-      check_launchpad_active TYPE abap_bool,
       id                     TYPE string,
       id_prev                TYPE string,
       id_prev_app            TYPE string,
       id_prev_app_stack      TYPE string,
+      check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
       BEGIN OF s_cursor,
         id             TYPE string,
@@ -81,14 +81,18 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
-  METHODS popup_close.
+  METHODS popup_model_update.
+
+  METHODS popup_destroy.
+
+  METHODS popover_model_update.
 
   METHODS popover_display
     IMPORTING
       xml   TYPE clike
       by_id TYPE clike.
 
-  METHODS popover_close.
+  METHODS popover_destroy.
 
   METHODS get
     RETURNING
