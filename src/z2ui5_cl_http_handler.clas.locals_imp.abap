@@ -667,15 +667,17 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
           check_update_model TYPE abap_bool,
         END OF s_view_nest,
         BEGIN OF s_popup,
-          xml         TYPE string,
-          id          TYPE string,
-          check_close TYPE abap_bool,
+          xml                TYPE string,
+          id                 TYPE string,
+          check_destroy      TYPE abap_bool,
+          check_update_model TYPE abap_bool,
         END OF s_popup,
         BEGIN OF s_popover,
-          xml         TYPE string,
-          id          TYPE string,
-          open_by_id  TYPE string,
-          check_close TYPE abap_bool,
+          xml                TYPE string,
+          id                 TYPE string,
+          open_by_id         TYPE string,
+          check_destroy      TYPE abap_bool,
+          check_update_model TYPE abap_bool,
         END OF s_popover,
         BEGIN OF s_cursor,
           id             TYPE string,
@@ -1301,9 +1303,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     TRY.
         DATA(lo_cursor) = so_body->get_attribute( `OCURSOR` ).
         result->ms_actual-s_cursor-id = lo_cursor->get_attribute( `ID` )->get_val( ).
-        result->ms_actual-s_cursor-cursorpos = lo_cursor->get_attribute( `CURSORPOS` )->get_val( ).
-        result->ms_actual-s_cursor-selectionend = lo_cursor->get_attribute( `SELECTIONEND` )->get_val( ).
-        result->ms_actual-s_cursor-selectionstart = lo_cursor->get_attribute( `SELECTIONSTART` )->get_val( ).
+*        result->ms_actual-s_cursor-cursorpos = lo_cursor->get_attribute( `CURSORPOS` )->get_val( ).
+*        result->ms_actual-s_cursor-selectionend = lo_cursor->get_attribute( `SELECTIONEND` )->get_val( ).
+*        result->ms_actual-s_cursor-selectionstart = lo_cursor->get_attribute( `SELECTIONSTART` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -1693,7 +1695,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_handler->ms_next-s_set-s_popup-check_close = abap_false.
+    mo_handler->ms_next-s_set-s_popup-check_destroy = abap_false.
     mo_handler->ms_next-s_set-s_popup-xml = val.
 
 
@@ -1786,23 +1788,23 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~popover_close.
+  METHOD z2ui5_if_client~popover_destroy.
 
-    mo_handler->ms_next-s_set-s_popover-check_close = abap_true.
+    mo_handler->ms_next-s_set-s_popover-check_destroy = abap_true.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_handler->ms_next-s_set-s_popover-check_close = abap_false.
+    mo_handler->ms_next-s_set-s_popover-check_destroy = abap_false.
     mo_handler->ms_next-s_set-s_popover-xml = xml.
     mo_handler->ms_next-s_set-s_popover-open_by_id = by_id.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~popup_close.
+  METHOD z2ui5_if_client~popup_destroy.
 
-    mo_handler->ms_next-s_set-s_popup-check_close = abap_true.
+    mo_handler->ms_next-s_set-s_popup-check_destroy = abap_true.
 
   ENDMETHOD.
 
@@ -1822,6 +1824,18 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_model_update.
 
     mo_handler->ms_next-s_set-s_view-check_update_model = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~popover_model_update.
+
+    mo_handler->ms_next-s_set-s_popover-check_update_model = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~popup_model_update.
+
+  mo_handler->ms_next-s_set-s_popup-check_update_model = abap_true.
 
   ENDMETHOD.
 
