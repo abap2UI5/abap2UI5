@@ -11,28 +11,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         !client       TYPE REF TO z2ui5_if_client
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     CLASS-METHODS factory_popup
       IMPORTING
         !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         !client       TYPE REF TO z2ui5_if_client
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS constructor .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS constructor.
+
     METHODS hlp_get_source_code_url
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     METHODS hlp_replace_controller_name
       IMPORTING
         !xml          TYPE string
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     METHODS horizontal_layout
       IMPORTING
         !class        TYPE clike OPTIONAL
         !width        TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS dynamic_page
       IMPORTING
         !headerexpanded           TYPE clike OPTIONAL
@@ -40,15 +46,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !headerpinned             TYPE clike OPTIONAL
         !toggleheaderontitleclick TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS dynamic_page_title
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS dynamic_page_header
       IMPORTING
         !pinnable     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS illustrated_message
       IMPORTING
         !enableverticalresponsiveness TYPE clike OPTIONAL
@@ -58,10 +67,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !description                  TYPE clike OPTIONAL
         !illustrationsize             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS additional_content
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS flex_box
       IMPORTING
         !class          TYPE clike OPTIONAL
@@ -74,7 +85,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !wrap           TYPE clike OPTIONAL
         !visible        TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS popover
       IMPORTING
         !title         TYPE clike OPTIONAL
@@ -84,13 +96,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !contentwidth  TYPE clike OPTIONAL
         !contentheight TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS list_item
       IMPORTING
         !text           TYPE clike OPTIONAL
         !additionaltext TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS table
       IMPORTING
         !items               TYPE clike OPTIONAL
@@ -106,7 +120,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !autopopinmode       TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
-        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS message_strip
       IMPORTING
         !text         TYPE clike OPTIONAL
@@ -115,12 +130,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !class        TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS footer
       IMPORTING
         !ns           TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS message_page
       IMPORTING
         !show_header         TYPE clike OPTIONAL
@@ -129,7 +146,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !description         TYPE clike OPTIONAL
         !icon                TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS object_page_layout
       IMPORTING
         !showtitleinheadercontent TYPE clike OPTIONAL
@@ -355,17 +373,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS get_parent
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS get
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS get_child
       IMPORTING
         !index        TYPE i DEFAULT 1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS column
       IMPORTING
         !width          TYPE clike OPTIONAL
@@ -387,10 +409,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !displayedsegments TYPE clike OPTIONAL
         !press             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS segments
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS interact_donut_chart_segment
       IMPORTING
         !label          TYPE clike OPTIONAL

@@ -135,7 +135,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                if (!sap.z2ui5.checkNestAfter) {` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n|  &&
                            `                        sap.z2ui5.oController.ViewClose(sap.z2ui5.oViewNest);` && |\n|  &&
-*                            `    jQuery.sap.delayedCall(50, this, function () {  ` &&
                            `                        new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n|  &&
                            `                        }).then(oView => {` && |\n|  &&
@@ -150,7 +149,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                            sap.z2ui5.oViewNest = oView;` && |\n|  &&
                            `                        },` && |\n|  &&
                            `                        );` && |\n|  &&
-*                                                `   }); ` &&
                            `                    }` && |\n|  &&
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_CLOSE == true) {` && |\n|  &&
@@ -286,14 +284,14 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            `                }` && |\n|  &&
                            |\n|  &&
-                           `                var oModel = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+                           `                ` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { if (sap.z2ui5.oView) { sap.z2ui5.oView.destroy(); } }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
                            `                    sap.z2ui5.oController.ViewClose(sap.z2ui5.oView);` && |\n|  &&
                            `                    new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                            `                        definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n|  &&
                            `                    }).then(oView => {` && |\n|  &&
-                           `                        oView.setModel(oModel);` && |\n|  &&
+                           `                        oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n|  &&
                            `                        if (sap.z2ui5.oParent) {` && |\n|  &&
                            `                            sap.z2ui5.oParent.removeAllPages();` && |\n|  &&
                            `                            sap.z2ui5.oParent.insertPage(oView);` && |\n|  &&
@@ -306,9 +304,10 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                } else {` && |\n|  &&
                            `                    if (sap.z2ui5.oView) {` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) {` && |\n|  &&
-                           `                        sap.z2ui5.oView.setModel(oModel);` && |\n|  &&
+                           `                        sap.z2ui5.oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
+                           `                      if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
                            `                    }` && |\n|  &&
-                           `                    }` && |\n|  &&
+                           `                    ` && |\n|  &&
                            `                    sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
