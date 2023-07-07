@@ -69,8 +69,7 @@ METHOD if_http_service_extension~handle_request.
       WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
       WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( request->get_text( ) ).
 
-   response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
-   response->set_status( 200 )->set_text( lv_resp ).
+   response->set_status( 200 )->set_text( lv_resp )->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
 
 ENDMETHOD.
 ```
