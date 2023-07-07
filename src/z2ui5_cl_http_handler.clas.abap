@@ -232,7 +232,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n|  &&
                            `                sap.ui.core.BusyIndicator.show();` && |\n|  &&
                            `                this.oBody = {};` && |\n|  &&
-                           `                this.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n|  &&
+                           `                if ( sap.z2ui5.oViewPopup) { if ( sap.z2ui5.oViewPopup.isDestroyed() == false ) { this.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate; } ` && |\n|  &&
+                           `                } else if ( sap.z2ui5.oViewPopover) { if ( sap.z2ui5.oViewPopover.isDestroyed() == false ) { this.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate; }   } else ` && |\n|  &&
+                           `                { this.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate; }` && |\n|  &&
                            `                if (oEvent.CHECK_VIEW_DESTROY) {` && |\n|  &&
                            `                    sap.z2ui5.oController.ViewClose(sap.z2ui5.oView);` && |\n|  &&
                            `                }` && |\n|  &&
