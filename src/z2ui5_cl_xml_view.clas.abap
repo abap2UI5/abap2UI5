@@ -704,6 +704,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !text         TYPE clike OPTIONAL
         !labelfor     TYPE clike OPTIONAL
+        !design       TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1015,7 +1016,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !fixedcolumncount         TYPE clike OPTIONAL
         !fixedrowcount            TYPE clike OPTIONAL
         !minautorowcount          TYPE clike OPTIONAL
-        !rowactioncount           TYPE clike OPTIONAL
+        !rowActionCount           TYPE clike OPTIONAL
         !rowheight                TYPE clike OPTIONAL
         !selectionmode            TYPE clike OPTIONAL
         !showcolumnvisibilitymenu TYPE clike OPTIONAL
@@ -1058,8 +1059,47 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !currency     TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-
-
+    METHODS ui_row_action
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS ui_row_action_template
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS ui_row_action_item
+      IMPORTING
+        !icon       TYPE clike OPTIONAL
+        !text       TYPE clike OPTIONAL
+        !type       TYPE clike OPTIONAL
+        !press      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS radio_button
+      IMPORTING
+        !activeHandling    TYPE clike OPTIONAL
+        !editable          TYPE clike OPTIONAL
+        !enabled           TYPE clike OPTIONAL
+        !groupName         TYPE clike OPTIONAL
+        !selected          TYPE clike OPTIONAL
+        !text              TYPE clike OPTIONAL
+        !textAlign         TYPE clike OPTIONAL
+        !textDirection     TYPE clike OPTIONAL
+        !useEntireWidth    TYPE clike OPTIONAL
+        !valueState        TYPE clike OPTIONAL
+        !width             TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS radio_button_group
+      IMPORTING
+        !id               TYPE clike OPTIONAL
+        !columns          TYPE clike OPTIONAL
+        !editable         TYPE clike OPTIONAL
+        !enabled          TYPE clike OPTIONAL
+        !selectedIndex    TYPE clike OPTIONAL
+        !textDirection    TYPE clike OPTIONAL
+        !valueState       TYPE clike OPTIONAL
+        !width            TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1078,7 +1118,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1875,7 +1915,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD label.
     result = me.
     _generic( name   = `Label`
-              t_prop = VALUE #( ( n = `text` v = text )
+              t_prop = VALUE #( ( n = `text`     v = text )
+                                ( n = `design`   v = design )
                                 ( n = `labelFor` v = labelfor ) ) ).
   ENDMETHOD.
 
@@ -2155,6 +2196,37 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `press`       v = press )
                                 ( n = `sice`        v = sice )
                                 ( n = `valueColor`  v = valuecolor ) ) ).
+  ENDMETHOD.
+
+
+  METHOD radio_button.
+        result = _generic( name   = `RadioButton`
+                       t_prop = VALUE #( ( n = `activeHandling`  v = lcl_utility=>get_json_boolean( activeHandling ) )
+                                         ( n = `editable`        v = lcl_utility=>get_json_boolean( editable ) )
+                                         ( n = `enabled`         v = lcl_utility=>get_json_boolean( enabled ) )
+                                         ( n = `selected`        v = lcl_utility=>get_json_boolean( selected ) )
+                                         ( n = `useEntireWidth`  v = lcl_utility=>get_json_boolean( useEntireWidth ) )
+                                         ( n = `text`            v = text )
+                                         ( n = `textDirection`   v = textDirection )
+                                         ( n = `textAlign`       v = textAlign )
+                                         ( n = `groupName`       v = groupName )
+                                         ( n = `valueState`      v = valueState )
+                                         ( n = `width`           v = width )
+               ) ).
+  ENDMETHOD.
+
+
+  METHOD radio_button_group.
+        result = _generic( name   = `RadioButtonGroup`
+                       t_prop = VALUE #( ( n = `id`             v = id )
+                                         ( n = `columns`        v = columns )
+                                         ( n = `editable`       v = lcl_utility=>get_json_boolean( editable ) )
+                                         ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
+                                         ( n = `selectedIndex`  v = selectedIndex )
+                                         ( n = `textDirection`  v = textDirection )
+                                         ( n = `valueState`     v = valueState )
+                                         ( n = `width`          v = width )
+               ) ).
   ENDMETHOD.
 
 
@@ -2530,10 +2602,33 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD ui_row_action.
+    result = _generic( name   = `RowAction`
+                       ns     = `table` ).
+  ENDMETHOD.
+
+
+  METHOD ui_row_action_item.
+    result = _generic( name   = `RowActionItem`
+                       ns     = `table`
+                       t_prop = VALUE #(
+                          ( n = `icon`     v = icon )
+                          ( n = `text`     v = text )
+                          ( n = `type`     v = type  )
+                          ( n = `press`    v = press ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ui_row_action_template.
+    result = _generic( name = `rowActionTemplate`
+                       ns   = `table` ).
+  ENDMETHOD.
+
+
   METHOD ui_table.
 
     result = _generic( name   = `Table`
-                       ns     = 'table'
+                       ns     = `table`
                        t_prop = VALUE #(
                            ( n = `rows`                      v = rows )
                            ( n = `alternateRowColors`        v = lcl_utility=>get_json_boolean( alternateRowColors ) )
@@ -2545,7 +2640,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `firstVisibleRow`           v = firstvisiblerow )
                            ( n = `fixedBottomRowCount`       v = fixedbottomrowcount )
                            ( n = `fixedColumnCount`          v = fixedColumnCount )
-                           ( n = `rowactioncount`            v = rowactioncount )
+                           ( n = `rowActionCount`            v = rowActionCount )
                            ( n = `fixedRowCount`             v = fixedRowCount )
                            ( n = `minAutoRowCount`           v = minAutoRowCount )
                            ( n = `minAutoRowCount`           v = minAutoRowCount )
