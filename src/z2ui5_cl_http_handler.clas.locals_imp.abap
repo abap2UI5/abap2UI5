@@ -819,8 +819,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 ENDCLASS.
 
-*CLASS z2ui5_lcl_fw_handler DEFINITION DEFERRED.
-
 CLASS z2ui5_lcl_fw_db DEFINITION.
 
   PUBLIC SECTION.
@@ -840,7 +838,6 @@ CLASS z2ui5_lcl_fw_db DEFINITION.
       RETURNING VALUE(result)  TYPE z2ui5_t_draft.
 
     CLASS-METHODS cleanup.
-
 
 ENDCLASS.
 
