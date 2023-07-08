@@ -566,13 +566,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS message_item
       IMPORTING
-        !type         TYPE clike OPTIONAL
-        !title        TYPE clike OPTIONAL
-        !subtitle     TYPE clike OPTIONAL
-        !description  TYPE clike OPTIONAL
-        !groupname    TYPE clike OPTIONAL
+        !type              TYPE clike OPTIONAL
+        !title             TYPE clike OPTIONAL
+        !subtitle          TYPE clike OPTIONAL
+        !description       TYPE clike OPTIONAL
+        !groupname         TYPE clike OPTIONAL
+        !markupdescription TYPE abap_bool OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS page
       IMPORTING
         !title          TYPE clike OPTIONAL
@@ -1973,7 +1974,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `title`       v = title )
                                          ( n = `subtitle`    v = subtitle )
                                          ( n = `description` v = description )
-                                         ( n = `groupName`   v = groupName ) ) ).
+                                         ( n = `groupName`   v = groupName )
+                                         ( n = `markupDescription`   v = lcl_utility=>get_json_boolean( markupdescription ) ) ) ).
   ENDMETHOD.
 
 
