@@ -1052,11 +1052,19 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
         DATA(lv_url) = to_lower( z2ui5_lcl_fw_handler=>ss_config-origin && z2ui5_lcl_fw_handler=>ss_config-pathname ).
 
-*        IF client->get( )-s_config-search IS INITIAL.
-        lv_url = lv_url && `?`.
-*        ELSE.
-*          lv_url = lv_url && `&`.
-*        ENDIF.
+        DATA(lv_search) = client->get( )-s_config-search.
+        SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+        LOOP AT lt_param INTO DATA(ls_param).
+          IF ls_param(9) = `app_start`.
+                delete lt_param.
+          ENDIF.
+        ENDLOOP.
+        IF client->get( )-s_config-search IS INITIAL.
+          lv_url = lv_url && `?`.
+        ELSE.
+          lv_url = lv_url && client->get( )-s_config-search && `&`.
+        ENDIF.
+
 
         DATA(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
 *        lv_url = lv_url && client->get( )-s_config-search.
@@ -1780,6 +1788,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~_bind.
 
     result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
+
     IF path = abap_false.
       result = `{` && result && `}`.
     ENDIF.
@@ -1788,8 +1797,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value  = val
-                                            type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+    result = mo_handler->_create_binding( value  = val type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+
     IF path = abap_false.
       result = `{` && result && `}`.
     ENDIF.
