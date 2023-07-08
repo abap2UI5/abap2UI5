@@ -1704,10 +1704,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD hlp_get_source_code_url.
 
+    DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
     DATA(ls_config) = mo_root->mi_client->get( )-s_config.
 
     result = ls_config-origin &&
-      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( ls_config-app ) &&
+      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( ls_draft-app ) &&
        `/source/main`.
 
   ENDMETHOD.

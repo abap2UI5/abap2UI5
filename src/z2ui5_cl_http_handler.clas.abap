@@ -16,7 +16,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-METHODS http_post
       IMPORTING
         body          TYPE string
-        path_info     TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -27,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -52,6 +51,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     ENDIF.
     z2ui5_lcl_fw_db=>cleanup( ).
 
+
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
                   lv_sec_policy && |\n| &&
@@ -75,7 +75,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
         `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
-        `</html>` && |\n|.
+        `</html><abc/>` && |\n|.
     r_result = r_result && `<script>` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
@@ -202,7 +202,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oView.destroy();` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            onEventFrontend: oEvent => {` && |\n|  &&
+                           `            onEventFrontend: function( oEvent )  {` && |\n|  &&
                            |\n|  &&
                            `                switch (oEvent.EVENT) {` && |\n|  &&
                            `                    case 'LOCATION_RELOAD':` && |\n|  &&
@@ -369,25 +369,21 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                          `         sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+                           |         sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };| && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n|  &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
-                           `</html>`.
+                           `<abc/></html>`.
 
-*        `        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+*             sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };`| && |\n| &&
+
   ENDMETHOD.
 
 
   METHOD http_post.
 
-    z2ui5_lcl_fw_handler=>ss_config = VALUE #(
-      controller_name = `z2ui5_controller`
-      path_info       = path_info
-      body            = body ).
-
-    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( ).
+    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( body ).
 
     DO.
       TRY.
