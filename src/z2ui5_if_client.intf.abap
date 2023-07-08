@@ -19,11 +19,10 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_config,
       controller_name TYPE string,
       version         TYPE string,
-      pathname        TYPE string,
       origin          TYPE string,
+      pathname        TYPE string,
       search          TYPE string,
       body            TYPE string,
-      path_info       type string,
     END OF ty_S_config.
 
   TYPES:
@@ -124,6 +123,10 @@ INTERFACE z2ui5_if_client
     IMPORTING
       text TYPE clike
       type TYPE clike DEFAULT 'information'.
+
+  METHODS url_param_set
+    IMPORTING
+      val  type clike.
 
   METHODS timer_set
     IMPORTING

@@ -204,8 +204,8 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       BEGIN OF ty_S_next2,
         t_scroll   TYPE z2ui5_if_client=>ty_t_name_value,
         title      TYPE string,
-        path       TYPE string,
-        url        TYPE string,
+*        path       TYPE string,
+        search     TYPE string,
         BEGIN OF s_view,
           xml                TYPE string,
           check_destroy      TYPE abap_bool,
@@ -565,7 +565,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD get_classname_by_ref.
+  METHOD get_classname_by_ref.
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
     result = substring_after( val = lv_classname sub = `\CLASS=` ).
   ENDMETHOD.
@@ -1000,7 +1000,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     DATA(ls_get) = client->get( ).
     DATA(lv_url_app) =  ls_get-s_config-origin && ls_get-s_config-pathname.
     DATA(lv_url) = lv_url_app.
-    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
+*    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
     SHIFT lv_url LEFT DELETING LEADING ` `.
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
@@ -1053,7 +1053,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         DATA(lv_url) = to_lower( z2ui5_lcl_fw_handler=>ss_config-origin && z2ui5_lcl_fw_handler=>ss_config-pathname ).
 
 *        IF client->get( )-s_config-search IS INITIAL.
-          lv_url = lv_url && `?`.
+        lv_url = lv_url && `?`.
 *        ELSE.
 *          lv_url = lv_url && `&`.
 *        ENDIF.
@@ -1362,6 +1362,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+
     TRY.
         DATA(lo_location)  = so_body->get_attribute( `OLOCATION` ).
         ss_config-origin   = lo_location->get_attribute( `ORIGIN` )->get_val( ).
@@ -1387,19 +1388,15 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
 
-    data(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
-    data(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
-    data(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
+    DATA(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
+    DATA(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
+    DATA(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
 
-    data(lv_search) = |?|.
-    if lv_app_start is not INITIAL.
-    lv_search = lv_search && |app_start={ lv_app_start }&|.
-    endif.
-    lv_search = lv_search && |app={ lv_app }|. "&id={ ms_db-id }&q={ lv_q }|.
-    lo_resp->add_attribute( n = `SEARCH` v = lv_search ).
-
-
-    ms_next-s_set-path = ss_config-path_info.
+    IF ms_next-S_set-search IS INITIAL.
+      lo_resp->add_attribute( n = `SEARCH` v = ms_actual-s_config-search ).
+    ELSE.
+      lo_resp->add_attribute( n = `SEARCH` v = ms_next-S_set-search ).
+    ENDIF.
 
     result = lo_resp->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
@@ -1888,6 +1885,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~popup_model_update.
 
     mo_handler->ms_next-s_set-s_popup-check_update_model = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~url_param_set.
+
+    mo_handler->ms_next-s_set-search = val.
+    mo_handler->ms_actual-s_config-search = val.
 
   ENDMETHOD.
 

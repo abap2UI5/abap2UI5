@@ -20,6 +20,10 @@ CLASS lcl_utility DEFINITION INHERITING FROM cx_no_check.
                 iv_replace    TYPE clike DEFAULT ''
       RETURNING VALUE(result) TYPE string.
 
+  CLASS-METHODS get_trim_lower
+      IMPORTING val           TYPE any
+      RETURNING VALUE(result) TYPE string.
+
 ENDCLASS.
 
 
@@ -56,4 +60,11 @@ CLASS lcl_utility IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
   ENDMETHOD.
+  METHOD get_trim_lower.
+
+    result = CONV #( val ).
+    result = to_lower( shift_left( shift_right( result ) ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.

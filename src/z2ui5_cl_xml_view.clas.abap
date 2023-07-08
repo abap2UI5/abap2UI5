@@ -26,6 +26,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    METHODS hlp_get_url_param
+      IMPORTING
+        !val          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS hlp_set_url_param
+      IMPORTING
+        !n            TYPE clike
+        !v            TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     METHODS hlp_replace_controller_name
       IMPORTING
         !xml          TYPE string
@@ -1067,39 +1080,39 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS ui_row_action_item
       IMPORTING
-        !icon       TYPE clike OPTIONAL
-        !text       TYPE clike OPTIONAL
-        !type       TYPE clike OPTIONAL
-        !press      TYPE clike OPTIONAL
+        !icon         TYPE clike OPTIONAL
+        !text         TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !press        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS radio_button
       IMPORTING
-        !activeHandling    TYPE clike OPTIONAL
-        !editable          TYPE clike OPTIONAL
-        !enabled           TYPE clike OPTIONAL
-        !groupName         TYPE clike OPTIONAL
-        !selected          TYPE clike OPTIONAL
-        !text              TYPE clike OPTIONAL
-        !textAlign         TYPE clike OPTIONAL
-        !textDirection     TYPE clike OPTIONAL
-        !useEntireWidth    TYPE clike OPTIONAL
-        !valueState        TYPE clike OPTIONAL
-        !width             TYPE clike OPTIONAL
+        !activeHandling TYPE clike OPTIONAL
+        !editable       TYPE clike OPTIONAL
+        !enabled        TYPE clike OPTIONAL
+        !groupName      TYPE clike OPTIONAL
+        !selected       TYPE clike OPTIONAL
+        !text           TYPE clike OPTIONAL
+        !textAlign      TYPE clike OPTIONAL
+        !textDirection  TYPE clike OPTIONAL
+        !useEntireWidth TYPE clike OPTIONAL
+        !valueState     TYPE clike OPTIONAL
+        !width          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS radio_button_group
       IMPORTING
-        !id               TYPE clike OPTIONAL
-        !columns          TYPE clike OPTIONAL
-        !editable         TYPE clike OPTIONAL
-        !enabled          TYPE clike OPTIONAL
-        !selectedIndex    TYPE clike OPTIONAL
-        !textDirection    TYPE clike OPTIONAL
-        !valueState       TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
+        !id            TYPE clike OPTIONAL
+        !columns       TYPE clike OPTIONAL
+        !editable      TYPE clike OPTIONAL
+        !enabled       TYPE clike OPTIONAL
+        !selectedIndex TYPE clike OPTIONAL
+        !textDirection TYPE clike OPTIONAL
+        !valueState    TYPE clike OPTIONAL
+        !width         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1118,7 +1131,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2200,33 +2213,33 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD radio_button.
-        result = _generic( name   = `RadioButton`
-                       t_prop = VALUE #( ( n = `activeHandling`  v = lcl_utility=>get_json_boolean( activeHandling ) )
-                                         ( n = `editable`        v = lcl_utility=>get_json_boolean( editable ) )
-                                         ( n = `enabled`         v = lcl_utility=>get_json_boolean( enabled ) )
-                                         ( n = `selected`        v = lcl_utility=>get_json_boolean( selected ) )
-                                         ( n = `useEntireWidth`  v = lcl_utility=>get_json_boolean( useEntireWidth ) )
-                                         ( n = `text`            v = text )
-                                         ( n = `textDirection`   v = textDirection )
-                                         ( n = `textAlign`       v = textAlign )
-                                         ( n = `groupName`       v = groupName )
-                                         ( n = `valueState`      v = valueState )
-                                         ( n = `width`           v = width )
-               ) ).
+    result = _generic( name   = `RadioButton`
+                   t_prop = VALUE #( ( n = `activeHandling`  v = lcl_utility=>get_json_boolean( activeHandling ) )
+                                     ( n = `editable`        v = lcl_utility=>get_json_boolean( editable ) )
+                                     ( n = `enabled`         v = lcl_utility=>get_json_boolean( enabled ) )
+                                     ( n = `selected`        v = lcl_utility=>get_json_boolean( selected ) )
+                                     ( n = `useEntireWidth`  v = lcl_utility=>get_json_boolean( useEntireWidth ) )
+                                     ( n = `text`            v = text )
+                                     ( n = `textDirection`   v = textDirection )
+                                     ( n = `textAlign`       v = textAlign )
+                                     ( n = `groupName`       v = groupName )
+                                     ( n = `valueState`      v = valueState )
+                                     ( n = `width`           v = width )
+           ) ).
   ENDMETHOD.
 
 
   METHOD radio_button_group.
-        result = _generic( name   = `RadioButtonGroup`
-                       t_prop = VALUE #( ( n = `id`             v = id )
-                                         ( n = `columns`        v = columns )
-                                         ( n = `editable`       v = lcl_utility=>get_json_boolean( editable ) )
-                                         ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
-                                         ( n = `selectedIndex`  v = selectedIndex )
-                                         ( n = `textDirection`  v = textDirection )
-                                         ( n = `valueState`     v = valueState )
-                                         ( n = `width`          v = width )
-               ) ).
+    result = _generic( name   = `RadioButtonGroup`
+                   t_prop = VALUE #( ( n = `id`             v = id )
+                                     ( n = `columns`        v = columns )
+                                     ( n = `editable`       v = lcl_utility=>get_json_boolean( editable ) )
+                                     ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
+                                     ( n = `selectedIndex`  v = selectedIndex )
+                                     ( n = `textDirection`  v = textDirection )
+                                     ( n = `valueState`     v = valueState )
+                                     ( n = `width`          v = width )
+           ) ).
   ENDMETHOD.
 
 
@@ -2744,4 +2757,64 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = result2.
 
   ENDMETHOD.
+
+  METHOD hlp_get_url_param.
+
+    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
+    DATA(lv_search) = mi_client->get( )-s_config-search.
+
+    lv_search = lcl_utility=>get_trim_lower( lv_search ).
+    SHIFT lv_search LEFT DELETING LEADING `?`.
+
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+
+      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
+    ENDLOOP.
+
+    DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
+    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
+
+  ENDMETHOD.
+
+  METHOD hlp_set_url_param.
+
+    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
+    DATA(lv_search) = mi_client->get( )-s_config-search.
+
+    lv_search = lcl_utility=>get_trim_lower( lv_search ).
+    SHIFT lv_search LEFT DELETING LEADING `?`.
+
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+
+      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
+    ENDLOOP.
+
+    DATA(lv_n) = lcl_utility=>get_trim_lower( n ).
+
+    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
+        WHERE n = lv_n.
+      lr_params->v = lcl_utility=>get_trim_lower( v ).
+    ENDLOOP.
+    IF sy-subrc <> 0.
+      INSERT VALUE #( n = lv_n v = lcl_utility=>get_trim_lower( v ) ) INTO TABLE lt_params.
+    ENDIF.
+
+    DATA(lv_result) = `?` && lt_params[ 1 ]-n && `=` && lt_params[ 1 ]-v.
+
+    LOOP AT lt_params REFERENCE INTO lr_params FROM 2.
+      lv_result = lv_result && `&` && lr_params->n && `=` && lr_params->v.
+    ENDLOOP.
+
+    mi_client->url_param_set( lv_result ).
+
+  ENDMETHOD.
+
 ENDCLASS.
