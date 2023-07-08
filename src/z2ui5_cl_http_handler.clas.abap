@@ -93,7 +93,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n|  &&
                            `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n|  &&
                            `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.PATH != "") {` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n|  &&
+                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n|  &&
                            `                    //    window.history.replaceState("", "", window.location.origin + sap.z2ui5.oResponse.PARAMS.PATH + window.location.search);` && |\n|  &&
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n|  &&
@@ -404,7 +405,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           result = lo_handler->request_end( ).
 
         CATCH cx_root INTO DATA(x).
-          lo_handler = lo_handler->set_app_system( x ).
+          lo_handler = z2ui5_lcl_fw_handler=>set_app_system( x ).
           CONTINUE.
       ENDTRY.
 

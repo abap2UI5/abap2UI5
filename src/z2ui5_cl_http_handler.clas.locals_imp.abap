@@ -29,6 +29,10 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     METHODS get_text REDEFINITION.
 
+    CLASS-METHODS get_classname_by_ref
+      IMPORTING in            TYPE REF TO object
+      RETURNING VALUE(result) TYPE string.
+
     CLASS-METHODS raise
       IMPORTING
         v    TYPE clike     DEFAULT `CX_SY_SUBRC`
@@ -561,6 +565,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+    METHOD get_classname_by_ref.
+    DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
+    result = substring_after( val = lv_classname sub = `\CLASS=` ).
+  ENDMETHOD.
+
   METHOD trans_object_2_xml.
 
     FIELD-SYMBOLS <object> TYPE any.
@@ -1043,11 +1052,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
         DATA(lv_url) = to_lower( z2ui5_lcl_fw_handler=>ss_config-origin && z2ui5_lcl_fw_handler=>ss_config-pathname ).
 
-        IF client->get( )-s_config-search IS INITIAL.
+*        IF client->get( )-s_config-search IS INITIAL.
           lv_url = lv_url && `?`.
-        ELSE.
-          lv_url = lv_url && `&`.
-        ENDIF.
+*        ELSE.
+*          lv_url = lv_url && `&`.
+*        ENDIF.
 
         DATA(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
 *        lv_url = lv_url && client->get( )-s_config-search.
@@ -1377,6 +1386,18 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
+
+    data(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
+    data(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
+    data(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
+
+    data(lv_search) = |?|.
+    if lv_app_start is not INITIAL.
+    lv_search = lv_search && |app_start={ lv_app_start }&|.
+    endif.
+    lv_search = lv_search && |app={ lv_app }|. "&id={ ms_db-id }&q={ lv_q }|.
+    lo_resp->add_attribute( n = `SEARCH` v = lv_search ).
+
 
     ms_next-s_set-path = ss_config-path_info.
 
