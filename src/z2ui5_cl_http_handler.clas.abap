@@ -353,7 +353,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        }` && |\n|  &&
                            `        if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
-                           `            sap.z2ui5.pathname = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
+                           `       //     sap.z2ui5.pathname = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
                            `        }` && |\n|  &&
                            `        if (!sap.z2ui5.checkLaunchpadActive) {` && |\n|  &&
                            `            sap.z2ui5.checkLaunchpadActive = false;` && |\n|  &&
