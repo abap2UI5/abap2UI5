@@ -960,7 +960,8 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
         DATA li_app TYPE REF TO z2ui5_if_app.
         TRY.
-            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+            CREATE OBJECT li_app TYPE (`Z2UI5_TOOL_CL_APP_00`).
+*            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
             lv_check_demo = abap_true.
             client->nav_app_call( li_app ).
           CATCH cx_root.
@@ -1042,13 +1043,13 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
         DATA(lv_url) = to_lower( z2ui5_lcl_fw_handler=>ss_config-origin && z2ui5_lcl_fw_handler=>ss_config-pathname ).
 
-       if client->get( )-s_config-search is INITIAL.
-         lv_url = lv_url && `?`.
-       else.
-       lv_url = lv_url && `&`.
-       endif.
+        IF client->get( )-s_config-search IS INITIAL.
+          lv_url = lv_url && `?`.
+        ELSE.
+          lv_url = lv_url && `&`.
+        ENDIF.
 
-       data(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
+        DATA(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
 *        lv_url = lv_url && client->get( )-s_config-search.
 *        DATA(lv_path_info) = to_lower( z2ui5_lcl_fw_handler=>ss_config-path_info ).
 *        REPLACE lv_path_info IN lv_url WITH ``.
@@ -1306,7 +1307,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_begin.
 
-    z2ui5_lcl_fw_handler=>ss_config = VALUE #(
+    ss_config = VALUE #(
       controller_name = `z2ui5_controller`
       body            =  body ).
     so_body = z2ui5_lcl_utility_tree_json=>factory( body ).
@@ -1668,7 +1669,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     r_result->ms_db-t_attri     = z2ui5_lcl_utility=>get_t_attri_by_ref( app ).
 
     r_result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
-    r_result->ms_actual-s_config = ms_actual-s_config.
     r_result->ms_actual-check_on_navigated = abap_true.
 
     r_result->ms_next-s_Set = ms_next-s_set.
@@ -1705,6 +1705,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
                       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
                       t_event_arg            = mo_handler->ms_actual-t_event_arg
                       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+                      s_DRAFT                = CORRESPONDING #( mo_handler->ms_db )
                       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
                       s_config               = z2ui5_lcl_fw_handler=>ss_config ).
     result-s_draft-app = mo_handler->ms_db-o_app.
