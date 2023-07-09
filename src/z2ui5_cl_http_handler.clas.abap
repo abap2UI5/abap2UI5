@@ -135,7 +135,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.checkNestAfter == false) {` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n|  &&
-                           `                        sap.z2ui5.oController.ViewDestroy(sap.z2ui5.oViewNest);` && |\n|  &&
+                           `                        sap.z2ui5.oController.NestViewDestroy( );` && |\n|  &&
                            `                        new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n|  &&
                            `                        }).then(oView => {` && |\n|  &&
@@ -196,6 +196,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    try { sap.z2ui5.oViewPopover.close(); } catch { }` && |\n|  &&
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oViewPopover.destroy();` && |\n|  &&
+                           `            },` && |\n|  &&
+                           `               NestViewDestroy: () => {` && |\n|  &&
+                           `                if (!sap.z2ui5.oViewNest) {` && |\n|  &&
+                           `                    return;` && |\n|  &&
+                           `                }` && |\n|  &&
+                           `                sap.z2ui5.oViewNest.destroy();` && |\n|  &&
                            `            },` && |\n|  &&
                            `            ViewDestroy: () => {` && |\n|  &&
                            `                if (!sap.z2ui5.oView) {` && |\n|  &&
@@ -333,6 +339,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `            Roundtrip: () => {` && |\n|  &&
                            |\n|  &&
                            `                sap.z2ui5.checkTimerActive = false;` && |\n|  &&
+                           `                sap.z2ui5.checkNestAfter   = false;` && |\n|  &&
                            |\n|  &&
                            `                sap.z2ui5.oBody.OLOCATION = {` && |\n|  &&
                            `                    ORIGIN: window.location.origin,` && |\n|  &&
