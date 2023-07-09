@@ -29,6 +29,10 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     METHODS get_text REDEFINITION.
 
+    CLASS-METHODS get_classname_by_ref
+      IMPORTING in            TYPE REF TO object
+      RETURNING VALUE(result) TYPE string.
+
     CLASS-METHODS raise
       IMPORTING
         v    TYPE clike     DEFAULT `CX_SY_SUBRC`
@@ -44,9 +48,6 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
 
     CLASS-METHODS get_user_tech
       RETURNING VALUE(result) TYPE string.
-
-    CLASS-METHODS get_timestampl
-      RETURNING VALUE(result) TYPE timestampl.
 
     CLASS-METHODS trans_any_2_json
       IMPORTING any           TYPE any
@@ -104,8 +105,238 @@ CLASS z2ui5_lcl_utility DEFINITION INHERITING FROM cx_no_check.
       EXPORTING
         e_data    TYPE REF TO data.
 
+    CLASS-METHODS get_timestampl
+      RETURNING
+        VALUE(result) TYPE timestampl.
+
+    CLASS-METHODS get_param
+      IMPORTING
+        val             TYPE string
+      RETURNING
+        VALUE(r_result) TYPE string.
+
   PROTECTED SECTION.
     CLASS-DATA mv_counter TYPE i.
+
+ENDCLASS.
+
+CLASS z2ui5_lcl_utility_tree_json DEFINITION.
+
+  PUBLIC SECTION.
+
+    DATA mo_root         TYPE REF TO z2ui5_lcl_utility_tree_json.
+    DATA mo_parent       TYPE REF TO z2ui5_lcl_utility_tree_json.
+    DATA mv_name         TYPE string.
+    DATA mv_value        TYPE string.
+    DATA mt_values       TYPE STANDARD TABLE OF REF TO z2ui5_lcl_utility_tree_json WITH EMPTY KEY.
+    DATA mv_check_list   TYPE abap_bool.
+    DATA mr_actual       TYPE REF TO data.
+    DATA mv_apost_active TYPE abap_bool.
+
+    CLASS-METHODS new
+      IMPORTING io_root       TYPE REF TO z2ui5_lcl_utility_tree_json
+                iv_name       TYPE simple
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    CLASS-METHODS factory
+      IMPORTING iv_json       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS constructor.
+
+    METHODS get_root
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS get_attribute
+      IMPORTING name          TYPE string
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS get_val
+      RETURNING VALUE(result) TYPE string.
+
+    METHODS add_attribute
+      IMPORTING n             TYPE clike
+                v             TYPE clike
+                apos_active   TYPE abap_bool DEFAULT abap_true
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS add_attribute_object
+      IMPORTING name          TYPE clike
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS add_attribute_struc
+      IMPORTING val           TYPE data
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS add_attribute_instance
+      IMPORTING val           TYPE REF TO z2ui5_lcl_utility_tree_json
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    METHODS stringify
+      RETURNING VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+    METHODS wrap_json
+      IMPORTING iv_text       TYPE string
+      RETURNING VALUE(result) TYPE string.
+
+    METHODS quote_json
+      IMPORTING iv_text       TYPE string
+                iv_cond       TYPE abap_bool
+      RETURNING VALUE(result) TYPE string.
+
+ENDCLASS.
+
+
+
+CLASS z2ui5_lcl_fw_handler DEFINITION.
+
+  PUBLIC SECTION.
+
+    CONSTANTS:
+      BEGIN OF cs_bind_type,
+        one_way  TYPE string VALUE 'ONE_WAY',
+        two_way  TYPE string VALUE 'TWO_WAY',
+        one_time TYPE string VALUE 'ONE_TIME',
+      END OF cs_bind_type.
+
+    TYPES:
+      BEGIN OF ty_S_next2,
+        t_scroll   TYPE z2ui5_if_client=>ty_t_name_value,
+        title      TYPE string,
+*        path       TYPE string,
+        search     TYPE string,
+        BEGIN OF s_view,
+          xml                TYPE string,
+          check_destroy      TYPE abap_bool,
+          check_update_model TYPE abap_bool,
+        END OF s_view,
+        BEGIN OF s_view_nest,
+          xml                TYPE string,
+          id                 TYPE string,
+          method_insert      TYPE string,
+          method_destroy     TYPE string,
+          check_destroy      TYPE abap_bool,
+          check_update_model TYPE abap_bool,
+        END OF s_view_nest,
+        BEGIN OF s_popup,
+          xml                TYPE string,
+          id                 TYPE string,
+          check_destroy      TYPE abap_bool,
+          check_update_model TYPE abap_bool,
+        END OF s_popup,
+        BEGIN OF s_popover,
+          xml                TYPE string,
+          id                 TYPE string,
+          open_by_id         TYPE string,
+          check_destroy      TYPE abap_bool,
+          check_update_model TYPE abap_bool,
+        END OF s_popover,
+        BEGIN OF s_cursor,
+          id             TYPE string,
+          cursorpos      TYPE string,
+          selectionstart TYPE string,
+          selectionend   TYPE string,
+        END OF s_cursor,
+        BEGIN OF s_timer,
+          interval_ms    TYPE string,
+          event_finished TYPE string,
+        END OF s_timer,
+        BEGIN OF s_msg_box,
+          type TYPE string,
+          text TYPE string,
+        END OF s_msg_box,
+        BEGIN OF s_msg_toast,
+          text TYPE string,
+        END OF s_msg_toast,
+        _viewmodel TYPE string,
+      END OF ty_s_next2.
+
+    TYPES:
+      BEGIN OF ty_s_db,
+        id                TYPE string,
+        id_prev           TYPE string,
+        id_prev_app       TYPE string,
+        id_prev_app_stack TYPE string,
+        t_attri           TYPE z2ui5_lcl_utility=>ty_t_attri,
+        o_app             TYPE REF TO z2ui5_if_app,
+      END OF ty_s_db.
+
+    CLASS-DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
+
+    DATA ms_db TYPE ty_s_db.
+
+    TYPES:
+      BEGIN OF ty_s_next,
+        o_app_call  TYPE REF TO z2ui5_if_app,
+        o_app_leave TYPE REF TO z2ui5_if_app,
+        s_set       TYPE ty_S_next2,
+      END OF ty_s_next.
+
+    DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
+    DATA ms_next   TYPE ty_s_next.
+
+    CLASS-DATA so_body TYPE REF TO z2ui5_lcl_utility_tree_json.
+
+    CLASS-METHODS request_begin
+      IMPORTING
+        body          TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+
+    METHODS request_end
+      RETURNING VALUE(result) TYPE string.
+
+    METHODS _create_binding
+      IMPORTING value         TYPE data
+                type          TYPE string    DEFAULT cs_bind_type-two_way
+      RETURNING VALUE(result) TYPE string.
+
+    CLASS-METHODS set_app_start
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+
+    CLASS-METHODS set_app_client
+      IMPORTING
+        id_prev       TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+
+    METHODS set_app_leave
+      IMPORTING
+        check_no_db_save TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
+
+    METHODS set_app_call
+      IMPORTING
+        check_no_db_save TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
+
+    CLASS-METHODS set_app_system
+      IMPORTING VALUE(ix)     TYPE REF TO cx_root OPTIONAL
+                error_text    TYPE string         OPTIONAL
+                  PREFERRED PARAMETER ix
+      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+
+    CLASS-METHODS model_set_backend
+      IMPORTING
+        model   TYPE REF TO data
+        app     TYPE REF TO object
+        t_attri TYPE z2ui5_lcl_utility=>ty_t_attri.
+
+    CLASS-METHODS model_set_frontend
+      IMPORTING
+        app           TYPE REF TO object
+        t_attri       TYPE z2ui5_lcl_utility=>ty_t_attri
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS app_set_next
+      IMPORTING
+        app             TYPE REF TO z2ui5_if_app
+      RETURNING
+        VALUE(r_result) TYPE REF TO z2ui5_lcl_fw_handler.
 
 ENDCLASS.
 
@@ -164,6 +395,7 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   METHOD get_timestampl.
     GET TIME STAMP FIELD result.
   ENDMETHOD.
+
 
   METHOD get_user_tech.
     result = sy-uname.
@@ -333,6 +565,11 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_classname_by_ref.
+    DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
+    result = substring_after( val = lv_classname sub = `\CLASS=` ).
+  ENDMETHOD.
+
   METHOD trans_object_2_xml.
 
     FIELD-SYMBOLS <object> TYPE any.
@@ -421,75 +658,40 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
     ENDIF.
     RAISE EXCEPTION TYPE z2ui5_lcl_utility EXPORTING val = v.
   ENDMETHOD.
-ENDCLASS.
 
+  METHOD get_param.
 
-CLASS z2ui5_lcl_utility_tree_json DEFINITION.
+    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
 
-  PUBLIC SECTION.
+    DATA(lv_search) = z2ui5_lcl_fw_handler=>so_body->get_attribute( `OLOCATION` )->get_attribute( `SEARCH` )->get_val( ).
 
-    DATA mo_root         TYPE REF TO z2ui5_lcl_utility_tree_json.
-    DATA mo_parent       TYPE REF TO z2ui5_lcl_utility_tree_json.
-    DATA mv_name         TYPE string.
-    DATA mv_value        TYPE string.
-    DATA mt_values       TYPE STANDARD TABLE OF REF TO z2ui5_lcl_utility_tree_json WITH EMPTY KEY.
-    DATA mv_check_list   TYPE abap_bool.
-    DATA mr_actual       TYPE REF TO data.
-    DATA mv_apost_active TYPE abap_bool.
+    REPLACE `%3D` IN lv_search WITH `=`.
+    SPLIT lv_search AT `&sap-startup-params=` INTO DATA(lv_search1) DATA(lv_search2).
+    IF lv_search2 IS NOT INITIAL.
+      lv_search = lv_search2.
+    ELSE.
+      lv_search = lv_search1.
+    ENDIF.
 
-    CLASS-METHODS new
-      IMPORTING io_root       TYPE REF TO z2ui5_lcl_utility_tree_json
-                iv_name       TYPE simple
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+    lv_search = get_trim_upper( lv_search ).
+    SHIFT lv_search LEFT DELETING LEADING `?`.
 
-    CLASS-METHODS factory
-      IMPORTING iv_json       TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
 
-    METHODS constructor.
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
 
-    METHODS get_root
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
 
-    METHODS get_attribute
-      IMPORTING name          TYPE string
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
+    ENDLOOP.
 
-    METHODS get_val
-      RETURNING VALUE(result) TYPE string.
+    DATA(lv_val) = get_trim_upper( val ).
+    r_result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
-    METHODS add_attribute
-      IMPORTING n             TYPE clike
-                v             TYPE clike
-                apos_active   TYPE abap_bool DEFAULT abap_true
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS add_attribute_object
-      IMPORTING name          TYPE clike
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS add_attribute_struc
-      IMPORTING val           TYPE data
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS add_attribute_instance
-      IMPORTING val           TYPE REF TO z2ui5_lcl_utility_tree_json
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    METHODS stringify
-      RETURNING VALUE(result) TYPE string.
-
-  PROTECTED SECTION.
-    METHODS wrap_json
-      IMPORTING iv_text       TYPE string
-      RETURNING VALUE(result) TYPE string.
-
-    METHODS quote_json
-      IMPORTING iv_text       TYPE string
-                iv_cond       TYPE abap_bool
-      RETURNING VALUE(result) TYPE string.
+  ENDMETHOD.
 
 ENDCLASS.
+
 
 
 CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
@@ -634,157 +836,6 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
   ENDMETHOD.
 ENDCLASS.
 
-CLASS z2ui5_lcl_fw_handler DEFINITION DEFERRED.
-
-CLASS z2ui5_lcl_fw_handler DEFINITION.
-
-  PUBLIC SECTION.
-
-    CONSTANTS:
-      BEGIN OF cs_bind_type,
-        one_way  TYPE string VALUE 'ONE_WAY',
-        two_way  TYPE string VALUE 'TWO_WAY',
-        one_time TYPE string VALUE 'ONE_TIME',
-      END OF cs_bind_type.
-
-    TYPES:
-      BEGIN OF ty_S_next2,
-        t_scroll   TYPE z2ui5_if_client=>ty_t_name_value,
-        title      TYPE string,
-        path       TYPE string,
-        url        TYPE string,
-        BEGIN OF s_view,
-          xml                TYPE string,
-          check_destroy      TYPE abap_bool,
-          check_update_model TYPE abap_bool,
-        END OF s_view,
-        BEGIN OF s_view_nest,
-          xml                TYPE string,
-          id                 TYPE string,
-          method_insert      TYPE string,
-          method_destroy     TYPE string,
-          check_destroy      TYPE abap_bool,
-          check_update_model TYPE abap_bool,
-        END OF s_view_nest,
-        BEGIN OF s_popup,
-          xml                TYPE string,
-          id                 TYPE string,
-          check_destroy      TYPE abap_bool,
-          check_update_model TYPE abap_bool,
-        END OF s_popup,
-        BEGIN OF s_popover,
-          xml                TYPE string,
-          id                 TYPE string,
-          open_by_id         TYPE string,
-          check_destroy      TYPE abap_bool,
-          check_update_model TYPE abap_bool,
-        END OF s_popover,
-        BEGIN OF s_cursor,
-          id             TYPE string,
-          cursorpos      TYPE string,
-          selectionstart TYPE string,
-          selectionend   TYPE string,
-        END OF s_cursor,
-        BEGIN OF s_timer,
-          interval_ms    TYPE string,
-          event_finished TYPE string,
-        END OF s_timer,
-        BEGIN OF s_msg_box,
-          type TYPE string,
-          text TYPE string,
-        END OF s_msg_box,
-        BEGIN OF s_msg_toast,
-          text TYPE string,
-        END OF s_msg_toast,
-        _viewmodel TYPE string,
-      END OF ty_s_next2.
-
-    TYPES:
-      BEGIN OF ty_s_db,
-        id                TYPE string,
-        id_prev           TYPE string,
-        id_prev_app       TYPE string,
-        id_prev_app_stack TYPE string,
-        t_attri           TYPE z2ui5_lcl_utility=>ty_t_attri,
-        o_app             TYPE REF TO z2ui5_if_app,
-      END OF ty_s_db.
-
-    CLASS-DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
-
-    DATA ms_db TYPE ty_s_db.
-
-    TYPES:
-      BEGIN OF ty_s_next,
-        o_app_call  TYPE REF TO z2ui5_if_app,
-        o_app_leave TYPE REF TO z2ui5_if_app,
-        s_set       TYPE ty_S_next2,
-      END OF ty_s_next.
-
-    DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
-    DATA ms_next   TYPE ty_s_next.
-
-    CLASS-DATA so_body TYPE REF TO z2ui5_lcl_utility_tree_json.
-
-    CLASS-METHODS request_begin
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
-
-    METHODS request_end
-      RETURNING VALUE(result) TYPE string.
-
-    METHODS _create_binding
-      IMPORTING value         TYPE data
-                type          TYPE string    DEFAULT cs_bind_type-two_way
-      RETURNING VALUE(result) TYPE string.
-
-    CLASS-METHODS set_app_start
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
-
-    CLASS-METHODS set_app_client
-      IMPORTING
-        id_prev       TYPE clike
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
-
-    METHODS set_app_leave
-      IMPORTING
-        check_no_db_save TYPE abap_bool DEFAULT abap_false
-      RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
-
-    METHODS set_app_call
-      IMPORTING
-        check_no_db_save TYPE abap_bool DEFAULT abap_false
-      RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
-
-    METHODS set_app_system
-      IMPORTING VALUE(ix)     TYPE REF TO cx_root OPTIONAL
-                error_text    TYPE string         OPTIONAL
-                  PREFERRED PARAMETER ix
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
-
-    CLASS-METHODS model_set_backend
-      IMPORTING
-        model   TYPE REF TO data
-        app     TYPE REF TO object
-        t_attri TYPE z2ui5_lcl_utility=>ty_t_attri.
-
-    CLASS-METHODS model_set_frontend
-      IMPORTING
-        app           TYPE REF TO object
-        t_attri       TYPE z2ui5_lcl_utility=>ty_t_attri
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS app_set_next
-      IMPORTING
-        app             TYPE REF TO z2ui5_if_app
-      RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_fw_handler.
-
-ENDCLASS.
-
-
 CLASS z2ui5_lcl_fw_db DEFINITION.
 
   PUBLIC SECTION.
@@ -927,6 +978,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         DATA li_app TYPE REF TO z2ui5_if_app.
         TRY.
             CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+*            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
             lv_check_demo = abap_true.
             client->nav_app_call( li_app ).
           CATCH cx_root.
@@ -956,8 +1008,11 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     DATA(ls_get) = client->get( ).
     DATA(lv_url_app) =  ls_get-s_config-origin && ls_get-s_config-pathname.
     DATA(lv_url) = lv_url_app.
-    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
+*    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
     SHIFT lv_url LEFT DELETING LEADING ` `.
+
+*    client->get( )-s_config-ms_db-
+*    DATA(lv_url_app_act) = ls_get-s_config-origin && ls_get-s_config-pathname.
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -1007,14 +1062,24 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     TRY.
 
         DATA(lv_url) = to_lower( z2ui5_lcl_fw_handler=>ss_config-origin && z2ui5_lcl_fw_handler=>ss_config-pathname ).
-        DATA(lv_path_info) = to_lower( z2ui5_lcl_fw_handler=>ss_config-path_info ).
-        REPLACE lv_path_info IN lv_url WITH ``.
-        SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
-        SHIFT lv_url RIGHT DELETING TRAILING `/`.
-        DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
-        IF lv_params IS NOT INITIAL.
-          lv_link = lv_link && `?` && lv_params.
+
+        DATA(lv_search) = client->get( )-s_config-search.
+        SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+        LOOP AT lt_param INTO DATA(ls_param).
+          TRY.
+              IF ls_param(9) = `app_start`.
+                DELETE lt_param.
+              ENDIF.
+            CATCH cx_root.
+          ENDTRY.
+        ENDLOOP.
+        IF lv_search IS INITIAL.
+          lv_url = lv_url && `?`.
+        ELSE.
+          lv_url = lv_url && lv_search && `&`.
         ENDIF.
+
+        DATA(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
 
       CATCH cx_root.
     ENDTRY.
@@ -1233,17 +1298,16 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA lv_ts_now TYPE timestampl.
-
-    GET TIME STAMP FIELD lv_ts_now.
-
-    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_ts_now
+    data(lv_timestampl) = z2ui5_lcl_utility=>get_timestampl( ).
+    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestampl
                                                               secs  = 60 * 60 * 4 ).
 
     DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
     COMMIT WORK.
 
   ENDMETHOD.
+
+
 ENDCLASS.
 
 
@@ -1265,7 +1329,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD request_begin.
 
-    so_body = z2ui5_lcl_utility_tree_json=>factory( ss_config-body ).
+    ss_config = VALUE #(
+      controller_name = `z2ui5_controller`
+      body            =  body ).
+    so_body = z2ui5_lcl_utility_tree_json=>factory( body ).
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
@@ -1274,13 +1341,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
         result = set_app_start( ).
         result->ms_actual-check_on_navigated = abap_true.
-*        RETURN.
-    ENDTRY.
-
-
-    TRY.
-        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
-      CATCH cx_root.
     ENDTRY.
 
     TRY.
@@ -1309,6 +1369,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+
     TRY.
         DATA(lo_location)  = so_body->get_attribute( `OLOCATION` ).
         ss_config-origin   = lo_location->get_attribute( `ORIGIN` )->get_val( ).
@@ -1319,6 +1380,16 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+*    TRY.
+*        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
+*      CATCH cx_root.
+*    ENDTRY.
+
+*    IF result->ms_actual-check_launchpad_active = abap_false.
+      IF ss_config-search CS `scenario=LAUNCHPAD`.
+        result->ms_actual-check_launchpad_active = abap_true.
+      ENDIF.
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -1334,7 +1405,15 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
 
-    ms_next-s_set-path = ss_config-path_info.
+*    DATA(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
+*    DATA(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
+*    DATA(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
+
+    IF ms_next-S_set-search IS INITIAL.
+      lo_resp->add_attribute( n = `SEARCH` v = ms_actual-s_config-search ).
+    ELSE.
+      lo_resp->add_attribute( n = `SEARCH` v = ms_next-S_set-search ).
+    ENDIF.
 
     result = lo_resp->get_root( )->stringify( ).
     z2ui5_lcl_fw_db=>create( id = ms_db-id db = ms_db ).
@@ -1469,37 +1548,24 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD set_app_start.
 
-    result = NEW #( ).
-    result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
 
-
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    SPLIT ss_config-path_info AT `?` INTO DATA(lv_path_info) DATA(lv_dummy).
-    DATA(lv_classname) = z2ui5_lcl_utility=>get_trim_upper( lv_path_info ).
-    SHIFT lv_classname LEFT DELETING LEADING `/`.
-
+    DATA(lv_classname) = z2ui5_lcl_utility=>get_param( `app_start` ).
     IF lv_classname IS INITIAL.
-      result = result->set_app_system( ).
+      result = set_app_system( ).
       RETURN.
     ENDIF.
 
     TRY.
-        TRY.
-            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-          CATCH cx_root.
-            SPLIT lv_classname AT `/` INTO lv_classname lv_dummy.
-            CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-        ENDTRY.
+        result = NEW #( ).
+        result->ms_db-id = z2ui5_lcl_utility=>get_uuid( ).
+
+        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
         result->ms_db-o_app->id = result->ms_db-id.
         result->ms_db-t_attri   = z2ui5_lcl_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
-*        result->ms_actual-check_on_navigated = abap_true.
-        RETURN.
 
       CATCH cx_root.
-        result = result->set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
-        RETURN.
+        result = set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
     ENDTRY.
-
 
   ENDMETHOD.
 
@@ -1608,9 +1674,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     IF ix IS BOUND.
-      ms_next-o_app_call = z2ui5_lcl_fw_app=>factory_error( error = ix ).
+      result->ms_next-o_app_call = z2ui5_lcl_fw_app=>factory_error( error = ix ).
 
-      result = set_app_call( check_no_db_save = abap_true ).
+      result = result->set_app_call( check_no_db_save = abap_true ).
       RETURN.
 
     ELSE.
@@ -1638,7 +1704,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     r_result->ms_db-t_attri     = z2ui5_lcl_utility=>get_t_attri_by_ref( app ).
 
     r_result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
-    r_result->ms_actual-s_config = ms_actual-s_config.
     r_result->ms_actual-check_on_navigated = abap_true.
 
     r_result->ms_next-s_Set = ms_next-s_set.
@@ -1675,9 +1740,10 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
                       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
                       t_event_arg            = mo_handler->ms_actual-t_event_arg
                       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+                      s_DRAFT                = CORRESPONDING #( mo_handler->ms_db )
                       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
                       s_config               = z2ui5_lcl_fw_handler=>ss_config ).
-    result-s_config-app = mo_handler->ms_db-o_app.
+    result-s_draft-app = mo_handler->ms_db-o_app.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~nav_app_call.
@@ -1731,6 +1797,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~_bind.
 
     result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
+
     IF path = abap_false.
       result = `{` && result && `}`.
     ENDIF.
@@ -1739,8 +1806,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value  = val
-                                            type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+    result = mo_handler->_create_binding( value  = val type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+
     IF path = abap_false.
       result = `{` && result && `}`.
     ENDIF.
@@ -1835,7 +1902,14 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_model_update.
 
-  mo_handler->ms_next-s_set-s_popup-check_update_model = abap_true.
+    mo_handler->ms_next-s_set-s_popup-check_update_model = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~url_param_set.
+
+    mo_handler->ms_next-s_set-search = val.
+    mo_handler->ms_actual-s_config-search = val.
 
   ENDMETHOD.
 

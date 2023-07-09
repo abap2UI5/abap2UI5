@@ -16,7 +16,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-METHODS http_post
       IMPORTING
         body          TYPE string
-        path_info     TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -27,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -52,6 +51,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
     ENDIF.
     z2ui5_lcl_fw_db=>cleanup( ).
 
+
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
                   lv_sec_policy && |\n| &&
@@ -75,7 +75,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
         `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
-        `</html>` && |\n|.
+        `</html><abc/>` && |\n|.
     r_result = r_result && `<script>` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
@@ -93,7 +93,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n|  &&
                            `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n|  &&
                            `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.PATH != "") {` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n|  &&
+                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n|  &&
                            `                    //    window.history.replaceState("", "", window.location.origin + sap.z2ui5.oResponse.PARAMS.PATH + window.location.search);` && |\n|  &&
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n|  &&
@@ -202,7 +203,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oView.destroy();` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            onEventFrontend: oEvent => {` && |\n|  &&
+                           `            onEventFrontend: function( oEvent )  {` && |\n|  &&
                            |\n|  &&
                            `                switch (oEvent.EVENT) {` && |\n|  &&
                            `                    case 'LOCATION_RELOAD':` && |\n|  &&
@@ -257,7 +258,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n|  &&
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `                sap.z2ui5.oBody.CHECKLAUNCHPADACTIVE = sap.z2ui5.checkLaunchpadActive;` && |\n|  &&
+                           `          //      sap.z2ui5.oBody.CHECKLAUNCHPADACTIVE = sap.z2ui5.checkLaunchpadActive;` && |\n|  &&
                            `                sap.z2ui5.oBody.ARGUMENTS = arguments;` && |\n|  &&
                            `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n|  &&
                            |\n|  &&
@@ -351,13 +352,14 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        if (!sap.z2ui5) {` && |\n|  &&
                            `            sap.z2ui5 = {};` && |\n|  &&
                            `        }` && |\n|  &&
-                           `        if (!sap.z2ui5.pathname) {` && |\n|  &&
+                           `    //    if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
-                           `       //     sap.z2ui5.pathname = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
-                           `        }` && |\n|  &&
-                           `        if (!sap.z2ui5.checkLaunchpadActive) {` && |\n|  &&
-                           `            sap.z2ui5.checkLaunchpadActive = false;` && |\n|  &&
-                           `        }` && |\n|  &&
+                           `        debugger;` && |\n|  &&
+                           `        //    sap.z2ui5.pathname = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
+                           `    //    }` && |\n|  &&
+                           `    //    if (!sap.z2ui5.checkLaunchpadActive) {` && |\n|  &&
+                           `    //        sap.z2ui5.checkLaunchpadActive = false;` && |\n|  &&
+                           `    //    }` && |\n|  &&
                            |\n|  &&
                            `        sap.z2ui5.checkNestAfter = false;` && |\n|  &&
                            |\n|  &&
@@ -369,25 +371,21 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                          `         sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+                           |         sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };| && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n|  &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
-                           `</html>`.
+                           `<abc/></html>`.
 
-*        `        sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+*             sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };`| && |\n| &&
+
   ENDMETHOD.
 
 
   METHOD http_post.
 
-    z2ui5_lcl_fw_handler=>ss_config = VALUE #(
-      controller_name = `z2ui5_controller`
-      path_info       = path_info
-      body            = body ).
-
-    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( ).
+    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( body ).
 
     DO.
       TRY.
@@ -408,7 +406,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           result = lo_handler->request_end( ).
 
         CATCH cx_root INTO DATA(x).
-          lo_handler = lo_handler->set_app_system( x ).
+          lo_handler = z2ui5_lcl_fw_handler=>set_app_system( x ).
           CONTINUE.
       ENDTRY.
 

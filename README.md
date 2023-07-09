@@ -51,14 +51,9 @@ Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/
 ```abap
 METHOD if_http_extension~handle_request.
 
-   DATA lt_header TYPE tihttpnvp.
-   server->request->get_header_fields( CHANGING fields = lt_header ).
-
    DATA(lv_resp) = SWITCH #( server->request->get_method( )
       WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
-      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post(
-         body      = server->request->get_cdata( ) 
-         path_info = lt_header[ name = `~path_info` ]-value ) ).
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( server->request->get_cdata( ) ).
 
    server->response->set_header_field( name = `cache-control` value = `no-cache` ).
    server->response->set_cdata( lv_resp ).
@@ -70,21 +65,16 @@ ENDMETHOD.
 ```abap
 METHOD if_http_service_extension~handle_request.
 
-   DATA(lt_header) = request->get_header_fields( ).
-
    DATA(lv_resp) = SWITCH #( request->get_method( )
       WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
-      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post(
-         body      = request->get_text( )
-         path_info = lt_header[ name = `~path_info` ]-value ) ).
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( request->get_text( ) ).
 
-   response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
-   response->set_status( 200 )->set_text( lv_resp ).
+   response->set_status( 200 )->set_text( lv_resp
+      )->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
 
 ENDMETHOD.
 ```
 #### FAQ
 * check out this [documentation](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/) for detailed installation guidelines<br>
-* read these [instructions](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/) when you develop your first app<br>
 * want to configure the theme, bootstrapping, language and title? see [configuration & debugging](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)

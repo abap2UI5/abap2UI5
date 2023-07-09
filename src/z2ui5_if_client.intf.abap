@@ -9,18 +9,6 @@ INTERFACE z2ui5_if_client
     END OF cs_event.
 
   TYPES:
-    BEGIN OF ty_s_config,
-      controller_name TYPE string,
-      version         TYPE string,
-      pathname        TYPE string,
-      origin          TYPE string,
-      search          TYPE string,
-      path_info       TYPE string,
-      body            TYPE string,
-      app             TYPE REF TO z2ui5_if_app,
-    END OF ty_S_config.
-
-  TYPES:
     BEGIN OF ty_s_name_value,
       n TYPE string,
       v TYPE string,
@@ -28,22 +16,41 @@ INTERFACE z2ui5_if_client
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
 
   TYPES:
+    BEGIN OF ty_s_config,
+      controller_name TYPE string,
+      version         TYPE string,
+      origin          TYPE string,
+      pathname        TYPE string,
+      search          TYPE string,
+      body            TYPE string,
+    END OF ty_S_config.
+
+  TYPES:
+    BEGIN OF ty_s_draft,
+      id                TYPE string,
+      id_prev           TYPE string,
+      id_prev_app       TYPE string,
+      id_prev_app_stack TYPE string,
+      app               TYPE REF TO z2ui5_if_app,
+    END OF ty_S_draft.
+
+  TYPES:
+    BEGIN OF ty_s_cursor,
+      id             TYPE string,
+      cursorpos      TYPE string,
+      selectionstart TYPE string,
+      selectionend   TYPE string,
+    END OF ty_s_cursor.
+
+  TYPES:
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
       t_scroll_pos           TYPE ty_t_name_value,
-      id                     TYPE string,
-      id_prev                TYPE string,
-      id_prev_app            TYPE string,
-      id_prev_app_stack      TYPE string,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
-      BEGIN OF s_cursor,
-        id             TYPE string,
-        cursorpos      TYPE string,
-        selectionstart TYPE string,
-        selectionend   TYPE string,
-      END OF s_cursor,
+      s_draft                TYPE ty_S_draft,
+      s_cursor               TYPE ty_S_cursor,
       s_config               TYPE ty_S_config,
     END OF ty_s_get.
 
@@ -116,6 +123,10 @@ INTERFACE z2ui5_if_client
     IMPORTING
       text TYPE clike
       type TYPE clike DEFAULT 'information'.
+
+  METHODS url_param_set
+    IMPORTING
+      val  type clike.
 
   METHODS timer_set
     IMPORTING
