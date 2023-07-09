@@ -1113,6 +1113,48 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
+ methods PLANNINGCALENDAR
+    importing
+      !ROWS type CLIKE optional
+      !STARTDATE type CLIKE optional
+      !APPOINTMENTSVISUALIZATION type CLIKE optional
+      !APPOINTMENTSELECT type CLIKE optional
+      !SHOWEMPTYINTERVALHEADERS type CLIKE optional
+      !SHOWWEEKNUMBERS type CLIKE optional
+    preferred parameter ROWS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods PLANNINGCALENDARROW
+    importing
+      !APPOINTMENTS type CLIKE optional
+      !INTERVALHEADERS type CLIKE optional
+      !ICON type CLIKE optional
+      !TITLE type CLIKE optional
+      !TEXT type CLIKE optional
+    preferred parameter APPOINTMENTS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods ROWS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods APPOINTMENTS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods CALENDARAPPOINTMENT
+    importing
+      !STARTDATE type CLIKE optional
+      !ENDDATE type CLIKE optional
+      !ICON type CLIKE optional
+      !TITLE type CLIKE optional
+      !TEXT type CLIKE optional
+      !TYPE type CLIKE optional
+      !TENTATIVE type CLIKE optional
+    preferred parameter STARTDATE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods INTERVALHEADERS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1131,7 +1173,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2760,6 +2802,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD hlp_get_url_param.
 
     DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
@@ -2781,6 +2824,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
+
 
   METHOD hlp_set_url_param.
 
@@ -2819,4 +2863,55 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD APPOINTMENTS.
+    result = _generic( name   = `appointments` ).
+  ENDMETHOD.
+
+
+  METHOD CALENDARAPPOINTMENT.
+    result = _generic( name   = `CalendarAppointment`
+                       ns     = `unified`
+                       t_prop = VALUE #(
+                           ( n = `startDate`                 v = startDate )
+                           ( n = `endDate`                   v = endDate )
+                           ( n = `icon`                      v = icon )
+                           ( n = `title`                     v = title )
+                           ( n = `text`                      v = text )
+                           ( n = `type`                      v = type )
+                           ( n = `tentative`                 v = tentative ) ) ).
+  ENDMETHOD.
+
+
+  METHOD INTERVALHEADERS.
+    result = _generic( name   = `intervalHeaders` ).
+  ENDMETHOD.
+
+
+  METHOD PLANNINGCALENDAR.
+    result = _generic( name   = `PlanningCalendar`
+                       t_prop = VALUE #(
+                           ( n = `rows`                      v = rows )
+                           ( n = `startDate`                 v = startDate )
+                           ( n = `appointmentsVisualization` v = appointmentsVisualization )
+                           ( n = `appointmentSelect`         v = appointmentSelect )
+                           ( n = `showEmptyIntervalHeaders`  v = showEmptyIntervalHeaders )
+                           ( n = `showWeekNumbers`           v = showWeekNumbers ) ) ).
+  ENDMETHOD.
+
+
+  METHOD PLANNINGCALENDARROW.
+    result = _generic( name   = `PlanningCalendarRow`
+                       t_prop = VALUE #(
+                           ( n = `appointments`              v = appointments )
+                           ( n = `intervalHeaders`           v = intervalHeaders )
+                           ( n = `icon`                      v = icon )
+                           ( n = `title`                     v = title )
+                           ( n = `text`                      v = text ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ROWS.
+    result = _generic( name   = `rows` ).
+  ENDMETHOD.
 ENDCLASS.
