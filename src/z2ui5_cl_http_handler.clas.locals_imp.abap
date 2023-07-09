@@ -204,7 +204,6 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
       BEGIN OF ty_S_next2,
         t_scroll   TYPE z2ui5_if_client=>ty_t_name_value,
         title      TYPE string,
-*        path       TYPE string,
         search     TYPE string,
         BEGIN OF s_view,
           xml                TYPE string,
@@ -978,7 +977,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         DATA li_app TYPE REF TO z2ui5_if_app.
         TRY.
             CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-*            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
             lv_check_demo = abap_true.
             client->nav_app_call( li_app ).
           CATCH cx_root.
@@ -999,7 +997,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     DATA(lv_txt) = ms_error-x_error->get_text( ).
-*    SPLIT lv_prog AT `=` INTO DATA(lv_classname) DATA(lv_Dummy) ##NEEDED.
     DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
     DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
     DATA(lv_source) = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
@@ -1008,11 +1005,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     DATA(ls_get) = client->get( ).
     DATA(lv_url_app) =  ls_get-s_config-origin && ls_get-s_config-pathname.
     DATA(lv_url) = lv_url_app.
-*    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
     SHIFT lv_url LEFT DELETING LEADING ` `.
-
-*    client->get( )-s_config-ms_db-
-*    DATA(lv_url_app_act) = ls_get-s_config-origin && ls_get-s_config-pathname.
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -1246,7 +1239,6 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
               ASSIGN (lv_assign) TO <attri>.
               ASSIGN <attri>->* TO <deref_attri>.
 
-
               lr_attri->data_rtti = z2ui5_lcl_utility=>rtti_get( <deref_attri> ).
               CLEAR <deref_attri>.
               CLEAR <attri>.
@@ -1369,7 +1361,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-
     TRY.
         DATA(lo_location)  = so_body->get_attribute( `OLOCATION` ).
         ss_config-origin   = lo_location->get_attribute( `ORIGIN` )->get_val( ).
@@ -1380,16 +1371,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-*    TRY.
-*        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
-*      CATCH cx_root.
-*    ENDTRY.
-
-*    IF result->ms_actual-check_launchpad_active = abap_false.
       IF ss_config-search CS `scenario=LAUNCHPAD`.
         result->ms_actual-check_launchpad_active = abap_true.
       ENDIF.
-*    ENDIF.
 
   ENDMETHOD.
 
