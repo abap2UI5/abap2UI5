@@ -1298,7 +1298,8 @@ CLASS z2ui5_lcl_fw_db IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = CONV #( z2ui5_lcl_utility=>get_timestampl( ) )
+    data(lv_timestampl) = z2ui5_lcl_utility=>get_timestampl( ).
+    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestampl
                                                               secs  = 60 * 60 * 4 ).
 
     DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
