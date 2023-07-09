@@ -60,6 +60,7 @@ CLASS lcl_utility IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
   ENDMETHOD.
+
   METHOD get_trim_lower.
 
     result = CONV #( val ).

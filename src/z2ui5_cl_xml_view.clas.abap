@@ -35,9 +35,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS hlp_set_url_param
       IMPORTING
         !n            TYPE clike
-        !v            TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
+        !v            TYPE clike.
 
     METHODS hlp_replace_controller_name
       IMPORTING

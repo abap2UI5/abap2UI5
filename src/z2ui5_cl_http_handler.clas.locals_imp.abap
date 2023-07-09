@@ -1012,7 +1012,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     SHIFT lv_url LEFT DELETING LEADING ` `.
 
 *    client->get( )-s_config-ms_db-
-    DATA(lv_url_app_act) = ls_get-s_config-origin && ls_get-s_config-pathname.
+*    DATA(lv_url_app_act) = ls_get-s_config-origin && ls_get-s_config-pathname.
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -1404,9 +1404,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
 
-    DATA(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
-    DATA(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
-    DATA(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
+*    DATA(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
+*    DATA(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
+*    DATA(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
 
     IF ms_next-S_set-search IS INITIAL.
       lo_resp->add_attribute( n = `SEARCH` v = ms_actual-s_config-search ).
