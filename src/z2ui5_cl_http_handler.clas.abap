@@ -258,7 +258,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    });` && |\n|  &&
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `                sap.z2ui5.oBody.CHECKLAUNCHPADACTIVE = sap.z2ui5.checkLaunchpadActive;` && |\n|  &&
+                           `          //      sap.z2ui5.oBody.CHECKLAUNCHPADACTIVE = sap.z2ui5.checkLaunchpadActive;` && |\n|  &&
                            `                sap.z2ui5.oBody.ARGUMENTS = arguments;` && |\n|  &&
                            `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n|  &&
                            |\n|  &&
@@ -352,13 +352,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        if (!sap.z2ui5) {` && |\n|  &&
                            `            sap.z2ui5 = {};` && |\n|  &&
                            `        }` && |\n|  &&
-                           `        if (!sap.z2ui5.pathname) {` && |\n|  &&
+                           `    //    if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
+                           `        debugger;` && |\n|  &&
                            `        //    sap.z2ui5.pathname = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
-                           `        }` && |\n|  &&
-                           `        if (!sap.z2ui5.checkLaunchpadActive) {` && |\n|  &&
-                           `            sap.z2ui5.checkLaunchpadActive = false;` && |\n|  &&
-                           `        }` && |\n|  &&
+                           `    //    }` && |\n|  &&
+                           `    //    if (!sap.z2ui5.checkLaunchpadActive) {` && |\n|  &&
+                           `    //        sap.z2ui5.checkLaunchpadActive = false;` && |\n|  &&
+                           `    //    }` && |\n|  &&
                            |\n|  &&
                            `        sap.z2ui5.checkNestAfter = false;` && |\n|  &&
                            |\n|  &&

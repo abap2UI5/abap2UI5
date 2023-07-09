@@ -592,6 +592,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !title          TYPE clike OPTIONAL
         !navbuttonpress TYPE clike OPTIONAL
         !shownavbutton  TYPE clike OPTIONAL
+        !showHeader     TYPE clike OPTIONAL
         !id             TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
         !ns             TYPE clike OPTIONAL
@@ -2163,6 +2164,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `title` v = title )
                                          ( n = `showNavButton`  v = lcl_utility=>get_json_boolean( shownavbutton ) )
                                          ( n = `navButtonPress` v = navbuttonpress )
+                                         ( n = `showHeader` v = lcl_utility=>get_json_boolean( showHeader ) )
                                          ( n = `class` v = class )
                                          ( n = `id` v = id ) ) ).
   ENDMETHOD.

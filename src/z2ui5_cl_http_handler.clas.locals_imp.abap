@@ -665,6 +665,14 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
     DATA(lv_search) = z2ui5_lcl_fw_handler=>so_body->get_attribute( `OLOCATION` )->get_attribute( `SEARCH` )->get_val( ).
 
+    REPLACE `%3D` IN lv_search WITH `=`.
+    SPLIT lv_search AT `&sap-startup-params=` INTO DATA(lv_search1) DATA(lv_search2).
+    IF lv_search2 IS NOT INITIAL.
+      lv_search = lv_search2.
+    ELSE.
+      lv_search = lv_search1.
+    ENDIF.
+
     lv_search = get_trim_upper( lv_search ).
     SHIFT lv_search LEFT DELETING LEADING `?`.
 
@@ -1003,6 +1011,9 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 *    SHIFT lv_url RIGHT DELETING TRAILING ls_get-s_config-path_info.
     SHIFT lv_url LEFT DELETING LEADING ` `.
 
+*    client->get( )-s_config-ms_db-
+    DATA(lv_url_app_act) = ls_get-s_config-origin && ls_get-s_config-pathname.
+
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
                    `  xmlns:z2ui5="z2ui5" ` && |\n| &&
@@ -1055,27 +1066,20 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
         DATA(lv_search) = client->get( )-s_config-search.
         SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
         LOOP AT lt_param INTO DATA(ls_param).
-          IF ls_param(9) = `app_start`.
-                delete lt_param.
-          ENDIF.
+          TRY.
+              IF ls_param(9) = `app_start`.
+                DELETE lt_param.
+              ENDIF.
+            CATCH cx_root.
+          ENDTRY.
         ENDLOOP.
-        IF client->get( )-s_config-search IS INITIAL.
+        IF lv_search IS INITIAL.
           lv_url = lv_url && `?`.
         ELSE.
-          lv_url = lv_url && client->get( )-s_config-search && `&`.
+          lv_url = lv_url && lv_search && `&`.
         ENDIF.
 
-
         DATA(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
-*        lv_url = lv_url && client->get( )-s_config-search.
-*        DATA(lv_path_info) = to_lower( z2ui5_lcl_fw_handler=>ss_config-path_info ).
-*        REPLACE lv_path_info IN lv_url WITH ``.
-*        SPLIT lv_url AT '?' INTO lv_url DATA(lv_params).
-*        SHIFT lv_url RIGHT DELETING TRAILING `/`.
-*        DATA(lv_link) = lv_url && `/` && to_lower( ms_home-classname ).
-*        IF lv_params IS NOT INITIAL.
-*          lv_link = lv_link && `?` && lv_params.
-*        ENDIF.
 
       CATCH cx_root.
     ENDTRY.
@@ -1338,12 +1342,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         result->ms_actual-check_on_navigated = abap_true.
     ENDTRY.
 
-
-    TRY.
-        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-
     TRY.
         DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
         result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
@@ -1381,6 +1379,16 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+*    TRY.
+*        result->ms_actual-check_launchpad_active = so_body->get_attribute( `CHECKLAUNCHPADACTIVE` )->get_val( ).
+*      CATCH cx_root.
+*    ENDTRY.
+
+*    IF result->ms_actual-check_launchpad_active = abap_false.
+      IF ss_config-search CS `scenario=LAUNCHPAD`.
+        result->ms_actual-check_launchpad_active = abap_true.
+      ENDIF.
+*    ENDIF.
 
   ENDMETHOD.
 
