@@ -977,7 +977,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
         DATA li_app TYPE REF TO z2ui5_if_app.
         TRY.
-            CREATE OBJECT li_app TYPE (`Z2UI5_TOOL_CL_APP_00`).
+            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
 *            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
             lv_check_demo = abap_true.
             client->nav_app_call( li_app ).
