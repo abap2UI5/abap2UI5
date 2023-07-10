@@ -1187,6 +1187,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD APPOINTMENTS.
+    result = _generic( name   = `appointments` ).
+  ENDMETHOD.
+
+
   METHOD avatar.
     result = me.
     _generic( name   = `Avatar`
@@ -1246,6 +1251,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD buttons.
     result = _generic( `buttons` ).
+  ENDMETHOD.
+
+
+  METHOD CALENDARAPPOINTMENT.
+    result = _generic( name   = `CalendarAppointment`
+                       ns     = `unified`
+                       t_prop = VALUE #(
+                           ( n = `startDate`                 v = startDate )
+                           ( n = `endDate`                   v = endDate )
+                           ( n = `icon`                      v = icon )
+                           ( n = `title`                     v = title )
+                           ( n = `text`                      v = text )
+                           ( n = `type`                      v = type )
+                           ( n = `tentative`                 v = tentative ) ) ).
   ENDMETHOD.
 
 
@@ -1809,6 +1828,29 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD hlp_get_url_param.
+
+    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
+    DATA(lv_search) = mi_client->get( )-s_config-search.
+
+    lv_search = lcl_utility=>get_trim_lower( lv_search ).
+    SHIFT lv_search LEFT DELETING LEADING `?`.
+
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+
+      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
+    ENDLOOP.
+
+    DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
+    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
+
+  ENDMETHOD.
+
+
   METHOD hlp_replace_controller_name.
 
     DATA(ls_config) = mo_root->mi_client->get( )-s_config.
@@ -1818,6 +1860,44 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                  iv_begin   = 'controllerName="'
                  iv_end     = '"'
                  iv_replace = `controllerName="` && ls_config-controller_name && `"` ).
+
+  ENDMETHOD.
+
+
+  METHOD hlp_set_url_param.
+
+    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
+    DATA(lv_search) = mi_client->get( )-s_config-search.
+
+    lv_search = lcl_utility=>get_trim_lower( lv_search ).
+    SHIFT lv_search LEFT DELETING LEADING `?`.
+
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+
+      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
+    ENDLOOP.
+
+    DATA(lv_n) = lcl_utility=>get_trim_lower( n ).
+
+    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
+        WHERE n = lv_n.
+      lr_params->v = lcl_utility=>get_trim_lower( v ).
+    ENDLOOP.
+    IF sy-subrc <> 0.
+      INSERT VALUE #( n = lv_n v = lcl_utility=>get_trim_lower( v ) ) INTO TABLE lt_params.
+    ENDIF.
+
+    DATA(lv_result) = `?` && lt_params[ 1 ]-n && `=` && lt_params[ 1 ]-v.
+
+    LOOP AT lt_params REFERENCE INTO lr_params FROM 2.
+      lv_result = lv_result && `&` && lr_params->n && `=` && lr_params->v.
+    ENDLOOP.
+
+    mi_client->url_param_set( lv_result ).
 
   ENDMETHOD.
 
@@ -1950,6 +2030,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `value`          v = value )
                                          ( n = `displayedValue` v = displayedvalue )
                                          ( n = `selected`       v = lcl_utility=>get_json_boolean( selected ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD INTERVALHEADERS.
+    result = _generic( name   = `intervalHeaders` ).
   ENDMETHOD.
 
 
@@ -2218,6 +2303,29 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD PLANNINGCALENDAR.
+    result = _generic( name   = `PlanningCalendar`
+                       t_prop = VALUE #(
+                           ( n = `rows`                      v = rows )
+                           ( n = `startDate`                 v = startDate )
+                           ( n = `appointmentsVisualization` v = appointmentsVisualization )
+                           ( n = `appointmentSelect`         v = appointmentSelect )
+                           ( n = `showEmptyIntervalHeaders`  v = showEmptyIntervalHeaders )
+                           ( n = `showWeekNumbers`           v = showWeekNumbers ) ) ).
+  ENDMETHOD.
+
+
+  METHOD PLANNINGCALENDARROW.
+    result = _generic( name   = `PlanningCalendarRow`
+                       t_prop = VALUE #(
+                           ( n = `appointments`              v = appointments )
+                           ( n = `intervalHeaders`           v = intervalHeaders )
+                           ( n = `icon`                      v = icon )
+                           ( n = `title`                     v = title )
+                           ( n = `text`                      v = text ) ) ).
+  ENDMETHOD.
+
+
   METHOD points.
     result = _generic( name = `points`
                        ns   = `mchart` ).
@@ -2301,6 +2409,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `startValue`   v = startvalue )
                                 ( n = `step`   v = step )
                                 ( n = `width`   v = width ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ROWS.
+    result = _generic( name   = `rows` ).
   ENDMETHOD.
 
 
@@ -2800,118 +2913,5 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     mo_root->mo_previous = result2.
     result = result2.
 
-  ENDMETHOD.
-
-
-  METHOD hlp_get_url_param.
-
-    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
-    DATA(lv_search) = mi_client->get( )-s_config-search.
-
-    lv_search = lcl_utility=>get_trim_lower( lv_search ).
-    SHIFT lv_search LEFT DELETING LEADING `?`.
-
-    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-
-    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-
-      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-
-      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
-    ENDLOOP.
-
-    DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
-    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
-
-  ENDMETHOD.
-
-
-  METHOD hlp_set_url_param.
-
-    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
-    DATA(lv_search) = mi_client->get( )-s_config-search.
-
-    lv_search = lcl_utility=>get_trim_lower( lv_search ).
-    SHIFT lv_search LEFT DELETING LEADING `?`.
-
-    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-
-    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-
-      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-
-      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
-    ENDLOOP.
-
-    DATA(lv_n) = lcl_utility=>get_trim_lower( n ).
-
-    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
-        WHERE n = lv_n.
-      lr_params->v = lcl_utility=>get_trim_lower( v ).
-    ENDLOOP.
-    IF sy-subrc <> 0.
-      INSERT VALUE #( n = lv_n v = lcl_utility=>get_trim_lower( v ) ) INTO TABLE lt_params.
-    ENDIF.
-
-    DATA(lv_result) = `?` && lt_params[ 1 ]-n && `=` && lt_params[ 1 ]-v.
-
-    LOOP AT lt_params REFERENCE INTO lr_params FROM 2.
-      lv_result = lv_result && `&` && lr_params->n && `=` && lr_params->v.
-    ENDLOOP.
-
-    mi_client->url_param_set( lv_result ).
-
-  ENDMETHOD.
-
-
-  METHOD APPOINTMENTS.
-    result = _generic( name   = `appointments` ).
-  ENDMETHOD.
-
-
-  METHOD CALENDARAPPOINTMENT.
-    result = _generic( name   = `CalendarAppointment`
-                       ns     = `unified`
-                       t_prop = VALUE #(
-                           ( n = `startDate`                 v = startDate )
-                           ( n = `endDate`                   v = endDate )
-                           ( n = `icon`                      v = icon )
-                           ( n = `title`                     v = title )
-                           ( n = `text`                      v = text )
-                           ( n = `type`                      v = type )
-                           ( n = `tentative`                 v = tentative ) ) ).
-  ENDMETHOD.
-
-
-  METHOD INTERVALHEADERS.
-    result = _generic( name   = `intervalHeaders` ).
-  ENDMETHOD.
-
-
-  METHOD PLANNINGCALENDAR.
-    result = _generic( name   = `PlanningCalendar`
-                       t_prop = VALUE #(
-                           ( n = `rows`                      v = rows )
-                           ( n = `startDate`                 v = startDate )
-                           ( n = `appointmentsVisualization` v = appointmentsVisualization )
-                           ( n = `appointmentSelect`         v = appointmentSelect )
-                           ( n = `showEmptyIntervalHeaders`  v = showEmptyIntervalHeaders )
-                           ( n = `showWeekNumbers`           v = showWeekNumbers ) ) ).
-  ENDMETHOD.
-
-
-  METHOD PLANNINGCALENDARROW.
-    result = _generic( name   = `PlanningCalendarRow`
-                       t_prop = VALUE #(
-                           ( n = `appointments`              v = appointments )
-                           ( n = `intervalHeaders`           v = intervalHeaders )
-                           ( n = `icon`                      v = icon )
-                           ( n = `title`                     v = title )
-                           ( n = `text`                      v = text ) ) ).
-  ENDMETHOD.
-
-
-  METHOD ROWS.
-    result = _generic( name   = `rows` ).
   ENDMETHOD.
 ENDCLASS.
