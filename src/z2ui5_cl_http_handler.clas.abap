@@ -234,13 +234,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                sap.z2ui5.oBody = {};` && |\n|  &&
                            `                let isUpdated = false;` && |\n|  &&
                            `                if (sap.z2ui5.oViewPopup) {` && |\n|  &&
-                           `                if (sap.z2ui5.oViewPopup.isDestroyed() == false) {` && |\n|  &&
+                           `                if (sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n|  &&
+                           `             //   if (sap.z2ui5.oViewPopup.isDestroyed() == false) {` && |\n|  &&
                            `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate;` && |\n|  &&
                            `                    isUpdated = true;` && |\n|  &&
                            `                    } }` && |\n|  &&
                            `              if ( isUpdated == false ) { ` && |\n|  &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n|  &&
-                           `              if (sap.z2ui5.oViewPopover.isDestroyed() == false) {` && |\n|  &&
+                           `              if (sap.z2ui5.oViewPopover.isOpen() == false) {` && |\n|  &&
+                           `         //   if (sap.z2ui5.oViewPopover.isDestroyed() == false) {` && |\n|  &&
                            `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n|  &&
                                 `                    isUpdated = true;` && |\n|  &&
                            `                } } }` && |\n|  &&
