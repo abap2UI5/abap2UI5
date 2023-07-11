@@ -609,6 +609,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !height         TYPE clike OPTIONAL
         !justifycontent TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
+        !renderType     TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -784,6 +785,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press        TYPE clike OPTIONAL
         !type         TYPE clike OPTIONAL
         !selected     TYPE clike OPTIONAL
+        !counter      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS item
@@ -1155,6 +1157,53 @@ CLASS z2ui5_cl_xml_view DEFINITION
   methods INTERVALHEADERS
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods BLOCKLAYOUT
+    importing
+      !BACKGROUND type CLIKE OPTIONAL
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods BLOCKLAYOUTROW
+    importing
+      !ROWCOLORSET type CLIKE OPTIONAL
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods BLOCKLAYOUTCELL
+    importing
+      !BACKGROUNDCOLORSET type CLIKE OPTIONAL
+      !BACKGROUNDCOLORSHADE type CLIKE OPTIONAL
+      !TITLE type CLIKE OPTIONAL
+      !TITLEALIGNMENT type CLIKE OPTIONAL
+      !TITLELEVEL type CLIKE OPTIONAL
+      !WIDTH type CLIKE OPTIONAL
+      !CLASS type CLIKE OPTIONAL
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  METHODS object_identifier
+    IMPORTING
+      !emptyIndicatorMode type CLIKE OPTIONAL
+      !text type CLIKE OPTIONAL
+      !textDirection type CLIKE OPTIONAL
+      !title type CLIKE OPTIONAL
+      !titleActive type CLIKE OPTIONAL
+      !visible type CLIKE OPTIONAL
+      !titlePress type CLIKE OPTIONAL
+    RETURNING
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  METHODS object_status
+    IMPORTING
+      !active type CLIKE OPTIONAL
+      !emptyIndicatorMode type CLIKE OPTIONAL
+      !icon type CLIKE OPTIONAL
+      !iconDensityAware type CLIKE OPTIONAL
+      !inverted type CLIKE OPTIONAL
+      !state type CLIKE OPTIONAL
+      !stateAnnouncementText type CLIKE OPTIONAL
+      !text type CLIKE OPTIONAL
+      !textDirection type CLIKE OPTIONAL
+      !title type CLIKE OPTIONAL
+      !press type CLIKE OPTIONAL
+    RETURNING
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1226,6 +1275,33 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `beginColumnPages`
                        ns   = `f` ).
 
+  ENDMETHOD.
+
+
+  METHOD blocklayout.
+    result = _generic( name   = `BlockLayout`
+                       ns     = `layout`
+                       t_prop = VALUE #( ( n = `background` v = background ) ) ).
+  ENDMETHOD.
+
+
+  METHOD blocklayoutcell.
+    result = _generic( name   = `BlockLayoutCell`
+                       ns     = `layout`
+                       t_prop = VALUE #( ( n = `backgroundColorSet` v = backgroundColorSet )
+                                         ( n = `backgroundColorShade` v = backgroundColorShade )
+                                         ( n = `title` v = title )
+                                         ( n = `titleAlignment` v = titleAlignment )
+                                         ( n = `width` v = width )
+                                         ( n = `class` v = class )
+                                         ( n = `titleLevel` v = titleLevel ) ) ).
+  ENDMETHOD.
+
+
+  METHOD blocklayoutrow.
+    result = _generic( name   = `BlockLayoutRow`
+                       ns     = `layout`
+                       t_prop = VALUE #( ( n = `rowColorSet` v = rowColorSet ) ) ).
   ENDMETHOD.
 
 
@@ -2196,6 +2272,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD object_identifier.
+    result = _generic( name   = `ObjectIdentifier`
+                       t_prop = VALUE #( ( n = `emptyIndicatorMode` v = emptyIndicatorMode )
+                                         ( n = `text` v = text )
+                                         ( n = `textDirection` v = textDirection )
+                                         ( n = `title` v = title )
+                                         ( n = `titleActive` v = titleActive )
+                                         ( n = `visible` v = visible )
+                                         ( n = `titlePress` v = titlePress ) ) ).
+  ENDMETHOD.
+
+
   METHOD object_number.
     result = me.
     _generic( name   = `ObjectNumber`
@@ -2239,6 +2327,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = `uxap`
                        t_prop = VALUE #( ( n = `id`    v = id )
                                          ( n = `title` v = title ) ) ).
+  ENDMETHOD.
+
+
+  METHOD object_status.
+    result = _generic( name   = `ObjectStatus`
+                       t_prop = VALUE #( ( n = `active` v = active )
+                                         ( n = `emptyIndicatorMode` v = emptyIndicatorMode )
+                                         ( n = `icon` v = icon )
+                                         ( n = `iconDensityAware` v = iconDensityAware )
+                                         ( n = `inverted` v = inverted )
+                                         ( n = `state` v = state )
+                                         ( n = `stateAnnouncementText` v = stateAnnouncementText )
+                                         ( n = `text` v = text )
+                                         ( n = `textDirection` v = textDirection )
+                                         ( n = `title` v = title )
+                                         ( n = `press` v = press ) ) ).
   ENDMETHOD.
 
 
@@ -2514,6 +2618,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `info`        v = info )
                                 ( n = `press`       v = press )
                                 ( n = `type`        v = type )
+                                ( n = `counter`     v = counter )
                                 ( n = `selected`    v = selected ) ) ).
   ENDMETHOD.
 
@@ -2845,6 +2950,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `VBox`
                        t_prop = VALUE #( ( n = `height` v = height )
                                          ( n = `justifyContent`  v = justifyContent )
+                                         ( n = `renderType`  v = renderType )
                                          ( n = `class`  v = class ) ) ).
   ENDMETHOD.
 
