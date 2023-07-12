@@ -34,8 +34,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS hlp_set_url_param
       IMPORTING
-        !n            TYPE clike
-        !v            TYPE clike.
+        !n TYPE clike
+        !v TYPE clike.
 
     METHODS hlp_replace_controller_name
       IMPORTING
@@ -1059,27 +1059,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER width
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_extension
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS currency
       IMPORTING
         !value        TYPE clike
         !currency     TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_row_action
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_row_action_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_row_action_item
       IMPORTING
         !icon         TYPE clike OPTIONAL
@@ -1088,6 +1095,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS radio_button
       IMPORTING
         !activeHandling TYPE clike OPTIONAL
@@ -1103,6 +1111,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS radio_button_group
       IMPORTING
         !id            TYPE clike OPTIONAL
@@ -1115,95 +1124,105 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
- methods PLANNINGCALENDAR
-    importing
-      !ROWS type CLIKE optional
-      !STARTDATE type CLIKE optional
-      !APPOINTMENTSVISUALIZATION type CLIKE optional
-      !APPOINTMENTSELECT type CLIKE optional
-      !SHOWEMPTYINTERVALHEADERS type CLIKE optional
-      !SHOWWEEKNUMBERS type CLIKE optional
-    preferred parameter ROWS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods PLANNINGCALENDARROW
-    importing
-      !APPOINTMENTS type CLIKE optional
-      !INTERVALHEADERS type CLIKE optional
-      !ICON type CLIKE optional
-      !TITLE type CLIKE optional
-      !TEXT type CLIKE optional
-    preferred parameter APPOINTMENTS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods ROWS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods APPOINTMENTS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods CALENDARAPPOINTMENT
-    importing
-      !STARTDATE type CLIKE optional
-      !ENDDATE type CLIKE optional
-      !ICON type CLIKE optional
-      !TITLE type CLIKE optional
-      !TEXT type CLIKE optional
-      !TYPE type CLIKE optional
-      !TENTATIVE type CLIKE optional
-    preferred parameter STARTDATE
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods INTERVALHEADERS
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods BLOCKLAYOUT
-    importing
-      !BACKGROUND type CLIKE OPTIONAL
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods BLOCKLAYOUTROW
-    importing
-      !ROWCOLORSET type CLIKE OPTIONAL
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods BLOCKLAYOUTCELL
-    importing
-      !BACKGROUNDCOLORSET type CLIKE OPTIONAL
-      !BACKGROUNDCOLORSHADE type CLIKE OPTIONAL
-      !TITLE type CLIKE OPTIONAL
-      !TITLEALIGNMENT type CLIKE OPTIONAL
-      !TITLELEVEL type CLIKE OPTIONAL
-      !WIDTH type CLIKE OPTIONAL
-      !CLASS type CLIKE OPTIONAL
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  METHODS object_identifier
-    IMPORTING
-      !emptyIndicatorMode type CLIKE OPTIONAL
-      !text type CLIKE OPTIONAL
-      !textDirection type CLIKE OPTIONAL
-      !title type CLIKE OPTIONAL
-      !titleActive type CLIKE OPTIONAL
-      !visible type CLIKE OPTIONAL
-      !titlePress type CLIKE OPTIONAL
-    RETURNING
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  METHODS object_status
-    IMPORTING
-      !active type CLIKE OPTIONAL
-      !emptyIndicatorMode type CLIKE OPTIONAL
-      !icon type CLIKE OPTIONAL
-      !iconDensityAware type CLIKE OPTIONAL
-      !inverted type CLIKE OPTIONAL
-      !state type CLIKE OPTIONAL
-      !stateAnnouncementText type CLIKE OPTIONAL
-      !text type CLIKE OPTIONAL
-      !textDirection type CLIKE OPTIONAL
-      !title type CLIKE OPTIONAL
-      !press type CLIKE OPTIONAL
-    RETURNING
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+    METHODS planningcalendar
+      IMPORTING
+        !rows                      TYPE clike OPTIONAL
+        !startdate                 TYPE clike OPTIONAL
+        !appointmentsvisualization TYPE clike OPTIONAL
+        !appointmentselect         TYPE clike OPTIONAL
+        !showemptyintervalheaders  TYPE clike OPTIONAL
+        !showweeknumbers           TYPE clike OPTIONAL
+          PREFERRED PARAMETER rows
+      RETURNING
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS planningcalendarrow
+      IMPORTING
+        !appointments    TYPE clike OPTIONAL
+        !intervalheaders TYPE clike OPTIONAL
+        !icon            TYPE clike OPTIONAL
+        !title           TYPE clike OPTIONAL
+        !text            TYPE clike OPTIONAL
+          PREFERRED PARAMETER appointments
+      RETURNING
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS rows
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS appointments
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS calendarappointment
+      IMPORTING
+        !startdate    TYPE clike OPTIONAL
+        !enddate      TYPE clike OPTIONAL
+        !icon         TYPE clike OPTIONAL
+        !title        TYPE clike OPTIONAL
+        !text         TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !tentative    TYPE clike OPTIONAL
+          PREFERRED PARAMETER startdate
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS intervalheaders
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS blocklayout
+      IMPORTING
+        !background   TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS blocklayoutrow
+      IMPORTING
+        !rowcolorset  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS blocklayoutcell
+      IMPORTING
+        !backgroundcolorset   TYPE clike OPTIONAL
+        !backgroundcolorshade TYPE clike OPTIONAL
+        !title                TYPE clike OPTIONAL
+        !titlealignment       TYPE clike OPTIONAL
+        !titlelevel           TYPE clike OPTIONAL
+        !width                TYPE clike OPTIONAL
+        !class                TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS object_identifier
+      IMPORTING
+        !emptyIndicatorMode TYPE clike OPTIONAL
+        !text               TYPE clike OPTIONAL
+        !textDirection      TYPE clike OPTIONAL
+        !title              TYPE clike OPTIONAL
+        !titleActive        TYPE clike OPTIONAL
+        !visible            TYPE clike OPTIONAL
+        !titlePress         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+    METHODS object_status
+      IMPORTING
+        !active                TYPE clike OPTIONAL
+        !emptyIndicatorMode    TYPE clike OPTIONAL
+        !icon                  TYPE clike OPTIONAL
+        !iconDensityAware      TYPE clike OPTIONAL
+        !inverted              TYPE clike OPTIONAL
+        !state                 TYPE clike OPTIONAL
+        !stateAnnouncementText TYPE clike OPTIONAL
+        !text                  TYPE clike OPTIONAL
+        !textDirection         TYPE clike OPTIONAL
+        !title                 TYPE clike OPTIONAL
+        !press                 TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1222,7 +1241,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1236,7 +1255,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD APPOINTMENTS.
+  METHOD appointments.
     result = _generic( name   = `appointments` ).
   ENDMETHOD.
 
@@ -1330,7 +1349,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD CALENDARAPPOINTMENT.
+  METHOD calendarappointment.
     result = _generic( name   = `CalendarAppointment`
                        ns     = `unified`
                        t_prop = VALUE #(
@@ -2109,7 +2128,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD INTERVALHEADERS.
+  METHOD intervalheaders.
     result = _generic( name   = `intervalHeaders` ).
   ENDMETHOD.
 
@@ -2407,7 +2426,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD PLANNINGCALENDAR.
+  METHOD planningcalendar.
     result = _generic( name   = `PlanningCalendar`
                        t_prop = VALUE #(
                            ( n = `rows`                      v = rows )
@@ -2419,7 +2438,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD PLANNINGCALENDARROW.
+  METHOD planningcalendarrow.
     result = _generic( name   = `PlanningCalendarRow`
                        t_prop = VALUE #(
                            ( n = `appointments`              v = appointments )
@@ -2516,7 +2535,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD ROWS.
+  METHOD rows.
     result = _generic( name   = `rows` ).
   ENDMETHOD.
 
