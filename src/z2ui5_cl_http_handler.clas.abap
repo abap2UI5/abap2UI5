@@ -285,16 +285,24 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n|  &&
                            `                sap.z2ui5.oResponse = JSON.parse(response);` && |\n|  &&
                            |\n|  &&
-                           `                if (sap.z2ui5.checkLogActive) {` && |\n|  &&
+                           `                 if (sap.z2ui5.checkLogActive) {` && |\n|  &&
                            `                    console.log('Response Object:');` && |\n|  &&
                            `                    console.log(sap.z2ui5.oResponse);` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
                            `                        console.log('UI5-XML-View:');` && |\n|  &&
                            `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML);` && |\n|  &&
                            `                    }` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML !== '') {` && |\n|  &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML !== '') {` && |\n|  &&
                            `                        console.log('UI5-XML-Popup:');` && |\n|  &&
                            `                        console.log(sap.z2ui5.oResponse.PARAMS.S_POPUP.XML);` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML !== '') {` && |\n|  &&
+                           `                        console.log('UI5-XML-Popover:');` && |\n|  &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML);` && |\n|  &&
+                           `                    }` && |\n|  &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n|  &&
+                           `                        console.log('UI5-XML-Nest:');` && |\n|  &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML);` && |\n|  &&
                            `                    }` && |\n|  &&
                            `                }` && |\n|  &&
                            |\n|  &&
