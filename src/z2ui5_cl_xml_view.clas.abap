@@ -3087,7 +3087,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD tree.
-  
     result = _generic( name   = `Tree`
                        t_prop = VALUE #(
                            ( n = `items`            v = items )
