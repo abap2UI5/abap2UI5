@@ -170,6 +170,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS object_page_dyn_header_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS generictile
       IMPORTING
         !class        TYPE clike OPTIONAL
@@ -178,10 +179,29 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !frametype    TYPE clike OPTIONAL
         !subheader    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS NumericContent
+      IMPORTING
+        !value        TYPE clike OPTIONAL
+        !icon         TYPE clike OPTIONAL
+        !withMargin   TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS imagecontent
+      IMPORTING
+        !src        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS tilecontent
+         IMPORTING
+        !unit        TYPE clike OPTIONAL
+        !footer      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS expanded_heading
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2754,8 +2774,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD tilecontent.
 
-    result = _generic( name  = `TileContent`
-                       ns    = `` ).
+    result = _generic( name   = `TileContent`
+                       ns     = ``
+                       t_prop = VALUE #(
+                                ( n = `unit`   v = unit )
+                                ( n = `footer` v = footer ) ) ).
 
   ENDMETHOD.
 
@@ -3039,4 +3062,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = result2.
 
   ENDMETHOD.
+
+  METHOD numericcontent.
+
+    result = _generic( name   = `NumericContent`
+                       t_prop = VALUE #( ( n = `value`      v = value )
+                                         ( n = `icon`       v = icon  )
+                                         ( n = `withMargin` v = lcl_utility=>get_json_boolean( withMargin ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD imagecontent.
+
+        result = _generic( name   = `ImageContent`
+                       t_prop = VALUE #( ( n = `src`      v = src ) ) ).
+
+
+  ENDMETHOD.
+
 ENDCLASS.
