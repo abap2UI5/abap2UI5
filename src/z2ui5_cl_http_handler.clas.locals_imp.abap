@@ -622,12 +622,13 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
 
         ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
         IF sy-subrc = 0.
-          IF ls_comp-type->kind = cl_abap_typedescr=>kind_elem.
-            <comp> = <ls_data_ui5>.
-          ELSE.
-            trans_ref_tab_2_tab( EXPORTING ir_tab_from = <comp_ui5>
-                                 IMPORTING t_result    = <comp> ).
-          ENDIF.
+          CASE ls_comp-type->kind.
+            WHEN cl_abap_typedescr=>kind_table.
+              trans_ref_tab_2_tab( EXPORTING ir_tab_from = <comp_ui5>
+                                   IMPORTING t_result    = <comp> ).
+            WHEN OTHERS.
+              <comp> = <ls_data_ui5>.
+          ENDCASE.
         ENDIF.
       ENDLOOP.
 
