@@ -36,13 +36,17 @@
 
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md)
 * Try out abap2UI5 compiled to JS running on open-abap under nodejs [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Install S-RTTI to create apps with dynamic typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Want to help out? see the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
+
+#### Apps & Extensions
+* Integrate your apps to the on-premise fiori laúnchpad [(abap2UI5/integration_fiori_launchpad)](https://github.com/abap2UI5/ext-integration_fiori_launchpad)
+* Try out abap2UI5-tools, a useful collection of tools & apps [(abap2UI5/tools)](https://github.com/abap2UI5/app-tools)
+* Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md)
 * And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
 
 #### Installation
