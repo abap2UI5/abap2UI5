@@ -3097,7 +3097,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `includeItemInSelection`  v = lcl_utility=>get_json_boolean( includeItemInSelection ) )
                            ( n = `inset`  v = lcl_utility=>get_json_boolean( inset ) )
              ) ).
-             
   ENDMETHOD.
 
   METHOD standard_tree_item.
