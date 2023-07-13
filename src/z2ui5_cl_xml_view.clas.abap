@@ -1223,6 +1223,28 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
+    METHODS tree
+      IMPORTING
+        !items                  TYPE clike OPTIONAL
+        !headerText             TYPE clike OPTIONAL
+        !footerText             TYPE clike OPTIONAL
+        !mode                   TYPE clike OPTIONAL
+        !includeItemInSelection TYPE abap_bool OPTIONAL
+        !inset                  TYPE abap_bool OPTIONAL
+        !width                  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
+    METHODS standard_tree_item
+      IMPORTING
+        !title        TYPE clike OPTIONAL
+        !icon         TYPE clike OPTIONAL
+        !press        TYPE clike OPTIONAL
+        !detailPress  TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !selected     TYPE clike OPTIONAL
+        !counter      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1256,7 +1278,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD appointments.
-    result = _generic( name   = `appointments` ).
+    result = _generic( name = `appointments` ).
   ENDMETHOD.
 
 
@@ -1732,33 +1754,33 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD filter_bar.
-    result = _generic( name    = `FilterBar`
-                        ns     = 'fb'
-                        t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
-                                          ( n = 'search'        v = search )
-                                          ( n = 'filterChange'  v = filterchange ) ) ).
+    result = _generic( name   = `FilterBar`
+                       ns     = 'fb'
+                       t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
+                                         ( n = 'search'        v = search )
+                                         ( n = 'filterChange'  v = filterchange ) ) ).
   ENDMETHOD.
 
 
   METHOD filter_control.
     result = _generic( name = `control`
-                        ns  = 'fb' ).
+                       ns   = 'fb' ).
   ENDMETHOD.
 
 
   METHOD filter_group_item.
-    result = _generic( name    = `FilterGroupItem`
-                        ns     = 'fb'
-                        t_prop = VALUE #( ( n = 'name'                v  = name )
-                                          ( n = 'label'               v  = label )
-                                          ( n = 'groupName'           v  = groupname )
-                                          ( n = 'visibleInFilterBar'  v  = visibleinfilterbar ) ) ).
+    result = _generic( name   = `FilterGroupItem`
+                       ns     = 'fb'
+                       t_prop = VALUE #( ( n = 'name'                v  = name )
+                                         ( n = 'label'               v  = label )
+                                         ( n = 'groupName'           v  = groupname )
+                                         ( n = 'visibleInFilterBar'  v  = visibleinfilterbar ) ) ).
   ENDMETHOD.
 
 
   METHOD filter_group_items.
     result = _generic( name = `filterGroupItems`
-                        ns  = 'fb' ).
+                       ns   = 'fb' ).
   ENDMETHOD.
 
 
@@ -1808,7 +1830,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD formatted_text.
     result = me.
     _generic( name   = `FormattedText`
-              t_prop = VALUE #( ( n = `htmlText`   v = htmltext ) ) ).
+              t_prop = VALUE #( ( n = `htmlText` v = htmltext ) ) ).
   ENDMETHOD.
 
 
@@ -1816,14 +1838,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = me.
     _generic(
-       name  = `GenericTile`
-       ns    = ``
-       t_prop = VALUE #(
-                 ( n = `class`      v = class )
-                 ( n = `header`     v = header )
-                 ( n = `press`      v = press )
-                 ( n = `frameType`  v = frametype )
-                 ( n = `subheader`  v = subheader ) ) ).
+      name   = `GenericTile`
+      ns     = ``
+      t_prop = VALUE #(
+                ( n = `class`      v = class )
+                ( n = `header`     v = header )
+                ( n = `press`      v = press )
+                ( n = `frameType`  v = frametype )
+                ( n = `subheader`  v = subheader ) ) ).
 
   ENDMETHOD.
 
@@ -1870,7 +1892,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `GridData`
               ns     = `layout`
-              t_prop = VALUE #( ( n = `span`  v = span ) ) ).
+              t_prop = VALUE #( ( n = `span` v = span ) ) ).
   ENDMETHOD.
 
 
@@ -1951,10 +1973,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA(ls_config) = mo_root->mi_client->get( )-s_config.
 
     result = lcl_utility=>get_replace(
-                 iv_val     = xml
-                 iv_begin   = 'controllerName="'
-                 iv_end     = '"'
-                 iv_replace = `controllerName="` && ls_config-controller_name && `"` ).
+      iv_val     = xml
+      iv_begin   = 'controllerName="'
+      iv_end     = '"'
+      iv_replace = `controllerName="` && ls_config-controller_name && `"` ).
 
   ENDMETHOD.
 
@@ -2009,12 +2031,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic( name   = `IllustratedMessage`
                        t_prop = VALUE #( ( n = `enableVerticalResponsiveness` v = enableVerticalResponsiveness )
-                      ( n = `illustrationType`             v = illustrationType )
-                      ( n = `enableFormattedText`             v = lcl_utility=>get_json_boolean( enableFormattedText ) )
-                      ( n = `illustrationSize`             v = illustrationSize )
-                      ( n = `description`             v = description )
-                      ( n = `title`             v = title )
-) ).
+                       ( n = `illustrationType`             v = illustrationType )
+                       ( n = `enableFormattedText`             v = lcl_utility=>get_json_boolean( enableFormattedText ) )
+                       ( n = `illustrationSize`             v = illustrationSize )
+                       ( n = `description`             v = description )
+                       ( n = `title`             v = title )
+                       ) ).
   ENDMETHOD.
 
 
@@ -2056,7 +2078,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD input_list_item.
     result = _generic( name   = `InputListItem`
-                       t_prop = VALUE #( ( n = `label`       v = label ) ) ).
+                       t_prop = VALUE #( ( n = `label` v = label ) ) ).
   ENDMETHOD.
 
 
@@ -2129,7 +2151,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD intervalheaders.
-    result = _generic( name   = `intervalHeaders` ).
+    result = _generic( name = `intervalHeaders` ).
   ENDMETHOD.
 
 
@@ -2252,9 +2274,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD mid_column_pages.
 
-    result = _generic( name = `midColumnPages`
-                      ns   = `f`
-                       t_prop = VALUE #( (  n = `id` v = id ) ) ).
+    result = _generic( name   = `midColumnPages`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `id` v = id ) ) ).
 
   ENDMETHOD.
 
@@ -2506,15 +2528,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD radio_button_group.
     result = _generic( name   = `RadioButtonGroup`
-                   t_prop = VALUE #( ( n = `id`             v = id )
-                                     ( n = `columns`        v = columns )
-                                     ( n = `editable`       v = lcl_utility=>get_json_boolean( editable ) )
-                                     ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
-                                     ( n = `selectedIndex`  v = selectedIndex )
-                                     ( n = `textDirection`  v = textDirection )
-                                     ( n = `valueState`     v = valueState )
-                                     ( n = `width`          v = width )
-           ) ).
+                       t_prop = VALUE #( ( n = `id`             v = id )
+                                         ( n = `columns`        v = columns )
+                                         ( n = `editable`       v = lcl_utility=>get_json_boolean( editable ) )
+                                         ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
+                                         ( n = `selectedIndex`  v = selectedIndex )
+                                         ( n = `textDirection`  v = textDirection )
+                                         ( n = `valueState`     v = valueState )
+                                         ( n = `width`          v = width )
+                       ) ).
   ENDMETHOD.
 
 
@@ -2536,7 +2558,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD rows.
-    result = _generic( name   = `rows` ).
+    result = _generic( name = `rows` ).
   ENDMETHOD.
 
 
@@ -2754,8 +2776,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD tilecontent.
 
-    result = _generic( name  = `TileContent`
-                       ns    = `` ).
+    result = _generic( name = `TileContent`
+                       ns   = `` ).
 
   ENDMETHOD.
 
@@ -2842,7 +2864,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD tree_columns.
 
     result = _generic( name = `columns`
-                  ns        = `table` ).
+                       ns   = `table` ).
 
   ENDMETHOD.
 
@@ -2866,7 +2888,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD tree_template.
 
     result = _generic( name = `template`
-                  ns        = `table` ).
+                       ns   = `table` ).
 
   ENDMETHOD.
 
@@ -2884,21 +2906,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD ui_columns.
-    result = _generic( name   = `columns`
-                       ns     = 'table' ).
+    result = _generic( name = `columns`
+                       ns   = 'table' ).
   ENDMETHOD.
 
 
   METHOD ui_extension.
 
-    result = _generic( name   = `extension`
-                       ns     = 'table' ).
+    result = _generic( name = `extension`
+                       ns   = 'table' ).
   ENDMETHOD.
 
 
   METHOD ui_row_action.
-    result = _generic( name   = `RowAction`
-                       ns     = `table` ).
+    result = _generic( name = `RowAction`
+                       ns   = `table` ).
   ENDMETHOD.
 
 
@@ -2958,8 +2980,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD ui_template.
 
-    result = _generic( name   = `template`
-                       ns     = 'table' ).
+    result = _generic( name = `template`
+                       ns   = 'table' ).
 
   ENDMETHOD.
 
@@ -3039,4 +3061,32 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = result2.
 
   ENDMETHOD.
+
+
+  METHOD tree.
+    result = _generic( name   = `Tree`
+                       t_prop = VALUE #(
+                           ( n = `items`            v = items )
+                           ( n = `headerText`       v = headertext )
+                           ( n = `footerText`       v = footerText )
+                           ( n = `mode`             v = mode )
+                           ( n = `width`            v = width )
+                           ( n = `includeItemInSelection`  v = lcl_utility=>get_json_boolean( includeItemInSelection ) )
+                           ( n = `inset`  v = lcl_utility=>get_json_boolean( inset ) )
+             ) ).
+  ENDMETHOD.
+
+
+  METHOD standard_tree_item.
+    result = me.
+    _generic( name   = `StandardTreeItem`
+              t_prop = VALUE #( ( n = `title`       v = title )
+                                ( n = `icon`        v = icon )
+                                ( n = `press`       v = press )
+                                ( n = `detailPress` v = detailPress )
+                                ( n = `type`        v = type )
+                                ( n = `counter`     v = counter )
+                                ( n = `selected`    v = selected ) ) ).
+  ENDMETHOD.
+
 ENDCLASS.
