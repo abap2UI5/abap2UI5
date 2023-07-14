@@ -1207,6 +1207,25 @@ public section.
       !COUNTER type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods ICONTABBAR
+    importing
+      !CLASS type CLIKE optional
+      !SELECT type CLIKE optional
+      !EXPAND type CLIKE optional
+      !EXPANDABLE type ABAP_BOOL optional
+      !EXPANDED type ABAP_BOOL optional
+      !SELECTEDKEY type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods ICONTABFILTER
+    importing
+      !ICON type CLIKE optional
+      !ICONCOLOR type CLIKE optional
+      !COUNT type CLIKE optional
+      !TEXT type ABAP_BOOL optional
+      !KEY type ABAP_BOOL optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -3074,5 +3093,28 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `src`      v = src ) ) ).
 
 
+  ENDMETHOD.
+
+
+  METHOD icontabbar.
+
+        result = _generic( name   = `IconTabBar`
+                       t_prop = VALUE #( ( n = `class`       v = class )
+                                         ( n = `select`      v = select )
+                                         ( n = `expand`      v = expand )
+                                         ( n = `expandable`  v = expandable )
+                                         ( n = `expanded`    v = expanded )
+                                         ( n = `selectedKey` v = selectedKey ) ) ).
+  ENDMETHOD.
+
+
+  METHOD icontabfilter.
+
+        result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( ( n = `icon`        v = icon )
+                                         ( n = `iconColor`   v = iconColor )
+                                         ( n = `count`       v = count )
+                                         ( n = `text`        v = text )
+                                         ( n = `key`         v = key ) ) ).
   ENDMETHOD.
 ENDCLASS.
