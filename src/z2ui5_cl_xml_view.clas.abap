@@ -860,7 +860,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !customtexton  TYPE clike OPTIONAL
         !customtextoff TYPE clike OPTIONAL
         !enabled       TYPE clike OPTIONAL
-         change        TYPE clike OPTIONAL
+        change         TYPE clike OPTIONAL
         !type          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
@@ -931,9 +931,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !upload       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    CLASS-METHODS cc_file_uploader_get_js
-      RETURNING
-        VALUE(result) TYPE string .
+    METHODS cc_file_uploader_get_js
+    RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS xml_get
       RETURNING
         VALUE(result) TYPE string .
@@ -1373,7 +1373,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD cc_file_uploader_get_js.
-    result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
+
+    data(js) = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
                           |\n| &&
                           `        sap.ui.define([` && |\n| &&
                           `            "sap/ui/core/Control",` && |\n| &&
@@ -1479,6 +1480,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           `                }` && |\n| &&
                           `            });` && |\n| &&
                           `        });`.
+
+    result = zz_plain( `<html:script>` && js && `</html:script>` ).
   ENDMETHOD.
 
 
