@@ -112,6 +112,8 @@ public section.
       !SELECTIONCHANGE type CLIKE optional
       !ALTERNATEROWCOLORS type CLIKE optional
       !AUTOPOPINMODE type CLIKE optional
+      !INSET type CLIKE optional
+      !SHOWSEPARATORS type CLIKE optional
     preferred parameter ITEMS
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -388,6 +390,7 @@ public section.
       !WIDTH type CLIKE optional
       !MINSCREENWIDTH type CLIKE optional
       !DEMANDPOPIN type CLIKE optional
+      !HALIGN type CLIKE optional
     preferred parameter WIDTH
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -1219,11 +1222,15 @@ public section.
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods ICONTABFILTER
     importing
+      !SHOWALL type ABAP_BOOL optional
       !ICON type CLIKE optional
       !ICONCOLOR type CLIKE optional
       !COUNT type CLIKE optional
-      !TEXT type ABAP_BOOL optional
-      !KEY type ABAP_BOOL optional
+      !TEXT type CLIKE optional
+      !KEY type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods ICONTABSEPARATOR
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
@@ -1527,8 +1534,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD column.
     result = _generic( name   = `Column`
-                       t_prop = VALUE #( ( n = `width` v = width )
+                       t_prop = VALUE #( ( n = `width`          v = width )
                                          ( n = `minScreenWidth` v = minScreenWidth )
+                                         ( n = `hAlign`         v = hAlign )
                                          ( n = `demandPopin` v = Lcl_utility=>get_json_boolean( demandPopin ) ) ) ).
   ENDMETHOD.
 
@@ -2712,17 +2720,19 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD table.
     result = _generic( name   = `Table`
                        t_prop = VALUE #(
-                           ( n = `items`            v = items )
-                           ( n = `headerText`       v = headertext )
-                           ( n = `growing`          v = growing )
-                           ( n = `growingThreshold` v = growingthreshold )
+                           ( n = `items`               v = items )
+                           ( n = `headerText`          v = headertext )
+                           ( n = `growing`             v = growing )
+                           ( n = `growingThreshold`    v = growingthreshold )
                            ( n = `growingScrollToLoad` v = growingscrolltoload )
-                           ( n = `sticky`           v = sticky )
-                           ( n = `mode`             v = mode )
-                           ( n = `width`            v = width )
-                           ( n = `selectionChange`  v = selectionchange )
+                           ( n = `sticky`              v = sticky )
+                           ( n = `mode`                v = mode )
+                           ( n = `width`               v = width )
+                           ( n = `selectionChange`     v = selectionchange )
+                           ( n = `showSeparators`      v = showSeparators )
                            ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
-                           ( n = `autoPopinMode`  v = lcl_utility=>get_json_boolean( autoPopinMode ) ) ) ).
+                           ( n = `inset`               v = lcl_utility=>get_json_boolean( inset ) )
+                           ( n = `autoPopinMode`       v = lcl_utility=>get_json_boolean( autoPopinMode ) ) ) ).
   ENDMETHOD.
 
 
@@ -3113,8 +3123,16 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         result = _generic( name   = `IconTabFilter`
                        t_prop = VALUE #( ( n = `icon`        v = icon )
                                          ( n = `iconColor`   v = iconColor )
+                                         ( n = `showAll`     v = showAll )
                                          ( n = `count`       v = count )
                                          ( n = `text`        v = text )
                                          ( n = `key`         v = key ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ICONTABSEPARATOR.
+
+        result = _generic( name   = `IconTabSeparator` ).
+
   ENDMETHOD.
 ENDCLASS.
