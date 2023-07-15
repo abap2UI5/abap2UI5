@@ -1578,6 +1578,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `Column`
                        t_prop = VALUE #( ( n = `width` v = width )
                                          ( n = `minScreenWidth` v = minScreenWidth )
+                                         ( n = `halign` v = HALIGN )
                                          ( n = `demandPopin` v = Lcl_utility=>get_json_boolean( demandPopin ) ) ) ).
   ENDMETHOD.
 
@@ -2792,7 +2793,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `growingThreshold` v = growingthreshold )
                            ( n = `growingScrollToLoad` v = growingscrolltoload )
                            ( n = `sticky`           v = sticky )
+                           ( n = `showSeparators`           v = SHOWSEPARATORS )
                            ( n = `mode`             v = mode )
+                           ( n = `inset`             v = inset )
                            ( n = `width`            v = width )
                            ( n = `selectionChange`  v = selectionchange )
                            ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
