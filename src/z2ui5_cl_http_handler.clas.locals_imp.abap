@@ -365,11 +365,13 @@ CLASS z2ui5_lcl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_abap_2_json.
+
     IF check_is_boolean( val ).
       result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
     ELSE.
       result = |"{ escape( val = val  format = cl_abap_format=>e_json_string ) }"|.
     ENDIF.
+
   ENDMETHOD.
 
   METHOD check_is_boolean.
