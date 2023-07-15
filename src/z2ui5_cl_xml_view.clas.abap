@@ -857,15 +857,18 @@ public section.
       !UNIT type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods SWITCH
     importing
       !STATE type CLIKE optional
       !CUSTOMTEXTON type CLIKE optional
       !CUSTOMTEXTOFF type CLIKE optional
       !ENABLED type CLIKE optional
+      !change type CLIKE optional
       !TYPE type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods STEP_INPUT
     importing
       !VALUE type CLIKE
@@ -931,9 +934,11 @@ public section.
       !UPLOAD type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  class-methods CC_FILE_UPLOADER_GET_JS
+
+  methods CC_FILE_UPLOADER_GET_JS
     returning
-      value(RESULT) type STRING .
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods XML_GET
     returning
       value(RESULT) type STRING .
@@ -1210,6 +1215,7 @@ public section.
       !COUNTER type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods ICONTABBAR
     importing
       !CLASS type CLIKE optional
@@ -1220,6 +1226,7 @@ public section.
       !SELECTEDKEY type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods ICONTABFILTER
     importing
       !SHOWALL type ABAP_BOOL optional
@@ -1230,6 +1237,7 @@ public section.
       !KEY type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods ICONTABSEPARATOR
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -1250,8 +1258,7 @@ public section.
 ENDCLASS.
 
 
-
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1292,6 +1299,36 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `Bar` ).
   ENDMETHOD.
 
+
+  METHOD icontabbar.
+
+        result = _generic( name   = `IconTabBar`
+                       t_prop = VALUE #( ( n = `class`       v = class )
+                                         ( n = `select`      v = select )
+                                         ( n = `expand`      v = expand )
+                                         ( n = `expandable`  v = expandable )
+                                         ( n = `expanded`    v = expanded )
+                                         ( n = `selectedKey` v = selectedKey ) ) ).
+  ENDMETHOD.
+
+
+  METHOD icontabfilter.
+
+        result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( ( n = `icon`        v = icon )
+                                         ( n = `iconColor`   v = iconColor )
+                                         ( n = `showAll`     v = showAll )
+                                         ( n = `count`       v = count )
+                                         ( n = `text`        v = text )
+                                         ( n = `key`         v = key ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ICONTABSEPARATOR.
+
+        result = _generic( name   = `IconTabSeparator` ).
+
+  ENDMETHOD.
 
   METHOD bars.
     result = _generic( name = `bars`
@@ -1396,7 +1433,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD cc_file_uploader_get_js.
-    result = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
+
+    DATA(js) = ` jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
                           |\n| &&
                           `        sap.ui.define([` && |\n| &&
                           `            "sap/ui/core/Control",` && |\n| &&
@@ -1502,6 +1540,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           `                }` && |\n| &&
                           `            });` && |\n| &&
                           `        });`.
+
+    result = zz_plain( `<html:script>` && js && `</html:script>` ).
+
   ENDMETHOD.
 
 
@@ -1510,14 +1551,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  method checkbox.
+  METHOD checkbox.
+
     result = me.
     _generic( name   = `CheckBox`
-              t_prop = value #( ( n = `text`     v = text )
+              t_prop = VALUE #( ( n = `text`     v = text )
                                 ( n = `selected` v = selected )
                                 ( n = `enabled`  v = lcl_utility=>get_json_boolean( enabled )  )
                                 ( n = `select`   v = select  ) ) ).
-  endmethod.
+  ENDMETHOD.
 
 
   METHOD code_editor.
@@ -1534,9 +1576,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD column.
     result = _generic( name   = `Column`
-                       t_prop = VALUE #( ( n = `width`          v = width )
+                       t_prop = VALUE #( ( n = `width` v = width )
                                          ( n = `minScreenWidth` v = minScreenWidth )
-                                         ( n = `hAlign`         v = hAlign )
+                                         ( n = `halign` v = HALIGN )
                                          ( n = `demandPopin` v = Lcl_utility=>get_json_boolean( demandPopin ) ) ) ).
   ENDMETHOD.
 
@@ -1571,6 +1613,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:core`   v = `sap.ui.core` )
                        ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
                        ( n = `xmlns:layout` v = `sap.ui.layout` )
+*                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
+*                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
                        ( n = `xmlns:table ` v = `sap.ui.table` )
                        ( n = `xmlns:f`      v = `sap.f` )
                        ( n = `xmlns:form`   v = `sap.ui.layout.form` )
@@ -1928,9 +1972,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
     DATA(ls_config) = mo_root->mi_client->get( )-s_config.
 
-    result = ls_config-origin &&
-      `/sap/bc/adt/oo/classes/` && lcl_utility=>get_classname_by_ref( ls_draft-app ) &&
-       `/source/main`.
+    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
+       && lcl_utility=>get_classname_by_ref( ls_draft-app ) && `/source/main`.
 
   ENDMETHOD.
 
@@ -1939,6 +1982,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
     DATA(lv_search) = mi_client->get( )-s_config-search.
+
+    REPLACE `%3D` IN lv_search WITH `=`.
+    SPLIT lv_search AT `&sap-startup-params=` INTO DATA(lv_search1) DATA(lv_search2).
+    IF lv_search2 IS NOT INITIAL.
+      lv_search = lv_search2.
+    ELSE.
+      lv_search = lv_search1.
+    ENDIF.
 
     lv_search = lcl_utility=>get_trim_lower( lv_search ).
     SHIFT lv_search LEFT DELETING LEADING `?`.
@@ -1954,6 +2005,21 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
+
+*    lv_search = lcl_utility=>get_trim_lower( lv_search ).
+*    SHIFT lv_search LEFT DELETING LEADING `?`.
+*
+*    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+*
+*    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+*
+*      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+*
+*      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
+*    ENDLOOP.
+*
+*    DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
+*    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
 
@@ -2704,6 +2770,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               t_prop = VALUE #( ( n = `type`           v = type )
                                 ( n = `enabled`        v = lcl_utility=>get_json_boolean( enabled ) )
                                 ( n = `state`          v = state )
+                                ( n = `change`         v = change )
                                 ( n = `customTextOff`  v = customtextoff )
                                 ( n = `customTextOn`   v = customtexton ) ) ).
   ENDMETHOD.
@@ -2720,19 +2787,19 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD table.
     result = _generic( name   = `Table`
                        t_prop = VALUE #(
-                           ( n = `items`               v = items )
-                           ( n = `headerText`          v = headertext )
-                           ( n = `growing`             v = growing )
-                           ( n = `growingThreshold`    v = growingthreshold )
+                           ( n = `items`            v = items )
+                           ( n = `headerText`       v = headertext )
+                           ( n = `growing`          v = growing )
+                           ( n = `growingThreshold` v = growingthreshold )
                            ( n = `growingScrollToLoad` v = growingscrolltoload )
-                           ( n = `sticky`              v = sticky )
-                           ( n = `mode`                v = mode )
-                           ( n = `width`               v = width )
-                           ( n = `selectionChange`     v = selectionchange )
-                           ( n = `showSeparators`      v = showSeparators )
+                           ( n = `sticky`           v = sticky )
+                           ( n = `showSeparators`           v = SHOWSEPARATORS )
+                           ( n = `mode`             v = mode )
+                           ( n = `inset`             v = inset )
+                           ( n = `width`            v = width )
+                           ( n = `selectionChange`  v = selectionchange )
                            ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
-                           ( n = `inset`               v = lcl_utility=>get_json_boolean( inset ) )
-                           ( n = `autoPopinMode`       v = lcl_utility=>get_json_boolean( autoPopinMode ) ) ) ).
+                           ( n = `autoPopinMode`  v = lcl_utility=>get_json_boolean( autoPopinMode ) ) ) ).
   ENDMETHOD.
 
 
@@ -2767,7 +2834,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD tilecontent.
-
 
     result = _generic( name   = `TileContent`
                        ns     = ``
@@ -3084,7 +3150,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `counter`     v = counter )
                                 ( n = `selected`    v = selected ) ) ).
 
- endmethod.
+  ENDMETHOD.
 
 
   METHOD numericcontent.
@@ -3099,40 +3165,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD imagecontent.
 
-        result = _generic( name   = `ImageContent`
-                       t_prop = VALUE #( ( n = `src`      v = src ) ) ).
+    result = _generic( name   = `ImageContent`
+                   t_prop = VALUE #( ( n = `src`      v = src ) ) ).
 
-
-  ENDMETHOD.
-
-
-  METHOD icontabbar.
-
-        result = _generic( name   = `IconTabBar`
-                       t_prop = VALUE #( ( n = `class`       v = class )
-                                         ( n = `select`      v = select )
-                                         ( n = `expand`      v = expand )
-                                         ( n = `expandable`  v = expandable )
-                                         ( n = `expanded`    v = expanded )
-                                         ( n = `selectedKey` v = selectedKey ) ) ).
-  ENDMETHOD.
-
-
-  METHOD icontabfilter.
-
-        result = _generic( name   = `IconTabFilter`
-                       t_prop = VALUE #( ( n = `icon`        v = icon )
-                                         ( n = `iconColor`   v = iconColor )
-                                         ( n = `showAll`     v = showAll )
-                                         ( n = `count`       v = count )
-                                         ( n = `text`        v = text )
-                                         ( n = `key`         v = key ) ) ).
-  ENDMETHOD.
-
-
-  METHOD ICONTABSEPARATOR.
-
-        result = _generic( name   = `IconTabSeparator` ).
 
   ENDMETHOD.
 ENDCLASS.
