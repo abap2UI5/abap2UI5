@@ -763,9 +763,11 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
     result = NEW #( ).
     result->mo_root = result.
 
+
     /ui2/cl_json=>deserialize( EXPORTING json         = CONV string( iv_json )
                                          assoc_arrays = abap_true
                                CHANGING  data         = result->mr_actual ).
+
   ENDMETHOD.
 
   METHOD new.
