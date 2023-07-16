@@ -1258,8 +1258,7 @@ public section.
 ENDCLASS.
 
 
-
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1300,6 +1299,36 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `Bar` ).
   ENDMETHOD.
 
+
+  METHOD icontabbar.
+
+        result = _generic( name   = `IconTabBar`
+                       t_prop = VALUE #( ( n = `class`       v = class )
+                                         ( n = `select`      v = select )
+                                         ( n = `expand`      v = expand )
+                                         ( n = `expandable`  v = expandable )
+                                         ( n = `expanded`    v = expanded )
+                                         ( n = `selectedKey` v = selectedKey ) ) ).
+  ENDMETHOD.
+
+
+  METHOD icontabfilter.
+
+        result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( ( n = `icon`        v = icon )
+                                         ( n = `iconColor`   v = iconColor )
+                                         ( n = `showAll`     v = showAll )
+                                         ( n = `count`       v = count )
+                                         ( n = `text`        v = text )
+                                         ( n = `key`         v = key ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ICONTABSEPARATOR.
+
+        result = _generic( name   = `IconTabSeparator` ).
+
+  ENDMETHOD.
 
   METHOD bars.
     result = _generic( name = `bars`
@@ -3171,6 +3200,52 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     mo_root->mo_previous = result2.
     result = result2.
+
+  ENDMETHOD.
+
+  METHOD tree.
+    result = _generic( name   = `Tree`
+                       t_prop = VALUE #(
+                           ( n = `items`            v = items )
+                           ( n = `headerText`       v = headertext )
+                           ( n = `footerText`       v = footerText )
+                           ( n = `mode`             v = mode )
+                           ( n = `width`            v = width )
+                           ( n = `includeItemInSelection`  v = lcl_utility=>get_json_boolean( includeItemInSelection ) )
+                           ( n = `inset`  v = lcl_utility=>get_json_boolean( inset ) )
+             ) ).
+  ENDMETHOD.
+
+
+  METHOD standard_tree_item.
+    result = me.
+    _generic( name   = `StandardTreeItem`
+              t_prop = VALUE #( ( n = `title`       v = title )
+                                ( n = `icon`        v = icon )
+                                ( n = `press`       v = press )
+                                ( n = `detailPress` v = detailPress )
+                                ( n = `type`        v = type )
+                                ( n = `counter`     v = counter )
+                                ( n = `selected`    v = selected ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD numericcontent.
+
+    result = _generic( name   = `NumericContent`
+                       t_prop = VALUE #( ( n = `value`      v = value )
+                                         ( n = `icon`       v = icon  )
+                                         ( n = `withMargin` v = lcl_utility=>get_json_boolean( withMargin ) ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD imagecontent.
+
+    result = _generic( name   = `ImageContent`
+                   t_prop = VALUE #( ( n = `src`      v = src ) ) ).
+
 
   ENDMETHOD.
 ENDCLASS.
