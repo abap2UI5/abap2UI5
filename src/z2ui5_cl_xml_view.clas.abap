@@ -1354,6 +1354,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD bars.
+    result = _generic( name = `bars`
+                       ns   = `mchart` ).
+  ENDMETHOD.
+
+
   METHOD buttons.
     result = _generic( `buttons` ).
   ENDMETHOD.
@@ -2923,8 +2929,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               ns   = ns ).
 
   ENDMETHOD.
-
-
 
 
   METHOD tree_column.
