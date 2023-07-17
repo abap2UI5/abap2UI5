@@ -357,7 +357,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    SEARCH: window.location.search,` && |\n|  &&
                            `                    VERSION: sap.ui.getVersionInfo().gav,` && |\n|  &&
                            `                };` && |\n|  &&
-                           `      if(sap.z2ui5.search) {  sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search; }` && |\n|  &&
+                           `                   if(sap.z2ui5.search) {  sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search; }` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.readOData) {` && |\n|  &&
                            `                    sap.z2ui5.readOData();` && |\n|  &&
@@ -372,12 +372,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        }` && |\n|  &&
                            `        if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
-                           `        debugger;` && |\n|  &&
-                           `        //    sap.z2ui5.pathname = "/sap/bc/http/sap/y2ui5_http_handler/";` && |\n|  &&
                            `        }` && |\n|  &&
-                           `    //    if (!sap.z2ui5.checkLaunchpadActive) {` && |\n|  &&
-                           `    //        sap.z2ui5.checkLaunchpadActive = false;` && |\n|  &&
-                           `    //    }` && |\n|  &&
                            |\n|  &&
                            `        sap.z2ui5.checkNestAfter = false;` && |\n|  &&
                            |\n|  &&
@@ -391,6 +386,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
                            |         sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };| && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n|  &&
+                           `        debugger;` && |\n|  &&
+                           `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n|  &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
