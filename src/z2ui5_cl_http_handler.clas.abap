@@ -84,19 +84,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n|  &&
                            `            onAfterRendering: function () {` && |\n|  &&
                            |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
-                           `                    document.title = sap.z2ui5.oResponse.PARAMS.TITLE;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT !== '') {` && |\n|  &&
-                           `                    sap.m.MessageToast.show(sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT);` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n|  &&
-                           `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n|  &&
-                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n|  &&
-                           `                    //    window.history.replaceState("", "", window.location.origin + sap.z2ui5.oResponse.PARAMS.PATH + window.location.search);` && |\n|  &&
-                           `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n|  &&
                            `                    jQuery.sap.delayedCall(50, this, () => {` && |\n|  &&
                            `                        var ofocus = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n|  &&
@@ -331,6 +318,19 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopup.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopover.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
                            `                    sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
+                           `                }` && |\n|  &&
+                                                      `                if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
+                           `                    document.title = sap.z2ui5.oResponse.PARAMS.TITLE;` && |\n|  &&
+                           `                }` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT !== '') {` && |\n|  &&
+                           `                    sap.m.MessageToast.show(sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT);` && |\n|  &&
+                           `                }` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n|  &&
+                           `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n|  &&
+                           `                }` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n|  &&
+                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n|  &&
+                           `                    //    window.history.replaceState("", "", window.location.origin + sap.z2ui5.oResponse.PARAMS.PATH + window.location.search);` && |\n|  &&
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
                            `            readHttp: () => {` && |\n|  &&

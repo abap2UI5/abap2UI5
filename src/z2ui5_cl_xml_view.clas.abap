@@ -1258,7 +1258,8 @@ public section.
 ENDCLASS.
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1298,6 +1299,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD bar.
     result = _generic( name = `Bar` ).
   ENDMETHOD.
+
 
   METHOD begin_column_pages.
     " todo, implement method
@@ -2739,6 +2741,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `selected`    v = selected ) ) ).
   ENDMETHOD.
 
+
   METHOD step_input.
     result = me.
     _generic( name   = `StepInput`
@@ -3143,6 +3146,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD tree.
     result = _generic( name   = `Tree`
                        t_prop = VALUE #(
@@ -3169,5 +3173,4 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `selected`    v = selected ) ) ).
 
   ENDMETHOD.
-
 ENDCLASS.
