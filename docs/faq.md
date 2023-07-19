@@ -7,12 +7,12 @@ DATA(lv_search) = client->get( )-s_config-search.
 DATA(lv_param) = z2ui5_cl_xml_view=>factory( client )->hlp_get_url_param( `myparam` ).
 ```
 #### **2. How to format numbers, times and dates?**
-Take a look to the following example:
+Take a look to the following example: <br>
 https://github.com/abap2UI5/demo-demos/blob/main/src/z2ui5_cl_app_demo_47.clas.abap
 <img width="500" alt="image" src="https://github.com/abap2UI5/abap2UI5/assets/102328295/6b9011b5-94e6-4329-9666-0e779c01b400">
 
 #### **3. How to format the output of currencies?**
-Take a look to the following example:
+Take a look to the following example: <br>
 https://github.com/abap2UI5/demo-demos/blob/main/src/z2ui5_cl_app_demo_67.clas.abap
 <img width="500" alt="image" src="https://github.com/abap2UI5/abap2UI5/assets/102328295/fef6e08c-5a34-4aee-9d34-ebb1c5d45275">
 
