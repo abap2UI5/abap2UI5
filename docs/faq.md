@@ -25,4 +25,4 @@ No, but it is recommended to follow these steps before using abap2UI5 apps in a 
 2. Sometimes an extra activation of the HTTP service is needed, along with an adjustment of the UI5 bootstrapping.
 3. Test the "hello world" app to ensure that abap2UI5 works correctly.
 #### **3. Does a stable version of abap2UI5 exist?**
-The project will be continuously further developed. Therefore, there is no specific "stable" version. However, adjustments to the public APIs will be kept to a minimum to avoid frequent refactoring of apps. You can use [releases](https://github.com/abap2ui5/abap2ui5/releases/) instead of the main branch and only update from time to time when you use your apps in production and want to reduce refactoring efforts.
+The project will be continuously further developed. Therefore, there is no specific "stable" version. However, adjustments to the public APIs will be kept to a minimum to avoid frequent refactoring of apps. You can use [releases](https://github.com/abap2ui5/abap2ui5/releases/) instead of the main branch and only update from time to time when you want to reduce refactoring efforts.
