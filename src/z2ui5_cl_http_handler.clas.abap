@@ -253,7 +253,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n|  &&
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `                sap.z2ui5.oBody.CHECKLAUNCHPADACTIVE = sap.z2ui5.CHECKLAUNCHPADACTIVE;` && |\n|  &&
                            `                sap.z2ui5.oBody.ARGUMENTS = arguments;` && |\n|  &&
                            `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n|  &&
                            |\n|  &&
@@ -370,7 +369,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        if (!sap.z2ui5) {` && |\n|  &&
                            `            sap.z2ui5 = {};` && |\n|  &&
                            `        }` && |\n|  &&
-                           `        sap.z2ui5.CHECKLAUNCHPADACTIVE = false;` && |\n|  &&
                            `        if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
                            `        }` && |\n|  &&
