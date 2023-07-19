@@ -12,13 +12,7 @@
 ### Contribution
 * Find a bug or miss a feature?
 * Want to help out? <br>
-        * Create a Pull Request (on-premise / cloud)
+        * Create a Pull Request (on-premise / [cloud](https://github.com/abap2UI5/abap2UI5/blob/main/docs/contribution/how_to_pr.md))
         
-##### Issues
-* 1
-* 2
-* 3
-
-### Productive Usage
-* Transport to a productive system
-* Upgrade the project
+### FAQ
+[here](https://github.com/abap2UI5/abap2UI5/blob/main/docs/faq.md)

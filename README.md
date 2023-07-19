@@ -44,7 +44,7 @@
 * Want to help out? see the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
-* Integrate your apps to the on-premise fiori laúnchpad [(abap2UI5/integration_fiori_launchpad)](https://github.com/abap2UI5/ext-integration_fiori_launchpad)
+* Integrate your apps in launchpads and other services [(abap2UI5/ext-service_integration)](https://github.com/abap2UI5/ext-service_integration)
 * Try out abap2UI5-tools, a useful collection of tools & apps [(abap2UI5/tools)](https://github.com/abap2UI5/app-tools)
 * Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md)
 * And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
@@ -79,6 +79,6 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* check out this [documentation](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/) for detailed installation guidelines<br>
-* want to configure the theme, bootstrapping, language and title? see [configuration & debugging](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)
+* check out the [documentation](https://github.com/abap2UI5/abap2UI5/blob/main/docs/documentation.md) for installation & configuration guidelines
+* still open questions? find an answer here [FAQ](https://github.com/abap2UI5/abap2UI5/blob/main/docs/faq.md)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)

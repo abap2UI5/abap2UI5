@@ -1556,6 +1556,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     IF lv_classname IS INITIAL.
+      TRY.
+          lv_classname = to_upper( so_body->get_attribute( 'APP_START' )->get_val( ) ).
+        CATCH cx_root.
+      ENDTRY.
+    ENDIF.
+
+    IF lv_classname IS INITIAL.
       result = set_app_system( ).
       RETURN.
     ENDIF.
