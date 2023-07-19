@@ -79,6 +79,6 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* check out the [documentation](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/) for installation & configuration guidelines or when you develop your first app<br>
+* check out the [documentation](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/) for installation & configuration guidelines
 * still open questions? find an answer here [FAQ](https://github.com/abap2UI5/abap2UI5/blob/main/docs/faq.md)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
