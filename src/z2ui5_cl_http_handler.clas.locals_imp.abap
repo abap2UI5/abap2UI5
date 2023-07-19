@@ -1545,8 +1545,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(lv_classname) = to_upper( so_body->get_attribute( 'APP_START' )->get_val( ) ).
-        SHIFT lv_classname LEFT DELETING LEADING cl_abap_char_utilities=>horizontal_tab. "'\t'
-        SHIFT lv_classname RIGHT DELETING TRAILING cl_abap_char_utilities=>horizontal_tab. "'\t'.
+        SHIFT lv_classname LEFT DELETING LEADING cl_abap_char_utilities=>horizontal_tab.
+        SHIFT lv_classname RIGHT DELETING TRAILING cl_abap_char_utilities=>horizontal_tab.
         lv_classname = z2ui5_lcl_utility=>get_trim_upper( lv_classname ).
       CATCH cx_root.
     ENDTRY.
