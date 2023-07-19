@@ -14,11 +14,5 @@
 * Want to help out? <br>
         * Create a Pull Request (on-premise / cloud)
         
-##### Issues
-* 1
-* 2
-* 3
-
-### Productive Usage
-* Transport to a productive system
-* Upgrade the project
+### FAQ
+[here](https://github.com/abap2UI5/abap2UI5/blob/main/docs/faq.md)https://github.com/abap2UI5/abap2UI5/blob/main/docs/faq.md
