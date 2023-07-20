@@ -4,6 +4,7 @@ INTERFACE z2ui5_if_client
   CONSTANTS:
     BEGIN OF cs_event,
       popup_close     TYPE string VALUE `POPUP_CLOSE`,
+      open_new_tab    TYPE string VALUE `OPEN_NEW_TAB`,
       popover_close   TYPE string VALUE `POPOVER_CLOSE`,
       location_reload TYPE string VALUE `LOCATION_RELOAD`,
     END OF cs_event.
@@ -126,12 +127,13 @@ INTERFACE z2ui5_if_client
 
   METHODS url_param_set
     IMPORTING
-      val  type clike.
+      val TYPE clike.
 
   METHODS timer_set
     IMPORTING
-      interval_ms    TYPE clike
-      event_finished TYPE clike.
+      interval_ms     TYPE i
+      event_finished  TYPE clike optional
+      action_finished TYPE clike optional.
 
   METHODS message_toast_display
     IMPORTING

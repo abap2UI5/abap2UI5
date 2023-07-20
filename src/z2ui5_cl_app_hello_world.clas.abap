@@ -22,6 +22,15 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
       quantity = '500'.
     ENDIF.
 
+
+    client->timer_set(
+      interval_ms     = 10
+      action_finished = client->_event_client( action = client->cs_event-open_new_tab t_arg = value #( ( `https://www.sap.com` )  )
+      ) ).
+
+
+    data(test) = client->get( )-check_launchpad_active.
+
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
         client->message_toast_display( |{ product } { quantity } - send to the server| ).

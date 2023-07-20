@@ -238,8 +238,9 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
           selectionend   TYPE string,
         END OF s_cursor,
         BEGIN OF s_timer,
-          interval_ms    TYPE string,
-          event_finished TYPE string,
+          interval_ms     TYPE i,
+          event_finished  TYPE string,
+          action_finished TYPE string,
         END OF s_timer,
         BEGIN OF s_msg_box,
           type TYPE string,
@@ -1007,16 +1008,17 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
 
     ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
-    DATA(lv_txt) = ms_error-x_error->get_text( ).
+    DATA(lv_txt)       = ms_error-x_error->get_text( ).
     DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
-    DATA(lv_link2) = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
-    DATA(lv_source) = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
-    DATA(lv_descr) = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
+    DATA(lv_link2)     = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
+    DATA(lv_source)    = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
+    DATA(lv_descr)     = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
 
-    DATA(ls_get) = client->get( ).
-    DATA(lv_url_app) =  ls_get-s_config-origin && ls_get-s_config-pathname.
-    DATA(lv_url) = lv_url_app.
+    DATA(ls_get)     = client->get( ).
+    DATA(lv_url) = ls_get-s_config-origin && ls_get-s_config-pathname.
     SHIFT lv_url LEFT DELETING LEADING ` `.
+    DATA(lv_url_app)  = lv_url && `?app_start=` && lv_classname.
+
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -1556,13 +1558,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     IF lv_classname IS INITIAL.
-      TRY.
-          lv_classname = to_upper( so_body->get_attribute( 'APP_START' )->get_val( ) ).
-        CATCH cx_root.
-      ENDTRY.
-    ENDIF.
-
-    IF lv_classname IS INITIAL.
       result = set_app_system( ).
       RETURN.
     ENDIF.
@@ -1828,13 +1823,22 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    result = `onEventFrontend( { 'EVENT' : '` && action && `' }`.
+    result = `onEventFrontend( { 'EVENT' : '` && action && `'`.
 
-    LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
-      result = result && `, '` && lr_arg->* && `'`.
-    ENDLOOP.
+    IF t_arg IS NOT INITIAL.
+      result = result && `, 'T_ARG' : [`.
 
-    result = result &&  ` )`.
+      LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
+        IF sy-tabix <> 1.
+          result = result && `,`.
+        ENDIF.
+        result = result &&  `'`  && lr_arg->* &&  `'` .
+      ENDLOOP.
+
+      result = result && `]`.
+    ENDIF.
+
+    result = result && `})`.
 
   ENDMETHOD.
 
@@ -1843,10 +1847,10 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_lcl_utility=>get_json_boolean( check_view_destroy ) && ` }`.
 
     LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
-      result = result && `,` && lr_arg->*.
+      result = result && `, '` && lr_arg->* && `'`.
     ENDLOOP.
 
-    result = result && `)`.
+    result = result &&  ` )`.
 
   ENDMETHOD.
 
@@ -1895,8 +1899,9 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~timer_set.
 
-    mo_handler->ms_next-s_set-s_timer-interval_ms = interval_ms.
-    mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
+    mo_handler->ms_next-s_set-s_timer-interval_ms     = interval_ms.
+    mo_handler->ms_next-s_set-s_timer-event_finished  = event_finished.
+    mo_handler->ms_next-s_set-s_timer-action_finished = action_finished.
 
   ENDMETHOD.
 
