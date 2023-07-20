@@ -160,7 +160,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.z2ui5.checkTimerActive = true;` && |\n|  &&
                            `                    setTimeout(() => {` && |\n|  &&
                            `                        if (sap.z2ui5.checkTimerActive) {` && |\n|  &&
-                           `                            sap.z2ui5.oController.onEvent(oEvent);` && |\n|  &&
+                           `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n|  &&
+                           `                            let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n|  &&
+                           `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(oEvent);  }else{ sap.z2ui5.oController.onEventFrontend(oEvent);  }` && |\n|  &&
                            `                        }` && |\n|  &&
                            `                    }, parseInt(sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS), oEvent);` && |\n|  &&
                            `                }` && |\n|  &&
@@ -200,7 +202,10 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n|  &&
                            `                switch (oEvent.EVENT) {` && |\n|  &&
                            `                    case 'LOCATION_RELOAD':` && |\n|  &&
-                           `                        window.location = arguments[1];` && |\n|  &&
+                           `                        window.location = oEvent.T_ARG[0];` && |\n|  &&
+                           `                        break;` && |\n|  &&
+                           `                    case 'OPEN_NEW_TAB':` && |\n|  &&
+                           `                        window.open( oEvent.T_ARG[0] , '_blank' );` && |\n|  &&
                            `                        break;` && |\n|  &&
                            `                    case 'POPUP_CLOSE':` && |\n|  &&
                            `                        sap.z2ui5.oController.PopupDestroy();` && |\n|  &&
@@ -253,7 +258,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n|  &&
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `                sap.z2ui5.oBody.CHECKLAUNCHPADACTIVE = sap.z2ui5.CHECKLAUNCHPADACTIVE;` && |\n|  &&
                            `                sap.z2ui5.oBody.ARGUMENTS = arguments;` && |\n|  &&
                            `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n|  &&
                            |\n|  &&
@@ -370,7 +374,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        if (!sap.z2ui5) {` && |\n|  &&
                            `            sap.z2ui5 = {};` && |\n|  &&
                            `        }` && |\n|  &&
-                           `        sap.z2ui5.CHECKLAUNCHPADACTIVE = false;` && |\n|  &&
                            `        if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
                            `        }` && |\n|  &&

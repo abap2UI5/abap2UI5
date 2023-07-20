@@ -16,6 +16,15 @@ Take a look to the following example: <br>
 https://github.com/abap2UI5/demo-demos/blob/main/src/z2ui5_cl_app_demo_67.clas.abap
 <img width="500" alt="image" src="https://github.com/abap2UI5/abap2UI5/assets/102328295/fef6e08c-5a34-4aee-9d34-ebb1c5d45275">
 
+#### **4. How to call an url in a new tab?**
+Use the following snippet:
+```abap
+client->timer_set(
+      interval_ms    = 0
+      event_finished = client->_event_client( action = client->cs_event-open_new_tab t_arg = value #( ( `https://www.github.com/abap2UI5` )  )
+) ).
+```
+
 ## Productive Usage
 #### **1. Can abap2UI5 used in a productive system?**
 Yes, the project is technically just an implementation of an HTTP handler and can be used like any other HTTP Service in a productive scenario.
