@@ -1831,7 +1831,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
         IF sy-tabix <> 1.
           result = result && `,`.
         ENDIF.
-        result = result &&  `'`  && lr_arg->* &&  `'` .
+        result = result &&  `'`  && lr_arg->* &&  `'`.
       ENDLOOP.
 
       result = result && `]`.
