@@ -1019,7 +1019,6 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     SHIFT lv_url LEFT DELETING LEADING ` `.
     DATA(lv_url_app)  = lv_url && `?app_start=` && lv_classname.
 
-
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
                    `  xmlns:z2ui5="z2ui5" ` && |\n| &&
@@ -1901,7 +1900,6 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
     mo_handler->ms_next-s_set-s_timer-interval_ms     = interval_ms.
     mo_handler->ms_next-s_set-s_timer-event_finished  = event_finished.
-    mo_handler->ms_next-s_set-s_timer-action_finished = action_finished.
 
   ENDMETHOD.
 

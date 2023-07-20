@@ -132,8 +132,7 @@ INTERFACE z2ui5_if_client
   METHODS timer_set
     IMPORTING
       interval_ms     TYPE i
-      event_finished  TYPE clike optional
-      action_finished TYPE clike optional.
+      event_finished  TYPE clike.
 
   METHODS message_toast_display
     IMPORTING

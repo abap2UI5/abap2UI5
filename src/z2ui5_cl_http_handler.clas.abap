@@ -160,8 +160,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.z2ui5.checkTimerActive = true;` && |\n|  &&
                            `                    setTimeout(() => {` && |\n|  &&
                            `                        if (sap.z2ui5.checkTimerActive) {` && |\n|  &&
-                           `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.ACTION_FINISHED.split( '(' )[ 0 ];` && |\n|  &&
-                           `                            let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.ACTION_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n|  &&
+                           `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n|  &&
+                           `                            let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n|  &&
                            `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(oEvent);  }else{ sap.z2ui5.oController.onEventFrontend(oEvent);  }` && |\n|  &&
                            `                        }` && |\n|  &&
                            `                    }, parseInt(sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS), oEvent);` && |\n|  &&
