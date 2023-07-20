@@ -238,7 +238,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
           selectionend   TYPE string,
         END OF s_cursor,
         BEGIN OF s_timer,
-          interval_ms     TYPE i,
+          interval_ms     TYPE string,
           event_finished  TYPE string,
           action_finished TYPE string,
         END OF s_timer,
@@ -1846,7 +1846,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_lcl_utility=>get_json_boolean( check_view_destroy ) && ` }`.
 
     LOOP AT t_arg REFERENCE INTO DATA(lr_arg).
-      result = result && `, '` && lr_arg->* && `'`.
+      result = result && `, ` && lr_arg->*.
     ENDLOOP.
 
     result = result &&  ` )`.
