@@ -101,6 +101,7 @@ public section.
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TABLE
     importing
+      !ID type CLIKE optional
       !ITEMS type CLIKE optional
       !GROWING type CLIKE optional
       !GROWINGTHRESHOLD type CLIKE optional
@@ -1035,6 +1036,7 @@ public section.
       !SORT type CLIKE optional
       !ROWSELECTIONCHANGE type CLIKE optional
       !CUSTOMFILTER type CLIKE optional
+      !ID type CLIKE optional
     preferred parameter ROWS
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -1241,6 +1243,22 @@ public section.
   methods ICONTABSEPARATOR
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+
+  methods CC_EXPORT_SPREADSHEET_GET_JS
+    importing
+      !columnconfig type CLIKE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods CC_EXPORT_SPREADSHEET
+    importing
+      !TABLEID TYPE CLIKE
+      !TYPE TYPE CLIKE optional
+      !TEXT TYPE CLIKE optional
+      !ICON TYPE CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1301,6 +1319,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD bars.
+    result = _generic( name = `bars`
+                       ns   = `mchart` ).
+  ENDMETHOD.
+
+
   METHOD begin_column_pages.
     " todo, implement method
     result = _generic( name = `beginColumnPages`
@@ -1356,12 +1380,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD bars.
-    result = _generic( name = `bars`
-                       ns   = `mchart` ).
-  ENDMETHOD.
-
-
   METHOD buttons.
     result = _generic( `buttons` ).
   ENDMETHOD.
@@ -1390,6 +1408,96 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                ) ).
 
   ENDMETHOD.
+
+
+ METHOD CC_EXPORT_SPREADSHEET.
+    result = _generic( name   = `ExportSpreadsheet`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `tableId`  v = tableId )
+                                         ( n = `text`     v = text )
+                                         ( n = `icon`     v = icon )
+                                         ( n = `type`     v = type )
+               ) ).
+
+  ENDMETHOD.
+
+
+METHOD CC_EXPORT_SPREADSHEET_GET_JS.
+  DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
+                        |\n| &&
+                        `        sap.ui.define([` && |\n| &&
+                        `            "sap/ui/core/Control",` && |\n| &&
+                        `            "sap/m/Button",` && |\n| &&
+                        `            "sap/ui/export/Spreadsheet"` && |\n| &&
+                        `        ], function (Control, Button, Spreadsheet) {` && |\n| &&
+                        `            "use strict";` && |\n| &&
+                        |\n| &&
+                        `            return Control.extend("z2ui5.ExportSpreadsheet", {` && |\n| &&
+                        |\n| &&
+                        `                metadata: {` && |\n| &&
+                        `                    properties: {` && |\n| &&
+                        `                        tableId: {` && |\n| &&
+                        `                            type: "string",` && |\n| &&
+                        `                            defaultValue: ""` && |\n| &&
+                        `                        },` && |\n| &&
+                        `                        type: {` && |\n| &&
+                        `                            type: "string",` && |\n| &&
+                        `                            defaultValue: ""` && |\n| &&
+                        `                        },` && |\n| &&
+                        `                        icon: {` && |\n| &&
+                        `                            type: "string",` && |\n| &&
+                        `                            defaultValue: ""` && |\n| &&
+                        `                        },` && |\n| &&
+                        `                        text: {` && |\n| &&
+                        `                            type: "string",` && |\n| &&
+                        `                            defaultValue: ""` && |\n| &&
+                        `                        }` && |\n| &&
+                        `                    },` && |\n| &&
+                        |\n| &&
+                        |\n| &&
+                        `                    aggregations: {` && |\n| &&
+                        `                    },` && |\n| &&
+                        `                    events: { },` && |\n| &&
+                        `                    renderer: null` && |\n| &&
+                        `                },` && |\n| &&
+                        |\n| &&
+                        `                renderer: function (oRm, oControl) {` && |\n| &&
+                        |\n| &&
+                        `                    oControl.oExportButton = new Button({` && |\n| &&
+                        `                        text: oControl.getProperty("text"),` && |\n| &&
+                        `                        icon: oControl.getProperty("icon"), ` && |\n| &&
+                        `                        type: oControl.getProperty("type"), ` && |\n| &&
+                        `                        press: function (oEvent) { ` && |\n| &&
+                        |\n| &&
+                        `                             var aCols =` && columnconfig  && `;` && |\n| &&
+                        |\n| &&
+                        `                             var oBinding, oSettings, oSheet, oTable, vTableId, vViewPrefix,vPrefixTableId;` && |\n| &&
+                        `                             vTableId = oControl.getProperty("tableId")` && |\n| &&
+                        `                             vViewPrefix = sap.z2ui5.oView.sId;` && |\n| &&
+                        `                             vPrefixTableId = vViewPrefix + "--" + vTableId;` && |\n| &&
+                        `                             oTable = sap.ui.getCore().byId(vPrefixTableId);` && |\n| &&
+                        `                             oBinding = oTable.getBinding("rows");` && |\n| &&
+                        `                             oSettings = {` && |\n| &&
+                        `                               workbook: { columns: aCols },` && |\n| &&
+                        `                               dataSource: oBinding` && |\n| &&
+                        `                             };` && |\n| &&
+                        `                             oSheet = new Spreadsheet(oSettings);` && |\n| &&
+                        `                             oSheet.build()` && |\n| &&
+                        `                               .then(function() {` && |\n| &&
+                        `                               }).finally(function() {` && |\n| &&
+                        `                                 oSheet.destroy();` && |\n| &&
+                        `                               });` && |\n| &&
+                        `                         }.bind(oControl)` && |\n| &&
+                        `                  });` && |\n| &&
+                        |\n| &&
+                        `                    oRm.renderControl(oControl.oExportButton);` && |\n| &&
+                        `                }` && |\n| &&
+                        `            });` && |\n| &&
+                        `        });`.
+
+    result = zz_plain( `<html:script>` && js && `</html:script>` ).
+
+ENDMETHOD.
 
 
   METHOD cc_file_uploader.
@@ -2742,6 +2850,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD standard_tree_item.
+    result = me.
+    _generic( name   = `StandardTreeItem`
+              t_prop = VALUE #( ( n = `title`       v = title )
+                                ( n = `icon`        v = icon )
+                                ( n = `press`       v = press )
+                                ( n = `detailPress` v = detailPress )
+                                ( n = `type`        v = type )
+                                ( n = `counter`     v = counter )
+                                ( n = `selected`    v = selected ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD step_input.
     result = me.
     _generic( name   = `StepInput`
@@ -2819,6 +2941,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `mode`             v = mode )
                            ( n = `inset`             v = inset )
                            ( n = `width`            v = width )
+                           ( n = `id`            v = id )
                            ( n = `selectionChange`  v = selectionchange )
                            ( n = `alternateRowColors`  v = lcl_utility=>get_json_boolean( alternateRowColors ) )
                            ( n = `autoPopinMode`  v = lcl_utility=>get_json_boolean( autoPopinMode ) ) ) ).
@@ -2931,6 +3054,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( name = `ToolbarSpacer`
               ns   = ns ).
 
+  ENDMETHOD.
+
+
+  METHOD tree.
+    result = _generic( name   = `Tree`
+                       t_prop = VALUE #(
+                           ( n = `items`            v = items )
+                           ( n = `headerText`       v = headertext )
+                           ( n = `footerText`       v = footerText )
+                           ( n = `mode`             v = mode )
+                           ( n = `width`            v = width )
+                           ( n = `includeItemInSelection`  v = lcl_utility=>get_json_boolean( includeItemInSelection ) )
+                           ( n = `inset`  v = lcl_utility=>get_json_boolean( inset ) )
+             ) ).
   ENDMETHOD.
 
 
@@ -3056,6 +3193,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `filter`                    v = filter )
                            ( n = `sort`                      v = sort )
                            ( n = `customFilter`              v = customFilter )
+                           ( n = `id`              v = id )
                            ( n = `rowSelectionChange`        v = rowSelectionChange )
                             ) ).
 
@@ -3143,34 +3281,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     mo_root->mo_previous = result2.
     result = result2.
-
-  ENDMETHOD.
-
-
-  METHOD tree.
-    result = _generic( name   = `Tree`
-                       t_prop = VALUE #(
-                           ( n = `items`            v = items )
-                           ( n = `headerText`       v = headertext )
-                           ( n = `footerText`       v = footerText )
-                           ( n = `mode`             v = mode )
-                           ( n = `width`            v = width )
-                           ( n = `includeItemInSelection`  v = lcl_utility=>get_json_boolean( includeItemInSelection ) )
-                           ( n = `inset`  v = lcl_utility=>get_json_boolean( inset ) )
-             ) ).
-  ENDMETHOD.
-
-
-  METHOD standard_tree_item.
-    result = me.
-    _generic( name   = `StandardTreeItem`
-              t_prop = VALUE #( ( n = `title`       v = title )
-                                ( n = `icon`        v = icon )
-                                ( n = `press`       v = press )
-                                ( n = `detailPress` v = detailPress )
-                                ( n = `type`        v = type )
-                                ( n = `counter`     v = counter )
-                                ( n = `selected`    v = selected ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
