@@ -1387,7 +1387,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD calendarappointment.
     result = _generic( name   = `CalendarAppointment`
-                       ns     = `unified`
+                       ns     = `u`
                        t_prop = VALUE #(
                            ( n = `startDate`                 v = startDate )
                            ( n = `endDate`                   v = endDate )
