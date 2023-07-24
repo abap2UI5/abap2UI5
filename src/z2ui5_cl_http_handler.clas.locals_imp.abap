@@ -1009,7 +1009,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     DATA(lv_txt)       = ms_error-x_error->get_text( ).
-    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
+*    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
 *    DATA(lv_link2)     = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
 *    DATA(lv_source)    = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
     DATA(lv_descr)     = escape( val = lv_txt format = cl_abap_format=>e_xml_attr ).
