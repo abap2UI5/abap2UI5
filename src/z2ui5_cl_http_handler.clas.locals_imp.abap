@@ -1006,7 +1006,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_error-x_error = ms_error-x_error->previous.
     ENDWHILE.
 
-    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
+*    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     DATA(lv_txt)       = ms_error-x_error->get_text( ).
 *    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
