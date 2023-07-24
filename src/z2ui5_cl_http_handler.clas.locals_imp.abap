@@ -1006,18 +1006,19 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_error-x_error = ms_error-x_error->previous.
     ENDWHILE.
 
-    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
+*    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     DATA(lv_txt)       = ms_error-x_error->get_text( ).
-    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
-    DATA(lv_link2)     = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
-    DATA(lv_source)    = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
-    DATA(lv_descr)     = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
+*    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
+*    DATA(lv_link2)     = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
+*    DATA(lv_source)    = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
+    DATA(lv_descr)     = escape( val = lv_txt format = cl_abap_format=>e_xml_attr ).
 
     DATA(ls_get)     = client->get( ).
     DATA(lv_url) = ls_get-s_config-origin && ls_get-s_config-pathname.
     SHIFT lv_url LEFT DELETING LEADING ` `.
-    DATA(lv_url_app)  = lv_url && `?app_start=` && lv_classname.
+    DATA(lv_url_app)  = lv_url && ls_get-s_config-search.
+    "`?app_start=` && lv_classname.
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -1536,11 +1537,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-
-
-
-
-
   ENDMETHOD.
 
   METHOD set_app_start.
@@ -1646,9 +1642,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
-
-          z2ui5_lcl_utility=>raise( `<p>Binding Error - Two diffferent binding types for same attribute used (` && lr_attri->name
+          z2ui5_lcl_utility=>raise( `<p>Binding Error - Two different binding types for same attribute used (` && lr_attri->name
           && `).` ).
+        ENDIF.
+        IF strlen( lr_attri->name ) > 30.
+          z2ui5_lcl_utility=>raise( `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_attri->name ).
         ENDIF.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_attri->name.
