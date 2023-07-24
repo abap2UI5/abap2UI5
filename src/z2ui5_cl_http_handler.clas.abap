@@ -239,6 +239,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                                 `                    isUpdated = true;` && |\n|  &&
                            `                } } }` && |\n|  &&
                            `                if (isUpdated == false){` && |\n|  &&
+                           `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n|  &&
+                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewNest.getModel().getData().oUpdate;` && |\n|  &&
+                                `                    isUpdated = true;` && |\n|  &&
+                           `                } }` && |\n|  &&
+                           `                if (isUpdated == false){` && |\n|  &&
                            `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n|  &&
                            `                 }` && |\n|  &&
                            `                if (oEvent.CHECK_VIEW_DESTROY) {` && |\n|  &&
