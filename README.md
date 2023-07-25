@@ -46,8 +46,8 @@
 #### Apps & Extensions
 * Integrate your apps in launchpads and other services [(abap2UI5/ext-service_integration)](https://github.com/abap2UI5/ext-service_integration)
 * Try out abap2UI5-tools, a useful collection of tools & apps [(abap2UI5/tools)](https://github.com/abap2UI5/app-tools)
-* Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md)
-* And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-demos) 
+* Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
+* And finally: Don't forget to explore the [Demo Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
 
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
@@ -79,6 +79,6 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* check out the [documentation](https://github.com/abap2UI5/abap2UI5/blob/main/docs/documentation.md) for installation & configuration guidelines
-* still open questions? find an answer [here](https://github.com/abap2UI5/abap2UI5/blob/main/docs/faq.md)
+* check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/documentation.md) for installation & configuration guidelines
+* still open questions? find an answer [here](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
