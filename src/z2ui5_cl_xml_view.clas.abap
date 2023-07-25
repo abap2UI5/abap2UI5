@@ -352,6 +352,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !valueliveupdate              TYPE clike OPTIONAL
         !autocomplete                 TYPE clike OPTIONAL
         !maxsuggestionwidth           TYPE clike OPTIONAL
+          !FIELDWIDTH type CLIKE optional
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
@@ -2392,7 +2393,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `submit`           v = lcl_utility=>get_json_boolean( submit ) )
                                 ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
                                 ( n = `class`            v = class )
-                                ( n = `maxSuggestionWidth` v = maxsuggestionwidth ) ) ).
+                                ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
+                                ( n = `fieldWidth`          v = fieldwidth ) ) ).
   ENDMETHOD.
 
 
