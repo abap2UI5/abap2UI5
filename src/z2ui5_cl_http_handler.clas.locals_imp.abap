@@ -1006,18 +1006,19 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       ms_error-x_error = ms_error-x_error->previous.
     ENDWHILE.
 
-    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
+*    ms_error-x_error->get_source_position( IMPORTING program_name = DATA(lv_prog) ).
 
     DATA(lv_txt)       = ms_error-x_error->get_text( ).
-    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
-    DATA(lv_link2)     = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
-    DATA(lv_source)    = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
-    DATA(lv_descr)     = escape( val = lv_txt && lv_source format = cl_abap_format=>e_xml_attr ).
+*    DATA(lv_classname) = segment( val = lv_prog index = 1 sep = `=` ).
+*    DATA(lv_link2)     = client->get( )-s_config-origin && `/sap/bc/adt/oo/classes/` && lv_classname && `/source/main`.
+*    DATA(lv_source)    = `<p><a href="` && lv_link2 && `" style="color:blue; font-weight:600;">Source Code</a></p>`.
+    DATA(lv_descr)     = escape( val = lv_txt format = cl_abap_format=>e_xml_attr ).
 
     DATA(ls_get)     = client->get( ).
     DATA(lv_url) = ls_get-s_config-origin && ls_get-s_config-pathname.
     SHIFT lv_url LEFT DELETING LEADING ` `.
-    DATA(lv_url_app)  = lv_url && `?app_start=` && lv_classname.
+    DATA(lv_url_app)  = lv_url && ls_get-s_config-search.
+    "`?app_start=` && lv_classname.
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -1166,7 +1167,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        ` /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `<f:SimpleForm  editable="true" ` && |\n| &&
-   `  title="Demos" ` && |\n| &&
+   `  title="Samples" ` && |\n| &&
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
@@ -1180,7 +1181,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_destroy = abap_true ) && `" ` && |\n| &&
     `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
-    ` /><Button visible="false"/><Link text="More on github..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md" /></f:content></f:SimpleForm>`.
+    ` /><Button visible="false"/><Link text="More on GitHub..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md" /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 
@@ -1334,7 +1335,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   METHOD request_begin.
 
     ss_config = VALUE #(
-      controller_name = `z2ui5_controller`
+      controller_name      = `z2ui5_controller`
+      view_model_edit_name = `oUpdate`
       body            =  body ).
     so_body = z2ui5_lcl_utility_tree_json=>factory( body ).
 
@@ -1472,7 +1474,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lo_app) = CAST object( app ) ##NEEDED.
     DATA(lr_view_model) = z2ui5_lcl_utility_tree_json=>factory( ).
-    DATA(lo_update) = lr_view_model->add_attribute_object( `oUpdate` ).
+    DATA(lo_update) = lr_view_model->add_attribute_object( ss_config-view_model_edit_name ).
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
@@ -1529,16 +1531,11 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        model_set_backend( model = so_body->get_attribute( `OUPDATE` )->mr_actual
+        model_set_backend( model = so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual
                            app   = result->ms_db-o_app
                            t_attri  = result->ms_db-t_attri ).
       CATCH cx_root.
     ENDTRY.
-
-
-
-
-
 
   ENDMETHOD.
 
@@ -1645,12 +1642,14 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
-
-          z2ui5_lcl_utility=>raise( `<p>Binding Error - Two diffferent binding types for same attribute used (` && lr_attri->name
+          z2ui5_lcl_utility=>raise( `<p>Binding Error - Two different binding types for same attribute used (` && lr_attri->name
           && `).` ).
         ENDIF.
+        IF strlen( lr_attri->name ) > 30.
+          z2ui5_lcl_utility=>raise( `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_attri->name ).
+        ENDIF.
         lr_attri->bind_type = type.
-        result = COND #( WHEN type = cs_bind_type-two_way THEN `/oUpdate/` ELSE `/` ) && lr_attri->name.
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_attri->name.
         RETURN.
       ENDIF.
 
