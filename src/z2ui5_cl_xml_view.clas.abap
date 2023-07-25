@@ -158,7 +158,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS generictile
+    METHODS generic_tile
       IMPORTING
         !class        TYPE clike OPTIONAL
         !mode         TYPE clike OPTIONAL
@@ -169,14 +169,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS numericcontent
+    METHODS numeric_content
       IMPORTING
         !value        TYPE clike OPTIONAL
         !icon         TYPE clike OPTIONAL
         !withmargin   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS imagecontent
+    METHODS image_content
       IMPORTING
         !src          TYPE clike OPTIONAL
       RETURNING
@@ -352,7 +352,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !valueliveupdate              TYPE clike OPTIONAL
         !autocomplete                 TYPE clike OPTIONAL
         !maxsuggestionwidth           TYPE clike OPTIONAL
-          !FIELDWIDTH type CLIKE optional
+        !fieldwidth                   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
@@ -1081,6 +1081,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS ui_row_action_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS ui_row_action_item
       IMPORTING
         !icon         TYPE clike OPTIONAL
@@ -1104,6 +1105,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS radio_button_group
       IMPORTING
         !id            TYPE clike OPTIONAL
@@ -1116,7 +1118,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
-    METHODS planningcalendar
+
+    METHODS planning_calendar
       IMPORTING
         !rows                      TYPE clike OPTIONAL
         !startdate                 TYPE clike OPTIONAL
@@ -1127,7 +1130,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER rows
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
-    METHODS planningcalendarrow
+
+    METHODS planning_calendar_row
       IMPORTING
         !appointments    TYPE clike OPTIONAL
         !intervalheaders TYPE clike OPTIONAL
@@ -1137,13 +1141,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER appointments
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS appointments
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS calendarappointment
+
+    METHODS calendar_appointment
       IMPORTING
         !startdate    TYPE clike OPTIONAL
         !enddate      TYPE clike OPTIONAL
@@ -1155,20 +1162,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER startdate
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS intervalheaders
+
+    METHODS interval_headers
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS blocklayout
+
+    METHODS block_layout
       IMPORTING
         !background   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS blocklayoutrow
+
+    METHODS block_layout_row
       IMPORTING
         !rowcolorset  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS blocklayoutcell
+
+    METHODS block_layout_cell
       IMPORTING
         !backgroundcolorset   TYPE clike OPTIONAL
         !backgroundcolorshade TYPE clike OPTIONAL
@@ -1179,6 +1190,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !class                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS object_identifier
       IMPORTING
         !emptyindicatormode TYPE clike OPTIONAL
@@ -1190,6 +1202,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !titlepress         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS object_status
       IMPORTING
         !active                TYPE clike OPTIONAL
@@ -1205,6 +1218,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS tree
       IMPORTING
         !items                  TYPE clike OPTIONAL
@@ -1216,6 +1230,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width                  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS standard_tree_item
       IMPORTING
         !title        TYPE clike OPTIONAL
@@ -1228,7 +1243,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS icontabbar
+    METHODS icon_tab_bar
       IMPORTING
         !class        TYPE clike OPTIONAL
         !select       TYPE clike OPTIONAL
@@ -1239,7 +1254,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS icontabfilter
+    METHODS icon_tab_filter
       IMPORTING
         !showall      TYPE abap_bool OPTIONAL
         !icon         TYPE clike OPTIONAL
@@ -1250,7 +1265,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS icontabseparator
+    METHODS icon_tab_separator
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1424,14 +1439,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD blocklayout.
+  METHOD block_layout.
     result = _generic( name   = `BlockLayout`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `background` v = background ) ) ).
   ENDMETHOD.
 
 
-  METHOD blocklayoutcell.
+  METHOD block_layout_cell.
     result = _generic( name   = `BlockLayoutCell`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `backgroundColorSet` v = backgroundColorSet )
@@ -1444,7 +1459,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD blocklayoutrow.
+  METHOD block_layout_row.
     result = _generic( name   = `BlockLayoutRow`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `rowColorSet` v = rowColorSet ) ) ).
@@ -1476,7 +1491,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD calendarappointment.
+  METHOD calendar_appointment.
     result = _generic( name   = `CalendarAppointment`
                        ns     = `u`
                        t_prop = VALUE #(
@@ -2092,7 +2107,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD generictile.
+  METHOD generic_tag.
+    result = _generic( name   = `GenericTag`
+                       t_prop = VALUE #( ( n = `ariaLabelledBy`           v = arialabelledby )
+                                         ( n = `class`        v = class )
+                                         ( n = `design`          v = design )
+                                         ( n = `status`  v = status )
+                                         ( n = `text`   v = text ) ) ).
+  ENDMETHOD.
+
+
+  METHOD generic_tile.
 
     result = me.
     _generic(
@@ -2106,16 +2131,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                 ( n = `frameType`  v = frametype )
                 ( n = `subheader`  v = subheader ) ) ).
 
-  ENDMETHOD.
-
-
-  METHOD generic_tag.
-    result = _generic( name   = `GenericTag`
-                       t_prop = VALUE #( ( n = `ariaLabelledBy`           v = arialabelledby )
-                                         ( n = `class`        v = class )
-                                         ( n = `design`          v = design )
-                                         ( n = `status`  v = status )
-                                         ( n = `text`   v = text ) ) ).
   ENDMETHOD.
 
 
@@ -2308,7 +2323,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD icontabbar.
+  METHOD icon_tab_bar.
 
     result = _generic( name   = `IconTabBar`
                    t_prop = VALUE #( ( n = `class`       v = class )
@@ -2320,7 +2335,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD icontabfilter.
+  METHOD icon_tab_filter.
 
     result = _generic( name   = `IconTabFilter`
                    t_prop = VALUE #( ( n = `icon`        v = icon )
@@ -2332,7 +2347,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD icontabseparator.
+  METHOD icon_tab_separator.
 
     result = _generic( name   = `IconTabSeparator` ).
 
@@ -2359,7 +2374,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD imagecontent.
+  METHOD image_content.
 
     result = _generic( name   = `ImageContent`
                    t_prop = VALUE #( ( n = `src`      v = src ) ) ).
@@ -2472,7 +2487,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD intervalheaders.
+  METHOD interval_headers.
     result = _generic( name = `intervalHeaders` ).
   ENDMETHOD.
 
@@ -2626,7 +2641,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD numericcontent.
+  METHOD numeric_content.
 
     result = _generic( name   = `NumericContent`
                        t_prop = VALUE #( ( n = `value`      v = value )
@@ -2780,7 +2795,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD planningcalendar.
+  METHOD planning_calendar.
     result = _generic( name   = `PlanningCalendar`
                        t_prop = VALUE #(
                            ( n = `rows`                      v = rows )
@@ -2792,7 +2807,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD planningcalendarrow.
+  METHOD planning_calendar_row.
     result = _generic( name   = `PlanningCalendarRow`
                        t_prop = VALUE #(
                            ( n = `appointments`              v = appointments )
