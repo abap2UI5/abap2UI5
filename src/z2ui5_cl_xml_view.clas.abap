@@ -2382,7 +2382,7 @@ METHOD gantt_chart_container.
                                 ( n = `submit`           v = lcl_utility=>get_json_boolean( submit ) )
                                 ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
                                 ( n = `class`            v = class )
-                                ( n = `maxSuggestionWidth` v = maxsuggestionwidth ) 
+                                ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
                                 ( n = `fieldWidth`          v = fieldwidth ) ) ).
   ENDMETHOD.
 
