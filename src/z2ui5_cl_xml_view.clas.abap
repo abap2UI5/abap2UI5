@@ -967,6 +967,7 @@ public section.
   methods TREE_COLUMN
     importing
       !LABEL type CLIKE
+      !TEMPLATE type CLIKE OPTIONAL
       !HALIGN type CLIKE default 'Begin'
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -1262,6 +1263,80 @@ public section.
       !ICON TYPE CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+   METHODS gantt_chart_container
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS container_toolbar
+      IMPORTING
+        !showsearchbutton TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS gantt_chart_with_table
+      IMPORTING
+        !id                 TYPE clike OPTIONAL
+        !shapeselectionmode TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS axis_time_strategy
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS proportion_zoom_strategy
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS total_horizon
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS time_horizon
+      IMPORTING
+        !starttime    TYPE clike OPTIONAL
+        !endtime      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS visible_horizon
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS row_settings_template
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS gantt_row_settings
+      IMPORTING
+        !rowid        TYPE clike OPTIONAL
+        !shapes1      TYPE clike OPTIONAL
+        !shapes2      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS shapes1
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS shapes2
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS task
+      IMPORTING
+        !type         TYPE clike OPTIONAL
+        !color        TYPE clike OPTIONAL
+        !endtime      TYPE clike OPTIONAL
+        !time         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS gantt_table
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1305,6 +1380,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               t_prop = VALUE #( ( n = `src`         v = src )
                                 ( n = `class`       v = class )
                                 ( n = `displaysize` v = displaysize ) ) ).
+  ENDMETHOD.
+
+
+METHOD axis_time_strategy.
+    result = _generic( name   = `axisTimeStrategy`
+                       ns     = `gantt`
+                     ).
   ENDMETHOD.
 
 
@@ -1480,6 +1562,9 @@ METHOD CC_EXPORT_SPREADSHEET_GET_JS.
                         `                             vPrefixTableId = vViewPrefix + "--" + vTableId;` && |\n| &&
                         `                             oTable = sap.ui.getCore().byId(vPrefixTableId);` && |\n| &&
                         `                             oBinding = oTable.getBinding("rows");` && |\n| &&
+                        `                             if (oBinding == null) {` && |\n| &&
+                        `                               oBinding = oTable.getBinding("items");` && |\n| &&
+                        `                             };` && |\n| &&
                         `                             oSettings = {` && |\n| &&
                         `                               workbook: { columns: aCols },` && |\n| &&
                         `                               dataSource: oBinding` && |\n| &&
@@ -1709,7 +1794,20 @@ ENDMETHOD.
                        ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
                        ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
                        ( n = `xmlns:fb`     v = `sap.ui.comp.filterbar` )
-                       ( n = `xmlns:u`      v = `sap.ui.unified` ) ).
+                       ( n = `xmlns:u`      v = `sap.ui.unified` )
+                       ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
+                       ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
+                       ( n = `xmlns:config`    v = `sap.gantt.config` )
+                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` ) ).
+
+  ENDMETHOD.
+
+
+METHOD container_toolbar.
+    result = _generic( name   = `ContainerToolbar`
+                       ns     = `gantt`
+                       t_prop = VALUE #( ( n = `showSearchButton` v = showsearchbutton )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -1948,6 +2046,37 @@ ENDMETHOD.
     result = me.
     _generic( name   = `FormattedText`
               t_prop = VALUE #( ( n = `htmlText` v = htmltext ) ) ).
+  ENDMETHOD.
+
+
+METHOD gantt_chart_container.
+    result = _generic( name   = `GanttChartContainer`
+                       ns     = `gantt`
+                     ).
+  ENDMETHOD.
+
+
+  METHOD gantt_chart_with_table.
+    result = _generic( name   = `GanttChartWithTable`
+                   ns     = `gantt`
+                   t_prop = VALUE #( ( n = `id` v = id )
+                                     ( n = `shapeSelectionMode` v = shapeselectionmode ) ) ).
+  ENDMETHOD.
+
+
+  METHOD gantt_row_settings.
+    result = _generic( name   = `GanttRowSettings`
+               ns     = `gantt`
+               t_prop = VALUE #( ( n = `rowId` v = rowid )
+                                 ( n = `shapes1` v = shapes1 )
+                                 ( n = `shapes2` v = shapes2 ) ) ).
+  ENDMETHOD.
+
+
+  METHOD gantt_table.
+    result = _generic( name   = `table`
+                       ns     = `gantt`
+                     ).
   ENDMETHOD.
 
 
@@ -2688,6 +2817,13 @@ ENDMETHOD.
   ENDMETHOD.
 
 
+METHOD proportion_zoom_strategy.
+    result = _generic( name   = `ProportionZoomStrategy`
+                       ns     = `axistime`
+                      ).
+  ENDMETHOD.
+
+
   METHOD radial_micro_chart.
     result = me.
     _generic( name   = `RadialMicroChart`
@@ -2752,6 +2888,13 @@ ENDMETHOD.
   ENDMETHOD.
 
 
+ METHOD row_settings_template.
+    result = _generic( name   = `rowSettingsTemplate`
+                       ns     = `table`
+                      ).
+  ENDMETHOD.
+
+
   METHOD scroll_container.
     result = _generic( name   = `ScrollContainer`
                        t_prop = VALUE #( ( n = `height`      v = height )
@@ -2800,6 +2943,20 @@ ENDMETHOD.
   METHOD segments.
     result = _generic( name = `segments`
                        ns   = `mchart` ).
+  ENDMETHOD.
+
+
+METHOD shapes1.
+    result = _generic( name   = `shapes1`
+                       ns     = `gantt`
+                      ).
+  ENDMETHOD.
+
+
+  METHOD shapes2.
+    result = _generic( name   = `shapes2`
+                       ns     = `gantt`
+                      ).
   ENDMETHOD.
 
 
@@ -2958,6 +3115,16 @@ ENDMETHOD.
   ENDMETHOD.
 
 
+ METHOD task.
+    result = _generic( name   = `Task`
+                       ns     = `shapes`
+                       t_prop = VALUE #( ( n = `time` v = time )
+                                         ( n = `endTime` v = endtime )
+                                         ( n = `type` v = type )
+                                         ( n = `color` v = color ) ) ).
+  ENDMETHOD.
+
+
   METHOD text.
     result = me.
     _generic( name   = `Text`
@@ -2990,6 +3157,15 @@ ENDMETHOD.
                                 ( n = `unit`   v = unit )
                                 ( n = `footer` v = footer ) ) ).
 
+  ENDMETHOD.
+
+
+METHOD time_horizon.
+    result = _generic( name   = `TimeHorizon`
+                       ns     = `config`
+                       t_prop = VALUE #( ( n = `startTime` v = starttime )
+                                         ( n = `endTime`   v = endtime )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -3061,6 +3237,13 @@ ENDMETHOD.
   ENDMETHOD.
 
 
+  METHOD total_horizon.
+    result = _generic( name   = `totalHorizon`
+                       ns     = `axistime`
+                      ).
+  ENDMETHOD.
+
+
   METHOD tree.
     result = _generic( name   = `Tree`
                        t_prop = VALUE #(
@@ -3080,8 +3263,9 @@ ENDMETHOD.
     result = _generic( name = `Column`
                   ns        = `table`
                   t_prop    = VALUE #(
-                          ( n = `label`   v = label )
-                          ( n = `hAlign`  v = halign ) ) ).
+                          ( n = `label`      v = label )
+                          ( n = `template`   v = template )
+                          ( n = `hAlign`     v = halign ) ) ).
 
   ENDMETHOD.
 
@@ -3228,6 +3412,13 @@ ENDMETHOD.
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `class`  v = class )
                                          ( n = `width`  v = width ) ) ).
+  ENDMETHOD.
+
+
+METHOD visible_horizon.
+    result = _generic( name   = `visibleHorizon`
+                       ns     = `axistime`
+                      ).
   ENDMETHOD.
 
 
