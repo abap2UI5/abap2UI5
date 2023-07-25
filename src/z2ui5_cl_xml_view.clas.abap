@@ -347,6 +347,7 @@ public section.
       !VALUELIVEUPDATE type CLIKE optional
       !AUTOCOMPLETE type CLIKE optional
       !MAXSUGGESTIONWIDTH type CLIKE optional
+      !FIELDWIDTH type CLIKE optional
     preferred parameter VALUE
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -2381,7 +2382,8 @@ METHOD gantt_chart_container.
                                 ( n = `submit`           v = lcl_utility=>get_json_boolean( submit ) )
                                 ( n = `showValueHelp`    v = lcl_utility=>get_json_boolean( showvaluehelp ) )
                                 ( n = `class`            v = class )
-                                ( n = `maxSuggestionWidth` v = maxsuggestionwidth ) ) ).
+                                ( n = `maxSuggestionWidth` v = maxsuggestionwidth ) 
+                                ( n = `fieldWidth`          v = fieldwidth ) ) ).
   ENDMETHOD.
 
 
