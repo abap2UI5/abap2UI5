@@ -1351,7 +1351,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
-        DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
         ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <arg>.
 
         FIELD-SYMBOLS <arg_row> type any.
