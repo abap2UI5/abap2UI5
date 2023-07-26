@@ -1353,11 +1353,13 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <arg>.
         z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
         FIELD-SYMBOLS <arg_row> type any.
         LOOP AT <arg> assigning <arg_row>.
 
           IF sy-tabix = 1.
-            ASSIGN  ('<ARG_ROW>->EVENT->*') TO FIELD-SYMBOL(<val>).
+            FIELD-SYMBOLS <val> type any.
+            ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
             result->ms_actual-event = <val>.
           ELSE.
             ASSIGN  <arg_row>->* TO <val>.
