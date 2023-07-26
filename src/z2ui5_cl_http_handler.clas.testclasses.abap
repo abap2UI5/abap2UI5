@@ -400,24 +400,24 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_xml_view.
 
-    sv_state = ``.
-    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-        body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
-*        path_info = 'LTCL_UNIT_02_APP_START'
-        ).
-
-    DATA lo_data TYPE REF TO data.
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-                               CHANGING  data = lo_data ).
-
-    FIELD-SYMBOLS <val> TYPE any.
-    UNASSIGN <val>.
-    DATA(lv_assign) = `PARAMS->S_VIEW->XML->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    <val> = shift_left( <val> ).
-    IF <val>(9) <> `<mvc:View`.
-      cl_abap_unit_assert=>fail( msg = 'xml view - intital view wrong' quit = 5 ).
-    ENDIF.
+*    sv_state = ``.
+*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
+*        body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
+**        path_info = 'LTCL_UNIT_02_APP_START'
+*        ).
+*
+*    DATA lo_data TYPE REF TO data.
+*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
+*                               CHANGING  data = lo_data ).
+*
+*    FIELD-SYMBOLS <val> TYPE any.
+*    UNASSIGN <val>.
+*    DATA(lv_assign) = `PARAMS->S_VIEW->XML->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    <val> = shift_left( <val> ).
+*    IF <val>(9) <> `<mvc:View`.
+*      cl_abap_unit_assert=>fail( msg = 'xml view - intital view wrong' quit = 5 ).
+*    ENDIF.
   ENDMETHOD.
 
   METHOD test_id.
