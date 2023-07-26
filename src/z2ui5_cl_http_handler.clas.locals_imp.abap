@@ -1349,13 +1349,32 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         result->ms_actual-check_on_navigated = abap_true.
     ENDTRY.
 
+*    TRY.
+*        DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
+*        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
+*        DO.
+*          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
+*          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
+*        ENDDO.
+*      CATCH cx_root.
+*    ENDTRY.
     TRY.
+        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
-        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
-        DO.
-          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
-          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
-        ENDDO.
+        ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <arg>.
+
+        FIELD-SYMBOLS <arg_row> type any.
+        LOOP AT <arg> assigning <arg_row>.
+
+          IF sy-tabix = 1.
+            ASSIGN  ('<ARG_ROW>->EVENT->*') TO FIELD-SYMBOL(<val>).
+            result->ms_actual-event = <val>.
+          ELSE.
+            ASSIGN  <arg_row>->* TO <val>.
+            INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
+          ENDIF.
+
+        ENDLOOP.
       CATCH cx_root.
     ENDTRY.
 
