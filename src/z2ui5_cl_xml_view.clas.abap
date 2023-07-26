@@ -181,7 +181,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !src          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    METHODS tilecontent
+    METHODS tile_content
       IMPORTING
         !unit         TYPE clike OPTIONAL
         !footer       TYPE clike OPTIONAL
@@ -3177,7 +3177,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD tilecontent.
+  METHOD tile_content.
 
     result = _generic( name   = `TileContent`
                        ns     = ``
