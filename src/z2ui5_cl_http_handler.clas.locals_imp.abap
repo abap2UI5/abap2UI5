@@ -1353,6 +1353,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <arg>.
         z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
         FIELD-SYMBOLS <arg_row> type any.
         LOOP AT <arg> assigning <arg_row>.
 
