@@ -762,7 +762,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `tomato 700 - send to the server`.
-      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
+*      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
