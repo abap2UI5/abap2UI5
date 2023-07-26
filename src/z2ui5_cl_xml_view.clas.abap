@@ -1376,7 +1376,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1439,6 +1439,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD blocks.
+    result = _generic( name = `blocks`
+                       ns   = `uxap` ).
+  ENDMETHOD.
+
+
   METHOD block_layout.
     result = _generic( name   = `BlockLayout`
                        ns     = `layout`
@@ -1463,12 +1469,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `BlockLayoutRow`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `rowColorSet` v = rowColorSet ) ) ).
-  ENDMETHOD.
-
-
-  METHOD blocks.
-    result = _generic( name = `blocks`
-                       ns   = `uxap` ).
   ENDMETHOD.
 
 

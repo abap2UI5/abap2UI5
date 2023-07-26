@@ -1350,12 +1350,49 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
-        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
-        DO.
-          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
-          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
-        ENDDO.
+        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN ('SO_BODY->MR_ACTUAL') TO <any>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN ('<ANY>->ARGUMENTS') TO <any>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN ('<ANY>->*') TO <any>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN <any> TO <arg>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+*        DO.
+*          DATA(lv_index) = sy-index.
+*          FIELD-SYMBOLS <arg_row> TYPE any.
+*          DATA(lv_assign) = '<ARG>[' && sy-index && ']->*'.
+*          ASSIGN (lv_assign) TO <arg_row>.
+*          IF sy-subrc <> 0.
+*            EXIT.
+*          ENDIF.
+*
+*          IF lv_index = 1.
+*            FIELD-SYMBOLS <val> TYPE any.
+*            ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
+*            result->ms_actual-event = <val>.
+*          ELSE.
+*            ASSIGN <arg_row>->* TO <val>.
+*            INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
+*          ENDIF.
+*
+*        ENDDO.
+        FIELD-SYMBOLS <arg_row> TYPE any.
+        LOOP AT <arg> ASSIGNING <arg_row>.
+
+          IF sy-tabix = 1.
+            FIELD-SYMBOLS <val> TYPE any.
+            ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
+            result->ms_actual-event = <val>.
+          ELSE.
+            ASSIGN  <arg_row>->* TO <val>.
+            INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
+          ENDIF.
+
+        ENDLOOP.
       CATCH cx_root.
     ENDTRY.
 
@@ -1402,10 +1439,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
-
-*    DATA(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
-*    DATA(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
-*    DATA(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
 
     IF ms_next-s_set-search IS INITIAL.
       lo_resp->add_attribute( n = `SEARCH` v = ms_actual-s_config-search ).
