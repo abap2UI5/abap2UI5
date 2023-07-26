@@ -198,14 +198,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oView.destroy();` && |\n|  &&
                            `            },` && |\n|  &&
-                           `            onEventFrontend: function( oEvent )  {` && |\n|  &&
+                           `            ` && |\n|  &&
+                           `            onEventFrontend: (...args) => {` && |\n|  &&
                            |\n|  &&
-                           `                switch (oEvent.EVENT) {` && |\n|  &&
+                           `                switch (args[0].EVENT) {` && |\n|  &&
                            `                    case 'LOCATION_RELOAD':` && |\n|  &&
-                           `                        window.location = oEvent.T_ARG[0];` && |\n|  &&
+                           `                        window.location = args[0].T_ARG[0];` && |\n|  &&
                            `                        break;` && |\n|  &&
                            `                    case 'OPEN_NEW_TAB':` && |\n|  &&
-                           `                        window.open( oEvent.T_ARG[0] , '_blank' );` && |\n|  &&
+                           `                        window.open( args[0].T_ARG[0] , '_blank' );` && |\n|  &&
                            `                        break;` && |\n|  &&
                            `                    case 'POPUP_CLOSE':` && |\n|  &&
                            `                        sap.z2ui5.oController.PopupDestroy();` && |\n|  &&
@@ -216,8 +217,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
                            |\n|  &&
-                           `            onEvent: function (oEvent) {` && |\n|  &&
-                           |\n|  &&
+                           `            onEvent: function (...args) {` && |\n|  &&
                            `                if (!window.navigator.onLine) {` && |\n|  &&
                            `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
                            `                    return;` && |\n|  &&
@@ -227,26 +227,25 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                let isUpdated = false;` && |\n|  &&
                            `                if (sap.z2ui5.oViewPopup) {` && |\n|  &&
                            `                if (sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n|  &&
-                           `             //   if (sap.z2ui5.oViewPopup.isDestroyed() == false) {` && |\n|  &&
                            `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate;` && |\n|  &&
                            `                    isUpdated = true;` && |\n|  &&
                            `                    } }` && |\n|  &&
                            `              if ( isUpdated == false ) { ` && |\n|  &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n|  &&
                            `              if (sap.z2ui5.oViewPopover.isOpen() == false) {` && |\n|  &&
-                           `         //   if (sap.z2ui5.oViewPopover.isDestroyed() == false) {` && |\n|  &&
                            `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n|  &&
-                                `                    isUpdated = true;` && |\n|  &&
+                           `                    isUpdated = true;` && |\n|  &&
                            `                } } }` && |\n|  &&
                            `                if (isUpdated == false){` && |\n|  &&
                            `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n|  &&
                            `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewNest.getModel().getData().oUpdate;` && |\n|  &&
-                                `                    isUpdated = true;` && |\n|  &&
+                           `                    isUpdated = true;` && |\n|  &&
                            `                } }` && |\n|  &&
                            `                if (isUpdated == false){` && |\n|  &&
                            `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n|  &&
                            `                 }` && |\n|  &&
-                           `                if (oEvent.CHECK_VIEW_DESTROY) {` && |\n|  &&
+                           |\n|  &&
+                           `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n|  &&
                            `                    sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n|  &&
@@ -263,7 +262,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n|  &&
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `                sap.z2ui5.oBody.ARGUMENTS = arguments;` && |\n|  &&
+                           `              sap.z2ui5.oBody.ARGUMENTS = args;` && |\n|  &&
                            `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.checkLogActive) {` && |\n|  &&
@@ -328,7 +327,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopover.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
                            `                    sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
                            `                }` && |\n|  &&
-                                                      `                if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
                            `                    document.title = sap.z2ui5.oResponse.PARAMS.TITLE;` && |\n|  &&
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT !== '') {` && |\n|  &&
@@ -339,7 +338,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n|  &&
                            `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n|  &&
-                           `                    //    window.history.replaceState("", "", window.location.origin + sap.z2ui5.oResponse.PARAMS.PATH + window.location.search);` && |\n|  &&
                            `                }` && |\n|  &&
                            `            },` && |\n|  &&
                            `            readHttp: () => {` && |\n|  &&
@@ -381,8 +379,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        }` && |\n|  &&
                            `        if (!sap.z2ui5.pathname) {` && |\n|  &&
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
+                           `           // sap.z2ui5.pathname = ``/sap/bc/http/sap/y2ui5_http_handler``;` && |\n|  &&
                            `        }` && |\n|  &&
-                           |\n|  &&
+                           `        ` && |\n|  &&
                            `        sap.z2ui5.checkNestAfter = false;` && |\n|  &&
                            |\n|  &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
@@ -393,16 +392,15 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                           |         sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };| && |\n| &&
+                           `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `        sap.z2ui5.oBody = {};` && |\n|  &&
-                           `        debugger;` && |\n|  &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n|  &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n|  &&
                            `    });` && |\n|  &&
                            `</script>` && |\n|  &&
                            `<abc/></html>`.
 
-*             sap.z2ui5.checkLogActive = { z2ui5_lcl_utility=>get_json_boolean( check_logging ) };`| && |\n| &&
+*                               `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
 
   ENDMETHOD.
 
