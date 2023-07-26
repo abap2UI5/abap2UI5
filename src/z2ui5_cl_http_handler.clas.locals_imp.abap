@@ -1350,11 +1350,17 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE. " TABLE.
-        FIELD-SYMBOLS <any> TYPE any. " TABLE.
-        ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <any>.
+        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN ('SO_BODY->MR_ACTUAL') TO <any>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN ('<ANY>->ARGUMENTS') TO <any>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN ('<ANY>->*') TO <any>.
         z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
         ASSIGN <any> TO <arg>.
+        z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+
 *        DO.
 *          DATA(lv_index) = sy-index.
 *          FIELD-SYMBOLS <arg_row> TYPE any.
