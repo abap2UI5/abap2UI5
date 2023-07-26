@@ -1350,15 +1350,35 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
-        ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <arg>.
+        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE. " TABLE.
+        FIELD-SYMBOLS <any> TYPE any. " TABLE.
+        ASSIGN ('SO_BODY->MR_ACTUAL->ARGUMENTS->*') TO <any>.
         z2ui5_lcl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-        FIELD-SYMBOLS <arg_row> type any.
-        LOOP AT <arg> assigning <arg_row>.
+        ASSIGN <any> TO <arg>.
+*        DO.
+*          DATA(lv_index) = sy-index.
+*          FIELD-SYMBOLS <arg_row> TYPE any.
+*          DATA(lv_assign) = '<ARG>[' && sy-index && ']->*'.
+*          ASSIGN (lv_assign) TO <arg_row>.
+*          IF sy-subrc <> 0.
+*            EXIT.
+*          ENDIF.
+*
+*          IF lv_index = 1.
+*            FIELD-SYMBOLS <val> TYPE any.
+*            ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
+*            result->ms_actual-event = <val>.
+*          ELSE.
+*            ASSIGN <arg_row>->* TO <val>.
+*            INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
+*          ENDIF.
+*
+*        ENDDO.
+        FIELD-SYMBOLS <arg_row> TYPE any.
+        LOOP AT <arg> ASSIGNING <arg_row>.
 
           IF sy-tabix = 1.
-            FIELD-SYMBOLS <val> type any.
+            FIELD-SYMBOLS <val> TYPE any.
             ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
             result->ms_actual-event = <val>.
           ELSE.
