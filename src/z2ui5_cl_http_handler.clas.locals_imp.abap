@@ -1349,15 +1349,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         result->ms_actual-check_on_navigated = abap_true.
     ENDTRY.
 
-*    TRY.
-*        DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
-*        result->ms_actual-event = lo_arg->get_attribute( `0` )->get_attribute( `EVENT` )->get_val( ).
-*        DO.
-*          DATA(lv_val) = lo_arg->get_attribute( CONV string( sy-index ) )->get_val( ).
-*          INSERT lv_val INTO TABLE result->ms_actual-t_event_arg.
-*        ENDDO.
-*      CATCH cx_root.
-*    ENDTRY.
     TRY.
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         DATA(lo_arg) = so_body->get_attribute( `ARGUMENTS` ).
@@ -1421,10 +1412,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_lcl_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
     lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
-
-*    DATA(lv_app_start) = to_lower( z2ui5_lcl_utility=>get_param( `app_start` ) ).
-*    DATA(lv_q) = z2ui5_lcl_utility=>get_param( `q` ).
-*    DATA(lv_app) = to_lower( z2ui5_lcl_utility=>get_classname_by_ref( ms_db-o_app ) ).
 
     IF ms_next-s_set-search IS INITIAL.
       lo_resp->add_attribute( n = `SEARCH` v = ms_actual-s_config-search ).
