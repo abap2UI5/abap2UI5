@@ -1357,7 +1357,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         LOOP AT <arg> assigning <arg_row>.
 
           IF sy-tabix = 1.
-            ASSIGN  ('<ARG_ROW>->EVENT->*') TO FIELD-SYMBOL(<val>).
+            FIELD-SYMBOLS <val> type any.
+            ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
             result->ms_actual-event = <val>.
           ELSE.
             ASSIGN  <arg_row>->* TO <val>.

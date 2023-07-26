@@ -713,8 +713,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
-    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
-*    z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}] }`.
     lv_response = z2ui5_cl_http_handler=>http_post(
           body = lv_request
            ).
@@ -750,7 +749,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
-    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": { "0" : {"EVENT":"BUTTON_POST","METHOD":"UPDATE"}  } }`.
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [ {"EVENT":"BUTTON_POST","METHOD":"UPDATE"} ] }`.
 *    z2ui5_cl_http_handler=>client = VALUE #( body = lv_request ).
     lv_response = z2ui5_cl_http_handler=>http_post(
       body = lv_request ).
