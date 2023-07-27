@@ -79,7 +79,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ELSE.
       lv_sec_policy = content_security_policy.
     ENDIF.
-    z2ui5_lcl_fw_db=>cleanup( ).
+    z2ui5_cl_fw_db=>cleanup( ).
 
 
     r_result = `<html>` && |\n| &&
@@ -422,7 +422,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
+                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
                            `        sap.z2ui5.oBody = {};` && |\n|  &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n|  &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n|  &&

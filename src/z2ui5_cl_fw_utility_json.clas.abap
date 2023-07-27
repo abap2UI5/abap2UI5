@@ -1,32 +1,32 @@
-CLASS z2ui5_lcl_utility_tree_json DEFINITION
+CLASS z2ui5_cl_fw_utility_json DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
 
-    DATA mo_root         TYPE REF TO z2ui5_lcl_utility_tree_json.
-    DATA mo_parent       TYPE REF TO z2ui5_lcl_utility_tree_json.
+    DATA mo_root         TYPE REF TO z2ui5_cl_fw_utility_json.
+    DATA mo_parent       TYPE REF TO z2ui5_cl_fw_utility_json.
     DATA mv_name         TYPE string.
     DATA mv_value        TYPE string.
-    DATA mt_values       TYPE STANDARD TABLE OF REF TO z2ui5_lcl_utility_tree_json WITH EMPTY KEY.
+    DATA mt_values       TYPE STANDARD TABLE OF REF TO z2ui5_cl_fw_utility_json WITH EMPTY KEY.
     DATA mr_actual       TYPE REF TO data.
     DATA mv_apost_active TYPE abap_bool.
 
     CLASS-METHODS new
-      IMPORTING io_root       TYPE REF TO z2ui5_lcl_utility_tree_json
+      IMPORTING io_root       TYPE REF TO z2ui5_cl_fw_utility_json
                 iv_name       TYPE simple
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     CLASS-METHODS factory
       IMPORTING iv_json       TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS constructor.
 
     METHODS get_attribute
       IMPORTING name          TYPE string
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS get_val
       RETURNING VALUE(result) TYPE string.
@@ -35,19 +35,19 @@ CLASS z2ui5_lcl_utility_tree_json DEFINITION
       IMPORTING n             TYPE clike
                 v             TYPE clike
                 apos_active   TYPE abap_bool DEFAULT abap_true
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS add_attribute_object
       IMPORTING name          TYPE clike
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS add_attribute_struc
       IMPORTING val           TYPE data
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS add_attribute_instance
-      IMPORTING val           TYPE REF TO z2ui5_lcl_utility_tree_json
-      RETURNING VALUE(result) TYPE REF TO z2ui5_lcl_utility_tree_json.
+      IMPORTING val           TYPE REF TO z2ui5_cl_fw_utility_json
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS stringify
       RETURNING VALUE(result) TYPE string.
@@ -56,7 +56,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
+CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute.
 
@@ -134,13 +134,13 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
   METHOD get_attribute.
 
-    z2ui5_cl_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
     DATA(lo_attri) = new( io_root = mo_root iv_name = name ).
 
     FIELD-SYMBOLS <attribute> TYPE any.
     DATA(lv_name) = 'MR_ACTUAL->' && replace( val = name sub = `-` with = `_` occ = 0 ).
     ASSIGN (lv_name) TO <attribute>.
-    z2ui5_cl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     lo_attri->mr_actual = <attribute>.
     lo_attri->mo_parent = me.
@@ -154,7 +154,7 @@ CLASS z2ui5_lcl_utility_tree_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
-    z2ui5_cl_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
 
     result = <attribute>.
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_lcl_fw_app DEFINITION
+CLASS z2ui5_cl_fw_app DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -27,7 +27,7 @@ CLASS z2ui5_lcl_fw_app DEFINITION
       IMPORTING
         error         TYPE REF TO cx_root
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_fw_app.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 
     DATA mv_is_initialized TYPE abap_bool.
 
@@ -44,7 +44,8 @@ CLASS z2ui5_lcl_fw_app DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
+
+CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
@@ -99,7 +100,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
       WHEN `BUTTON_CHECK`.
         TRY.
             DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = z2ui5_cl_utility=>get_trim_upper( ms_home-classname ).
+            ms_home-classname = z2ui5_cl_fw_utility=>get_trim_upper( ms_home-classname ).
             CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
             client->message_toast_display( `App is ready to start!` ).
@@ -269,7 +270,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
       lv_xml_main = lv_xml_main && `<Input ` && |\n| &&
      `  placeholder="` && `fill in the class name and press 'check' ` && `" ` && |\n| &&
-     `  editable="` && z2ui5_cl_utility=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n| &&
+     `  editable="` && z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n| &&
      `  value="` && client->_bind_edit( ms_home-classname ) && `" ` && |\n| &&
      ` /> `.
     ELSE.
@@ -288,7 +289,7 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
        `  text="Link to the Application" ` && |\n| &&
        `  target="_blank" ` && |\n| &&
        `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n| &&
-       `  enabled="` && z2ui5_cl_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n| &&
+       `  enabled="` && z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n| &&
        ` /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `<f:SimpleForm  editable="true" ` && |\n| &&
@@ -315,6 +316,3 @@ CLASS z2ui5_lcl_fw_app IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
-
-
-

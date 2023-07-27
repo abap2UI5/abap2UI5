@@ -108,9 +108,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_test_app( ).
 
-    DATA(lt_attri) = z2ui5_cl_utility=>get_t_attri_by_ref( lo_app ).
+    DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_ref( lo_app ).
 
-    DATA(lt_attri_result) = VALUE z2ui5_cl_utility=>ty_t_attri(
+    DATA(lt_attri_result) = VALUE z2ui5_cl_fw_utility=>ty_t_attri(
   ( name = `Z2UI5_IF_APP~ID` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
   ( name = `CHECK_INITIALIZED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
   ( name = `SV_STATUS` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )

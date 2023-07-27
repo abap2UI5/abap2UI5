@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
+CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
     CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -113,7 +113,7 @@ CLASS z2ui5_cl_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
 ENDCLASS.
 
 
-CLASS z2ui5_cl_utility IMPLEMENTATION.
+CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD get_trim_upper.
 
@@ -294,7 +294,7 @@ CLASS z2ui5_cl_utility IMPLEMENTATION.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
                          lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
-        RAISE EXCEPTION TYPE z2ui5_cl_utility
+        RAISE EXCEPTION TYPE z2ui5_cl_fw_utility
           EXPORTING
             val = lv_text.
 
@@ -326,7 +326,7 @@ CLASS z2ui5_cl_utility IMPLEMENTATION.
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
-        RAISE EXCEPTION TYPE z2ui5_cl_utility
+        RAISE EXCEPTION TYPE z2ui5_cl_fw_utility
           EXPORTING
             val = lv_text.
 
@@ -436,7 +436,7 @@ CLASS z2ui5_cl_utility IMPLEMENTATION.
   METHOD raise.
 
     IF when = abap_true.
-      RAISE EXCEPTION TYPE z2ui5_cl_utility EXPORTING val = v.
+      RAISE EXCEPTION TYPE z2ui5_cl_fw_utility EXPORTING val = v.
     ENDIF.
 
   ENDMETHOD.

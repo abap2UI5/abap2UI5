@@ -3,10 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UTILITY</CLSNAME>
+    <CLSNAME>Z2UI5_CL_FW_UTILITY_JSON</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - utility</DESCRIPT>
-    <CATEGORY>40</CATEGORY>
+    <DESCRIPT>abap2UI5 - utility json</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
