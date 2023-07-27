@@ -4,6 +4,12 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+    CLASS-METHODS http_post
+      IMPORTING
+        body          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS http_get
       IMPORTING
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
@@ -13,12 +19,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(r_result)         TYPE string.
 
-    CLASS-METHODS http_post
-      IMPORTING
-        body          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -26,7 +26,40 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+
+
+  METHOD http_post.
+
+    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( body ).
+
+    DO.
+      TRY.
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
+          ROLLBACK WORK.
+
+          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_leave( ).
+            CONTINUE.
+          ENDIF.
+
+          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_call( ).
+            CONTINUE.
+          ENDIF.
+
+          result = lo_handler->request_end( ).
+
+        CATCH cx_root INTO DATA(x).
+          lo_handler = z2ui5_lcl_fw_handler=>set_app_system( x ).
+          CONTINUE.
+      ENDTRY.
+
+      EXIT.
+    ENDDO.
+
+  ENDMETHOD.
 
 
   METHOD http_get.
@@ -301,7 +334,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    }` && |\n|  &&
                            `                }` && |\n|  &&
                            |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewClose(); }` && |\n|  &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewDestroy(); }` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
                            |\n|  &&
@@ -404,36 +437,4 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD http_post.
-
-    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( body ).
-
-    DO.
-      TRY.
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_handler->ms_db-o_app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
-          ROLLBACK WORK.
-
-          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_leave( ).
-            CONTINUE.
-          ENDIF.
-
-          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_call( ).
-            CONTINUE.
-          ENDIF.
-
-          result = lo_handler->request_end( ).
-
-        CATCH cx_root INTO DATA(x).
-          lo_handler = z2ui5_lcl_fw_handler=>set_app_system( x ).
-          CONTINUE.
-      ENDTRY.
-
-      EXIT.
-    ENDDO.
-
-  ENDMETHOD.
 ENDCLASS.
