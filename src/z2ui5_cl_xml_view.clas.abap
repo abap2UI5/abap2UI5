@@ -3532,6 +3532,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `maxValue`     v = maxValue )
                                          ( n = `value`        v = value )
                                          ( n = `id`           v = id )
-                                         ( n = `change`       v = change ) ) ).
+                                         ( n = `change`       v = change )
+                                         ( n = `enabled`      v = enabled )
+                                         ( n = `tooltip`      v = tooltip ) ) ).
   ENDMETHOD.
 ENDCLASS.
