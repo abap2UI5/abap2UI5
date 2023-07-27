@@ -37,40 +37,22 @@ CLASS z2ui5_cl_fw_db DEFINITION
 
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
-  METHOD load_app.
 
-    DATA(ls_db) = read( id ).
+CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
-    z2ui5_cl_fw_utility=>trans_xml_2_object( EXPORTING xml = ls_db-data
-                                           IMPORTING data  = result ).
 
-    LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
-      DATA(lv_check_rtti) = abap_true.
-    ENDLOOP.
-    IF lv_check_rtti = abap_false.
-      RETURN.
-    ENDIF.
+  METHOD cleanup.
 
-    DATA(lo_app) = CAST object( result-app ) ##NEEDED.
-    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
+    DATA(lv_timestampl) = z2ui5_cl_fw_utility=>get_timestampl( ).
+    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestampl
+                                                              secs  = 60 * 60 * 4 ).
 
-      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-      FIELD-SYMBOLS <ref> TYPE any.
-      ASSIGN (lv_assign) TO <ref>.
-
-      z2ui5_cl_fw_utility=>rtti_set(
-        EXPORTING
-          rtti_data = lr_attri->data_rtti
-         IMPORTING
-           e_data   = <ref> ).
-
-      CLEAR lr_attri->data_rtti.
-
-    ENDLOOP.
+    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
+    COMMIT WORK.
 
   ENDMETHOD.
+
 
   METHOD create.
 
@@ -126,6 +108,41 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
     COMMIT WORK AND WAIT.
   ENDMETHOD.
 
+
+  METHOD load_app.
+
+    DATA(ls_db) = read( id ).
+
+    z2ui5_cl_fw_utility=>trans_xml_2_object( EXPORTING xml = ls_db-data
+                                           IMPORTING data  = result ).
+
+    LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
+      DATA(lv_check_rtti) = abap_true.
+    ENDLOOP.
+    IF lv_check_rtti = abap_false.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_app) = CAST object( result-app ) ##NEEDED.
+    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
+
+      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+      FIELD-SYMBOLS <ref> TYPE any.
+      ASSIGN (lv_assign) TO <ref>.
+
+      z2ui5_cl_fw_utility=>rtti_set(
+        EXPORTING
+          rtti_data = lr_attri->data_rtti
+         IMPORTING
+           e_data   = <ref> ).
+
+      CLEAR lr_attri->data_rtti.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD read.
 
     IF check_load_app = abap_true.
@@ -144,19 +161,4 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
-
-  METHOD cleanup.
-
-    DATA(lv_timestampl) = z2ui5_cl_fw_utility=>get_timestampl( ).
-    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestampl
-                                                              secs  = 60 * 60 * 4 ).
-
-    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
-    COMMIT WORK.
-
-  ENDMETHOD.
-
-
 ENDCLASS.
-
-

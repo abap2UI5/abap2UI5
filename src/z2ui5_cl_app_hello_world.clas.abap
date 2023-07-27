@@ -15,6 +15,7 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_APP_HELLO_WORLD IMPLEMENTATION.
 
+
   METHOD z2ui5_if_app~main.
 
     IF check_initialized = abap_false.

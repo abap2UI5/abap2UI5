@@ -56,7 +56,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
+
 
   METHOD add_attribute.
 
@@ -75,6 +76,7 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD add_attribute_instance.
 
     val->mo_root   = mo_root.
@@ -83,6 +85,18 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
     result = val.
 
   ENDMETHOD.
+
+
+  METHOD add_attribute_object.
+
+    DATA(lo_attri) = new( io_root = mo_root
+                          iv_name = name ).
+    mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
+    lo_attri->mo_parent = me.
+    result = lo_attri.
+
+  ENDMETHOD.
+
 
   METHOD add_attribute_struc.
 
@@ -100,19 +114,11 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD add_attribute_object.
-
-    DATA(lo_attri) = new( io_root = mo_root
-                          iv_name = name ).
-    mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
-    lo_attri->mo_parent = me.
-    result = lo_attri.
-
-  ENDMETHOD.
 
   METHOD constructor.
     mo_root = me.
   ENDMETHOD.
+
 
   METHOD factory.
 
@@ -128,13 +134,6 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD new.
-
-    result = NEW #( ).
-    result->mo_root = io_root.
-    result->mv_name = CONV string( iv_name ).
-
-  ENDMETHOD.
 
   METHOD get_attribute.
 
@@ -158,6 +157,7 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_val.
 
     FIELD-SYMBOLS <attribute> TYPE any.
@@ -168,6 +168,16 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
     result = <attribute>.
 
   ENDMETHOD.
+
+
+  METHOD new.
+
+    result = NEW #( ).
+    result->mo_root = io_root.
+    result->mv_name = CONV string( iv_name ).
+
+  ENDMETHOD.
+
 
   METHOD stringify.
 
@@ -193,6 +203,3 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   ENDMETHOD.
 ENDCLASS.
-
-
-

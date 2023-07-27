@@ -22,13 +22,13 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
         text   TYPE string,
       END OF ms_error.
 
+    METHODS get_text REDEFINITION.
+
     METHODS constructor
       IMPORTING
         val      TYPE any            OPTIONAL
         previous TYPE REF TO cx_root OPTIONAL
           PREFERRED PARAMETER val.
-
-    METHODS get_text REDEFINITION.
 
     CLASS-METHODS get_classname_by_ref
       IMPORTING
@@ -148,13 +148,16 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
 ENDCLASS.
 
 
+
 CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
+
 
   METHOD get_trim_upper.
 
     result = to_upper( shift_left( shift_right( CONV string( val ) ) ) ).
 
   ENDMETHOD.
+
 
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
 
@@ -170,6 +173,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_abap_2_json.
 
     IF check_is_boolean( val ).
@@ -180,6 +184,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD check_is_boolean.
 
@@ -194,6 +199,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_json_boolean.
 
     IF check_is_boolean( val ).
@@ -204,13 +210,16 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_timestampl.
     GET TIME STAMP FIELD result.
   ENDMETHOD.
 
+
   METHOD get_user_tech.
     result = sy-uname.
   ENDMETHOD.
+
 
   METHOD get_uuid.
 
@@ -238,6 +247,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD get_t_attri_by_ref.
 
@@ -278,6 +288,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _get_t_attri_by_struc.
 
     FIELD-SYMBOLS <attribute> TYPE any.
@@ -305,11 +316,13 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     ENDLOOP.
   ENDMETHOD.
 
+
   METHOD trans_any_2_json.
 
     result = /ui2/cl_json=>serialize( any ).
 
   ENDMETHOD.
+
 
   METHOD rtti_get.
 
@@ -337,6 +350,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD rtti_set.
 
@@ -369,6 +383,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_classname_by_ref.
 
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
@@ -376,6 +391,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
                               sub = `\CLASS=` ).
 
   ENDMETHOD.
+
 
   METHOD trans_object_2_xml.
 
@@ -389,6 +405,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
          OPTIONS data_refs = `heap-or-create`.
 
   ENDMETHOD.
+
 
   METHOD trans_ref_tab_2_tab.
 
@@ -447,6 +464,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD trans_xml_2_object.
 
     CALL TRANSFORMATION id
@@ -454,6 +472,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
         RESULT data = data.
 
   ENDMETHOD.
+
 
   METHOD get_text.
 
@@ -469,6 +488,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD raise.
 
     IF when = abap_true.
@@ -476,6 +496,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD get_replace.
 
@@ -491,6 +512,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_trim_lower.
 
     result = to_lower( shift_left( shift_right( CONV string( val ) ) ) ).
@@ -498,5 +520,3 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
-
-

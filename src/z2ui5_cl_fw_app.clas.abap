@@ -40,90 +40,13 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_app IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
-  METHOD z2ui5_if_app~main.
-
-    me->client = client.
-
-    IF mv_check_initialized = abap_false.
-      mv_check_initialized = abap_true.
-      z2ui5_on_init( ).
-    ENDIF.
-
-    z2ui5_on_event( ).
-
-    IF mx_error IS BOUND.
-      view_display_error( ).
-    ELSE.
-      view_display_start( ).
-    ENDIF.
-
-  ENDMETHOD.
 
   METHOD factory_error.
 
     result = NEW #( ).
     result->mx_error = error.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_on_init.
-
-    IF mx_error IS NOT BOUND.
-      ms_home-btn_text       = `check`.
-      ms_home-btn_event_id   = `BUTTON_CHECK`.
-      ms_home-class_editable = abap_true.
-      ms_home-btn_icon       = `sap-icon://validate`.
-      ms_home-classname      = `z2ui5_cl_app_hello_world`.
-    ENDIF.
-
-    mv_check_demo = abap_true.
-
-  ENDMETHOD.
-
-  METHOD z2ui5_on_event.
-
-    CASE client->get( )-event.
-
-      WHEN `BUTTON_CHANGE`.
-        ms_home-btn_text       = `check`.
-        ms_home-btn_event_id   = `BUTTON_CHECK`.
-        ms_home-btn_icon       = `sap-icon://validate`.
-        ms_home-class_editable = abap_true.
-
-      WHEN `BUTTON_CHECK`.
-        TRY.
-            DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = z2ui5_cl_fw_utility=>get_trim_upper( ms_home-classname ).
-            CREATE OBJECT li_app_test TYPE (ms_home-classname).
-
-            client->message_toast_display( `App is ready to start!` ).
-            ms_home-btn_text          = `edit`.
-            ms_home-btn_event_id      = `BUTTON_CHANGE`.
-            ms_home-btn_icon          = `sap-icon://edit`.
-            ms_home-class_value_state = `Success`.
-            ms_home-class_editable    = abap_false.
-
-          CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
-            ms_home-class_value_state_text = lx->get_text( ).
-            ms_home-class_value_state      = `Warning`.
-            client->message_box_display( text = ms_home-class_value_state_text
-                                         type = `error` ).
-        ENDTRY.
-
-      WHEN `DEMOS`.
-
-        DATA li_app TYPE REF TO z2ui5_if_app.
-        TRY.
-            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-            mv_check_demo = abap_true.
-            client->nav_app_call( li_app ).
-          CATCH cx_root.
-            mv_check_demo = abap_false.
-        ENDTRY.
-
-    ENDCASE.
 
   ENDMETHOD.
 
@@ -318,4 +241,84 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD z2ui5_if_app~main.
+
+    me->client = client.
+
+    IF mv_check_initialized = abap_false.
+      mv_check_initialized = abap_true.
+      z2ui5_on_init( ).
+    ENDIF.
+
+    z2ui5_on_event( ).
+
+    IF mx_error IS BOUND.
+      view_display_error( ).
+    ELSE.
+      view_display_start( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_event.
+
+    CASE client->get( )-event.
+
+      WHEN `BUTTON_CHANGE`.
+        ms_home-btn_text       = `check`.
+        ms_home-btn_event_id   = `BUTTON_CHECK`.
+        ms_home-btn_icon       = `sap-icon://validate`.
+        ms_home-class_editable = abap_true.
+
+      WHEN `BUTTON_CHECK`.
+        TRY.
+            DATA li_app_test TYPE REF TO z2ui5_if_app.
+            ms_home-classname = z2ui5_cl_fw_utility=>get_trim_upper( ms_home-classname ).
+            CREATE OBJECT li_app_test TYPE (ms_home-classname).
+
+            client->message_toast_display( `App is ready to start!` ).
+            ms_home-btn_text          = `edit`.
+            ms_home-btn_event_id      = `BUTTON_CHANGE`.
+            ms_home-btn_icon          = `sap-icon://edit`.
+            ms_home-class_value_state = `Success`.
+            ms_home-class_editable    = abap_false.
+
+          CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+            ms_home-class_value_state_text = lx->get_text( ).
+            ms_home-class_value_state      = `Warning`.
+            client->message_box_display( text = ms_home-class_value_state_text
+                                         type = `error` ).
+        ENDTRY.
+
+      WHEN `DEMOS`.
+
+        DATA li_app TYPE REF TO z2ui5_if_app.
+        TRY.
+            CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
+            mv_check_demo = abap_true.
+            client->nav_app_call( li_app ).
+          CATCH cx_root.
+            mv_check_demo = abap_false.
+        ENDTRY.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_on_init.
+
+    IF mx_error IS NOT BOUND.
+      ms_home-btn_text       = `check`.
+      ms_home-btn_event_id   = `BUTTON_CHECK`.
+      ms_home-class_editable = abap_true.
+      ms_home-btn_icon       = `sap-icon://validate`.
+      ms_home-classname      = `z2ui5_cl_app_hello_world`.
+    ENDIF.
+
+    mv_check_demo = abap_true.
+
+  ENDMETHOD.
 ENDCLASS.

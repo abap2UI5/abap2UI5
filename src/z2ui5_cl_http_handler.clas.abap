@@ -24,7 +24,10 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
 ENDCLASS.
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+
+
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+
 
   METHOD http_post.
 
@@ -434,5 +437,4 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 *     `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
 
   ENDMETHOD.
-
 ENDCLASS.

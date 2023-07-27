@@ -173,7 +173,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
         body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
-*        path_info = 'LTCL_UNIT_02_APP_START' ).
+    ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -196,7 +196,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
       body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
-*        path_info = 'LTCL_UNIT_02_APP_START' ).
+    ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response

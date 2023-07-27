@@ -1412,7 +1412,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1549,24 +1549,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                ) ).
 
   ENDMETHOD.
-
-
-
-  METHOD ratingindicator.
-    result = _generic( name   = `RatingIndicator`
-                       t_prop = VALUE #( ( n = `class`        v = class )
-                                         ( n = `maxValue`     v = maxvalue )
-                                         ( n = `displayOnly`  v = displayonly )
-                                         ( n = `editable`     v = editable )
-                                         ( n = `iconSize`     v = iconsize )
-                                         ( n = `maxValue`     v = maxvalue )
-                                         ( n = `value`        v = value )
-                                         ( n = `id`           v = id )
-                                         ( n = `change`       v = change )
-                                         ( n = `enabled`      v = enabled )
-                                         ( n = `tooltip`      v = tooltip ) ) ).
-  ENDMETHOD.
-
 
 
   METHOD cc_export_spreadsheet.
@@ -2945,6 +2927,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `startValue`   v = startvalue )
                                 ( n = `step`   v = step )
                                 ( n = `width`   v = width ) ) ).
+  ENDMETHOD.
+
+
+  METHOD ratingindicator.
+    result = _generic( name   = `RatingIndicator`
+                       t_prop = VALUE #( ( n = `class`        v = class )
+                                         ( n = `maxValue`     v = maxvalue )
+                                         ( n = `displayOnly`  v = displayonly )
+                                         ( n = `editable`     v = editable )
+                                         ( n = `iconSize`     v = iconsize )
+                                         ( n = `maxValue`     v = maxvalue )
+                                         ( n = `value`        v = value )
+                                         ( n = `id`           v = id )
+                                         ( n = `change`       v = change )
+                                         ( n = `enabled`      v = enabled )
+                                         ( n = `tooltip`      v = tooltip ) ) ).
   ENDMETHOD.
 
 
