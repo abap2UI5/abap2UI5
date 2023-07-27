@@ -61,7 +61,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD http_get.
 
-    DATA(lt_Config) = t_config.
+    DATA(lt_config) = t_config.
 
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
@@ -80,7 +80,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lv_sec_policy = content_security_policy.
     ENDIF.
     z2ui5_cl_fw_db=>cleanup( ).
-
 
     r_result = `<html>` && |\n| &&
                `<head>` && |\n| &&
@@ -106,6 +105,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `</body>` && |\n| &&
         `</html><abc/>` && |\n|.
+
+
     r_result = r_result && `<script>` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
@@ -430,7 +431,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `</script>` && |\n|  &&
                            `<abc/></html>`.
 
-*                               `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
+*     `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
 
   ENDMETHOD.
 

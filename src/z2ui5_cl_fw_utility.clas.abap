@@ -31,8 +31,10 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
     METHODS get_text REDEFINITION.
 
     CLASS-METHODS get_classname_by_ref
-      IMPORTING in            TYPE REF TO object
-      RETURNING VALUE(result) TYPE string.
+      IMPORTING
+        in            TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS raise
       IMPORTING
@@ -45,51 +47,69 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
         VALUE(result) TYPE string.
 
     CLASS-METHODS get_user_tech
-      RETURNING VALUE(result) TYPE string.
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS trans_any_2_json
-      IMPORTING any           TYPE any
-      RETURNING VALUE(result) TYPE string.
+      IMPORTING
+        any           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS trans_xml_2_object
-      IMPORTING xml  TYPE clike
-      EXPORTING data TYPE data.
+      IMPORTING
+        xml  TYPE clike
+      EXPORTING
+        data TYPE data.
 
     CLASS-METHODS get_t_attri_by_ref
-      IMPORTING io_app        TYPE REF TO object
-      RETURNING VALUE(result) TYPE ty_t_attri ##NEEDED.
+      IMPORTING
+        io_app        TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE ty_t_attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
       IMPORTING
-                object        TYPE data
+        object        TYPE data
       RETURNING
-                VALUE(result) TYPE string
-      RAISING   cx_xslt_serialization_error.
+        VALUE(result) TYPE string
+      RAISING
+        cx_xslt_serialization_error.
 
     CLASS-METHODS get_abap_2_json
-      IMPORTING val           TYPE any
-      RETURNING VALUE(result) TYPE string.
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS check_is_boolean
-      IMPORTING val           TYPE any
-      RETURNING VALUE(result) TYPE abap_bool.
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS get_json_boolean
-      IMPORTING val           TYPE any
-      RETURNING VALUE(result) TYPE string.
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS trans_ref_tab_2_tab
-      IMPORTING ir_tab_from TYPE REF TO data
-      EXPORTING t_result    TYPE STANDARD TABLE.
+      IMPORTING
+        ir_tab_from TYPE REF TO data
+      EXPORTING
+        t_result    TYPE STANDARD TABLE.
 
     CLASS-METHODS get_trim_upper
       IMPORTING val           TYPE any
       RETURNING VALUE(result) TYPE string.
 
     CLASS-METHODS _get_t_attri_by_struc
-      IMPORTING io_app        TYPE REF TO object
-                iv_attri      TYPE csequence
-      RETURNING VALUE(result) TYPE abap_attrdescr_tab.
+      IMPORTING
+        io_app        TYPE REF TO object
+        iv_attri      TYPE csequence
+      RETURNING
+        VALUE(result) TYPE abap_attrdescr_tab.
 
     CLASS-METHODS rtti_get
       IMPORTING
@@ -107,6 +127,21 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
       RETURNING
         VALUE(result) TYPE timestampl.
 
+    CLASS-METHODS get_replace
+      IMPORTING
+        iv_val        TYPE clike
+        iv_begin      TYPE clike
+        iv_end        TYPE clike
+        iv_replace    TYPE clike DEFAULT ''
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS get_trim_lower
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -117,8 +152,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD get_trim_upper.
 
-    result = CONV #( val ).
-    result = to_upper( shift_left( shift_right( result ) ) ).
+    result = to_upper( shift_left( shift_right( CONV string( val ) ) ) ).
 
   ENDMETHOD.
 
@@ -129,10 +163,9 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     TRY.
         ms_error-x_root ?= val.
-      CATCH cx_root ##CATCH_ALL.
+      CATCH cx_root.
         ms_error-text = val.
     ENDTRY.
-
     ms_error-uuid = get_uuid( ).
 
   ENDMETHOD.
@@ -272,7 +305,9 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD trans_any_2_json.
+
     result = /ui2/cl_json=>serialize( any ).
+
   ENDMETHOD.
 
   METHOD rtti_get.
@@ -305,7 +340,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   METHOD rtti_set.
 
     TRY.
-
         DATA srtti TYPE REF TO object.
         CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
 
@@ -438,6 +472,24 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     IF when = abap_true.
       RAISE EXCEPTION TYPE z2ui5_cl_fw_utility EXPORTING val = v.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD get_replace.
+
+    result = iv_val.
+
+    DATA(lv_1) = substring_before( val = result sub = iv_begin ).
+    DATA(lv_2) = substring_after( val = result sub = iv_end ).
+    IF lv_2 IS NOT INITIAL.
+      result = lv_1 && iv_replace && lv_2.
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD get_trim_lower.
+
+    result = to_lower( shift_left( shift_right( CONV string( val ) ) ) ).
 
   ENDMETHOD.
 

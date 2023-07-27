@@ -89,7 +89,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION.
     METHODS _create_binding
       IMPORTING
         value         TYPE data
-        type          TYPE string    DEFAULT cs_bind_type-two_way
+        type          TYPE string DEFAULT cs_bind_type-two_way
       RETURNING
         VALUE(result) TYPE string.
 
@@ -217,9 +217,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     TRY.
         DATA(lo_scroll) = so_body->get_attribute( `OSCROLL` ).
         z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
-            EXPORTING ir_tab_from = lo_scroll->mr_actual
-            IMPORTING t_result    = result->ms_actual-t_scroll_pos ).
-
+            EXPORTING
+                ir_tab_from = lo_scroll->mr_actual
+            IMPORTING
+                t_result    = result->ms_actual-t_scroll_pos ).
       CATCH cx_root.
     ENDTRY.
 
@@ -268,7 +269,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type = cs_bind_type-two_way.
       TRY.
-
           DATA(lv_type_kind) = lr_attri->type_kind.
 
           FIELD-SYMBOLS <backend> TYPE any.
@@ -293,20 +293,26 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
           CASE lv_type_kind.
 
             WHEN `h`.
-              z2ui5_cl_fw_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = <frontend>
-                                                      IMPORTING t_result    = <backend> ).
+              z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
+                EXPORTING
+                    ir_tab_from = <frontend>
+                IMPORTING
+                    t_result    = <backend> ).
 
             WHEN OTHERS.
 
               ASSIGN <frontend>->* TO <frontend>.
               CASE lr_attri->type_kind.
                 WHEN 'D' OR 'T'.
-                  /ui2/cl_json=>deserialize( EXPORTING json = `"` && <frontend> && `"`
-                                             CHANGING  data = <backend> ).
+                  /ui2/cl_json=>deserialize(
+                    EXPORTING
+                        json = `"` && <frontend> && `"`
+                    CHANGING
+                        data = <backend> ).
                 WHEN OTHERS.
                   <backend> = <frontend>.
-
               ENDCASE.
+
           ENDCASE.
 
         CATCH cx_root.
@@ -388,8 +394,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(lv_classname) = to_upper( so_body->get_attribute( 'APP_START' )->get_val( ) ).
-        SHIFT lv_classname LEFT DELETING LEADING cl_abap_char_utilities=>horizontal_tab.
-        SHIFT lv_classname RIGHT DELETING TRAILING cl_abap_char_utilities=>horizontal_tab.
+        lv_classname = shift_left( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
+        lv_classname = shift_right( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
       CATCH cx_root.
     ENDTRY.
 
@@ -409,7 +415,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         lv_classname = z2ui5_cl_fw_utility=>get_trim_upper( lv_classname ).
         CREATE OBJECT result->ms_db-app TYPE (lv_classname).
         result->ms_db-app->id = result->ms_db-id.
-        result->ms_db-t_attri   = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
+        result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
 
       CATCH cx_root.
         result = set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
@@ -438,7 +444,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
   METHOD set_app_call.
 
     result = app_set_next( ms_next-o_app_call ).
-
     result->ms_db-id_prev_app_stack = ms_db-id.
 
     CLEAR ms_next.
@@ -473,11 +478,12 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
       IF lr_in = lr_ref.
         IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
-          z2ui5_cl_fw_utility=>raise( `<p>Binding Error - Two different binding types for same attribute used (` && lr_attri->name
-          && `).` ).
+          z2ui5_cl_fw_utility=>raise(
+            `<p>Binding Error - Two different binding types for same attribute used (` && lr_attri->name && `).` ).
         ENDIF.
         IF strlen( lr_attri->name ) > 30.
-          z2ui5_cl_fw_utility=>raise( `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_attri->name ).
+          z2ui5_cl_fw_utility=>raise(
+            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_attri->name ).
         ENDIF.
         lr_attri->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_attri->name.
