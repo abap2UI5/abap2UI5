@@ -24,10 +24,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
 ENDCLASS.
 
-
-
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
-
 
   METHOD http_post.
 
