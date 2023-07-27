@@ -172,8 +172,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         origin               = location->get_attribute( `ORIGIN` )->get_val( )
         pathname             = location->get_attribute( `PATHNAME` )->get_val( )
         search               = location->get_attribute( `SEARCH` )->get_val( )
-        version              = location->get_attribute( `VERSION` )->get_val( )
-     ).
+        version              = location->get_attribute( `VERSION` )->get_val( ) ).
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
@@ -203,10 +202,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
           IF sy-tabix = 1.
             FIELD-SYMBOLS <val> TYPE any.
-            ASSIGN  ('<ARG_ROW>->EVENT->*') TO <val>.
+            ASSIGN ('<ARG_ROW>->EVENT->*') TO <val>.
             result->ms_actual-event = <val>.
           ELSE.
-            ASSIGN  <arg_row>->* TO <val>.
+            ASSIGN <arg_row>->* TO <val>.
             INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
           ENDIF.
 
@@ -227,9 +226,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     TRY.
         DATA(lo_cursor) = so_body->get_attribute( `OCURSOR` ).
         result->ms_actual-s_cursor-id = lo_cursor->get_attribute( `ID` )->get_val( ).
-*        result->ms_actual-s_cursor-cursorpos = lo_cursor->get_attribute( `CURSORPOS` )->get_val( ).
-*        result->ms_actual-s_cursor-selectionend = lo_cursor->get_attribute( `SELECTIONEND` )->get_val( ).
-*        result->ms_actual-s_cursor-selectionstart = lo_cursor->get_attribute( `SELECTIONSTART` )->get_val( ).
+
       CATCH cx_root.
     ENDTRY.
 
@@ -245,20 +242,29 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
                                  THEN ms_next-s_set-_viewmodel
-                                 ELSE model_set_frontend( app = ms_db-app t_attri = ms_db-t_attri ) ).
+                                 ELSE model_set_frontend( app     = ms_db-app
+                                                          t_attri = ms_db-t_attri ) ).
 
-    lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
-    lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_cl_fw_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
-    lo_resp->add_attribute( n = `ID`         v = ms_db-id ).
+    lo_resp->add_attribute( n           = `OVIEWMODEL`
+                            v           = lv_viewmodel
+                            apos_active = abap_false ).
+    lo_resp->add_attribute( n           = `PARAMS`
+                            v           = z2ui5_cl_fw_utility=>trans_any_2_json( ms_next-s_set )
+                            apos_active = abap_false ).
+    lo_resp->add_attribute( n = `ID`
+                            v = ms_db-id ).
 
     IF ms_next-s_set-search IS INITIAL.
-      lo_resp->add_attribute( n = `SEARCH` v = ms_actual-s_config-search ).
+      lo_resp->add_attribute( n = `SEARCH`
+                              v = ms_actual-s_config-search ).
     ELSE.
-      lo_resp->add_attribute( n = `SEARCH` v = ms_next-s_set-search ).
+      lo_resp->add_attribute( n = `SEARCH`
+                              v = ms_next-s_set-search ).
     ENDIF.
 
     result = lo_resp->mo_root->stringify( ).
-    z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+    z2ui5_cl_fw_db=>create( id = ms_db-id
+                            db = ms_db ).
 
   ENDMETHOD.
 
@@ -277,7 +283,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
           z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
           FIELD-SYMBOLS <frontend> TYPE any.
-          lv_name = `LR_MODEL->` && replace( val = lr_attri->name sub = `-` with = `_` occ = 0 ).
+          lv_name = `LR_MODEL->` && replace( val  = lr_attri->name
+                                             sub  = `-`
+                                             with = `_`
+                                             occ  = 0 ).
           ASSIGN (lv_name) TO <frontend>.
           z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -330,7 +339,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
       IF lr_attri->bind_type = cs_bind_type-one_time.
-        lr_view_model->add_attribute( n = lr_attri->name v = lr_attri->data_stringify apos_active = abap_false ).
+        lr_view_model->add_attribute( n           = lr_attri->name
+                                      v           = lr_attri->data_stringify
+                                      apos_active = abap_false ).
         CONTINUE.
       ENDIF.
 
@@ -382,9 +393,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        model_set_backend( model = so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual
-                           app   = result->ms_db-app
-                           t_attri  = result->ms_db-t_attri ).
+        model_set_backend( model   = so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual
+                           app     = result->ms_db-app
+                           t_attri = result->ms_db-t_attri ).
       CATCH cx_root.
     ENDTRY.
 
@@ -394,8 +405,10 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(lv_classname) = to_upper( so_body->get_attribute( 'APP_START' )->get_val( ) ).
-        lv_classname = shift_left( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
-        lv_classname = shift_right( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
+        lv_classname = shift_left( val = lv_classname
+                                   sub = cl_abap_char_utilities=>horizontal_tab ).
+        lv_classname = shift_right( val = lv_classname
+                                    sub = cl_abap_char_utilities=>horizontal_tab ).
       CATCH cx_root.
     ENDTRY.
 
@@ -428,7 +441,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     result = app_set_next( ms_next-o_app_leave ).
 
     TRY.
-        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id = result->ms_db-id check_load_app = abap_false ).
+        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id             = result->ms_db-id
+                                               check_load_app = abap_false ).
         result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
       CATCH cx_root.
         result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
@@ -436,7 +450,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+      z2ui5_cl_fw_db=>create( id = ms_db-id
+                              db = ms_db ).
     ENDIF.
 
   ENDMETHOD.
@@ -448,7 +463,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+      z2ui5_cl_fw_db=>create( id = ms_db-id
+                              db = ms_db ).
     ENDIF.
 
   ENDMETHOD.
@@ -466,7 +482,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       FIELD-SYMBOLS <attribute> TYPE any.
       DATA(lv_name) = `LO_APP->` && to_upper( lr_attri->name ).
       ASSIGN (lv_name) TO <attribute>.
-      z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Attribute in App with name ` && lv_name && ` not found` ).
+      z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+                                  v    = `Attribute in App with name ` && lv_name && ` not found` ).
       DATA lr_ref TYPE REF TO data.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
@@ -515,8 +532,8 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     IF ix IS BOUND.
-      result->ms_next-o_app_call = z2ui5_cl_fw_app=>factory_error( error = ix ).
-      result = result->set_app_call( check_no_db_save = abap_true ).
+      result->ms_next-o_app_call = z2ui5_cl_fw_app=>factory_error( ix ).
+      result = result->set_app_call( abap_true ).
       RETURN.
     ENDIF.
 
@@ -529,7 +546,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD app_set_next.
 
-    app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_fw_utility=>get_uuid( ) ELSE app->id  ).
+    app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_fw_utility=>get_uuid( ) ELSE app->id ).
 
     r_result = NEW #( ).
     r_result->ms_db-app         = app.
@@ -575,8 +592,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
       s_draft                = CORRESPONDING #( mo_handler->ms_db )
       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
-      s_config               = z2ui5_lcl_fw_handler=>ss_config
-    ).
+      s_config               = z2ui5_lcl_fw_handler=>ss_config ).
 
   ENDMETHOD.
 
@@ -628,7 +644,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
+    result = mo_handler->_create_binding( value = val
+                                          type  = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -638,7 +655,8 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value  = val type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+    result = mo_handler->_create_binding( value = val
+                                          type  = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -657,7 +675,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
         IF sy-tabix <> 1.
           result = result && `,`.
         ENDIF.
-        result = result &&  `'`  && lr_arg->* &&  `'`.
+        result = result && `'`  && lr_arg->* && `'`.
       ENDLOOP.
 
       result = result && `]`.
@@ -675,18 +693,17 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
       result = result && `, ` && lr_arg->*.
     ENDLOOP.
 
-    result = result &&  ` )`.
+    result = result && ` )`.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~cursor_set.
 
     mo_handler->ms_next-s_set-s_cursor = VALUE #(
-     id = id
-     cursorpos = cursorpos
-     selectionend = selectionend
-     selectionstart = selectionstart
-     ).
+      id             = id
+      cursorpos      = cursorpos
+      selectionend   = selectionend
+      selectionstart = selectionstart ).
 
   ENDMETHOD.
 

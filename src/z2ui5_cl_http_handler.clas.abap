@@ -107,328 +107,328 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         `</html><abc/>` && |\n|.
 
 
-    r_result = r_result && `<script>` && |\n|  &&
-                           `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
-                           `        "use strict";` && |\n|  &&
-                           |\n|  &&
-                           `        sap.ui.controller("z2ui5_controller", {` && |\n|  &&
-                           |\n|  &&
-                           `            onAfterRendering: function () {` && |\n|  &&
-                           |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n|  &&
-                           `                    jQuery.sap.delayedCall(50, this, () => {` && |\n|  &&
-                           `                        var ofocus = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n|  &&
-                           `                        ofocus.selectionStart = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART);` && |\n|  &&
-                           `                        ofocus.selectionEnd = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND);` && |\n|  &&
-                           `                        sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).applyFocusInfo(ofocus);` && |\n|  &&
-                           `                    });` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n|  &&
-                           `                    sap.z2ui5.oResponse.PARAMS.T_SCROLL.forEach(item => {` && |\n|  &&
-                           `                        try {` && |\n|  &&
-                           `                            sap.z2ui5.oView.byId(item.NAME).scrollTo(parseInt(item.VALUE));` && |\n|  &&
-                           `                        } catch {` && |\n|  &&
-                           `                            try {` && |\n|  &&
-                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.NAME).getId() + '-inner';` && |\n|  &&
-                           `                                $(ele).scrollTop(item.VALUE);` && |\n|  &&
-                           `                            } catch { }` && |\n|  &&
-                           `                        }` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                    );` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_DESTROY == true) {` && |\n|  &&
-                           `                    sap.z2ui5.oController.PopupDestroy();` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML) {` && |\n|  &&
-                           `                    sap.z2ui5.oController.PopupDestroy();` && |\n|  &&
-                           `                    sap.ui.core.Fragment.load({` && |\n|  &&
-                           `                        definition: sap.z2ui5.oResponse.PARAMS.S_POPUP.XML,` && |\n|  &&
-                           `                        controller: sap.z2ui5.oController,` && |\n|  &&
-                           `                    }).then(oFragment => {` && |\n|  &&
-                           `                        oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n|  &&
-                           `                        sap.z2ui5.oView.addDependent(oFragment);` && |\n|  &&
-                           `                        oFragment.open();` && |\n|  &&
-                           `                        sap.z2ui5.oViewPopup = oFragment;` && |\n|  &&
-                           `                    });` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.checkNestAfter == false) {` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n|  &&
-                           `                        sap.z2ui5.oController.NestViewDestroy( );` && |\n|  &&
-                           `                        new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
-                           `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n|  &&
-                           `                        }).then(oView => {` && |\n|  &&
-                           `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n|  &&
-                           `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n|  &&
-                           `                            try { oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_DESTROY](); } catch { }` && |\n|  &&
-                           `                            oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_INSERT](oView);` && |\n|  &&
-                           `                            sap.z2ui5.checkNestAfter = true;` && |\n|  &&
-                           `                            sap.z2ui5.oViewNest = oView;` && |\n|  &&
-                           `                        },);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_DESTROY == true) {` && |\n|  &&
-                           `                    sap.z2ui5.oController.PopoverDestroy();` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML) {` && |\n|  &&
-                           `                    sap.z2ui5.oController.PopoverDestroy();` && |\n|  &&
-                           `                    sap.ui.core.Fragment.load({` && |\n|  &&
-                           `                        definition: sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML,` && |\n|  &&
-                           `                        controller: sap.z2ui5.oController,` && |\n|  &&
-                           `                    }).then(oFragment => {` && |\n|  &&
-                           `                        oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n|  &&
-                           `                        sap.z2ui5.oView.addDependent(oFragment);` && |\n|  &&
-                           `                        var oControl = sap.ui.getCore().byId(sap.z2ui5.oResponse.PARAMS.S_POPOVER.OPEN_BY_ID);` && |\n|  &&
-                           `                        if (oControl === undefined) {` && |\n|  &&
-                           `                            oControl = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_POPOVER.OPEN_BY_ID);` && |\n|  &&
-                           `                        }` && |\n|  &&
-                           `                        oFragment.openBy(oControl);` && |\n|  &&
-                           `                        sap.z2ui5.oViewPopover = oFragment;` && |\n|  &&
-                           `                    });` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS !== '') {` && |\n|  &&
-                           `                    var oEvent = { 'EVENT': 'BUTTON_CHECK', 'METHOD': 'UPDATE' };` && |\n|  &&
-                           `                    oEvent.EVENT = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED;` && |\n|  &&
-                           `                    sap.z2ui5.checkTimerActive = true;` && |\n|  &&
-                           `                    setTimeout(() => {` && |\n|  &&
-                           `                        if (sap.z2ui5.checkTimerActive) {` && |\n|  &&
-                           `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n|  &&
-                           `                            let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n|  &&
-                           `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(oEvent);  }else{ sap.z2ui5.oController.onEventFrontend(oEvent);  }` && |\n|  &&
-                           `                        }` && |\n|  &&
-                           `                    }, parseInt(sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS), oEvent);` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.ui.core.BusyIndicator.hide();` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            PopupDestroy: () => {` && |\n|  &&
-                           `                if (!sap.z2ui5.oViewPopup) {` && |\n|  &&
-                           `                    return;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oViewPopup.close) {` && |\n|  &&
-                           `                    try { sap.z2ui5.oViewPopup.close(); } catch { }` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.z2ui5.oViewPopup.destroy();` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            PopoverDestroy: () => {` && |\n|  &&
-                           `                if (!sap.z2ui5.oViewPopover) {` && |\n|  &&
-                           `                    return;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oViewPopover.close) {` && |\n|  &&
-                           `                    try { sap.z2ui5.oViewPopover.close(); } catch { }` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.z2ui5.oViewPopover.destroy();` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `               NestViewDestroy: () => {` && |\n|  &&
-                           `                if (!sap.z2ui5.oViewNest) {` && |\n|  &&
-                           `                    return;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.z2ui5.oViewNest.destroy();` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            ViewDestroy: () => {` && |\n|  &&
-                           `                if (!sap.z2ui5.oView) {` && |\n|  &&
-                           `                    return;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.z2ui5.oView.destroy();` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            ` && |\n|  &&
-                           `            onEventFrontend: (...args) => {` && |\n|  &&
-                           |\n|  &&
-                           `                switch (args[0].EVENT) {` && |\n|  &&
-                           `                    case 'LOCATION_RELOAD':` && |\n|  &&
-                           `                        window.location = args[0].T_ARG[0];` && |\n|  &&
-                           `                        break;` && |\n|  &&
-                           `                    case 'OPEN_NEW_TAB':` && |\n|  &&
-                           `                        window.open( args[0].T_ARG[0] , '_blank' );` && |\n|  &&
-                           `                        break;` && |\n|  &&
-                           `                    case 'POPUP_CLOSE':` && |\n|  &&
-                           `                        sap.z2ui5.oController.PopupDestroy();` && |\n|  &&
-                           `                        break;` && |\n|  &&
-                           `                    case 'POPOVER_CLOSE':` && |\n|  &&
-                           `                        sap.z2ui5.oController.PopoverDestroy();` && |\n|  &&
-                           `                        break;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `            },` && |\n|  &&
-                           |\n|  &&
-                           `            onEvent: function (...args) {` && |\n|  &&
-                           `                if (!window.navigator.onLine) {` && |\n|  &&
-                           `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n|  &&
-                           `                    return;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.ui.core.BusyIndicator.show();` && |\n|  &&
-                           `                sap.z2ui5.oBody = {};` && |\n|  &&
-                           `                let isUpdated = false;` && |\n|  &&
-                           `                if (sap.z2ui5.oViewPopup) {` && |\n|  &&
-                           `                if (sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n|  &&
-                           `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate;` && |\n|  &&
-                           `                    isUpdated = true;` && |\n|  &&
-                           `                    } }` && |\n|  &&
-                           `              if ( isUpdated == false ) { ` && |\n|  &&
-                           `              if (sap.z2ui5.oViewPopover) {` && |\n|  &&
-                           `              if (sap.z2ui5.oViewPopover.isOpen() == false) {` && |\n|  &&
-                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n|  &&
-                           `                    isUpdated = true;` && |\n|  &&
-                           `                } } }` && |\n|  &&
-                           `                if (isUpdated == false){` && |\n|  &&
-                           `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n|  &&
-                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewNest.getModel().getData().oUpdate;` && |\n|  &&
-                           `                    isUpdated = true;` && |\n|  &&
-                           `                } }` && |\n|  &&
-                           `                if (isUpdated == false){` && |\n|  &&
-                           `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n|  &&
-                           `                 }` && |\n|  &&
-                           |\n|  &&
-                           `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n|  &&
-                           `                    sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n|  &&
-                           `                    sap.z2ui5.oBody.oScroll = sap.z2ui5.oResponse.PARAMS.T_SCROLL;` && |\n|  &&
-                           `                    sap.z2ui5.oBody.oScroll.forEach(item => {` && |\n|  &&
-                           `                        try {` && |\n|  &&
-                           `                            item.VALUE = sap.z2ui5.oView.byId(item.NAME).getScrollDelegate().getScrollTop();` && |\n|  &&
-                           `                        } catch (e) {` && |\n|  &&
-                           `                            try {` && |\n|  &&
-                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.NAME).getId() + '-inner';` && |\n|  &&
-                           `                                item.VALUE = $(ele).scrollTop();` && |\n|  &&
-                           `                            } catch (e) { }` && |\n|  &&
-                           `                        }` && |\n|  &&
-                           `                    });` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
-                           `              sap.z2ui5.oBody.ARGUMENTS = args;` && |\n|  &&
-                           `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n|  &&
-                           |\n|  &&
-                           `                if (sap.z2ui5.checkLogActive) {` && |\n|  &&
-                           `                    console.log('Request Object:');` && |\n|  &&
-                           `                    console.log(sap.z2ui5.oBody);` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
-                           `                sap.z2ui5.oResponse = {};` && |\n|  &&
-                           `                sap.z2ui5.oController.Roundtrip();` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            responseError: response => {` && |\n|  &&
-                           `                document.write(response);` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            responseSuccess: response => {` && |\n|  &&
-                           |\n|  &&
-                           `                sap.z2ui5.oResponse = JSON.parse(response);` && |\n|  &&
-                           |\n|  &&
-                           `                 if (sap.z2ui5.checkLogActive) {` && |\n|  &&
-                           `                    console.log('Response Object:');` && |\n|  &&
-                           `                    console.log(sap.z2ui5.oResponse);` && |\n|  &&
-                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
-                           `                        console.log('UI5-XML-View:');` && |\n|  &&
-                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                 if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML !== '') {` && |\n|  &&
-                           `                        console.log('UI5-XML-Popup:');` && |\n|  &&
-                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_POPUP.XML);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                 if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML !== '') {` && |\n|  &&
-                           `                        console.log('UI5-XML-Popover:');` && |\n|  &&
-                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n|  &&
-                           `                        console.log('UI5-XML-Nest:');` && |\n|  &&
-                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                }` && |\n|  &&
-                           |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewDestroy(); }` && |\n|  &&
-                           |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
-                           |\n|  &&
-                           `                    sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
-                           |\n|  &&
-                           `                    new sap.ui.core.mvc.XMLView.create({` && |\n|  &&
-                           `                        definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n|  &&
-                           `                    }).then(oView => {` && |\n|  &&
-                           `                        oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n|  &&
-                           `                        if (sap.z2ui5.oParent) {` && |\n|  &&
-                           `                            sap.z2ui5.oParent.removeAllPages();` && |\n|  &&
-                           `                            sap.z2ui5.oParent.insertPage(oView);` && |\n|  &&
-                           `                        } else {` && |\n|  &&
-                           `                            oView.placeAt("content")` && |\n|  &&
-                           `                        };` && |\n|  &&
-                           `                        sap.z2ui5.oView = oView;` && |\n|  &&
-                           `                    },` && |\n|  &&
-                           `                    );` && |\n|  &&
-                           `                } else {` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopup.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopover.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n|  &&
-                           `                    sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n|  &&
-                           `                    document.title = sap.z2ui5.oResponse.PARAMS.TITLE;` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT !== '') {` && |\n|  &&
-                           `                    sap.m.MessageToast.show(sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT);` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n|  &&
-                           `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n|  &&
-                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            readHttp: () => {` && |\n|  &&
-                           |\n|  &&
-                           `                var xhr = new XMLHttpRequest();` && |\n|  &&
-                           `                xhr.open("POST", sap.z2ui5.pathname, true);` && |\n|  &&
-                           `                xhr.onload = (that) => {` && |\n|  &&
-                           `                    if (that.target.status !== 200) {` && |\n|  &&
-                           `                        sap.z2ui5.oController.responseError(that.target.response);` && |\n|  &&
-                           `                    } else {` && |\n|  &&
-                           `                        sap.z2ui5.oController.responseSuccess(that.target.response);` && |\n|  &&
-                           `                    }` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `                xhr.send(JSON.stringify(sap.z2ui5.oBody));` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `            Roundtrip: () => {` && |\n|  &&
-                           |\n|  &&
-                           `                sap.z2ui5.checkTimerActive = false;` && |\n|  &&
-                           `                sap.z2ui5.checkNestAfter   = false;` && |\n|  &&
-                           |\n|  &&
-                           `                sap.z2ui5.oBody.OLOCATION = {` && |\n|  &&
-                           `                    ORIGIN: window.location.origin,` && |\n|  &&
-                           `                    PATHNAME: sap.z2ui5.pathname,` && |\n|  &&
-                           `                    SEARCH: window.location.search,` && |\n|  &&
-                           `                    VERSION: sap.ui.getVersionInfo().gav,` && |\n|  &&
-                           `                };` && |\n|  &&
-                           `                   if(sap.z2ui5.search) {  sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search; }` && |\n|  &&
-                           |\n|  &&
-                           `                if (sap.z2ui5.readOData) {` && |\n|  &&
-                           `                    sap.z2ui5.readOData();` && |\n|  &&
-                           `                } else {` && |\n|  &&
-                           `                    sap.z2ui5.oController.readHttp();` && |\n|  &&
-                           `                }` && |\n|  &&
-                           `            },` && |\n|  &&
-                           `        });` && |\n|  &&
-                           |\n|  &&
-                           `        if (!sap.z2ui5) {` && |\n|  &&
-                           `            sap.z2ui5 = {};` && |\n|  &&
-                           `        }` && |\n|  &&
-                           `        if (!sap.z2ui5.pathname) {` && |\n|  &&
-                           `            sap.z2ui5.pathname = window.location.pathname;` && |\n|  &&
-                           `           // sap.z2ui5.pathname = ``/sap/bc/http/sap/y2ui5_http_handler``;` && |\n|  &&
-                           `        }` && |\n|  &&
-                           `        ` && |\n|  &&
-                           `        sap.z2ui5.checkNestAfter = false;` && |\n|  &&
-                           |\n|  &&
-                           `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
-                           `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
-                           `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
-                           `        jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n|  &&
-                           |\n|  &&
-                           `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
-                           `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
-                           `        sap.z2ui5.oController = oView.getController();` && |\n|  &&
-                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
-                           `        sap.z2ui5.oBody = {};` && |\n|  &&
-                           `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n|  &&
-                           `        sap.z2ui5.oController.Roundtrip();` && |\n|  &&
-                           `    });` && |\n|  &&
-                           `</script>` && |\n|  &&
+    r_result = r_result && `<script>` && |\n| &&
+                           `    sap.ui.getCore().attachInit(function () {` && |\n| &&
+                           `        "use strict";` && |\n| &&
+                           |\n| &&
+                           `        sap.ui.controller("z2ui5_controller", {` && |\n| &&
+                           |\n| &&
+                           `            onAfterRendering: function () {` && |\n| &&
+                           |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n| &&
+                           `                    jQuery.sap.delayedCall(50, this, () => {` && |\n| &&
+                           `                        var ofocus = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n| &&
+                           `                        ofocus.selectionStart = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART);` && |\n| &&
+                           `                        ofocus.selectionEnd = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND);` && |\n| &&
+                           `                        sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).applyFocusInfo(ofocus);` && |\n| &&
+                           `                    });` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
+                           `                    sap.z2ui5.oResponse.PARAMS.T_SCROLL.forEach(item => {` && |\n| &&
+                           `                        try {` && |\n| &&
+                           `                            sap.z2ui5.oView.byId(item.NAME).scrollTo(parseInt(item.VALUE));` && |\n| &&
+                           `                        } catch {` && |\n| &&
+                           `                            try {` && |\n| &&
+                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.NAME).getId() + '-inner';` && |\n| &&
+                           `                                $(ele).scrollTop(item.VALUE);` && |\n| &&
+                           `                            } catch { }` && |\n| &&
+                           `                        }` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                    );` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_DESTROY == true) {` && |\n| &&
+                           `                    sap.z2ui5.oController.PopupDestroy();` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML) {` && |\n| &&
+                           `                    sap.z2ui5.oController.PopupDestroy();` && |\n| &&
+                           `                    sap.ui.core.Fragment.load({` && |\n| &&
+                           `                        definition: sap.z2ui5.oResponse.PARAMS.S_POPUP.XML,` && |\n| &&
+                           `                        controller: sap.z2ui5.oController,` && |\n| &&
+                           `                    }).then(oFragment => {` && |\n| &&
+                           `                        oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n| &&
+                           `                        sap.z2ui5.oView.addDependent(oFragment);` && |\n| &&
+                           `                        oFragment.open();` && |\n| &&
+                           `                        sap.z2ui5.oViewPopup = oFragment;` && |\n| &&
+                           `                    });` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.checkNestAfter == false) {` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n| &&
+                           `                        sap.z2ui5.oController.NestViewDestroy( );` && |\n| &&
+                           `                        new sap.ui.core.mvc.XMLView.create({` && |\n| &&
+                           `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n| &&
+                           `                        }).then(oView => {` && |\n| &&
+                           `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n| &&
+                           `                            try { oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_DESTROY](); } catch { }` && |\n| &&
+                           `                            oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_INSERT](oView);` && |\n| &&
+                           `                            sap.z2ui5.checkNestAfter = true;` && |\n| &&
+                           `                            sap.z2ui5.oViewNest = oView;` && |\n| &&
+                           `                        },);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_DESTROY == true) {` && |\n| &&
+                           `                    sap.z2ui5.oController.PopoverDestroy();` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML) {` && |\n| &&
+                           `                    sap.z2ui5.oController.PopoverDestroy();` && |\n| &&
+                           `                    sap.ui.core.Fragment.load({` && |\n| &&
+                           `                        definition: sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML,` && |\n| &&
+                           `                        controller: sap.z2ui5.oController,` && |\n| &&
+                           `                    }).then(oFragment => {` && |\n| &&
+                           `                        oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n| &&
+                           `                        sap.z2ui5.oView.addDependent(oFragment);` && |\n| &&
+                           `                        var oControl = sap.ui.getCore().byId(sap.z2ui5.oResponse.PARAMS.S_POPOVER.OPEN_BY_ID);` && |\n| &&
+                           `                        if (oControl === undefined) {` && |\n| &&
+                           `                            oControl = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_POPOVER.OPEN_BY_ID);` && |\n| &&
+                           `                        }` && |\n| &&
+                           `                        oFragment.openBy(oControl);` && |\n| &&
+                           `                        sap.z2ui5.oViewPopover = oFragment;` && |\n| &&
+                           `                    });` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS !== '') {` && |\n| &&
+                           `                    var oEvent = { 'EVENT': 'BUTTON_CHECK', 'METHOD': 'UPDATE' };` && |\n| &&
+                           `                    oEvent.EVENT = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED;` && |\n| &&
+                           `                    sap.z2ui5.checkTimerActive = true;` && |\n| &&
+                           `                    setTimeout(() => {` && |\n| &&
+                           `                        if (sap.z2ui5.checkTimerActive) {` && |\n| &&
+                           `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n| &&
+                           `                            let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n| &&
+                           `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(oEvent);  }else{ sap.z2ui5.oController.onEventFrontend(oEvent);  }` && |\n| &&
+                           `                        }` && |\n| &&
+                           `                    }, parseInt(sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS), oEvent);` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.ui.core.BusyIndicator.hide();` && |\n| &&
+                           `            },` && |\n| &&
+                           `            PopupDestroy: () => {` && |\n| &&
+                           `                if (!sap.z2ui5.oViewPopup) {` && |\n| &&
+                           `                    return;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oViewPopup.close) {` && |\n| &&
+                           `                    try { sap.z2ui5.oViewPopup.close(); } catch { }` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oViewPopup.destroy();` && |\n| &&
+                           `            },` && |\n| &&
+                           `            PopoverDestroy: () => {` && |\n| &&
+                           `                if (!sap.z2ui5.oViewPopover) {` && |\n| &&
+                           `                    return;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oViewPopover.close) {` && |\n| &&
+                           `                    try { sap.z2ui5.oViewPopover.close(); } catch { }` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oViewPopover.destroy();` && |\n| &&
+                           `            },` && |\n| &&
+                           `               NestViewDestroy: () => {` && |\n| &&
+                           `                if (!sap.z2ui5.oViewNest) {` && |\n| &&
+                           `                    return;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oViewNest.destroy();` && |\n| &&
+                           `            },` && |\n| &&
+                           `            ViewDestroy: () => {` && |\n| &&
+                           `                if (!sap.z2ui5.oView) {` && |\n| &&
+                           `                    return;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oView.destroy();` && |\n| &&
+                           `            },` && |\n| &&
+                           `            ` && |\n| &&
+                           `            onEventFrontend: (...args) => {` && |\n| &&
+                           |\n| &&
+                           `                switch (args[0].EVENT) {` && |\n| &&
+                           `                    case 'LOCATION_RELOAD':` && |\n| &&
+                           `                        window.location = args[0].T_ARG[0];` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                    case 'OPEN_NEW_TAB':` && |\n| &&
+                           `                        window.open( args[0].T_ARG[0] , '_blank' );` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                    case 'POPUP_CLOSE':` && |\n| &&
+                           `                        sap.z2ui5.oController.PopupDestroy();` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                    case 'POPOVER_CLOSE':` && |\n| &&
+                           `                        sap.z2ui5.oController.PopoverDestroy();` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                }` && |\n| &&
+                           `            },` && |\n| &&
+                           |\n| &&
+                           `            onEvent: function (...args) {` && |\n| &&
+                           `                if (!window.navigator.onLine) {` && |\n| &&
+                           `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
+                           `                    return;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.ui.core.BusyIndicator.show();` && |\n| &&
+                           `                sap.z2ui5.oBody = {};` && |\n| &&
+                           `                let isUpdated = false;` && |\n| &&
+                           `                if (sap.z2ui5.oViewPopup) {` && |\n| &&
+                           `                if (sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n| &&
+                           `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate;` && |\n| &&
+                           `                    isUpdated = true;` && |\n| &&
+                           `                    } }` && |\n| &&
+                           `              if ( isUpdated == false ) { ` && |\n| &&
+                           `              if (sap.z2ui5.oViewPopover) {` && |\n| &&
+                           `              if (sap.z2ui5.oViewPopover.isOpen() == false) {` && |\n| &&
+                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n| &&
+                           `                    isUpdated = true;` && |\n| &&
+                           `                } } }` && |\n| &&
+                           `                if (isUpdated == false){` && |\n| &&
+                           `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n| &&
+                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewNest.getModel().getData().oUpdate;` && |\n| &&
+                           `                    isUpdated = true;` && |\n| &&
+                           `                } }` && |\n| &&
+                           `                if (isUpdated == false){` && |\n| &&
+                           `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n| &&
+                           `                 }` && |\n| &&
+                           |\n| &&
+                           `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n| &&
+                           `                    sap.z2ui5.oController.ViewDestroy();` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
+                           `                    sap.z2ui5.oBody.oScroll = sap.z2ui5.oResponse.PARAMS.T_SCROLL;` && |\n| &&
+                           `                    sap.z2ui5.oBody.oScroll.forEach(item => {` && |\n| &&
+                           `                        try {` && |\n| &&
+                           `                            item.VALUE = sap.z2ui5.oView.byId(item.NAME).getScrollDelegate().getScrollTop();` && |\n| &&
+                           `                        } catch (e) {` && |\n| &&
+                           `                            try {` && |\n| &&
+                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.NAME).getId() + '-inner';` && |\n| &&
+                           `                                item.VALUE = $(ele).scrollTop();` && |\n| &&
+                           `                            } catch (e) { }` && |\n| &&
+                           `                        }` && |\n| &&
+                           `                    });` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
+                           `              sap.z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
+                           `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n| &&
+                           |\n| &&
+                           `                if (sap.z2ui5.checkLogActive) {` && |\n| &&
+                           `                    console.log('Request Object:');` && |\n| &&
+                           `                    console.log(sap.z2ui5.oBody);` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n| &&
+                           `                sap.z2ui5.oResponse = {};` && |\n| &&
+                           `                sap.z2ui5.oController.Roundtrip();` && |\n| &&
+                           `            },` && |\n| &&
+                           `            responseError: response => {` && |\n| &&
+                           `                document.write(response);` && |\n| &&
+                           `            },` && |\n| &&
+                           `            responseSuccess: response => {` && |\n| &&
+                           |\n| &&
+                           `                sap.z2ui5.oResponse = JSON.parse(response);` && |\n| &&
+                           |\n| &&
+                           `                 if (sap.z2ui5.checkLogActive) {` && |\n| &&
+                           `                    console.log('Response Object:');` && |\n| &&
+                           `                    console.log(sap.z2ui5.oResponse);` && |\n| &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n| &&
+                           `                        console.log('UI5-XML-View:');` && |\n| &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_POPUP.XML !== '') {` && |\n| &&
+                           `                        console.log('UI5-XML-Popup:');` && |\n| &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_POPUP.XML);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML !== '') {` && |\n| &&
+                           `                        console.log('UI5-XML-Popover:');` && |\n| &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_POPOVER.XML);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML !== '') {` && |\n| &&
+                           `                        console.log('UI5-XML-Nest:');` && |\n| &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                }` && |\n| &&
+                           |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewDestroy(); }` && |\n| &&
+                           |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n| &&
+                           |\n| &&
+                           `                    sap.z2ui5.oController.ViewDestroy();` && |\n| &&
+                           |\n| &&
+                           `                    new sap.ui.core.mvc.XMLView.create({` && |\n| &&
+                           `                        definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n| &&
+                           `                    }).then(oView => {` && |\n| &&
+                           `                        oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                        if (sap.z2ui5.oParent) {` && |\n| &&
+                           `                            sap.z2ui5.oParent.removeAllPages();` && |\n| &&
+                           `                            sap.z2ui5.oParent.insertPage(oView);` && |\n| &&
+                           `                        } else {` && |\n| &&
+                           `                            oView.placeAt("content")` && |\n| &&
+                           `                        };` && |\n| &&
+                           `                        sap.z2ui5.oView = oView;` && |\n| &&
+                           `                    },` && |\n| &&
+                           `                    );` && |\n| &&
+                           `                } else {` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopup.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopover.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
+                           `                    sap.z2ui5.oController.onAfterRendering();` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.TITLE != "") {` && |\n| &&
+                           `                    document.title = sap.z2ui5.oResponse.PARAMS.TITLE;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT !== '') {` && |\n| &&
+                           `                    sap.m.MessageToast.show(sap.z2ui5.oResponse.PARAMS.S_MSG_TOAST.TEXT);` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT !== '') {` && |\n| &&
+                           `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n| &&
+                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n| &&
+                           `                }` && |\n| &&
+                           `            },` && |\n| &&
+                           `            readHttp: () => {` && |\n| &&
+                           |\n| &&
+                           `                var xhr = new XMLHttpRequest();` && |\n| &&
+                           `                xhr.open("POST", sap.z2ui5.pathname, true);` && |\n| &&
+                           `                xhr.onload = (that) => {` && |\n| &&
+                           `                    if (that.target.status !== 200) {` && |\n| &&
+                           `                        sap.z2ui5.oController.responseError(that.target.response);` && |\n| &&
+                           `                    } else {` && |\n| &&
+                           `                        sap.z2ui5.oController.responseSuccess(that.target.response);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                }` && |\n| &&
+                           `                xhr.send(JSON.stringify(sap.z2ui5.oBody));` && |\n| &&
+                           `            },` && |\n| &&
+                           `            Roundtrip: () => {` && |\n| &&
+                           |\n| &&
+                           `                sap.z2ui5.checkTimerActive = false;` && |\n| &&
+                           `                sap.z2ui5.checkNestAfter   = false;` && |\n| &&
+                           |\n| &&
+                           `                sap.z2ui5.oBody.OLOCATION = {` && |\n| &&
+                           `                    ORIGIN: window.location.origin,` && |\n| &&
+                           `                    PATHNAME: sap.z2ui5.pathname,` && |\n| &&
+                           `                    SEARCH: window.location.search,` && |\n| &&
+                           `                    VERSION: sap.ui.getVersionInfo().gav,` && |\n| &&
+                           `                };` && |\n| &&
+                           `                   if(sap.z2ui5.search) {  sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search; }` && |\n| &&
+                           |\n| &&
+                           `                if (sap.z2ui5.readOData) {` && |\n| &&
+                           `                    sap.z2ui5.readOData();` && |\n| &&
+                           `                } else {` && |\n| &&
+                           `                    sap.z2ui5.oController.readHttp();` && |\n| &&
+                           `                }` && |\n| &&
+                           `            },` && |\n| &&
+                           `        });` && |\n| &&
+                           |\n| &&
+                           `        if (!sap.z2ui5) {` && |\n| &&
+                           `            sap.z2ui5 = {};` && |\n| &&
+                           `        }` && |\n| &&
+                           `        if (!sap.z2ui5.pathname) {` && |\n| &&
+                           `            sap.z2ui5.pathname = window.location.pathname;` && |\n| &&
+                           `           // sap.z2ui5.pathname = ``/sap/bc/http/sap/y2ui5_http_handler``;` && |\n| &&
+                           `        }` && |\n| &&
+                           `        ` && |\n| &&
+                           `        sap.z2ui5.checkNestAfter = false;` && |\n| &&
+                           |\n| &&
+                           `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n| &&
+                           `        jQuery.sap.require("sap.m.MessageToast");` && |\n| &&
+                           `        jQuery.sap.require("sap.m.MessageBox");` && |\n| &&
+                           `        jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n| &&
+                           |\n| &&
+                           `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n| &&
+                           `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
+                           `        sap.z2ui5.oController = oView.getController();` && |\n| &&
+                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+                           `        sap.z2ui5.oBody = {};` && |\n| &&
+                           `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
+                           `        sap.z2ui5.oController.Roundtrip();` && |\n| &&
+                           `    });` && |\n| &&
+                           `</script>` && |\n| &&
                            `<abc/></html>`.
 
 *     `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&

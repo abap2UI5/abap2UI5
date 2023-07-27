@@ -16,7 +16,8 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
   METHOD test_json_attri.
 
     DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
-    lo_tree->add_attribute( n = `AAA` v = `BBB` ).
+    lo_tree->add_attribute( n = `AAA`
+                            v = `BBB` ).
 
     DATA(lv_result) = lo_tree->stringify( ).
     IF `{"AAA":"BBB"}` <> lv_result.
@@ -28,7 +29,8 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
   METHOD test_json_object.
 
     DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
-    lo_tree->add_attribute_object( `CCC` )->add_attribute( n = `AAA` v = `BBB` ).
+    lo_tree->add_attribute_object( `CCC` )->add_attribute( n = `AAA`
+                                                           v = `BBB` ).
 
     DATA(lv_result) = lo_tree->stringify( ).
     IF `{"CCC":{"AAA":"BBB"}}` <> lv_result.
@@ -47,7 +49,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
         comp2 TYPE string,
       END OF ty_s_test.
 
-    DATA(ls_test) = VALUE ty_S_test( comp1 = `AAA` comp2 = `BBB` ).
+    DATA(ls_test) = VALUE ty_s_test( comp1 = `AAA` comp2 = `BBB` ).
 
     lo_tree->add_attribute_object( `CCC` )->add_attribute_struc( ls_test ).
 
@@ -79,7 +81,8 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
                                CHANGING  data = lt_tab2 ).
 
     IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail( msg = 'json serial -  /ui2/cl_json wrong simple table' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'json serial -  /ui2/cl_json wrong simple table'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -106,10 +109,11 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
                                CHANGING  data = lo_data ).
 
     z2ui5_cl_fw_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_data
-                                            IMPORTING t_result    = lt_tab2 ).
+                                            IMPORTING t_result      = lt_tab2 ).
 
     IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail( msg = 'json serial -  /ui2/cl_json wrong generic table' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'json serial -  /ui2/cl_json wrong generic table'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.

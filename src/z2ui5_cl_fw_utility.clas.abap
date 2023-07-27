@@ -175,7 +175,8 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     IF check_is_boolean( val ).
       result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
     ELSE.
-      result = |"{ escape( val = val  format = cl_abap_format=>e_json_string ) }"|.
+      result = |"{ escape( val    = val
+                           format = cl_abap_format=>e_json_string ) }"|.
     ENDIF.
 
   ENDMETHOD.
@@ -371,7 +372,8 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   METHOD get_classname_by_ref.
 
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
-    result = substring_after( val = lv_classname sub = `\CLASS=` ).
+    result = substring_after( val = lv_classname
+                              sub = `\CLASS=` ).
 
   ENDMETHOD.
 
@@ -463,7 +465,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       error = abap_true.
     ENDIF.
 
-    result = COND #(  WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ).
+    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ).
 
   ENDMETHOD.
 
@@ -479,8 +481,10 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     result = iv_val.
 
-    DATA(lv_1) = substring_before( val = result sub = iv_begin ).
-    DATA(lv_2) = substring_after( val = result sub = iv_end ).
+    DATA(lv_1) = substring_before( val = result
+                                   sub = iv_begin ).
+    DATA(lv_2) = substring_after( val = result
+                                  sub = iv_end ).
     IF lv_2 IS NOT INITIAL.
       result = lv_1 && iv_replace && lv_2.
     ENDIF.

@@ -66,7 +66,7 @@ CLASS ltcl_test_app IMPLEMENTATION.
 
       WHEN OTHERS.
 
-        client->view_display(  z2ui5_cl_xml_view=>factory( client )->shell(
+        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
             )->page( title          = 'abap2UI5 - First Example'
                      navbuttonpress = client->_event( 'BACK' )
                      shownavbutton  = abap_true
@@ -118,22 +118,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ).
 
     IF lt_attri_result <> lt_attri.
-      cl_abap_unit_assert=>fail( msg = 'utility - create t_attri failed' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'utility - create t_attri failed'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
 
   METHOD test_util_uuid_session.
-*    DATA(lv_one) = z2ui5_lcl_utility=>get_uuid_session( ).
-*    DATA(lv_two) = z2ui5_lcl_utility=>get_uuid_session( ).
-*
-*    IF lv_one <> `1`.
-*      cl_abap_unit_assert=>fail( msg = 'utility - create session id' quit = 5 ).
-*    ENDIF.
-*
-*    IF lv_two <> `2`.
-*      cl_abap_unit_assert=>fail( msg = 'utility - create session id' quit = 5 ).
-*    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_util_02_get_attri.
@@ -146,7 +138,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ASSIGN (lv_assign) TO <any>.
 
     IF <any> <> `ABC`.
-      cl_abap_unit_assert=>fail( msg = 'utility - assign of attribute from outside not working' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'utility - assign of attribute from outside not working'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -171,7 +164,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         ( length = '8' name = 'T_TAB' type_kind = 'h' is_interface = '' is_class = 'X' ) ).
 
     IF lt_test <> lt_attri.
-      cl_abap_unit_assert=>fail( msg = 'utility - get abap_attrdescr_tab table wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'utility - get abap_attrdescr_tab table wrong'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.

@@ -20,7 +20,7 @@ CLASS lcl_utility DEFINITION INHERITING FROM cx_no_check.
                 iv_replace    TYPE clike DEFAULT ''
       RETURNING VALUE(result) TYPE string.
 
-  CLASS-METHODS get_trim_lower
+    CLASS-METHODS get_trim_lower
       IMPORTING val           TYPE any
       RETURNING VALUE(result) TYPE string.
 
@@ -39,7 +39,8 @@ CLASS lcl_utility IMPLEMENTATION.
 
   METHOD get_classname_by_ref.
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
-    result = substring_after( val = lv_classname sub = `\CLASS=` ).
+    result = substring_after( val = lv_classname
+                              sub = `\CLASS=` ).
   ENDMETHOD.
 
   METHOD get_json_boolean.

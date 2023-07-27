@@ -43,8 +43,8 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     DATA(ls_db) = read( id ).
 
-    z2ui5_cl_fw_utility=>trans_xml_2_object( EXPORTING xml  = ls_db-data
-                                           IMPORTING data = result ).
+    z2ui5_cl_fw_utility=>trans_xml_2_object( EXPORTING xml = ls_db-data
+                                           IMPORTING data  = result ).
 
     LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
       DATA(lv_check_rtti) = abap_true.
@@ -133,13 +133,13 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
       SELECT SINGLE *
         FROM z2ui5_t_draft
         WHERE uuid = @id
-      INTO @result.
+        INTO @result.
 
     ELSE.
       SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
         WHERE uuid = @id
-      INTO CORRESPONDING FIELDS OF @result.
+        INTO CORRESPONDING FIELDS OF @result.
     ENDIF.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 

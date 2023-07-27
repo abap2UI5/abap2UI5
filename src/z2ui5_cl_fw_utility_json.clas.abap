@@ -60,10 +60,12 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute.
 
-    DATA(lo_attri) = new( io_root = mo_root iv_name = n ).
+    DATA(lo_attri) = new( io_root = mo_root
+                          iv_name = n ).
 
     lo_attri->mv_value = COND #( WHEN apos_active = abap_true
-        THEN escape( val = v format = cl_abap_format=>e_json_string ) ELSE v ).
+        THEN escape( val    = v
+                     format = cl_abap_format=>e_json_string ) ELSE v ).
 
     lo_attri->mv_apost_active = apos_active.
     lo_attri->mo_parent       = me.
@@ -90,7 +92,8 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
     LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
       ASSIGN COMPONENT lr_comp->name OF STRUCTURE val TO <value>.
-      add_attribute( n = lr_comp->name v = <value> ).
+      add_attribute( n = lr_comp->name
+                     v = <value> ).
     ENDLOOP.
 
     result = me.
@@ -99,7 +102,8 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute_object.
 
-    DATA(lo_attri) = new( io_root = mo_root iv_name = name ).
+    DATA(lo_attri) = new( io_root = mo_root
+                          iv_name = name ).
     mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
     lo_attri->mo_parent = me.
     result = lo_attri.
@@ -135,10 +139,14 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
   METHOD get_attribute.
 
     z2ui5_cl_fw_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
-    DATA(lo_attri) = new( io_root = mo_root iv_name = name ).
+    DATA(lo_attri) = new( io_root = mo_root
+                          iv_name = name ).
 
     FIELD-SYMBOLS <attribute> TYPE any.
-    DATA(lv_name) = 'MR_ACTUAL->' && replace( val = name sub = `-` with = `_` occ = 0 ).
+    DATA(lv_name) = 'MR_ACTUAL->' && replace( val  = name
+                                              sub  = `-`
+                                              with = `_`
+                                              occ  = 0 ).
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
@@ -154,7 +162,8 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `Value of Attribute in JSON not found` ).
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+                                v    = `Value of Attribute in JSON not found` ).
 
     result = <attribute>.
 

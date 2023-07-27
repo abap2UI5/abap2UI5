@@ -31,7 +31,7 @@ ENDCLASS.
 CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_index_html.
 
-*    z2ui5_cl_http_handler=>client = VALUE #( t_header = VALUE #( ( name = '~path' value = 'dummy' ) ) ).
+
 
     DATA(lv_index_html) = z2ui5_cl_http_handler=>http_get( ).
 
@@ -56,11 +56,11 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     ENDCASE.
 
     IF sv_state = 'TEST_MESSAGE_BOX'.
-      client->message_box_display( text = 'test message box' ).
+      client->message_box_display( 'test message box' ).
     ENDIF.
 
     IF sv_state = 'TEST_MESSAGE_TOAST'.
-      client->message_toast_display( text = 'test message toast' ).
+      client->message_toast_display( 'test message toast' ).
     ENDIF.
 
     CASE sv_state.
@@ -70,7 +70,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
             )->page( title          = 'abap2UI5 - First Example'
                      navbuttonpress = client->_event( 'BACK' )
                      shownavbutton  = abap_true
-                )->simple_form( title = 'Form Title' editable = abap_true
+                )->simple_form( title    = 'Form Title'
+                                editable = abap_true
                     )->content( 'form'
                         )->title( 'Input'
                         )->label( 'quantity'
@@ -86,7 +87,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
         client->popup_display( z2ui5_cl_xml_view=>factory( client
             )->dialog( title = 'abap2UI5 - First Example'
-                )->simple_form( title = 'Form Title' editable = abap_true
+                )->simple_form( title    = 'Form Title'
+                                editable = abap_true
                     )->content( 'form'
                         )->title( 'Input'
                         )->label( 'quantity'
@@ -99,14 +101,15 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
              )->get_root( )->xml_get( ) ).
 
       WHEN 'TEST_TIMER'.
-        client->timer_set(  event_finished = 'TIMER_FINISHED'
-                             interval_ms    = `500` ).
+        client->timer_set( event_finished = 'TIMER_FINISHED'
+                             interval_ms  = `500` ).
 
-        client->view_display(  z2ui5_cl_xml_view=>factory( client )->shell(
+        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
                                     )->page( title          = 'abap2UI5 - First Example'
                                              navbuttonpress = client->_event( 'BACK' )
                                              shownavbutton  = abap_true
-                                        )->simple_form( title = 'Form Title' editable = abap_true
+                                        )->simple_form( title    = 'Form Title'
+                                                        editable = abap_true
                                             )->content( 'form'
                                                 )->title( 'Input'
                                                 )->label( 'quantity'
@@ -116,14 +119,15 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
                                                           enabled = abap_false
                                                 )->button( text  = 'post'
                                                            press = client->_event( 'BUTTON_POST' )
-                                     )->get_root( )->xml_get( )  ).
+                                     )->get_root( )->xml_get( ) ).
 
       WHEN OTHERS.
         client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
             )->page( title          = 'abap2UI5 - First Example'
                      navbuttonpress = client->_event( 'BACK' )
                      shownavbutton  = abap_true
-                )->simple_form( title = 'Form Title' editable = abap_true
+                )->simple_form( title    = 'Form Title'
+                                editable = abap_true
                     )->content( 'form'
                         )->title( 'Input'
                         )->label( 'quantity'
@@ -140,7 +144,10 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     IF sv_state = 'TEST_SCROLL_CURSOR'.
 
       client->view_display( `test` ).
-      client->cursor_set(  id = 'id_text2'  cursorpos = '5' selectionstart = '5' selectionend = '10'  ).
+      client->cursor_set( id             = 'id_text2'
+                          cursorpos      = '5'
+                          selectionstart = '5'
+                          selectionend   = '10' ).
 
       client->scroll_position_set( VALUE #( v = '99999'
                                 ( n = 'id_page' )
@@ -166,8 +173,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
         body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
-*        path_info = 'LTCL_UNIT_02_APP_START'
-        ).
+*        path_info = 'LTCL_UNIT_02_APP_START' ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -179,7 +185,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val>(9) <> `<mvc:View`.
-      cl_abap_unit_assert=>fail( msg = 'xml view - intital view wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'xml view - intital view wrong'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -189,8 +196,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
       body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
-*        path_info = 'LTCL_UNIT_02_APP_START'
-         ).
+*        path_info = 'LTCL_UNIT_02_APP_START' ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -201,7 +207,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
-      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'id - initial value is initial'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -209,7 +216,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_ONE_WAY`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
 
     DATA lo_data TYPE REF TO data.
@@ -221,7 +228,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `OVIEWMODEL->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
-      cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'data binding - initial set oUpdate wrong'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -229,7 +237,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -240,7 +248,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
-      cl_abap_unit_assert=>fail( msg = 'data binding - initial set oUpdate wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'data binding - initial set oUpdate wrong'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -248,7 +257,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_MESSAGE_BOX`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -260,14 +269,16 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `PARAMS->S_MSG_BOX->TEXT->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `test message box`.
-      cl_abap_unit_assert=>fail( msg = 'message box - text wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'message box - text wrong'
+                                 quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
     lv_assign = `PARAMS->S_MSG_BOX->TYPE->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `information`.
-      cl_abap_unit_assert=>fail( msg = 'message box - type wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'message box - type wrong'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -275,7 +286,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_MESSAGE_TOAST`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-    body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -287,7 +298,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `PARAMS->S_MSG_TOAST->TEXT->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `test message toast`.
-      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'message toast - text wrong'
+                                 quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
@@ -296,7 +308,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_TIMER`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-   body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -308,14 +320,16 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     DATA(lv_assign) = `PARAMS->S_TIMER->EVENT_FINISHED->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `TIMER_FINISHED`.
-      cl_abap_unit_assert=>fail( msg = 'timer - event wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'timer - event wrong'
+                                 quit = 5 ).
     ENDIF.
 
     UNASSIGN <val>.
     lv_assign = `PARAMS->S_TIMER->INTERVAL_MS->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `500`.
-      cl_abap_unit_assert=>fail( msg = 'timer - ms wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'timer - ms wrong'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -323,7 +337,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_POPUP`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -335,14 +349,15 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val>(9) <> `<mvc:View`.
-      cl_abap_unit_assert=>fail( msg = 'xml popup - intital popup wrong' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'xml popup - intital popup wrong'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
   METHOD test_landing_page.
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-       body = `{ "OLOCATION" : { "SEARCH" : ""}}` ).
+       `{ "OLOCATION" : { "SEARCH" : ""}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -354,7 +369,8 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val> NS `Step 4`.
-      cl_abap_unit_assert=>fail( msg = 'landing page - not started when no app' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'landing page - not started when no app'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
@@ -362,7 +378,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_SCROLL_CURSOR`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-     body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -377,7 +393,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_NAVIGATE`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-    body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -390,7 +406,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     sv_state = `TEST_NAVIGATE`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-       body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+       `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -446,7 +462,8 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
         )->page( title          = 'abap2UI5 - First Example'
                  navbuttonpress = client->_event( 'BACK' )
                  shownavbutton  = abap_true
-            )->simple_form( title = 'Form Title' editable = abap_true
+            )->simple_form( title    = 'Form Title'
+                            editable = abap_true
                 )->content( 'form'
                     )->title( 'Input'
                     )->label( 'quantity'
@@ -462,7 +479,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
   METHOD test_app_change_value.
 
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-       body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+       `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -474,14 +491,14 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     DATA(lv_assign) = `ID->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> IS INITIAL.
-      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'id - initial value is initial'
+                                 quit = 5 ).
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
     DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}] }`.
     lv_response = z2ui5_cl_http_handler=>http_post(
-          body = lv_request
-           ).
+          lv_request ).
 
     CLEAR lo_data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -491,63 +508,18 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
     IF <val> <> `600`.
-      cl_abap_unit_assert=>fail( msg = 'data binding - frontend updated value wrong after roundtrip' quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'data binding - frontend updated value wrong after roundtrip'
+                                 quit = 5 ).
     ENDIF.
   ENDMETHOD.
 
   METHOD test_app_event.
 
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-*       body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-*                               CHANGING  data = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `ID->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> IS INITIAL.
-*      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
-*    ENDIF.
-*    DATA(lv_id) = CONV string( <val> ).
-*
-*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [ {"EVENT":"BUTTON_POST","METHOD":"UPDATE"} ] }`.
-*    lv_response = z2ui5_cl_http_handler=>http_post(
-*      body = lv_request ).
-*
-*    CLEAR lo_data.
-*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-*                               CHANGING  data = lo_data ).
-*
-*    UNASSIGN <val>.
-*    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `tomato 700 - send to the server`.
-*      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
-*    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_app_dump.
 
-*    sv_state = `ERROR`.
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-*      body = ``
-*        path_info = 'LTCL_UNIT_03_APP_AJAX' ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-*                               CHANGING  data = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `PARAMS->S_VIEW->XML->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    <val> = shift_left( <val> ).
-*    IF <val> NS `MessagePage`.
-*      cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
-*    ENDIF.
+
   ENDMETHOD.
 ENDCLASS.

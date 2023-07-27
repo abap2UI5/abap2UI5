@@ -108,7 +108,8 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
           CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
             ms_home-class_value_state_text = lx->get_text( ).
             ms_home-class_value_state      = `Warning`.
-            client->message_box_display( text = ms_home-class_value_state_text type = `error` ).
+            client->message_box_display( text = ms_home-class_value_state_text
+                                         type = `error` ).
         ENDTRY.
 
       WHEN `DEMOS`.
@@ -134,14 +135,17 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     ENDWHILE.
 
     DATA(lv_txt)       = mx_error->get_text( ).
-    DATA(lv_descr)     = escape( val = lv_txt format = cl_abap_format=>e_xml_attr ).
+    DATA(lv_descr)     = escape( val    = lv_txt
+                                 format = cl_abap_format=>e_xml_attr ).
 
     DATA(ls_get)     = client->get( ).
     DATA(lv_url) = ls_get-s_config-origin && ls_get-s_config-pathname.
     SHIFT lv_url LEFT DELETING LEADING ` `.
     DATA(lv_url_app)  = lv_url && ls_get-s_config-search.
-    lv_url = escape( val = lv_url format = cl_abap_format=>e_xml_attr ).
-    lv_url_app = escape( val = lv_url_app format = cl_abap_format=>e_xml_attr ).
+    lv_url = escape( val    = lv_url
+                     format = cl_abap_format=>e_xml_attr ).
+    lv_url_app = escape( val    = lv_url_app
+                         format = cl_abap_format=>e_xml_attr ).
 
     DATA(lv_xml) = `<mvc:View ` && |\n| &&
                    `  xmlns="sap.m" ` && |\n| &&
@@ -171,12 +175,14 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
                    ` > <additionalContent ` && |\n| &&
                    ` > ` &&
                    `<Button ` && |\n| &&
-                   `  press="` && client->_event_client( action = client->cs_event-location_reload t_arg = VALUE #( ( lv_url ) ) )  && `" ` && |\n| &&
+                   `  press="` && client->_event_client( action = client->cs_event-location_reload
+                                                         t_arg  = VALUE #( ( lv_url ) ) )  && `" ` && |\n| &&
                    `  text="Home" ` && |\n| &&
                    `  type="Emphasized" ` && |\n| &&
                    ` />` &&
                    `<Button ` && |\n| &&
-                   `  press="` && client->_event_client( action = client->cs_event-location_reload t_arg = VALUE #( ( lv_url_app ) ) ) && `" ` && |\n| &&
+                   `  press="` && client->_event_client( action = client->cs_event-location_reload
+                                                         t_arg  = VALUE #( ( lv_url_app ) ) ) && `" ` && |\n| &&
                    `  text="Restart" /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
 
     client->view_display( lv_xml ).
@@ -212,7 +218,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     ENDTRY.
 
     DATA(lv_xml_main) = `<mvc:View controllerName="z2ui5_controller" displayBlock="true" height="100%" xmlns:core="sap.ui.core" xmlns:l="sap.ui.layout" xmlns:html="http://www.w3.org/1999/xhtml" xmlns:f="sap.ui.layout.form" xmlns:mvc="sap.ui.core.mvc` &&
-`" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n| &&
+      `" xmlns:editor="sap.ui.codeeditor" xmlns:ui="sap.ui.table" xmlns="sap.m" xmlns:uxap="sap.uxap" xmlns:mchart="sap.suite.ui.microchart" xmlns:z2ui5="z2ui5" xmlns:webc="sap.ui.webc.main" xmlns:text="sap.ui.richtexteditor" > <Shell> <Page ` && |\n| &&
                         `  showNavButton="false" ` && |\n| &&
                         `  class="sapUiContentPadding sapUiResponsivePadding--subHeader sapUiResponsivePadding--content sapUiResponsivePadding--footer" ` && |\n| &&
                         ` > <headerContent ` && |\n| &&
@@ -235,42 +241,42 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
                         ` /></headerContent>`.
 
     lv_xml_main = lv_xml_main && ` <l:Grid ` && |\n| &&
-    `  defaultSpan="XL7 L7 M12 S12" ` && |\n| &&
-    ` > <l:content ` && |\n| &&
-    ` > <f:SimpleForm ` && |\n| &&
-    `  title="Quick Start" ` && |\n| &&
-    `  layout="ResponsiveGridLayout" ` && |\n| &&
-    `  editable="true" ` && |\n| &&
-    ` > <f:content ` && |\n| &&
-    ` > <Label ` && |\n| &&
-    `  text="Step 1" ` && |\n| &&
-    ` /> <Text ` && |\n| &&
-    `  text="Create a global class in your abap system" ` && |\n| &&
-    ` /> <Label ` && |\n| &&
-    `  text="Step 2" ` && |\n| &&
-    ` /> <Text ` && |\n| &&
-    `  text="Add the interface: Z2UI5_IF_APP" ` && |\n| &&
-    ` /> <Label ` && |\n| &&
-    `  text="Step 3" ` && |\n| &&
-    ` /> <Text ` && |\n| &&
-    `  text="Define view, implement behaviour" ` && |\n| &&
-    ` /> <Link ` && |\n| &&
-    `  text="(Example)" ` && |\n| &&
-    `  target="_blank" ` && |\n| &&
-    `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap" ` && |\n| &&
-    ` /> <Label ` && |\n| &&
-    `  text="Step 4" ` && |\n| &&
-    ` /> `.
+      `  defaultSpan="XL7 L7 M12 S12" ` && |\n| &&
+      ` > <l:content ` && |\n| &&
+      ` > <f:SimpleForm ` && |\n| &&
+      `  title="Quick Start" ` && |\n| &&
+      `  layout="ResponsiveGridLayout" ` && |\n| &&
+      `  editable="true" ` && |\n| &&
+      ` > <f:content ` && |\n| &&
+      ` > <Label ` && |\n| &&
+      `  text="Step 1" ` && |\n| &&
+      ` /> <Text ` && |\n| &&
+      `  text="Create a global class in your abap system" ` && |\n| &&
+      ` /> <Label ` && |\n| &&
+      `  text="Step 2" ` && |\n| &&
+      ` /> <Text ` && |\n| &&
+      `  text="Add the interface: Z2UI5_IF_APP" ` && |\n| &&
+      ` /> <Label ` && |\n| &&
+      `  text="Step 3" ` && |\n| &&
+      ` /> <Text ` && |\n| &&
+      `  text="Define view, implement behaviour" ` && |\n| &&
+      ` /> <Link ` && |\n| &&
+      `  text="(Example)" ` && |\n| &&
+      `  target="_blank" ` && |\n| &&
+      `  href="https://github.com/oblomov-dev/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap" ` && |\n| &&
+      ` /> <Label ` && |\n| &&
+      `  text="Step 4" ` && |\n| &&
+      ` /> `.
 
     IF ms_home-class_editable = abap_true.
       lv_xml_main = lv_xml_main && `<Input ` && |\n| &&
-     `  placeholder="` && `fill in the class name and press 'check' ` && `" ` && |\n| &&
-     `  editable="` && z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n| &&
-     `  value="` && client->_bind_edit( ms_home-classname ) && `" ` && |\n| &&
-     ` /> `.
+        `  placeholder="` && `fill in the class name and press 'check' ` && `" ` && |\n| &&
+        `  editable="` && z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable ) && `" ` && |\n| &&
+        `  value="` && client->_bind_edit( ms_home-classname ) && `" ` && |\n| &&
+        ` /> `.
     ELSE.
       lv_xml_main = lv_xml_main && `<Text ` && |\n| &&
-      `  text=" ` && ms_home-classname && `" /> `.
+        `  text=" ` && ms_home-classname && `" /> `.
 
     ENDIF.
 
@@ -283,26 +289,28 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
        ` /> <Link ` && |\n| &&
        `  text="Link to the Application" ` && |\n| &&
        `  target="_blank" ` && |\n| &&
-       `  href="` && escape( val = lv_link format = cl_abap_format=>e_xml_attr ) && `" ` && |\n| &&
+       `  href="` && escape( val    = lv_link
+                             format = cl_abap_format=>e_xml_attr ) && `" ` && |\n| &&
        `  enabled="` && z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) && `" ` && |\n| &&
        ` /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `<f:SimpleForm  editable="true" ` && |\n| &&
-   `  title="Samples" ` && |\n| &&
-   `  layout="ResponsiveGridLayout" ` && |\n| &&
-   ` >`.
+      `  title="Samples" ` && |\n| &&
+      `  layout="ResponsiveGridLayout" ` && |\n| &&
+      ` >`.
 
     IF mv_check_demo = abap_false.
       lv_xml_main = lv_xml_main && `<MessageStrip text="Oops! You need to install abap2UI5 demos before continuing..." type="Warning" > <link> ` &&
          `   <Link text="(HERE)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
-      `  </link> </MessageStrip>`.
+        `  </link> </MessageStrip>`.
     ENDIF.
 
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
-    ` > <Label/><Button ` && |\n| &&
-    `  press="` && client->_event( val = `DEMOS` check_view_destroy = abap_true ) && `" ` && |\n| &&
-    `  text="Continue..." enabled="` && COND #( WHEN mv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
-    ` /><Button visible="false"/><Link text="More on GitHub..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md" /></f:content></f:SimpleForm>`.
+      ` > <Label/><Button ` && |\n| &&
+      `  press="` && client->_event( val                = `DEMOS`
+                                     check_view_destroy = abap_true ) && `" ` && |\n| &&
+      `  text="Continue..." enabled="` && COND #( WHEN mv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
+      ` /><Button visible="false"/><Link text="More on GitHub..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md" /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.
 

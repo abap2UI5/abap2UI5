@@ -31,7 +31,8 @@ CLASS Z2UI5_CL_APP_HELLO_WORLD IMPLEMENTATION.
     client->view_display( z2ui5_cl_xml_view=>factory( client
         )->shell(
         )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
-            )->simple_form( title = 'Hello World' editable = abap_true
+            )->simple_form( title    = 'Hello World'
+                            editable = abap_true
                 )->content( ns = `form`
                     )->title( 'Make an input here and send it to the server...'
                     )->label( 'quantity'
