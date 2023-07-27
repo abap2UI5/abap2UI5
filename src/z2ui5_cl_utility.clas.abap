@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_utility DEFINITION public INHERITING FROM cx_no_check
+CLASS z2ui5_cl_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
     CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -148,6 +148,7 @@ CLASS z2ui5_cl_utility IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD check_is_boolean.
+
     TRY.
         DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
         CASE lo_ele->get_relative_name( ).
@@ -156,14 +157,17 @@ CLASS z2ui5_cl_utility IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root.
     ENDTRY.
+
   ENDMETHOD.
 
   METHOD get_json_boolean.
+
     IF check_is_boolean( val ).
       result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
     ELSE.
       result = val.
     ENDIF.
+
   ENDMETHOD.
 
   METHOD get_timestampl.

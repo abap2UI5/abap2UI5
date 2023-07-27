@@ -2266,21 +2266,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
-*    lv_search = lcl_utility=>get_trim_lower( lv_search ).
-*    SHIFT lv_search LEFT DELETING LEADING `?`.
-*
-*    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-*
-*    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-*
-*      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-*
-*      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
-*    ENDLOOP.
-*
-*    DATA(lv_val) = lcl_utility=>get_trim_lower( val ).
-*    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
-
   ENDMETHOD.
 
 
