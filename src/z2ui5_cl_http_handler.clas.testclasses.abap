@@ -115,7 +115,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
 
-    DATA(lv_tab) = z2ui5_lcl_utility=>trans_any_2_json( lt_tab ).
+    DATA(lv_tab) = z2ui5_cl_utility=>trans_any_2_json( lt_tab ).
 
     /ui2/cl_json=>deserialize( EXPORTING json = lv_tab
                                CHANGING  data = lt_tab2 ).
@@ -141,13 +141,13 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
     DATA(lt_tab2) = VALUE ty_t_tab( ).
 
-    DATA(lv_tab) = z2ui5_lcl_utility=>trans_any_2_json( lt_tab ).
+    DATA(lv_tab) = z2ui5_cl_utility=>trans_any_2_json( lt_tab ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_tab
                                CHANGING  data = lo_data ).
 
-    z2ui5_lcl_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_data
+    z2ui5_cl_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_data
                                             IMPORTING t_result    = lt_tab2 ).
 
     IF lt_tab <> lt_tab2.
@@ -164,9 +164,9 @@ CLASS ltcl_unit_01_utility IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_unit_04_deep_data( ).
 
-    DATA(lt_attri) = z2ui5_lcl_utility=>get_t_attri_by_ref( lo_app ).
+    DATA(lt_attri) = z2ui5_cl_utility=>get_t_attri_by_ref( lo_app ).
 
-    DATA(lt_attri_result) = VALUE z2ui5_lcl_utility=>ty_t_attri(
+    DATA(lt_attri_result) = VALUE z2ui5_cl_utility=>ty_t_attri(
 ( name = `Z2UI5_IF_APP~ID` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `CHECK_INITIALIZED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `SV_STATUS` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
@@ -674,7 +674,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
     ENDCASE.
 
     IF sv_state = 'ERROR'.
-      z2ui5_lcl_utility=>raise( `exception test` ).
+      z2ui5_cl_utility=>raise( `exception test` ).
     ENDIF.
 
     client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
@@ -934,7 +934,7 @@ CLASS ltcl_unit_04_deep_data IMPLEMENTATION.
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
-    DATA(lv_tab) = z2ui5_lcl_utility=>trans_any_2_json( t_tab ).
+    DATA(lv_tab) = z2ui5_cl_utility=>trans_any_2_json( t_tab ).
 
     DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600", "T_TAB":` && lv_tab && `}, "ID": "` && lv_id && `"` && `,"oEvent":{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}}`.
 
