@@ -1358,6 +1358,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    methods RATINGINDICATOR
+      importing
+        !MAXVALUE type CLIKE optional
+        !ENABLED type ABAP_BOOLEAN optional
+        !CLASS type CLIKE optional
+        !VALUE type CLIKE optional
+        !ICONSIZE type CLIKE optional
+        !TOOLTIP type CLIKE optional
+        !DISPLAYONLY type ABAP_BOOLEAN optional
+        !CHANGE type CLIKE optional
+        !ID type CLIKE optional
+        !EDITABLE type ABAP_BOOLEAN optional
+      returning
+        value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -3505,5 +3519,21 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     mo_root->mo_previous = result2.
     result = result2.
 
+  ENDMETHOD.
+
+
+  METHOD ratingindicator.
+    result = _generic( name   = `RatingIndicator`
+                       t_prop = VALUE #( ( n = `class`        v = class )
+                                         ( n = `maxValue`     v = maxvalue )
+                                         ( n = `displayOnly`  v = displayonly )
+                                         ( n = `editable`     v = editable )
+                                         ( n = `iconSize`     v = iconSize )
+                                         ( n = `maxValue`     v = maxValue )
+                                         ( n = `value`        v = value )
+                                         ( n = `id`           v = id )
+                                         ( n = `change`       v = change )
+                                         ( n = `enabled`      v = enabled )
+                                         ( n = `tooltip`      v = tooltip ) ) ).
   ENDMETHOD.
 ENDCLASS.
