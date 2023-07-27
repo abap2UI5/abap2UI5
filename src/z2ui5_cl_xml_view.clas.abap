@@ -48,6 +48,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS dynamic_page
       IMPORTING
         !headerexpanded           TYPE clike OPTIONAL

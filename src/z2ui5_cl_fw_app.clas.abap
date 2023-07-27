@@ -8,11 +8,6 @@ CLASS z2ui5_cl_fw_app DEFINITION
     INTERFACES z2ui5_if_app.
 
     DATA:
-      BEGIN OF ms_error,
-        x_error TYPE REF TO cx_root,
-      END OF ms_error.
-
-    DATA:
       BEGIN OF ms_home,
         btn_text               TYPE string,
         btn_event_id           TYPE string,
@@ -29,18 +24,18 @@ CLASS z2ui5_cl_fw_app DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 
-    DATA mv_is_initialized TYPE abap_bool.
-
     DATA client TYPE REF TO z2ui5_if_client.
+    DATA mv_check_initialized TYPE abap_bool.
+    DATA mv_check_demo TYPE abap_bool.
+    DATA mx_error TYPE REF TO cx_root.
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS view_display_error.
     METHODS view_display_start.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
-    DATA lv_check_demo TYPE abap_bool.
-
 ENDCLASS.
 
 
@@ -51,14 +46,14 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
     me->client = client.
 
-    IF mv_is_initialized = abap_false.
-      mv_is_initialized = abap_true.
+    IF mv_check_initialized = abap_false.
+      mv_check_initialized = abap_true.
       z2ui5_on_init( ).
     ENDIF.
 
     z2ui5_on_event( ).
 
-    IF ms_error-x_error IS BOUND.
+    IF mx_error IS BOUND.
       view_display_error( ).
     ELSE.
       view_display_start( ).
@@ -69,13 +64,13 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
   METHOD factory_error.
 
     result = NEW #( ).
-    result->ms_error-x_error = error.
+    result->mx_error = error.
 
   ENDMETHOD.
 
   METHOD z2ui5_on_init.
 
-    IF ms_error-x_error IS NOT BOUND.
+    IF mx_error IS NOT BOUND.
       ms_home-btn_text       = `check`.
       ms_home-btn_event_id   = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
@@ -83,7 +78,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
       ms_home-classname      = `z2ui5_cl_app_hello_world`.
     ENDIF.
 
-    lv_check_demo = abap_true.
+    mv_check_demo = abap_true.
 
   ENDMETHOD.
 
@@ -121,10 +116,10 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
         DATA li_app TYPE REF TO z2ui5_if_app.
         TRY.
             CREATE OBJECT li_app TYPE (`Z2UI5_CL_APP_DEMO_00`).
-            lv_check_demo = abap_true.
+            mv_check_demo = abap_true.
             client->nav_app_call( li_app ).
           CATCH cx_root.
-            lv_check_demo = abap_false.
+            mv_check_demo = abap_false.
         ENDTRY.
 
     ENDCASE.
@@ -134,11 +129,11 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD view_display_error.
 
-    WHILE ms_error-x_error->previous IS BOUND.
-      ms_error-x_error = ms_error-x_error->previous.
+    WHILE mx_error->previous IS BOUND.
+      mx_error = mx_error->previous.
     ENDWHILE.
 
-    DATA(lv_txt)       = ms_error-x_error->get_text( ).
+    DATA(lv_txt)       = mx_error->get_text( ).
     DATA(lv_descr)     = escape( val = lv_txt format = cl_abap_format=>e_xml_attr ).
 
     DATA(ls_get)     = client->get( ).
@@ -297,7 +292,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
    `  layout="ResponsiveGridLayout" ` && |\n| &&
    ` >`.
 
-    IF lv_check_demo = abap_false.
+    IF mv_check_demo = abap_false.
       lv_xml_main = lv_xml_main && `<MessageStrip text="Oops! You need to install abap2UI5 demos before continuing..." type="Warning" > <link> ` &&
          `   <Link text="(HERE)"  target="_blank" href="https://github.com/oblomov-dev/abap2UI5-demos" /> ` &&
       `  </link> </MessageStrip>`.
@@ -306,7 +301,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     lv_xml_main = lv_xml_main && ` <f:content ` && |\n| &&
     ` > <Label/><Button ` && |\n| &&
     `  press="` && client->_event( val = `DEMOS` check_view_destroy = abap_true ) && `" ` && |\n| &&
-    `  text="Continue..." enabled="` && COND #( WHEN lv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
+    `  text="Continue..." enabled="` && COND #( WHEN mv_check_demo = abap_true THEN `true` ELSE `false` ) && |" \n| &&
     ` /><Button visible="false"/><Link text="More on GitHub..."  target="_blank" href="https://github.com/abap2UI5/abap2UI5/blob/main/docs/links.md" /></f:content></f:SimpleForm>`.
 
     lv_xml_main = lv_xml_main && `</l:content></l:Grid></Page></Shell></mvc:View>`.

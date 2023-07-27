@@ -244,7 +244,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
                                  THEN ms_next-s_set-_viewmodel
-                                 ELSE model_set_frontend( app = ms_db-o_app t_attri = ms_db-t_attri ) ).
+                                 ELSE model_set_frontend( app = ms_db-app t_attri = ms_db-t_attri ) ).
 
     lo_resp->add_attribute( n = `OVIEWMODEL` v = lv_viewmodel apos_active = abap_false ).
     lo_resp->add_attribute( n = `PARAMS`     v = z2ui5_cl_fw_utility=>trans_any_2_json( ms_next-s_set ) apos_active = abap_false ).
@@ -377,7 +377,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     TRY.
         model_set_backend( model = so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual
-                           app   = result->ms_db-o_app
+                           app   = result->ms_db-app
                            t_attri  = result->ms_db-t_attri ).
       CATCH cx_root.
     ENDTRY.
@@ -407,9 +407,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
         result->ms_db-id = z2ui5_cl_fw_utility=>get_uuid( ).
 
         lv_classname = z2ui5_cl_fw_utility=>get_trim_upper( lv_classname ).
-        CREATE OBJECT result->ms_db-o_app TYPE (lv_classname).
-        result->ms_db-o_app->id = result->ms_db-id.
-        result->ms_db-t_attri   = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
+        CREATE OBJECT result->ms_db-app TYPE (lv_classname).
+        result->ms_db-app->id = result->ms_db-id.
+        result->ms_db-t_attri   = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
 
       CATCH cx_root.
         result = set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
@@ -450,7 +450,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
   METHOD _create_binding.
 
-    DATA(lo_app) = CAST object( ms_db-o_app ) ##NEEDED.
+    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
 
     DATA lr_in TYPE REF TO data.
     GET REFERENCE OF value INTO lr_in.
@@ -466,11 +466,9 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
       IF lr_attri->check_ref_data IS NOT INITIAL.
-
         FIELD-SYMBOLS <field> TYPE any.
         ASSIGN lr_ref->* TO <field>.
         lr_ref = CAST data( <field> ).
-
       ENDIF.
 
       IF lr_in = lr_ref.
@@ -492,7 +490,6 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       z2ui5_cl_fw_utility=>raise( `Binding Error - Two way binding used but no attribute found` ).
     ENDIF.
 
-    "one time when not global class attribute
     DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid( ).
     INSERT VALUE #( name           = lv_id
                     data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( value )
@@ -513,38 +510,30 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
 
     IF ix IS BOUND.
       result->ms_next-o_app_call = z2ui5_cl_fw_app=>factory_error( error = ix ).
-
       result = result->set_app_call( check_no_db_save = abap_true ).
       RETURN.
-
-    ELSE.
-      result->ms_db-o_app = NEW z2ui5_cl_fw_app( ).
     ENDIF.
 
-    result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-o_app ).
-    result->ms_db-o_app->id = result->ms_db-id.
+    result->ms_db-app = NEW z2ui5_cl_fw_app( ).
+    result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
+    result->ms_db-app->id = result->ms_db-id.
+
   ENDMETHOD.
 
 
   METHOD app_set_next.
 
-    app->id = COND #( WHEN app->id IS INITIAL
-        THEN z2ui5_cl_fw_utility=>get_uuid( )
-        ELSE app->id  ).
+    app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_fw_utility=>get_uuid( ) ELSE app->id  ).
 
     r_result = NEW #( ).
-
-    r_result->ms_db-o_app       = app.
+    r_result->ms_db-app         = app.
     r_result->ms_db-id          = app->id.
-
     r_result->ms_db-id_prev     = ms_db-id.
     r_result->ms_db-id_prev_app = ms_db-id.
     r_result->ms_db-t_attri     = z2ui5_cl_fw_utility=>get_t_attri_by_ref( app ).
-
     r_result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
     r_result->ms_actual-check_on_navigated = abap_true.
-
-    r_result->ms_next-s_set = ms_next-s_set.
+    r_result->ms_next-s_set     = ms_next-s_set.
 
   ENDMETHOD.
 
@@ -554,7 +543,9 @@ ENDCLASS.
 CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD constructor.
+
     mo_handler = handler.
+
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_toast_display.
@@ -565,23 +556,22 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
-    mo_handler->ms_next-s_set-s_msg_box = VALUE #(
-          text = text
-          type = type ).
+    mo_handler->ms_next-s_set-s_msg_box = VALUE #( text = text type = type ).
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get.
 
-    result = VALUE #( BASE CORRESPONDING #( mo_handler->ms_db )
-                      event                  = mo_handler->ms_actual-event
-                      check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
-                      t_event_arg            = mo_handler->ms_actual-t_event_arg
-                      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
-                      s_draft                = CORRESPONDING #( mo_handler->ms_db )
-                      check_on_navigated     = mo_handler->ms_actual-check_on_navigated
-                      s_config               = z2ui5_lcl_fw_handler=>ss_config ).
-    result-s_draft-app = mo_handler->ms_db-o_app.
+    result = VALUE #(
+      event                  = mo_handler->ms_actual-event
+      check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
+      t_event_arg            = mo_handler->ms_actual-t_event_arg
+      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+      s_draft                = CORRESPONDING #( mo_handler->ms_db )
+      check_on_navigated     = mo_handler->ms_actual-check_on_navigated
+      s_config               = z2ui5_lcl_fw_handler=>ss_config
+    ).
+
   ENDMETHOD.
 
   METHOD z2ui5_if_client~nav_app_call.
@@ -593,15 +583,13 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD z2ui5_if_client~get_app.
-    result = CAST #( z2ui5_cl_fw_db=>load_app( id )-o_app ).
+    result = CAST #( z2ui5_cl_fw_db=>load_app( id )-app ).
   ENDMETHOD.
-
 
   METHOD z2ui5_if_client~popup_display.
 
     mo_handler->ms_next-s_set-s_popup-check_destroy = abap_false.
     mo_handler->ms_next-s_set-s_popup-xml = val.
-
 
   ENDMETHOD.
 

@@ -12,7 +12,7 @@ CLASS z2ui5_cl_fw_db DEFINITION
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
         t_attri           TYPE z2ui5_cl_fw_utility=>ty_t_attri,
-        o_app             TYPE REF TO z2ui5_if_app,
+        app               TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
 
     CLASS-METHODS create
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_app) = CAST object( result-o_app ) ##NEEDED.
+    DATA(lo_app) = CAST object( result-app ) ##NEEDED.
     LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
 
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
@@ -75,20 +75,19 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
   METHOD create.
 
     TRY.
-
         DATA(lv_xml) = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( db ) ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
         TRY.
 
             DATA(ls_db) = db.
-            DATA(lo_app) = CAST object( ls_db-o_app ).
+            DATA(lo_app) = CAST object( ls_db-app ).
 
             IF NOT line_exists( ls_db-t_attri[ check_ref_data = abap_true ] ).
               RAISE EXCEPTION x.
             ENDIF.
 
-            lo_app = CAST object( ls_db-o_app ).
+            lo_app = CAST object( ls_db-app ).
             LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
 
               DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
