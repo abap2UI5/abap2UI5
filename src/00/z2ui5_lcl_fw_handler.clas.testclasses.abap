@@ -473,6 +473,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
                     )->button( text  = 'post'
                                press = client->_event( 'BUTTON_POST' )
          )->get_root( )->xml_get( ) ).
+
   ENDMETHOD.
 
   METHOD test_app_change_value.
