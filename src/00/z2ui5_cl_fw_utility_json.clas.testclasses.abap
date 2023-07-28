@@ -6,7 +6,6 @@ CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
     METHODS test_json_attri     FOR TESTING RAISING cx_static_check.
     METHODS test_json_object    FOR TESTING RAISING cx_static_check.
     METHODS test_json_struc     FOR TESTING RAISING cx_static_check.
-
     METHODS test_create_json    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -16,8 +15,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
   METHOD test_json_attri.
 
     DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
-    lo_tree->add_attribute( n = `AAA`
-                            v = `BBB` ).
+    lo_tree->add_attribute( n = `AAA` v = `BBB` ).
 
     DATA(lv_result) = lo_tree->stringify( ).
     IF `{"AAA":"BBB"}` <> lv_result.
@@ -29,8 +27,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
   METHOD test_json_object.
 
     DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
-    lo_tree->add_attribute_object( `CCC` )->add_attribute( n = `AAA`
-                                                           v = `BBB` ).
+    lo_tree->add_attribute_object( `CCC` )->add_attribute( n = `AAA` v = `BBB` ).
 
     DATA(lv_result) = lo_tree->stringify( ).
     IF `{"CCC":{"AAA":"BBB"}}` <> lv_result.

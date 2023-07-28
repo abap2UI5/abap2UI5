@@ -22,8 +22,10 @@ CLASS z2ui5_cl_fw_utility_json DEFINITION
     METHODS constructor.
 
     METHODS get_attribute
-      IMPORTING name          TYPE string
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+      IMPORTING
+        name          TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS get_val
       RETURNING
@@ -82,18 +84,14 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute.
 
-    DATA(lo_attri) = new( io_root = mo_root
-                          iv_name = n ).
+    result = new( io_root = mo_root iv_name = n ).
 
-    lo_attri->mv_value = COND #( WHEN apos_active = abap_true
-        THEN escape( val    = v
-                     format = cl_abap_format=>e_json_string ) ELSE v ).
+    result->mv_value = COND #( WHEN apos_active = abap_true
+        THEN escape( val = v format = cl_abap_format=>e_json_string ) ELSE v ).
 
-    lo_attri->mv_apost_active = apos_active.
-    lo_attri->mo_parent       = me.
-
-    INSERT lo_attri INTO TABLE mt_values.
-    result = me.
+    result->mv_apost_active = apos_active.
+    result->mo_parent       = me.
+    INSERT result INTO TABLE mt_values.
 
   ENDMETHOD.
 
@@ -110,11 +108,9 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute_object.
 
-    DATA(lo_attri) = new( io_root = mo_root
-                          iv_name = name ).
-    mt_values = VALUE #( BASE mt_values ( lo_attri ) ).
-    lo_attri->mo_parent = me.
-    result = lo_attri.
+    result = new( io_root = mo_root iv_name = name ).
+    INSERT result INTO TABLE mt_values.
+    result->mo_parent = me.
 
   ENDMETHOD.
 

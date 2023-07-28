@@ -1,14 +1,15 @@
 CLASS z2ui5_cl_xml_view DEFINITION
   PUBLIC
   FINAL
-  CREATE PROTECTED .
+  CREATE PROTECTED.
 
   PUBLIC SECTION.
 
     CLASS-METHODS factory
       IMPORTING
         !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-        !client       TYPE REF TO z2ui5_if_client
+        !client       TYPE REF TO z2ui5_if_client OPTIONAL
+        PREFERRED PARAMETER client
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2005,7 +2006,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mt_prop  = VALUE #( BASE result->mt_prop
                                 (  n = 'displayBlock'   v = 'true' )
                                 (  n = 'height'         v = '100%' )
-                                (  n = 'controllerName' v = client->get( )-s_config-controller_name ) ).
+                                (  n = 'controllerName' v = `z2ui5_controller` ) ).
+*                                (  n = 'controllerName' v = client->get( )-s_config-controller_name )  ).
 
     result->mv_name   = `View`.
     result->mv_ns     = `mvc`.
@@ -2143,12 +2145,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD generic_tag.
+
     result = _generic( name   = `GenericTag`
                        t_prop = VALUE #( ( n = `ariaLabelledBy`           v = arialabelledby )
                                          ( n = `class`        v = class )
                                          ( n = `design`          v = design )
                                          ( n = `status`  v = status )
                                          ( n = `text`   v = text ) ) ).
+
   ENDMETHOD.
 
 
@@ -2190,6 +2194,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD grid.
+
     result = _generic( name   = `Grid`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `defaultSpan` v = default_span )
@@ -2236,9 +2241,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD heading.
+
     result = me.
-    result = _generic( name = `heading`
-                       ns   = ns ).
+    result = _generic( name = `heading` ns = ns ).
+
   ENDMETHOD.
 
 
@@ -2260,8 +2266,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     REPLACE `%3D` IN lv_search WITH `=`.
 
-    DATA(lv_search2) = substring_after( val = lv_search
-                                        sub = `&sap-startup-params=` ).
+    DATA(lv_search2) = substring_after( val = lv_search sub = `&sap-startup-params=` ).
     IF lv_search2 IS NOT INITIAL.
       lv_search = lv_search2.
     ENDIF.
