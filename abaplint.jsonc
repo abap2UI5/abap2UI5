@@ -235,7 +235,7 @@
     "types_naming": false,
     "uncaught_exception": true,
     "unknown_types": {
-      "exclude": ["xflag"],
+      "exclude": [],
       "severity": "Error"
     },
     "unnecessary_chaining": true,
