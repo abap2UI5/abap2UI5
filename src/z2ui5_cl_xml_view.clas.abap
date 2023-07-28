@@ -49,7 +49,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS dynamic_page
       IMPORTING
         !headerexpanded           TYPE abap_boolean OPTIONAL
-        !showfooter               TYPE clike OPTIONAL
+        !showfooter               TYPE xflag OPTIONAL
         !headerpinned             TYPE clike OPTIONAL
         !toggleheaderontitleclick TYPE clike OPTIONAL
       RETURNING
