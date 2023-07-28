@@ -526,7 +526,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    result->ms_db-app = NEW z2ui5_cl_fw_app( ).
+    result->ms_db-app = z2ui5_cl_fw_app=>factory_start( ).
     result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
     result->ms_db-app->id = result->ms_db-id.
 

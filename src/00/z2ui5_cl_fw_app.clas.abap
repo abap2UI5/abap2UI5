@@ -1,7 +1,7 @@
 CLASS z2ui5_cl_fw_app DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE protected.
 
   PUBLIC SECTION.
 
@@ -17,6 +17,10 @@ CLASS z2ui5_cl_fw_app DEFINITION
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
+
+    CLASS-METHODS factory_start
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 
     CLASS-METHODS factory_error
       IMPORTING
@@ -41,6 +45,13 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_fw_app IMPLEMENTATION.
+
+
+  METHOD factory_start.
+
+    result = NEW #( ).
+
+  ENDMETHOD.
 
 
   METHOD factory_error.
