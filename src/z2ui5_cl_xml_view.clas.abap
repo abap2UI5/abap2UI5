@@ -3531,7 +3531,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `displayOnly`  v = displayonly )
                                          ( n = `editable`     v = editable )
                                          ( n = `iconSize`     v = iconSize )
-                                         ( n = `maxValue`     v = maxValue )
                                          ( n = `value`        v = value )
                                          ( n = `id`           v = id )
                                          ( n = `change`       v = change )
