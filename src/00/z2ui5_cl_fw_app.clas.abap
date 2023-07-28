@@ -40,7 +40,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
 
   METHOD factory_error.
@@ -53,62 +53,25 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
   METHOD view_display_error.
 
-    WHILE mx_error->previous IS BOUND.
-      mx_error = mx_error->previous.
-    ENDWHILE.
-
-    DATA(lv_txt)       = mx_error->get_text( ).
-    DATA(lv_descr)     = escape( val    = lv_txt
-                                 format = cl_abap_format=>e_xml_attr ).
-
-    DATA(ls_get)     = client->get( ).
-    DATA(lv_url) = ls_get-s_config-origin && ls_get-s_config-pathname.
-    SHIFT lv_url LEFT DELETING LEADING ` `.
+    DATA(ls_get) = client->get( ).
+    DATA(lv_url) = shift_left( val = ls_get-s_config-origin && ls_get-s_config-pathname sub = ` ` ).
     DATA(lv_url_app)  = lv_url && ls_get-s_config-search.
-    lv_url = escape( val    = lv_url
-                     format = cl_abap_format=>e_xml_attr ).
-    lv_url_app = escape( val    = lv_url_app
-                         format = cl_abap_format=>e_xml_attr ).
 
-    DATA(lv_xml) = `<mvc:View ` && |\n| &&
-                   `  xmlns="sap.m" ` && |\n| &&
-                   `  xmlns:z2ui5="z2ui5" ` && |\n| &&
-                   `  xmlns:core="sap.ui.core" ` && |\n| &&
-                   `  xmlns:mvc="sap.ui.core.mvc" ` && |\n| &&
-                   `  xmlns:layout="sap.ui.layout" ` && |\n| &&
-                   `  xmlns:f="sap.f" ` && |\n| &&
-                   `  xmlns:form="sap.ui.layout.form" ` && |\n| &&
-                   `  xmlns:editor="sap.ui.codeeditor" ` && |\n| &&
-                   `  xmlns:mchart="sap.suite.ui.microchart" ` && |\n| &&
-                   `  xmlns:webc="sap.ui.webc.main" ` && |\n| &&
-                   `  xmlns:uxap="sap.uxap" ` && |\n| &&
-                   `  xmlns:sap="sap" ` && |\n| &&
-                   `  xmlns:text="sap.ui.richtextedito" ` && |\n| &&
-                   `  xmlns:html="http://www.w3.org/1999/xhtml" ` && |\n| &&
-                   `  displayBlock="true" ` && |\n| &&
-                   `  height="100%" ` && |\n| &&
-                   `  controllerName="z2ui5_controller" ` && |\n| &&
-                   ` > <Shell>` && |\n| &&
-                   `<IllustratedMessage ` && |\n| &&
-                   `  illustrationType="sapIllus-ErrorScreen" ` && |\n| &&
-                   `  enableFormattedText="true" ` && |\n| &&
-                   `  illustrationSize="sapIllus-ErrorScreen" ` && |\n| &&
-                   `  description="` && lv_descr && `"` && |\n| &&
-                   `  title="500 Internal Server Error" ` && |\n| &&
-                   ` > <additionalContent ` && |\n| &&
-                   ` > ` &&
-                   `<Button ` && |\n| &&
-                   `  press="` && client->_event_client( action = client->cs_event-location_reload
-                                                         t_arg  = VALUE #( ( lv_url ) ) )  && `" ` && |\n| &&
-                   `  text="Home" ` && |\n| &&
-                   `  type="Emphasized" ` && |\n| &&
-                   ` />` &&
-                   `<Button ` && |\n| &&
-                   `  press="` && client->_event_client( action = client->cs_event-location_reload
-                                                         t_arg  = VALUE #( ( lv_url_app ) ) ) && `" ` && |\n| &&
-                   `  text="Restart" /></additionalContent></IllustratedMessage></Shell></mvc:View>`.
+    DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
+        enableformattedtext          = abap_true
+        illustrationtype             = 'sapIllus-ErrorScreen'
+        title                        = '500 Internal Server Error'
+        description                  = mx_error->get_text( )
+    )->additional_content(
+        )->button(
+            text = 'Home'
+            type = 'Emphasized'
+            press = client->_event_client( action = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
+        )->button(
+            text = 'Restart'
+            press = client->_event_client( action = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
-    client->view_display( lv_xml ).
+    client->view_display( view->stringify( ) ).
 
   ENDMETHOD.
 
