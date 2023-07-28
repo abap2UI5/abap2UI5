@@ -191,7 +191,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     TRY.
         DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
         CASE lo_ele->get_relative_name( ).
-          WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+          WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
             result = abap_true.
         ENDCASE.
       CATCH cx_root.
@@ -256,7 +256,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     LOOP AT lt_attri INTO DATA(ls_attri)
          WHERE type_kind = cl_abap_classdescr=>typekind_struct2
-               OR type_kind = cl_abap_classdescr=>typekind_struct1.
+            OR type_kind = cl_abap_classdescr=>typekind_struct1.
 
       DELETE lt_attri INDEX sy-tabix.
 
@@ -270,18 +270,18 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       DATA(ls_attri2) = VALUE ty_attri( ).
       ls_attri2 = CORRESPONDING #( ls_attri ).
 
-      FIELD-SYMBOLS <any> TYPE any.
-      UNASSIGN <any>.
-      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
-      ASSIGN (lv_assign) TO <any>.
-
-      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
-      TRY.
-          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
-          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
-          ls_attri2-check_ref_data = abap_true.
-        CATCH cx_root.
-      ENDTRY.
+*      FIELD-SYMBOLS <any> TYPE any.
+*      UNASSIGN <any>.
+*      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
+*      ASSIGN (lv_assign) TO <any>.
+*
+*      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
+*      TRY.
+*          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
+*          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
+*          ls_attri2-check_ref_data = abap_true.
+*        CATCH cx_root.
+*      ENDTRY.
 
       APPEND ls_attri2 TO result.
     ENDLOOP.
@@ -502,13 +502,9 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     result = iv_val.
 
-    DATA(lv_1) = substring_before( val = result
-                                   sub = iv_begin ).
-    DATA(lv_2) = substring_after( val = result
-                                  sub = iv_end ).
-    IF lv_2 IS NOT INITIAL.
-      result = lv_1 && iv_replace && lv_2.
-    ENDIF.
+    DATA(lv_1) = substring_before( val = result sub = iv_begin ).
+    DATA(lv_2) = substring_after( val = result sub = iv_end ).
+    result = COND #( WHEN lv_2 IS NOT INITIAL THEN lv_1 && iv_replace && lv_2 ).
 
   ENDMETHOD.
 

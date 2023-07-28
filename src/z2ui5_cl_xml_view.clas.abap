@@ -49,18 +49,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS ratingindicator
+    METHODS rating_indicator
       IMPORTING
-        !maxvalue TYPE clike OPTIONAL
-        !enabled TYPE abap_boolean OPTIONAL
-        !class TYPE clike OPTIONAL
-        !value TYPE clike OPTIONAL
-        !iconsize TYPE clike OPTIONAL
-        !tooltip TYPE clike OPTIONAL
-        !displayonly TYPE abap_boolean OPTIONAL
-        !change TYPE clike OPTIONAL
-        !id TYPE clike OPTIONAL
-        !editable TYPE abap_boolean OPTIONAL
+        !maxvalue     TYPE clike OPTIONAL
+        !enabled      TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+        !value        TYPE clike OPTIONAL
+        !iconsize     TYPE clike OPTIONAL
+        !tooltip      TYPE clike OPTIONAL
+        !displayonly  TYPE clike OPTIONAL
+        !change       TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
+        !editable     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -894,7 +894,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !title        TYPE clike OPTIONAL
         !text         TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS object_number
       IMPORTING
         !state        TYPE clike OPTIONAL
@@ -1412,7 +1413,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2930,7 +2931,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD ratingindicator.
+  METHOD rating_indicator.
+
     result = _generic( name   = `RatingIndicator`
                        t_prop = VALUE #( ( n = `class`        v = class )
                                          ( n = `maxValue`     v = maxvalue )
@@ -2943,6 +2945,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `change`       v = change )
                                          ( n = `enabled`      v = enabled )
                                          ( n = `tooltip`      v = tooltip ) ) ).
+
   ENDMETHOD.
 
 

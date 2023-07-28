@@ -39,16 +39,15 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
 
   METHOD cleanup.
 
-    DATA(lv_timestampl) = z2ui5_cl_fw_utility=>get_timestampl( ).
-    DATA(lv_ts_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_timestampl
-                                                              secs  = 60 * 60 * 4 ).
+    DATA(lv_time) = z2ui5_cl_fw_utility=>get_timestampl( ).
+    DATA(lv_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_time secs  = 60 * 60 * 4 ).
 
-    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_ts_four_hours_ago.
+    DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_four_hours_ago.
     COMMIT WORK.
 
   ENDMETHOD.
@@ -106,6 +105,7 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
     MODIFY z2ui5_t_draft FROM @ls_draft.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
     COMMIT WORK AND WAIT.
+
   ENDMETHOD.
 
 
@@ -113,8 +113,11 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
     DATA(ls_db) = read( id ).
 
-    z2ui5_cl_fw_utility=>trans_xml_2_object( EXPORTING xml = ls_db-data
-                                           IMPORTING data  = result ).
+    z2ui5_cl_fw_utility=>trans_xml_2_object(
+        EXPORTING
+            xml   = ls_db-data
+        IMPORTING
+            data  = result ).
 
     LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
       DATA(lv_check_rtti) = abap_true.
@@ -126,8 +129,8 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
     DATA(lo_app) = CAST object( result-app ) ##NEEDED.
     LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE check_ref_data = abap_true.
 
-      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
       FIELD-SYMBOLS <ref> TYPE any.
+      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
       ASSIGN (lv_assign) TO <ref>.
 
       z2ui5_cl_fw_utility=>rtti_set(
@@ -137,7 +140,6 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
            e_data   = <ref> ).
 
       CLEAR lr_attri->data_rtti.
-
     ENDLOOP.
 
   ENDMETHOD.
@@ -153,12 +155,16 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
         INTO @result.
 
     ELSE.
+
       SELECT SINGLE uuid, uuid_prev, uuid_prev_app, uuid_prev_app_stack
         FROM z2ui5_t_draft
         WHERE uuid = @id
         INTO CORRESPONDING FIELDS OF @result.
+
     ENDIF.
+
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
+
 ENDCLASS.
