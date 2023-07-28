@@ -13,14 +13,11 @@ CLASS z2ui5_cl_fw_utility_json DEFINITION
     DATA mr_actual       TYPE REF TO data.
     DATA mv_apost_active TYPE abap_bool.
 
-    CLASS-METHODS new
-      IMPORTING io_root       TYPE REF TO z2ui5_cl_fw_utility_json
-                iv_name       TYPE simple
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
-
     CLASS-METHODS factory
-      IMPORTING iv_json       TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+      IMPORTING
+        iv_json       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS constructor.
 
@@ -29,34 +26,58 @@ CLASS z2ui5_cl_fw_utility_json DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS get_val
-      RETURNING VALUE(result) TYPE string.
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS get_val_ref
+      RETURNING
+        VALUE(result) TYPE REF TO data.
 
     METHODS add_attribute
-      IMPORTING n             TYPE clike
-                v             TYPE clike
-                apos_active   TYPE abap_bool DEFAULT abap_true
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+      IMPORTING
+        n             TYPE clike
+        v             TYPE clike
+        apos_active   TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS add_attribute_object
-      IMPORTING name          TYPE clike
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+      IMPORTING
+        name          TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS add_attribute_struc
-      IMPORTING val           TYPE data
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+      IMPORTING
+        val           TYPE data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS add_attribute_instance
-      IMPORTING val           TYPE REF TO z2ui5_cl_fw_utility_json
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+      IMPORTING
+        val           TYPE REF TO z2ui5_cl_fw_utility_json
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
 
     METHODS stringify
-      RETURNING VALUE(result) TYPE string.
+      RETURNING
+        VALUE(result) TYPE string.
 
+  PROTECTED SECTION.
+
+    CLASS-METHODS new
+      IMPORTING
+        io_root       TYPE REF TO z2ui5_cl_fw_utility_json
+        iv_name       TYPE simple
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_utility_json.
+
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
+CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
 
   METHOD add_attribute.
@@ -138,33 +159,32 @@ CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
   METHOD get_attribute.
 
     z2ui5_cl_fw_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
-    DATA(lo_attri) = new( io_root = mo_root
-                          iv_name = name ).
+
+    result = new( io_root = mo_root iv_name = name ).
+
+    DATA(lv_name) = 'MR_ACTUAL->' && replace( val  = name sub  = `-` with = `_` occ  = 0 ).
 
     FIELD-SYMBOLS <attribute> TYPE any.
-    DATA(lv_name) = 'MR_ACTUAL->' && replace( val  = name
-                                              sub  = `-`
-                                              with = `_`
-                                              occ  = 0 ).
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    lo_attri->mr_actual = <attribute>.
-    lo_attri->mo_parent = me.
-
-    INSERT lo_attri INTO TABLE mt_values.
-    result = lo_attri.
+    result->mr_actual = <attribute>.
+    result->mo_parent = me.
+    INSERT result INTO TABLE mt_values.
 
   ENDMETHOD.
 
+  METHOD get_val_ref.
+
+    result = mr_actual.
+
+  ENDMETHOD.
 
   METHOD get_val.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
-                                v    = `Value of Attribute in JSON not found` ).
-
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `value of attribute in JSON not found` ).
     result = <attribute>.
 
   ENDMETHOD.

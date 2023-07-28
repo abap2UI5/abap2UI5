@@ -6,8 +6,8 @@ CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
     METHODS test_json_attri     FOR TESTING RAISING cx_static_check.
     METHODS test_json_object    FOR TESTING RAISING cx_static_check.
     METHODS test_json_struc     FOR TESTING RAISING cx_static_check.
-    METHODS test_json_trans     FOR TESTING RAISING cx_static_check.
-    METHODS test_json_trans_gen FOR TESTING RAISING cx_static_check.
+
+    METHODS test_create_json    FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -50,7 +50,6 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
       END OF ty_s_test.
 
     DATA(ls_test) = VALUE ty_s_test( comp1 = `AAA` comp2 = `BBB` ).
-
     lo_tree->add_attribute_object( `CCC` )->add_attribute_struc( ls_test ).
 
     DATA(lv_result) = lo_tree->stringify( ).
@@ -60,61 +59,22 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_json_trans.
+  METHOD test_create_json.
 
-    TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        selected TYPE abap_bool,
-      END OF ty_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA(lo_json) = z2ui5_cl_fw_utility_json=>factory( `{"CCC":{"COMP1":"AAA","COMP2":"BBB"}}` ).
 
-    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
-                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
+    DATA(lo_attri) = lo_json->get_attribute( `CCC` )->get_attribute( `COMP2` ).
 
-    DATA(lt_tab2) = VALUE ty_t_tab( ).
+    DATA(lr_ref) = lo_attri->get_val_ref( ).
+    IF lr_ref->* <> `BBB`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
 
-    DATA(lv_tab) = z2ui5_cl_fw_utility=>trans_any_2_json( lt_tab ).
-
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_tab
-                               CHANGING  data = lt_tab2 ).
-
-    IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail( msg  = 'json serial -  /ui2/cl_json wrong simple table'
-                                 quit = 5 ).
+    DATA(lv_val) = lo_attri->get_val( ).
+    IF lv_val <> `BBB`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
   ENDMETHOD.
 
-  METHOD test_json_trans_gen.
-
-    TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        selected TYPE abap_bool,
-      END OF ty_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
-                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
-
-    DATA(lt_tab2) = VALUE ty_t_tab( ).
-
-    DATA(lv_tab) = z2ui5_cl_fw_utility=>trans_any_2_json( lt_tab ).
-
-    DATA lo_data TYPE REF TO data.
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_tab
-                               CHANGING  data = lo_data ).
-
-    z2ui5_cl_fw_utility=>trans_ref_tab_2_tab( EXPORTING ir_tab_from = lo_data
-                                            IMPORTING t_result      = lt_tab2 ).
-
-    IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail( msg  = 'json serial -  /ui2/cl_json wrong generic table'
-                                 quit = 5 ).
-    ENDIF.
-
-  ENDMETHOD.
 ENDCLASS.

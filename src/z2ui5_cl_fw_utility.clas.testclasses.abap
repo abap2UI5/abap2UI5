@@ -4,8 +4,6 @@ CLASS ltcl_test_app DEFINITION FINAL FOR TESTING
 
   PUBLIC SECTION.
 
-    DATA check_initialized TYPE abap_bool.
-
     TYPES:
       BEGIN OF ty_row,
         title    TYPE string,
@@ -21,7 +19,7 @@ CLASS ltcl_test_app DEFINITION FINAL FOR TESTING
 
     CLASS-DATA sv_var TYPE string.
     CLASS-DATA ss_tab TYPE ty_row.
-    CLASS-DATA st_tab     TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
     DATA mv_val TYPE string.
     DATA ms_tab TYPE ty_row.
@@ -40,8 +38,8 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
-    METHODS general_get_classdescr   FOR TESTING RAISING cx_static_check.
-    METHODS general_get_attri        FOR TESTING RAISING cx_static_check.
+    METHODS general_get_classdescr FOR TESTING RAISING cx_static_check.
+    METHODS general_get_attri      FOR TESTING RAISING cx_static_check.
 
     METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_create               FOR TESTING RAISING cx_static_check.
@@ -56,6 +54,9 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_get_uuid             FOR TESTING RAISING cx_static_check.
     METHODS test_get_user_tech        FOR TESTING RAISING cx_static_check.
     METHODS test_raise                FOR TESTING RAISING cx_static_check.
+    METHODS test_any_2_json           FOR TESTING RAISING cx_static_check.
+    METHODS test_any_2_json_02        FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -69,8 +70,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_ref( lo_app ).
 
     DATA(lt_attri_result) = VALUE z2ui5_cl_fw_utility=>ty_t_attri(
-        ( name = `CHECK_INITIALIZED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-        ( name = `MT_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+( name = `MT_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `MV_VAL` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `ST_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `SV_STATUS` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
@@ -89,7 +89,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 ( name = `SS_TAB-INFO` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `SS_TAB-SELECTED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
 ( name = `SS_TAB-CHECKBOX` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-  ).
+ ).
 
     IF lt_attri_result <> lt_attri.
       cl_abap_unit_assert=>fail( msg  = 'utility - create t_attri failed'
@@ -121,15 +121,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
 
     DATA(lt_test) = VALUE abap_attrdescr_tab(
-        ( length = '2' decimals = '0' name = 'CHECK_INITIALIZED' type_kind = 'C' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '44' decimals = '0' name = 'MS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '8' decimals = '0' name = 'MT_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '8' decimals = '0' name = 'MV_VAL' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '44' decimals = '0' name = 'SS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '8' decimals = '0' name = 'ST_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '8' decimals = '0' name = 'SV_STATUS' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = 'X' is_virtual = '' is_read_only = '' alias_for = '' )
-        ( length = '8' decimals = '0' name = 'SV_VAR' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-    ).
+( length = '44' decimals = '0' name = 'MS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+( length = '8' decimals = '0' name = 'MT_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+( length = '8' decimals = '0' name = 'MV_VAL' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+( length = '44' decimals = '0' name = 'SS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+( length = '8' decimals = '0' name = 'ST_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+( length = '8' decimals = '0' name = 'SV_STATUS' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = 'X' is_virtual = '' is_read_only = '' alias_for = '' )
+( length = '8' decimals = '0' name = 'SV_VAR' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
+ ).
 
     IF lt_test <> lt_attri.
       cl_abap_unit_assert=>fail( msg  = 'utility - get abap_attrdescr_tab table wrong'
@@ -294,6 +293,87 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       CATCH cx_root.
         cl_abap_unit_assert=>fail( quit = 5 ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD test_any_2_json.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        selected TYPE abap_bool,
+      END OF ty_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
+                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
+
+
+    DATA(lv_tab_json) = z2ui5_cl_fw_utility=>trans_any_2_json( lt_tab ).
+
+    DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr","SELECTED":false}]`.
+
+    IF lv_result <> lv_tab_json.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD test_any_2_json_02.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        selected TYPE abap_bool,
+      END OF ty_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
+                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
+
+    DATA(lt_tab2) = VALUE ty_t_tab( ).
+    DATA(lv_tab) = z2ui5_cl_fw_utility=>trans_any_2_json( lt_tab ).
+
+    /ui2/cl_json=>deserialize( EXPORTING json = lv_tab
+                               CHANGING  data = lt_tab2 ).
+
+    IF lt_tab <> lt_tab2.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_trans_ref_tab_2_tab.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        selected TYPE abap_bool,
+      END OF ty_row.
+    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+
+    DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr","SELECTED":false}]`.
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize( EXPORTING json = lv_result
+                               CHANGING  data = lo_data ).
+
+    DATA(lt_tab2) = VALUE ty_t_tab( ).
+    z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
+        EXPORTING ir_tab_from = lo_data
+        IMPORTING t_result    = lt_tab2 ).
+
+
+    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
+                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
+
+    IF lt_tab <> lt_tab2.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
 
   ENDMETHOD.
 
