@@ -82,7 +82,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
   METHOD test_bind_one_way.
 
 
-    DATA(lo_test) = NEW z2ui5_cl_fw_integration_test( ).
+    DATA(lo_test) = NEW z2ui5_cl_fw_integration_test( ) ##NEEDED.
 *    DATA(lv_classname) = z2ui5_cl_fw_utility=>get_classname_by_ref( lo_test ).
 
 
