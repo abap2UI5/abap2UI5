@@ -15,15 +15,15 @@ CLASS ltcl_test_app DEFINITION FINAL FOR TESTING
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    CONSTANTS sv_status TYPE string VALUE `test`.
+    CONSTANTS sv_status TYPE string VALUE `test` ##NEEDED.
 
-    CLASS-DATA sv_var TYPE string.
-    CLASS-DATA ss_tab TYPE ty_row.
-    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    CLASS-DATA sv_var TYPE string ##NEEDED.
+    CLASS-DATA ss_tab TYPE ty_row ##NEEDED.
+    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY ##NEEDED.
 
-    DATA mv_val TYPE string.
-    DATA ms_tab TYPE ty_row.
-    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    DATA mv_val TYPE string ##NEEDED.
+    DATA ms_tab TYPE ty_row ##NEEDED.
+    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY ##NEEDED.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -159,7 +159,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_create.
 
-    DATA(lo_test) = NEW z2ui5_cl_fw_utility( ).
+    DATA(lo_test) = NEW z2ui5_cl_fw_utility( ) ##NEEDED.
 
   ENDMETHOD.
 
