@@ -131,7 +131,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
     IF mv_check_demo = abap_false.
       form->message_strip( text = 'Oops! You need to install abap2UI5 demos before continuing...' type = 'Warning'
-          )->_generic( 'link' )->link( text = `(HERE)` target = '_blank' href = `https://github.com/oblomov-dev/abap2UI5-demos`
+          )->get( )->_generic( 'link' )->link( text = `(HERE)` target = '_blank' href = `https://github.com/oblomov-dev/abap2UI5-demos`
           ).
     ENDIF.
 

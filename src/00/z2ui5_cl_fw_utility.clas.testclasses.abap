@@ -57,6 +57,10 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_any_2_json           FOR TESTING RAISING cx_static_check.
     METHODS test_any_2_json_02        FOR TESTING RAISING cx_static_check.
     METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_create_url FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_get        FOR TESTING RAISING cx_static_check.
+    METHODS test_url_param_get_tab    FOR TESTING RAISING cx_static_check.
+    METHODS url_param_set             FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -376,6 +380,55 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                    ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
 
     IF lt_tab <> lt_tab2.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_url_param_create_url.
+
+    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+    DATA(lv_url) = z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
+
+    IF lv_url <> `sap-client=100&app_start=z2ui5_cl_app_hello_world`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_url_param_get.
+
+    DATA(lv_param) = z2ui5_cl_fw_utility=>url_param_get(
+        val = `app_start`
+        url =  `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+
+    IF lv_param <> `z2ui5_cl_app_hello_world`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_url_param_get_tab.
+
+    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+    IF lt_param[ n = `sap-client` ]-v = `100`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+    IF lt_param[ n = `app_start` ]-v = `z2ui5_cl_app_hello_world`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD url_param_set.
+
+    DATA(lv_param) = z2ui5_cl_fw_utility=>url_param_set(
+         name = `app_start`
+         value = `z2ui5_cl_app_hello_world2`
+         url =  `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+
+    IF lv_param <> `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world2`.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
