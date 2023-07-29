@@ -1399,6 +1399,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+      METHODS rating_indicator
+      IMPORTING
+        !maxvalue     TYPE clike OPTIONAL
+        !enabled      TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+        !value        TYPE clike OPTIONAL
+        !iconsize     TYPE clike OPTIONAL
+        !tooltip      TYPE clike OPTIONAL
+        !displayonly  TYPE clike OPTIONAL
+        !change       TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
+        !editable     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -3502,6 +3517,23 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     mo_root->mo_previous = result2.
     result = result2.
+
+  ENDMETHOD.
+
+
+  METHOD rating_indicator.
+
+    result = _generic( name   = `RatingIndicator`
+                       t_prop = VALUE #( ( n = `class`        v = class )
+                                         ( n = `maxValue`     v = maxvalue )
+                                         ( n = `displayOnly`  v = displayonly )
+                                         ( n = `editable`     v = editable )
+                                         ( n = `iconSize`     v = iconSize )
+                                         ( n = `value`        v = value )
+                                         ( n = `id`           v = id )
+                                         ( n = `change`       v = change )
+                                         ( n = `enabled`      v = enabled )
+                                         ( n = `tooltip`      v = tooltip ) ) ).
 
   ENDMETHOD.
 ENDCLASS.

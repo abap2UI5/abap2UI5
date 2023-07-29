@@ -4,7 +4,7 @@
   },
   "dependencies": [
     {
-      "url": "https://github.com/abapedia/steampunk-2305-api",
+      "url": "https://github.com/abapedia/steampunk-2305-api-intersect-702",
       "folder": "/deps",
       "files": "/src/**/*.*"
     }
@@ -234,7 +234,10 @@
     "type_form_parameters": true,
     "types_naming": false,
     "uncaught_exception": true,
-    "unknown_types": true,
+    "unknown_types": {
+      "exclude": [],
+      "severity": "Error"
+    },
     "unnecessary_chaining": true,
     "unnecessary_pragma": true,
     "unnecessary_return": true,
