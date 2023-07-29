@@ -116,9 +116,20 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        "use strict";` && |\n|  &&
                            |\n|  &&
                            `        sap.ui.controller("z2ui5_controller", {` && |\n|  &&
+  
+                           `            onInit: function () {` && |\n|  &&
                            |\n|  &&
-                             `          onInit: function () {` && |\n|  &&
-                           `                Date.createObject = (a => new Date(a));` && |\n|  &&
+                           `                // s type is String -> pattern: YYYY-MM-DDTHH:mm:ss ` && |\n|  &&
+                           `                Date.createObject = (s => new Date(s));` && |\n|  &&
+                           |\n|  &&
+                           `                // abap timestamp convert to JS Date ` && |\n|  &&
+                           `                Date.abapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n|  &&
+                           |\n|  &&
+                           `                // abap date to JS Date object => pattern: YYYYMMDD ` && |\n|  &&
+                           `                Date.abapDateToDateObject = (d => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7]));` && |\n|  &&
+                           |\n|  &&
+                           `                // abap date and time to JS Date object => pattern: d = YYYYMMDD , t = HHmmss ` && |\n|  &&
+                           `                Date.abapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n|  &&
                            `            },` && |\n|  &&
                            `            onAfterRendering: function () {` && |\n|  &&
                            |\n|  &&
