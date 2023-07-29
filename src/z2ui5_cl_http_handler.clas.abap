@@ -84,7 +84,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n|  &&
                            `            onInit: function () {` && |\n|  &&
                            |\n|  &&
-                           `                Date.createObject = (a => new Date(a));` && |\n|  &&
+                           `                Date.createObject = (a => new Date(a));` && |\n|  &&  "a type is String -> pattern: YYYY-MM-DDTHH:MM:SS
+                           `                Date.abapTimestampToDate = (a => new sap.gantt.misc.Format.abapTimestampToDate(a));` && |\n|  &&
+                           |\n|  &&
                            `            },` && |\n|  &&
                            |\n|  &&
                            `            onAfterRendering: function () {` && |\n|  &&
