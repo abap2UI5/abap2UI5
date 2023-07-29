@@ -176,12 +176,19 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
 
 
-  METHOD get_trim_upper.
+  METHOD check_is_boolean.
 
-    result = to_upper( shift_left( shift_right( CONV string( val ) ) ) ).
+    TRY.
+        DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
+        CASE lo_ele->get_relative_name( ).
+          WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
+            result = abap_true.
+        ENDCASE.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -213,16 +220,11 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD check_is_boolean.
+  METHOD get_classname_by_ref.
 
-    TRY.
-        DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( val ) ).
-        CASE lo_ele->get_relative_name( ).
-          WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
-            result = abap_true.
-        ENDCASE.
-      CATCH cx_root.
-    ENDTRY.
+    DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
+    result = substring_after( val = lv_classname
+                              sub = `\CLASS=` ).
 
   ENDMETHOD.
 
@@ -238,8 +240,64 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_replace.
+
+    result = iv_val.
+
+    DATA(lv_1) = substring_before( val = result
+                                   sub = iv_begin ).
+    DATA(lv_2) = substring_after( val = result
+                                  sub = iv_end ).
+    result = COND #( WHEN lv_2 IS NOT INITIAL THEN lv_1 && iv_replace && lv_2 ).
+
+  ENDMETHOD.
+
+
   METHOD get_timestampl.
     GET TIME STAMP FIELD result.
+  ENDMETHOD.
+
+
+  METHOD get_trim_lower.
+
+    result = to_lower( shift_left( shift_right( CONV string( val ) ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD get_trim_upper.
+
+    result = to_upper( shift_left( shift_right( CONV string( val ) ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD get_t_attri_by_ref.
+
+    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
+    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
+
+    LOOP AT lt_attri INTO DATA(ls_attri)
+         WHERE type_kind = cl_abap_classdescr=>typekind_struct2
+            OR type_kind = cl_abap_classdescr=>typekind_struct1.
+
+      DELETE lt_attri INDEX sy-tabix.
+
+      INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
+                                             iv_attri = ls_attri-name ) INTO TABLE lt_attri.
+
+    ENDLOOP.
+
+    LOOP AT lt_attri INTO ls_attri.
+
+      DATA(ls_attri2) = VALUE ty_attri( ).
+      ls_attri2 = CORRESPONDING #( ls_attri ).
+
+
+
+      APPEND ls_attri2 TO result.
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -276,66 +334,26 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_t_attri_by_ref.
+  METHOD get_text.
 
-    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
-    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
+    IF ms_error-x_root IS NOT INITIAL.
+      result = ms_error-x_root->get_text( ).
+      DATA(error) = abap_true.
+    ELSEIF ms_error-text IS NOT INITIAL.
+      result = ms_error-text.
+      error = abap_true.
+    ENDIF.
 
-    LOOP AT lt_attri INTO DATA(ls_attri)
-         WHERE type_kind = cl_abap_classdescr=>typekind_struct2
-            OR type_kind = cl_abap_classdescr=>typekind_struct1.
-
-      DELETE lt_attri INDEX sy-tabix.
-
-      INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
-                                             iv_attri = ls_attri-name ) INTO TABLE lt_attri.
-
-    ENDLOOP.
-
-    LOOP AT lt_attri INTO ls_attri.
-
-      DATA(ls_attri2) = VALUE ty_attri( ).
-      ls_attri2 = CORRESPONDING #( ls_attri ).
-
-
-
-      APPEND ls_attri2 TO result.
-    ENDLOOP.
+    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ).
 
   ENDMETHOD.
 
 
-  METHOD _get_t_attri_by_struc.
+  METHOD raise.
 
-    FIELD-SYMBOLS <attribute> TYPE any.
-
-    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
-    ASSIGN (lv_name) TO <attribute>.
-    raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
-    DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
-
-    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
-
-      DATA(lv_element) = iv_attri && `-` && lr_comp->name.
-
-      IF lr_comp->as_include = abap_true.
-        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
-                                               iv_attri = lv_element ) INTO TABLE result.
-
-      ELSE.
-        INSERT VALUE #( name      = lv_element
-                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
-      ENDIF.
-
-    ENDLOOP.
-  ENDMETHOD.
-
-
-  METHOD trans_any_2_json.
-
-    result = /ui2/cl_json=>serialize( any ).
+    IF when = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_cl_fw_utility EXPORTING val = v.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -400,11 +418,9 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_classname_by_ref.
+  METHOD trans_any_2_json.
 
-    DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
-    result = substring_after( val = lv_classname
-                              sub = `\CLASS=` ).
+    result = /ui2/cl_json=>serialize( any ).
 
   ENDMETHOD.
 
@@ -490,64 +506,13 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_text.
+  METHOD url_param_create_url.
 
-    IF ms_error-x_root IS NOT INITIAL.
-      result = ms_error-x_root->get_text( ).
-      DATA(error) = abap_true.
-    ELSEIF ms_error-text IS NOT INITIAL.
-      result = ms_error-text.
-      error = abap_true.
-    ENDIF.
-
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ).
-
-  ENDMETHOD.
-
-
-  METHOD raise.
-
-    IF when = abap_true.
-      RAISE EXCEPTION TYPE z2ui5_cl_fw_utility EXPORTING val = v.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD get_replace.
-
-    result = iv_val.
-
-    DATA(lv_1) = substring_before( val = result
-                                   sub = iv_begin ).
-    DATA(lv_2) = substring_after( val = result
-                                  sub = iv_end ).
-    result = COND #( WHEN lv_2 IS NOT INITIAL THEN lv_1 && iv_replace && lv_2 ).
-
-  ENDMETHOD.
-
-
-  METHOD get_trim_lower.
-
-    result = to_lower( shift_left( shift_right( CONV string( val ) ) ) ).
-
-  ENDMETHOD.
-
-  METHOD url_param_set.
-
-    DATA(lt_params) = url_param_get_tab( url ).
-
-    DATA(lv_n) = get_trim_lower( name ).
-
-    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
-        WHERE n = lv_n.
-      lr_params->v = get_trim_lower( value ).
+    LOOP AT t_params INTO DATA(ls_param).
+      result = result && ls_param-n && `=` && ls_param-v && `&`.
     ENDLOOP.
-    IF sy-subrc <> 0.
-      INSERT VALUE #( n = lv_n v = get_trim_lower( value ) ) INTO TABLE lt_params.
-    ENDIF.
-
-    result = url_param_create_url( lt_params ).
+    result = shift_right( val = result
+                          sub = `&` ).
 
   ENDMETHOD.
 
@@ -585,14 +550,50 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD url_param_create_url.
 
-    LOOP AT t_params INTO DATA(ls_param).
-      result = result && ls_param-n && `=` && ls_param-v && `&`.
+  METHOD url_param_set.
+
+    DATA(lt_params) = url_param_get_tab( url ).
+
+    DATA(lv_n) = get_trim_lower( name ).
+
+    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
+        WHERE n = lv_n.
+      lr_params->v = get_trim_lower( value ).
     ENDLOOP.
-    result = shift_right( val = result
-                          sub = `&` ).
+    IF sy-subrc <> 0.
+      INSERT VALUE #( n = lv_n v = get_trim_lower( value ) ) INTO TABLE lt_params.
+    ENDIF.
+
+    result = url_param_create_url( lt_params ).
 
   ENDMETHOD.
 
+
+  METHOD _get_t_attri_by_struc.
+
+    FIELD-SYMBOLS <attribute> TYPE any.
+
+    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
+    ASSIGN (lv_name) TO <attribute>.
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
+    DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
+
+    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
+
+      DATA(lv_element) = iv_attri && `-` && lr_comp->name.
+
+      IF lr_comp->as_include = abap_true.
+        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
+                                               iv_attri = lv_element ) INTO TABLE result.
+
+      ELSE.
+        INSERT VALUE #( name      = lv_element
+                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
+      ENDIF.
+
+    ENDLOOP.
+  ENDMETHOD.
 ENDCLASS.

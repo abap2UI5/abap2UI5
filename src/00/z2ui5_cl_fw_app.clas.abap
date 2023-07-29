@@ -44,20 +44,20 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_app IMPLEMENTATION.
-
-
-  METHOD factory_start.
-
-    result = NEW #( ).
-
-  ENDMETHOD.
+CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
 
   METHOD factory_error.
 
     result = NEW #( ).
     result->mx_error = error.
+
+  ENDMETHOD.
+
+
+  METHOD factory_start.
+
+    result = NEW #( ).
 
   ENDMETHOD.
 

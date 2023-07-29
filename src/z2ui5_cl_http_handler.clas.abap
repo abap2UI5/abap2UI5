@@ -30,39 +30,6 @@ ENDCLASS.
 CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
-  METHOD http_post.
-
-    DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( body ).
-
-    DO.
-      TRY.
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
-          ROLLBACK WORK.
-
-          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_leave( ).
-            CONTINUE.
-          ENDIF.
-
-          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_call( ).
-            CONTINUE.
-          ENDIF.
-
-          result = lo_handler->request_end( ).
-
-        CATCH cx_root INTO DATA(x).
-          lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
-          CONTINUE.
-      ENDTRY.
-
-      EXIT.
-    ENDDO.
-
-  ENDMETHOD.
-
-
   METHOD http_get.
 
     DATA(lt_config) = t_config.
@@ -451,5 +418,38 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `<abc/></html>`.
 
 *                               `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
+  ENDMETHOD.
+
+
+  METHOD http_post.
+
+    DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( body ).
+
+    DO.
+      TRY.
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
+          ROLLBACK WORK.
+
+          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_leave( ).
+            CONTINUE.
+          ENDIF.
+
+          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
+            lo_handler = lo_handler->set_app_call( ).
+            CONTINUE.
+          ENDIF.
+
+          result = lo_handler->request_end( ).
+
+        CATCH cx_root INTO DATA(x).
+          lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
+          CONTINUE.
+      ENDTRY.
+
+      EXIT.
+    ENDDO.
+
   ENDMETHOD.
 ENDCLASS.

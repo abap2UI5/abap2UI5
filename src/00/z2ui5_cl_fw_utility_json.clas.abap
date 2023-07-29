@@ -79,7 +79,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
 
 
   METHOD add_attribute.
@@ -177,11 +177,6 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_val_ref.
-
-    result = mr_actual.
-
-  ENDMETHOD.
 
   METHOD get_val.
 
@@ -190,6 +185,13 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
                                 v    = `value of attribute in JSON not found` ).
     result = <attribute>.
+
+  ENDMETHOD.
+
+
+  METHOD get_val_ref.
+
+    result = mr_actual.
 
   ENDMETHOD.
 

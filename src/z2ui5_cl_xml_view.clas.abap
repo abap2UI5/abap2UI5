@@ -1418,7 +1418,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2255,16 +2255,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD hlp_get_source_code_url.
-
-    DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
-    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
-
-    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-       && z2ui5_cl_fw_utility=>get_classname_by_ref( ls_draft-app ) && `/source/main`.
-
-  ENDMETHOD.
-
   METHOD hlp_get_app_url.
 
     IF classname IS NOT SUPPLIED.
@@ -2279,6 +2269,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
 
   ENDMETHOD.
+
+
+  METHOD hlp_get_source_code_url.
+
+    DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
+    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
+
+    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
+       && z2ui5_cl_fw_utility=>get_classname_by_ref( ls_draft-app ) && `/source/main`.
+
+  ENDMETHOD.
+
 
   METHOD hlp_get_url_param.
 

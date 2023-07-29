@@ -39,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_db IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -167,5 +167,4 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
     z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
-
 ENDCLASS.

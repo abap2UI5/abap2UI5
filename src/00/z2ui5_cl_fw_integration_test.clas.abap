@@ -16,7 +16,9 @@ CLASS z2ui5_cl_fw_integration_test DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_fw_integration_test IMPLEMENTATION.
+
+CLASS Z2UI5_CL_FW_INTEGRATION_TEST IMPLEMENTATION.
+
 
   METHOD z2ui5_if_app~main.
 
@@ -146,5 +148,4 @@ CLASS z2ui5_cl_fw_integration_test IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
 ENDCLASS.
