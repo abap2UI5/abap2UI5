@@ -1413,7 +1413,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !editable     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-        
+
     METHODS gantt_toolbar
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1519,10 +1519,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD base_rectangle.
+
     result = _generic( name   = `BaseRectangle` ns = 'gantt'
               t_prop = VALUE #( ( n = `time`                      v = time )
                                 ( n = `endtime`                   v = endtime )
-                                ( n = `selectable`                v = lcl_utility=>get_json_boolean( selectable ) )
+                                ( n = `selectable`                v = z2ui5_cl_fw_utility=>get_json_boolean( selectable ) )
                                 ( n = `selectedFill`              v = selectedFill )
                                 ( n = `fill`                      v = fill )
                                 ( n = `height`                    v = height )
@@ -1531,18 +1532,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `alignShape`                v = alignShape )
                                 ( n = `color`                     v = color   )
                                 ( n = `fontSize`                  v = fontSize )
-                                ( n = `connectable`               v = lcl_utility=>get_json_boolean( connectable ) )
+                                ( n = `connectable`               v = z2ui5_cl_fw_utility=>get_json_boolean( connectable ) )
                                 ( n = `fontFamily`                v = fontFamily )
                                 ( n = `filter`                    v = filter )
                                 ( n = `transform`                 v = transform )
-                                ( n = `countInBirdEye`            v = lcl_utility=>get_json_boolean( countInBirdEye ) )
+                                ( n = `countInBirdEye`            v = z2ui5_cl_fw_utility=>get_json_boolean( countInBirdEye ) )
                                 ( n = `fontWeight`                v = fontWeight   )
-                                ( n = `showTitle`                 v = lcl_utility=>get_json_boolean( showTitle ) )
-                                ( n = `selected`                  v = lcl_utility=>get_json_boolean( selected ) )
-                                ( n = `resizable`                 v = lcl_utility=>get_json_boolean( resizable ) )
+                                ( n = `showTitle`                 v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
+                                ( n = `selected`                  v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
+                                ( n = `resizable`                 v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
                                 ( n = `horizontalTextAlignment`   v = horizontalTextAlignment )
-                                ( n = `highlighted`               v = lcl_utility=>get_json_boolean( highlighted ) )
-                                ( n = `highlightable`             v = lcl_utility=>get_json_boolean( highlightable ) ) ) ).
+                                ( n = `highlighted`               v = z2ui5_cl_fw_utility=>get_json_boolean( highlighted ) )
+                                ( n = `highlightable`             v = z2ui5_cl_fw_utility=>get_json_boolean( highlightable ) ) ) ).
   ENDMETHOD.
 
 
@@ -1950,14 +1951,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `ContainerToolbar`
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `showSearchButton`          v = showsearchbutton )
-                                         ( n = `alignCustomContentToRight` v = lcl_utility=>get_json_boolean( alignCustomContentToRight ) )
+                                         ( n = `alignCustomContentToRight` v = z2ui5_cl_fw_utility=>get_json_boolean( alignCustomContentToRight ) )
                                          ( n = `findMode`                  v = findMode )
                                          ( n = `infoOfSelectItems`         v = infoOfSelectItems )
-                                         ( n = `showBirdEyeButton`         v = lcl_utility=>get_json_boolean( showBirdEyeButton ) )
-                                         ( n = `showDisplayTypeButton`     v = lcl_utility=>get_json_boolean( showDisplayTypeButton ) )
-                                         ( n = `showLegendButton`          v = lcl_utility=>get_json_boolean( showLegendButton ) )
-                                         ( n = `showSettingButton`         v = lcl_utility=>get_json_boolean( showSettingButton ) )
-                                         ( n = `showTimeZoomControl`       v = lcl_utility=>get_json_boolean( showTimeZoomControl ) )
+                                         ( n = `showBirdEyeButton`         v = z2ui5_cl_fw_utility=>get_json_boolean( showBirdEyeButton ) )
+                                         ( n = `showDisplayTypeButton`     v = z2ui5_cl_fw_utility=>get_json_boolean( showDisplayTypeButton ) )
+                                         ( n = `showLegendButton`          v = z2ui5_cl_fw_utility=>get_json_boolean( showLegendButton ) )
+                                         ( n = `showSettingButton`         v = z2ui5_cl_fw_utility=>get_json_boolean( showSettingButton ) )
+                                         ( n = `showTimeZoomControl`       v = z2ui5_cl_fw_utility=>get_json_boolean( showTimeZoomControl ) )
                                          ( n = `stepCountOfSlider`         v = stepCountOfSlider )
                                          ( n = `zoomControlType`           v = zoomControlType )
                                          ( n = `zoomLevel`                 v = zoomLevel )
@@ -3242,7 +3243,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `endTime` v = endtime )
                                          ( n = `type` v = type )
                                          ( n = `title` v = title )
-                                         ( n = `showTitle` v = lcl_utility=>get_json_boolean( showTitle ) )
+                                         ( n = `showTitle` v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
                                          ( n = `color` v = color ) ) ).
   ENDMETHOD.
 
