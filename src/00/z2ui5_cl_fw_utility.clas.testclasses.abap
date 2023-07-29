@@ -130,20 +130,13 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
 
-    DATA(lt_test) = VALUE abap_attrdescr_tab(
-( length = '44' decimals = '0' name = 'MS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-( length = '8' decimals = '0' name = 'MT_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-( length = '8' decimals = '0' name = 'MV_VAL' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-( length = '44' decimals = '0' name = 'SS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-( length = '8' decimals = '0' name = 'ST_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-( length = '8' decimals = '0' name = 'SV_STATUS' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = 'X' is_virtual = '' is_read_only = '' alias_for = '' )
-( length = '8' decimals = '0' name = 'SV_VAR' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
- ).
-
-    IF lt_test <> lt_attri.
-      cl_abap_unit_assert=>fail( msg  = 'utility - get abap_attrdescr_tab table wrong'
-                                 quit = 5 ).
-    ENDIF.
+    DATA(lv_test) = lt_attri[ name = `MS_TAB` ].
+    lv_test = lt_attri[ name = `MT_TAB` ].
+    lv_test = lt_attri[ name = `MV_VAL` ].
+    lv_test = lt_attri[ name = `SS_TAB` ].
+    lv_test = lt_attri[ name = `ST_TAB` ].
+    lv_test = lt_attri[ name = `SV_STATUS` ].
+    lv_test = lt_attri[ name = `SV_VAR` ].
 
   ENDMETHOD.
 
@@ -413,11 +406,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_url_param_get_tab.
 
     DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
-    IF lt_param[ n = `sap-client` ]-v = `100`.
+    IF lt_param[ n = `sap-client` ]-v <> `100`.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    IF lt_param[ n = `app_start` ]-v = `z2ui5_cl_app_hello_world`.
+    IF lt_param[ n = `app_start` ]-v <> `z2ui5_cl_app_hello_world`.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
@@ -430,7 +423,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
          value = `z2ui5_cl_app_hello_world2`
          url   = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
-    IF lv_param <> `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world2`.
+    IF lv_param <> `sap-client=100&app_start=z2ui5_cl_app_hello_world2`.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 

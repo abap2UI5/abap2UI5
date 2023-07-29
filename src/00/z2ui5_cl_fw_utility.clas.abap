@@ -538,14 +538,17 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
     DATA(lv_search2) = substring_after( val = lv_search
                                         sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
-    lv_search = shift_left( val = get_trim_lower( lv_search )
-                            sub = `?` ).
+
+    lv_search2 = substring_after( val = get_trim_lower( lv_search ) sub = `?` ).
+    if lv_search2 is not INITIAL.
+    lv_search = lv_search2.
+    endif.
 
     SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
 
     LOOP AT lt_param REFERENCE INTO DATA(lr_param).
       SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE rt_params.
+      INSERT VALUE #( n = get_trim_lower( lv_name ) v = get_trim_lower( lv_value ) ) INTO TABLE rt_params.
     ENDLOOP.
 
   ENDMETHOD.
