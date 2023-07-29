@@ -31,12 +31,12 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
   METHOD http_post.
 
-    DATA(lo_handler) = z2ui5_lcl_fw_handler=>request_begin( body ).
+    DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( body ).
 
     DO.
       TRY.
           ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_lcl_fw_client( lo_handler ) ).
+          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
           ROLLBACK WORK.
 
           IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
@@ -52,7 +52,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
           result = lo_handler->request_end( ).
 
         CATCH cx_root INTO DATA(x).
-          lo_handler = z2ui5_lcl_fw_handler=>set_app_system( x ).
+          lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
           CONTINUE.
       ENDTRY.
 
@@ -116,6 +116,9 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n|  &&
                            `        sap.ui.controller("z2ui5_controller", {` && |\n|  &&
                            |\n|  &&
+                             `          onInit: function () {` && |\n|  &&
+                           `                Date.createObject = (a => new Date(a));` && |\n|  &&
+                           `            },` && |\n|  &&
                            `            onAfterRendering: function () {` && |\n|  &&
                            |\n|  &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n|  &&
@@ -421,6 +424,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.checkNestAfter = false;` && |\n|  &&
                            |\n|  &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
+                           `        jQuery.sap.require("sap.ui.core.date.UI5Date");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n|  &&

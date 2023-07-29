@@ -88,30 +88,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD view_display_start.
 
-    TRY.
-
-        DATA(lv_url) = to_lower( client->get( )-s_config-origin && client->get( )-s_config-pathname ).
-
-        DATA(lv_search) = client->get( )-s_config-search.
-        SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-        LOOP AT lt_param INTO DATA(ls_param).
-          TRY.
-              IF ls_param(9) = `app_start`.
-                DELETE lt_param.
-              ENDIF.
-            CATCH cx_root.
-          ENDTRY.
-        ENDLOOP.
-        IF lv_search IS INITIAL.
-          lv_url = lv_url && `?`.
-        ELSE.
-          lv_url = lv_url && lv_search && `&`.
-        ENDIF.
-
-        DATA(lv_link) = lv_url && `app_start=` && to_lower( ms_home-classname ).
-
-      CATCH cx_root.
-    ENDTRY.
+    data(lv_url) = z2ui5_cl_xml_view=>factory( client )->hlp_get_app_url( ms_home-classname ).
 
     DATA(page) = z2ui5_cl_xml_view=>factory( client )->shell(
       )->page( shownavbutton  = abap_false ).
@@ -148,7 +125,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
     content->button( press = client->_event( ms_home-btn_event_id ) text = ms_home-btn_text icon = ms_home-btn_icon
         )->label( `Step 5`
-        )->link( text = `Link to the Application` target = `_blank` href = lv_link enabled = z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) ).
+        )->link( text = `Link to the Application` target = `_blank` href = lv_url enabled = z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
     DATA(form) = grid->simple_form( title = `Samples` editable = abap_true layout = 'ResponsiveGridLayout' ).
 

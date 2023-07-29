@@ -18,7 +18,6 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_config,
-      controller_name      TYPE string,
       view_model_edit_name TYPE string,
       version              TYPE string,
       origin               TYPE string,

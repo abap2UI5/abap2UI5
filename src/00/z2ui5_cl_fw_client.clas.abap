@@ -1,4 +1,4 @@
-CLASS z2ui5_lcl_fw_client DEFINITION
+CLASS z2ui5_cl_fw_client DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -7,16 +7,16 @@ CLASS z2ui5_lcl_fw_client DEFINITION
 
     INTERFACES z2ui5_if_client.
 
-    DATA mo_handler TYPE REF TO z2ui5_lcl_fw_handler.
+    DATA mo_handler TYPE REF TO z2ui5_cl_fw_handler.
 
     METHODS constructor
       IMPORTING
-        handler TYPE REF TO z2ui5_lcl_fw_handler.
+        handler TYPE REF TO z2ui5_cl_fw_handler.
 
 ENDCLASS.
 
 
-CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
+CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD constructor.
 
@@ -45,7 +45,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
       t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
       s_draft                = CORRESPONDING #( mo_handler->ms_db )
       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
-      s_config               = z2ui5_lcl_fw_handler=>ss_config ).
+      s_config               = z2ui5_cl_fw_handler=>ss_config ).
 
   ENDMETHOD.
 
@@ -97,7 +97,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-one_way ).
+    result = mo_handler->_create_binding( value = val type = z2ui5_cl_fw_handler=>cs_bind_type-one_way ).
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -107,7 +107,7 @@ CLASS z2ui5_lcl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value = val type = z2ui5_lcl_fw_handler=>cs_bind_type-two_way ).
+    result = mo_handler->_create_binding( value = val type = z2ui5_cl_fw_handler=>cs_bind_type-two_way ).
 
     IF path = abap_false.
       result = `{` && result && `}`.

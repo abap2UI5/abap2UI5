@@ -30,6 +30,26 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
         previous TYPE REF TO cx_root OPTIONAL
           PREFERRED PARAMETER val.
 
+    CLASS-METHODS url_param_get
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS url_param_create_url
+      IMPORTING
+        t_params      TYPE z2ui5_if_client=>ty_t_name_value
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS url_param_set
+      IMPORTING
+        url           TYPE string
+        name          TYPE string
+        value         TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS get_classname_by_ref
       IMPORTING
         in            TYPE REF TO object
@@ -141,6 +161,12 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
         val           TYPE any
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS url_param_get_tab
+      IMPORTING
+        i_val            TYPE string
+      RETURNING
+        VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -512,6 +538,62 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   METHOD get_trim_lower.
 
     result = to_lower( shift_left( shift_right( CONV string( val ) ) ) ).
+
+  ENDMETHOD.
+
+  METHOD url_param_set.
+
+    DATA(lt_params) = url_param_get_tab( url ).
+
+    DATA(lv_n) = get_trim_lower( name ).
+
+    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
+        WHERE n = lv_n.
+      lr_params->v = z2ui5_cl_fw_utility=>get_trim_lower( value ).
+    ENDLOOP.
+    IF sy-subrc <> 0.
+      INSERT VALUE #( n = lv_n v = z2ui5_cl_fw_utility=>get_trim_lower( value ) ) INTO TABLE lt_params.
+    ENDIF.
+
+    result = url_param_create_url( lt_params ).
+
+  ENDMETHOD.
+
+
+  METHOD url_param_get.
+
+    DATA(lt_params) = url_param_get_tab( val ).
+    DATA(lv_val) = z2ui5_cl_fw_utility=>get_trim_lower( val ).
+    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
+
+  ENDMETHOD.
+
+
+  METHOD url_param_get_tab.
+
+    DATA(lv_search) = replace( val = i_val sub = `%3D` with = '=' occ = 0 ).
+    SHIFT lv_search LEFT DELETING LEADING `?`.
+    lv_search = z2ui5_cl_fw_utility=>get_trim_lower( lv_search ).
+
+    DATA(lv_search2) = substring_after( val = lv_search sub = `&sap-startup-params=` ).
+    lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
+    lv_search = shift_left( val = z2ui5_cl_fw_utility=>get_trim_lower( lv_search ) sub = `?` ).
+
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE rt_params.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD url_param_create_url.
+
+    LOOP AT t_params INTO DATA(ls_param).
+      result = result && ls_param-n && `=` && ls_param-v && `&`.
+    ENDLOOP.
+    result = shift_right( val = result sub = `&` ).
 
   ENDMETHOD.
 

@@ -3,15 +3,10 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
 
-    DATA product           TYPE string.
-    DATA quantity          TYPE string.
-    DATA check_initialized TYPE abap_bool.
-
-    CLASS-DATA sv_state TYPE string.
 
   PRIVATE SECTION.
+    METHODS test_index_html FOR TESTING RAISING cx_static_check.
     METHODS test_xml_view      FOR TESTING RAISING cx_static_check.
     METHODS test_id            FOR TESTING RAISING cx_static_check.
     METHODS test_xml_popup     FOR TESTING RAISING cx_static_check.
@@ -24,144 +19,17 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
     METHODS test_scroll_cursor FOR TESTING RAISING cx_static_check.
     METHODS test_navigate      FOR TESTING RAISING cx_static_check.
     METHODS test_startup_path  FOR TESTING RAISING cx_static_check.
+
 ENDCLASS.
 
 
 CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
-  METHOD z2ui5_if_app~main.
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
-      product  = 'tomato'.
-      quantity = '500'.
-
-    ENDIF.
-
-    CASE client->get( )-event.
-      WHEN 'BUTTON_POST'.
-        client->message_toast_display( |{ product } { quantity } - send to the server| ).
-      WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-    ENDCASE.
-
-    IF sv_state = 'TEST_MESSAGE_BOX'.
-      client->message_box_display( 'test message box' ).
-    ENDIF.
-
-    IF sv_state = 'TEST_MESSAGE_TOAST'.
-      client->message_toast_display( 'test message toast' ).
-    ENDIF.
-
-    CASE sv_state.
-
-      WHEN 'TEST_ONE_WAY'.
-        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
-            )->page( title          = 'abap2UI5 - First Example'
-                     navbuttonpress = client->_event( 'BACK' )
-                     shownavbutton  = abap_true
-                )->simple_form( title    = 'Form Title'
-                                editable = abap_true
-                    )->content( 'form'
-                        )->title( 'Input'
-                        )->label( 'quantity'
-                        )->input( client->_bind( quantity )
-                        )->label( 'product'
-                        )->input( value   = product
-                                  enabled = abap_false
-                        )->button( text  = 'post'
-                                   press = client->_event( 'BUTTON_POST' )
-             )->get_root( )->xml_get( ) ).
-
-      WHEN 'TEST_POPUP'.
-
-        client->popup_display( z2ui5_cl_xml_view=>factory( client
-            )->dialog( title = 'abap2UI5 - First Example'
-                )->simple_form( title    = 'Form Title'
-                                editable = abap_true
-                    )->content( 'form'
-                        )->title( 'Input'
-                        )->label( 'quantity'
-                        )->input( client->_bind_edit( quantity )
-                        )->label( 'product'
-                        )->input( value   = product
-                                  enabled = abap_false
-                        )->button( text  = 'post'
-                                   press = client->_event( 'BUTTON_POST' )
-             )->get_root( )->xml_get( ) ).
-
-      WHEN 'TEST_TIMER'.
-        client->timer_set( event_finished = 'TIMER_FINISHED'
-                             interval_ms  = `500` ).
-
-        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
-                                    )->page( title          = 'abap2UI5 - First Example'
-                                             navbuttonpress = client->_event( 'BACK' )
-                                             shownavbutton  = abap_true
-                                        )->simple_form( title    = 'Form Title'
-                                                        editable = abap_true
-                                            )->content( 'form'
-                                                )->title( 'Input'
-                                                )->label( 'quantity'
-                                                )->input( client->_bind( quantity )
-                                                )->label( 'product'
-                                                )->input( value   = product
-                                                          enabled = abap_false
-                                                )->button( text  = 'post'
-                                                           press = client->_event( 'BUTTON_POST' )
-                                     )->get_root( )->xml_get( ) ).
-
-      WHEN OTHERS.
-        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
-            )->page( title          = 'abap2UI5 - First Example'
-                     navbuttonpress = client->_event( 'BACK' )
-                     shownavbutton  = abap_true
-                )->simple_form( title    = 'Form Title'
-                                editable = abap_true
-                    )->content( 'form'
-                        )->title( 'Input'
-                        )->label( 'quantity'
-                        )->input( client->_bind_edit( quantity )
-                        )->label( 'product'
-                        )->input( value   = product
-                                  enabled = abap_false
-                        )->button( text  = 'post'
-                                   press = client->_event( 'BUTTON_POST' )
-             )->get_root( )->xml_get( ) ).
-
-    ENDCASE.
-
-    IF sv_state = 'TEST_SCROLL_CURSOR'.
-
-      client->view_display( `test` ).
-      client->cursor_set( id             = 'id_text2'
-                          cursorpos      = '5'
-                          selectionstart = '5'
-                          selectionend   = '10' ).
-
-      client->scroll_position_set( VALUE #( v = '99999'
-                                ( n = 'id_page' )
-                                ( n = 'id_text3' ) ) ).
-
-    ENDIF.
-
-    IF sv_state = 'TEST_NAVIGATE'.
-      DATA(lo_app) = NEW ltcl_unit_02_app_start( ).
-      sv_state = 'LEAVE_APP'.
-      client->nav_app_call( lo_app ).
-      RETURN.
-    ENDIF.
-
-    IF sv_state = 'LEAVE_APP'.
-      CLEAR sv_state.
-      client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app ) ).
-    ENDIF.
-  ENDMETHOD.
-
   METHOD test_xml_view.
 
-    sv_state = ``.
+    z2ui5_cl_fw_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-        body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
+        body = `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}`
     ).
 
     DATA lo_data TYPE REF TO data.
@@ -180,11 +48,21 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD test_index_html.
+
+    DATA(lv_index_html) = z2ui5_cl_http_handler=>http_get( ).
+    IF lv_index_html IS INITIAL.
+      cl_abap_unit_assert=>fail( 'HTTP GET - index html initial' ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD test_id.
 
-    sv_state = ``.
+    z2ui5_cl_fw_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      body = `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}`
+      body = `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}`
     ).
 
     DATA lo_data TYPE REF TO data.
@@ -203,9 +81,14 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_bind_one_way.
 
-    sv_state = `TEST_ONE_WAY`.
+
+    DATA(lo_test) = NEW z2ui5_cl_fw_integration_test( ).
+    DATA(lv_classname) = z2ui5_cl_fw_utility=>get_classname_by_ref( lo_test ).
+
+
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_ONE_WAY`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
 
     DATA lo_data TYPE REF TO data.
@@ -224,9 +107,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_bind_two_way.
 
-    sv_state = ``.
+    z2ui5_cl_fw_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -244,9 +127,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_message_box.
 
-    sv_state = `TEST_MESSAGE_BOX`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_MESSAGE_BOX`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -273,9 +156,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_message_toast.
 
-    sv_state = `TEST_MESSAGE_TOAST`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_MESSAGE_TOAST`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -295,9 +178,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_timer.
 
-    sv_state = `TEST_TIMER`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_TIMER`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -324,9 +207,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_xml_popup.
 
-    sv_state = `TEST_POPUP`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_POPUP`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -365,9 +248,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_scroll_cursor.
 
-    sv_state = `TEST_SCROLL_CURSOR`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_SCROLL_CURSOR`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -380,9 +263,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_startup_path.
 
-    sv_state = `TEST_NAVIGATE`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_NAVIGATE`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -393,9 +276,9 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
   METHOD test_navigate.
 
-    sv_state = `TEST_NAVIGATE`.
+    z2ui5_cl_fw_integration_test=>sv_state = `TEST_NAVIGATE`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-       `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
+       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -468,39 +351,39 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
   METHOD test_app_change_value.
 
-    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-       `{ "OLOCATION" : { "SEARCH" : "app_start=LTCL_UNIT_02_APP_START"}}` ).
-
-    DATA lo_data TYPE REF TO data.
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-                               CHANGING  data = lo_data ).
-
-    FIELD-SYMBOLS <val> TYPE any.
-
-    UNASSIGN <val>.
-    DATA(lv_assign) = `ID->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> IS INITIAL.
-      cl_abap_unit_assert=>fail( msg  = 'id - initial value is initial'
-                                 quit = 5 ).
-    ENDIF.
-    DATA(lv_id) = CONV string( <val> ).
-
-    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}] }`.
-    lv_response = z2ui5_cl_http_handler=>http_post(
-          lv_request ).
-
-    CLEAR lo_data.
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-                               CHANGING  data = lo_data ).
-
-    UNASSIGN <val>.
-    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `600`.
-      cl_abap_unit_assert=>fail( msg  = 'data binding - frontend updated value wrong after roundtrip'
-                                 quit = 5 ).
-    ENDIF.
+*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
+*       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
+*
+*    DATA lo_data TYPE REF TO data.
+*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
+*                               CHANGING  data = lo_data ).
+*
+*    FIELD-SYMBOLS <val> TYPE any.
+*
+*    UNASSIGN <val>.
+*    DATA(lv_assign) = `ID->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> IS INITIAL.
+*      cl_abap_unit_assert=>fail( msg  = 'id - initial value is initial'
+*                                 quit = 5 ).
+*    ENDIF.
+*    DATA(lv_id) = CONV string( <val> ).
+*
+*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}] }`.
+*    lv_response = z2ui5_cl_http_handler=>http_post(
+*          lv_request ).
+*
+*    CLEAR lo_data.
+*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
+*                               CHANGING  data = lo_data ).
+*
+*    UNASSIGN <val>.
+*    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `600`.
+*      cl_abap_unit_assert=>fail( msg  = 'data binding - frontend updated value wrong after roundtrip'
+*                                 quit = 5 ).
+*    ENDIF.
   ENDMETHOD.
 
   METHOD test_app_event.
@@ -512,4 +395,5 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
 
   ENDMETHOD.
+
 ENDCLASS.

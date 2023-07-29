@@ -1,4 +1,4 @@
-CLASS z2ui5_lcl_fw_handler DEFINITION
+CLASS z2ui5_cl_fw_handler DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -82,7 +82,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION
       IMPORTING
         body          TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
 
     METHODS request_end
       RETURNING
@@ -97,25 +97,25 @@ CLASS z2ui5_lcl_fw_handler DEFINITION
 
     CLASS-METHODS set_app_start
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
 
     CLASS-METHODS set_app_client
       IMPORTING
         id_prev       TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
 
     METHODS set_app_leave
       IMPORTING
         check_no_db_save TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(result)    TYPE REF TO z2ui5_cl_fw_handler.
 
     METHODS set_app_call
       IMPORTING
         check_no_db_save TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(result)    TYPE REF TO z2ui5_cl_fw_handler.
 
     CLASS-METHODS set_app_system
       IMPORTING
@@ -123,7 +123,7 @@ CLASS z2ui5_lcl_fw_handler DEFINITION
         error_text    TYPE string         OPTIONAL
           PREFERRED PARAMETER ix
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
 
     CLASS-METHODS model_set_backend
       IMPORTING
@@ -142,26 +142,28 @@ CLASS z2ui5_lcl_fw_handler DEFINITION
       IMPORTING
         app             TYPE REF TO z2ui5_if_app
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_lcl_fw_handler.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_fw_handler.
 
 ENDCLASS.
 
 
 
-CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
+CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
   METHOD request_begin.
 
     so_body = z2ui5_cl_fw_utility_json=>factory( body ).
 
-    ss_config = VALUE #( LET location = so_body->get_attribute( `OLOCATION` ) IN
-        controller_name      = `z2ui5_controller`
-        view_model_edit_name = `oUpdate`
-        body                 = body
-        origin               = location->get_attribute( `ORIGIN` )->get_val( )
-        pathname             = location->get_attribute( `PATHNAME` )->get_val( )
-        search               = location->get_attribute( `SEARCH` )->get_val( )
-        version              = location->get_attribute( `VERSION` )->get_val( ) ).
+    TRY.
+        DATA(location)     = so_body->get_attribute( `OLOCATION` ).
+        ss_config-body     = body.
+        ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
+        ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
+        ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
+        ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+    ss_config-view_model_edit_name = `oUpdate`.
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
@@ -402,7 +404,7 @@ CLASS z2ui5_lcl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     IF lv_classname IS INITIAL.
-      lv_classname = z2ui5_cl_xml_view=>factory( NEW z2ui5_lcl_fw_client( NEW #( ) ) )->hlp_get_url_param( `app_start` ).
+      lv_classname = z2ui5_cl_xml_view=>factory( NEW z2ui5_cl_fw_client( NEW #( ) ) )->hlp_get_url_param( `app_start` ).
     ENDIF.
 
     IF lv_classname IS INITIAL.

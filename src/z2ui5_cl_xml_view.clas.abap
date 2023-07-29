@@ -24,7 +24,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS hlp_get_source_code_url
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
+    METHODS hlp_get_app_url
+      IMPORTING
+        value(classname)     TYPE string OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS hlp_get_url_param
       IMPORTING
@@ -36,12 +42,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !n TYPE clike
         !v TYPE clike.
-
-    METHODS hlp_replace_controller_name
-      IMPORTING
-        !xml          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
 
     METHODS horizontal_layout
       IMPORTING
@@ -2012,8 +2012,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mt_prop  = VALUE #( BASE result->mt_prop
                                 (  n = 'displayBlock'   v = 'true' )
                                 (  n = 'height'         v = '100%' )
-                                (  n = 'controllerName' v = `z2ui5_controller` ) ).
-*                                (  n = 'controllerName' v = client->get( )-s_config-controller_name )  ).
+                        ).
 
     result->mv_name   = `View`.
     result->mv_ns     = `mvc`.
@@ -2041,6 +2040,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD filter_bar.
+
     result = _generic( name   = `FilterBar`
                        ns     = 'fb'
                        t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
@@ -2264,85 +2264,37 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD hlp_get_app_url.
 
-  METHOD hlp_get_url_param.
-
-    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
-    DATA(lv_search) = mi_client->get( )-s_config-search.
-
-    REPLACE `%3D` IN lv_search WITH `=`.
-
-    DATA(lv_search2) = substring_after( val = lv_search sub = `&sap-startup-params=` ).
-    IF lv_search2 IS NOT INITIAL.
-      lv_search = lv_search2.
+    IF classname IS NOT SUPPLIED.
+      classname = z2ui5_cl_fw_utility=>get_classname_by_ref( mi_client->get( )-s_draft-app ).
     ENDIF.
 
+    DATA(lv_url) = to_lower( mi_client->get( )-s_config-origin && mi_client->get( )-s_config-pathname ) && `?`.
+    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( mi_client->get( )-s_config-search ).
+    DELETE lt_param WHERE n = `app_start`.
+    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
 
-    lv_search = z2ui5_cl_fw_utility=>get_trim_lower( lv_search ).
-    SHIFT lv_search LEFT DELETING LEADING `?`.
-
-    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-
-    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-
-      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-
-      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
-    ENDLOOP.
-
-    DATA(lv_val) = z2ui5_cl_fw_utility=>get_trim_lower( val ).
-    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
+    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
 
   ENDMETHOD.
 
+  METHOD hlp_get_url_param.
 
-  METHOD hlp_replace_controller_name.
-
-    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
-
-    result = z2ui5_cl_fw_utility=>get_replace(
-      iv_val     = xml
-      iv_begin   = 'controllerName="'
-      iv_end     = '"'
-      iv_replace = `controllerName="` && ls_config-controller_name && `"` ).
+    result = z2ui5_cl_fw_utility=>url_param_get( mi_client->get( )-s_config-search ).
 
   ENDMETHOD.
 
 
   METHOD hlp_set_url_param.
 
-    DATA(lt_params) = VALUE z2ui5_if_client=>ty_t_name_value( ).
-    DATA(lv_search) = mi_client->get( )-s_config-search.
+    DATA(result) = z2ui5_cl_fw_utility=>url_param_set(
+               url   = mi_client->get( )-s_config-search
+               name  = n
+               value = v
+             ).
 
-    lv_search = z2ui5_cl_fw_utility=>get_trim_lower( lv_search ).
-    SHIFT lv_search LEFT DELETING LEADING `?`.
-
-    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-
-    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-
-      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-
-      INSERT VALUE #( n = lv_name v = lv_value ) INTO TABLE lt_params.
-    ENDLOOP.
-
-    DATA(lv_n) = z2ui5_cl_fw_utility=>get_trim_lower( n ).
-
-    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
-        WHERE n = lv_n.
-      lr_params->v = z2ui5_cl_fw_utility=>get_trim_lower( v ).
-    ENDLOOP.
-    IF sy-subrc <> 0.
-      INSERT VALUE #( n = lv_n v = z2ui5_cl_fw_utility=>get_trim_lower( v ) ) INTO TABLE lt_params.
-    ENDIF.
-
-    DATA(lv_result) = `?` && lt_params[ 1 ]-n && `=` && lt_params[ 1 ]-v.
-
-    LOOP AT lt_params REFERENCE INTO lr_params FROM 2.
-      lv_result = lv_result && `&` && lr_params->n && `=` && lr_params->v.
-    ENDLOOP.
-
-    mi_client->url_param_set( lv_result ).
+    mi_client->url_param_set( result ).
 
   ENDMETHOD.
 

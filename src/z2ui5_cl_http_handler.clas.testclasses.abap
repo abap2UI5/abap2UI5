@@ -3,14 +3,10 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
-    DATA product           TYPE string.
-    DATA quantity          TYPE string.
-    DATA check_initialized TYPE abap_bool.
-
-    CLASS-DATA sv_state TYPE string.
-
+  PROTECTED SECTION.
   PRIVATE SECTION.
-    METHODS test_index_html FOR TESTING RAISING cx_static_check.
+    METHODS test_index_html   FOR TESTING RAISING cx_static_check.
+
 ENDCLASS.
 
 
