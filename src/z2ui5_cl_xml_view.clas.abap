@@ -1291,7 +1291,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS container_toolbar
       IMPORTING
-        !showsearchbutton TYPE clike OPTIONAL
+        !showsearchbutton         TYPE clike OPTIONAL
+        !alignCustomContentToRight TYPE clike OPTIONAL
+        !findMode                  TYPE clike OPTIONAL
+        !infoOfSelectItems         TYPE clike OPTIONAL
+        !showBirdEyeButton         TYPE clike OPTIONAL
+        !showDisplayTypeButton     TYPE clike OPTIONAL
+        !showLegendButton          TYPE clike OPTIONAL
+        !showSettingButton         TYPE clike OPTIONAL
+        !showTimeZoomControl       TYPE clike OPTIONAL
+        !stepCountOfSlider         TYPE clike OPTIONAL
+        !zoomControlType           TYPE clike OPTIONAL
+        !zoomLevel                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1351,6 +1362,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !color        TYPE clike OPTIONAL
         !endtime      TYPE clike OPTIONAL
         !time         TYPE clike OPTIONAL
+        !title        TYPE clike OPTIONAL
+        !showTitle    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1358,7 +1371,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-      METHODS rating_indicator
+    METHODS rating_indicator
       IMPORTING
         !maxvalue     TYPE clike OPTIONAL
         !enabled      TYPE clike OPTIONAL
@@ -1370,6 +1383,38 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !change       TYPE clike OPTIONAL
         !id           TYPE clike OPTIONAL
         !editable     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS gantt_toolbar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS base_rectangle
+      IMPORTING
+        !time                    TYPE clike OPTIONAL
+        !endtime                 TYPE clike OPTIONAL
+        !selectable              TYPE clike OPTIONAL
+        !selectedFill            TYPE clike OPTIONAL
+        !fill                    TYPE clike OPTIONAL
+        !height                  TYPE clike OPTIONAL
+        !title                   TYPE clike OPTIONAL
+        !animationSettings       TYPE clike OPTIONAL
+        !alignShape              TYPE clike OPTIONAL
+        !color                   TYPE clike OPTIONAL
+        !fontSize                TYPE clike OPTIONAL
+        !connectable             TYPE clike OPTIONAL
+        !fontFamily              TYPE clike OPTIONAL
+        !filter                  TYPE clike OPTIONAL
+        !transform               TYPE clike OPTIONAL
+        !countInBirdEye          TYPE clike OPTIONAL
+        !fontWeight              TYPE clike OPTIONAL
+        !showTitle               TYPE clike OPTIONAL
+        !selected                TYPE clike OPTIONAL
+        !resizable               TYPE clike OPTIONAL
+        !horizontalTextAlignment TYPE clike OPTIONAL
+        !highlighted             TYPE clike OPTIONAL
+        !highlightable           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1443,6 +1488,34 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD bars.
     result = _generic( name = `bars`
                        ns   = `mchart` ).
+  ENDMETHOD.
+
+
+  METHOD base_rectangle.
+    result = _generic( name   = `BaseRectangle` ns = 'gantt'
+              t_prop = VALUE #( ( n = `time`                      v = time )
+                                ( n = `endtime`                   v = endtime )
+                                ( n = `selectable`                v = lcl_utility=>get_json_boolean( selectable ) )
+                                ( n = `selectedFill`              v = selectedFill )
+                                ( n = `fill`                      v = fill )
+                                ( n = `height`                    v = height )
+                                ( n = `title`                     v = title )
+                                ( n = `animationSettings`         v = animationSettings )
+                                ( n = `alignShape`                v = alignShape )
+                                ( n = `color`                     v = color   )
+                                ( n = `fontSize`                  v = fontSize )
+                                ( n = `connectable`               v = lcl_utility=>get_json_boolean( connectable ) )
+                                ( n = `fontFamily`                v = fontFamily )
+                                ( n = `filter`                    v = filter )
+                                ( n = `transform`                 v = transform )
+                                ( n = `countInBirdEye`            v = lcl_utility=>get_json_boolean( countInBirdEye ) )
+                                ( n = `fontWeight`                v = fontWeight   )
+                                ( n = `showTitle`                 v = lcl_utility=>get_json_boolean( showTitle ) )
+                                ( n = `selected`                  v = lcl_utility=>get_json_boolean( selected ) )
+                                ( n = `resizable`                 v = lcl_utility=>get_json_boolean( resizable ) )
+                                ( n = `horizontalTextAlignment`   v = horizontalTextAlignment )
+                                ( n = `highlighted`               v = lcl_utility=>get_json_boolean( highlighted ) )
+                                ( n = `highlightable`             v = lcl_utility=>get_json_boolean( highlightable ) ) ) ).
   ENDMETHOD.
 
 
@@ -1848,7 +1921,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD container_toolbar.
     result = _generic( name   = `ContainerToolbar`
                        ns     = `gantt`
-                       t_prop = VALUE #( ( n = `showSearchButton` v = showsearchbutton )
+                       t_prop = VALUE #( ( n = `showSearchButton`          v = showsearchbutton )
+                                         ( n = `alignCustomContentToRight` v = lcl_utility=>get_json_boolean( alignCustomContentToRight ) )
+                                         ( n = `findMode`                  v = findMode )
+                                         ( n = `infoOfSelectItems`         v = infoOfSelectItems )
+                                         ( n = `showBirdEyeButton`         v = lcl_utility=>get_json_boolean( showBirdEyeButton ) )
+                                         ( n = `showDisplayTypeButton`     v = lcl_utility=>get_json_boolean( showDisplayTypeButton ) )
+                                         ( n = `showLegendButton`          v = lcl_utility=>get_json_boolean( showLegendButton ) )
+                                         ( n = `showSettingButton`         v = lcl_utility=>get_json_boolean( showSettingButton ) )
+                                         ( n = `showTimeZoomControl`       v = lcl_utility=>get_json_boolean( showTimeZoomControl ) )
+                                         ( n = `stepCountOfSlider`         v = stepCountOfSlider )
+                                         ( n = `zoomControlType`           v = zoomControlType )
+                                         ( n = `zoomLevel`                 v = zoomLevel )
                                        ) ).
   ENDMETHOD.
 
@@ -2119,6 +2203,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `table`
                        ns     = `gantt`
                      ).
+  ENDMETHOD.
+
+
+  METHOD gantt_toolbar.
+    result = _generic( name = `toolbar`
+                       ns   = 'gantt' ).
   ENDMETHOD.
 
 
@@ -2926,6 +3016,23 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD rating_indicator.
+
+    result = _generic( name   = `RatingIndicator`
+                       t_prop = VALUE #( ( n = `class`        v = class )
+                                         ( n = `maxValue`     v = maxvalue )
+                                         ( n = `displayOnly`  v = displayonly )
+                                         ( n = `editable`     v = editable )
+                                         ( n = `iconSize`     v = iconSize )
+                                         ( n = `value`        v = value )
+                                         ( n = `id`           v = id )
+                                         ( n = `change`       v = change )
+                                         ( n = `enabled`      v = enabled )
+                                         ( n = `tooltip`      v = tooltip ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD rows.
     result = _generic( name = `rows` ).
   ENDMETHOD.
@@ -3164,6 +3271,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `time` v = time )
                                          ( n = `endTime` v = endtime )
                                          ( n = `type` v = type )
+                                         ( n = `title` v = title )
+                                         ( n = `showTitle` v = lcl_utility=>get_json_boolean( showTitle ) )
                                          ( n = `color` v = color ) ) ).
   ENDMETHOD.
 
@@ -3519,23 +3628,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     mo_root->mo_previous = result2.
     result = result2.
-
-  ENDMETHOD.
-
-
-  METHOD rating_indicator.
-
-    result = _generic( name   = `RatingIndicator`
-                       t_prop = VALUE #( ( n = `class`        v = class )
-                                         ( n = `maxValue`     v = maxvalue )
-                                         ( n = `displayOnly`  v = displayonly )
-                                         ( n = `editable`     v = editable )
-                                         ( n = `iconSize`     v = iconSize )
-                                         ( n = `value`        v = value )
-                                         ( n = `id`           v = id )
-                                         ( n = `change`       v = change )
-                                         ( n = `enabled`      v = enabled )
-                                         ( n = `tooltip`      v = tooltip ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
