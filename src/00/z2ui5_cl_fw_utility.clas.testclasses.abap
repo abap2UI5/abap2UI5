@@ -65,6 +65,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_attri_by_ref.
 
+    "dummy for abaplint check green
+    ltcl_test_app=>sv_var = ``.
+    ltcl_test_app=>ss_tab = VALUE #( ).
+    ltcl_test_app=>st_tab = VALUE #( ).
+
     DATA(lo_app) = NEW ltcl_test_app( ).
 
     DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_ref( lo_app ).
