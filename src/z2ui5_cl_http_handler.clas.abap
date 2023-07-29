@@ -4,6 +4,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+
     CLASS-METHODS http_post
       IMPORTING
         body          TYPE string
@@ -116,8 +117,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            |\n|  &&
                            `        sap.ui.controller("z2ui5_controller", {` && |\n|  &&
                            |\n|  &&
-                           `            onInit: function () {` && |\n|  &&
-                           |\n|  &&
+                             `          onInit: function () {` && |\n|  &&
                            `                Date.createObject = (a => new Date(a));` && |\n|  &&
                            `            },` && |\n|  &&
                            `            onAfterRendering: function () {` && |\n|  &&
@@ -236,7 +236,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n|  &&
                            `                sap.z2ui5.oView.destroy();` && |\n|  &&
                            `            },` && |\n|  &&
-                           |\n|  &&
+                           `            ` && |\n|  &&
                            `            onEventFrontend: (...args) => {` && |\n|  &&
                            |\n|  &&
                            `                switch (args[0].EVENT) {` && |\n|  &&
@@ -429,7 +429,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
                            `        jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n|  &&
-                           `        jQuery.sap.require("sap.ui.core.date.UI5Date");` && |\n|  &&
                            |\n|  &&
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n|  &&
