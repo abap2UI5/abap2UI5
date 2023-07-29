@@ -110,13 +110,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
         `</body>` && |\n| &&
         `</html><abc/>` && |\n|.
 
-
      r_result = r_result && `<script>` && |\n|  &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n|  &&
                            `        "use strict";` && |\n|  &&
                            |\n|  &&
                            `        sap.ui.controller("z2ui5_controller", {` && |\n|  &&
-  
                            `            onInit: function () {` && |\n|  &&
                            |\n|  &&
                            `                // s type is String -> pattern: YYYY-MM-DDTHH:mm:ss ` && |\n|  &&
