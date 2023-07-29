@@ -136,7 +136,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     ENDIF.
 
     form->content( ns = `form` )->label( )->button(
-         text = 'Continue...' press = client->_event( val = `DEMOS` check_view_destroy = abap_true ) enabled = COND #( WHEN mv_check_demo = abap_true THEN abap_true ELSE abap_false )
+         text = 'Continue...' press = client->_event( val = `DEMOS` check_view_destroy = abap_true ) enabled = xsdbool( mv_check_demo = abap_true )
          )->button( visible = abap_false )->link( text = 'More on GitHub...' target = '_blank' href = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
 
     client->view_display( form->stringify( ) ).

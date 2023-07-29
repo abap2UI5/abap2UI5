@@ -33,6 +33,7 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
     CLASS-METHODS url_param_get
       IMPORTING
         val           TYPE string
+        url           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -549,10 +550,10 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     LOOP AT lt_params REFERENCE INTO DATA(lr_params)
         WHERE n = lv_n.
-      lr_params->v = z2ui5_cl_fw_utility=>get_trim_lower( value ).
+      lr_params->v = get_trim_lower( value ).
     ENDLOOP.
     IF sy-subrc <> 0.
-      INSERT VALUE #( n = lv_n v = z2ui5_cl_fw_utility=>get_trim_lower( value ) ) INTO TABLE lt_params.
+      INSERT VALUE #( n = lv_n v = get_trim_lower( value ) ) INTO TABLE lt_params.
     ENDIF.
 
     result = url_param_create_url( lt_params ).
@@ -562,8 +563,8 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD url_param_get.
 
-    DATA(lt_params) = url_param_get_tab( val ).
-    DATA(lv_val) = z2ui5_cl_fw_utility=>get_trim_lower( val ).
+    DATA(lt_params) = url_param_get_tab( url ).
+    DATA(lv_val) = get_trim_lower( val ).
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
@@ -573,11 +574,11 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     DATA(lv_search) = replace( val = i_val sub = `%3D` with = '=' occ = 0 ).
     SHIFT lv_search LEFT DELETING LEADING `?`.
-    lv_search = z2ui5_cl_fw_utility=>get_trim_lower( lv_search ).
+    lv_search = get_trim_lower( lv_search ).
 
     DATA(lv_search2) = substring_after( val = lv_search sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
-    lv_search = shift_left( val = z2ui5_cl_fw_utility=>get_trim_lower( lv_search ) sub = `?` ).
+    lv_search = shift_left( val = get_trim_lower( lv_search ) sub = `?` ).
 
     SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
 

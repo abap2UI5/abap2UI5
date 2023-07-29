@@ -2281,7 +2281,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD hlp_get_url_param.
 
-    result = z2ui5_cl_fw_utility=>url_param_get( mi_client->get( )-s_config-search ).
+    result = z2ui5_cl_fw_utility=>url_param_get(
+        val = val
+        url = mi_client->get( )-s_config-search ).
 
   ENDMETHOD.
 

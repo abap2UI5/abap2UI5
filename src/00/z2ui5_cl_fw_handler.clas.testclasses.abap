@@ -21,7 +21,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    DATA(lo_app_fw) = CAST z2ui5_cl_fw_app( lo_handler->ms_db-app ).
+    DATA(lo_app_fw) = CAST z2ui5_cl_fw_app( lo_handler->ms_db-app ) ##NEEDED.
 
 
   ENDMETHOD.
@@ -37,7 +37,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    DATA(lo_app_fw) = CAST z2ui5_cl_app_hello_world( lo_handler->ms_db-app ).
+    DATA(lo_app_fw) = CAST z2ui5_cl_app_hello_world( lo_handler->ms_db-app ) ##NEEDED.
 
 
   ENDMETHOD.
