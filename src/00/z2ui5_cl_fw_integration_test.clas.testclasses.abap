@@ -83,7 +83,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
 
     DATA(lo_test) = NEW z2ui5_cl_fw_integration_test( ).
-    DATA(lv_classname) = z2ui5_cl_fw_utility=>get_classname_by_ref( lo_test ).
+*    DATA(lv_classname) = z2ui5_cl_fw_utility=>get_classname_by_ref( lo_test ).
 
 
     z2ui5_cl_fw_integration_test=>sv_state = `TEST_ONE_WAY`.
