@@ -84,10 +84,12 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute.
 
-    result = new( io_root = mo_root iv_name = n ).
+    result = new( io_root = mo_root
+                  iv_name = n ).
 
     result->mv_value = COND #( WHEN apos_active = abap_true
-        THEN escape( val = v format = cl_abap_format=>e_json_string ) ELSE v ).
+        THEN escape( val    = v
+                     format = cl_abap_format=>e_json_string ) ELSE v ).
 
     result->mv_apost_active = apos_active.
     result->mo_parent       = me.
@@ -108,7 +110,8 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
   METHOD add_attribute_object.
 
-    result = new( io_root = mo_root iv_name = name ).
+    result = new( io_root = mo_root
+                  iv_name = name ).
     INSERT result INTO TABLE mt_values.
     result->mo_parent = me.
 
@@ -156,9 +159,13 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
     z2ui5_cl_fw_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
 
-    result = new( io_root = mo_root iv_name = name ).
+    result = new( io_root = mo_root
+                  iv_name = name ).
 
-    DATA(lv_name) = 'MR_ACTUAL->' && replace( val  = name sub  = `-` with = `_` occ  = 0 ).
+    DATA(lv_name) = 'MR_ACTUAL->' && replace( val  = name
+                                              sub  = `-`
+                                              with = `_`
+                                              occ  = 0 ).
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN (lv_name) TO <attribute>.
@@ -180,7 +187,8 @@ CLASS z2ui5_cl_fw_utility_json IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) v = `value of attribute in JSON not found` ).
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+                                v    = `value of attribute in JSON not found` ).
     result = <attribute>.
 
   ENDMETHOD.

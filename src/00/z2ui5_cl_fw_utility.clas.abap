@@ -297,18 +297,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       DATA(ls_attri2) = VALUE ty_attri( ).
       ls_attri2 = CORRESPONDING #( ls_attri ).
 
-*      FIELD-SYMBOLS <any> TYPE any.
-*      UNASSIGN <any>.
-*      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
-*      ASSIGN (lv_assign) TO <any>.
-*
-*      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
-*      TRY.
-*          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
-*          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
-*          ls_attri2-check_ref_data = abap_true.
-*        CATCH cx_root.
-*      ENDTRY.
+
 
       APPEND ls_attri2 TO result.
     ENDLOOP.
@@ -529,8 +518,10 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     result = iv_val.
 
-    DATA(lv_1) = substring_before( val = result sub = iv_begin ).
-    DATA(lv_2) = substring_after( val = result sub = iv_end ).
+    DATA(lv_1) = substring_before( val = result
+                                   sub = iv_begin ).
+    DATA(lv_2) = substring_after( val = result
+                                  sub = iv_end ).
     result = COND #( WHEN lv_2 IS NOT INITIAL THEN lv_1 && iv_replace && lv_2 ).
 
   ENDMETHOD.
@@ -572,13 +563,18 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD url_param_get_tab.
 
-    DATA(lv_search) = replace( val = i_val sub = `%3D` with = '=' occ = 0 ).
+    DATA(lv_search) = replace( val  = i_val
+                               sub  = `%3D`
+                               with = '='
+                               occ  = 0 ).
     SHIFT lv_search LEFT DELETING LEADING `?`.
     lv_search = get_trim_lower( lv_search ).
 
-    DATA(lv_search2) = substring_after( val = lv_search sub = `&sap-startup-params=` ).
+    DATA(lv_search2) = substring_after( val = lv_search
+                                        sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
-    lv_search = shift_left( val = get_trim_lower( lv_search ) sub = `?` ).
+    lv_search = shift_left( val = get_trim_lower( lv_search )
+                            sub = `?` ).
 
     SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
 
@@ -594,7 +590,8 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     LOOP AT t_params INTO DATA(ls_param).
       result = result && ls_param-n && `=` && ls_param-v && `&`.
     ENDLOOP.
-    result = shift_right( val = result sub = `&` ).
+    result = shift_right( val = result
+                          sub = `&` ).
 
   ENDMETHOD.
 

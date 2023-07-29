@@ -97,7 +97,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_handler->_create_binding( value = val type = z2ui5_cl_fw_handler=>cs_bind_type-one_way ).
+    result = mo_handler->_create_binding( value = val
+                                          type  = z2ui5_cl_fw_handler=>cs_bind_type-one_way ).
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -107,7 +108,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value = val type = z2ui5_cl_fw_handler=>cs_bind_type-two_way ).
+    result = mo_handler->_create_binding( value = val
+                                          type  = z2ui5_cl_fw_handler=>cs_bind_type-two_way ).
 
     IF path = abap_false.
       result = `{` && result && `}`.

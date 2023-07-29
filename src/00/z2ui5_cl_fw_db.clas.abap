@@ -45,7 +45,8 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
   METHOD cleanup.
 
     DATA(lv_time) = z2ui5_cl_fw_utility=>get_timestampl( ).
-    DATA(lv_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_time secs  = 60 * 60 * 4 ).
+    DATA(lv_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_time
+                                                           secs  = 60 * 60 * 4 ).
 
     DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_four_hours_ago.
     COMMIT WORK.
@@ -115,9 +116,9 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     z2ui5_cl_fw_utility=>trans_xml_2_object(
         EXPORTING
-            xml   = ls_db-data
+            xml  = ls_db-data
         IMPORTING
-            data  = result ).
+            data = result ).
 
     LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
       DATA(lv_check_rtti) = abap_true.

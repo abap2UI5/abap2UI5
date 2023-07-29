@@ -404,7 +404,8 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     ENDTRY.
 
     IF lv_classname IS INITIAL.
-      lv_classname = z2ui5_cl_fw_utility=>url_param_get( val = `app_start` url = ss_config-search ).
+      lv_classname = z2ui5_cl_fw_utility=>url_param_get( val = `app_start`
+                                                         url = ss_config-search ).
     ENDIF.
 
     IF lv_classname IS INITIAL.

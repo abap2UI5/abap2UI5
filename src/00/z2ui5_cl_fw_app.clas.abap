@@ -64,7 +64,8 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD view_display_error.
 
-    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname sub = ` ` ).
+    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname
+                               sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
@@ -72,13 +73,13 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
         illustrationtype    = 'sapIllus-ErrorScreen'
         title               = '500 Internal Server Error'
         description         = mx_error->get_text( )
-    )->additional_content(
+      )->additional_content(
         )->button(
-            text = 'Home'
-            type = 'Emphasized'
+            text  = 'Home'
+            type  = 'Emphasized'
             press = client->_event_client( action = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
         )->button(
-            text = 'Restart'
+            text  = 'Restart'
             press = client->_event_client( action = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
     client->view_display( view->stringify( ) ).
@@ -88,22 +89,30 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD view_display_start.
 
-    data(lv_url) = z2ui5_cl_xml_view=>factory( client )->hlp_get_app_url( ms_home-classname ).
+    DATA(lv_url) = z2ui5_cl_xml_view=>factory( client )->hlp_get_app_url( ms_home-classname ).
 
     DATA(page) = z2ui5_cl_xml_view=>factory( client )->shell(
-      )->page( shownavbutton  = abap_false ).
+      )->page( shownavbutton = abap_false ).
 
     page->header_content(
-            )->title( text = `abap2UI5 - Developing UI5 Apps in pure ABAP`
+            )->title( `abap2UI5 - Developing UI5 Apps in pure ABAP`
             )->toolbar_spacer(
-            )->link( text = `SCN`     target = `_blank` href = `https://blogs.sap.com/tag/abap2ui5/`
-            )->link( text = `Twitter` target = `_blank` href = `https://twitter.com/abap2UI5`
-            )->link( text = `GitHub`  target = `_blank` href = `https://github.com/abap2ui5/abap2ui5` ).
+            )->link( text   = `SCN`
+                     target = `_blank`
+                     href   = `https://blogs.sap.com/tag/abap2ui5/`
+            )->link( text   = `Twitter`
+                     target = `_blank`
+                     href   = `https://twitter.com/abap2UI5`
+            )->link( text   = `GitHub`
+                     target = `_blank`
+                     href   = `https://github.com/abap2ui5/abap2ui5` ).
 
-    DATA(grid) = page->grid( default_span = `XL7 L7 M12 S12`
-         )->content( ns = `layout` ).
-    DATA(content) = grid->simple_form( title = `Quickstart` layout = `ResponsiveGridLayout` editable = `true`
-           )->content( ns = `form` ).
+    DATA(grid) = page->grid( `XL7 L7 M12 S12`
+         )->content( `layout` ).
+    DATA(content) = grid->simple_form( title    = `Quickstart`
+                                       layout   = `ResponsiveGridLayout`
+                                       editable = `true`
+           )->content( `form` ).
 
     content->label( `Step 1`
         )->text( `Create a global class in your abap system`
@@ -111,33 +120,49 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
         )->text( `Add the interface: Z2UI5_IF_APP`
         )->label( `Step 3`
         )->text( `Define view, implement behaviour`
-        )->link( text = `(Example)` target = `_blank` href = `https://github.com/abap2ui5/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap`
+        )->link( text   = `(Example)`
+                 target = `_blank`
+                 href   = `https://github.com/abap2ui5/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap`
         )->label( `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
 
-      content->input( placeholder = `fill in the class name and press 'check'` editable = z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable )
-          value = client->_bind_edit( ms_home-classname ) ).
+      content->input( placeholder = `fill in the class name and press 'check'`
+                      editable    = z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable )
+          value                   = client->_bind_edit( ms_home-classname ) ).
 
     ELSE.
       content->text( ms_home-classname ).
     ENDIF.
 
-    content->button( press = client->_event( ms_home-btn_event_id ) text = ms_home-btn_text icon = ms_home-btn_icon
+    content->button( press = client->_event( ms_home-btn_event_id )
+                     text  = ms_home-btn_text
+                     icon  = ms_home-btn_icon
         )->label( `Step 5`
-        )->link( text = `Link to the Application` target = `_blank` href = lv_url enabled = z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) ).
+        )->link( text    = `Link to the Application`
+                 target  = `_blank`
+                 href    = lv_url
+                 enabled = z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
-    DATA(form) = grid->simple_form( title = `Samples` editable = abap_true layout = 'ResponsiveGridLayout' ).
+    DATA(form) = grid->simple_form( title    = `Samples`
+                                    editable = abap_true
+                                    layout   = 'ResponsiveGridLayout' ).
 
     IF mv_check_demo = abap_false.
-      form->message_strip( text = 'Oops! You need to install abap2UI5 demos before continuing...' type = 'Warning'
-          )->get( )->_generic( 'link' )->link( text = `(HERE)` target = '_blank' href = `https://github.com/oblomov-dev/abap2UI5-demos`
-          ).
+      form->message_strip( text = 'Oops! You need to install abap2UI5 demos before continuing...'
+                           type = 'Warning'
+          )->get( )->_generic( 'link' )->link( text   = `(HERE)`
+                                               target = '_blank'
+                                               href   = `https://github.com/oblomov-dev/abap2UI5-demos` ).
     ENDIF.
 
-    form->content( ns = `form` )->label( )->button(
-         text = 'Continue...' press = client->_event( val = `DEMOS` check_view_destroy = abap_true ) enabled = xsdbool( mv_check_demo = abap_true )
-         )->button( visible = abap_false )->link( text = 'More on GitHub...' target = '_blank' href = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
+    form->content( `form` )->label( )->button(
+         text    = 'Continue...'
+         press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
+         enabled = xsdbool( mv_check_demo = abap_true )
+         )->button( visible = abap_false )->link( text   = 'More on GitHub...'
+                                                  target = '_blank'
+                                                  href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
 
     client->view_display( form->stringify( ) ).
 

@@ -29,7 +29,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_req_begin_app_start.
 
     DATA(lv_body) = `{"OLOCATION":{"ORIGIN":"https://url.abap-web.us10.hana.ondemand.com","PATHNAME":"/sap/bc/http/sap/z_http_service_for_ui","SEARCH":"?sap-client=100&app_start=z2ui5_cl_app_hello_world","VERSION":"c` &&
-`om.sap.ui5.dist:sapui5-sdk-dist:1.115.0:war"}}`.
+      `om.sap.ui5.dist:sapui5-sdk-dist:1.115.0:war"}}`.
 
     DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( lv_body ).
 

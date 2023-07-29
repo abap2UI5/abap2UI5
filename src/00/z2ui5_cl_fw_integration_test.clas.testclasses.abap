@@ -29,8 +29,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     z2ui5_cl_fw_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-        body = `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}`
-    ).
+        `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -62,8 +61,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
 
     z2ui5_cl_fw_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-      body = `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}`
-    ).
+      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
     /ui2/cl_json=>deserialize( EXPORTING json = lv_response
@@ -348,39 +346,7 @@ CLASS ltcl_unit_03_app_ajax IMPLEMENTATION.
 
   METHOD test_app_change_value.
 
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(
-*       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-*                               CHANGING  data = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `ID->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> IS INITIAL.
-*      cl_abap_unit_assert=>fail( msg  = 'id - initial value is initial'
-*                                 quit = 5 ).
-*    ENDIF.
-*    DATA(lv_id) = CONV string( <val> ).
-*
-*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}] }`.
-*    lv_response = z2ui5_cl_http_handler=>http_post(
-*          lv_request ).
-*
-*    CLEAR lo_data.
-*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-*                               CHANGING  data = lo_data ).
-*
-*    UNASSIGN <val>.
-*    lv_assign = `OVIEWMODEL->OUPDATE->QUANTITY->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `600`.
-*      cl_abap_unit_assert=>fail( msg  = 'data binding - frontend updated value wrong after roundtrip'
-*                                 quit = 5 ).
-*    ENDIF.
+
   ENDMETHOD.
 
   METHOD test_app_event.

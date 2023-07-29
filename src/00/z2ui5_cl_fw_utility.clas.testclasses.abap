@@ -125,23 +125,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD general_get_classdescr.
 
-*    DATA(lo_app) = NEW ltcl_test_app( ).
-*
-*    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
-*
-*    DATA(lt_test) = VALUE abap_attrdescr_tab(
-*( length = '44' decimals = '0' name = 'MS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-*( length = '8' decimals = '0' name = 'MT_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-*( length = '8' decimals = '0' name = 'MV_VAL' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = '' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-*( length = '44' decimals = '0' name = 'SS_TAB' type_kind = 'v' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-*( length = '8' decimals = '0' name = 'ST_TAB' type_kind = 'h' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-*( length = '8' decimals = '0' name = 'SV_STATUS' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = 'X' is_virtual = '' is_read_only = '' alias_for = '' )
-*( length = '8' decimals = '0' name = 'SV_VAR' type_kind = 'g' visibility = 'U' is_interface = '' is_inherited = '' is_class = 'X' is_constant = '' is_virtual = '' is_read_only = '' alias_for = '' )
-* ).
-*
-*    IF lt_test <> lt_attri.
-*      cl_abap_unit_assert=>fail( msg  = 'general_get_classdescr' quit = 5 ).
-*    ENDIF.
+
 
   ENDMETHOD.
 
@@ -181,11 +165,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    IF `true` <> z2ui5_cl_fw_utility=>get_abap_2_json(  abap_true ).
+    IF `true` <> z2ui5_cl_fw_utility=>get_abap_2_json( abap_true ).
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    IF `false` <> z2ui5_cl_fw_utility=>get_abap_2_json(  abap_false ).
+    IF `false` <> z2ui5_cl_fw_utility=>get_abap_2_json( abap_false ).
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
@@ -400,7 +384,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_param) = z2ui5_cl_fw_utility=>url_param_get(
         val = `app_start`
-        url =  `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+        url = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
     IF lv_param <> `z2ui5_cl_app_hello_world`.
       cl_abap_unit_assert=>fail( quit = 5 ).
@@ -424,9 +408,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD url_param_set.
 
     DATA(lv_param) = z2ui5_cl_fw_utility=>url_param_set(
-         name = `app_start`
+         name  = `app_start`
          value = `z2ui5_cl_app_hello_world2`
-         url =  `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
+         url   = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
     IF lv_param <> `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world2`.
       cl_abap_unit_assert=>fail( quit = 5 ).

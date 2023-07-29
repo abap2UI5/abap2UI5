@@ -28,7 +28,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS hlp_get_app_url
       IMPORTING
-        value(classname)     TYPE string OPTIONAL
+        VALUE(classname)     TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -2012,8 +2012,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mi_client = client.
     result->mt_prop  = VALUE #( BASE result->mt_prop
                                 (  n = 'displayBlock'   v = 'true' )
-                                (  n = 'height'         v = '100%' )
-                        ).
+                                (  n = 'height'         v = '100%' ) ).
 
     result->mv_name   = `View`.
     result->mv_ns     = `mvc`.
@@ -2250,7 +2249,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD heading.
 
     result = me.
-    result = _generic( name = `heading` ns = ns ).
+    result = _generic( name = `heading`
+                       ns   = ns ).
 
   ENDMETHOD.
 
@@ -2294,8 +2294,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     DATA(result) = z2ui5_cl_fw_utility=>url_param_set(
                url   = mi_client->get( )-s_config-search
                name  = n
-               value = v
-             ).
+               value = v ).
 
     mi_client->url_param_set( result ).
 
