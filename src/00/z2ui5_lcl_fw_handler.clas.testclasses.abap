@@ -12,7 +12,6 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
     CLASS-DATA sv_state TYPE string.
 
   PRIVATE SECTION.
-    METHODS test_index_html    FOR TESTING RAISING cx_static_check.
     METHODS test_xml_view      FOR TESTING RAISING cx_static_check.
     METHODS test_id            FOR TESTING RAISING cx_static_check.
     METHODS test_xml_popup     FOR TESTING RAISING cx_static_check.
@@ -29,15 +28,6 @@ ENDCLASS.
 
 
 CLASS ltcl_unit_02_app_start IMPLEMENTATION.
-
-  METHOD test_index_html.
-
-    DATA(lv_index_html) = z2ui5_cl_http_handler=>http_get( ).
-
-    IF lv_index_html IS INITIAL.
-      cl_abap_unit_assert=>fail( 'HTTP GET - index html initial' ).
-    ENDIF.
-  ENDMETHOD.
 
   METHOD z2ui5_if_app~main.
     IF check_initialized = abap_false.

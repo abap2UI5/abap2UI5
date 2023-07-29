@@ -9,7 +9,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         !client       TYPE REF TO z2ui5_if_client OPTIONAL
-        PREFERRED PARAMETER client
+          PREFERRED PARAMETER client
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -577,6 +577,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !icon         TYPE clike OPTIONAL
         !type         TYPE clike OPTIONAL
         !enabled      TYPE clike OPTIONAL
+        !visible      TYPE clike OPTIONAL
         !press        TYPE clike OPTIONAL
         !class        TYPE clike OPTIONAL
         !id           TYPE clike OPTIONAL
@@ -675,12 +676,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !val          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS content
       IMPORTING
         !ns           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS title
       IMPORTING
         !ns           TYPE clike OPTIONAL
@@ -1516,6 +1519,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `press`   v = press )
                                 ( n = `text`    v = text )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
+                                ( n = `visible` v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) )
                                 ( n = `icon`    v = icon )
                                 ( n = `type`    v = type )
                                 ( n = `id`      v = id )
@@ -1876,8 +1880,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD content.
+
     result = _generic( ns   = ns
                        name = `content` ).
+
   ENDMETHOD.
 
 
