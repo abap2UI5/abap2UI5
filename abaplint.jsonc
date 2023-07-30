@@ -241,7 +241,9 @@
     "unnecessary_chaining": true,
     "unnecessary_pragma": true,
     "unnecessary_return": true,
-    "unreachable_code": true,
+    "unreachable_code": {
+      "exclude": ["z2ui5_cl_fw_utility.clas.testclasses.abap"]
+    },
     "unsecure_fae": true,
     "unused_ddic": true,
     "unused_methods": true,
