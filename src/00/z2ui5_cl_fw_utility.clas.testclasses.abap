@@ -32,7 +32,7 @@ ENDCLASS.
 CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
-CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
+CLASS ltcl_unit_test_open_abap DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -40,9 +40,19 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
     METHODS general_test_assign    FOR TESTING RAISING cx_static_check.
     METHODS general_test_eledescr_rel_name    FOR TESTING RAISING cx_static_check.
-    METHODS general_test_classdescr FOR TESTING RAISING cx_static_check.
+    METHODS general_test_classdescr      FOR TESTING RAISING cx_static_check.
     METHODS general_test_substring_after FOR TESTING RAISING cx_static_check.
+    METHODS general_test_raise_error     FOR TESTING RAISING cx_static_check.
 
+ENDCLASS.
+
+CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
+  DURATION MEDIUM
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+
+    METHODS test_factory_error        FOR TESTING RAISING cx_static_check.
     METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_create               FOR TESTING RAISING cx_static_check.
     METHODS test_get_abap_2_json      FOR TESTING RAISING cx_static_check.
@@ -66,6 +76,72 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
+CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
+
+
+  METHOD general_test_assign.
+
+    DATA(lo_app) = NEW ltcl_test_app( ).
+
+    lo_app->mv_val = `ABC`.
+    FIELD-SYMBOLS <any> TYPE any.
+    DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
+    ASSIGN (lv_assign) TO <any>.
+
+    IF <any> <> `ABC`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD general_test_classdescr.
+
+    DATA(lo_app) = NEW ltcl_test_app( ).
+
+    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
+
+    DATA(lv_test) = lt_attri[ name = `MS_TAB` ].
+    lv_test = lt_attri[ name = `MT_TAB` ].
+    lv_test = lt_attri[ name = `MV_VAL` ].
+    lv_test = lt_attri[ name = `SS_TAB` ].
+    lv_test = lt_attri[ name = `ST_TAB` ].
+    lv_test = lt_attri[ name = `SV_STATUS` ].
+    lv_test = lt_attri[ name = `SV_VAR` ].
+
+  ENDMETHOD.
+
+  METHOD general_test_eledescr_rel_name.
+
+    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( abap_true ) ).
+    IF lo_ele->get_relative_name( ) <> `ABAP_BOOL`.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD general_test_substring_after.
+
+    IF ` string` <> substring_after( val = 'this is a string' sub = 'a' ).
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD general_test_raise_error.
+
+    TRY.
+        RAISE EXCEPTION TYPE z2ui5_cl_fw_utility.
+        cl_abap_unit_assert=>fail( quit = 5 ).
+
+      CATCH z2ui5_cl_fw_utility INTO DATA(lx).
+        IF lx IS NOT BOUND.
+          cl_abap_unit_assert=>fail( quit = 5 ).
+        ENDIF.
+    ENDTRY.
+
+  ENDMETHOD.
+
+ENDCLASS.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
 
@@ -106,38 +182,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( msg  = 'utility - create t_attri failed'
                                  quit = 5 ).
     ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD general_test_assign.
-
-    DATA(lo_app) = NEW ltcl_test_app( ).
-
-    lo_app->mv_val = `ABC`.
-    FIELD-SYMBOLS <any> TYPE any.
-    DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
-    ASSIGN (lv_assign) TO <any>.
-
-    IF <any> <> `ABC`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD general_test_classdescr.
-
-    DATA(lo_app) = NEW ltcl_test_app( ).
-
-    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( lo_app ) )->attributes.
-
-    DATA(lv_test) = lt_attri[ name = `MS_TAB` ].
-    lv_test = lt_attri[ name = `MT_TAB` ].
-    lv_test = lt_attri[ name = `MV_VAL` ].
-    lv_test = lt_attri[ name = `SS_TAB` ].
-    lv_test = lt_attri[ name = `ST_TAB` ].
-    lv_test = lt_attri[ name = `SV_STATUS` ].
-    lv_test = lt_attri[ name = `SV_VAR` ].
 
   ENDMETHOD.
 
@@ -430,21 +474,20 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD general_test_eledescr_rel_name.
 
-    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( abap_true ) ).
-    IF lo_ele->get_relative_name( ) <> `ABAP_BOOL`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
 
-  ENDMETHOD.
+  METHOD test_factory_error.
 
-  METHOD general_test_substring_after.
+    TRY.
 
-    IF ` string` <> substring_after( val = 'this is a string' sub = 'a' ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+        z2ui5_cl_fw_utility=>raise( `error occured` ).
+        cl_abap_unit_assert=>fail( quit = 5 ).
 
+      CATCH z2ui5_cl_fw_utility INTO DATA(lx).
+        IF `error occured` <> lx->get_text( ).
+          cl_abap_unit_assert=>fail( quit = 5 ).
+        ENDIF.
+    ENDTRY.
   ENDMETHOD.
 
 ENDCLASS.

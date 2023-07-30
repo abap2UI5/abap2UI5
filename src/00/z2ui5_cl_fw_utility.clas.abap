@@ -344,7 +344,7 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
       error = abap_true.
     ENDIF.
 
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ).
+    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` else result ).
 
   ENDMETHOD.
 
