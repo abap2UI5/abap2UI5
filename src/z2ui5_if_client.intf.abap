@@ -18,14 +18,13 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_config,
-      controller_name      TYPE string,
       view_model_edit_name TYPE string,
       version              TYPE string,
       origin               TYPE string,
       pathname             TYPE string,
       search               TYPE string,
       body                 TYPE string,
-    END OF ty_S_config.
+    END OF ty_s_config.
 
   TYPES:
     BEGIN OF ty_s_draft,
@@ -34,7 +33,7 @@ INTERFACE z2ui5_if_client
       id_prev_app       TYPE string,
       id_prev_app_stack TYPE string,
       app               TYPE REF TO z2ui5_if_app,
-    END OF ty_S_draft.
+    END OF ty_s_draft.
 
   TYPES:
     BEGIN OF ty_s_cursor,
@@ -51,9 +50,9 @@ INTERFACE z2ui5_if_client
       t_scroll_pos           TYPE ty_t_name_value,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
-      s_draft                TYPE ty_S_draft,
-      s_cursor               TYPE ty_S_cursor,
-      s_config               TYPE ty_S_config,
+      s_draft                TYPE ty_s_draft,
+      s_cursor               TYPE ty_s_cursor,
+      s_config               TYPE ty_s_config,
     END OF ty_s_get.
 
   METHODS view_destroy.
