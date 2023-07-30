@@ -1,5 +1,5 @@
 CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
-  DURATION medium
+  DURATION MEDIUM
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
@@ -65,7 +65,9 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
     DATA(lo_attri) = lo_json->get_attribute( `CCC` )->get_attribute( `COMP2` ).
 
     DATA(lr_ref) = lo_attri->get_val_ref( ).
-    IF lr_ref->* <> `BBB`.
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN lr_ref->* TO <any>.
+    IF <any> <> `BBB`.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 

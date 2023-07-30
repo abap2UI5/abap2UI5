@@ -17,7 +17,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_INTEGRATION_TEST IMPLEMENTATION.
+CLASS z2ui5_cl_fw_integration_test IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -44,6 +44,9 @@ CLASS Z2UI5_CL_FW_INTEGRATION_TEST IMPLEMENTATION.
     ENDIF.
 
     CASE sv_state.
+
+      WHEN `ERROR`.
+        DATA(lv_test) = 1 / 0 ##NEEDED.
 
       WHEN 'TEST_ONE_WAY'.
         client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(

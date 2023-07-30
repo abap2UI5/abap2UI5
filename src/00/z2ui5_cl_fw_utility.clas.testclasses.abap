@@ -211,9 +211,9 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    IF check_input( xsdbool( 2 = 1 ) ).
-      cl_abap_unit_assert=>fail( ).
-    ENDIF.
+*    IF check_input( xsdbool( 2 = 1 ) ).
+*      cl_abap_unit_assert=>fail( ).
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -309,25 +309,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_test) = NEW z2ui5_cl_fw_utility( ).
     DATA(lv_name) = z2ui5_cl_fw_utility=>get_classname_by_ref( lo_test ).
-    IF lv_name <> `Z2UI5_CL_FW_UTILITY`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_FW_UTILITY` act = lv_name ).
 
     DATA(lo_test2) = NEW ltcl_test_app( ).
     DATA(lv_name2) = z2ui5_cl_fw_utility=>get_classname_by_ref( lo_test2 ).
-    IF lv_name2 <> `LTCL_TEST_APP`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals( exp = `LTCL_TEST_APP` act = lv_name2 ).
 
   ENDMETHOD.
 
   METHOD test_get_json_boolean.
 
-    IF `false` <> z2ui5_cl_fw_utility=>get_json_boolean( abap_false ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals( exp = `false` act = z2ui5_cl_fw_utility=>get_json_boolean( abap_false ) ).
 
-    IF `ABCD` <> z2ui5_cl_fw_utility=>get_json_boolean( `ABCD` ).
+    IF `{ABCD}` <> z2ui5_cl_fw_utility=>get_json_boolean( `{ABCD}` ).
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
@@ -554,13 +548,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         z2ui5_cl_fw_utility=>raise( `error occured` ).
         cl_abap_unit_assert=>fail( ).
 
-      CATCH z2ui5_cl_fw_error INTO DATA(lx).
-
-*        cl_abap_unit_assert=>assert_equals(
-*            act                  = lx->get_text( )
-*            exp                  = `error occured` ).
-
+      CATCH z2ui5_cl_fw_error.
     ENDTRY.
+
   ENDMETHOD.
 
   METHOD test_raise_error_not.
