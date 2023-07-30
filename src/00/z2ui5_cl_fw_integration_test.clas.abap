@@ -46,7 +46,7 @@ CLASS z2ui5_cl_fw_integration_test IMPLEMENTATION.
     CASE sv_state.
 
       WHEN `ERROR`.
-        DATA(lv_test) = 1 / 0.
+        DATA(lv_test) = 1 / 0 ##NEEDED.
 
       WHEN 'TEST_ONE_WAY'.
         client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(

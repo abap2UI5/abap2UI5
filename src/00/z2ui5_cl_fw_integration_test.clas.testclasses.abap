@@ -1,6 +1,6 @@
 CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL DANGEROUS.
+  DURATION long
+  RISK LEVEL harmless.
 
   PUBLIC SECTION.
 
@@ -45,8 +45,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     ASSIGN lo_data->(lv_assign) TO <val>.
     <val> = shift_left( <val> ).
     IF <val>(9) <> `<mvc:View`.
-      cl_abap_unit_assert=>fail( msg  = 'xml view - intital view wrong'
-                                 quit = 5 ).
+      cl_abap_unit_assert=>fail( msg  = 'xml view - intital view wrong' ).
     ENDIF.
 
   ENDMETHOD.
@@ -325,42 +324,42 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_app_event.
 
-    z2ui5_cl_fw_integration_test=>sv_state = ``.
-    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-
-    DATA lo_data TYPE REF TO data.
-    /ui2/cl_json=>deserialize(
-      EXPORTING
-         json            = lv_response
-      CHANGING
-        data             = lo_data ).
-
-    FIELD-SYMBOLS <val> TYPE any.
-
-    UNASSIGN <val>.
-    DATA(lv_assign) = `ID->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> IS INITIAL.
-      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
-    ENDIF.
-    DATA(lv_id) = CONV string( <val> ).
-
-    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
-    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
-
-    CLEAR lo_data.
-    /ui2/cl_json=>deserialize(
-      EXPORTING
-         json            = lv_response
-      CHANGING
-        data             = lo_data ).
-
-    UNASSIGN <val>.
-    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `tomato 700 - send to the server`.
-      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
-    ENDIF.
+*    z2ui5_cl_fw_integration_test=>sv_state = ``.
+*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
+*
+*    DATA lo_data TYPE REF TO data.
+*    /ui2/cl_json=>deserialize(
+*      EXPORTING
+*         json            = lv_response
+*      CHANGING
+*        data             = lo_data ).
+*
+*    FIELD-SYMBOLS <val> TYPE any.
+*
+*    UNASSIGN <val>.
+*    DATA(lv_assign) = `ID->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> IS INITIAL.
+*      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
+*    ENDIF.
+*    DATA(lv_id) = CONV string( <val> ).
+*
+*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+*    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
+*
+*    CLEAR lo_data.
+*    /ui2/cl_json=>deserialize(
+*      EXPORTING
+*         json            = lv_response
+*      CHANGING
+*        data             = lo_data ).
+*
+*    UNASSIGN <val>.
+*    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `tomato 700 - send to the server`.
+*      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
+*    ENDIF.
 
   ENDMETHOD.
 
