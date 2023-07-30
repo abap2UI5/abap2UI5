@@ -157,9 +157,9 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD test_string_replace.
+  METHOD test_string_replace.
 
-  DATA(lv_search) = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 ).
+    DATA(lv_search) = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 ).
 
     cl_abap_unit_assert=>assert_equals(
      act = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 )
@@ -203,9 +203,18 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
        exp = abap_false ).
     ENDIF.
 
+    IF check_input( abap_false ).
+      cl_abap_unit_assert=>fail( ).
+    ENDIF.
+
     IF check_input( xsdbool( 1 = 1 ) ) = abap_false.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
+
+    IF check_input( xsdbool( 2 = 1 ) ).
+      cl_abap_unit_assert=>fail( ).
+    ENDIF.
+
 
   ENDMETHOD.
 
@@ -287,13 +296,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_get_abap_2_json.
 
-    IF `true` <> z2ui5_cl_fw_utility=>get_abap_2_json( xsdbool( 1 = 1 ) ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    DATA(lv_bool) = xsdbool( 1 = 1 ).
+    cl_abap_unit_assert=>assert_equals( exp = `true` act = z2ui5_cl_fw_utility=>get_abap_2_json( lv_bool ) ).
 
-    IF `false` <> z2ui5_cl_fw_utility=>get_abap_2_json( xsdbool( 1 = 2 ) ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    lv_bool = xsdbool( 1 = 2 ).
+    cl_abap_unit_assert=>assert_equals( exp = `false` act = z2ui5_cl_fw_utility=>get_abap_2_json( lv_bool ) ).
 
     IF `true` <> z2ui5_cl_fw_utility=>get_abap_2_json( abap_true ).
       cl_abap_unit_assert=>fail( quit = 5 ).
