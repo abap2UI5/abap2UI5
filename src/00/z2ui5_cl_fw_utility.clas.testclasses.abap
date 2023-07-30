@@ -38,11 +38,20 @@ CLASS ltcl_unit_test_sap_api DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
-    METHODS general_test_assign    FOR TESTING RAISING cx_static_check.
-    METHODS general_test_eledescr_rel_name    FOR TESTING RAISING cx_static_check.
-    METHODS general_test_classdescr      FOR TESTING RAISING cx_static_check.
-    METHODS general_test_substring_after FOR TESTING RAISING cx_static_check.
-    METHODS general_test_raise_error     FOR TESTING RAISING cx_static_check.
+    METHODS check_input
+      IMPORTING
+        val           TYPE data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    METHODS general_test_assign             FOR TESTING RAISING cx_static_check.
+    METHODS general_test_eledescr_rel_name  FOR TESTING RAISING cx_static_check.
+    METHODS general_test_classdescr         FOR TESTING RAISING cx_static_check.
+    METHODS general_test_substring_after    FOR TESTING RAISING cx_static_check.
+    METHODS general_test_raise_error        FOR TESTING RAISING cx_static_check.
+    METHODS general_test_xsbool             FOR TESTING RAISING cx_static_check.
+    METHODS general_test_xsbool_nested      FOR TESTING RAISING cx_static_check.
+
 
 ENDCLASS.
 
@@ -143,6 +152,39 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD general_test_xsbool.
+
+    DATA(lv_xsdbool) = xsdbool( 1 = 1 ).
+    IF lv_xsdbool = abap_false.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+    IF xsdbool( 1 = 1 ) = abap_false.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+
+  ENDMETHOD.
+
+  METHOD general_test_xsbool_nested.
+
+    DATA(lv_xsdbool) = check_input( xsdbool( 1 = 1 ) ).
+    IF lv_xsdbool = abap_false.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+    IF check_input( xsdbool( 1 = 1 ) ) = abap_false.
+      cl_abap_unit_assert=>fail( quit = 5 ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD check_input.
+
+    result = val.
+
+  ENDMETHOD.
+
 ENDCLASS.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
@@ -159,26 +201,26 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_ref( lo_app ).
 
     DATA(lt_attri_result) = VALUE z2ui5_cl_fw_utility=>ty_t_attri(
-( name = `MT_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MV_VAL` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `ST_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SV_STATUS` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SV_VAR` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-TITLE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-VALUE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-DESCR` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-ICON` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-INFO` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-SELECTED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `MS_TAB-CHECKBOX` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-TITLE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-VALUE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-DESCR` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-ICON` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-INFO` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-SELECTED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
-( name = `SS_TAB-CHECKBOX` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
- ).
+  ( name = `MT_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MV_VAL` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `ST_TAB` type_kind = `h` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SV_STATUS` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SV_VAR` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-TITLE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-VALUE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-DESCR` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-ICON` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-INFO` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-SELECTED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `MS_TAB-CHECKBOX` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-TITLE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-VALUE` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-DESCR` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-ICON` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-INFO` type_kind = `g` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-SELECTED` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ( name = `SS_TAB-CHECKBOX` type_kind = `C` type = `` bind_type = `` data_stringify = `` data_rtti = `` check_ref_data = '' )
+  ).
 
     IF lt_attri_result <> lt_attri.
       cl_abap_unit_assert=>fail( msg  = 'utility - create t_attri failed'
