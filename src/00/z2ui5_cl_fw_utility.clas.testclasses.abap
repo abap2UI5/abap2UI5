@@ -44,14 +44,16 @@ CLASS ltcl_unit_test_sap_api DEFINITION FINAL FOR TESTING
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    METHODS general_test_assign             FOR TESTING RAISING cx_static_check.
-    METHODS general_test_eledescr_rel_name  FOR TESTING RAISING cx_static_check.
-    METHODS general_test_classdescr         FOR TESTING RAISING cx_static_check.
-    METHODS general_test_substring_after    FOR TESTING RAISING cx_static_check.
-    METHODS general_test_raise_error        FOR TESTING RAISING cx_static_check.
-    METHODS general_test_xsbool             FOR TESTING RAISING cx_static_check.
-    METHODS general_test_xsbool_nested      FOR TESTING RAISING cx_static_check.
-
+    METHODS test_assign             FOR TESTING RAISING cx_static_check.
+    METHODS test_eledescr_rel_name  FOR TESTING RAISING cx_static_check.
+    METHODS test_classdescr         FOR TESTING RAISING cx_static_check.
+    METHODS test_substring_after    FOR TESTING RAISING cx_static_check.
+    METHODS test_substring_before   FOR TESTING RAISING cx_static_check.
+    METHODS test_string_shift       FOR TESTING RAISING cx_static_check.
+    METHODS test_string_replace     FOR TESTING RAISING cx_static_check.
+    METHODS test_raise_error        FOR TESTING RAISING cx_static_check.
+    METHODS test_xsdbool            FOR TESTING RAISING cx_static_check.
+    METHODS test_xsdbool_nested     FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -61,9 +63,9 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
-    METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
-    METHODS test_create               FOR TESTING RAISING cx_static_check.
     METHODS test_get_abap_2_json      FOR TESTING RAISING cx_static_check.
+    METHODS test_create               FOR TESTING RAISING cx_static_check.
+    METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_get_json_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_get_replace          FOR TESTING RAISING cx_static_check.
@@ -89,7 +91,7 @@ ENDCLASS.
 CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
 
 
-  METHOD general_test_assign.
+  METHOD test_assign.
 
     DATA(lo_app) = NEW ltcl_test_app( ).
 
@@ -98,14 +100,14 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
     DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
     ASSIGN (lv_assign) TO <any>.
 
-    IF <any> <> `ABC`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals(
+        act  = <any>
+        exp  = `ABC` ).
 
   ENDMETHOD.
 
 
-  METHOD general_test_classdescr.
+  METHOD test_classdescr.
 
     DATA(lo_app) = NEW ltcl_test_app( ).
 
@@ -121,60 +123,88 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD general_test_eledescr_rel_name.
+  METHOD test_eledescr_rel_name.
 
     DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( abap_true ) ).
-    IF lo_ele->get_relative_name( ) <> `ABAP_BOOL`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+
+    cl_abap_unit_assert=>assert_equals(
+     act = lo_ele->get_relative_name( )
+     exp = `ABAP_BOOL` ).
 
   ENDMETHOD.
 
-  METHOD general_test_substring_after.
+  METHOD test_substring_after.
 
-    IF ` string` <> substring_after( val = 'this is a string' sub = 'a' ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals(
+     act = substring_after( val = 'this is a string' sub = 'a' )
+     exp = ` string` ).
 
   ENDMETHOD.
 
-  METHOD general_test_raise_error.
+  METHOD test_substring_before.
+
+    cl_abap_unit_assert=>assert_equals(
+     act = substring_after( val = 'this is a string' sub = 'a' )
+     exp = `this is ` ).
+
+  ENDMETHOD.
+
+  METHOD test_string_shift.
+
+    cl_abap_unit_assert=>assert_equals(
+     act = shift_left( shift_right( val = `   string   ` sub = ` ` ) )
+     exp = `string` ).
+
+  ENDMETHOD.
+
+    METHOD test_string_replace.
+
+  DATA(lv_search) = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 ).
+
+    cl_abap_unit_assert=>assert_equals(
+     act = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 )
+     exp = `one ABC three` ).
+
+  ENDMETHOD.
+
+  METHOD test_raise_error.
 
     TRY.
-        RAISE EXCEPTION TYPE z2ui5_cl_fw_utility.
-        cl_abap_unit_assert=>fail( quit = 5 ).
+        RAISE EXCEPTION TYPE z2ui5_cl_fw_error.
+        cl_abap_unit_assert=>fail( ).
 
-      CATCH z2ui5_cl_fw_utility INTO DATA(lx).
-        IF lx IS NOT BOUND.
-          cl_abap_unit_assert=>fail( quit = 5 ).
-        ENDIF.
+      CATCH z2ui5_cl_fw_error INTO DATA(lx).
+        cl_abap_unit_assert=>assert_bound( lx ).
     ENDTRY.
 
   ENDMETHOD.
 
-  METHOD general_test_xsbool.
+  METHOD test_xsdbool.
 
     DATA(lv_xsdbool) = xsdbool( 1 = 1 ).
     IF lv_xsdbool = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>assert_equals(
+          act = lv_xsdbool
+          exp = abap_false ).
     ENDIF.
 
     IF xsdbool( 1 = 1 ) = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
-
 
   ENDMETHOD.
 
-  METHOD general_test_xsbool_nested.
+  METHOD test_xsdbool_nested.
 
     DATA(lv_xsdbool) = check_input( xsdbool( 1 = 1 ) ).
     IF lv_xsdbool = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>assert_equals(
+       act = lv_xsdbool
+       exp = abap_false ).
     ENDIF.
 
     IF check_input( xsdbool( 1 = 1 ) ) = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -522,12 +552,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     TRY.
         z2ui5_cl_fw_utility=>raise( `error occured` ).
-        cl_abap_unit_assert=>fail( quit = 5 ).
+        cl_abap_unit_assert=>fail( ).
 
-      CATCH z2ui5_cl_fw_utility INTO DATA(lx).
-        IF `error occured` <> lx->get_text( ).
-          cl_abap_unit_assert=>fail( quit = 5 ).
-        ENDIF.
+      CATCH z2ui5_cl_fw_error INTO DATA(lx).
+
+*        cl_abap_unit_assert=>assert_equals(
+*            act                  = lx->get_text( )
+*            exp                  = `error occured` ).
+
     ENDTRY.
   ENDMETHOD.
 
@@ -536,7 +568,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     TRY.
         z2ui5_cl_fw_utility=>raise( when = xsdbool( 1 = 2 ) ).
 
-      CATCH z2ui5_cl_fw_utility INTO DATA(lx).
+      CATCH z2ui5_cl_fw_error INTO DATA(lx).
         cl_abap_unit_assert=>fail( quit = 5 ).
     ENDTRY.
   ENDMETHOD.

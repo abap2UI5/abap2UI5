@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
+CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
     CREATE PUBLIC.
 
   PUBLIC SECTION.
@@ -14,21 +14,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC INHERITING FROM cx_no_check
         check_ref_data TYPE abap_bool,
       END OF ty_attri.
     TYPES ty_t_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
-
-    DATA:
-      BEGIN OF ms_error,
-        x_root TYPE REF TO cx_root,
-        uuid   TYPE string,
-        text   TYPE string,
-      END OF ms_error.
-
-    METHODS get_text REDEFINITION.
-
-    METHODS constructor
-      IMPORTING
-        val      TYPE any            OPTIONAL
-        previous TYPE REF TO cx_root OPTIONAL
-          PREFERRED PARAMETER val.
 
     CLASS-METHODS url_param_get
       IMPORTING
@@ -176,7 +161,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
+CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
 
   METHOD check_is_boolean.
@@ -189,21 +174,6 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD constructor ##ADT_SUPPRESS_GENERATION.
-
-    super->constructor( previous = previous ).
-    CLEAR textid.
-
-    TRY.
-        ms_error-x_root ?= val.
-      CATCH cx_root.
-        ms_error-text = val.
-    ENDTRY.
-    ms_error-uuid = get_uuid( ).
 
   ENDMETHOD.
 
@@ -333,26 +303,10 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_text.
-
-    IF ms_error-x_root IS NOT INITIAL.
-      result = ms_error-x_root->get_text( ).
-      DATA(error) = abap_true.
-    ELSEIF ms_error-text IS NOT INITIAL.
-      result = ms_error-text.
-      error = abap_true.
-    ENDIF.
-
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` else result ).
-
-  ENDMETHOD.
-
-
   METHOD raise.
 
     IF when = abap_true.
-      RAISE EXCEPTION TYPE z2ui5_cl_fw_utility EXPORTING val = v.
+      RAISE EXCEPTION TYPE z2ui5_cl_fw_error EXPORTING val = v.
     ENDIF.
 
   ENDMETHOD.
@@ -377,7 +331,7 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
                          lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
-        RAISE EXCEPTION TYPE z2ui5_cl_fw_utility
+        RAISE EXCEPTION TYPE z2ui5_cl_fw_error
           EXPORTING
             val = lv_text.
 
@@ -409,7 +363,7 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
-        RAISE EXCEPTION TYPE z2ui5_cl_fw_utility
+        RAISE EXCEPTION TYPE z2ui5_cl_fw_error
           EXPORTING
             val = lv_text.
 
@@ -528,11 +482,8 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
 
   METHOD url_param_get_tab.
 
-    DATA(lv_search) = replace( val  = i_val
-                               sub  = `%3D`
-                               with = '='
-                               occ  = 0 ).
-    SHIFT lv_search LEFT DELETING LEADING `?`.
+    DATA(lv_search) = replace( val  = i_val sub  = `%3D` with = '=' occ  = 0 ).
+    lv_search = shift_left( val = lv_search sub = `?` ).
     lv_search = get_trim_lower( lv_search ).
 
     DATA(lv_search2) = substring_after( val = lv_search
@@ -540,9 +491,9 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
 
     lv_search2 = substring_after( val = get_trim_lower( lv_search ) sub = `?` ).
-    if lv_search2 is not INITIAL.
-    lv_search = lv_search2.
-    endif.
+    IF lv_search2 IS NOT INITIAL.
+      lv_search = lv_search2.
+    ENDIF.
 
     SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
 
