@@ -110,13 +110,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       IMPORTING val           TYPE any
       RETURNING VALUE(result) TYPE string.
 
-    CLASS-METHODS _get_t_attri_by_struc
-      IMPORTING
-        io_app        TYPE REF TO object
-        iv_attri      TYPE csequence
-      RETURNING
-        VALUE(result) TYPE abap_attrdescr_tab.
-
     CLASS-METHODS rtti_get
       IMPORTING
         data          TYPE any
@@ -161,6 +154,14 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
         VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
 
   PROTECTED SECTION.
+
+    CLASS-METHODS _get_t_attri_by_struc
+      IMPORTING
+        io_app        TYPE REF TO object
+        iv_attri      TYPE csequence
+      RETURNING
+        VALUE(result) TYPE abap_attrdescr_tab.
+
   PRIVATE SECTION.
 
 ENDCLASS.
