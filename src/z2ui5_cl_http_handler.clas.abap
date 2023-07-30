@@ -109,11 +109,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
                            `                    sap.z2ui5.oResponse.PARAMS.T_SCROLL.forEach(item => {` && |\n| &&
                            `                        try {` && |\n| &&
-                           `                            sap.z2ui5.oView.byId(item.NAME).scrollTo(parseInt(item.VALUE));` && |\n| &&
+                           `                            sap.z2ui5.oView.byId(item.N).scrollTo(parseInt(item.V));` && |\n| &&
                            `                        } catch {` && |\n| &&
                            `                            try {` && |\n| &&
-                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.NAME).getId() + '-inner';` && |\n| &&
-                           `                                $(ele).scrollTop(item.VALUE);` && |\n| &&
+                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.N).getId() + '-inner';` && |\n| &&
+                           `                                $(ele).scrollTop(item.V);` && |\n| &&
                            `                            } catch { }` && |\n| &&
                            `                        }` && |\n| &&
                            `                    }` && |\n| &&
@@ -267,11 +267,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.z2ui5.oBody.oScroll = sap.z2ui5.oResponse.PARAMS.T_SCROLL;` && |\n| &&
                            `                    sap.z2ui5.oBody.oScroll.forEach(item => {` && |\n| &&
                            `                        try {` && |\n| &&
-                           `                            item.VALUE = sap.z2ui5.oView.byId(item.NAME).getScrollDelegate().getScrollTop();` && |\n| &&
+                           `                            item.V = sap.z2ui5.oView.byId(item.N).getScrollDelegate().getScrollTop();` && |\n| &&
                            `                        } catch (e) {` && |\n| &&
                            `                            try {` && |\n| &&
-                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.NAME).getId() + '-inner';` && |\n| &&
-                           `                                item.VALUE = $(ele).scrollTop();` && |\n| &&
+                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.N).getId() + '-inner';` && |\n| &&
+                           `                                item.V = $(ele).scrollTop();` && |\n| &&
                            `                            } catch (e) { }` && |\n| &&
                            `                        }` && |\n| &&
                            `                    });` && |\n| &&

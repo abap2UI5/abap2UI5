@@ -284,8 +284,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         exp                  = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-    act                  = z2ui5_cl_fw_utility=>check_is_boolean( abap_false )
-    exp                  = abap_true ).
+        act                  = z2ui5_cl_fw_utility=>check_is_boolean( abap_false )
+        exp                  = abap_true ).
 
   ENDMETHOD.
 
