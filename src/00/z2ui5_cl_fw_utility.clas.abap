@@ -142,6 +142,12 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS get_trim
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS get_trim_lower
       IMPORTING
         val           TYPE any
@@ -228,16 +234,26 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_trim.
+
+    result = shift_left( shift_right( CONV string( val ) ) ).
+    result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( shift_right( CONV string( val ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD get_trim_lower.
 
-    result = to_lower( shift_left( shift_right( CONV string( val ) ) ) ).
+    result = to_lower( get_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
 
 
   METHOD get_trim_upper.
 
-    result = to_upper( shift_left( shift_right( CONV string( val ) ) ) ).
+    result = to_upper( get_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
 

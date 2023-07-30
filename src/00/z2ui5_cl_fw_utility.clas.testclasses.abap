@@ -144,7 +144,7 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
   METHOD test_substring_before.
 
     cl_abap_unit_assert=>assert_equals(
-     act = substring_after( val = 'this is a string' sub = 'a' )
+     act = substring_before( val = 'this is a string' sub = 'a' )
      exp = `this is ` ).
 
   ENDMETHOD.
