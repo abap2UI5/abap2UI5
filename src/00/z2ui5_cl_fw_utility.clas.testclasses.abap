@@ -52,8 +52,6 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
-    METHODS test_raise_error_not      FOR TESTING RAISING cx_static_check.
-    METHODS test_raise_error          FOR TESTING RAISING cx_static_check.
     METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_create               FOR TESTING RAISING cx_static_check.
     METHODS test_get_abap_2_json      FOR TESTING RAISING cx_static_check.
@@ -74,6 +72,8 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_url_param_get        FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_get_tab    FOR TESTING RAISING cx_static_check.
     METHODS url_param_set             FOR TESTING RAISING cx_static_check.
+    METHODS test_raise_error_not      FOR TESTING RAISING cx_static_check.
+    METHODS test_raise_error          FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
