@@ -32,7 +32,7 @@ ENDCLASS.
 CLASS ltcl_test_app IMPLEMENTATION.
 ENDCLASS.
 
-CLASS ltcl_unit_test_open_abap DEFINITION FINAL FOR TESTING
+CLASS ltcl_unit_test_sap_api DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -52,7 +52,8 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
-    METHODS test_factory_error        FOR TESTING RAISING cx_static_check.
+    METHODS test_raise_error_not      FOR TESTING RAISING cx_static_check.
+    METHODS test_raise_error          FOR TESTING RAISING cx_static_check.
     METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_create               FOR TESTING RAISING cx_static_check.
     METHODS test_get_abap_2_json      FOR TESTING RAISING cx_static_check.
@@ -76,7 +77,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
-CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
+CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
 
 
   METHOD general_test_assign.
@@ -93,6 +94,7 @@ CLASS ltcl_unit_test_open_abap IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD general_test_classdescr.
 
@@ -474,12 +476,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-
-  METHOD test_factory_error.
+  METHOD test_raise_error.
 
     TRY.
-
         z2ui5_cl_fw_utility=>raise( `error occured` ).
         cl_abap_unit_assert=>fail( quit = 5 ).
 
@@ -487,6 +486,16 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         IF `error occured` <> lx->get_text( ).
           cl_abap_unit_assert=>fail( quit = 5 ).
         ENDIF.
+    ENDTRY.
+  ENDMETHOD.
+
+  METHOD test_raise_error_not.
+
+    TRY.
+        z2ui5_cl_fw_utility=>raise( when = xsdbool( 1 = 2 ) ).
+
+      CATCH z2ui5_cl_fw_utility INTO DATA(lx).
+        cl_abap_unit_assert=>fail( quit = 5 ).
     ENDTRY.
   ENDMETHOD.
 
