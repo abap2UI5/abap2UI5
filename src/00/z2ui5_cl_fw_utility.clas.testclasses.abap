@@ -189,19 +189,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_check_is_boolean.
 
-    IF NOT z2ui5_cl_fw_utility=>check_is_boolean( xsdbool( 1 = 1 ) ).
+    IF z2ui5_cl_fw_utility=>check_is_boolean( xsdbool( 1 = 1 ) ) = abap_false.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    IF NOT z2ui5_cl_fw_utility=>check_is_boolean( xsdbool( 1 = 2 ) ).
+    IF z2ui5_cl_fw_utility=>check_is_boolean( xsdbool( 1 = 2 ) ) = abap_false.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    IF NOT z2ui5_cl_fw_utility=>check_is_boolean( abap_true ).
+    IF z2ui5_cl_fw_utility=>check_is_boolean( abap_true ) = abap_false.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
-    IF NOT z2ui5_cl_fw_utility=>check_is_boolean( abap_false ).
+    IF z2ui5_cl_fw_utility=>check_is_boolean( abap_false ) = abap_false.
       cl_abap_unit_assert=>fail( quit = 5 ).
     ENDIF.
 
