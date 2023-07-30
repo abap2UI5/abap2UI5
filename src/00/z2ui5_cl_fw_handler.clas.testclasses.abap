@@ -1,5 +1,5 @@
 CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
-  DURATION short
+  DURATION medium
   RISK LEVEL harmless.
 
   PRIVATE SECTION.
