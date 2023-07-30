@@ -250,6 +250,7 @@
     "unused_types": true,
     "unused_variables": {
       "severity": "Error",
+      "exclude": ["z2ui5_cl_fw_utility.clas.testclasses.abap"],
       "skipNames": ["lv_dummy", "i_mv_editor"]
     },
     "use_bool_expression": true,
