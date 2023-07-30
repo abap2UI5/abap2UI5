@@ -63,9 +63,9 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
   PRIVATE SECTION.
 
+    METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_get_abap_2_json      FOR TESTING RAISING cx_static_check.
     METHODS test_create               FOR TESTING RAISING cx_static_check.
-    METHODS test_check_is_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_get_json_boolean     FOR TESTING RAISING cx_static_check.
     METHODS test_get_replace          FOR TESTING RAISING cx_static_check.
@@ -269,21 +269,23 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_check_is_boolean.
 
-    IF z2ui5_cl_fw_utility=>check_is_boolean( xsdbool( 1 = 1 ) ) = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    DATA(lv_bool) = xsdbool( 1 = 1 ).
+    cl_abap_unit_assert=>assert_equals(
+        act                  = z2ui5_cl_fw_utility=>check_is_boolean( lv_bool )
+        exp                  = abap_true ).
 
-    IF z2ui5_cl_fw_utility=>check_is_boolean( xsdbool( 1 = 2 ) ) = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    lv_bool = xsdbool( 1 = 2 ).
+    cl_abap_unit_assert=>assert_equals(
+        act                  = z2ui5_cl_fw_utility=>check_is_boolean( lv_bool )
+        exp                  = abap_true ).
 
-    IF z2ui5_cl_fw_utility=>check_is_boolean( abap_true ) = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals(
+        act                  = z2ui5_cl_fw_utility=>check_is_boolean( abap_true )
+        exp                  = abap_true ).
 
-    IF z2ui5_cl_fw_utility=>check_is_boolean( abap_false ) = abap_false.
-      cl_abap_unit_assert=>fail( quit = 5 ).
-    ENDIF.
+    cl_abap_unit_assert=>assert_equals(
+    act                  = z2ui5_cl_fw_utility=>check_is_boolean( abap_false )
+    exp                  = abap_true ).
 
   ENDMETHOD.
 
@@ -300,14 +302,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     lv_bool = xsdbool( 1 = 2 ).
     cl_abap_unit_assert=>assert_equals( exp = `false` act = z2ui5_cl_fw_utility=>get_abap_2_json( lv_bool ) ).
-
-*    IF `true` <> z2ui5_cl_fw_utility=>get_abap_2_json( abap_true ).
-*      cl_abap_unit_assert=>fail( quit = 5 ).
-*    ENDIF.
-*
-*    IF `false` <> z2ui5_cl_fw_utility=>get_abap_2_json( abap_false ).
-*      cl_abap_unit_assert=>fail( quit = 5 ).
-*    ENDIF.
 
   ENDMETHOD.
 
