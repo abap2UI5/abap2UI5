@@ -28,9 +28,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS hlp_get_app_url
       IMPORTING
-        VALUE(classname)     TYPE string OPTIONAL
+        VALUE(classname) TYPE string OPTIONAL
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result)    TYPE string.
 
     METHODS hlp_get_url_param
       IMPORTING
@@ -1319,7 +1319,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS container_toolbar
       IMPORTING
-        !showsearchbutton         TYPE clike OPTIONAL
+        !showsearchbutton          TYPE clike OPTIONAL
         !alignCustomContentToRight TYPE clike OPTIONAL
         !findMode                  TYPE clike OPTIONAL
         !infoOfSelectItems         TYPE clike OPTIONAL
@@ -1332,7 +1332,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !zoomControlType           TYPE clike OPTIONAL
         !zoomLevel                 TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS gantt_chart_with_table
       IMPORTING
@@ -1444,7 +1444,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !highlighted             TYPE clike OPTIONAL
         !highlightable           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
 
@@ -1464,7 +1464,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.

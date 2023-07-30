@@ -16,7 +16,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(li_client) = CAST z2ui5_if_client( lo_client ) ##NEEDED.
 
-
   ENDMETHOD.
 
 ENDCLASS.

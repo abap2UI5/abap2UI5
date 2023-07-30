@@ -4,7 +4,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
-
     CLASS-METHODS http_post
       IMPORTING
         body          TYPE string
@@ -27,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.

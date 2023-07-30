@@ -107,8 +107,10 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
         t_result    TYPE STANDARD TABLE.
 
     CLASS-METHODS get_trim_upper
-      IMPORTING val           TYPE any
-      RETURNING VALUE(result) TYPE string.
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS rtti_get
       IMPORTING
