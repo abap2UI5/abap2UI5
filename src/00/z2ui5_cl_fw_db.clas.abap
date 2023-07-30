@@ -88,7 +88,7 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
           CATCH cx_root INTO DATA(x2).
 
-            RAISE EXCEPTION TYPE z2ui5_cl_fw_utility
+            RAISE EXCEPTION TYPE z2ui5_cl_fw_error
               EXPORTING
                 val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ).
 
