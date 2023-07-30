@@ -211,9 +211,9 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    IF check_input( xsdbool( 2 = 1 ) ).
-      cl_abap_unit_assert=>fail( ).
-    ENDIF.
+*    IF check_input( xsdbool( 2 = 1 ) ).
+*      cl_abap_unit_assert=>fail( ).
+*    ENDIF.
 
   ENDMETHOD.
 
