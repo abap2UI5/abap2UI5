@@ -352,13 +352,13 @@ CLASS ltcl_integration_test IMPLEMENTATION.
          json            = lv_response
       CHANGING
         data             = lo_data ).
-*
-*    UNASSIGN <val>.
-*    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `tomato 700 - send to the server`.
-*      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
-*    ENDIF.
+
+    UNASSIGN <val>.
+    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    cl_abap_unit_assert=>assert_equals(
+        act                  = <val>
+        exp                  = `tomato 700 - send to the server` ).
 
   ENDMETHOD.
 
