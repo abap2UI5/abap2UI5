@@ -342,16 +342,16 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( <val> ).
 
 
-*    DATA(lv_id) = CONV string( <val> ).
-*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
-*    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
-*
-*    CLEAR lo_data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
+    DATA(lv_id) = CONV string( <val> ).
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
+
+    CLEAR lo_data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
 *
 *    UNASSIGN <val>.
 *    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
