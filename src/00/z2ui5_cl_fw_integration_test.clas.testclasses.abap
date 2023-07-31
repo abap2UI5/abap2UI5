@@ -377,9 +377,11 @@ CLASS ltcl_integration_test IMPLEMENTATION.
         data             = lo_data ).
 
     FIELD-SYMBOLS <val> TYPE any.
-    DATA lv_text TYPE string.
+    DATA lv_text TYPE string ##NEEDED.
     UNASSIGN <val>.
     ASSIGN (`LO_DATA->PARAMS->S_VIEW->XML->*`) TO <val>.
+    cl_abap_unit_assert=>assert_not_initial( <val> ).
+
 *    lv_text = <val>.
 *    lv_text = shift_left( lv_text ).
 *    IF lv_text NS `An exception with the type CX_SY_ZERODIVIDE was raised`.
