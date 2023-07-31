@@ -324,34 +324,34 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_app_event.
 
-*    z2ui5_cl_fw_integration_test=>sv_state = ``.
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `ID->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    cl_abap_unit_assert=>assert_not_initial( <val> ).
-*
-*
-*    DATA(lv_id) = CONV string( <val> ).
-*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
-*    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
-*
-*    CLEAR lo_data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
+    z2ui5_cl_fw_integration_test=>sv_state = ``.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    DATA(lv_assign) = `ID->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    cl_abap_unit_assert=>assert_not_initial( <val> ).
+
+
+    DATA(lv_id) = CONV string( <val> ).
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
+
+    CLEAR lo_data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
 
 *    UNASSIGN <val>.
 *    lv_assign = `LO_DATA->PARAMS->S_MSG_TOAST->TEXT->*`.
