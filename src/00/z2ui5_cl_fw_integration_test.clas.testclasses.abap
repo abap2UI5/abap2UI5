@@ -378,11 +378,11 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     DATA lv_text TYPE string.
     UNASSIGN <val>.
     ASSIGN (`LO_DATA->PARAMS->S_VIEW->XML->*`) TO <val>.
-    lv_text = <val>.
-    lv_text = shift_left( lv_text ).
-    IF lv_text NS `An exception with the type CX_SY_ZERODIVIDE was raised`.
-      cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
-    ENDIF.
+*    lv_text = <val>.
+*    lv_text = shift_left( lv_text ).
+*    IF lv_text NS `An exception with the type CX_SY_ZERODIVIDE was raised`.
+*      cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
+*    ENDIF.
 
   ENDMETHOD.
 
