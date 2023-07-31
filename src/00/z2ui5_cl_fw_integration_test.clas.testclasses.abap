@@ -368,12 +368,12 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     z2ui5_cl_fw_integration_test=>sv_state = `ERROR`.
     DATA(lv_response) = z2ui5_cl_http_handler=>http_post( `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
 
 *    FIELD-SYMBOLS <val> TYPE any.
 *    UNASSIGN <val>.
