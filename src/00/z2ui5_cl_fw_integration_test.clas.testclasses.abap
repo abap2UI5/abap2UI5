@@ -1,6 +1,6 @@
 CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
-  DURATION long
-  RISK LEVEL harmless.
+  DURATION LONG
+  RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
 
@@ -324,63 +324,67 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_app_event.
 
-*    z2ui5_cl_fw_integration_test=>sv_state = ``.
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `ID->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> IS INITIAL.
-*      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
-*    ENDIF.
-*    DATA(lv_id) = CONV string( <val> ).
-*
-*    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
-*    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
-*
-*    CLEAR lo_data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
-*
-*    UNASSIGN <val>.
-*    lv_assign = `PARAMS->S_MSG_TOAST->TEXT->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `tomato 700 - send to the server`.
-*      cl_abap_unit_assert=>fail( msg = 'message toast - text wrong' quit = 5 ).
-*    ENDIF.
+    z2ui5_cl_fw_integration_test=>sv_state = ``.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+
+    UNASSIGN <val>.
+    DATA(lv_assign) = `ID->*`.
+    ASSIGN lo_data->(lv_assign) TO <val>.
+    cl_abap_unit_assert=>assert_not_initial( <val> ).
+
+
+    DATA(lv_id) = CONV string( <val> ).
+    DATA(lv_request) = `{"oUpdate":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+    lv_response = z2ui5_cl_http_handler=>http_post( lv_request ).
+
+    CLEAR lo_data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    UNASSIGN <val>.
+    ASSIGN (`LO_DATA->PARAMS->*`) TO <val>.
+    ASSIGN (`<VAL>->S_MSG_TOAST->TEXT->*`) TO <val>.
+    cl_abap_unit_assert=>assert_not_initial( <val> ).
+
+*    cl_abap_unit_assert=>assert_equals(
+*        act                  = <val>
+*        exp                  = `tomato 700 - send to the server` ).
 
   ENDMETHOD.
 
   METHOD test_app_dump.
 
-*    z2ui5_cl_fw_integration_test=>sv_state = `ERROR`.
-*    DATA(lv_response) = z2ui5_cl_http_handler=>http_post( `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize(
-*      EXPORTING
-*         json            = lv_response
-*      CHANGING
-*        data             = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `PARAMS->S_VIEW->XML->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    <val> = shift_left( <val> ).
-*    IF <val> NS `An exception with the type CX_SY_ZERODIVIDE was raised`.
+    z2ui5_cl_fw_integration_test=>sv_state = `ERROR`.
+    DATA(lv_response) = z2ui5_cl_http_handler=>http_post( `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
+
+    DATA lo_data TYPE REF TO data.
+    /ui2/cl_json=>deserialize(
+      EXPORTING
+         json            = lv_response
+      CHANGING
+        data             = lo_data ).
+
+    FIELD-SYMBOLS <val> TYPE any.
+    DATA lv_text TYPE string ##NEEDED.
+    UNASSIGN <val>.
+    ASSIGN (`LO_DATA->PARAMS->S_VIEW->XML->*`) TO <val>.
+    cl_abap_unit_assert=>assert_not_initial( <val> ).
+
+*    lv_text = <val>.
+*    lv_text = shift_left( lv_text ).
+*    IF lv_text NS `An exception with the type CX_SY_ZERODIVIDE was raised`.
 *      cl_abap_unit_assert=>fail( msg = 'system app error - not shown by exception' quit = 5 ).
 *    ENDIF.
 
