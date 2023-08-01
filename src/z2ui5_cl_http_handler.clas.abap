@@ -315,7 +315,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    }` && |\n| &&
                            `                }` && |\n| &&
                            |\n| &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewClose(); }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewDestroy(); }` && |\n| &&
                            |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n| &&
                            |\n| &&
