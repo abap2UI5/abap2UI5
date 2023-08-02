@@ -917,6 +917,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS progress_indicator
       IMPORTING
+        !class        TYPE clike OPTIONAL
         !percentvalue TYPE clike OPTIONAL
         !displayvalue TYPE clike OPTIONAL
         !showvalue    TYPE clike OPTIONAL
@@ -1464,7 +1465,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2918,7 +2919,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD progress_indicator.
     result = me.
     _generic( name   = `ProgressIndicator`
-              t_prop = VALUE #( ( n = `percentValue` v = percentvalue )
+              t_prop = VALUE #( ( n = `class`        v = class )
+                                ( n = `percentValue` v = percentvalue )
                                 ( n = `displayValue` v = displayvalue )
                                 ( n = `showValue`    v = z2ui5_cl_fw_utility=>get_json_boolean( showvalue ) )
                                 ( n = `state`        v = state ) ) ).
