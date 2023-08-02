@@ -148,7 +148,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
 
   METHOD app_set_next.
@@ -334,6 +334,9 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
             result->ms_actual-event = <val>.
           ELSE.
             ASSIGN <arg_row>->* TO <val>.
+            IF sy-subrc <> 0.
+              CONTINUE.
+            ENDIF.
             INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
           ENDIF.
 
