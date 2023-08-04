@@ -14,7 +14,13 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
+      TYPES:
+    BEGIN OF ty_s_name_value_int,
+      n TYPE string,
+      v TYPE i,
+    END OF ty_s_name_value_int.
   TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES ty_t_name_value_int TYPE STANDARD TABLE OF ty_s_name_value_int WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_config,
@@ -38,16 +44,16 @@ INTERFACE z2ui5_if_client
   TYPES:
     BEGIN OF ty_s_cursor,
       id             TYPE string,
-      cursorpos      TYPE string,
-      selectionstart TYPE string,
-      selectionend   TYPE string,
+      cursorpos      TYPE i,
+      selectionstart TYPE i,
+      selectionend   TYPE i,
     END OF ty_s_cursor.
 
   TYPES:
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
-      t_scroll_pos           TYPE ty_t_name_value,
+      t_scroll_pos           TYPE ty_t_name_value_int,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
       s_draft                TYPE ty_s_draft,
@@ -77,13 +83,13 @@ INTERFACE z2ui5_if_client
   METHODS cursor_set
     IMPORTING
       id             TYPE clike
-      cursorpos      TYPE clike
-      selectionstart TYPE clike
-      selectionend   TYPE clike.
+      cursorpos      TYPE i
+      selectionstart TYPE i
+      selectionend   TYPE i.
 
   METHODS scroll_position_set
     IMPORTING
-      val TYPE ty_t_name_value.
+      val TYPE ty_t_name_value_int.
 
   METHODS popup_display
     IMPORTING
