@@ -297,7 +297,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            |\n| &&
                            `                 if (sap.z2ui5.checkLogActive) {` && |\n| &&
                            `                    console.log('Response Object:');` && |\n| &&
-                           `                    console.log(sap.z2ui5.oResponse);` && |\n| &&
+                           `                    console.log(JSON.parse( JSON.stringify(sap.z2ui5.oResponse) ) );` && |\n| &&
                            `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n| &&
                            `                        console.log('UI5-XML-View:');` && |\n| &&
                            `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML);` && |\n| &&
@@ -413,6 +413,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        sap.z2ui5.oBody = {};` && |\n| &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n| &&
+                           `        sap.z2ui5.log = () => {  console.log(sap.z2ui5.oResponse.OVIEWMODEL ); };` && |\n| &&
                            `    });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></html>`.
