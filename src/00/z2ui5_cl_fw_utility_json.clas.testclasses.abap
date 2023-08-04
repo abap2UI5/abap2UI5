@@ -60,11 +60,14 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   METHOD test_create_json.
 
+
+
     DATA(lo_json) = z2ui5_cl_fw_utility_json=>factory( `{"CCC":{"COMP1":"AAA","COMP2":"BBB"}}` ).
 
     DATA(lo_attri) = lo_json->get_attribute( `CCC` )->get_attribute( `COMP2` ).
 
-    DATA(lr_ref) = lo_attri->get_val_ref( ).
+    DATA lr_ref TYPE REF TO data.
+    lr_ref = lo_attri->get_val_ref( ).
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN lr_ref->* TO <any>.
     IF <any> <> `BBB`.
