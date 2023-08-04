@@ -282,6 +282,18 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       DATA(ls_attri2) = VALUE ty_attri( ).
       ls_attri2 = CORRESPONDING #( ls_attri ).
 
+      FIELD-SYMBOLS <any> TYPE any.
+      UNASSIGN <any>.
+      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
+      ASSIGN (lv_assign) TO <any>.
+
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
+      TRY.
+          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
+          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
+          ls_attri2-check_ref_data = abap_true.
+        CATCH cx_root.
+      ENDTRY.
 
 
       APPEND ls_attri2 TO result.
@@ -411,7 +423,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD trans_ref_tab_2_tab.
 
     TYPES ty_t_ref TYPE STANDARD TABLE OF REF TO data.
@@ -419,7 +430,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     ASSIGN ir_tab_from->* TO <lt_from>.
     raise( when = xsdbool( sy-subrc <> 0 ) ).
-
     CLEAR t_result.
 
     DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( t_result ) ).
@@ -431,6 +441,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       DATA lr_row TYPE REF TO data.
       CREATE DATA lr_row TYPE HANDLE lo_struc.
       ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+
       IF sy-subrc <> 0.
         EXIT.
       ENDIF.
@@ -438,21 +449,38 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
       raise( when = xsdbool( sy-subrc <> 0 ) ).
 
+      DATA(lt_components_Dissolved) = lt_components.
+      CLEAR lt_components_dissolved.
+
       LOOP AT lt_components INTO DATA(ls_comp).
+
+        IF ls_comp-as_include = abap_false.
+          APPEND ls_comp TO lt_components_Dissolved.
+        ELSE.
+          DATA(struct) = CAST cl_abap_structdescr( ls_comp-type ).
+          APPEND LINES OF struct->get_components( ) TO lt_components_dissolved.
+
+        ENDIF.
+      ENDLOOP.
+
+      LOOP AT lt_components_Dissolved INTO ls_comp.
 
         FIELD-SYMBOLS <comp> TYPE data.
         ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row> TO <comp>.
+
         IF sy-subrc <> 0.
           EXIT.
         ENDIF.
 
         FIELD-SYMBOLS <comp_ui5> TYPE data.
         ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row_ui5> TO <comp_ui5>.
+
         IF sy-subrc <> 0.
           EXIT.
         ENDIF.
 
         ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
+
         IF sy-subrc = 0.
           CASE ls_comp-type->kind.
             WHEN cl_abap_typedescr=>kind_table.
@@ -466,6 +494,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
       INSERT <row> INTO TABLE t_result.
     ENDLOOP.
+
 
   ENDMETHOD.
 

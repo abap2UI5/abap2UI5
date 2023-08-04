@@ -68,11 +68,13 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                                sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
+    data(lv_text) = mx_error->get_text( ).
+
     DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
         enableformattedtext = abap_true
         illustrationtype    = 'sapIllus-ErrorScreen'
         title               = '500 Internal Server Error'
-        description         = mx_error->get_text( )
+        description         = lv_text
       )->additional_content(
         )->button(
             text  = 'Home'
