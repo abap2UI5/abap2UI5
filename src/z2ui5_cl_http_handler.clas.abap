@@ -138,6 +138,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        sap.z2ui5.oController.NestViewDestroy( );` && |\n| &&
                            `                        new sap.ui.core.mvc.XMLView.create({` && |\n| &&
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n| &&
+                           `                            controller: sap.z2ui5.oController,` && |\n| &&
                            `                        }).then(oView => {` && |\n| &&
                            `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
                            `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n| &&
@@ -167,7 +168,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        sap.z2ui5.oViewPopover = oFragment;` && |\n| &&
                            `                    });` && |\n| &&
                            `                }` && |\n| &&
-                           `                if (sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS !== '') {` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED !== '') {` && |\n| &&
                            `                    var oEvent = { 'EVENT': 'BUTTON_CHECK', 'METHOD': 'UPDATE' };` && |\n| &&
                            `                    oEvent.EVENT = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED;` && |\n| &&
                            `                    sap.z2ui5.checkTimerActive = true;` && |\n| &&

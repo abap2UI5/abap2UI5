@@ -52,7 +52,6 @@ CLASS z2ui5_cl_fw_handler DEFINITION
         BEGIN OF s_timer,
           interval_ms     TYPE i,
           event_finished  TYPE string,
-          action_finished TYPE string,
         END OF s_timer,
         BEGIN OF s_msg_box,
           type TYPE string,
