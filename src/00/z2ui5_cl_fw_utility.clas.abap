@@ -450,7 +450,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       raise( when = xsdbool( sy-subrc <> 0 ) ).
 
       DATA(lt_components_Dissolved) = lt_components.
-      CLEAR: lt_components_dissolved.
+      CLEAR lt_components_dissolved.
 
       LOOP AT lt_components INTO DATA(ls_comp).
 
