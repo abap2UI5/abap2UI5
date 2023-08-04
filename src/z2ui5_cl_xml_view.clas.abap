@@ -1156,17 +1156,28 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !appointmentselect         TYPE clike OPTIONAL
         !showemptyintervalheaders  TYPE clike OPTIONAL
         !showweeknumbers           TYPE clike OPTIONAL
+        !showdaynamesline          TYPE clike OPTIONAL
+        !legend                    TYPE clike OPTIONAL
           PREFERRED PARAMETER rows
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS planning_calendar_row
       IMPORTING
-        !appointments    TYPE clike OPTIONAL
-        !intervalheaders TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
-        !title           TYPE clike OPTIONAL
-        !text            TYPE clike OPTIONAL
+        !appointments                  TYPE clike OPTIONAL
+        !intervalheaders               TYPE clike OPTIONAL
+        !icon                          TYPE clike OPTIONAL
+        !title                         TYPE clike OPTIONAL
+        !text                          TYPE clike OPTIONAL
+        !enableappointmentscreate      TYPE clike OPTIONAL
+        !enableappointmentsdraganddrop TYPE clike OPTIONAL
+        !enableappointmentsresize      TYPE clike OPTIONAL
+        !nonworkingdays                TYPE clike OPTIONAL
+        !selected                      TYPE clike OPTIONAL
+        !appointmentcreate             TYPE clike OPTIONAL
+        !appointmentdragenter          TYPE clike OPTIONAL
+        !appointmentdrop               TYPE clike OPTIONAL
+        !appointmentresize             TYPE clike OPTIONAL
           PREFERRED PARAMETER appointments
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
@@ -1188,6 +1199,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !text         TYPE clike OPTIONAL
         !type         TYPE clike OPTIONAL
         !tentative    TYPE clike OPTIONAL
+        !key          TYPE clike OPTIONAL
           PREFERRED PARAMETER startdate
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1613,13 +1625,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `CalendarAppointment`
                        ns     = `u`
                        t_prop = VALUE #(
-                           ( n = `startDate`                 v = startdate )
-                           ( n = `endDate`                   v = enddate )
-                           ( n = `icon`                      v = icon )
-                           ( n = `title`                     v = title )
-                           ( n = `text`                      v = text )
-                           ( n = `type`                      v = type )
-                           ( n = `tentative`                 v = tentative ) ) ).
+                             ( n = `startDate`                 v = startdate )
+                             ( n = `endDate`                   v = enddate )
+                             ( n = `icon`                      v = icon )
+                             ( n = `title`                     v = title )
+                             ( n = `text`                      v = text )
+                             ( n = `type`                      v = type )
+                             ( n = `key`                       v = key )
+                             ( n = `tentative`                 v = tentative ) ) ).
   ENDMETHOD.
 
 
@@ -2884,18 +2897,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `appointmentsVisualization` v = appointmentsvisualization )
                            ( n = `appointmentSelect`         v = appointmentselect )
                            ( n = `showEmptyIntervalHeaders`  v = showemptyintervalheaders )
-                           ( n = `showWeekNumbers`           v = showweeknumbers ) ) ).
+                           ( n = `showWeekNumbers`           v = showweeknumbers )
+                           ( n = `legend`                    v = legend )
+                           ( n = `showDayNamesLine`          v = showDayNamesLine ) ) ).
   ENDMETHOD.
 
 
   METHOD planning_calendar_row.
     result = _generic( name   = `PlanningCalendarRow`
                        t_prop = VALUE #(
-                           ( n = `appointments`              v = appointments )
-                           ( n = `intervalHeaders`           v = intervalheaders )
-                           ( n = `icon`                      v = icon )
-                           ( n = `title`                     v = title )
-                           ( n = `text`                      v = text ) ) ).
+                           ( n = `appointments`                    v = appointments )
+                           ( n = `intervalHeaders`                 v = intervalheaders )
+                           ( n = `icon`                            v = icon )
+                           ( n = `title`                           v = title )
+                           ( n = `enableAppointmentsCreate`        v = enableAppointmentsCreate )
+                           ( n = `appointmentResize`               v = appointmentResize )
+                           ( n = `appointmentDrop`                 v = appointmentDrop )
+                           ( n = `appointmentDragEnter`            v = appointmentDragEnter )
+                           ( n = `appointmentCreate`               v = appointmentCreate )
+                           ( n = `selected`                        v = selected )
+                           ( n = `nonWorkingDays`                  v = nonWorkingDays )
+                           ( n = `enableAppointmentsResize`        v = enableAppointmentsResize )
+                           ( n = `enableAppointmentsDragAndDrop`   v = enableAppointmentsDragAndDrop )
+                           ( n = `text`                            v = text ) ) ).
+
   ENDMETHOD.
 
 
