@@ -100,15 +100,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n| &&
                            `                    jQuery.sap.delayedCall(50, this, () => {` && |\n| &&
                            `                        var ofocus = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).getFocusInfo();` && |\n| &&
-                           `                        ofocus.selectionStart = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART);` && |\n| &&
-                           `                        ofocus.selectionEnd = parseInt(sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND);` && |\n| &&
+                           `                        ofocus.selectionStart = sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONSTART;` && |\n| &&
+                           `                        ofocus.selectionEnd = sap.z2ui5.oResponse.PARAMS.S_CURSOR.SELECTIONEND;` && |\n| &&
                            `                        sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID).applyFocusInfo(ofocus);` && |\n| &&
                            `                    });` && |\n| &&
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
                            `                    sap.z2ui5.oResponse.PARAMS.T_SCROLL.forEach(item => {` && |\n| &&
                            `                        try {` && |\n| &&
-                           `                            sap.z2ui5.oView.byId(item.N).scrollTo(parseInt(item.V));` && |\n| &&
+                           `                            sap.z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
                            `                        } catch {` && |\n| &&
                            `                            try {` && |\n| &&
                            `                                var ele = '#' + sap.z2ui5.oView.byId(item.N).getId() + '-inner';` && |\n| &&
@@ -177,7 +177,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n| &&
                            `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(oEvent);  }else{ sap.z2ui5.oController.onEventFrontend(oEvent);  }` && |\n| &&
                            `                        }` && |\n| &&
-                           `                    }, parseInt(sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS), oEvent);` && |\n| &&
+                           `                    }, sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS, oEvent);` && |\n| &&
                            `                }` && |\n| &&
                            `                sap.ui.core.BusyIndicator.hide();` && |\n| &&
                            `            },` && |\n| &&
