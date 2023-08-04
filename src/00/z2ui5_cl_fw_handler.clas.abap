@@ -50,8 +50,8 @@ CLASS z2ui5_cl_fw_handler DEFINITION
           selectionend   TYPE i,
         END OF s_cursor,
         BEGIN OF s_timer,
-          interval_ms     TYPE i,
-          event_finished  TYPE string,
+          interval_ms    TYPE i,
+          event_finished TYPE string,
         END OF s_timer,
         BEGIN OF s_msg_box,
           type TYPE string,
@@ -528,7 +528,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       DATA lr_ref TYPE REF TO data.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
-      IF lr_attri->check_ref_data IS NOT INITIAL.
+      IF lr_attri->check_ref_data = abap_true.
         FIELD-SYMBOLS <field> TYPE any.
         ASSIGN lr_ref->* TO <field>.
         lr_ref = CAST data( <field> ).
