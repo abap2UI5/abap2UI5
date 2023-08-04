@@ -282,6 +282,18 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       DATA(ls_attri2) = VALUE ty_attri( ).
       ls_attri2 = CORRESPONDING #( ls_attri ).
 
+      FIELD-SYMBOLS <any> TYPE any.
+      UNASSIGN <any>.
+      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
+      ASSIGN (lv_assign) TO <any>.
+
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
+      TRY.
+          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
+          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
+          ls_attri2-check_ref_data = abap_true.
+        CATCH cx_root.
+      ENDTRY.
 
 
       APPEND ls_attri2 TO result.
