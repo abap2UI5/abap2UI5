@@ -1163,6 +1163,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS dynamic_side_content
+      IMPORTING
+        !id                        TYPE clike OPTIONAL
+        !class                     TYPE clike OPTIONAL
+        !sideContentVisibility     TYPE clike OPTIONAL
+        !showSideContent           TYPE clike OPTIONAL
+        !containerQuery            TYPE clike OPTIONAL
+          PREFERRED PARAMETER id
+      RETURNING
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS side_content
+      IMPORTING
+        !width                     TYPE clike OPTIONAL
+          PREFERRED PARAMETER width
+      RETURNING
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS planning_calendar
       IMPORTING
         !rows                      TYPE clike OPTIONAL
@@ -1195,7 +1213,31 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !appointmentresize             TYPE clike OPTIONAL
           PREFERRED PARAMETER appointments
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS planning_calendar_legend
+      IMPORTING
+        !items            TYPE clike OPTIONAL
+        !id               TYPE clike OPTIONAL
+        !appointmentItems TYPE clike OPTIONAL
+        !standardItems    TYPE clike OPTIONAL
+          PREFERRED PARAMETER items
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS calendar_legend_item
+      IMPORTING
+        !text         TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !tooltip      TYPE clike OPTIONAL
+        !color        TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS appointment_items
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS rows
       RETURNING
@@ -3656,6 +3698,55 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     mo_root->mo_previous = result2.
     result = result2.
+
+  ENDMETHOD.
+
+
+  METHOD appointment_items.
+    result = _generic( name   = `appointmentItems` ).
+  ENDMETHOD.
+
+
+   METHOD calendar_legend_item.
+    result = _generic( name   = `CalendarLegendItem`
+                       t_prop = VALUE #(
+                           ( n = `text`                   v = text )
+                           ( n = `type`                   v = type )
+                           ( n = `tooltip`                v = tooltip )
+                           ( n = `color`                  v = color ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD dynamic_side_content.
+    result = _generic( name   = `DynamicSideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `class`                           v = class )
+                           ( n = `sideContentVisibility`           v = sideContentVisibility )
+                           ( n = `showSideContent`                 v = showSideContent )
+                           ( n = `containerQuery`                  v = containerQuery ) ) ).
+
+  ENDMETHOD.
+
+
+   METHOD planning_calendar_legend.
+    result = _generic( name   = `PlanningCalendarLegend`
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `items`                           v = items )
+                           ( n = `appointmentItems`                v = appointmentItems )
+                           ( n = `standardItems`                   v = standardItems ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD side_Content.
+    result = _generic( name   = `sideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `width`                           v = width ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
