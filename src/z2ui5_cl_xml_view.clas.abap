@@ -1239,6 +1239,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS info_label
+      IMPORTING
+        !id               TYPE clike OPTIONAL
+        !text             TYPE clike OPTIONAL
+        !renderMode       TYPE clike OPTIONAL
+        !colorscheme      TYPE clike OPTIONAL
+        !icon             TYPE clike OPTIONAL
+        !displayonly      TYPE clike OPTIONAL
+        !textdirection    TYPE clike OPTIONAL
+        !width            TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1991,29 +2005,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD constructor.
 
-    mt_prop = VALUE #( ( n = `xmlns`        v = `sap.m` )
-                       ( n = `xmlns:z2ui5`  v = `z2ui5` )
-                       ( n = `xmlns:core`   v = `sap.ui.core` )
-                       ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
-                       ( n = `xmlns:layout` v = `sap.ui.layout` )
+    mt_prop = VALUE #( ( n = `xmlns`           v = `sap.m` )
+                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
+                       ( n = `xmlns:core`      v = `sap.ui.core` )
+                       ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
+                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                       ( n = `xmlns:table ` v = `sap.ui.table` )
-                       ( n = `xmlns:f`      v = `sap.f` )
-                       ( n = `xmlns:form`   v = `sap.ui.layout.form` )
-                       ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
-                       ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
-                       ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
-                       ( n = `xmlns:uxap`   v = `sap.uxap` )
-                       ( n = `xmlns:sap`    v = `sap` )
-                       ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
-                       ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
-                       ( n = `xmlns:fb`     v = `sap.ui.comp.filterbar` )
-                       ( n = `xmlns:u`      v = `sap.ui.unified` )
+                       ( n = `xmlns:table `    v = `sap.ui.table` )
+                       ( n = `xmlns:f`         v = `sap.f` )
+                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
+                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
+                       ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
+                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
+                       ( n = `xmlns:uxap`      v = `sap.uxap` )
+                       ( n = `xmlns:sap`       v = `sap` )
+                       ( n = `xmlns:text`      v = `sap.ui.richtextedito` )
+                       ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
+                       ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
+                       ( n = `xmlns:u`         v = `sap.ui.unified` )
                        ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
                        ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
                        ( n = `xmlns:config`    v = `sap.gantt.config` )
-                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` ) ).
+                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
+                       ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
 
   ENDMETHOD.
 
@@ -3747,6 +3762,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = 'layout'
                        t_prop = VALUE #(
                            ( n = `width`                           v = width ) ) ).
+
+  ENDMETHOD.
+
+
+    METHOD info_label.
+    result = _generic( name   = `InfoLabel`
+                       ns     = 'tnt'
+                       t_prop = VALUE #(
+                           ( n = `id`                   v = id )
+                           ( n = `text`                 v = text )
+                           ( n = `renderMode `          v = rendermode  )
+                           ( n = `colorScheme`          v = colorscheme )
+                           ( n = `displayOnly`          v = displayonly )
+                           ( n = `icon`                 v = icon )
+                           ( n = `textDirection`        v = textDirection )
+                           ( n = `width`                v = width ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
