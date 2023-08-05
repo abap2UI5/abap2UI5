@@ -369,6 +369,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showsuggestion               TYPE clike OPTIONAL
         !showvaluehelp                TYPE clike OPTIONAL
         !valuehelprequest             TYPE clike OPTIONAL
+        !required                     TYPE clike OPTIONAL
         !suggest                      TYPE clike OPTIONAL
         !class                        TYPE clike OPTIONAL
         !visible                      TYPE clike OPTIONAL
@@ -629,6 +630,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !justifycontent TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
         !rendertype     TYPE clike OPTIONAL
+        !alignContent     TYPE clike OPTIONAL
+        !alignItems     TYPE clike OPTIONAL
+        !width     TYPE clike OPTIONAL
+        !wrap     TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -636,6 +641,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !class          TYPE clike OPTIONAL
         !justifycontent TYPE clike OPTIONAL
+        !alignContent TYPE clike OPTIONAL
+        !alignItems TYPE clike OPTIONAL
+        !width TYPE clike OPTIONAL
+        !height         TYPE clike OPTIONAL
+        !wrap         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS scroll_container
@@ -750,8 +760,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_picker
       IMPORTING
-        !value        TYPE clike OPTIONAL
-        !placeholder  TYPE clike OPTIONAL
+        !value            TYPE clike OPTIONAL
+        !placeholder      TYPE clike OPTIONAL
+        !displayFormat    TYPE clike OPTIONAL
+        !valueFormat      TYPE clike OPTIONAL
+        !required         TYPE clike OPTIONAL
+        !valueState       TYPE clike OPTIONAL
+        !valueStateText   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2073,8 +2088,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD date_picker.
     result = me.
     _generic( name   = `DatePicker`
-              t_prop = VALUE #( ( n = `value` v = value )
-                                ( n = `placeholder` v = placeholder ) ) ).
+              t_prop = VALUE #( ( n = `value`         v = value )
+                                ( n = `displayFormat` v = displayFormat )
+                                ( n = `valueFormat`   v = valueFormat )
+                                ( n = `required`      v = z2ui5_cl_fw_utility=>get_json_boolean( required ) )
+                                ( n = `valueState`    v = valueState )
+                                ( n = `valueStateText` v = valueStateText )
+                                ( n = `placeholder`   v = placeholder ) ) ).
   ENDMETHOD.
 
 
@@ -2366,8 +2386,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD hbox.
     result = _generic( name   = `HBox`
-                       t_prop = VALUE #( ( n = `class` v = class )
+                       t_prop = VALUE #( ( n = `class`          v = class )
+                                         ( n = `alignContent`   v = alignContent )
+                                         ( n = `alignItems`     v = alignItems )
+                                         ( n = `width`          v = width )
+                                         ( n = `height`         v = height )
+                                         ( n = `wrap`           v = wrap )
                                          ( n = `justifyContent` v = justifycontent ) ) ).
+
   ENDMETHOD.
 
 
@@ -2534,6 +2560,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `valueState`       v = valuestate )
                                 ( n = `valueStateText`   v = valuestatetext )
                                 ( n = `value`            v = value )
+                                ( n = `required`          v = z2ui5_cl_fw_utility=>get_json_boolean( required ) )
                                 ( n = `suggest`          v = suggest )
                                 ( n = `suggestionItems`  v = suggestionitems )
                                 ( n = `suggestionRows`   v = suggestionrows )
@@ -3590,10 +3617,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD vbox.
 
     result = _generic( name   = `VBox`
-                       t_prop = VALUE #( ( n = `height` v = height )
+                       t_prop = VALUE #( ( n = `height`          v = height )
                                          ( n = `justifyContent`  v = justifycontent )
-                                         ( n = `renderType`  v = rendertype )
-                                         ( n = `class`  v = class ) ) ).
+                                         ( n = `renderType`      v = renderType )
+                                         ( n = `alignContent`    v = alignContent )
+                                         ( n = `alignItems`      v = alignItems )
+                                         ( n = `width`           v = width )
+                                         ( n = `wrap`            v = wrap )
+                                         ( n = `class`           v = class ) ) ).
+
   ENDMETHOD.
 
 
