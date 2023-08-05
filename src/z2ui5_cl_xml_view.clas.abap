@@ -369,6 +369,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showsuggestion               TYPE clike OPTIONAL
         !showvaluehelp                TYPE clike OPTIONAL
         !valuehelprequest             TYPE clike OPTIONAL
+        !required                     TYPE clike OPTIONAL
         !suggest                      TYPE clike OPTIONAL
         !class                        TYPE clike OPTIONAL
         !visible                      TYPE clike OPTIONAL
@@ -629,6 +630,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !justifycontent TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
         !rendertype     TYPE clike OPTIONAL
+        !alignContent     TYPE clike OPTIONAL
+        !alignItems     TYPE clike OPTIONAL
+        !width     TYPE clike OPTIONAL
+        !wrap     TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -636,6 +641,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !class          TYPE clike OPTIONAL
         !justifycontent TYPE clike OPTIONAL
+        !alignContent TYPE clike OPTIONAL
+        !alignItems TYPE clike OPTIONAL
+        !width TYPE clike OPTIONAL
+        !height         TYPE clike OPTIONAL
+        !wrap         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS scroll_container
@@ -750,8 +760,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_picker
       IMPORTING
-        !value        TYPE clike OPTIONAL
-        !placeholder  TYPE clike OPTIONAL
+        !value            TYPE clike OPTIONAL
+        !placeholder      TYPE clike OPTIONAL
+        !displayFormat    TYPE clike OPTIONAL
+        !valueFormat      TYPE clike OPTIONAL
+        !required         TYPE clike OPTIONAL
+        !valueState       TYPE clike OPTIONAL
+        !valueStateText   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1148,6 +1163,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS dynamic_side_content
+      IMPORTING
+        !id                        TYPE clike OPTIONAL
+        !class                     TYPE clike OPTIONAL
+        !sideContentVisibility     TYPE clike OPTIONAL
+        !showSideContent           TYPE clike OPTIONAL
+        !containerQuery            TYPE clike OPTIONAL
+          PREFERRED PARAMETER id
+      RETURNING
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS side_content
+      IMPORTING
+        !width                     TYPE clike OPTIONAL
+          PREFERRED PARAMETER width
+      RETURNING
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS planning_calendar
       IMPORTING
         !rows                      TYPE clike OPTIONAL
@@ -1156,20 +1189,69 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !appointmentselect         TYPE clike OPTIONAL
         !showemptyintervalheaders  TYPE clike OPTIONAL
         !showweeknumbers           TYPE clike OPTIONAL
+        !showdaynamesline          TYPE clike OPTIONAL
+        !legend                    TYPE clike OPTIONAL
           PREFERRED PARAMETER rows
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS planning_calendar_row
       IMPORTING
-        !appointments    TYPE clike OPTIONAL
-        !intervalheaders TYPE clike OPTIONAL
-        !icon            TYPE clike OPTIONAL
-        !title           TYPE clike OPTIONAL
-        !text            TYPE clike OPTIONAL
+        !appointments                  TYPE clike OPTIONAL
+        !intervalheaders               TYPE clike OPTIONAL
+        !icon                          TYPE clike OPTIONAL
+        !title                         TYPE clike OPTIONAL
+        !text                          TYPE clike OPTIONAL
+        !enableappointmentscreate      TYPE clike OPTIONAL
+        !enableappointmentsdraganddrop TYPE clike OPTIONAL
+        !enableappointmentsresize      TYPE clike OPTIONAL
+        !nonworkingdays                TYPE clike OPTIONAL
+        !selected                      TYPE clike OPTIONAL
+        !appointmentcreate             TYPE clike OPTIONAL
+        !appointmentdragenter          TYPE clike OPTIONAL
+        !appointmentdrop               TYPE clike OPTIONAL
+        !appointmentresize             TYPE clike OPTIONAL
           PREFERRED PARAMETER appointments
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS planning_calendar_legend
+      IMPORTING
+        !items            TYPE clike OPTIONAL
+        !id               TYPE clike OPTIONAL
+        !appointmentItems TYPE clike OPTIONAL
+        !standardItems    TYPE clike OPTIONAL
+          PREFERRED PARAMETER items
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS calendar_legend_item
+      IMPORTING
+        !text         TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !tooltip      TYPE clike OPTIONAL
+        !color        TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS appointment_items
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS info_label
+      IMPORTING
+        !id               TYPE clike OPTIONAL
+        !text             TYPE clike OPTIONAL
+        !renderMode       TYPE clike OPTIONAL
+        !colorscheme      TYPE clike OPTIONAL
+        !icon             TYPE clike OPTIONAL
+        !displayonly      TYPE clike OPTIONAL
+        !textdirection    TYPE clike OPTIONAL
+        !width            TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS rows
       RETURNING
@@ -1188,6 +1270,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !text         TYPE clike OPTIONAL
         !type         TYPE clike OPTIONAL
         !tentative    TYPE clike OPTIONAL
+        !key          TYPE clike OPTIONAL
           PREFERRED PARAMETER startdate
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1613,13 +1696,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `CalendarAppointment`
                        ns     = `u`
                        t_prop = VALUE #(
-                           ( n = `startDate`                 v = startdate )
-                           ( n = `endDate`                   v = enddate )
-                           ( n = `icon`                      v = icon )
-                           ( n = `title`                     v = title )
-                           ( n = `text`                      v = text )
-                           ( n = `type`                      v = type )
-                           ( n = `tentative`                 v = tentative ) ) ).
+                             ( n = `startDate`                 v = startdate )
+                             ( n = `endDate`                   v = enddate )
+                             ( n = `icon`                      v = icon )
+                             ( n = `title`                     v = title )
+                             ( n = `text`                      v = text )
+                             ( n = `type`                      v = type )
+                             ( n = `key`                       v = key )
+                             ( n = `tentative`                 v = tentative ) ) ).
   ENDMETHOD.
 
 
@@ -1921,29 +2005,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD constructor.
 
-    mt_prop = VALUE #( ( n = `xmlns`        v = `sap.m` )
-                       ( n = `xmlns:z2ui5`  v = `z2ui5` )
-                       ( n = `xmlns:core`   v = `sap.ui.core` )
-                       ( n = `xmlns:mvc`    v = `sap.ui.core.mvc` )
-                       ( n = `xmlns:layout` v = `sap.ui.layout` )
+    mt_prop = VALUE #( ( n = `xmlns`           v = `sap.m` )
+                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
+                       ( n = `xmlns:core`      v = `sap.ui.core` )
+                       ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
+                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                       ( n = `xmlns:table ` v = `sap.ui.table` )
-                       ( n = `xmlns:f`      v = `sap.f` )
-                       ( n = `xmlns:form`   v = `sap.ui.layout.form` )
-                       ( n = `xmlns:editor` v = `sap.ui.codeeditor` )
-                       ( n = `xmlns:mchart` v = `sap.suite.ui.microchart` )
-                       ( n = `xmlns:webc`   v = `sap.ui.webc.main` )
-                       ( n = `xmlns:uxap`   v = `sap.uxap` )
-                       ( n = `xmlns:sap`    v = `sap` )
-                       ( n = `xmlns:text`   v = `sap.ui.richtextedito` )
-                       ( n = `xmlns:html`   v = `http://www.w3.org/1999/xhtml` )
-                       ( n = `xmlns:fb`     v = `sap.ui.comp.filterbar` )
-                       ( n = `xmlns:u`      v = `sap.ui.unified` )
+                       ( n = `xmlns:table `    v = `sap.ui.table` )
+                       ( n = `xmlns:f`         v = `sap.f` )
+                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
+                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
+                       ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
+                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
+                       ( n = `xmlns:uxap`      v = `sap.uxap` )
+                       ( n = `xmlns:sap`       v = `sap` )
+                       ( n = `xmlns:text`      v = `sap.ui.richtextedito` )
+                       ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
+                       ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
+                       ( n = `xmlns:u`         v = `sap.ui.unified` )
                        ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
                        ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
                        ( n = `xmlns:config`    v = `sap.gantt.config` )
-                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` ) ).
+                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
+                       ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
 
   ENDMETHOD.
 
@@ -2018,8 +2103,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD date_picker.
     result = me.
     _generic( name   = `DatePicker`
-              t_prop = VALUE #( ( n = `value` v = value )
-                                ( n = `placeholder` v = placeholder ) ) ).
+              t_prop = VALUE #( ( n = `value`         v = value )
+                                ( n = `displayFormat` v = displayFormat )
+                                ( n = `valueFormat`   v = valueFormat )
+                                ( n = `required`      v = z2ui5_cl_fw_utility=>get_json_boolean( required ) )
+                                ( n = `valueState`    v = valueState )
+                                ( n = `valueStateText` v = valueStateText )
+                                ( n = `placeholder`   v = placeholder ) ) ).
   ENDMETHOD.
 
 
@@ -2311,8 +2401,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD hbox.
     result = _generic( name   = `HBox`
-                       t_prop = VALUE #( ( n = `class` v = class )
+                       t_prop = VALUE #( ( n = `class`          v = class )
+                                         ( n = `alignContent`   v = alignContent )
+                                         ( n = `alignItems`     v = alignItems )
+                                         ( n = `width`          v = width )
+                                         ( n = `height`         v = height )
+                                         ( n = `wrap`           v = wrap )
                                          ( n = `justifyContent` v = justifycontent ) ) ).
+
   ENDMETHOD.
 
 
@@ -2479,6 +2575,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `valueState`       v = valuestate )
                                 ( n = `valueStateText`   v = valuestatetext )
                                 ( n = `value`            v = value )
+                                ( n = `required`          v = z2ui5_cl_fw_utility=>get_json_boolean( required ) )
                                 ( n = `suggest`          v = suggest )
                                 ( n = `suggestionItems`  v = suggestionitems )
                                 ( n = `suggestionRows`   v = suggestionrows )
@@ -2884,18 +2981,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `appointmentsVisualization` v = appointmentsvisualization )
                            ( n = `appointmentSelect`         v = appointmentselect )
                            ( n = `showEmptyIntervalHeaders`  v = showemptyintervalheaders )
-                           ( n = `showWeekNumbers`           v = showweeknumbers ) ) ).
+                           ( n = `showWeekNumbers`           v = showweeknumbers )
+                           ( n = `legend`                    v = legend )
+                           ( n = `showDayNamesLine`          v = showDayNamesLine ) ) ).
   ENDMETHOD.
 
 
   METHOD planning_calendar_row.
     result = _generic( name   = `PlanningCalendarRow`
                        t_prop = VALUE #(
-                           ( n = `appointments`              v = appointments )
-                           ( n = `intervalHeaders`           v = intervalheaders )
-                           ( n = `icon`                      v = icon )
-                           ( n = `title`                     v = title )
-                           ( n = `text`                      v = text ) ) ).
+                           ( n = `appointments`                    v = appointments )
+                           ( n = `intervalHeaders`                 v = intervalheaders )
+                           ( n = `icon`                            v = icon )
+                           ( n = `title`                           v = title )
+                           ( n = `enableAppointmentsCreate`        v = enableAppointmentsCreate )
+                           ( n = `appointmentResize`               v = appointmentResize )
+                           ( n = `appointmentDrop`                 v = appointmentDrop )
+                           ( n = `appointmentDragEnter`            v = appointmentDragEnter )
+                           ( n = `appointmentCreate`               v = appointmentCreate )
+                           ( n = `selected`                        v = selected )
+                           ( n = `nonWorkingDays`                  v = nonWorkingDays )
+                           ( n = `enableAppointmentsResize`        v = enableAppointmentsResize )
+                           ( n = `enableAppointmentsDragAndDrop`   v = enableAppointmentsDragAndDrop )
+                           ( n = `text`                            v = text ) ) ).
+
   ENDMETHOD.
 
 
@@ -3523,10 +3632,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD vbox.
 
     result = _generic( name   = `VBox`
-                       t_prop = VALUE #( ( n = `height` v = height )
+                       t_prop = VALUE #( ( n = `height`          v = height )
                                          ( n = `justifyContent`  v = justifycontent )
-                                         ( n = `renderType`  v = rendertype )
-                                         ( n = `class`  v = class ) ) ).
+                                         ( n = `renderType`      v = renderType )
+                                         ( n = `alignContent`    v = alignContent )
+                                         ( n = `alignItems`      v = alignItems )
+                                         ( n = `width`           v = width )
+                                         ( n = `wrap`            v = wrap )
+                                         ( n = `class`           v = class ) ) ).
+
   ENDMETHOD.
 
 
@@ -3599,6 +3713,71 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     mo_root->mo_previous = result2.
     result = result2.
+
+  ENDMETHOD.
+
+
+  METHOD appointment_items.
+    result = _generic( name   = `appointmentItems` ).
+  ENDMETHOD.
+
+
+   METHOD calendar_legend_item.
+    result = _generic( name   = `CalendarLegendItem`
+                       t_prop = VALUE #(
+                           ( n = `text`                   v = text )
+                           ( n = `type`                   v = type )
+                           ( n = `tooltip`                v = tooltip )
+                           ( n = `color`                  v = color ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD dynamic_side_content.
+    result = _generic( name   = `DynamicSideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `class`                           v = class )
+                           ( n = `sideContentVisibility`           v = sideContentVisibility )
+                           ( n = `showSideContent`                 v = showSideContent )
+                           ( n = `containerQuery`                  v = containerQuery ) ) ).
+
+  ENDMETHOD.
+
+
+   METHOD planning_calendar_legend.
+    result = _generic( name   = `PlanningCalendarLegend`
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `items`                           v = items )
+                           ( n = `appointmentItems`                v = appointmentItems )
+                           ( n = `standardItems`                   v = standardItems ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD side_Content.
+    result = _generic( name   = `sideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `width`                           v = width ) ) ).
+
+  ENDMETHOD.
+
+
+    METHOD info_label.
+    result = _generic( name   = `InfoLabel`
+                       ns     = 'tnt'
+                       t_prop = VALUE #(
+                           ( n = `id`                   v = id )
+                           ( n = `text`                 v = text )
+                           ( n = `renderMode `          v = rendermode  )
+                           ( n = `colorScheme`          v = colorscheme )
+                           ( n = `displayOnly`          v = displayonly )
+                           ( n = `icon`                 v = icon )
+                           ( n = `textDirection`        v = textDirection )
+                           ( n = `width`                v = width ) ) ).
 
   ENDMETHOD.
 ENDCLASS.
