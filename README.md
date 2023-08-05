@@ -10,7 +10,7 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-#### Features
+#### Key Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
 * low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF or RAP)
