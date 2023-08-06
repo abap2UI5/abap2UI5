@@ -41,7 +41,7 @@
 * Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Interested in contributing? Check out the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
+* Interested in contributing? Check out the guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
 * Integrate your apps to SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
@@ -79,6 +79,5 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* need help? please refer to the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/documentation.md)
-* still open questions? find an answer [here](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* need help or still open questions? please refer to the [documentation](https://github.com/abap2UI5/abap2UI5-documentation) or find an answer in the [faq](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * as always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
