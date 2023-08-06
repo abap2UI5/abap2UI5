@@ -44,7 +44,7 @@
 * Interested in contributing? Check out the guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
-* Integrate your apps to SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
+* Integrate your apps with SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
 * Explore abap2UI5-tools, a collection of useful tools & apps [(ext-app_tools)](https://github.com/abap2UI5/app-tools)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
 * And lastly, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
@@ -79,5 +79,5 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* need help or still open questions? please refer to the [documentation](https://github.com/abap2UI5/abap2UI5-documentation) or find an answer in the [faq](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
-* as always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* need help or still have open questions? refer to the [**documentation**](https://github.com/abap2UI5/abap2UI5-documentation) or find an answer in the [**FAQ**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* as always - your comments, questions, wishes and bug reports are welcome, please create an [**issue**](https://github.com/abap2UI5/abap2UI5/issues)
