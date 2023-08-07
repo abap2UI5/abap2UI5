@@ -79,6 +79,6 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* check out the [**documentation**](https://github.com/abap2UI5/abap2UI5-documentation/tree/main) for installation & configuration guidelines
+* check out the [**documentation**](https://github.com/abap2UI5/abap2UI5-documentation) for installation & configuration guidelines
 * still open questions? find an answer in the [**FAQ**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [**issue**](https://github.com/abap2UI5/abap2UI5/issues)
