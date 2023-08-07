@@ -247,7 +247,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    } }` && |\n| &&
                            `              if ( isUpdated == false ) { ` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n| &&
-                           `              if (sap.z2ui5.oViewPopover.isOpen() == false) {` && |\n| &&
+                           `              if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n| &&
                            `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
                            `                } } }` && |\n| &&
