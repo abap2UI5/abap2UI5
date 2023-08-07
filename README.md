@@ -23,7 +23,7 @@
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [**downport repository**](https://github.com/abap2UI5/abap2UI5-downport)
 
 #### Information (Blog Series)
 1. Introduction: Developing UI5 Apps in pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
@@ -47,10 +47,10 @@
 * Integrate your apps with SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
 * Explore abap2UI5-tools, a collection of useful tools & apps [(ext-app_tools)](https://github.com/abap2UI5/app-tools)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
-* And lastly, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
+* And lastly, don't forget to explore the [**Samples Repository** 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
 
 #### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
+Install with [**abapGit**](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
 ```abap
 METHOD if_http_extension~handle_request.
