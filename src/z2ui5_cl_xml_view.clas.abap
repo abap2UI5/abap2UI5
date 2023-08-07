@@ -2575,7 +2575,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `valueState`       v = valuestate )
                                 ( n = `valueStateText`   v = valuestatetext )
                                 ( n = `value`            v = value )
-                                ( n = `required`          v = z2ui5_cl_fw_utility=>get_json_boolean( required ) )
+                                ( n = `required`         v = z2ui5_cl_fw_utility=>get_json_boolean( required ) )
                                 ( n = `suggest`          v = suggest )
                                 ( n = `suggestionItems`  v = suggestionitems )
                                 ( n = `suggestionRows`   v = suggestionrows )

@@ -17,7 +17,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         check_logging           TYPE abap_bool                        OPTIONAL
           PREFERRED PARAMETER t_config
       RETURNING
-        VALUE(r_result)         TYPE string.
+        VALUE(r_result)         TYPE cmis_string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
