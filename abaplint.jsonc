@@ -73,7 +73,7 @@
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
-    "double_space": false,
+    "double_space": true,
     "downport": true,
     "empty_line_in_statement": true,
     "empty_statement": true,
