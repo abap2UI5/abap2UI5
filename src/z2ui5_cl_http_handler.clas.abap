@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    } }` && |\n| &&
                            `              if ( isUpdated == false ) { ` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n| &&
-                           `              if (sap.z2ui5.oViewPopover.isOpen() == false) {` && |\n| &&
+                           `              if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n| &&
                            `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
                            `                } } }` && |\n| &&
@@ -333,6 +333,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        } else {` && |\n| &&
                            `                            oView.placeAt("content")` && |\n| &&
                            `                        };` && |\n| &&
+                           `                        sap.ui.getCore().getMessageManager().registerObject(oView, true);` && |\n| &&
                            `                        sap.z2ui5.oView = oView;` && |\n| &&
                            `                    },` && |\n| &&
                            `                    );` && |\n| &&

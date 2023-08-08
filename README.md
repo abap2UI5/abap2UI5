@@ -23,7 +23,7 @@
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [**downport repository**](https://github.com/abap2UI5/abap2UI5-downport)
 
 #### Information (Blog Series)
 1. Introduction: Developing UI5 Apps in pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
@@ -36,21 +36,21 @@
 
 #### More
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Try out abap2UI5 compiled to JS on open-abap under nodejs [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
-* Install S-RTTI to create apps with dynamic typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
+* Try out abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
+* Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Want to help out? see the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
+* Interested in contributing? Check out the guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
-* Integrate your apps to SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
-* Try out abap2UI5-tools, a useful collection of tools & apps [(ext-app_tools)](https://github.com/abap2UI5/app-tools)
-* Check out other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
-* And finally: Don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
+* Integrate your apps with SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
+* Explore abap2UI5-tools, a collection of useful tools & apps [(ext-app_tools)](https://github.com/abap2UI5/app-tools)
+* Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
+* And lastly, don't forget to explore the [**Samples Repository** 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
 
 #### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
+Install with [**abapGit**](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
 ```abap
 METHOD if_http_extension~handle_request.
@@ -79,6 +79,6 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### FAQ
-* check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/documentation.md) for installation & configuration guidelines
-* still open questions? find an answer [here](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
-* as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* check out the [**documentation**](https://github.com/abap2UI5/abap2UI5-documentation/tree/main) for installation & configuration guidelines
+* still open questions? find an answer in the [**FAQ**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* as always - your comments, questions, wishes and bugs are welcome, please create an [**issue**](https://github.com/abap2UI5/abap2UI5/issues)
