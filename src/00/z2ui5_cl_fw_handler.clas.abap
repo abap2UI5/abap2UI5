@@ -143,11 +143,13 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_handler.
 
+protected section.
+private section.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
 
   METHOD app_set_next.
@@ -336,7 +338,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
-            INSERT <val> INTO TABLE result->ms_actual-t_event_arg.
+            INSERT CONV string( <val> ) INTO TABLE result->ms_actual-t_event_arg.
           ENDIF.
 
         ENDLOOP.

@@ -63,7 +63,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                `            height: 100%;` && |\n| &&
                `        }` && |\n| &&
                `    </style> ` &&
-               `    <script id="sap-ui-bootstrap"`.
+               `    <script id="sap-ui-bootstrap"` .
 
     LOOP AT lt_config REFERENCE INTO DATA(lr_config).
       r_result = r_result && | { lr_config->n }="{ lr_config->v }"|.
@@ -334,6 +334,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                            oView.placeAt("content")` && |\n| &&
                            `                        };` && |\n| &&
                            `                        sap.z2ui5.oView = oView;` && |\n| &&
+                           `                       sap.ui.getCore().getMessageManager().registerObject(oView, true);` && |\n| &&
                            `                    },` && |\n| &&
                            `                    );` && |\n| &&
                            `                } else {` && |\n| &&
