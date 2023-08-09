@@ -44,7 +44,8 @@
 * Want to help out? Check out the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
-* Integrate your apps with SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
+* Include your apps into SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
+* Integrate your apps with the Business Technology Platform [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
 * Explore abap2UI5-tools, a collection of useful tools & apps [(ext-app_tools)](https://github.com/abap2UI5/app-tools)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
 * And lastly, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
