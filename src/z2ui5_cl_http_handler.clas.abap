@@ -138,7 +138,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                        sap.z2ui5.oController.NestViewDestroy( );` && |\n| &&
                            `                        new sap.ui.core.mvc.XMLView.create({` && |\n| &&
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n| &&
-                           `                            controller: sap.z2ui5.oController,` && |\n| &&
+                           `                            controller: sap.z2ui5.oControllerNest,` && |\n| &&
                            `                        }).then(oView => {` && |\n| &&
                            `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
                            `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n| &&
@@ -410,6 +410,8 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n| &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n| &&
+                           `        var oViewNest = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
+                           `        sap.z2ui5.oControllerNest = oViewNest.getController();` && |\n| &&
                            `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n| &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
