@@ -281,11 +281,7 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                               `   sap.z2ui5.oBody.OMESSAGEMANAGER = [];   ` && |\n| &&
                               `   sap.ui.getCore().getMessageManager().getMessageModel().oMessageManager.oMessageModel.oData.forEach( row => {             ` && |\n| &&
                               `    sap.z2ui5.oBody.OMESSAGEMANAGER.push( { type : row.type , message : row.message , additionaltext : row.additionalText , atargets : row.aTargets[ 0 ] } );            ` && |\n| &&
-                              `                ` && |\n| &&
-                              `                ` && |\n| &&
                               `}  ) } catch (e) { } ` && |\n| &&
-
-
                            `                sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
                            `              sap.z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
                            `                try { sap.z2ui5.oBody.OCURSOR = sap.ui.getCore().byId(sap.ui.getCore().getCurrentFocusedControlId()).getFocusInfo(); } catch (e) { }` && |\n| &&
