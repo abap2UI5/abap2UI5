@@ -14,13 +14,13 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-      TYPES:
+  TYPES:
     BEGIN OF ty_s_name_value_int,
       n TYPE string,
       v TYPE i,
     END OF ty_s_name_value_int.
-  TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
-  TYPES ty_t_name_value_int TYPE STANDARD TABLE OF ty_s_name_value_int WITH EMPTY KEY.
+  TYPES ty_t_name_value TYPE TABLE OF ty_s_name_value WITH EMPTY KEY.
+  TYPES ty_t_name_value_int TYPE TABLE OF ty_s_name_value_int WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_config,
@@ -50,10 +50,20 @@ INTERFACE z2ui5_if_client
     END OF ty_s_cursor.
 
   TYPES:
+    BEGIN OF ty_s_message_manager,
+      type           TYPE string,
+      message        TYPE string,
+      additionaltext TYPE string,
+      aTargets       TYPE string,
+    END OF ty_s_message_manager,
+    ty_t_message_manager TYPE TABLE OF ty_s_message_manager WITH EMPTY KEY.
+
+  TYPES:
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
       t_scroll_pos           TYPE ty_t_name_value_int,
+      t_message_manager      TYPE ty_t_message_manager,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
       s_draft                TYPE ty_s_draft,
@@ -137,8 +147,8 @@ INTERFACE z2ui5_if_client
 
   METHODS timer_set
     IMPORTING
-      interval_ms     TYPE clike
-      event_finished  TYPE clike.
+      interval_ms    TYPE clike
+      event_finished TYPE clike.
 
   METHODS message_toast_display
     IMPORTING
