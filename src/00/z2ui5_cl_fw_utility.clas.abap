@@ -469,14 +469,14 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
         ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row> TO <comp>.
 
         IF sy-subrc <> 0.
-          EXIT.
+          CONTINUE.
         ENDIF.
 
         FIELD-SYMBOLS <comp_ui5> TYPE data.
         ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row_ui5> TO <comp_ui5>.
 
         IF sy-subrc <> 0.
-          EXIT.
+          CONTINUE.
         ENDIF.
 
         ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
