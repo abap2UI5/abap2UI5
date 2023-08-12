@@ -845,6 +845,18 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !items         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
+    METHODS multi_combobox
+      IMPORTING
+        !selectionChange     TYPE clike OPTIONAL
+        !selectionFinish     TYPE clike OPTIONAL
+        !width               TYPE clike OPTIONAL
+        !showClearIcon       TYPE clike OPTIONAL
+        !showSecondaryValues TYPE clike OPTIONAL
+        !showSelectAll       TYPE clike OPTIONAL
+        !selectedKeys        TYPE clike OPTIONAL
+        !items               TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS grid
       IMPORTING
         !class        TYPE clike OPTIONAL
@@ -3779,5 +3791,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `textDirection`        v = textDirection )
                            ( n = `width`                v = width ) ) ).
 
+  ENDMETHOD.
+
+
+ METHOD multi_combobox.
+    result = _generic( name   = `ComboBox`
+                       t_prop = VALUE #( (  n = `selectionChange`     v = selectionChange )
+                                         (  n = `selectedKeys`        v = selectedkeys )
+                                         (  n = `items`               v = items )
+                                         (  n = `selectionFinish`     v = selectionFinish )
+                                         (  n = `width`               v = width )
+                                         (  n = `showClearIcon`       v = showClearIcon )
+                                         (  n = `showSecondaryValues` v = showSecondaryValues )
+                                         (  n = `showSelectAll`       v = showSelectAll ) ) ).
   ENDMETHOD.
 ENDCLASS.
