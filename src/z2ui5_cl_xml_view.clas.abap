@@ -1213,6 +1213,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !intervalheaders               TYPE clike OPTIONAL
         !icon                          TYPE clike OPTIONAL
         !title                         TYPE clike OPTIONAL
+        !key                           TYPE clike OPTIONAL
         !text                          TYPE clike OPTIONAL
         !enableappointmentscreate      TYPE clike OPTIONAL
         !enableappointmentsdraganddrop TYPE clike OPTIONAL
@@ -3006,6 +3007,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `intervalHeaders`                 v = intervalheaders )
                            ( n = `icon`                            v = icon )
                            ( n = `title`                           v = title )
+                           ( n = `key`                             v = key )
                            ( n = `enableAppointmentsCreate`        v = enableAppointmentsCreate )
                            ( n = `appointmentResize`               v = appointmentResize )
                            ( n = `appointmentDrop`                 v = appointmentDrop )
