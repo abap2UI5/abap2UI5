@@ -157,8 +157,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS message_page
       IMPORTING
         !show_header         TYPE clike OPTIONAL
-*        !text                TYPE clike OPTIONAL
-        !enableformattedtext TYPE clike OPTIONAL
+        !text                TYPE clike OPTIONAL
+*        !enableformattedtext TYPE clike OPTIONAL
         !description         TYPE clike OPTIONAL
         !icon                TYPE clike OPTIONAL
       RETURNING
@@ -2770,8 +2770,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `showHeader`          v = z2ui5_cl_fw_utility=>get_json_boolean( show_header ) )
                            ( n = `description`         v = description )
                            ( n = `icon`                v = icon )
-*                           ( n = `text`                v = text )
-                           ( n = `enableFormattedText` v = z2ui5_cl_fw_utility=>get_json_boolean( enableformattedtext ) ) ) ).
+                           ( n = `text`                v = text )
+*                           ( n = `enableFormattedText` v = z2ui5_cl_fw_utility=>get_json_boolean( enableformattedtext ) )
+                            ) ).
   ENDMETHOD.
 
 
