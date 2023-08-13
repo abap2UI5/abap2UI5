@@ -41,7 +41,7 @@
 * Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Want to help out? Check out the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5/blob/main/CONTRIBUTING.md)
+* Want to help out? Check out the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
 * Add your apps to SAP Fiori Launchpad On-Premise [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
