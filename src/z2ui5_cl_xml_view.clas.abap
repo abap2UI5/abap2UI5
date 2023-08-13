@@ -159,7 +159,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !show_header         TYPE clike OPTIONAL
         !text                TYPE clike OPTIONAL
 *        !enableformattedtext TYPE clike OPTIONAL
-        !description         TYPE clike OPTIONAL
+*        !description         TYPE clike OPTIONAL
         !icon                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
