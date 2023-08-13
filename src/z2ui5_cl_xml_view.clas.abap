@@ -2768,7 +2768,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `MessagePage`
                        t_prop = VALUE #(
                            ( n = `showHeader`          v = z2ui5_cl_fw_utility=>get_json_boolean( show_header ) )
-                           ( n = `description`         v = description )
+*                           ( n = `description`         v = description )
                            ( n = `icon`                v = icon )
                            ( n = `text`                v = text )
 *                           ( n = `enableFormattedText` v = z2ui5_cl_fw_utility=>get_json_boolean( enableformattedtext ) )
