@@ -3827,7 +3827,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD planning_calendar_legend.
     result = _generic( name   = `PlanningCalendarLegend`
                        t_prop = VALUE #(
@@ -3838,7 +3837,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD side_Content.
     result = _generic( name   = `sideContent`
                        ns     = 'layout'
@@ -3846,7 +3844,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `width`                           v = width ) ) ).
 
   ENDMETHOD.
-
 
   METHOD info_label.
     result = _generic( name   = `InfoLabel`
@@ -3862,7 +3859,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `width`                v = width ) ) ).
 
   ENDMETHOD.
-
 
   METHOD multi_combobox.
     result = _generic( name   = `ComboBox`
@@ -3880,6 +3876,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name = `ToolPage`
                        ns   = `tnt` ).
   ENDMETHOD.
+
   METHOD toolheader.
     result = _generic( name = `ToolHeader`
                        ns   = `tnt` ).
