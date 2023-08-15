@@ -240,11 +240,10 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                sap.z2ui5.oBody = {};` && |\n| &&
                            `                let isUpdated = false;` && |\n| &&
                            `                if (sap.z2ui5.oViewPopup) {` && |\n| &&
-                           `              // if (sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n| &&
+                           `               if (sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n| &&
                            `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate;` && |\n| &&
-                           `                  //  sap.z2ui5.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
-                           `                  //}` && |\n| &&
+                           `                  }` && |\n| &&
                            `                    }` && |\n| &&
                            `              if ( isUpdated == false ) { ` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n| &&
