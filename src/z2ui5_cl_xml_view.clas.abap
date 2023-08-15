@@ -886,8 +886,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
     METHODS range_slider
       IMPORTING
-        !max           TYPE clike OPTIONAL
-        !min           TYPE clike OPTIONAL
+*        !max           TYPE clike OPTIONAL
+*        !min           TYPE clike OPTIONAL
         !step          TYPE clike OPTIONAL
         !startvalue    TYPE clike OPTIONAL
         !endvalue      TYPE clike OPTIONAL
@@ -3107,8 +3107,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `endValue`        v = endvalue )
                                 ( n = `id`          v = id )
                                 ( n = `labelInterval`  v = labelinterval )
-                                ( n = `max`   v = max )
-                                ( n = `min`   v = min )
+*                                ( n = `max`   v = max )
+*                                ( n = `min`   v = min )
                                 ( n = `showTickmarks`   v = z2ui5_cl_fw_utility=>get_json_boolean( showtickmarks ) )
                                 ( n = `startValue`   v = startvalue )
                                 ( n = `step`   v = step )
