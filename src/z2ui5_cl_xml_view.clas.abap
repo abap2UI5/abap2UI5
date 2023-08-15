@@ -630,10 +630,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !justifycontent TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
         !rendertype     TYPE clike OPTIONAL
-        !alignContent     TYPE clike OPTIONAL
+        !alignContent   TYPE clike OPTIONAL
         !alignItems     TYPE clike OPTIONAL
-        !width     TYPE clike OPTIONAL
-        !wrap     TYPE clike OPTIONAL
+        !width          TYPE clike OPTIONAL
+        !wrap           TYPE clike OPTIONAL
           PREFERRED PARAMETER class
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -641,11 +641,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !class          TYPE clike OPTIONAL
         !justifycontent TYPE clike OPTIONAL
-        !alignContent TYPE clike OPTIONAL
-        !alignItems TYPE clike OPTIONAL
-        !width TYPE clike OPTIONAL
+        !alignContent   TYPE clike OPTIONAL
+        !alignItems     TYPE clike OPTIONAL
+        !width          TYPE clike OPTIONAL
         !height         TYPE clike OPTIONAL
-        !wrap         TYPE clike OPTIONAL
+        !wrap           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS scroll_container
@@ -760,16 +760,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_picker
       IMPORTING
-        !value            TYPE clike OPTIONAL
-        !placeholder      TYPE clike OPTIONAL
-        !displayFormat    TYPE clike OPTIONAL
-        !valueFormat      TYPE clike OPTIONAL
-        !required         TYPE clike OPTIONAL
-        !valueState       TYPE clike OPTIONAL
-        !valueStateText   TYPE clike OPTIONAL
+        !value          TYPE clike OPTIONAL
+        !placeholder    TYPE clike OPTIONAL
+        !displayFormat  TYPE clike OPTIONAL
+        !valueFormat    TYPE clike OPTIONAL
+        !required       TYPE clike OPTIONAL
+        !valueState     TYPE clike OPTIONAL
+        !valueStateText TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS time_picker
       IMPORTING
         !value        TYPE clike OPTIONAL
@@ -843,6 +843,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showclearicon TYPE clike OPTIONAL
         !label         TYPE clike OPTIONAL
         !items         TYPE clike OPTIONAL
+        !change        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS multi_combobox
@@ -856,7 +857,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !selectedKeys        TYPE clike OPTIONAL
         !items               TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
     METHODS grid
       IMPORTING
         !class        TYPE clike OPTIONAL
@@ -1179,21 +1180,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS dynamic_side_content
       IMPORTING
-        !id                        TYPE clike OPTIONAL
-        !class                     TYPE clike OPTIONAL
-        !sideContentVisibility     TYPE clike OPTIONAL
-        !showSideContent           TYPE clike OPTIONAL
-        !containerQuery            TYPE clike OPTIONAL
+        !id                    TYPE clike OPTIONAL
+        !class                 TYPE clike OPTIONAL
+        !sideContentVisibility TYPE clike OPTIONAL
+        !showSideContent       TYPE clike OPTIONAL
+        !containerQuery        TYPE clike OPTIONAL
           PREFERRED PARAMETER id
       RETURNING
-        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS side_content
       IMPORTING
-        !width                     TYPE clike OPTIONAL
+        !width        TYPE clike OPTIONAL
           PREFERRED PARAMETER width
       RETURNING
-        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS planning_calendar
       IMPORTING
@@ -1228,7 +1229,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !appointmentresize             TYPE clike OPTIONAL
           PREFERRED PARAMETER appointments
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)                  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS planning_calendar_legend
       IMPORTING
@@ -1256,17 +1257,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS info_label
       IMPORTING
-        !id               TYPE clike OPTIONAL
-        !text             TYPE clike OPTIONAL
-        !renderMode       TYPE clike OPTIONAL
-        !colorscheme      TYPE clike OPTIONAL
-        !icon             TYPE clike OPTIONAL
-        !displayonly      TYPE clike OPTIONAL
-        !textdirection    TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
+        !id            TYPE clike OPTIONAL
+        !text          TYPE clike OPTIONAL
+        !renderMode    TYPE clike OPTIONAL
+        !colorscheme   TYPE clike OPTIONAL
+        !icon          TYPE clike OPTIONAL
+        !displayonly   TYPE clike OPTIONAL
+        !textdirection TYPE clike OPTIONAL
+        !width         TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS rows
       RETURNING
@@ -1545,6 +1546,62 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS toolpage
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+    METHODS toolheader
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+    METHODS subheader
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS icontabheader
+      IMPORTING
+        !selectedKey  TYPE clike OPTIONAL
+        !items        TYPE clike OPTIONAL
+        !select       TYPE clike OPTIONAL
+        !mode         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS icontabfilters
+      IMPORTING
+        !items        TYPE clike OPTIONAL
+        !text         TYPE clike OPTIONAL
+        !key          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS icontabfilter
+      IMPORTING
+        !text         TYPE clike OPTIONAL
+        !key          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+     METHODS NavContainer
+      IMPORTING
+        !initialPage         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS pages
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS ScrollContainer
+      IMPORTING
+        !id         TYPE clike OPTIONAL
+        !horizontal TYPE clike OPTIONAL
+        !vertical   TYPE clike OPTIONAL
+        !height     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS mainContents
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1559,11 +1616,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
   PRIVATE SECTION.
+
+
+
+
+
+
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1619,30 +1682,31 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD base_rectangle.
 
-    result = _generic( name   = `BaseRectangle` ns = 'gantt'
-              t_prop = VALUE #( ( n = `time`                      v = time )
-                                ( n = `endtime`                   v = endtime )
-                                ( n = `selectable`                v = z2ui5_cl_fw_utility=>get_json_boolean( selectable ) )
-                                ( n = `selectedFill`              v = selectedFill )
-                                ( n = `fill`                      v = fill )
-                                ( n = `height`                    v = height )
-                                ( n = `title`                     v = title )
-                                ( n = `animationSettings`         v = animationSettings )
-                                ( n = `alignShape`                v = alignShape )
-                                ( n = `color`                     v = color   )
-                                ( n = `fontSize`                  v = fontSize )
-                                ( n = `connectable`               v = z2ui5_cl_fw_utility=>get_json_boolean( connectable ) )
-                                ( n = `fontFamily`                v = fontFamily )
-                                ( n = `filter`                    v = filter )
-                                ( n = `transform`                 v = transform )
-                                ( n = `countInBirdEye`            v = z2ui5_cl_fw_utility=>get_json_boolean( countInBirdEye ) )
-                                ( n = `fontWeight`                v = fontWeight   )
-                                ( n = `showTitle`                 v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
-                                ( n = `selected`                  v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
-                                ( n = `resizable`                 v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
-                                ( n = `horizontalTextAlignment`   v = horizontalTextAlignment )
-                                ( n = `highlighted`               v = z2ui5_cl_fw_utility=>get_json_boolean( highlighted ) )
-                                ( n = `highlightable`             v = z2ui5_cl_fw_utility=>get_json_boolean( highlightable ) ) ) ).
+    result = _generic( name   = `BaseRectangle`
+                       ns     = 'gantt'
+                       t_prop = VALUE #( ( n = `time`                      v = time )
+                                         ( n = `endtime`                   v = endtime )
+                                         ( n = `selectable`                v = z2ui5_cl_fw_utility=>get_json_boolean( selectable ) )
+                                         ( n = `selectedFill`              v = selectedFill )
+                                         ( n = `fill`                      v = fill )
+                                         ( n = `height`                    v = height )
+                                         ( n = `title`                     v = title )
+                                         ( n = `animationSettings`         v = animationSettings )
+                                         ( n = `alignShape`                v = alignShape )
+                                         ( n = `color`                     v = color   )
+                                         ( n = `fontSize`                  v = fontSize )
+                                         ( n = `connectable`               v = z2ui5_cl_fw_utility=>get_json_boolean( connectable ) )
+                                         ( n = `fontFamily`                v = fontFamily )
+                                         ( n = `filter`                    v = filter )
+                                         ( n = `transform`                 v = transform )
+                                         ( n = `countInBirdEye`            v = z2ui5_cl_fw_utility=>get_json_boolean( countInBirdEye ) )
+                                         ( n = `fontWeight`                v = fontWeight   )
+                                         ( n = `showTitle`                 v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
+                                         ( n = `selected`                  v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
+                                         ( n = `resizable`                 v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
+                                         ( n = `horizontalTextAlignment`   v = horizontalTextAlignment )
+                                         ( n = `highlighted`               v = z2ui5_cl_fw_utility=>get_json_boolean( highlighted ) )
+                                         ( n = `highlightable`             v = z2ui5_cl_fw_utility=>get_json_boolean( highlightable ) ) ) ).
   ENDMETHOD.
 
 
@@ -1736,13 +1800,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD cc_export_spreadsheet.
 
     result = me.
-    _generic( name            = `ExportSpreadsheet`
-                       ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `tableId`  v = tableid )
-                                         ( n = `text`     v = text )
-                                         ( n = `icon`     v = icon )
-                                         ( n = `type`     v = type )
-               ) ).
+    _generic( name   = `ExportSpreadsheet`
+              ns     = `z2ui5`
+              t_prop = VALUE #( ( n = `tableId`  v = tableid )
+                                ( n = `text`     v = text )
+                                ( n = `icon`     v = icon )
+                                ( n = `type`     v = type )
+              ) ).
 
   ENDMETHOD.
 
@@ -2014,7 +2078,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( (  n = `showClearIcon` v = z2ui5_cl_fw_utility=>get_json_boolean( showclearicon ) )
                                          (  n = `selectedKey`   v = selectedkey )
                                          (  n = `items`         v = items )
-                                         (  n = `label`         v = label ) ) ).
+                                         (  n = `label`         v = label )
+                                         (  n = `change`        v = change ) ) ).
   ENDMETHOD.
 
 
@@ -2320,19 +2385,19 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD gantt_chart_with_table.
-    result = _generic( name = `GanttChartWithTable`
-                   ns       = `gantt`
-                   t_prop   = VALUE #( ( n = `id` v = id )
-                                     ( n = `shapeSelectionMode` v = shapeselectionmode ) ) ).
+    result = _generic( name   = `GanttChartWithTable`
+                       ns     = `gantt`
+                       t_prop = VALUE #( ( n = `id` v = id )
+                                       ( n = `shapeSelectionMode` v = shapeselectionmode ) ) ).
   ENDMETHOD.
 
 
   METHOD gantt_row_settings.
-    result = _generic( name = `GanttRowSettings`
-               ns           = `gantt`
-               t_prop       = VALUE #( ( n = `rowId` v = rowid )
-                                 ( n = `shapes1` v = shapes1 )
-                                 ( n = `shapes2` v = shapes2 ) ) ).
+    result = _generic( name   = `GanttRowSettings`
+                       ns     = `gantt`
+                       t_prop = VALUE #( ( n = `rowId` v = rowid )
+                                   ( n = `shapes1` v = shapes1 )
+                                   ( n = `shapes2` v = shapes2 ) ) ).
   ENDMETHOD.
 
 
@@ -2489,8 +2554,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD hlp_get_url_param.
 
     result = z2ui5_cl_fw_utility=>url_param_get(
-        val = val
-        url = mi_client->get( )-s_config-search ).
+      val = val
+      url = mi_client->get( )-s_config-search ).
 
   ENDMETHOD.
 
@@ -2498,9 +2563,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD hlp_set_url_param.
 
     DATA(result) = z2ui5_cl_fw_utility=>url_param_set(
-               url   = mi_client->get( )-s_config-search
-               name  = n
-               value = v ).
+      url   = mi_client->get( )-s_config-search
+      name  = n
+      value = v ).
 
     mi_client->url_param_set( result ).
 
@@ -2517,25 +2582,25 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD icon_tab_bar.
 
-    result = _generic( name = `IconTabBar`
-                   t_prop   = VALUE #( ( n = `class`       v = class )
-                                     ( n = `select`      v = select )
-                                     ( n = `expand`      v = expand )
-                                     ( n = `expandable`  v = expandable )
-                                     ( n = `expanded`    v = expanded )
-                                     ( n = `selectedKey` v = selectedkey ) ) ).
+    result = _generic( name   = `IconTabBar`
+                       t_prop = VALUE #( ( n = `class`       v = class )
+                                       ( n = `select`      v = select )
+                                       ( n = `expand`      v = expand )
+                                       ( n = `expandable`  v = expandable )
+                                       ( n = `expanded`    v = expanded )
+                                       ( n = `selectedKey` v = selectedkey ) ) ).
   ENDMETHOD.
 
 
   METHOD icon_tab_filter.
 
-    result = _generic( name = `IconTabFilter`
-                   t_prop   = VALUE #( ( n = `icon`        v = icon )
-                                     ( n = `iconColor`   v = iconcolor )
-                                     ( n = `showAll`     v = showall )
-                                     ( n = `count`       v = count )
-                                     ( n = `text`        v = text )
-                                     ( n = `key`         v = key ) ) ).
+    result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( ( n = `icon`        v = icon )
+                                       ( n = `iconColor`   v = iconcolor )
+                                       ( n = `showAll`     v = showall )
+                                       ( n = `count`       v = count )
+                                       ( n = `text`        v = text )
+                                       ( n = `key`         v = key ) ) ).
   ENDMETHOD.
 
 
@@ -2568,8 +2633,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD image_content.
 
-    result = _generic( name = `ImageContent`
-                   t_prop   = VALUE #( ( n = `src`      v = src ) ) ).
+    result = _generic( name   = `ImageContent`
+                       t_prop = VALUE #( ( n = `src` v = src ) ) ).
 
 
   ENDMETHOD.
@@ -3735,11 +3800,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD appointment_items.
-    result = _generic( name   = `appointmentItems` ).
+    result = _generic( name = `appointmentItems` ).
   ENDMETHOD.
 
 
-   METHOD calendar_legend_item.
+  METHOD calendar_legend_item.
     result = _generic( name   = `CalendarLegendItem`
                        t_prop = VALUE #(
                            ( n = `text`                   v = text )
@@ -3763,7 +3828,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-   METHOD planning_calendar_legend.
+  METHOD planning_calendar_legend.
     result = _generic( name   = `PlanningCalendarLegend`
                        t_prop = VALUE #(
                            ( n = `id`                              v = id )
@@ -3783,7 +3848,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-    METHOD info_label.
+  METHOD info_label.
     result = _generic( name   = `InfoLabel`
                        ns     = 'tnt'
                        t_prop = VALUE #(
@@ -3799,7 +3864,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
- METHOD multi_combobox.
+  METHOD multi_combobox.
     result = _generic( name   = `ComboBox`
                        t_prop = VALUE #( (  n = `selectionChange`     v = selectionChange )
                                          (  n = `selectedKeys`        v = selectedkeys )
@@ -3810,4 +3875,69 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          (  n = `showSecondaryValues` v = showSecondaryValues )
                                          (  n = `showSelectAll`       v = showSelectAll ) ) ).
   ENDMETHOD.
+
+  METHOD ToolPage.
+    result = _generic( name = `ToolPage`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+  METHOD toolheader.
+    result = _generic( name = `ToolHeader`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+
+  METHOD subHeader.
+    result = _generic( name = `subHeader`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+
+  METHOD icontabheader.
+    result = _generic( name   = `IconTabHeader`
+                       t_prop = VALUE #( (  n = `selectedKey`     v = selectedKey )
+                                         (  n = `items`           v = items )
+                                         (  n = `select`          v = select )
+                                         (  n = `mode`            v = mode  ) ) ).
+
+  ENDMETHOD.
+
+  METHOD icontabfilters.
+    result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( (  n = `items`    v = items )
+                                         (  n = `text`     v = text  )
+                                         (  n = `key`      v = key   ) ) ).
+
+  ENDMETHOD.
+
+  METHOD icontabfilter.
+    result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( (  n = `text`     v = text  )
+                                         (  n = `key`      v = key   ) ) ).
+
+  ENDMETHOD.
+
+  METHOD mainContents.
+    result = _generic( name   = `mainContents`
+                       ns     = `tnt` ).
+
+  ENDMETHOD.
+
+  METHOD NavContainer.
+    result = _generic( name   = `NavContainer`
+                       t_prop = VALUE #( (  n = `initialPage`     v = initialPage  ) )  ).
+
+  ENDMETHOD.
+
+  METHOD pages.
+    result = _generic( name   = `pages`  ).
+
+  ENDMETHOD.
+
+  METHOD ScrollContainer.
+    result = _generic( name   = `ScrollContainer`
+                       t_prop = VALUE #( (  n = `id        `     v = id          )
+                                         (  n = `horizontal`     v = horizontal  )
+                                         (  n = `vertical  `     v = vertical    )
+                                         (  n = `height    `     v = height      ) ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
