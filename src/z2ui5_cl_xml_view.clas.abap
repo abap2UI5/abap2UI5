@@ -1385,6 +1385,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS icon_tab_filter
       IMPORTING
+       !items         TYPE clike OPTIONAL
         !showall      TYPE abap_bool OPTIONAL
         !icon         TYPE clike OPTIONAL
         !iconcolor    TYPE clike OPTIONAL
@@ -1547,17 +1548,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS toolpage
+    METHODS tool_page
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-    METHODS toolheader
+    METHODS tool_header
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
     METHODS subheader
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS icontabheader
+    METHODS icon_tab_header
       IMPORTING
         !selectedKey  TYPE clike OPTIONAL
         !items        TYPE clike OPTIONAL
@@ -1566,22 +1567,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS icontabfilters
-      IMPORTING
-        !items        TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS icontabfilter
-      IMPORTING
-        !text         TYPE clike OPTIONAL
-        !key          TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-     METHODS NavContainer
+     METHODS Nav_Container
       IMPORTING
         !initialPage         TYPE clike OPTIONAL
       RETURNING
@@ -1591,14 +1577,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS ScrollContainer
-      IMPORTING
-        !id         TYPE clike OPTIONAL
-        !horizontal TYPE clike OPTIONAL
-        !vertical   TYPE clike OPTIONAL
-        !height     TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS mainContents
       RETURNING
@@ -2637,25 +2615,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `width`  v = width ) ) ).
   ENDMETHOD.
 
+  METHOD icon_tab_header.
 
-  METHOD icontabfilter.
-    result = _generic( name   = `IconTabFilter`
-                       t_prop = VALUE #( (  n = `text`     v = text  )
-                                         (  n = `key`      v = key   ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD icontabfilters.
-    result = _generic( name   = `IconTabFilter`
-                       t_prop = VALUE #( (  n = `items`    v = items )
-                                         (  n = `text`     v = text  )
-                                         (  n = `key`      v = key   ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD icontabheader.
     result = _generic( name   = `IconTabHeader`
                        t_prop = VALUE #( (  n = `selectedKey`     v = selectedKey )
                                          (  n = `items`           v = items )
@@ -2681,6 +2642,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     result = _generic( name   = `IconTabFilter`
                        t_prop = VALUE #( ( n = `icon`        v = icon )
+                                       (  n = `items`    v = items )
                                        ( n = `iconColor`   v = iconcolor )
                                        ( n = `showAll`     v = showall )
                                        ( n = `count`       v = count )
@@ -3016,7 +2978,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD NavContainer.
+  METHOD Nav_Container.
     result = _generic( name   = `NavContainer`
                        t_prop = VALUE #( (  n = `initialPage`     v = initialPage  ) )  ).
 
@@ -3354,16 +3316,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD row_settings_template.
     result = _generic( name = `rowSettingsTemplate`
                        ns   = `table` ).
-  ENDMETHOD.
-
-
-  METHOD ScrollContainer.
-    result = _generic( name   = `ScrollContainer`
-                       t_prop = VALUE #( (  n = `id        `     v = id          )
-                                         (  n = `horizontal`     v = horizontal  )
-                                         (  n = `vertical  `     v = vertical    )
-                                         (  n = `height    `     v = height      ) ) ).
-
   ENDMETHOD.
 
 
@@ -3751,13 +3703,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD toolheader.
+  METHOD tool_header.
     result = _generic( name = `ToolHeader`
                        ns   = `tnt` ).
   ENDMETHOD.
 
 
-  METHOD ToolPage.
+  METHOD tool_page.
     result = _generic( name = `ToolPage`
                        ns   = `tnt` ).
   ENDMETHOD.
