@@ -378,6 +378,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !autocomplete                 TYPE clike OPTIONAL
         !maxsuggestionwidth           TYPE clike OPTIONAL
         !fieldwidth                   TYPE clike OPTIONAL
+        !valueHelpOnly                TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
@@ -1602,6 +1603,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS mainContents
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS Table_Select_Dialog
+      IMPORTING
+        !confirmButtonText  TYPE clike OPTIONAL
+        !contentHeight      TYPE clike OPTIONAL
+        !contentWidth       TYPE clike OPTIONAL
+        !draggable          TYPE clike OPTIONAL
+        !growing            TYPE clike OPTIONAL
+        !growingThreshold   TYPE clike OPTIONAL
+        !multiSelect        TYPE clike OPTIONAL
+        !noDataText         TYPE clike OPTIONAL
+        !rememberSelections TYPE clike OPTIONAL
+        !resizable          TYPE clike OPTIONAL
+        !searchPlaceholder  TYPE clike OPTIONAL
+        !showClearButton    TYPE clike OPTIONAL
+        !title              TYPE clike OPTIONAL
+        !titleAlignment     TYPE clike OPTIONAL
+        !visible            TYPE clike OPTIONAL
+        !items              TYPE clike OPTIONAL
+        !liveChange         TYPE clike OPTIONAL
+        !cancel             TYPE clike OPTIONAL
+        !search             TYPE clike OPTIONAL
+        !confirm            TYPE clike OPTIONAL
+        !selectionChange    TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -1626,7 +1655,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1642,6 +1671,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD appointments.
     result = _generic( `appointments` ).
+  ENDMETHOD.
+
+
+  METHOD appointment_items.
+    result = _generic( name = `appointmentItems` ).
   ENDMETHOD.
 
 
@@ -1783,6 +1817,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                              ( n = `type`                      v = type )
                              ( n = `key`                       v = key )
                              ( n = `tentative`                 v = tentative ) ) ).
+  ENDMETHOD.
+
+
+  METHOD calendar_legend_item.
+    result = _generic( name   = `CalendarLegendItem`
+                       t_prop = VALUE #(
+                           ( n = `text`                   v = text )
+                           ( n = `type`                   v = type )
+                           ( n = `tooltip`                v = tooltip )
+                           ( n = `color`                  v = color ) ) ).
+
   ENDMETHOD.
 
 
@@ -2240,6 +2285,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD dynamic_side_content.
+    result = _generic( name   = `DynamicSideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `class`                           v = class )
+                           ( n = `sideContentVisibility`           v = sideContentVisibility )
+                           ( n = `showSideContent`                 v = showSideContent )
+                           ( n = `containerQuery`                  v = containerQuery ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD end_column_pages.
     " todo, implement method
     result = me.
@@ -2580,6 +2638,33 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD icontabfilter.
+    result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( (  n = `text`     v = text  )
+                                         (  n = `key`      v = key   ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD icontabfilters.
+    result = _generic( name   = `IconTabFilter`
+                       t_prop = VALUE #( (  n = `items`    v = items )
+                                         (  n = `text`     v = text  )
+                                         (  n = `key`      v = key   ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD icontabheader.
+    result = _generic( name   = `IconTabHeader`
+                       t_prop = VALUE #( (  n = `selectedKey`     v = selectedKey )
+                                         (  n = `items`           v = items )
+                                         (  n = `select`          v = select )
+                                         (  n = `mode`            v = mode  ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD icon_tab_bar.
 
     result = _generic( name   = `IconTabBar`
@@ -2640,6 +2725,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD info_label.
+    result = _generic( name   = `InfoLabel`
+                       ns     = 'tnt'
+                       t_prop = VALUE #(
+                           ( n = `id`                   v = id )
+                           ( n = `text`                 v = text )
+                           ( n = `renderMode `          v = rendermode  )
+                           ( n = `colorScheme`          v = colorscheme )
+                           ( n = `displayOnly`          v = displayonly )
+                           ( n = `icon`                 v = icon )
+                           ( n = `textDirection`        v = textDirection )
+                           ( n = `width`                v = width ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD input.
     result = me.
     _generic( name   = `Input`
@@ -2665,6 +2766,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `valueLiveUpdate`  v = z2ui5_cl_fw_utility=>get_json_boolean( valueliveupdate ) )
                                 ( n = `submit`           v = z2ui5_cl_fw_utility=>get_json_boolean( submit ) )
                                 ( n = `showValueHelp`    v = z2ui5_cl_fw_utility=>get_json_boolean( showvaluehelp ) )
+                                ( n = `valueHelpOnly`    v = z2ui5_cl_fw_utility=>get_json_boolean( valueHelpOnly ) )
                                 ( n = `class`            v = class )
                                 ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
                                 ( n = `fieldWidth`          v = fieldwidth ) ) ).
@@ -2811,6 +2913,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD mainContents.
+    result = _generic( name   = `mainContents`
+                       ns     = `tnt` ).
+
+  ENDMETHOD.
+
+
   METHOD menu_item.
     result = me.
     _generic( name   = `MenuItem`
@@ -2877,6 +2986,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD multi_combobox.
+    result = _generic( name   = `ComboBox`
+                       t_prop = VALUE #( (  n = `selectionChange`     v = selectionChange )
+                                         (  n = `selectedKeys`        v = selectedkeys )
+                                         (  n = `items`               v = items )
+                                         (  n = `selectionFinish`     v = selectionFinish )
+                                         (  n = `width`               v = width )
+                                         (  n = `showClearIcon`       v = showClearIcon )
+                                         (  n = `showSecondaryValues` v = showSecondaryValues )
+                                         (  n = `showSelectAll`       v = showSelectAll ) ) ).
+  ENDMETHOD.
+
+
   METHOD multi_input.
     result = _generic( name   = `MultiInput`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
@@ -2891,6 +3013,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `id` v = id )
                                          ( n = `valueHelpRequest` v = valuehelprequest )
                                          ( n = `class` v = class ) ) ).
+  ENDMETHOD.
+
+
+  METHOD NavContainer.
+    result = _generic( name   = `NavContainer`
+                       t_prop = VALUE #( (  n = `initialPage`     v = initialPage  ) )  ).
+
   ENDMETHOD.
 
 
@@ -3046,6 +3175,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD pages.
+    result = _generic( name   = `pages`  ).
+
+  ENDMETHOD.
+
+
   METHOD panel.
     result = _generic( name   = `Panel`
                        t_prop = VALUE #( ( n = `expandable` v = expandable )
@@ -3065,6 +3200,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `showWeekNumbers`           v = showweeknumbers )
                            ( n = `legend`                    v = legend )
                            ( n = `showDayNamesLine`          v = showDayNamesLine ) ) ).
+  ENDMETHOD.
+
+
+  METHOD planning_calendar_legend.
+    result = _generic( name   = `PlanningCalendarLegend`
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `items`                           v = items )
+                           ( n = `appointmentItems`                v = appointmentItems )
+                           ( n = `standardItems`                   v = standardItems ) ) ).
+
   ENDMETHOD.
 
 
@@ -3211,6 +3357,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD ScrollContainer.
+    result = _generic( name   = `ScrollContainer`
+                       t_prop = VALUE #( (  n = `id        `     v = id          )
+                                         (  n = `horizontal`     v = horizontal  )
+                                         (  n = `vertical  `     v = vertical    )
+                                         (  n = `height    `     v = height      ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD scroll_container.
     result = _generic( name   = `ScrollContainer`
                        t_prop = VALUE #( ( n = `height`      v = height )
@@ -3277,6 +3433,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD shell.
     result = _generic( name = `Shell`
                        ns   = ns ).
+  ENDMETHOD.
+
+
+  METHOD side_Content.
+    result = _generic( name   = `sideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `width`                           v = width ) ) ).
+
   ENDMETHOD.
 
 
@@ -3356,6 +3521,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD subHeader.
+    result = _generic( name = `subHeader`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+
+
   METHOD sub_header.
     result = _generic( `subHeader` ).
   ENDMETHOD.
@@ -3420,6 +3591,33 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `selectionChange`  v = selectionchange )
                            ( n = `alternateRowColors`  v = z2ui5_cl_fw_utility=>get_json_boolean( alternaterowcolors ) )
                            ( n = `autoPopinMode`  v = z2ui5_cl_fw_utility=>get_json_boolean( autopopinmode ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD Table_Select_Dialog.
+
+   result = _generic( name   = `TableSelectDialog`
+              t_prop = VALUE #( ( n = `confirmButtonText`    v = confirmButtonText )
+                                ( n = `contentHeight`        v = contentHeight )
+                                ( n = `contentWidth`         v = contentWidth )
+                                ( n = `draggable`            v = z2ui5_cl_fw_utility=>get_json_boolean( draggable ) )
+                                ( n = `growing`              v = z2ui5_cl_fw_utility=>get_json_boolean( growing ) )
+                                ( n = `growingThreshold`     v = growingThreshold )
+                                ( n = `multiSelect`          v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) )
+                                ( n = `noDataText`           v = noDataText )
+                                ( n = `rememberSelections`   v = z2ui5_cl_fw_utility=>get_json_boolean( rememberSelections ) )
+                                ( n = `resizable`            v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
+                                ( n = `searchPlaceholder`    v = searchPlaceholder )
+                                ( n = `showClearButton`      v = z2ui5_cl_fw_utility=>get_json_boolean( showClearButton ) )
+                                ( n = `title`                v = title )
+                                ( n = `titleAlignment`       v = titleAlignment )
+                                ( n = `items`                v = items )
+                                ( n = `search`               v = search )
+                                ( n = `confirm`              v = confirm )
+                                ( n = `cancel`               v = cancel )
+                                ( n = `liveChange`           v = liveChange )
+                                ( n = `selectionChange`      v = selectionChange )
+                                ( n = `visible`              v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) ) ) ).
   ENDMETHOD.
 
 
@@ -3550,6 +3748,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     _generic( name = `ToolbarSpacer`
               ns   = ns ).
 
+  ENDMETHOD.
+
+
+  METHOD toolheader.
+    result = _generic( name = `ToolHeader`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+
+
+  METHOD ToolPage.
+    result = _generic( name = `ToolPage`
+                       ns   = `tnt` ).
   ENDMETHOD.
 
 
@@ -3797,144 +4007,4 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = result2.
 
   ENDMETHOD.
-
-
-  METHOD appointment_items.
-    result = _generic( name = `appointmentItems` ).
-  ENDMETHOD.
-
-
-  METHOD calendar_legend_item.
-    result = _generic( name   = `CalendarLegendItem`
-                       t_prop = VALUE #(
-                           ( n = `text`                   v = text )
-                           ( n = `type`                   v = type )
-                           ( n = `tooltip`                v = tooltip )
-                           ( n = `color`                  v = color ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD dynamic_side_content.
-    result = _generic( name   = `DynamicSideContent`
-                       ns     = 'layout'
-                       t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `class`                           v = class )
-                           ( n = `sideContentVisibility`           v = sideContentVisibility )
-                           ( n = `showSideContent`                 v = showSideContent )
-                           ( n = `containerQuery`                  v = containerQuery ) ) ).
-
-  ENDMETHOD.
-
-  METHOD planning_calendar_legend.
-    result = _generic( name   = `PlanningCalendarLegend`
-                       t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `items`                           v = items )
-                           ( n = `appointmentItems`                v = appointmentItems )
-                           ( n = `standardItems`                   v = standardItems ) ) ).
-
-  ENDMETHOD.
-
-  METHOD side_Content.
-    result = _generic( name   = `sideContent`
-                       ns     = 'layout'
-                       t_prop = VALUE #(
-                           ( n = `width`                           v = width ) ) ).
-
-  ENDMETHOD.
-
-  METHOD info_label.
-    result = _generic( name   = `InfoLabel`
-                       ns     = 'tnt'
-                       t_prop = VALUE #(
-                           ( n = `id`                   v = id )
-                           ( n = `text`                 v = text )
-                           ( n = `renderMode `          v = rendermode  )
-                           ( n = `colorScheme`          v = colorscheme )
-                           ( n = `displayOnly`          v = displayonly )
-                           ( n = `icon`                 v = icon )
-                           ( n = `textDirection`        v = textDirection )
-                           ( n = `width`                v = width ) ) ).
-
-  ENDMETHOD.
-
-  METHOD multi_combobox.
-    result = _generic( name   = `ComboBox`
-                       t_prop = VALUE #( (  n = `selectionChange`     v = selectionChange )
-                                         (  n = `selectedKeys`        v = selectedkeys )
-                                         (  n = `items`               v = items )
-                                         (  n = `selectionFinish`     v = selectionFinish )
-                                         (  n = `width`               v = width )
-                                         (  n = `showClearIcon`       v = showClearIcon )
-                                         (  n = `showSecondaryValues` v = showSecondaryValues )
-                                         (  n = `showSelectAll`       v = showSelectAll ) ) ).
-  ENDMETHOD.
-
-  METHOD ToolPage.
-    result = _generic( name = `ToolPage`
-                       ns   = `tnt` ).
-  ENDMETHOD.
-
-  METHOD toolheader.
-    result = _generic( name = `ToolHeader`
-                       ns   = `tnt` ).
-  ENDMETHOD.
-
-  METHOD subHeader.
-    result = _generic( name = `subHeader`
-                       ns   = `tnt` ).
-  ENDMETHOD.
-
-  METHOD icontabheader.
-    result = _generic( name   = `IconTabHeader`
-                       t_prop = VALUE #( (  n = `selectedKey`     v = selectedKey )
-                                         (  n = `items`           v = items )
-                                         (  n = `select`          v = select )
-                                         (  n = `mode`            v = mode  ) ) ).
-
-  ENDMETHOD.
-
-  METHOD icontabfilters.
-    result = _generic( name   = `IconTabFilter`
-                       t_prop = VALUE #( (  n = `items`    v = items )
-                                         (  n = `text`     v = text  )
-                                         (  n = `key`      v = key   ) ) ).
-
-  ENDMETHOD.
-
-  METHOD icontabfilter.
-    result = _generic( name   = `IconTabFilter`
-                       t_prop = VALUE #( (  n = `text`     v = text  )
-                                         (  n = `key`      v = key   ) ) ).
-
-  ENDMETHOD.
-
-  METHOD mainContents.
-    result = _generic( name   = `mainContents`
-                       ns     = `tnt` ).
-
-  ENDMETHOD.
-
-  METHOD NavContainer.
-    result = _generic( name   = `NavContainer`
-                       t_prop = VALUE #( (  n = `initialPage`     v = initialPage  ) )  ).
-
-  ENDMETHOD.
-
-  METHOD pages.
-    result = _generic( name   = `pages`  ).
-
-  ENDMETHOD.
-
-  METHOD ScrollContainer.
-    result = _generic( name   = `ScrollContainer`
-                       t_prop = VALUE #( (  n = `id        `     v = id          )
-                                         (  n = `horizontal`     v = horizontal  )
-                                         (  n = `vertical  `     v = vertical    )
-                                         (  n = `height    `     v = height      ) ) ).
-
-  ENDMETHOD.
-
 ENDCLASS.
