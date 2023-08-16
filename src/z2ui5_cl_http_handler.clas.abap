@@ -81,20 +81,6 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        "use strict";` && |\n| &&
                            |\n| &&
                            `        sap.ui.controller("z2ui5_controller", {` && |\n| &&
-                           `            onInit: function () {` && |\n| &&
-                           |\n| &&
-                           `                // s type is String -> pattern: YYYY-MM-DDTHH:mm:ss ` && |\n| &&
-                           `                Date.createObject = (s => new Date(s));` && |\n| &&
-                           |\n| &&
-                           `                // abap timestamp convert to JS Date ` && |\n| &&
-                           `                Date.abapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n| &&
-                           |\n| &&
-                           `                // abap date to JS Date object => pattern: YYYYMMDD ` && |\n| &&
-                           `                Date.abapDateToDateObject = (d => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7]));` && |\n| &&
-                           |\n| &&
-                           `                // abap date and time to JS Date object => pattern: d = YYYYMMDD , t = HHmmss ` && |\n| &&
-                           `                Date.abapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n| &&
-                           `            },` && |\n| &&
                            `            onAfterRendering: function () {` && |\n| &&
                            |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_CURSOR.ID !== '') {` && |\n| &&
@@ -408,15 +394,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `            sap.z2ui5.pathname = window.location.pathname;` && |\n| &&
                            `           // sap.z2ui5.pathname = ``/sap/bc/http/sap/y2ui5_http_handler``;` && |\n| &&
                            `        }` && |\n| &&
-                           `        ` && |\n| &&
                            `        sap.z2ui5.checkNestAfter = false;` && |\n| &&
-                           |\n| &&
                            `        jQuery.sap.require("sap.ui.core.Fragment");` && |\n| &&
-                           `        jQuery.sap.require("sap.ui.core.date.UI5Date");` && |\n| &&
                            `        jQuery.sap.require("sap.m.MessageToast");` && |\n| &&
                            `        jQuery.sap.require("sap.m.MessageBox");` && |\n| &&
                            `        jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n| &&
-                           |\n| &&
                            `        var xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n| &&
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n| &&
