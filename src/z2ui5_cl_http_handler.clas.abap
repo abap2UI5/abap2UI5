@@ -228,6 +228,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    case 'POPOVER_CLOSE':` && |\n| &&
                            `                        sap.z2ui5.oController.PopoverDestroy();` && |\n| &&
                            `                        break;` && |\n| &&
+                           `                    case 'NAV_TO':` && |\n| &&
+                           `                        var navCon = sap.z2ui5.oView.byId(args[0].T_ARG[0]);` && |\n| &&
+                           `                        var navConTo = sap.z2ui5.oView.byId(args[0].T_ARG[1]);` && |\n| &&
+                           `                        navCon.to(navConTo);` && |\n| &&
+                           `                        break;` && |\n| &&
                            `                }` && |\n| &&
                            `            },` && |\n| &&
                            |\n| &&

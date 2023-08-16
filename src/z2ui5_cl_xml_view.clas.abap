@@ -753,10 +753,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !design       TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS image
       IMPORTING
         !src          TYPE clike OPTIONAL
+        !class          TYPE clike OPTIONAL
+        !height          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_picker
@@ -1569,7 +1572,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
      METHODS Nav_Container
       IMPORTING
-        !initialPage         TYPE clike OPTIONAL
+        !initialPage           TYPE clike OPTIONAL
+        !id                    TYPE clike OPTIONAL
+        !defaultTransitionName TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1578,7 +1583,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
 
-    METHODS mainContents
+    METHODS main_contents
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2674,7 +2679,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD image.
     result = me.
     _generic( name   = `Image`
-              t_prop = VALUE #( ( n = `src` v = src ) ) ).
+              t_prop = VALUE #(
+                ( n = `src` v = src )
+                ( n = class v = class )
+                ( n = `height` v = height )
+                 ) ).
   ENDMETHOD.
 
 
@@ -2875,7 +2884,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD mainContents.
+  METHOD main_contents.
     result = _generic( name   = `mainContents`
                        ns     = `tnt` ).
 
@@ -2980,7 +2989,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD Nav_Container.
     result = _generic( name   = `NavContainer`
-                       t_prop = VALUE #( (  n = `initialPage`     v = initialPage  ) )  ).
+                       t_prop = VALUE #(
+                        (  n = `initialPage`  v = initialPage  )
+                        (  n = `id`           v = id  )
+                        (  n = `defaultTransitionName`   v = defaultTransitionName  )
+                        )  ).
 
   ENDMETHOD.
 
