@@ -178,7 +178,7 @@ INTERFACE z2ui5_if_client
 
   METHODS _event_client
     IMPORTING
-      action        TYPE clike
+      val           TYPE clike
       t_arg         TYPE string_table OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
