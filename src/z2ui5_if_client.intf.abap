@@ -3,10 +3,11 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
-      popup_close     TYPE string VALUE `POPUP_CLOSE`,
-      open_new_tab    TYPE string VALUE `OPEN_NEW_TAB`,
-      popover_close   TYPE string VALUE `POPOVER_CLOSE`,
-      location_reload TYPE string VALUE `LOCATION_RELOAD`,
+      popup_close      TYPE string VALUE `POPUP_CLOSE`,
+      open_new_tab     TYPE string VALUE `OPEN_NEW_TAB`,
+      popover_close    TYPE string VALUE `POPOVER_CLOSE`,
+      location_reload  TYPE string VALUE `LOCATION_RELOAD`,
+      nav_container_to TYPE string VALUE `NAV_CONTAINER_TO`,
     END OF cs_event.
 
   TYPES:
