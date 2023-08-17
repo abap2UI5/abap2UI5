@@ -158,11 +158,13 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                                                href   = `https://github.com/oblomov-dev/abap2UI5-demos` ).
     ENDIF.
 
-    form->content( `form` )->label( )->button(
+    data(cont) = form->content( `form` ).
+        cont->label( ).
+      cont->button(
          text    = 'Continue...'
          press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
-         enabled = xsdbool( mv_check_demo = abap_true )
-         )->button( visible = abap_false )->link( text   = 'More on GitHub...'
+         enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
+       cont->button( visible = abap_false )->link( text   = 'More on GitHub...'
                                                   target = '_blank'
                                                   href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
 

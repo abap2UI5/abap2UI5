@@ -161,10 +161,11 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `                    setTimeout(() => {` && |\n| &&
                            `                        if (sap.z2ui5.checkTimerActive) {` && |\n| &&
                            `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n| &&
-                           `           //                 let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n| &&
-                           `                            let oArgs = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( ',' );` && |\n| &&
-                           `                             oArgs[ 0 ] = JSON.parse( oArgs[ 0 ].replaceAll( "'" , '"' ) );` && |\n| &&
-                           `                             oArgs[ 1 ] = oArgs[1].trim().replaceAll( '"' , '' ); ` && |\n| &&
+                           `                            let oArgs = [];` && |\n| &&
+                           `                            oArgs.push( JSON.parse( (sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 0 ] + '}').replaceAll( "'" , '"' ) ) );` && |\n| &&
+                           `                            let oArgsPara = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 1 ].split( ',' ).slice(1);` && |\n| &&
+                           `                            oArgsPara.forEach( ( item, index, arr ) => { arr[index] = item.replace( '"' , '' ); } );;` && |\n| &&
+                           `                            oArgs = oArgs.concat( oArgsPara );` && |\n| &&
                            `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(...oArgs);  }else{ sap.z2ui5.oController.onEventFrontend(...oArgs);  }` && |\n| &&
                            `                        }` && |\n| &&
                            `                    }, sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS, oEvent);` && |\n| &&
@@ -412,7 +413,16 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n| &&
                            `        sap.z2ui5.log = () => {  console.log(sap.z2ui5.oResponse.OVIEWMODEL ); };` && |\n| &&
-                           `    });` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil = {}; ` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil.oDate = {}; ` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { debugger; return new Date(s); }` && |\n| &&
+                           `  jQuery.sap.declare("z2ui5.Helper");` && |\n|  &&
+                           `z2ui5.Helper = {};` && |\n| &&
+                           `z2ui5.Helper.DateCreateObject = (s => new Date(s));` && |\n| &&
+                           `z2ui5.Helper.DateAbapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n| &&
+                           `z2ui5.Helper.DateAbapDateToDateObject = (d => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7]));` && |\n| &&
+                           `z2ui5.Helper.DateAbapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n| &&
+                           ` });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></html>`.
 

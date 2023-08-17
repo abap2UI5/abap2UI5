@@ -410,14 +410,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS get_parent
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS get
+      IMPORTING
+        name          TYPE string OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS get_child
       IMPORTING
         !index        TYPE i DEFAULT 1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+
     METHODS columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -758,8 +764,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS image
       IMPORTING
         !src          TYPE clike OPTIONAL
-        !class          TYPE clike OPTIONAL
-        !height          TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+        !height       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_picker
@@ -991,14 +997,22 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !htmltext     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS _generic
       IMPORTING
         !name         TYPE clike
         !ns           TYPE clike OPTIONAL
         !t_prop       TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS _generic_property
+      IMPORTING
+        !val          TYPE z2ui5_if_client=>ty_s_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS cc_file_uploader
       IMPORTING
         !value        TYPE clike OPTIONAL
@@ -1388,7 +1402,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS icon_tab_filter
       IMPORTING
-       !items         TYPE clike OPTIONAL
+        !items        TYPE clike OPTIONAL
         !showall      TYPE abap_bool OPTIONAL
         !icon         TYPE clike OPTIONAL
         !iconcolor    TYPE clike OPTIONAL
@@ -1570,13 +1584,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-     METHODS Nav_Container
+    METHODS Nav_Container
       IMPORTING
         !initialPage           TYPE clike OPTIONAL
         !id                    TYPE clike OPTIONAL
         !defaultTransitionName TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS pages
       RETURNING
@@ -1611,7 +1625,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !confirm            TYPE clike OPTIONAL
         !selectionChange    TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
 
   PROTECTED SECTION.
@@ -1638,7 +1652,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1769,6 +1783,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD button.
+
     result = me.
     _generic( name   = `Button`
               ns     = ns
@@ -2484,7 +2499,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD get.
-    result = mo_root->mo_previous.
+
+    IF name IS INITIAL.
+      result = mo_root->mo_previous.
+      RETURN.
+    ENDIF.
+
+    IF mo_parent->mv_name = name.
+      result = mo_parent.
+    ELSE.
+      result = mo_parent->get( name ).
+    ENDIF.
+
   ENDMETHOD.
 
 
@@ -3561,28 +3587,28 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD Table_Select_Dialog.
 
-   result = _generic( name   = `TableSelectDialog`
-              t_prop = VALUE #( ( n = `confirmButtonText`    v = confirmButtonText )
-                                ( n = `contentHeight`        v = contentHeight )
-                                ( n = `contentWidth`         v = contentWidth )
-                                ( n = `draggable`            v = z2ui5_cl_fw_utility=>get_json_boolean( draggable ) )
-                                ( n = `growing`              v = z2ui5_cl_fw_utility=>get_json_boolean( growing ) )
-                                ( n = `growingThreshold`     v = growingThreshold )
-                                ( n = `multiSelect`          v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) )
-                                ( n = `noDataText`           v = noDataText )
-                                ( n = `rememberSelections`   v = z2ui5_cl_fw_utility=>get_json_boolean( rememberSelections ) )
-                                ( n = `resizable`            v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
-                                ( n = `searchPlaceholder`    v = searchPlaceholder )
-                                ( n = `showClearButton`      v = z2ui5_cl_fw_utility=>get_json_boolean( showClearButton ) )
-                                ( n = `title`                v = title )
-                                ( n = `titleAlignment`       v = titleAlignment )
-                                ( n = `items`                v = items )
-                                ( n = `search`               v = search )
-                                ( n = `confirm`              v = confirm )
-                                ( n = `cancel`               v = cancel )
-                                ( n = `liveChange`           v = liveChange )
-                                ( n = `selectionChange`      v = selectionChange )
-                                ( n = `visible`              v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) ) ) ).
+    result = _generic( name   = `TableSelectDialog`
+               t_prop = VALUE #( ( n = `confirmButtonText`    v = confirmButtonText )
+                                 ( n = `contentHeight`        v = contentHeight )
+                                 ( n = `contentWidth`         v = contentWidth )
+                                 ( n = `draggable`            v = z2ui5_cl_fw_utility=>get_json_boolean( draggable ) )
+                                 ( n = `growing`              v = z2ui5_cl_fw_utility=>get_json_boolean( growing ) )
+                                 ( n = `growingThreshold`     v = growingThreshold )
+                                 ( n = `multiSelect`          v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) )
+                                 ( n = `noDataText`           v = noDataText )
+                                 ( n = `rememberSelections`   v = z2ui5_cl_fw_utility=>get_json_boolean( rememberSelections ) )
+                                 ( n = `resizable`            v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
+                                 ( n = `searchPlaceholder`    v = searchPlaceholder )
+                                 ( n = `showClearButton`      v = z2ui5_cl_fw_utility=>get_json_boolean( showClearButton ) )
+                                 ( n = `title`                v = title )
+                                 ( n = `titleAlignment`       v = titleAlignment )
+                                 ( n = `items`                v = items )
+                                 ( n = `search`               v = search )
+                                 ( n = `confirm`              v = confirm )
+                                 ( n = `cancel`               v = cancel )
+                                 ( n = `liveChange`           v = liveChange )
+                                 ( n = `selectionChange`      v = selectionChange )
+                                 ( n = `visible`              v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) ) ) ).
   ENDMETHOD.
 
 
@@ -3972,4 +3998,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = result2.
 
   ENDMETHOD.
+
+  METHOD _generic_property.
+
+    INSERT val INTO TABLE mt_prop.
+    result = me.
+
+  ENDMETHOD.
+
+
 ENDCLASS.
