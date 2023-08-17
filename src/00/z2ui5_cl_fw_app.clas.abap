@@ -161,15 +161,13 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     data(cont) = form->content( `form` ).
         cont->label( ).
        data(button) = cont->button(
-*         text    = 'Continue...'
-         text    = '{= Helper.test2( ) }'
-         press   = `Helper.test()` "client->_event( val = `DEMOS` check_view_destroy = abap_true )
+         text    = 'Continue...'
+         press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
          enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
        cont->button( visible = abap_false )->link( text   = 'More on GitHub...'
                                                   target = '_blank'
                                                   href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
 
-    button->_generic_property( value #( n = `core:require` v = `{Helper:'z2ui5/MyHelper'}` ) ).
     client->view_display( form->stringify( ) ).
 
   ENDMETHOD.
