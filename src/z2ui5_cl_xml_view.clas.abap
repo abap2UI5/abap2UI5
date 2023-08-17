@@ -991,14 +991,22 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !htmltext     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS _generic
       IMPORTING
         !name         TYPE clike
         !ns           TYPE clike OPTIONAL
         !t_prop       TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS _generic_property
+      IMPORTING
+        !val       TYPE z2ui5_if_client=>ty_s_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS cc_file_uploader
       IMPORTING
         !value        TYPE clike OPTIONAL
@@ -1769,6 +1777,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD button.
+
     result = me.
     _generic( name   = `Button`
               ns     = ns
@@ -3972,4 +3981,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = result2.
 
   ENDMETHOD.
+
+  METHOD _GENERIC_PROPERTY.
+
+    insert val into table mt_prop.
+    result = me.
+
+  ENDMETHOD.
+
 ENDCLASS.

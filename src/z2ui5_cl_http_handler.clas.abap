@@ -412,6 +412,47 @@ CLASS Z2UI5_CL_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n| &&
                            `        sap.z2ui5.log = () => {  console.log(sap.z2ui5.oResponse.OVIEWMODEL ); };` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil = {}; ` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil.oDate = {}; ` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { debugger; return new Date(s); }` && |\n| &&
+                                                   `  jQuery.sap.declare("z2ui5.MyHelper");` && |\n|  &&
+                             `    sap.ui.define( [` && |\n|  &&
+                             `        "sap/ui/core/Control",` && |\n|  &&
+                             `    ], function (Control) {` && |\n|  &&
+                             `        "use strict";` && |\n|  &&
+                             `        return Control.extend("z2ui5.MyHelper", {` && |\n|  &&
+                             `            test: function ( ) { sap.m.MessageToast.show( 'test'); },` && |\n|  &&
+                             `            metadata: {` && |\n|  &&
+                             `                properties: {` && |\n|  &&
+                             `                    value: { type: "string" }` && |\n|  &&
+                             `                },` && |\n|  &&
+                             `                events: {` && |\n|  &&
+                             `                    "change": {` && |\n|  &&
+                             `                        allowPreventDefault: true,` && |\n|  &&
+                             `                        parameters: {}` && |\n|  &&
+                             `                    }` && |\n|  &&
+                             `                }` && |\n|  &&
+                             `            },` && |\n|  &&
+*                             `            test : function ( ) { sap.m.MessageToast.show( 'test' ); },` && |\n|  &&
+                             `            renderer: function (oRm, oControl) {` && |\n|  &&
+                             `                oControl.oInput = new sap.m.Input({` && |\n|  &&
+                             `                    value: oControl.getProperty("value")` && |\n|  &&
+                             `                });` && |\n|  &&
+                             `                oControl.oButton = new sap.m.Button({` && |\n|  &&
+                             `                    text: 'button text',` && |\n|  &&
+                             `                    press: function (oEvent) {` && |\n|  &&
+                             `                        debugger;` && |\n|  &&
+*                            `                        this.setProperty("value",  this.oInput._sTypedInValue )` && |\n|  &&
+                             `                        this.setProperty("value",  this.oInput.getProperty( 'value')  )` && |\n|  &&
+                             `                        this.fireChange();` && |\n|  &&
+                             `                    }.bind(oControl)` && |\n|  &&
+                             `                });` && |\n|  &&
+                            `                oRm.renderControl(oControl.oInput);` && |\n|  &&
+                             `                oRm.renderControl(oControl.oButton);` && |\n|  &&
+                             `            }` && |\n|  &&
+                             `    }); });` && |\n|  &&
+                           `z2ui5.MyHelper.test = () =>  { sap.m.MessageToast.show( 'test'); };` && |\n| &&
+                           `z2ui5.MyHelper.test2 = () =>  { return 'test4'; };` && |\n| &&
                            `    });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></html>`.
