@@ -160,7 +160,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
     data(cont) = form->content( `form` ).
         cont->label( ).
-       data(button) = cont->button(
+      cont->button(
          text    = 'Continue...'
          press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
          enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
