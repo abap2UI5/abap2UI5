@@ -79,10 +79,10 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
         )->button(
             text  = 'Home'
             type  = 'Emphasized'
-            press = client->_event_client( action = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
+            press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
         )->button(
             text  = 'Restart'
-            press = client->_event_client( action = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
+            press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
     client->view_display( view->stringify( ) ).
 
