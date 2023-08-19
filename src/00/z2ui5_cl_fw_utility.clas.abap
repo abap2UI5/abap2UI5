@@ -12,6 +12,9 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
         data_stringify TYPE string,
         data_rtti      TYPE string,
         check_ref_data TYPE abap_bool,
+
+        check_oref     type abap_bool,
+        check_dref     type abap_bool,
       END OF ty_attri.
     TYPES ty_t_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
 
@@ -69,6 +72,12 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
         data TYPE data.
 
     CLASS-METHODS get_t_attri_by_ref
+      IMPORTING
+        io_app        TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE ty_t_attri ##NEEDED.
+
+    CLASS-METHODS get_t_attri_by_ref2
       IMPORTING
         io_app        TYPE REF TO object
       RETURNING
@@ -155,8 +164,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
 
-  PROTECTED SECTION.
-
     CLASS-METHODS _get_t_attri_by_struc
       IMPORTING
         io_app        TYPE REF TO object
@@ -164,6 +171,14 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
+    CLASS-METHODS _get_t_attri_by_obj
+      IMPORTING
+        io_app        TYPE REF TO object
+        iv_attri      TYPE csequence
+      RETURNING
+        VALUE(result) TYPE abap_attrdescr_tab.
+
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -260,6 +275,38 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_t_attri_by_ref2.
+
+     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
+      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
+        WHERE visibility = cl_abap_classdescr=>public AND
+              is_interface = abap_false.
+
+        CASE lr_attri->type_kind.
+
+          WHEN cl_abap_classdescr=>typekind_oref or cl_abap_classdescr=>typekind_dref.
+            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
+
+
+          WHEN cl_abap_classdescr=>typekind_struct2
+            OR cl_abap_classdescr=>typekind_struct1.
+
+            DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
+                                         io_app   = io_app
+                                         iv_attri = lr_attri->name ).
+
+            INSERT LINES OF CORRESPONDING z2ui5_cl_fw_utility=>ty_t_attri( lt_attri_struc )
+            INTO TABLE result.
+
+          WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
+            CONTINUE.
+
+          WHEN OTHERS.
+            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
+        ENDCASE.
+      ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
 
@@ -277,24 +324,40 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     ENDLOOP.
 
+    LOOP AT lt_attri INTO DATA(ls_attri3)
+         WHERE type_kind = cl_abap_classdescr=>typekind_oref.
+
+      IF ls_attri3-name = 'CLIENT'.
+        CONTINUE.
+      ENDIF.
+
+      DELETE lt_attri INDEX sy-tabix.
+
+      INSERT LINES OF _get_t_attri_by_obj( io_app   = io_app
+                                           iv_attri = ls_attri3-name ) INTO TABLE lt_attri.
+
+    ENDLOOP.
+
     LOOP AT lt_attri INTO ls_attri.
 
       DATA(ls_attri2) = VALUE ty_attri( ).
       ls_attri2 = CORRESPONDING #( ls_attri ).
 
-      FIELD-SYMBOLS <any> TYPE any.
-      UNASSIGN <any>.
-      DATA(lv_assign) = `IO_APP->` && ls_attri-name.
-      ASSIGN (lv_assign) TO <any>.
 
-      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
-      TRY.
-          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
-          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
-          ls_attri2-check_ref_data = abap_true.
-        CATCH cx_root.
-      ENDTRY.
+      IF ls_attri-type_kind <> ''.
+        FIELD-SYMBOLS <any> TYPE any.
+        UNASSIGN <any>.
+        DATA(lv_assign) = `IO_APP->` && ls_attri-name.
+        ASSIGN (lv_assign) TO <any>.
 
+        DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
+        TRY.
+            DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
+            DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
+            ls_attri2-check_ref_data = abap_true.
+          CATCH cx_root.
+        ENDTRY.
+      ENDIF.
 
       APPEND ls_attri2 TO result.
     ENDLOOP.
@@ -571,6 +634,56 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD _get_t_attri_by_obj.
+
+    FIELD-SYMBOLS <attribute> TYPE any.
+
+    TRY.
+        DATA(lo_app) = CAST z2ui5_cl_test_01( io_app ).
+        CREATE OBJECT lo_app->mo_app.
+
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
+    ASSIGN (lv_name) TO <attribute>.
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( <attribute> ) )->attributes.
+    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
+
+    LOOP AT lt_attri INTO DATA(ls_attri).
+
+*         WHERE type_kind = cl_abap_classdescr=>typekind_struct2
+*            OR type_kind = cl_abap_classdescr=>typekind_struct1.
+
+*      DELETE lt_attri INDEX sy-tabix.
+
+      ls_attri-name = iv_attri && `->` && ls_attri-name.
+      ls_attri-type_kind = ``.
+      INSERT ls_attri INTO TABLE result.
+
+    ENDLOOP.
+
+
+
+*    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
+*
+*      DATA(lv_element) = iv_attri && `->` && lr_comp->name.
+*
+*      IF lr_comp->as_include = abap_true.
+*        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
+*                                               iv_attri = lv_element ) INTO TABLE result.
+*
+*      ELSE.
+*        INSERT VALUE #( name      = lv_element
+*                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
+*      ENDIF.
+*
+*    ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD _get_t_attri_by_struc.
 

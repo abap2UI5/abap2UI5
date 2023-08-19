@@ -12,6 +12,13 @@ CLASS z2ui5_cl_fw_db DEFINITION
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
         t_attri           TYPE z2ui5_cl_fw_utility=>ty_t_attri,
+        BEGIN OF s_bind,
+          check_attri TYPE abap_bool,
+          check_ref   TYPE abap_bool,
+          t_attri     TYPE z2ui5_cl_fw_utility=>ty_t_attri,
+          t_data      TYPE z2ui5_cl_fw_utility=>ty_t_attri,
+          t_ref       TYPE z2ui5_cl_fw_utility=>ty_t_attri,
+        END OF s_bind,
         app               TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
 
@@ -39,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
 
   METHOD cleanup.

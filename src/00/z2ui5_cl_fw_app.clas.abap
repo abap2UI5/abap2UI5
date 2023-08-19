@@ -18,6 +18,8 @@ CLASS z2ui5_cl_fw_app DEFINITION
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
 
+    DATA mr_data TYPE REF TO data.
+
     CLASS-METHODS factory_start
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
@@ -44,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
 
   METHOD factory_error.
@@ -68,7 +70,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                                sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
-    data(lv_text) = mx_error->get_text( ).
+    DATA(lv_text) = mx_error->get_text( ).
 
     DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
         enableformattedtext = abap_true
@@ -96,8 +98,13 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     DATA(page) = z2ui5_cl_xml_view=>factory( client )->shell(
       )->page( shownavbutton = abap_false ).
 
+    FIELD-SYMBOLS <data> TYPE string.
+    CREATE DATA mr_data TYPE string.
+    ASSIGN mr_data->* TO <data>.
+    <data> = `test`.
+
     page->header_content(
-            )->title( `abap2UI5 - Developing UI5 Apps in pure ABAP`
+            )->title( client->_bind_edit( <data> ) "`abap2UI5 - Developing UI5 Apps in pure ABAP`
             )->toolbar_spacer(
             )->link( text   = `SCN`
                      target = `_blank`
@@ -158,15 +165,15 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                                                href   = `https://github.com/oblomov-dev/abap2UI5-demos` ).
     ENDIF.
 
-    data(cont) = form->content( `form` ).
-        cont->label( ).
-      cont->button(
-         text    = 'Continue...'
-         press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
-         enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
-       cont->button( visible = abap_false )->link( text   = 'More on GitHub...'
-                                                  target = '_blank'
-                                                  href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
+    DATA(cont) = form->content( `form` ).
+    cont->label( ).
+    cont->button(
+       text    = 'Continue...'
+       press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
+       enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
+    cont->button( visible = abap_false )->link( text   = 'More on GitHub...'
+                                               target = '_blank'
+                                               href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
 
     client->view_display( form->stringify( ) ).
 

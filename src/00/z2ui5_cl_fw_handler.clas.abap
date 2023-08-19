@@ -143,13 +143,13 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_handler.
 
-protected section.
-private section.
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
 
   METHOD app_set_next.
@@ -386,7 +386,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
     DATA(lv_viewmodel) = COND #( WHEN ms_next-s_set-_viewmodel IS NOT INITIAL
                                  THEN ms_next-s_set-_viewmodel
                                  ELSE model_set_frontend( app     = ms_db-app
-                                                          t_attri = ms_db-t_attri ) ).
+                                                          t_attri = ms_db-s_bind-t_attri ) ).
 
     lo_resp->add_attribute( n           = `OVIEWMODEL`
                             v           = lv_viewmodel
@@ -436,7 +436,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
     TRY.
         model_set_backend( model   = so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual
                            app     = result->ms_db-app
-                           t_attri = result->ms_db-t_attri ).
+                           t_attri = result->ms_db-s_bind-t_attri ).
       CATCH cx_root.
     ENDTRY.
 
@@ -491,7 +491,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
         lv_classname = z2ui5_cl_fw_utility=>get_trim_upper( lv_classname ).
         CREATE OBJECT result->ms_db-app TYPE (lv_classname).
         result->ms_db-app->id = result->ms_db-id.
-        result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
+*        result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
 
       CATCH cx_root.
         result = set_app_system( error_text = `App with name ` && lv_classname && ` not found...` ).
@@ -524,54 +524,262 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
   METHOD _create_binding.
 
-    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
 
+    "build t_attri
+    IF ms_db-s_bind-check_attri = abap_false.
+      ms_db-s_bind-check_attri    = abap_true.
+      ms_db-s_bind-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref2( ms_db-app ).
+    ENDIF.
+
+
+    "read input
+    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
     DATA lr_in TYPE REF TO data.
     GET REFERENCE OF value INTO lr_in.
 
-    LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
-         WHERE bind_type <> cs_bind_type-one_time.
+
+    " check attributes
+    LOOP AT ms_db-s_bind-t_attri REFERENCE INTO DATA(lr_bind)
+        WHERE bind_type = `` OR bind_type = type.
+
+      IF lr_bind->type_kind = cl_abap_classdescr=>typekind_dref
+      OR lr_bind->type_kind = cl_abap_classdescr=>typekind_oref.
+        CONTINUE.
+      ENDIF.
 
       FIELD-SYMBOLS <attribute> TYPE any.
-      DATA(lv_name) = `LO_APP->` && to_upper( lr_attri->name ).
+      DATA(lv_name) = `LO_APP->` && to_upper( lr_bind->name ).
       ASSIGN (lv_name) TO <attribute>.
       z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
                                   v    = `Attribute in App with name ` && lv_name && ` not found` ).
       DATA lr_ref TYPE REF TO data.
       GET REFERENCE OF <attribute> INTO lr_ref.
 
-      IF lr_attri->check_ref_data = abap_true.
-        FIELD-SYMBOLS <field> TYPE any.
-        ASSIGN lr_ref->* TO <field>.
-        lr_ref = CAST data( <field> ).
-      ENDIF.
-
       IF lr_in = lr_ref.
-        IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
+        IF lr_bind->bind_type <> type AND lr_bind->bind_type IS NOT INITIAL.
           z2ui5_cl_fw_utility=>raise(
-            `<p>Binding Error - Two different binding types for same attribute used (` && lr_attri->name && `).` ).
+            `<p>Binding Error - Two different binding types for same attribute used (` && lr_bind->name && `).` ).
         ENDIF.
-        IF strlen( lr_attri->name ) > 30.
+        IF strlen( lr_bind->name ) > 30.
           z2ui5_cl_fw_utility=>raise(
-            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_attri->name ).
+            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_bind->name ).
         ENDIF.
-        lr_attri->bind_type = type.
-        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_attri->name.
+        lr_bind->bind_type = type.
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_bind->name.
         RETURN.
       ENDIF.
 
     ENDLOOP.
 
-    IF type = cs_bind_type-two_way.
-      z2ui5_cl_fw_utility=>raise( `Binding Error - Two way binding used but no attribute found` ).
+
+    " check data simple
+    LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind
+        WHERE ( bind_type = `` OR bind_type = type ) AND
+           type_kind = cl_abap_classdescr=>typekind_dref.
+
+
+      lv_name = `LO_APP->` && to_upper( lr_bind->name ) && `->*`.
+      ASSIGN (lv_name) TO <attribute>.
+      z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+                                  v    = `Attribute in App with name ` && lv_name && ` not found` ).
+
+      GET REFERENCE OF <attribute> INTO lr_ref.
+
+      IF lr_in = lr_ref.
+        IF lr_bind->bind_type <> type AND lr_bind->bind_type IS NOT INITIAL.
+          z2ui5_cl_fw_utility=>raise(
+            `<p>Binding Error - Two different binding types for same attribute used (` && lr_bind->name && `).` ).
+        ENDIF.
+        IF strlen( lr_bind->name ) > 30.
+          z2ui5_cl_fw_utility=>raise(
+            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_bind->name ).
+        ENDIF.
+        lr_bind->bind_type = type.
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_bind->name.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+
+    " check data struc
+    LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind
+        WHERE ( bind_type = `` OR bind_type = type ) AND
+           type_kind = cl_abap_classdescr=>typekind_dref.
+
+
+*      lv_name = `LO_APP->` && to_upper( lr_bind->name ) && `->*`.
+*      ASSIGN (lv_name) TO <attribute>.
+*      z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+*                                  v    = `Attribute in App with name ` && lv_name && ` not found` ).
+*
+*      GET REFERENCE OF <attribute> INTO lr_ref.
+*
+*      IF lr_in = lr_ref.
+*        IF lr_bind->bind_type <> type AND lr_bind->bind_type IS NOT INITIAL.
+*          z2ui5_cl_fw_utility=>raise(
+*            `<p>Binding Error - Two different binding types for same attribute used (` && lr_bind->name && `).` ).
+*        ENDIF.
+*        IF strlen( lr_bind->name ) > 30.
+*          z2ui5_cl_fw_utility=>raise(
+*            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_bind->name ).
+*        ENDIF.
+*        lr_bind->bind_type = type.
+*        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_bind->name.
+*        RETURN.
+*      ENDIF.
+
+    ENDLOOP.
+
+
+    " check instance
+    IF ms_db-s_bind-check_ref = abap_false.
+      ms_db-s_bind-check_ref  = abap_true.
+
+      LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind
+        WHERE type_kind = cl_abap_classdescr=>typekind_oref.
+
+        FIELD-SYMBOLS <obj> TYPE REF TO object.
+        lv_name = `LO_APP->` && to_upper( lr_bind->name ).
+        ASSIGN (lv_name) TO <obj>.
+        z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+                                    v    = `Attribute in App with name ` && lv_name && ` not found` ).
+
+        DATA(lt_attri_obj) = z2ui5_cl_fw_utility=>get_t_attri_by_ref2( <obj> ).
+        LOOP AT lt_attri_obj REFERENCE INTO DATA(lr_o_attri).
+          lr_o_attri->check_oref = abap_true.
+          lr_o_attri->name = lr_bind->name && `->` && lr_o_attri->name.
+          INSERT lr_o_attri->* INTO TABLE ms_db-s_bind-t_attri.
+        ENDLOOP.
+
+      ENDLOOP.
     ENDIF.
 
-    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid( ).
-    INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( value )
-                    bind_type      = cs_bind_type-one_time )
-           INTO TABLE ms_db-t_attri.
-    result = |/{ lv_id }|.
 
-  ENDMETHOD.
+    LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind
+           WHERE check_oref = abap_true.
+
+      IF lr_bind->type_kind = cl_abap_classdescr=>typekind_dref
+      OR lr_bind->type_kind = cl_abap_classdescr=>typekind_oref.
+        CONTINUE.
+      ENDIF.
+
+      lv_name = `LO_APP->` && to_upper( lr_bind->name ).
+      ASSIGN (lv_name) TO <attribute>.
+      z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+                                  v    = `Attribute in App with name ` && lv_name && ` not found` ).
+
+      GET REFERENCE OF <attribute> INTO lr_ref.
+
+      IF lr_in = lr_ref.
+        IF lr_bind->bind_type <> type AND lr_bind->bind_type IS NOT INITIAL.
+          z2ui5_cl_fw_utility=>raise(
+            `<p>Binding Error - Two different binding types for same attribute used (` && lr_bind->name && `).` ).
+        ENDIF.
+        IF strlen( lr_bind->name ) > 30.
+          z2ui5_cl_fw_utility=>raise(
+            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_bind->name ).
+        ENDIF.
+        lr_bind->bind_type = type.
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_bind->name.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+
+
+*
+*      IF lr_in = lr_ref.
+*        IF lr_bind->bind_type <> type AND lr_bind->bind_type IS NOT INITIAL.
+*          z2ui5_cl_fw_utility=>raise(
+*            `<p>Binding Error - Two different binding types for same attribute used (` && lr_bind->name && `).` ).
+*        ENDIF.
+*        IF strlen( lr_bind->name ) > 30.
+*          z2ui5_cl_fw_utility=>raise(
+*            `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_bind->name ).
+*        ENDIF.
+*        lr_bind->bind_type = type.
+*        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_bind->name.
+*        RETURN.
+*      ENDIF.
+
+*  ENDLOOP.
+
+
+*    IF ms_db-s_bind-check_data = abap_false.
+*      ms_db-s_bind-check_data = abap_true.
+*
+*      FIELD-SYMBOLS <any> TYPE any.
+*      UNASSIGN <any>.
+**        DATA(lv_assign) = `IO_APP->` && ls_attri-name.
+*      ASSIGN value TO <any>.
+*
+*      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
+*      TRY.
+*          DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
+*          DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
+*          DATA(check_ref_data) = abap_true.
+*        CATCH cx_root.
+*      ENDTRY.
+*    ENDIF.
+
+*    IF check_ref_data = abap_true.
+*
+*
+*    ENDIF.
+
+  """""""""""""""
+  RETURN.
+
+*      DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
+*
+*      DATA lr_in TYPE REF TO data.
+*      GET REFERENCE OF value INTO lr_in.
+*
+*      LOOP AT ms_db-t_attri REFERENCE INTO DATA(lr_attri)
+*           WHERE bind_type <> cs_bind_type-one_time.
+*
+*        FIELD-SYMBOLS <attribute> TYPE any.
+*        DATA(lv_name) = `LO_APP->` && to_upper( lr_attri->name ).
+*        ASSIGN (lv_name) TO <attribute>.
+*        z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+*                                    v    = `Attribute in App with name ` && lv_name && ` not found` ).
+*        DATA lr_ref TYPE REF TO data.
+*        GET REFERENCE OF <attribute> INTO lr_ref.
+*
+*        IF lr_attri->check_ref_data = abap_true.
+*          FIELD-SYMBOLS <field> TYPE any.
+*          ASSIGN lr_ref->* TO <field>.
+*          lr_ref = CAST data( <field> ).
+*        ENDIF.
+*
+*        IF lr_in = lr_ref.
+*          IF lr_attri->bind_type IS NOT INITIAL AND lr_attri->bind_type <> type.
+*            z2ui5_cl_fw_utility=>raise(
+*              `<p>Binding Error - Two different binding types for same attribute used (` && lr_attri->name && `).` ).
+*          ENDIF.
+*          IF strlen( lr_attri->name ) > 30.
+*            z2ui5_cl_fw_utility=>raise(
+*              `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_attri->name ).
+*          ENDIF.
+*          lr_attri->bind_type = type.
+*          result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_attri->name.
+*          RETURN.
+*        ENDIF.
+*
+*      ENDLOOP.
+*
+*      IF type = cs_bind_type-two_way.
+*        z2ui5_cl_fw_utility=>raise( `Binding Error - Two way binding used but no attribute found` ).
+*      ENDIF.
+*
+*      DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid( ).
+*      INSERT VALUE #( name           = lv_id
+*                      data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( value )
+*                      bind_type      = cs_bind_type-one_time )
+*             INTO TABLE ms_db-t_attri.
+*      result = |/{ lv_id }|.
+
+ENDMETHOD.
 ENDCLASS.
