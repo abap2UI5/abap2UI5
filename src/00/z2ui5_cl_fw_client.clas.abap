@@ -24,7 +24,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
+CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -204,8 +204,11 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_handler->_create_binding( value = val
+    result = mo_handler->bind( value = val
                                           type  = z2ui5_cl_fw_handler=>cs_bind_type-one_way ).
+
+    result = replace( val = result sub = `->*` with = `---` ).
+    result = replace( val = result sub = `->` with = `--` ).
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -216,8 +219,11 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value = val
+    result = mo_handler->bind( value = val
                                           type  = z2ui5_cl_fw_handler=>cs_bind_type-two_way ).
+
+    result = replace( val = result sub = `->*` with = `---` ).
+    result = replace( val = result sub = `->` with = `--` ).
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -230,7 +236,7 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_fw_utility=>get_json_boolean( check_view_destroy ) && ` }`.
     result = result && set_arg_string( t_arg ).
-    
+
   ENDMETHOD.
 
 
@@ -239,6 +245,7 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
     result = `onEventFrontend( { 'EVENT' : '` && val && `' }` && set_arg_string( t_arg ).
 
   ENDMETHOD.
+
 
   METHOD set_arg_string.
 
@@ -260,5 +267,4 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
     result = result && `)`.
 
   ENDMETHOD.
-
 ENDCLASS.

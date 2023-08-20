@@ -50,7 +50,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_frontend) = z2ui5_cl_fw_handler=>model_set_frontend(
                           app     = lo_handler->ms_db-app
-                          t_attri = lo_handler->ms_db-t_attri
+                          t_attri = lo_handler->ms_db-s_bind-t_attri
        ).
 
     IF lv_frontend NS `QUANTITY`.

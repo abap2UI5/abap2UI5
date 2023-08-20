@@ -4,19 +4,21 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
   PUBLIC SECTION.
 
     TYPES:
-      BEGIN OF ty_attri,
-        name           TYPE string,
-        type_kind      TYPE string,
-        type           TYPE string,
-        bind_type      TYPE string,
-        data_stringify TYPE string,
-        data_rtti      TYPE string,
-        check_ref_data TYPE abap_bool,
+      BEGIN OF ty_s_attri,
+        name                 TYPE string,
+        type_kind            TYPE string,
+        type                 TYPE string,
+        bind_type            TYPE string,
 
-        check_oref     type abap_bool,
-        check_dref     type abap_bool,
-      END OF ty_attri.
-    TYPES ty_t_attri TYPE STANDARD TABLE OF ty_attri WITH EMPTY KEY.
+        data_stringify       TYPE string,
+        data_rtti            TYPE string,
+
+        check_temp           type abap_bool,
+        check_ready          type abap_bool,
+        check_dissolved      TYPE abap_bool,
+
+      END OF ty_s_attri.
+    TYPES ty_t_attri TYPE STANDARD TABLE OF ty_s_attri WITH EMPTY KEY.
 
     CLASS-METHODS url_param_get
       IMPORTING
@@ -71,17 +73,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       EXPORTING
         data TYPE data.
 
-    CLASS-METHODS get_t_attri_by_ref
-      IMPORTING
-        io_app        TYPE REF TO object
-      RETURNING
-        VALUE(result) TYPE ty_t_attri ##NEEDED.
-
-    CLASS-METHODS get_t_attri_by_ref2
-      IMPORTING
-        io_app        TYPE REF TO object
-      RETURNING
-        VALUE(result) TYPE ty_t_attri ##NEEDED.
 
     CLASS-METHODS trans_object_2_xml
       IMPORTING
@@ -171,12 +162,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
-    CLASS-METHODS _get_t_attri_by_obj
-      IMPORTING
-        io_app        TYPE REF TO object
-        iv_attri      TYPE csequence
-      RETURNING
-        VALUE(result) TYPE abap_attrdescr_tab.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -185,7 +170,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
+CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
 
   METHOD check_is_boolean.
@@ -234,64 +219,6 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
     result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
-
-
-  METHOD get_t_attri_by_ref.
-
-    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
-    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
-
-    LOOP AT lt_attri INTO DATA(ls_attri)
-         WHERE type_kind = cl_abap_classdescr=>typekind_struct2
-            OR type_kind = cl_abap_classdescr=>typekind_struct1.
-
-      DELETE lt_attri INDEX sy-tabix.
-
-      INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
-                                             iv_attri = ls_attri-name ) INTO TABLE lt_attri.
-
-    ENDLOOP.
-
-    LOOP AT lt_attri INTO DATA(ls_attri3)
-         WHERE type_kind = cl_abap_classdescr=>typekind_oref.
-
-      IF ls_attri3-name = 'CLIENT'.
-        CONTINUE.
-      ENDIF.
-
-      DELETE lt_attri INDEX sy-tabix.
-
-      INSERT LINES OF _get_t_attri_by_obj( io_app   = io_app
-                                           iv_attri = ls_attri3-name ) INTO TABLE lt_attri.
-
-    ENDLOOP.
-
-    LOOP AT lt_attri INTO ls_attri.
-
-      DATA(ls_attri2) = VALUE ty_attri( ).
-      ls_attri2 = CORRESPONDING #( ls_attri ).
-
-
-      IF ls_attri-type_kind <> ''.
-        FIELD-SYMBOLS <any> TYPE any.
-        UNASSIGN <any>.
-        DATA(lv_assign) = `IO_APP->` && ls_attri-name.
-        ASSIGN (lv_assign) TO <any>.
-
-        DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <any> ).
-        TRY.
-            DATA(lo_refdescr) = CAST cl_abap_refdescr( lo_descr ).
-            DATA(lo_reftype) = CAST cl_abap_datadescr( lo_refdescr->get_referenced_type( ) ) ##NEEDED.
-            ls_attri2-check_ref_data = abap_true.
-          CATCH cx_root.
-        ENDTRY.
-      ENDIF.
-
-      APPEND ls_attri2 TO result.
-    ENDLOOP.
-
-  ENDMETHOD.
-
 
   METHOD url_param_set.
 
@@ -461,13 +388,13 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
       raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-      DATA(lt_components_Dissolved) = lt_components.
+      DATA(lt_components_dissolved) = lt_components.
       CLEAR lt_components_dissolved.
 
       LOOP AT lt_components INTO DATA(ls_comp).
 
         IF ls_comp-as_include = abap_false.
-          APPEND ls_comp TO lt_components_Dissolved.
+          APPEND ls_comp TO lt_components_dissolved.
         ELSE.
           DATA(struct) = CAST cl_abap_structdescr( ls_comp-type ).
           APPEND LINES OF struct->get_components( ) TO lt_components_dissolved.
@@ -475,33 +402,37 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
         ENDIF.
       ENDLOOP.
 
-      LOOP AT lt_components_Dissolved INTO ls_comp.
+      LOOP AT lt_components_dissolved INTO ls_comp.
+        TRY.
 
-        FIELD-SYMBOLS <comp> TYPE data.
-        ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row> TO <comp>.
+            FIELD-SYMBOLS <comp> TYPE data.
+            ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row> TO <comp>.
 
-        IF sy-subrc <> 0.
-          CONTINUE.
-        ENDIF.
+            IF sy-subrc <> 0.
+              CONTINUE.
+            ENDIF.
 
-        FIELD-SYMBOLS <comp_ui5> TYPE data.
-        ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row_ui5> TO <comp_ui5>.
+            FIELD-SYMBOLS <comp_ui5> TYPE data.
+            ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row_ui5> TO <comp_ui5>.
 
-        IF sy-subrc <> 0.
-          CONTINUE.
-        ENDIF.
+            IF sy-subrc <> 0.
+              CONTINUE.
+            ENDIF.
 
-        ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
+            ASSIGN <comp_ui5>->* TO FIELD-SYMBOL(<ls_data_ui5>).
 
-        IF sy-subrc = 0.
-          CASE ls_comp-type->kind.
-            WHEN cl_abap_typedescr=>kind_table.
-              trans_ref_tab_2_tab( EXPORTING ir_tab_from = <comp_ui5>
-                                   IMPORTING t_result    = <comp> ).
-            WHEN OTHERS.
-              <comp> = <ls_data_ui5>.
-          ENDCASE.
-        ENDIF.
+            IF sy-subrc = 0.
+              CASE ls_comp-type->kind.
+                WHEN cl_abap_typedescr=>kind_table.
+                  trans_ref_tab_2_tab( EXPORTING ir_tab_from = <comp_ui5>
+                                       IMPORTING t_result    = <comp> ).
+                WHEN OTHERS.
+                  <comp> = <ls_data_ui5>.
+              ENDCASE.
+            ENDIF.
+
+          CATCH cx_root.
+        ENDTRY.
       ENDLOOP.
 
       INSERT <row> INTO TABLE t_result.
@@ -570,91 +501,6 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_t_attri_by_ref2.
-
-     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
-      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE visibility = cl_abap_classdescr=>public AND
-              is_interface = abap_false.
-
-        CASE lr_attri->type_kind.
-
-          WHEN cl_abap_classdescr=>typekind_oref or cl_abap_classdescr=>typekind_dref.
-            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
-
-
-          WHEN cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-            DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
-                                         io_app   = io_app
-                                         iv_attri = lr_attri->name ).
-
-            INSERT LINES OF CORRESPONDING z2ui5_cl_fw_utility=>ty_t_attri( lt_attri_struc )
-            INTO TABLE result.
-
-          WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
-            CONTINUE.
-
-          WHEN OTHERS.
-            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
-        ENDCASE.
-      ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD _get_t_attri_by_obj.
-
-    FIELD-SYMBOLS <attribute> TYPE any.
-
-    TRY.
-        DATA(lo_app) = CAST z2ui5_cl_test_01( io_app ).
-        CREATE OBJECT lo_app->mo_app.
-
-      CATCH cx_root.
-        RETURN.
-    ENDTRY.
-
-    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
-    ASSIGN (lv_name) TO <attribute>.
-    raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-    DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( <attribute> ) )->attributes.
-    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public.
-
-    LOOP AT lt_attri INTO DATA(ls_attri).
-
-*         WHERE type_kind = cl_abap_classdescr=>typekind_struct2
-*            OR type_kind = cl_abap_classdescr=>typekind_struct1.
-
-*      DELETE lt_attri INDEX sy-tabix.
-
-      ls_attri-name = iv_attri && `->` && ls_attri-name.
-      ls_attri-type_kind = ``.
-      INSERT ls_attri INTO TABLE result.
-
-    ENDLOOP.
-
-
-
-*    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
-*
-*      DATA(lv_element) = iv_attri && `->` && lr_comp->name.
-*
-*      IF lr_comp->as_include = abap_true.
-*        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
-*                                               iv_attri = lv_element ) INTO TABLE result.
-*
-*      ELSE.
-*        INSERT VALUE #( name      = lv_element
-*                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
-*      ENDIF.
-*
-*    ENDLOOP.
-
-  ENDMETHOD.
 
 
   METHOD get_trim_lower.

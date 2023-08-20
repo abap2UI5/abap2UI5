@@ -98,13 +98,8 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     DATA(page) = z2ui5_cl_xml_view=>factory( client )->shell(
       )->page( shownavbutton = abap_false ).
 
-    FIELD-SYMBOLS <data> TYPE string.
-    CREATE DATA mr_data TYPE string.
-    ASSIGN mr_data->* TO <data>.
-    <data> = `test`.
-
     page->header_content(
-            )->title( client->_bind_edit( <data> ) "`abap2UI5 - Developing UI5 Apps in pure ABAP`
+            )->title( `abap2UI5 - Developing UI5 Apps in pure ABAP`
             )->toolbar_spacer(
             )->link( text   = `SCN`
                      target = `_blank`
