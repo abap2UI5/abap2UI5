@@ -230,7 +230,7 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
     result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_fw_utility=>get_json_boolean( check_view_destroy ) && ` }`.
     result = result && set_arg_string( t_arg ).
-
+    
   ENDMETHOD.
 
 
@@ -239,7 +239,6 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
     result = `onEventFrontend( { 'EVENT' : '` && val && `' }` && set_arg_string( t_arg ).
 
   ENDMETHOD.
-
 
   METHOD set_arg_string.
 
@@ -261,4 +260,5 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
     result = result && `)`.
 
   ENDMETHOD.
+
 ENDCLASS.
