@@ -18,8 +18,6 @@ CLASS z2ui5_cl_fw_app DEFINITION
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
 
-    DATA mr_data TYPE REF TO data.
-
     CLASS-METHODS factory_start
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.

@@ -101,7 +101,7 @@ CLASS z2ui5_cl_fw_handler DEFINITION
         bind          TYPE REF TO z2ui5_cl_fw_utility=>ty_s_attri
         type          TYPE string
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##NEEDED.
 
     CLASS-METHODS set_app_start
       RETURNING
@@ -182,7 +182,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
   METHOD bind.
 
     "read input
-    DATA(lo_app) = CAST object( ms_db-app ).
+    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
     DATA lr_in TYPE REF TO data.
     GET REFERENCE OF value INTO lr_in.
 
