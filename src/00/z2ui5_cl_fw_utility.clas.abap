@@ -3,20 +3,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_attri,
-        name                 TYPE string,
-        type_kind            TYPE string,
-        type                 TYPE string,
-        bind_type            TYPE string,
-        data_stringify       TYPE string,
-        data_rtti            TYPE string,
-        check_temp           type abap_bool,
-        check_ready          type abap_bool,
-        check_dissolved      TYPE abap_bool,
-      END OF ty_s_attri.
-    TYPES ty_t_attri TYPE STANDARD TABLE OF ty_s_attri WITH EMPTY KEY.
-
     CLASS-METHODS url_param_get
       IMPORTING
         val           TYPE string

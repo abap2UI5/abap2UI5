@@ -13,6 +13,21 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       END OF cs_bind_type.
 
     TYPES:
+      BEGIN OF ty_s_attri,
+        name            TYPE string,
+        type_kind       TYPE string,
+        type            TYPE string,
+        bind_type       TYPE string,
+        data_stringify  TYPE string,
+        data_rtti       TYPE string,
+        check_temp      TYPE abap_bool,
+        check_ready     TYPE abap_bool,
+        check_dissolved TYPE abap_bool,
+        name_front      TYPE string,
+      END OF ty_s_attri.
+    TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
+
+    TYPES:
       BEGIN OF ty_s_next2,
         t_scroll   TYPE z2ui5_if_client=>ty_t_name_value_int,
         title      TYPE string,
@@ -98,7 +113,7 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       IMPORTING
         app           TYPE REF TO object
         in            TYPE REF TO data
-        bind          TYPE REF TO z2ui5_cl_fw_utility=>ty_s_attri
+        bind          TYPE REF TO ty_s_attri
         type          TYPE string
       RETURNING
         VALUE(result) TYPE string ##NEEDED.
@@ -138,12 +153,12 @@ CLASS z2ui5_cl_fw_handler DEFINITION
         model   TYPE REF TO data
         app     TYPE REF TO object
       CHANGING
-        t_attri TYPE z2ui5_cl_fw_utility=>ty_t_attri ##NEEDED.
+        t_attri TYPE ty_t_attri ##NEEDED.
 
     CLASS-METHODS model_set_frontend
       IMPORTING
         app           TYPE REF TO object
-        t_attri       TYPE z2ui5_cl_fw_utility=>ty_t_attri
+        t_attri       TYPE ty_t_attri
       RETURNING
         VALUE(result) TYPE string
           ##NEEDED.
@@ -195,7 +210,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         WHERE visibility = cl_abap_classdescr=>public AND
               is_interface = abap_false.
 
-        DATA(ls_attri) = CORRESPONDING z2ui5_cl_fw_utility=>ty_s_attri( lr_attri->* ).
+        DATA(ls_attri) = CORRESPONDING ty_s_attri( lr_attri->* ).
         CASE ls_attri-type_kind.
           WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
             CONTINUE.
@@ -212,7 +227,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
                                          iv_attri = ls_attri-name ).
 
             LOOP AT lt_attri_struc REFERENCE INTO DATA(lr_struc).
-              DATA(ls_attri_struc) = VALUE z2ui5_cl_fw_utility=>ty_s_attri( ).
+              DATA(ls_attri_struc) = VALUE ty_s_attri( ).
               ls_attri_struc = CORRESPONDING #( lr_struc->* ).
               ls_attri_struc-check_ready = abap_true.
               INSERT ls_attri_struc INTO TABLE ms_db-s_bind-t_attri.
@@ -240,7 +255,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
 
     " check data refs - dissolve
-    DATA(lt_dref_diss_new) = VALUE z2ui5_cl_fw_utility=>ty_t_attri( ).
+    DATA(lt_dref_diss_new) = VALUE ty_t_attri( ).
 
     LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind WHERE
           type_kind = cl_abap_classdescr=>typekind_dref AND
@@ -268,7 +283,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
                                        iv_attri = lr_bind->name && `->*` ).
 
           LOOP AT lt_attri_struc REFERENCE INTO lr_struc.
-            DATA(ls_new_struc) = VALUE z2ui5_cl_fw_utility=>ty_s_attri( ).
+            DATA(ls_new_struc) = VALUE ty_s_attri( ).
             ls_new_struc = CORRESPONDING #( lr_struc->* ).
             ls_new_struc-name = replace( val = ls_new_struc-name sub = lr_bind->name && `->*-` with = lr_bind->name && `->` ).
             ls_new_struc-check_ready = abap_true.
@@ -277,7 +292,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
           ENDLOOP.
 
         WHEN OTHERS.
-          DATA(ls_new_bind) = VALUE z2ui5_cl_fw_utility=>ty_s_attri(
+          DATA(ls_new_bind) = VALUE ty_s_attri(
              name = lr_bind->name && `->*`
              type_kind = lo_descr->type_kind
              type = lo_descr->get_relative_name(  )
@@ -307,7 +322,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
 
     " check obj ref - dissolve
-    DATA(lt_oref_diss_new) = VALUE z2ui5_cl_fw_utility=>ty_t_attri( ).
+    DATA(lt_oref_diss_new) = VALUE ty_t_attri( ).
 
     LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind
       WHERE type_kind = cl_abap_classdescr=>typekind_oref AND
@@ -326,7 +341,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         WHERE visibility = cl_abap_classdescr=>public AND
               is_interface = abap_false.
 
-        ls_attri = VALUE z2ui5_cl_fw_utility=>ty_s_attri( ).
+        ls_attri = VALUE ty_s_attri( ).
         CASE lr_attri->type_kind.
           WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
             CONTINUE.
@@ -410,7 +425,10 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
           `<p>Binding Error - Name of attribute more than 30 characters: ` && bind->name ).
       ENDIF.
       bind->bind_type = type.
-      result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && bind->name.
+      bind->name_front = bind->name.
+      bind->name_front = replace( val = bind->name sub = `->*` with = `---` ).
+      bind->name_front = replace( val = bind->name_front sub = `->` with = `--` ).
+      result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
 
   ENDMETHOD.
@@ -428,12 +446,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
           ASSIGN (lv_name_back) TO <backend>.
           z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-
-          DATA(lv_name_front) = replace( val  = lr_attri->name sub  = `>*` with = `__` ).
-          lv_name_front = replace( val  = lv_name_front sub  = `>` with = `_` ).
-          lv_name_front = replace( val  = lv_name_front sub  = `-` with = `_` occ  = 0 ).
-          lv_name_front = `MODEL->` && lv_name_front.
-
+          DATA(lv_name_front) = `MODEL->` && lr_attri->name_front.
           FIELD-SYMBOLS <frontend> TYPE any.
           ASSIGN (lv_name_front) TO <frontend>.
           z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
@@ -485,22 +498,18 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way
-                                THEN lr_view_model
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way THEN lr_view_model
                                 ELSE lo_update ).
 
       DATA(lv_name_back) = `APP->` && lr_attri->name.
-
       FIELD-SYMBOLS <attribute> TYPE any.
       ASSIGN (lv_name_back) TO <attribute>.
       z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-      DATA(lv_name_front) = replace( val = lr_attri->name  sub = `->*` with = `---` ).
-      lv_name_front = replace( val = lv_name_front  sub = `->` with = `--` ).
       CASE lr_attri->type_kind.
 
         WHEN `h`.
-          lo_actual->add_attribute( n           = lv_name_front
+          lo_actual->add_attribute( n           = lr_attri->name_front
                                     v           = z2ui5_cl_fw_utility=>trans_any_2_json( <attribute> )
                                     apos_active = abap_false ).
 
@@ -510,14 +519,13 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
             WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
 
-              lo_actual->add_attribute( n           = lv_name_front
-                                        v           = SWITCH #( <attribute>
-                                                                WHEN abap_true THEN `true` ELSE `false` )
+              lo_actual->add_attribute( n           = lr_attri->name_front
+                                        v           = SWITCH #( <attribute> WHEN abap_true THEN `true` ELSE `false` )
                                         apos_active = abap_false ).
 
             WHEN OTHERS.
 
-              lo_actual->add_attribute( n           = lv_name_front
+              lo_actual->add_attribute( n           = lr_attri->name_front
                                         v           = /ui2/cl_json=>serialize( <attribute> )
                                         apos_active = abap_false ).
           ENDCASE.
