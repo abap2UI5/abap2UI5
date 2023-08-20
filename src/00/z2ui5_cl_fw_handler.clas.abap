@@ -149,7 +149,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
 
   METHOD app_set_next.
@@ -193,11 +193,11 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
           IF lr_attri->check_ref_data IS NOT INITIAL.
             ASSIGN <backend>->* TO <backend>.
-            TRY.
-                DATA(lo_tab)  = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( <backend> ) ) ##NEEDED.
-                lv_type_kind = `h`.
-              CATCH cx_root.
-            ENDTRY.
+*            TRY.
+*                DATA(lo_tab)  = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( <backend> ) ) ##NEEDED.
+*                lv_type_kind = `h`.
+*              CATCH cx_root.
+*            ENDTRY.
           ENDIF.
 
           CASE lv_type_kind.
@@ -594,6 +594,11 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
           z2ui5_cl_fw_utility=>raise(
             `<p>Binding Error - Name of attribute more than 30 characters: ` && lr_bind->name ).
         ENDIF.
+        lr_bind->check_ref_data = abap_true.
+
+       data(lo_descr) = cl_abap_datadescr=>describe_by_data( <attribute> ).
+       lr_bind->type_kind = lo_descr->type_kind.
+
         lr_bind->bind_type = type.
         result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && lr_bind->name.
         RETURN.

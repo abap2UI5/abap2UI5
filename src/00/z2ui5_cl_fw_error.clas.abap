@@ -26,7 +26,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_error IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_ERROR IMPLEMENTATION.
 
 
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
@@ -57,6 +57,4 @@ CLASS z2ui5_cl_fw_error IMPLEMENTATION.
     result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` else result ).
 
   ENDMETHOD.
-
-
 ENDCLASS.

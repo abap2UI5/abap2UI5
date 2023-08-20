@@ -185,7 +185,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
 
 
   METHOD check_is_boolean.
@@ -198,18 +198,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root.
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD get_abap_2_json.
-
-    IF check_is_boolean( val ).
-      result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
-    ELSE.
-      result = |"{ escape( val    = val
-                           format = cl_abap_format=>e_json_string ) }"|.
-    ENDIF.
 
   ENDMETHOD.
 
@@ -234,79 +222,19 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_replace.
-
-    result = iv_val.
-
-    DATA(lv_1) = substring_before( val = result
-                                   sub = iv_begin ).
-    DATA(lv_2) = substring_after( val = result
-                                  sub = iv_end ).
-    result = COND #( WHEN lv_2 IS NOT INITIAL THEN lv_1 && iv_replace && lv_2 ).
-
-  ENDMETHOD.
-
-
   METHOD get_timestampl.
     GET TIME STAMP FIELD result.
   ENDMETHOD.
 
 
-  METHOD get_trim.
+  METHOD url_param_get.
 
-    result = shift_left( shift_right( CONV string( val ) ) ).
-    result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
-    result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
-    result = shift_left( shift_right( CONV string( val ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD get_trim_lower.
-
-    result = to_lower( get_trim( CONV string( val ) ) ).
+    DATA(lt_params) = url_param_get_tab( url ).
+    DATA(lv_val) = get_trim_lower( val ).
+    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
 
   ENDMETHOD.
 
-
-  METHOD get_trim_upper.
-
-    result = to_upper( get_trim( CONV string( val ) ) ).
-
-  ENDMETHOD.
-
-  METHOD get_t_attri_by_ref2.
-
-     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
-      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE visibility = cl_abap_classdescr=>public AND
-              is_interface = abap_false.
-
-        CASE lr_attri->type_kind.
-
-          WHEN cl_abap_classdescr=>typekind_oref or cl_abap_classdescr=>typekind_dref.
-            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
-
-
-          WHEN cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-            DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
-                                         io_app   = io_app
-                                         iv_attri = lr_attri->name ).
-
-            INSERT LINES OF CORRESPONDING z2ui5_cl_fw_utility=>ty_t_attri( lt_attri_struc )
-            INTO TABLE result.
-
-          WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
-            CONTINUE.
-
-          WHEN OTHERS.
-            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
-        ENDCASE.
-      ENDLOOP.
-
-  ENDMETHOD.
 
   METHOD get_t_attri_by_ref.
 
@@ -365,6 +293,25 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD url_param_set.
+
+    DATA(lt_params) = url_param_get_tab( url ).
+
+    DATA(lv_n) = get_trim_lower( name ).
+
+    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
+        WHERE n = lv_n.
+      lr_params->v = get_trim_lower( value ).
+    ENDLOOP.
+    IF sy-subrc <> 0.
+      INSERT VALUE #( n = lv_n v = get_trim_lower( value ) ) INTO TABLE lt_params.
+    ENDIF.
+
+    result = url_param_create_url( lt_params ).
+
+  ENDMETHOD.
+
+
   METHOD get_user_tech.
     result = sy-uname.
   ENDMETHOD.
@@ -396,6 +343,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
 
   METHOD raise.
 
@@ -486,6 +434,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD trans_ref_tab_2_tab.
 
     TYPES ty_t_ref TYPE STANDARD TABLE OF REF TO data.
@@ -571,68 +520,90 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD url_param_create_url.
+  METHOD _get_t_attri_by_struc.
 
-    LOOP AT t_params INTO DATA(ls_param).
-      result = result && ls_param-n && `=` && ls_param-v && `&`.
+    FIELD-SYMBOLS <attribute> TYPE any.
+
+    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
+    ASSIGN (lv_name) TO <attribute>.
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
+    DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
+
+    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
+
+      DATA(lv_element) = iv_attri && `-` && lr_comp->name.
+
+      IF lr_comp->as_include = abap_true.
+        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
+                                               iv_attri = lv_element ) INTO TABLE result.
+
+      ELSE.
+        INSERT VALUE #( name      = lv_element
+                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
+      ENDIF.
+
     ENDLOOP.
-    result = shift_right( val = result
-                          sub = `&` ).
+  ENDMETHOD.
+
+
+  METHOD get_replace.
+
+    result = iv_val.
+
+    DATA(lv_1) = substring_before( val = result
+                                   sub = iv_begin ).
+    DATA(lv_2) = substring_after( val = result
+                                  sub = iv_end ).
+    result = COND #( WHEN lv_2 IS NOT INITIAL THEN lv_1 && iv_replace && lv_2 ).
 
   ENDMETHOD.
 
 
-  METHOD url_param_get.
+  METHOD get_trim.
 
-    DATA(lt_params) = url_param_get_tab( url ).
-    DATA(lv_val) = get_trim_lower( val ).
-    result = VALUE #( lt_params[ n = lv_val ]-v OPTIONAL ).
-
-  ENDMETHOD.
-
-
-  METHOD url_param_get_tab.
-
-    DATA(lv_search) = replace( val  = i_val sub  = `%3D` with = '=' occ  = 0 ).
-    lv_search = shift_left( val = lv_search sub = `?` ).
-    lv_search = get_trim_lower( lv_search ).
-
-    DATA(lv_search2) = substring_after( val = lv_search
-                                        sub = `&sap-startup-params=` ).
-    lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
-
-    lv_search2 = substring_after( val = get_trim_lower( lv_search ) sub = `?` ).
-    IF lv_search2 IS NOT INITIAL.
-      lv_search = lv_search2.
-    ENDIF.
-
-    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
-
-    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
-      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
-      INSERT VALUE #( n = get_trim_lower( lv_name ) v = get_trim_lower( lv_value ) ) INTO TABLE rt_params.
-    ENDLOOP.
+    result = shift_left( shift_right( CONV string( val ) ) ).
+    result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( shift_right( CONV string( val ) ) ).
 
   ENDMETHOD.
 
 
-  METHOD url_param_set.
+  METHOD get_t_attri_by_ref2.
 
-    DATA(lt_params) = url_param_get_tab( url ).
+     DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( io_app ) )->attributes.
+      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
+        WHERE visibility = cl_abap_classdescr=>public AND
+              is_interface = abap_false.
 
-    DATA(lv_n) = get_trim_lower( name ).
+        CASE lr_attri->type_kind.
 
-    LOOP AT lt_params REFERENCE INTO DATA(lr_params)
-        WHERE n = lv_n.
-      lr_params->v = get_trim_lower( value ).
-    ENDLOOP.
-    IF sy-subrc <> 0.
-      INSERT VALUE #( n = lv_n v = get_trim_lower( value ) ) INTO TABLE lt_params.
-    ENDIF.
+          WHEN cl_abap_classdescr=>typekind_oref or cl_abap_classdescr=>typekind_dref.
+            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
 
-    result = url_param_create_url( lt_params ).
+
+          WHEN cl_abap_classdescr=>typekind_struct2
+            OR cl_abap_classdescr=>typekind_struct1.
+
+            DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
+                                         io_app   = io_app
+                                         iv_attri = lr_attri->name ).
+
+            INSERT LINES OF CORRESPONDING z2ui5_cl_fw_utility=>ty_t_attri( lt_attri_struc )
+            INTO TABLE result.
+
+          WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
+            CONTINUE.
+
+          WHEN OTHERS.
+            INSERT CORRESPONDING #( lr_attri->* ) INTO TABLE result.
+        ENDCASE.
+      ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD _get_t_attri_by_obj.
 
@@ -685,30 +656,65 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _get_t_attri_by_struc.
 
-    FIELD-SYMBOLS <attribute> TYPE any.
+  METHOD get_trim_lower.
 
-    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
-    ASSIGN (lv_name) TO <attribute>.
-    raise( when = xsdbool( sy-subrc <> 0 ) ).
+    result = to_lower( get_trim( CONV string( val ) ) ).
 
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
-    DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
+  ENDMETHOD.
 
-    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
 
-      DATA(lv_element) = iv_attri && `-` && lr_comp->name.
+  METHOD get_abap_2_json.
 
-      IF lr_comp->as_include = abap_true.
-        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
-                                               iv_attri = lv_element ) INTO TABLE result.
+    IF check_is_boolean( val ).
+      result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
+    ELSE.
+      result = |"{ escape( val    = val
+                           format = cl_abap_format=>e_json_string ) }"|.
+    ENDIF.
 
-      ELSE.
-        INSERT VALUE #( name      = lv_element
-                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
-      ENDIF.
+  ENDMETHOD.
 
+
+  METHOD get_trim_upper.
+
+    result = to_upper( get_trim( CONV string( val ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD url_param_create_url.
+
+    LOOP AT t_params INTO DATA(ls_param).
+      result = result && ls_param-n && `=` && ls_param-v && `&`.
     ENDLOOP.
+    result = shift_right( val = result
+                          sub = `&` ).
+
+  ENDMETHOD.
+
+
+  METHOD url_param_get_tab.
+
+    DATA(lv_search) = replace( val  = i_val sub  = `%3D` with = '=' occ  = 0 ).
+    lv_search = shift_left( val = lv_search sub = `?` ).
+    lv_search = get_trim_lower( lv_search ).
+
+    DATA(lv_search2) = substring_after( val = lv_search
+                                        sub = `&sap-startup-params=` ).
+    lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
+
+    lv_search2 = substring_after( val = get_trim_lower( lv_search ) sub = `?` ).
+    IF lv_search2 IS NOT INITIAL.
+      lv_search = lv_search2.
+    ENDIF.
+
+    SPLIT lv_search AT `&` INTO TABLE DATA(lt_param).
+
+    LOOP AT lt_param REFERENCE INTO DATA(lr_param).
+      SPLIT lr_param->* AT `=` INTO DATA(lv_name) DATA(lv_value).
+      INSERT VALUE #( n = get_trim_lower( lv_name ) v = get_trim_lower( lv_value ) ) INTO TABLE rt_params.
+    ENDLOOP.
+
   ENDMETHOD.
 ENDCLASS.

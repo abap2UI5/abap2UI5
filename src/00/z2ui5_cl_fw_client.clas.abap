@@ -24,7 +24,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_client IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -240,6 +240,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD set_arg_string.
 
     IF val IS NOT INITIAL.
@@ -260,5 +261,4 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     result = result && `)`.
 
   ENDMETHOD.
-
 ENDCLASS.

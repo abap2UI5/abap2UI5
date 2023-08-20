@@ -1652,7 +1652,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -1666,13 +1666,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD appointments.
-    result = _generic( `appointments` ).
+  METHOD axis_time_strategy.
+    result = _generic( name = `axisTimeStrategy`
+                       ns   = `gantt` ).
   ENDMETHOD.
 
 
-  METHOD appointment_items.
-    result = _generic( name = `appointmentItems` ).
+  METHOD info_label.
+    result = _generic( name   = `InfoLabel`
+                       ns     = 'tnt'
+                       t_prop = VALUE #(
+                           ( n = `id`                   v = id )
+                           ( n = `text`                 v = text )
+                           ( n = `renderMode `          v = rendermode  )
+                           ( n = `colorScheme`          v = colorscheme )
+                           ( n = `displayOnly`          v = displayonly )
+                           ( n = `icon`                 v = icon )
+                           ( n = `textDirection`        v = textDirection )
+                           ( n = `width`                v = width ) ) ).
+
   ENDMETHOD.
 
 
@@ -1685,9 +1697,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD axis_time_strategy.
-    result = _generic( name = `axisTimeStrategy`
-                       ns   = `gantt` ).
+  METHOD begin_column_pages.
+    " todo, implement method
+    result = _generic( name = `beginColumnPages`
+                       ns   = `f` ).
+
   ENDMETHOD.
 
 
@@ -1711,47 +1725,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD base_rectangle.
+  METHOD calendar_legend_item.
+    result = _generic( name   = `CalendarLegendItem`
+                       t_prop = VALUE #(
+                           ( n = `text`                   v = text )
+                           ( n = `type`                   v = type )
+                           ( n = `tooltip`                v = tooltip )
+                           ( n = `color`                  v = color ) ) ).
 
-    result = _generic( name   = `BaseRectangle`
-                       ns     = 'gantt'
-                       t_prop = VALUE #( ( n = `time`                      v = time )
-                                         ( n = `endtime`                   v = endtime )
-                                         ( n = `selectable`                v = z2ui5_cl_fw_utility=>get_json_boolean( selectable ) )
-                                         ( n = `selectedFill`              v = selectedFill )
-                                         ( n = `fill`                      v = fill )
-                                         ( n = `height`                    v = height )
-                                         ( n = `title`                     v = title )
-                                         ( n = `animationSettings`         v = animationSettings )
-                                         ( n = `alignShape`                v = alignShape )
-                                         ( n = `color`                     v = color   )
-                                         ( n = `fontSize`                  v = fontSize )
-                                         ( n = `connectable`               v = z2ui5_cl_fw_utility=>get_json_boolean( connectable ) )
-                                         ( n = `fontFamily`                v = fontFamily )
-                                         ( n = `filter`                    v = filter )
-                                         ( n = `transform`                 v = transform )
-                                         ( n = `countInBirdEye`            v = z2ui5_cl_fw_utility=>get_json_boolean( countInBirdEye ) )
-                                         ( n = `fontWeight`                v = fontWeight   )
-                                         ( n = `showTitle`                 v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
-                                         ( n = `selected`                  v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
-                                         ( n = `resizable`                 v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
-                                         ( n = `horizontalTextAlignment`   v = horizontalTextAlignment )
-                                         ( n = `highlighted`               v = z2ui5_cl_fw_utility=>get_json_boolean( highlighted ) )
-                                         ( n = `highlightable`             v = z2ui5_cl_fw_utility=>get_json_boolean( highlightable ) ) ) ).
-  ENDMETHOD.
-
-
-  METHOD begin_column_pages.
-    " todo, implement method
-    result = _generic( name = `beginColumnPages`
-                       ns   = `f` ).
-
-  ENDMETHOD.
-
-
-  METHOD blocks.
-    result = _generic( name = `blocks`
-                       ns   = `uxap` ).
   ENDMETHOD.
 
 
@@ -1759,6 +1740,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `BlockLayout`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `background` v = background ) ) ).
+  ENDMETHOD.
+
+
+  METHOD blocks.
+    result = _generic( name = `blocks`
+                       ns   = `uxap` ).
   ENDMETHOD.
 
 
@@ -1779,6 +1766,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `BlockLayoutRow`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `rowColorSet` v = rowcolorset ) ) ).
+  ENDMETHOD.
+
+
+  METHOD calendar_appointment.
+    result = _generic( name   = `CalendarAppointment`
+                       ns     = `u`
+                       t_prop = VALUE #(
+                             ( n = `startDate`                 v = startdate )
+                             ( n = `endDate`                   v = enddate )
+                             ( n = `icon`                      v = icon )
+                             ( n = `title`                     v = title )
+                             ( n = `text`                      v = text )
+                             ( n = `type`                      v = type )
+                             ( n = `key`                       v = key )
+                             ( n = `tentative`                 v = tentative ) ) ).
   ENDMETHOD.
 
 
@@ -1803,43 +1805,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD calendar_appointment.
-    result = _generic( name   = `CalendarAppointment`
-                       ns     = `u`
-                       t_prop = VALUE #(
-                             ( n = `startDate`                 v = startdate )
-                             ( n = `endDate`                   v = enddate )
-                             ( n = `icon`                      v = icon )
-                             ( n = `title`                     v = title )
-                             ( n = `text`                      v = text )
-                             ( n = `type`                      v = type )
-                             ( n = `key`                       v = key )
-                             ( n = `tentative`                 v = tentative ) ) ).
-  ENDMETHOD.
-
-
-  METHOD calendar_legend_item.
-    result = _generic( name   = `CalendarLegendItem`
-                       t_prop = VALUE #(
-                           ( n = `text`                   v = text )
-                           ( n = `type`                   v = type )
-                           ( n = `tooltip`                v = tooltip )
-                           ( n = `color`                  v = color ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD carousel.
-
-    result = _generic( name   = `Carousel`
-                       t_prop = VALUE #( ( n = `loop`  v = z2ui5_cl_fw_utility=>get_json_boolean( loop ) )
-                                         ( n = `class`  v = class )
-                                         ( n = `height`  v = height )
-               ) ).
-
-  ENDMETHOD.
-
-
   METHOD cc_export_spreadsheet.
 
     result = me.
@@ -1851,6 +1816,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `type`     v = type )
               ) ).
 
+  ENDMETHOD.
+
+
+  METHOD planning_calendar_legend.
+    result = _generic( name   = `PlanningCalendarLegend`
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `items`                           v = items )
+                           ( n = `appointmentItems`                v = appointmentItems )
+                           ( n = `standardItems`                   v = standardItems ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD appointments.
+    result = _generic( `appointments` ).
   ENDMETHOD.
 
 
@@ -1934,6 +1915,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = zz_plain( `<html:script>` && js && `</html:script>` ).
 
+  ENDMETHOD.
+
+
+  METHOD container_toolbar.
+    result = _generic( name   = `ContainerToolbar`
+                       ns     = `gantt`
+                       t_prop = VALUE #( ( n = `showSearchButton`          v = showsearchbutton )
+                                         ( n = `alignCustomContentToRight` v = z2ui5_cl_fw_utility=>get_json_boolean( alignCustomContentToRight ) )
+                                         ( n = `findMode`                  v = findMode )
+                                         ( n = `infoOfSelectItems`         v = infoOfSelectItems )
+                                         ( n = `showBirdEyeButton`         v = z2ui5_cl_fw_utility=>get_json_boolean( showBirdEyeButton ) )
+                                         ( n = `showDisplayTypeButton`     v = z2ui5_cl_fw_utility=>get_json_boolean( showDisplayTypeButton ) )
+                                         ( n = `showLegendButton`          v = z2ui5_cl_fw_utility=>get_json_boolean( showLegendButton ) )
+                                         ( n = `showSettingButton`         v = z2ui5_cl_fw_utility=>get_json_boolean( showSettingButton ) )
+                                         ( n = `showTimeZoomControl`       v = z2ui5_cl_fw_utility=>get_json_boolean( showTimeZoomControl ) )
+                                         ( n = `stepCountOfSlider`         v = stepCountOfSlider )
+                                         ( n = `zoomControlType`           v = zoomControlType )
+                                         ( n = `zoomLevel`                 v = zoomLevel )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -2156,22 +2156,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD container_toolbar.
-    result = _generic( name   = `ContainerToolbar`
-                       ns     = `gantt`
-                       t_prop = VALUE #( ( n = `showSearchButton`          v = showsearchbutton )
-                                         ( n = `alignCustomContentToRight` v = z2ui5_cl_fw_utility=>get_json_boolean( alignCustomContentToRight ) )
-                                         ( n = `findMode`                  v = findMode )
-                                         ( n = `infoOfSelectItems`         v = infoOfSelectItems )
-                                         ( n = `showBirdEyeButton`         v = z2ui5_cl_fw_utility=>get_json_boolean( showBirdEyeButton ) )
-                                         ( n = `showDisplayTypeButton`     v = z2ui5_cl_fw_utility=>get_json_boolean( showDisplayTypeButton ) )
-                                         ( n = `showLegendButton`          v = z2ui5_cl_fw_utility=>get_json_boolean( showLegendButton ) )
-                                         ( n = `showSettingButton`         v = z2ui5_cl_fw_utility=>get_json_boolean( showSettingButton ) )
-                                         ( n = `showTimeZoomControl`       v = z2ui5_cl_fw_utility=>get_json_boolean( showTimeZoomControl ) )
-                                         ( n = `stepCountOfSlider`         v = stepCountOfSlider )
-                                         ( n = `zoomControlType`           v = zoomControlType )
-                                         ( n = `zoomLevel`                 v = zoomLevel )
-                                       ) ).
+  METHOD currency.
+    result = _generic( name = `Currency`
+                       ns   = 'u'
+                    t_prop  = VALUE #(
+                          ( n = `value` v = value )
+                          ( n = `currency`  v = currency ) ) ).
+
   ENDMETHOD.
 
 
@@ -2198,13 +2189,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD currency.
-    result = _generic( name = `Currency`
-                       ns   = 'u'
-                    t_prop  = VALUE #(
-                          ( n = `value` v = value )
-                          ( n = `currency`  v = currency ) ) ).
-
+  METHOD end_column_pages.
+    " todo, implement method
+    result = me.
   ENDMETHOD.
 
 
@@ -2283,22 +2270,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD dynamic_side_content.
-    result = _generic( name   = `DynamicSideContent`
+  METHOD side_Content.
+    result = _generic( name   = `sideContent`
                        ns     = 'layout'
                        t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `class`                           v = class )
-                           ( n = `sideContentVisibility`           v = sideContentVisibility )
-                           ( n = `showSideContent`                 v = showSideContent )
-                           ( n = `containerQuery`                  v = containerQuery ) ) ).
+                           ( n = `width`                           v = width ) ) ).
 
   ENDMETHOD.
 
 
-  METHOD end_column_pages.
-    " todo, implement method
-    result = me.
+  METHOD filter_bar.
+
+    result = _generic( name   = `FilterBar`
+                       ns     = 'fb'
+                       t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
+                                         ( n = 'search'        v = search )
+                                         ( n = 'filterChange'  v = filterchange ) ) ).
   ENDMETHOD.
 
 
@@ -2352,16 +2339,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD filter_bar.
-
-    result = _generic( name   = `FilterBar`
-                       ns     = 'fb'
-                       t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
-                                         ( n = 'search'        v = search )
-                                         ( n = 'filterChange'  v = filterchange ) ) ).
-  ENDMETHOD.
-
-
   METHOD filter_control.
     result = _generic( name = `control`
                        ns   = 'fb' ).
@@ -2393,6 +2370,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                         (  n = `id` v = id )
                         ) ).
 
+  ENDMETHOD.
+
+
+  METHOD gantt_chart_container.
+    result = _generic( name = `GanttChartContainer`
+                       ns   = `gantt` ).
   ENDMETHOD.
 
 
@@ -2434,12 +2417,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD gantt_chart_container.
-    result = _generic( name = `GanttChartContainer`
-                       ns   = `gantt` ).
-  ENDMETHOD.
-
-
   METHOD gantt_chart_with_table.
     result = _generic( name   = `GanttChartWithTable`
                        ns     = `gantt`
@@ -2463,9 +2440,33 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD gantt_toolbar.
-    result = _generic( name = `toolbar`
-                       ns   = 'gantt' ).
+  METHOD generic_tile.
+
+    result = me.
+    _generic(
+      name   = `GenericTile`
+      ns     = ``
+      t_prop = VALUE #(
+                ( n = `class`      v = class )
+                ( n = `header`     v = header )
+                ( n = `mode`     v = mode )
+                ( n = `press`      v = press )
+                ( n = `frameType`  v = frametype )
+                ( n = `subheader`  v = subheader ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD dynamic_side_content.
+    result = _generic( name   = `DynamicSideContent`
+                       ns     = 'layout'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `class`                           v = class )
+                           ( n = `sideContentVisibility`           v = sideContentVisibility )
+                           ( n = `showSideContent`                 v = showSideContent )
+                           ( n = `containerQuery`                  v = containerQuery ) ) ).
+
   ENDMETHOD.
 
 
@@ -2481,19 +2482,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD generic_tile.
+  METHOD hlp_get_url_param.
 
-    result = me.
-    _generic(
-      name   = `GenericTile`
-      ns     = ``
-      t_prop = VALUE #(
-                ( n = `class`      v = class )
-                ( n = `header`     v = header )
-                ( n = `mode`     v = mode )
-                ( n = `press`      v = press )
-                ( n = `frameType`  v = frametype )
-                ( n = `subheader`  v = subheader ) ) ).
+    result = z2ui5_cl_fw_utility=>url_param_get(
+      val = val
+      url = mi_client->get( )-s_config-search ).
 
   ENDMETHOD.
 
@@ -2591,19 +2584,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD hlp_get_app_url.
-
-    IF classname IS NOT SUPPLIED.
-      classname = z2ui5_cl_fw_utility=>get_classname_by_ref( mi_client->get( )-s_draft-app ).
-    ENDIF.
-
-    DATA(lv_url) = to_lower( mi_client->get( )-s_config-origin && mi_client->get( )-s_config-pathname ) && `?`.
-    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( mi_client->get( )-s_config-search ).
-    DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
-
-    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
-
+  METHOD appointment_items.
+    result = _generic( name = `appointmentItems` ).
   ENDMETHOD.
 
 
@@ -2614,15 +2596,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = ls_config-origin && `/sap/bc/adt/oo/classes/`
        && z2ui5_cl_fw_utility=>get_classname_by_ref( ls_draft-app ) && `/source/main`.
-
-  ENDMETHOD.
-
-
-  METHOD hlp_get_url_param.
-
-    result = z2ui5_cl_fw_utility=>url_param_get(
-      val = val
-      url = mi_client->get( )-s_config-search ).
 
   ENDMETHOD.
 
@@ -2639,24 +2612,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD horizontal_layout.
-    result = _generic( name   = `HorizontalLayout`
-                       ns     = `layout`
-                       t_prop = VALUE #( ( n = `class`  v = class )
-                                         ( n = `width`  v = width ) ) ).
-  ENDMETHOD.
-
-  METHOD icon_tab_header.
-
-    result = _generic( name   = `IconTabHeader`
-                       t_prop = VALUE #( (  n = `selectedKey`     v = selectedKey )
-                                         (  n = `items`           v = items )
-                                         (  n = `select`          v = select )
-                                         (  n = `mode`            v = mode  ) ) ).
-
-  ENDMETHOD.
-
-
   METHOD icon_tab_bar.
 
     result = _generic( name   = `IconTabBar`
@@ -2666,6 +2621,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                        ( n = `expandable`  v = expandable )
                                        ( n = `expanded`    v = expanded )
                                        ( n = `selectedKey` v = selectedkey ) ) ).
+  ENDMETHOD.
+
+
+  METHOD illustrated_message.
+
+    result = _generic( name   = `IllustratedMessage`
+                       t_prop = VALUE #( ( n = `enableVerticalResponsiveness` v = enableverticalresponsiveness )
+                       ( n = `illustrationType`             v = illustrationtype )
+                       ( n = `enableFormattedText`             v = z2ui5_cl_fw_utility=>get_json_boolean( enableformattedtext ) )
+                       ( n = `illustrationSize`             v = illustrationsize )
+                       ( n = `description`             v = description )
+                       ( n = `title`             v = title )
+                       ) ).
   ENDMETHOD.
 
 
@@ -2689,16 +2657,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD illustrated_message.
+  METHOD image_content.
 
-    result = _generic( name   = `IllustratedMessage`
-                       t_prop = VALUE #( ( n = `enableVerticalResponsiveness` v = enableverticalresponsiveness )
-                       ( n = `illustrationType`             v = illustrationtype )
-                       ( n = `enableFormattedText`             v = z2ui5_cl_fw_utility=>get_json_boolean( enableformattedtext ) )
-                       ( n = `illustrationSize`             v = illustrationsize )
-                       ( n = `description`             v = description )
-                       ( n = `title`             v = title )
-                       ) ).
+    result = _generic( name   = `ImageContent`
+                       t_prop = VALUE #( ( n = `src` v = src ) ) ).
+
+
   ENDMETHOD.
 
 
@@ -2710,31 +2674,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                 ( n = class v = class )
                 ( n = `height` v = height )
                  ) ).
-  ENDMETHOD.
-
-
-  METHOD image_content.
-
-    result = _generic( name   = `ImageContent`
-                       t_prop = VALUE #( ( n = `src` v = src ) ) ).
-
-
-  ENDMETHOD.
-
-
-  METHOD info_label.
-    result = _generic( name   = `InfoLabel`
-                       ns     = 'tnt'
-                       t_prop = VALUE #(
-                           ( n = `id`                   v = id )
-                           ( n = `text`                 v = text )
-                           ( n = `renderMode `          v = rendermode  )
-                           ( n = `colorScheme`          v = colorscheme )
-                           ( n = `displayOnly`          v = displayonly )
-                           ( n = `icon`                 v = icon )
-                           ( n = `textDirection`        v = textDirection )
-                           ( n = `width`                v = width ) ) ).
-
   ENDMETHOD.
 
 
@@ -2767,6 +2706,24 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `class`            v = class )
                                 ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
                                 ( n = `fieldWidth`          v = fieldwidth ) ) ).
+  ENDMETHOD.
+
+
+  METHOD interval_headers.
+    result = _generic( `intervalHeaders` ).
+  ENDMETHOD.
+
+
+  METHOD multi_combobox.
+    result = _generic( name   = `ComboBox`
+                       t_prop = VALUE #( (  n = `selectionChange`     v = selectionChange )
+                                         (  n = `selectedKeys`        v = selectedkeys )
+                                         (  n = `items`               v = items )
+                                         (  n = `selectionFinish`     v = selectionFinish )
+                                         (  n = `width`               v = width )
+                                         (  n = `showClearIcon`       v = showClearIcon )
+                                         (  n = `showSecondaryValues` v = showSecondaryValues )
+                                         (  n = `showSelectAll`       v = showSelectAll ) ) ).
   ENDMETHOD.
 
 
@@ -2844,17 +2801,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD interval_headers.
-    result = _generic( `intervalHeaders` ).
-  ENDMETHOD.
-
-
   METHOD item.
     result = me.
     _generic( name   = `Item`
               ns     = `core`
               t_prop = VALUE #( ( n = `key`  v = key )
                                 ( n = `text` v = text ) ) ).
+  ENDMETHOD.
+
+
+  METHOD mid_column_pages.
+
+    result = _generic( name   = `midColumnPages`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `id` v = id ) ) ).
+
   ENDMETHOD.
 
 
@@ -2907,13 +2868,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               ns     = `core`
               t_prop = VALUE #( ( n = `text` v = text )
                                 ( n = `additionalText` v = additionaltext ) ) ).
-  ENDMETHOD.
-
-
-  METHOD main_contents.
-    result = _generic( name   = `mainContents`
-                       ns     = `tnt` ).
-
   ENDMETHOD.
 
 
@@ -2974,28 +2928,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD mid_column_pages.
-
-    result = _generic( name   = `midColumnPages`
-                       ns     = `f`
-                       t_prop = VALUE #( ( n = `id` v = id ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD multi_combobox.
-    result = _generic( name   = `ComboBox`
-                       t_prop = VALUE #( (  n = `selectionChange`     v = selectionChange )
-                                         (  n = `selectedKeys`        v = selectedkeys )
-                                         (  n = `items`               v = items )
-                                         (  n = `selectionFinish`     v = selectionFinish )
-                                         (  n = `width`               v = width )
-                                         (  n = `showClearIcon`       v = showClearIcon )
-                                         (  n = `showSecondaryValues` v = showSecondaryValues )
-                                         (  n = `showSelectAll`       v = showSelectAll ) ) ).
-  ENDMETHOD.
-
-
   METHOD multi_input.
     result = _generic( name   = `MultiInput`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
@@ -3013,23 +2945,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD Nav_Container.
-    result = _generic( name   = `NavContainer`
-                       t_prop = VALUE #(
-                        (  n = `initialPage`  v = initialPage  )
-                        (  n = `id`           v = id  )
-                        (  n = `defaultTransitionName`   v = defaultTransitionName  )
-                        )  ).
-
-  ENDMETHOD.
-
-
-  METHOD navigation_actions.
-    result = _generic( name = `navigationActions`
-                       ns   = `f` ).
-  ENDMETHOD.
-
-
   METHOD numeric_content.
 
     result = _generic( name   = `NumericContent`
@@ -3037,6 +2952,39 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `icon`       v = icon )
                                          ( n = `withMargin` v = z2ui5_cl_fw_utility=>get_json_boolean( withmargin ) ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD Table_Select_Dialog.
+
+    result = _generic( name   = `TableSelectDialog`
+               t_prop = VALUE #( ( n = `confirmButtonText`    v = confirmButtonText )
+                                 ( n = `contentHeight`        v = contentHeight )
+                                 ( n = `contentWidth`         v = contentWidth )
+                                 ( n = `draggable`            v = z2ui5_cl_fw_utility=>get_json_boolean( draggable ) )
+                                 ( n = `growing`              v = z2ui5_cl_fw_utility=>get_json_boolean( growing ) )
+                                 ( n = `growingThreshold`     v = growingThreshold )
+                                 ( n = `multiSelect`          v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) )
+                                 ( n = `noDataText`           v = noDataText )
+                                 ( n = `rememberSelections`   v = z2ui5_cl_fw_utility=>get_json_boolean( rememberSelections ) )
+                                 ( n = `resizable`            v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
+                                 ( n = `searchPlaceholder`    v = searchPlaceholder )
+                                 ( n = `showClearButton`      v = z2ui5_cl_fw_utility=>get_json_boolean( showClearButton ) )
+                                 ( n = `title`                v = title )
+                                 ( n = `titleAlignment`       v = titleAlignment )
+                                 ( n = `items`                v = items )
+                                 ( n = `search`               v = search )
+                                 ( n = `confirm`              v = confirm )
+                                 ( n = `cancel`               v = cancel )
+                                 ( n = `liveChange`           v = liveChange )
+                                 ( n = `selectionChange`      v = selectionChange )
+                                 ( n = `visible`              v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD navigation_actions.
+    result = _generic( name = `navigationActions`
+                       ns   = `f` ).
   ENDMETHOD.
 
 
@@ -3068,6 +3016,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `number`      v = number )
                                 ( n = `state`       v = state )
                                 ( n = `unit`        v = unit ) ) ).
+  ENDMETHOD.
+
+
+  METHOD object_status.
+    result = _generic( name   = `ObjectStatus`
+                       t_prop = VALUE #( ( n = `active` v = active )
+                                         ( n = `emptyIndicatorMode` v = emptyindicatormode )
+                                         ( n = `icon` v = icon )
+                                         ( n = `iconDensityAware` v = icondensityaware )
+                                         ( n = `inverted` v = inverted )
+                                         ( n = `state` v = state )
+                                         ( n = `stateAnnouncementText` v = stateannouncementtext )
+                                         ( n = `text` v = text )
+                                         ( n = `textDirection` v = textdirection )
+                                         ( n = `title` v = title )
+                                         ( n = `press` v = press ) ) ).
   ENDMETHOD.
 
 
@@ -3107,24 +3071,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD object_status.
-    result = _generic( name   = `ObjectStatus`
-                       t_prop = VALUE #( ( n = `active` v = active )
-                                         ( n = `emptyIndicatorMode` v = emptyindicatormode )
-                                         ( n = `icon` v = icon )
-                                         ( n = `iconDensityAware` v = icondensityaware )
-                                         ( n = `inverted` v = inverted )
-                                         ( n = `state` v = state )
-                                         ( n = `stateAnnouncementText` v = stateannouncementtext )
-                                         ( n = `text` v = text )
-                                         ( n = `textDirection` v = textdirection )
-                                         ( n = `title` v = title )
-                                         ( n = `press` v = press ) ) ).
+  METHOD overflow_toolbar.
+    result = _generic( `OverflowToolbar` ).
   ENDMETHOD.
 
 
-  METHOD overflow_toolbar.
-    result = _generic( `OverflowToolbar` ).
+  METHOD planning_calendar.
+    result = _generic( name   = `PlanningCalendar`
+                       t_prop = VALUE #(
+                           ( n = `rows`                      v = rows )
+                           ( n = `startDate`                 v = startdate )
+                           ( n = `appointmentsVisualization` v = appointmentsvisualization )
+                           ( n = `appointmentSelect`         v = appointmentselect )
+                           ( n = `showEmptyIntervalHeaders`  v = showemptyintervalheaders )
+                           ( n = `showWeekNumbers`           v = showweeknumbers )
+                           ( n = `legend`                    v = legend )
+                           ( n = `showDayNamesLine`          v = showDayNamesLine ) ) ).
   ENDMETHOD.
 
 
@@ -3176,41 +3138,27 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD pages.
-    result = _generic( name   = `pages`  ).
+  METHOD points.
+    result = _generic( name = `points`
+                       ns   = `mchart` ).
+  ENDMETHOD.
+
+
+  METHOD _generic_property.
+
+    INSERT val INTO TABLE mt_prop.
+    result = me.
 
   ENDMETHOD.
 
 
-  METHOD panel.
-    result = _generic( name   = `Panel`
-                       t_prop = VALUE #( ( n = `expandable` v = expandable )
-                                         ( n = `expanded`   v = expanded )
-                                         ( n = `headerText` v = headertext ) ) ).
-  ENDMETHOD.
+  METHOD carousel.
 
-
-  METHOD planning_calendar.
-    result = _generic( name   = `PlanningCalendar`
-                       t_prop = VALUE #(
-                           ( n = `rows`                      v = rows )
-                           ( n = `startDate`                 v = startdate )
-                           ( n = `appointmentsVisualization` v = appointmentsvisualization )
-                           ( n = `appointmentSelect`         v = appointmentselect )
-                           ( n = `showEmptyIntervalHeaders`  v = showemptyintervalheaders )
-                           ( n = `showWeekNumbers`           v = showweeknumbers )
-                           ( n = `legend`                    v = legend )
-                           ( n = `showDayNamesLine`          v = showDayNamesLine ) ) ).
-  ENDMETHOD.
-
-
-  METHOD planning_calendar_legend.
-    result = _generic( name   = `PlanningCalendarLegend`
-                       t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `items`                           v = items )
-                           ( n = `appointmentItems`                v = appointmentItems )
-                           ( n = `standardItems`                   v = standardItems ) ) ).
+    result = _generic( name   = `Carousel`
+                       t_prop = VALUE #( ( n = `loop`  v = z2ui5_cl_fw_utility=>get_json_boolean( loop ) )
+                                         ( n = `class`  v = class )
+                                         ( n = `height`  v = height )
+               ) ).
 
   ENDMETHOD.
 
@@ -3237,9 +3185,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD points.
-    result = _generic( name = `points`
-                       ns   = `mchart` ).
+  METHOD pages.
+    result = _generic( name   = `pages`  ).
+
+  ENDMETHOD.
+
+
+  METHOD proportion_zoom_strategy.
+    result = _generic( name = `ProportionZoomStrategy`
+                       ns   = `axistime` ).
   ENDMETHOD.
 
 
@@ -3262,12 +3216,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `displayValue` v = displayvalue )
                                 ( n = `showValue`    v = z2ui5_cl_fw_utility=>get_json_boolean( showvalue ) )
                                 ( n = `state`        v = state ) ) ).
-  ENDMETHOD.
-
-
-  METHOD proportion_zoom_strategy.
-    result = _generic( name = `ProportionZoomStrategy`
-                       ns   = `axistime` ).
   ENDMETHOD.
 
 
@@ -3299,20 +3247,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD radio_button_group.
-    result = _generic( name   = `RadioButtonGroup`
-                       t_prop = VALUE #( ( n = `id`             v = id )
-                                         ( n = `columns`        v = columns )
-                                         ( n = `editable`       v = z2ui5_cl_fw_utility=>get_json_boolean( editable ) )
-                                         ( n = `enabled`        v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
-                                         ( n = `selectedIndex`  v = selectedindex )
-                                         ( n = `textDirection`  v = textdirection )
-                                         ( n = `valueState`     v = valuestate )
-                                         ( n = `width`          v = width )
-                       ) ).
-  ENDMETHOD.
-
-
   METHOD range_slider.
     result = me.
     _generic( name   = `RangeSlider`
@@ -3330,31 +3264,22 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rating_indicator.
-
-    result = _generic( name   = `RatingIndicator`
-                       t_prop = VALUE #( ( n = `class`        v = class )
-                                         ( n = `maxValue`     v = maxvalue )
-                                         ( n = `displayOnly`  v = displayonly )
-                                         ( n = `editable`     v = editable )
-                                         ( n = `iconSize`     v = iconsize )
-                                         ( n = `value`        v = value )
-                                         ( n = `id`           v = id )
-                                         ( n = `change`       v = change )
-                                         ( n = `enabled`      v = enabled )
-                                         ( n = `tooltip`      v = tooltip ) ) ).
-
+  METHOD radio_button_group.
+    result = _generic( name   = `RadioButtonGroup`
+                       t_prop = VALUE #( ( n = `id`             v = id )
+                                         ( n = `columns`        v = columns )
+                                         ( n = `editable`       v = z2ui5_cl_fw_utility=>get_json_boolean( editable ) )
+                                         ( n = `enabled`        v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
+                                         ( n = `selectedIndex`  v = selectedindex )
+                                         ( n = `textDirection`  v = textdirection )
+                                         ( n = `valueState`     v = valuestate )
+                                         ( n = `width`          v = width )
+                       ) ).
   ENDMETHOD.
 
 
   METHOD rows.
     result = _generic( `rows` ).
-  ENDMETHOD.
-
-
-  METHOD row_settings_template.
-    result = _generic( name = `rowSettingsTemplate`
-                       ns   = `table` ).
   ENDMETHOD.
 
 
@@ -3365,6 +3290,24 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `vertical`    v = z2ui5_cl_fw_utility=>get_json_boolean( vertical ) )
                                          ( n = `horizontal`  v = z2ui5_cl_fw_utility=>get_json_boolean( horizontal ) )
                                          ( n = `focusable`   v = z2ui5_cl_fw_utility=>get_json_boolean( focusable ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD gantt_toolbar.
+    result = _generic( name = `toolbar`
+                       ns   = 'gantt' ).
+  ENDMETHOD.
+
+
+  METHOD row_settings_template.
+    result = _generic( name = `rowSettingsTemplate`
+                       ns   = `table` ).
+  ENDMETHOD.
+
+
+  METHOD shapes1.
+    result = _generic( name = `shapes1`
+                       ns   = `gantt` ).
   ENDMETHOD.
 
 
@@ -3409,9 +3352,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD shapes1.
-    result = _generic( name = `shapes1`
-                       ns   = `gantt` ).
+  METHOD shell.
+    result = _generic( name = `Shell`
+                       ns   = ns ).
   ENDMETHOD.
 
 
@@ -3421,17 +3364,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD shell.
-    result = _generic( name = `Shell`
-                       ns   = ns ).
-  ENDMETHOD.
-
-
-  METHOD side_Content.
-    result = _generic( name   = `sideContent`
-                       ns     = 'layout'
-                       t_prop = VALUE #(
-                           ( n = `width`                           v = width ) ) ).
+  METHOD standard_tree_item.
+    result = me.
+    _generic( name   = `StandardTreeItem`
+              t_prop = VALUE #( ( n = `title`       v = title )
+                                ( n = `icon`        v = icon )
+                                ( n = `press`       v = press )
+                                ( n = `detailPress` v = detailpress )
+                                ( n = `type`        v = type )
+                                ( n = `counter`     v = counter )
+                                ( n = `selected`    v = selected ) ) ).
 
   ENDMETHOD.
 
@@ -3445,6 +3387,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `columnsL`   v = columnsl )
                                          ( n = `columnsM`   v = columnsm )
                                          ( n = `editable` v = z2ui5_cl_fw_utility=>get_json_boolean( editable ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD subHeader.
+    result = _generic( name = `subHeader`
+                       ns   = `tnt` ).
   ENDMETHOD.
 
 
@@ -3481,20 +3429,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD standard_tree_item.
-    result = me.
-    _generic( name   = `StandardTreeItem`
-              t_prop = VALUE #( ( n = `title`       v = title )
-                                ( n = `icon`        v = icon )
-                                ( n = `press`       v = press )
-                                ( n = `detailPress` v = detailpress )
-                                ( n = `type`        v = type )
-                                ( n = `counter`     v = counter )
-                                ( n = `selected`    v = selected ) ) ).
-
-  ENDMETHOD.
-
-
   METHOD step_input.
     result = me.
     _generic( name   = `StepInput`
@@ -3512,14 +3446,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD subHeader.
-    result = _generic( name = `subHeader`
-                       ns   = `tnt` ).
+  METHOD sub_header.
+    result = _generic( `subHeader` ).
   ENDMETHOD.
 
 
-  METHOD sub_header.
-    result = _generic( `subHeader` ).
+  METHOD suggestion_columns.
+    result = _generic( `suggestionColumns` ).
   ENDMETHOD.
 
 
@@ -3527,11 +3460,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     result = _generic( name = `subSections`
                        ns   = `uxap` ).
-  ENDMETHOD.
-
-
-  METHOD suggestion_columns.
-    result = _generic( `suggestionColumns` ).
   ENDMETHOD.
 
 
@@ -3554,6 +3482,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `change`         v = change )
                                 ( n = `customTextOff`  v = customtextoff )
                                 ( n = `customTextOn`   v = customtexton ) ) ).
+  ENDMETHOD.
+
+
+  METHOD task.
+    result = _generic( name   = `Task`
+                       ns     = `shapes`
+                       t_prop = VALUE #( ( n = `time` v = time )
+                                         ( n = `endTime` v = endtime )
+                                         ( n = `type` v = type )
+                                         ( n = `title` v = title )
+                                         ( n = `showTitle` v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
+                                         ( n = `color` v = color ) ) ).
   ENDMETHOD.
 
 
@@ -3585,48 +3525,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD Table_Select_Dialog.
-
-    result = _generic( name   = `TableSelectDialog`
-               t_prop = VALUE #( ( n = `confirmButtonText`    v = confirmButtonText )
-                                 ( n = `contentHeight`        v = contentHeight )
-                                 ( n = `contentWidth`         v = contentWidth )
-                                 ( n = `draggable`            v = z2ui5_cl_fw_utility=>get_json_boolean( draggable ) )
-                                 ( n = `growing`              v = z2ui5_cl_fw_utility=>get_json_boolean( growing ) )
-                                 ( n = `growingThreshold`     v = growingThreshold )
-                                 ( n = `multiSelect`          v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) )
-                                 ( n = `noDataText`           v = noDataText )
-                                 ( n = `rememberSelections`   v = z2ui5_cl_fw_utility=>get_json_boolean( rememberSelections ) )
-                                 ( n = `resizable`            v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
-                                 ( n = `searchPlaceholder`    v = searchPlaceholder )
-                                 ( n = `showClearButton`      v = z2ui5_cl_fw_utility=>get_json_boolean( showClearButton ) )
-                                 ( n = `title`                v = title )
-                                 ( n = `titleAlignment`       v = titleAlignment )
-                                 ( n = `items`                v = items )
-                                 ( n = `search`               v = search )
-                                 ( n = `confirm`              v = confirm )
-                                 ( n = `cancel`               v = cancel )
-                                 ( n = `liveChange`           v = liveChange )
-                                 ( n = `selectionChange`      v = selectionChange )
-                                 ( n = `visible`              v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) ) ) ).
-  ENDMETHOD.
-
-
   METHOD tab_container.
     result = _generic( name = `TabContainer`
                        ns   = `webc` ).
-  ENDMETHOD.
-
-
-  METHOD task.
-    result = _generic( name   = `Task`
-                       ns     = `shapes`
-                       t_prop = VALUE #( ( n = `time` v = time )
-                                         ( n = `endTime` v = endtime )
-                                         ( n = `type` v = type )
-                                         ( n = `title` v = title )
-                                         ( n = `showTitle` v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
-                                         ( n = `color` v = color ) ) ).
   ENDMETHOD.
 
 
@@ -3636,6 +3537,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               ns     = ns
               t_prop = VALUE #( ( n = `text`  v = text )
                                 ( n = `class` v = class ) ) ).
+  ENDMETHOD.
+
+
+  METHOD time_horizon.
+    result = _generic( name   = `TimeHorizon`
+                       ns     = `config`
+                       t_prop = VALUE #( ( n = `startTime` v = starttime )
+                                         ( n = `endTime`   v = endtime )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -3654,31 +3564,41 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD tile_content.
-
-    result = _generic( name   = `TileContent`
-                       ns     = ``
-                       t_prop = VALUE #(
-                                ( n = `unit`   v = unit )
-                                ( n = `footer` v = footer ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD time_horizon.
-    result = _generic( name   = `TimeHorizon`
-                       ns     = `config`
-                       t_prop = VALUE #( ( n = `startTime` v = starttime )
-                                         ( n = `endTime`   v = endtime )
-                                       ) ).
-  ENDMETHOD.
-
-
   METHOD time_picker.
     result = me.
     _generic( name   = `TimePicker`
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `placeholder`  v = placeholder ) ) ).
+  ENDMETHOD.
+
+
+  METHOD hlp_get_app_url.
+
+    IF classname IS NOT SUPPLIED.
+      classname = z2ui5_cl_fw_utility=>get_classname_by_ref( mi_client->get( )-s_draft-app ).
+    ENDIF.
+
+    DATA(lv_url) = to_lower( mi_client->get( )-s_config-origin && mi_client->get( )-s_config-pathname ) && `?`.
+    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( mi_client->get( )-s_config-search ).
+    DELETE lt_param WHERE n = `app_start`.
+    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
+
+    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
+
+  ENDMETHOD.
+
+
+  METHOD tree.
+    result = _generic( name   = `Tree`
+                       t_prop = VALUE #(
+                           ( n = `items`            v = items )
+                           ( n = `headerText`       v = headertext )
+                           ( n = `footerText`       v = footertext )
+                           ( n = `mode`             v = mode )
+                           ( n = `width`            v = width )
+                           ( n = `includeItemInSelection`  v = z2ui5_cl_fw_utility=>get_json_boolean( includeiteminselection ) )
+                           ( n = `inset`  v = z2ui5_cl_fw_utility=>get_json_boolean( inset ) )
+             ) ).
   ENDMETHOD.
 
 
@@ -3742,35 +3662,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD tool_header.
-    result = _generic( name = `ToolHeader`
-                       ns   = `tnt` ).
-  ENDMETHOD.
+  METHOD vbox.
 
+    result = _generic( name   = `VBox`
+                       t_prop = VALUE #( ( n = `height`          v = height )
+                                         ( n = `justifyContent`  v = justifycontent )
+                                         ( n = `renderType`      v = renderType )
+                                         ( n = `alignContent`    v = alignContent )
+                                         ( n = `alignItems`      v = alignItems )
+                                         ( n = `width`           v = width )
+                                         ( n = `wrap`            v = wrap )
+                                         ( n = `class`           v = class ) ) ).
 
-  METHOD tool_page.
-    result = _generic( name = `ToolPage`
-                       ns   = `tnt` ).
-  ENDMETHOD.
-
-
-  METHOD total_horizon.
-    result = _generic( name = `totalHorizon`
-                       ns   = `axistime` ).
-  ENDMETHOD.
-
-
-  METHOD tree.
-    result = _generic( name   = `Tree`
-                       t_prop = VALUE #(
-                           ( n = `items`            v = items )
-                           ( n = `headerText`       v = headertext )
-                           ( n = `footerText`       v = footertext )
-                           ( n = `mode`             v = mode )
-                           ( n = `width`            v = width )
-                           ( n = `includeItemInSelection`  v = z2ui5_cl_fw_utility=>get_json_boolean( includeiteminselection ) )
-                           ( n = `inset`  v = z2ui5_cl_fw_utility=>get_json_boolean( inset ) )
-             ) ).
   ENDMETHOD.
 
 
@@ -3912,17 +3815,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD vbox.
+  METHOD visible_horizon.
+    result = _generic( name = `visibleHorizon`
+                       ns   = `axistime` ).
+  ENDMETHOD.
 
-    result = _generic( name   = `VBox`
-                       t_prop = VALUE #( ( n = `height`          v = height )
-                                         ( n = `justifyContent`  v = justifycontent )
-                                         ( n = `renderType`      v = renderType )
-                                         ( n = `alignContent`    v = alignContent )
-                                         ( n = `alignItems`      v = alignItems )
-                                         ( n = `width`           v = width )
-                                         ( n = `wrap`            v = wrap )
-                                         ( n = `class`           v = class ) ) ).
+
+  METHOD tile_content.
+
+    result = _generic( name   = `TileContent`
+                       ns     = ``
+                       t_prop = VALUE #(
+                                ( n = `unit`   v = unit )
+                                ( n = `footer` v = footer ) ) ).
 
   ENDMETHOD.
 
@@ -3933,12 +3838,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `class`  v = class )
                                          ( n = `width`  v = width ) ) ).
-  ENDMETHOD.
-
-
-  METHOD visible_horizon.
-    result = _generic( name = `visibleHorizon`
-                       ns   = `axistime` ).
   ENDMETHOD.
 
 
@@ -3977,6 +3876,23 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD rating_indicator.
+
+    result = _generic( name   = `RatingIndicator`
+                       t_prop = VALUE #( ( n = `class`        v = class )
+                                         ( n = `maxValue`     v = maxvalue )
+                                         ( n = `displayOnly`  v = displayonly )
+                                         ( n = `editable`     v = editable )
+                                         ( n = `iconSize`     v = iconsize )
+                                         ( n = `value`        v = value )
+                                         ( n = `id`           v = id )
+                                         ( n = `change`       v = change )
+                                         ( n = `enabled`      v = enabled )
+                                         ( n = `tooltip`      v = tooltip ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD zz_plain.
     result = me.
     _generic( name   = `ZZPLAIN`
@@ -3999,12 +3915,96 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _generic_property.
 
-    INSERT val INTO TABLE mt_prop.
-    result = me.
+  METHOD panel.
+    result = _generic( name   = `Panel`
+                       t_prop = VALUE #( ( n = `expandable` v = expandable )
+                                         ( n = `expanded`   v = expanded )
+                                         ( n = `headerText` v = headertext ) ) ).
+  ENDMETHOD.
+
+
+  METHOD base_rectangle.
+
+    result = _generic( name   = `BaseRectangle`
+                       ns     = 'gantt'
+                       t_prop = VALUE #( ( n = `time`                      v = time )
+                                         ( n = `endtime`                   v = endtime )
+                                         ( n = `selectable`                v = z2ui5_cl_fw_utility=>get_json_boolean( selectable ) )
+                                         ( n = `selectedFill`              v = selectedFill )
+                                         ( n = `fill`                      v = fill )
+                                         ( n = `height`                    v = height )
+                                         ( n = `title`                     v = title )
+                                         ( n = `animationSettings`         v = animationSettings )
+                                         ( n = `alignShape`                v = alignShape )
+                                         ( n = `color`                     v = color   )
+                                         ( n = `fontSize`                  v = fontSize )
+                                         ( n = `connectable`               v = z2ui5_cl_fw_utility=>get_json_boolean( connectable ) )
+                                         ( n = `fontFamily`                v = fontFamily )
+                                         ( n = `filter`                    v = filter )
+                                         ( n = `transform`                 v = transform )
+                                         ( n = `countInBirdEye`            v = z2ui5_cl_fw_utility=>get_json_boolean( countInBirdEye ) )
+                                         ( n = `fontWeight`                v = fontWeight   )
+                                         ( n = `showTitle`                 v = z2ui5_cl_fw_utility=>get_json_boolean( showTitle ) )
+                                         ( n = `selected`                  v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
+                                         ( n = `resizable`                 v = z2ui5_cl_fw_utility=>get_json_boolean( resizable ) )
+                                         ( n = `horizontalTextAlignment`   v = horizontalTextAlignment )
+                                         ( n = `highlighted`               v = z2ui5_cl_fw_utility=>get_json_boolean( highlighted ) )
+                                         ( n = `highlightable`             v = z2ui5_cl_fw_utility=>get_json_boolean( highlightable ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD horizontal_layout.
+    result = _generic( name   = `HorizontalLayout`
+                       ns     = `layout`
+                       t_prop = VALUE #( ( n = `class`  v = class )
+                                         ( n = `width`  v = width ) ) ).
+  ENDMETHOD.
+
+
+  METHOD icon_tab_header.
+
+    result = _generic( name   = `IconTabHeader`
+                       t_prop = VALUE #( (  n = `selectedKey`     v = selectedKey )
+                                         (  n = `items`           v = items )
+                                         (  n = `select`          v = select )
+                                         (  n = `mode`            v = mode  ) ) ).
 
   ENDMETHOD.
 
 
+  METHOD main_contents.
+    result = _generic( name   = `mainContents`
+                       ns     = `tnt` ).
+
+  ENDMETHOD.
+
+
+  METHOD Nav_Container.
+    result = _generic( name   = `NavContainer`
+                       t_prop = VALUE #(
+                        (  n = `initialPage`  v = initialPage  )
+                        (  n = `id`           v = id  )
+                        (  n = `defaultTransitionName`   v = defaultTransitionName  )
+                        )  ).
+
+  ENDMETHOD.
+
+
+  METHOD tool_header.
+    result = _generic( name = `ToolHeader`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+
+
+  METHOD tool_page.
+    result = _generic( name = `ToolPage`
+                       ns   = `tnt` ).
+  ENDMETHOD.
+
+
+  METHOD total_horizon.
+    result = _generic( name = `totalHorizon`
+                       ns   = `axistime` ).
+  ENDMETHOD.
 ENDCLASS.
