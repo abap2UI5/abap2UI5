@@ -177,13 +177,13 @@ CLASS z2ui5_cl_fw_handler DEFINITION
 
     METHODS bind_get_t_dissolve_dref
       IMPORTING
-        is_attri_descr TYPE ty_s_attri
+        is_attri_descr TYPE ref to ty_s_attri
       RETURNING
         VALUE(result)  TYPE ty_t_attri.
 
     METHODS bind_get_t_dissolve_oref
       IMPORTING
-        is_attri_descr TYPE ty_s_attri
+        is_attri_descr TYPE ref to ty_s_attri
       RETURNING
         VALUE(result)  TYPE ty_t_attri.
 
@@ -223,7 +223,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
     FIELD-SYMBOLS <obj> TYPE any.
     UNASSIGN <obj>.
-    DATA(lv_name) = `LO_APP->` && to_upper( is_attri_descr-name ).
+    DATA(lv_name) = `LO_APP->` && to_upper( is_attri_descr->name ).
     ASSIGN (lv_name) TO <obj>.
     IF <obj> IS NOT BOUND.
       RETURN.
@@ -251,7 +251,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
           LOOP AT lt_attri_struc INTO DATA(ls_struc).
             DATA(ls_attri_struc) = CORRESPONDING ty_s_attri( ls_struc ).
-            ls_attri_struc-name = is_attri_descr-name && `->` && ls_attri_struc-name.
+            ls_attri_struc-name = is_attri_descr->name && `->` && ls_attri_struc-name.
             ls_attri_struc-check_ready = abap_true.
             ls_attri_struc-check_temp  = abap_true.
             INSERT ls_attri_struc INTO TABLE result.
@@ -259,7 +259,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
         WHEN OTHERS.
           ls_attri_struc = CORRESPONDING #( ls_attri_descr ).
-          ls_attri_struc-name = is_attri_descr-name && `->` && ls_attri_struc-name.
+          ls_attri_struc-name = is_attri_descr->name && `->` && ls_attri_struc-name.
           ls_attri_struc-check_ready = abap_true.
           ls_attri_struc-check_temp  = abap_true.
           INSERT ls_attri_struc INTO TABLE result.
@@ -274,7 +274,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
     DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
 
-    DATA(lv_name) = `LO_APP->` && is_attri_descr-name && `->*`.
+    DATA(lv_name) = `LO_APP->` && is_attri_descr->name && `->*`.
     FIELD-SYMBOLS <data> TYPE any.
     UNASSIGN <data>.
     ASSIGN (lv_name) TO <data>.
@@ -294,12 +294,12 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
         DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>get_t_attri_by_struc(
                                      io_app   = ms_db-app
-                                     iv_attri = is_attri_descr-name && `->*` ).
+                                     iv_attri = is_attri_descr->name && `->*` ).
 
         LOOP AT lt_attri_struc INTO DATA(ls_struc).
           DATA(ls_new_struc) = VALUE ty_s_attri( ).
           ls_new_struc = CORRESPONDING #( ls_struc ).
-          ls_new_struc-name = replace( val = ls_new_struc-name sub = is_attri_descr-name && `->*-` with = is_attri_descr-name && `->` ).
+          ls_new_struc-name = replace( val = ls_new_struc-name sub = is_attri_descr->name && `->*-` with = is_attri_descr->name && `->` ).
           ls_new_struc-check_ready = abap_true.
           ls_new_struc-check_temp = abap_true.
           INSERT ls_new_struc INTO TABLE result.
@@ -307,7 +307,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
       WHEN OTHERS.
         DATA(ls_new_bind) = VALUE ty_s_attri(
-           name = is_attri_descr-name && `->*`
+           name = is_attri_descr->name && `->*`
            type_kind = lo_descr->type_kind
            type = lo_descr->get_relative_name(  )
            check_temp = abap_true
@@ -387,9 +387,8 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
           type_kind = cl_abap_classdescr=>typekind_dref AND
           check_dissolved = abap_false.
 
-      DATA(lt_dissolve_dref) = bind_get_t_dissolve_dref( is_attri_descr = lr_bind->* ).
+      DATA(lt_dissolve_dref) = bind_get_t_dissolve_dref( is_attri_descr = lr_bind ).
       INSERT LINES OF lt_dissolve_dref INTO TABLE lt_dref_diss_new.
-
       lr_bind->check_dissolved = abap_true.
     ENDLOOP.
 
@@ -415,7 +414,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       WHERE type_kind = cl_abap_classdescr=>typekind_oref AND
         check_dissolved = abap_false.
 
-      DATA(lt_diss_oref) = bind_get_t_dissolve_oref( is_attri_descr = lr_bind->* ).
+      DATA(lt_diss_oref) = bind_get_t_dissolve_oref( is_attri_descr = lr_bind ).
       INSERT LINES OF lt_diss_oref INTO TABLE lt_oref_diss_new.
       lr_bind->check_dissolved = abap_true.
     ENDLOOP.
