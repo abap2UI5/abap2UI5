@@ -238,23 +238,23 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                let isUpdated = false;` && |\n| &&
                            `                if (sap.z2ui5.oViewPopup) {` && |\n| &&
                            `               if (!sap.z2ui5.oViewPopup.isOpen || sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n| &&
-                           `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopup.getModel().getData().oUpdate;` && |\n| &&
+                           `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
                            `                  }` && |\n| &&
                            `                    }` && |\n| &&
                            `              if ( isUpdated == false ) { ` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n| &&
-                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewPopover.getModel().getData().oUpdate;` && |\n| &&
+                           `                        sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
                            `                } } }` && |\n| &&
                            `                if (isUpdated == false){` && |\n| &&
                            `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n| &&
-                           `                        sap.z2ui5.oBody.oUpdate = sap.z2ui5.oViewNest.getModel().getData().oUpdate;` && |\n| &&
+                           `                        sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
                            `                } }` && |\n| &&
                            `                if (isUpdated == false){` && |\n| &&
-                           `                    sap.z2ui5.oBody.oUpdate = sap.z2ui5.oView.getModel().getData().oUpdate;` && |\n| &&
+                           `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oView.getModel().getData().EDIT;` && |\n| &&
                            `                 }` && |\n| &&
                            |\n| &&
                            `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n| &&

@@ -40,6 +40,10 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS get_uuid_22
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS get_user_tech
       RETURNING
         VALUE(result) TYPE string.
@@ -226,6 +230,32 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     result = sy-uname.
   ENDMETHOD.
 
+  METHOD get_uuid_22.
+
+    TRY.
+        DATA uuid TYPE c LENGTH 22.
+
+        TRY.
+            CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c22
+              RECEIVING
+                uuid = uuid.
+
+          CATCH cx_sy_dyn_call_illegal_class.
+
+            DATA(lv_fm) = `GUID_CREATE`.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_22 = uuid.
+
+        ENDTRY.
+
+        result = uuid.
+
+      CATCH cx_root.
+        ASSERT 1 = 0.
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD get_uuid.
 
@@ -445,15 +475,34 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
     DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
 
+    DATA(lv_attri) = iv_attri.
+    DATA(lv_length) = strlen( lv_attri ) - 2.
+    DATA(lv_attri_end) = lv_attri+lv_length.
+
+    IF lv_attri_end = `>*`.
+      lv_attri_end = `>`.
+      lv_length = lv_length.
+      lv_attri = lv_attri(lv_length) && lv_attri_end.
+    ELSE.
+      lv_attri_end = `-`.
+      lv_length = lv_length + 2.
+      lv_attri = lv_attri(lv_length) && lv_attri_end.
+    ENDIF.
+
+
     LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
 
-      DATA(lv_element) = iv_attri && `-` && lr_comp->name.
+      DATA(lv_element) = lv_attri && lr_comp->name.
 
-      IF lr_comp->as_include = abap_true.
+      IF lr_comp->as_include = abap_true OR
+         lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2 OR
+         lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
+
         INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
                                                iv_attri = lv_element ) INTO TABLE result.
 
       ELSE.
+
         INSERT VALUE #( name      = lv_element
                         type_kind = lr_comp->type->type_kind ) INTO TABLE result.
       ENDIF.

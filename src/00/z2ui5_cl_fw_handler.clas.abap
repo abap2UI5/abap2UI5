@@ -359,14 +359,17 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
             LOOP AT lt_attri_struc REFERENCE INTO lr_struc.
               ls_attri_struc = CORRESPONDING #( lr_struc->* ).
+              ls_attri_struc-name = lr_bind->name && `->` && ls_attri_struc-name.
               ls_attri_struc-check_ready = abap_true.
               ls_attri_struc-check_temp  = abap_true.
               INSERT ls_attri_struc INTO TABLE lt_oref_diss_new.
             ENDLOOP.
 
           WHEN OTHERS.
-            ls_attri-check_ready = abap_true.
-            ls_attri-check_temp  = abap_true.
+            ls_attri_struc = CORRESPONDING #( lr_attri->* ).
+            ls_attri_struc-name = lr_bind->name && `->` && ls_attri_struc-name.
+            ls_attri_struc-check_ready = abap_true.
+            ls_attri_struc-check_temp  = abap_true.
             INSERT ls_attri_struc INTO TABLE lt_oref_diss_new.
         ENDCASE.
 
@@ -395,7 +398,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       z2ui5_cl_fw_utility=>raise( `Binding Error - Two way binding used but no attribute found` ).
     ENDIF.
 
-    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid( ).
+    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid_22( ).
     INSERT VALUE #( name           = lv_id
                     data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( value )
                     bind_type      = cs_bind_type-one_time )
@@ -420,15 +423,21 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         z2ui5_cl_fw_utility=>raise(
           `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).` ).
       ENDIF.
-      IF strlen( bind->name ) > 30.
-        z2ui5_cl_fw_utility=>raise(
-          `<p>Binding Error - Name of attribute more than 30 characters: ` && bind->name ).
-      ENDIF.
+*      IF strlen( bind->name ) > 30.
+*        z2ui5_cl_fw_utility=>raise(
+*          `<p>Binding Error - Name of attribute more than 30 characters: ` && bind->name ).
+*      ENDIF.
       bind->bind_type = type.
       bind->name_front = bind->name.
-      bind->name_front = replace( val = bind->name sub = `->*` with = `---` ).
-      bind->name_front = replace( val = bind->name_front sub = `->` with = `--` ).
+      bind->name_front = replace( val = bind->name sub = `*` with = `_` occ = 0 ).
+      bind->name_front = replace( val = bind->name_front sub = `>` with = `_` occ = 0 ).
+      bind->name_front = replace( val = bind->name_front sub = `-` with = `_` occ = 0 ).
+
       result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+      IF strlen( result ) > 30.
+        bind->name_front = z2ui5_cl_fw_utility=>get_uuid_22( ).
+        result = COND #( WHEN type = cs_bind_type-two_way THEN `/` && ss_config-view_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -550,7 +559,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
       CATCH cx_root.
     ENDTRY.
-    ss_config-view_model_edit_name = `oUpdate`.
+    ss_config-view_model_edit_name = `EDIT`.
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
