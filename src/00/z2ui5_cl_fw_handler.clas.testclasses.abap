@@ -75,7 +75,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
-    IF lv_resp NS `oUpdate`.
+    IF lv_resp NS `EDIT`.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 

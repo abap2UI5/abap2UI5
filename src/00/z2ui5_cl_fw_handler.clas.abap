@@ -169,6 +169,30 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_handler.
 
+    METHODS bind_get_t_dissolve_data
+      IMPORTING
+        is_attri_descr TYPE abap_attrdescr
+      RETURNING
+        VALUE(result)  TYPE ty_t_attri.
+
+    METHODS bind_get_t_dissolve_dref
+      IMPORTING
+        is_attri_descr TYPE ty_s_attri
+      RETURNING
+        VALUE(result)  TYPE ty_t_attri.
+
+    METHODS bind_get_t_dissolve_oref
+      IMPORTING
+        is_attri_descr TYPE ty_s_attri
+      RETURNING
+        VALUE(result)  TYPE ty_t_attri.
+
+    METHODS bind_create_one_time
+      IMPORTING
+        val           TYPE data
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -193,56 +217,159 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD bind_get_t_dissolve_oref.
+
+    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
+
+    FIELD-SYMBOLS <obj> TYPE any.
+    UNASSIGN <obj>.
+    DATA(lv_name) = `LO_APP->` && to_upper( is_attri_descr-name ).
+    ASSIGN (lv_name) TO <obj>.
+    IF <obj> IS NOT BOUND.
+      RETURN.
+    ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_obj( <obj> ).
+
+    LOOP AT lt_attri INTO DATA(ls_attri_descr).
+
+      DATA(ls_attri) = VALUE ty_s_attri( ).
+      CASE ls_attri_descr-type_kind.
+        WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
+          CONTINUE.
+
+        WHEN cl_abap_classdescr=>typekind_oref
+          OR cl_abap_classdescr=>typekind_dref.
+
+        WHEN cl_abap_classdescr=>typekind_struct2
+          OR cl_abap_classdescr=>typekind_struct1.
+
+          ls_attri-check_dissolved = abap_true.
+          DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>get_t_attri_by_struc(
+                                       io_app   = ms_db-app
+                                       iv_attri = ls_attri_descr-name ).
+
+          LOOP AT lt_attri_struc INTO DATA(ls_struc).
+            DATA(ls_attri_struc) = CORRESPONDING ty_s_attri( ls_struc ).
+            ls_attri_struc-name = is_attri_descr-name && `->` && ls_attri_struc-name.
+            ls_attri_struc-check_ready = abap_true.
+            ls_attri_struc-check_temp  = abap_true.
+            INSERT ls_attri_struc INTO TABLE result.
+          ENDLOOP.
+
+        WHEN OTHERS.
+          ls_attri_struc = CORRESPONDING #( ls_attri_descr ).
+          ls_attri_struc-name = is_attri_descr-name && `->` && ls_attri_struc-name.
+          ls_attri_struc-check_ready = abap_true.
+          ls_attri_struc-check_temp  = abap_true.
+          INSERT ls_attri_struc INTO TABLE result.
+      ENDCASE.
+
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
+  METHOD bind_get_t_dissolve_dref.
+
+    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
+
+    DATA(lv_name) = `LO_APP->` && is_attri_descr-name && `->*`.
+    FIELD-SYMBOLS <data> TYPE any.
+    UNASSIGN <data>.
+    ASSIGN (lv_name) TO <data>.
+    IF <data> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+
+    DATA(ls_attri) = VALUE ty_s_attri(  ).
+
+    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
+
+    CASE lo_descr->type_kind.
+
+      WHEN cl_abap_classdescr=>typekind_struct2
+          OR cl_abap_classdescr=>typekind_struct1.
+        ls_attri-check_dissolved = abap_true.
+
+        DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>get_t_attri_by_struc(
+                                     io_app   = ms_db-app
+                                     iv_attri = is_attri_descr-name && `->*` ).
+
+        LOOP AT lt_attri_struc INTO DATA(ls_struc).
+          DATA(ls_new_struc) = VALUE ty_s_attri( ).
+          ls_new_struc = CORRESPONDING #( ls_struc ).
+          ls_new_struc-name = replace( val = ls_new_struc-name sub = is_attri_descr-name && `->*-` with = is_attri_descr-name && `->` ).
+          ls_new_struc-check_ready = abap_true.
+          ls_new_struc-check_temp = abap_true.
+          INSERT ls_new_struc INTO TABLE result.
+        ENDLOOP.
+
+      WHEN OTHERS.
+        DATA(ls_new_bind) = VALUE ty_s_attri(
+           name = is_attri_descr-name && `->*`
+           type_kind = lo_descr->type_kind
+           type = lo_descr->get_relative_name(  )
+           check_temp = abap_true
+           check_ready = abap_true
+         ).
+
+        INSERT ls_new_bind INTO TABLE result.
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD bind_get_t_dissolve_data.
+
+    DATA(ls_attri) = CORRESPONDING ty_s_attri( is_attri_descr ).
+    CASE ls_attri-type_kind.
+      WHEN cl_abap_classdescr=>typekind_iref
+        OR cl_abap_classdescr=>typekind_intf.
+        RETURN.
+
+      WHEN cl_abap_classdescr=>typekind_oref
+       OR cl_abap_classdescr=>typekind_dref.
+
+      WHEN cl_abap_classdescr=>typekind_struct2
+        OR cl_abap_classdescr=>typekind_struct1.
+
+        ls_attri-check_dissolved = abap_true.
+        DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>get_t_attri_by_struc( io_app = ms_db-app iv_attri = ls_attri-name ).
+
+        LOOP AT lt_attri_struc INTO DATA(ls_struc).
+          DATA(ls_attri_struc) = VALUE ty_s_attri( ).
+          ls_attri_struc = CORRESPONDING #( ls_struc ).
+          ls_attri_struc-check_ready = abap_true.
+          INSERT ls_attri_struc INTO TABLE result.
+        ENDLOOP.
+
+      WHEN OTHERS.
+        ls_attri-check_ready = abap_true.
+    ENDCASE.
+
+    INSERT ls_attri INTO TABLE result.
+
+  ENDMETHOD.
 
   METHOD bind.
 
-    "read input
-    DATA(lo_app) = CAST object( ms_db-app ) ##NEEDED.
     DATA lr_in TYPE REF TO data.
     GET REFERENCE OF value INTO lr_in.
 
 
-    "build t_attri
+    " dissolve - first time
     IF ms_db-s_bind-t_attri IS INITIAL.
 
-      DATA(lt_attri) = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( ms_db-app ) )->attributes.
-      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE visibility = cl_abap_classdescr=>public AND
-              is_interface = abap_false.
-
-        DATA(ls_attri) = CORRESPONDING ty_s_attri( lr_attri->* ).
-        CASE ls_attri-type_kind.
-          WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
-            CONTINUE.
-
-          WHEN cl_abap_classdescr=>typekind_oref
-            OR cl_abap_classdescr=>typekind_dref.
-
-          WHEN cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-            ls_attri-check_dissolved = abap_true.
-            DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
-                                         io_app   = ms_db-app
-                                         iv_attri = ls_attri-name ).
-
-            LOOP AT lt_attri_struc REFERENCE INTO DATA(lr_struc).
-              DATA(ls_attri_struc) = VALUE ty_s_attri( ).
-              ls_attri_struc = CORRESPONDING #( lr_struc->* ).
-              ls_attri_struc-check_ready = abap_true.
-              INSERT ls_attri_struc INTO TABLE ms_db-s_bind-t_attri.
-            ENDLOOP.
-
-          WHEN OTHERS.
-            ls_attri-check_ready = abap_true.
-        ENDCASE.
-
-        INSERT ls_attri INTO TABLE ms_db-s_bind-t_attri.
+      DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_obj( ms_db-app ).
+      LOOP AT lt_attri INTO DATA(ls_attri_descr).
+        DATA(lt_dissolve) = bind_get_t_dissolve_data( is_attri_descr = ls_attri_descr ).
+        INSERT LINES OF lt_dissolve INTO TABLE ms_db-s_bind-t_attri.
       ENDLOOP.
+
     ENDIF.
 
 
-    " check data and dissolved
+    " check - data
     LOOP AT ms_db-s_bind-t_attri REFERENCE INTO DATA(lr_bind)
         WHERE ( bind_type = `` OR bind_type = type ) AND check_ready = abap_true.
 
@@ -250,64 +377,24 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       IF result IS NOT INITIAL.
         RETURN.
       ENDIF.
-
     ENDLOOP.
 
 
-    " check data refs - dissolve
+    " dissolve - data refs
     DATA(lt_dref_diss_new) = VALUE ty_t_attri( ).
 
     LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind WHERE
           type_kind = cl_abap_classdescr=>typekind_dref AND
           check_dissolved = abap_false.
 
-
-      DATA(lv_name) = `LO_APP->` && lr_bind->name && `->*`.
-      FIELD-SYMBOLS <data> TYPE any.
-      UNASSIGN <data>.
-      ASSIGN (lv_name) TO <data>.
-      IF <data> IS NOT ASSIGNED.
-        CONTINUE.
-      ENDIF.
-
-      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
-
-      CASE lo_descr->type_kind.
-
-        WHEN cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-          ls_attri-check_dissolved = abap_true.
-          lt_attri_struc = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
-                                       io_app   = ms_db-app
-                                       iv_attri = lr_bind->name && `->*` ).
-
-          LOOP AT lt_attri_struc REFERENCE INTO lr_struc.
-            DATA(ls_new_struc) = VALUE ty_s_attri( ).
-            ls_new_struc = CORRESPONDING #( lr_struc->* ).
-            ls_new_struc-name = replace( val = ls_new_struc-name sub = lr_bind->name && `->*-` with = lr_bind->name && `->` ).
-            ls_new_struc-check_ready = abap_true.
-            ls_new_struc-check_temp = abap_true.
-            INSERT ls_new_struc INTO TABLE lt_dref_diss_new.
-          ENDLOOP.
-
-        WHEN OTHERS.
-          DATA(ls_new_bind) = VALUE ty_s_attri(
-             name = lr_bind->name && `->*`
-             type_kind = lo_descr->type_kind
-             type = lo_descr->get_relative_name(  )
-             check_temp = abap_true
-             check_ready = abap_true
-           ).
-
-          INSERT ls_new_bind INTO TABLE lt_dref_diss_new.
-      ENDCASE.
+      DATA(lt_dissolve_dref) = bind_get_t_dissolve_dref( is_attri_descr = lr_bind->* ).
+      INSERT LINES OF lt_dissolve_dref INTO TABLE lt_dref_diss_new.
 
       lr_bind->check_dissolved = abap_true.
     ENDLOOP.
 
 
-    " check data refs
+    " check - data refs
     LOOP AT lt_dref_diss_new REFERENCE INTO lr_bind
            WHERE bind_type = `` OR bind_type = type.
       result = bind_create( app = ms_db-app bind = lr_bind type = type in = lr_in ).
@@ -321,65 +408,20 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     ENDIF.
 
 
-    " check obj ref - dissolve
+    " dissolve - obj refs
     DATA(lt_oref_diss_new) = VALUE ty_t_attri( ).
 
     LOOP AT ms_db-s_bind-t_attri REFERENCE INTO lr_bind
       WHERE type_kind = cl_abap_classdescr=>typekind_oref AND
         check_dissolved = abap_false.
 
-      FIELD-SYMBOLS <obj> TYPE any.
-      UNASSIGN <obj>.
-      lv_name = `LO_APP->` && to_upper( lr_bind->name ).
-      ASSIGN (lv_name) TO <obj>.
-      IF <obj> IS NOT BOUND.
-        CONTINUE.
-      ENDIF.
-
-      lt_attri = CAST cl_abap_classdescr( cl_abap_objectdescr=>describe_by_object_ref( <obj> ) )->attributes.
-      LOOP AT lt_attri REFERENCE INTO lr_attri
-        WHERE visibility = cl_abap_classdescr=>public AND
-              is_interface = abap_false.
-
-        ls_attri = VALUE ty_s_attri( ).
-        CASE lr_attri->type_kind.
-          WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
-            CONTINUE.
-
-          WHEN cl_abap_classdescr=>typekind_oref
-            OR cl_abap_classdescr=>typekind_dref.
-
-          WHEN cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-            ls_attri-check_dissolved = abap_true.
-            lt_attri_struc = z2ui5_cl_fw_utility=>_get_t_attri_by_struc(
-                                         io_app   = ms_db-app
-                                         iv_attri = lr_attri->name ).
-
-            LOOP AT lt_attri_struc REFERENCE INTO lr_struc.
-              ls_attri_struc = CORRESPONDING #( lr_struc->* ).
-              ls_attri_struc-name = lr_bind->name && `->` && ls_attri_struc-name.
-              ls_attri_struc-check_ready = abap_true.
-              ls_attri_struc-check_temp  = abap_true.
-              INSERT ls_attri_struc INTO TABLE lt_oref_diss_new.
-            ENDLOOP.
-
-          WHEN OTHERS.
-            ls_attri_struc = CORRESPONDING #( lr_attri->* ).
-            ls_attri_struc-name = lr_bind->name && `->` && ls_attri_struc-name.
-            ls_attri_struc-check_ready = abap_true.
-            ls_attri_struc-check_temp  = abap_true.
-            INSERT ls_attri_struc INTO TABLE lt_oref_diss_new.
-        ENDCASE.
-
-      ENDLOOP.
-
+      DATA(lt_diss_oref) = bind_get_t_dissolve_oref( is_attri_descr = lr_bind->* ).
+      INSERT LINES OF lt_diss_oref INTO TABLE lt_oref_diss_new.
       lr_bind->check_dissolved = abap_true.
     ENDLOOP.
 
 
-    " check obj ref
+    " check - obj refs
     LOOP AT lt_oref_diss_new REFERENCE INTO lr_bind
            WHERE bind_type = `` OR bind_type = type.
       result = bind_create( app = ms_db-app bind = lr_bind type = type in = lr_in ).
@@ -393,17 +435,9 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     ENDIF.
 
 
-    "one way as one-time
-    IF type = cs_bind_type-two_way.
-      z2ui5_cl_fw_utility=>raise( `Binding Error - Two way binding used but no attribute found` ).
-    ENDIF.
-
-    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid_22( ).
-    INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( value )
-                    bind_type      = cs_bind_type-one_time )
-           INTO TABLE ms_db-s_bind-t_attri.
-    result = |/{ lv_id }|.
+    "error or one time
+    z2ui5_cl_fw_utility=>raise( when = xsdbool( type = cs_bind_type-two_way ) v = `Binding Error - Two way binding used but no attribute found` ).
+    result = bind_create_one_time( value ).
 
   ENDMETHOD.
 
@@ -423,10 +457,6 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         z2ui5_cl_fw_utility=>raise(
           `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).` ).
       ENDIF.
-*      IF strlen( bind->name ) > 30.
-*        z2ui5_cl_fw_utility=>raise(
-*          `<p>Binding Error - Name of attribute more than 30 characters: ` && bind->name ).
-*      ENDIF.
       bind->bind_type = type.
       bind->name_front = bind->name.
       bind->name_front = replace( val = bind->name sub = `*` with = `_` occ = 0 ).
@@ -776,8 +806,20 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     result->ms_db-app = z2ui5_cl_fw_app=>factory_start( ).
-*    result->ms_db-t_attri = z2ui5_cl_fw_utility=>get_t_attri_by_ref( result->ms_db-app ).
     result->ms_db-app->id = result->ms_db-id.
 
   ENDMETHOD.
+
+
+  METHOD bind_create_one_time.
+
+    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid_22( ).
+    INSERT VALUE #( name           = lv_id
+                    data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( val )
+                    bind_type      = cs_bind_type-one_time )
+           INTO TABLE ms_db-s_bind-t_attri.
+    result = |/{ lv_id }|.
+
+  ENDMETHOD.
+
 ENDCLASS.

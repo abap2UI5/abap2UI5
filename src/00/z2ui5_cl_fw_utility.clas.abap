@@ -44,6 +44,12 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    class-METHODS get_t_attri_by_obj
+      IMPORTING
+        val             TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE abap_attrdescr_tab.
+
     CLASS-METHODS get_user_tech
       RETURNING
         VALUE(result) TYPE string.
@@ -142,7 +148,7 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
 
-    CLASS-METHODS _get_t_attri_by_struc
+    CLASS-METHODS get_t_attri_by_struc
       IMPORTING
         io_app        TYPE REF TO object
         iv_attri      TYPE csequence
@@ -464,7 +470,16 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD _get_t_attri_by_struc.
+  METHOD get_t_attri_by_obj.
+
+    DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
+    result  = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
+    DELETE result WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
+
+  ENDMETHOD.
+
+
+  METHOD get_t_attri_by_struc.
 
     FIELD-SYMBOLS <attribute> TYPE any.
 
@@ -498,7 +513,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
          lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2 OR
          lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
 
-        INSERT LINES OF _get_t_attri_by_struc( io_app   = io_app
+        INSERT LINES OF get_t_attri_by_struc( io_app   = io_app
                                                iv_attri = lv_element ) INTO TABLE result.
 
       ELSE.
