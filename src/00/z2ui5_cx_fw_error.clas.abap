@@ -1,25 +1,26 @@
-CLASS z2ui5_cx_fw_error DEFINITION INHERITING FROM cx_no_check
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CX_FW_ERROR definition
+  public
+  inheriting from CX_NO_CHECK
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-      DATA:
-      BEGIN OF ms_error,
+  data:
+    BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
         text   TYPE string,
-      END OF ms_error.
+      END OF ms_error .
 
-    METHODS IF_MESSAGE~GET_TEXT REDEFINITION.
+  methods CONSTRUCTOR
+    importing
+      !VAL type ANY optional
+      !PREVIOUS type ref to CX_ROOT optional
+    preferred parameter VAL .
 
-    METHODS constructor
-      IMPORTING
-        val      TYPE any            OPTIONAL
-        previous TYPE REF TO cx_root OPTIONAL
-          PREFERRED PARAMETER val.
-
+  methods IF_MESSAGE~GET_TEXT
+    redefinition .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
