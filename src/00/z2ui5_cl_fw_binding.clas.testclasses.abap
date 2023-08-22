@@ -276,3 +276,85 @@ CLASS ltcl_structure IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+CLASS ltcl_data_ref DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_01,
+        input    TYPE string,
+        input_02 TYPE string,
+        input_03 TYPE string,
+      END OF ty_s_01.
+
+    DATA mr_value TYPE REF TO data.
+    DATA mr_struc TYPE REF TO data.
+
+  PRIVATE SECTION.
+
+    METHODS test_one_way_value FOR TESTING RAISING cx_static_check.
+    METHODS test_one_way_struc FOR TESTING RAISING cx_static_check.
+
+
+ENDCLASS.
+
+CLASS ltcl_data_ref IMPLEMENTATION.
+
+  METHOD test_one_way_value.
+
+    DATA(lo_app) = NEW ltcl_data_ref( ).
+
+    FIELD-SYMBOLS <field> TYPE any.
+    CREATE DATA lo_app->mr_value TYPE string.
+    ASSIGN (`LO_APP->MR_VALUE->*`) TO <field>.
+    <field> = `my value`.
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = <field>
+    ).
+
+    DATA(lv_result) = lo_bind->main_bind( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MR_VALUE___` ).
+
+  ENDMETHOD.
+
+  METHOD test_one_way_struc.
+
+    DATA(lo_app) = NEW ltcl_data_ref( ).
+
+    CREATE DATA lo_app->mr_struc TYPE ty_s_01.
+    FIELD-SYMBOLS <field> TYPE any.
+    ASSIGN (`LO_APP->MR_STRUC->INPUT`) TO <field>.
+    <field> = `my value`.
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = <field>
+    ).
+
+    DATA(lv_result) = lo_bind->main_bind( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MR_STRUC__INPUT` ).
+
+  ENDMETHOD.
+
+
+
+ENDCLASS.
