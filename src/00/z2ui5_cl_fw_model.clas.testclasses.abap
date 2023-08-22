@@ -45,9 +45,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lr_model TYPE REF TO data.
     /ui2/cl_json=>deserialize(
       EXPORTING
-        json             =  lv_model                " JSON string
+        json             =  lv_model
       CHANGING
-        data             =  lr_model                " Data to serialize
+        data             =  lr_model
     ).
 
     DATA(lo_model) = z2ui5_cl_fw_model=>factory(
@@ -60,8 +60,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     lo_model->main_set_backend( <any> ).
 
     cl_abap_unit_assert=>assert_equals(
-        act                  =  lo_app->quantity                           " Data object with current value
-        exp                  = `600`                             " Data object with expected type
+        act                  =  lo_app->quantity
+        exp                  = `600`
      ).
 
   ENDMETHOD.
