@@ -149,7 +149,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -158,6 +157,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
+
 
 
   METHOD check_is_boolean.

@@ -51,10 +51,15 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE ty_t_attri.
-
     DATA mv_type  TYPE string.
     DATA mr_data TYPE REF TO data.
 
+    CLASS-METHODS update_binding
+      IMPORTING
+        t_attri       TYPE ty_t_attri
+        app           TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE ty_t_attri.
 
   PROTECTED SECTION.
 
@@ -87,7 +92,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         t_attri         TYPE REF TO ty_t_attri
       RETURNING
         VALUE(rr_attri) TYPE REF TO ty_s_attri.
-
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -128,6 +132,9 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     UNASSIGN <obj>.
     DATA(lv_name) = `MO_APP->` && to_upper( is_attri_descr->name ).
     ASSIGN (lv_name) TO <obj>.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
     IF <obj> IS NOT BOUND.
       RETURN.
     ENDIF.
@@ -297,7 +304,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       UNASSIGN <data>.
       ASSIGN (lv_name) TO <data>.
       IF <data> IS NOT ASSIGNED.
-        continue.
+        CONTINUE.
       ENDIF.
 
       DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
@@ -382,6 +389,22 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA(lt_attri)  = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
     DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
     rt_attri2  = CORRESPONDING ty_t_attri( lt_attri ).
+
+  ENDMETHOD.
+
+  METHOD update_binding.
+
+    DATA(lo_bind) = NEW z2ui5_cl_fw_binding( ).
+    lo_bind->mo_app = app.
+    lo_bind->mt_attri = t_attri.
+
+    lo_bind->init_attri( ).
+
+    lo_bind->dissolve_orefs( ).
+    lo_bind->dissolve_orefs( ).
+    lo_bind->dissolve_drefs( ).
+
+    result = lo_bind->mt_attri.
 
   ENDMETHOD.
 
