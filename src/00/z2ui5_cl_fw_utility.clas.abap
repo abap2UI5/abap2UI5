@@ -44,12 +44,6 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
-    class-METHODS get_t_attri_by_obj
-      IMPORTING
-        val             TYPE REF TO object
-      RETURNING
-        VALUE(result) TYPE abap_attrdescr_tab.
-
     CLASS-METHODS get_user_tech
       RETURNING
         VALUE(result) TYPE string.
@@ -469,14 +463,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_t_attri_by_obj.
-
-    DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
-    result  = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
-    DELETE result WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
-
-  ENDMETHOD.
 
 
   METHOD get_t_attri_by_struc.
