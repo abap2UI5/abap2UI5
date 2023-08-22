@@ -501,7 +501,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       lv_attri_end = `-`.
       lv_length = lv_length + 2.
     ENDIF.
-    lv_attri = lv_attri(lv_length) && lv_attri_end.    
+    lv_attri = lv_attri(lv_length) && lv_attri_end.
 
 
     LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
