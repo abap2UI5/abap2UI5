@@ -449,7 +449,7 @@ CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
         input_02 TYPE string,
         input_03 TYPE string,
       END OF ty_s_01.
-    types: ty_T_01 type STANDARD TABLE OF ty_S_01 with EMPTY KEY.
+    TYPES ty_t_01 TYPE STANDARD TABLE OF ty_s_01 WITH EMPTY KEY.
 
     DATA mr_value TYPE REF TO data.
     DATA mr_struc TYPE REF TO data.
@@ -523,7 +523,7 @@ CLASS ltcl_object_ref IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD test_one_way_tab.
+  METHOD test_one_way_tab.
 
     DATA(lo_app) = NEW ltcl_object_ref( ).
     lo_app->mo_obj = NEW #( ).
@@ -533,7 +533,7 @@ CLASS ltcl_object_ref IMPLEMENTATION.
     ASSIGN ('LO_APP->MO_OBJ->MR_TAB->*') TO <any>.
 
 
-    <any> = value #( (  input = 'test' ) ).
+    <any> = VALUE #( (  input = 'test' ) ).
 
     DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
 
