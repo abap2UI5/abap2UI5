@@ -207,7 +207,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
-                        type  = z2ui5_cl_fw_model=>cs_bind_type-one_way
+                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
                         data  = val
                       ).
 
@@ -226,7 +226,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
-                        type  = z2ui5_cl_fw_model=>cs_bind_type-two_way
+                        type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
                         data  = val
                       ).
 

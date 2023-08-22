@@ -3,9 +3,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
-    DATA product           TYPE string.
     DATA quantity          TYPE string.
-    DATA check_initialized TYPE abap_bool.
 
   PRIVATE SECTION.
     METHODS test_model_set_frontend FOR TESTING RAISING cx_static_check.

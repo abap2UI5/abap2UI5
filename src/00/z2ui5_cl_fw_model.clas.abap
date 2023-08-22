@@ -5,32 +5,10 @@ CLASS z2ui5_cl_fw_model DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS:
-      BEGIN OF cs_bind_type,
-        one_way  TYPE string VALUE 'ONE_WAY',
-        two_way  TYPE string VALUE 'TWO_WAY',
-        one_time TYPE string VALUE 'ONE_TIME',
-      END OF cs_bind_type.
-
-    TYPES:
-      BEGIN OF ty_s_attri,
-        name            TYPE string,
-        type_kind       TYPE string,
-        type            TYPE string,
-        bind_type       TYPE string,
-        data_stringify  TYPE string,
-        data_rtti       TYPE string,
-        check_temp      TYPE abap_bool,
-        check_ready     TYPE abap_bool,
-        check_dissolved TYPE abap_bool,
-        name_front      TYPE string,
-      END OF ty_s_attri.
-    TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
-
     CLASS-METHODS factory
       IMPORTING
         app             TYPE REF TO object
-        attri           TYPE ty_t_attri
+        attri           TYPE z2ui5_cl_fw_binding=>ty_t_attri
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_model.
 
@@ -43,7 +21,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
         VALUE(result) TYPE string.
 
     DATA mo_app   TYPE REF TO object.
-    DATA mt_attri TYPE ty_t_attri.
+    DATA mt_attri TYPE z2ui5_cl_fw_binding=>ty_t_attri.
 
 
   PRIVATE SECTION.
@@ -55,17 +33,16 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT r_result.
-
+    r_result = new #( ).
     r_result->mo_app = app.
-    r_result->mt_attri = attri..
+    r_result->mt_attri = attri.
 
   ENDMETHOD.
 
   METHOD main_set_backend.
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_cl_fw_model=>cs_bind_type-two_way.
+        WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way.
       TRY.
 
           DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
@@ -119,14 +96,14 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-      IF lr_attri->bind_type = cs_bind_type-one_time.
+      IF lr_attri->bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
         lr_view_model->add_attribute( n           = lr_attri->name
                                       v           = lr_attri->data_stringify
                                       apos_active = abap_false ).
         CONTINUE.
       ENDIF.
 
-      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = cs_bind_type-one_way THEN lr_view_model
+      DATA(lo_actual) = COND #( WHEN lr_attri->bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way THEN lr_view_model
                                 ELSE lo_update ).
 
       DATA(lv_name_back) = `MO_APP->` && lr_attri->name.

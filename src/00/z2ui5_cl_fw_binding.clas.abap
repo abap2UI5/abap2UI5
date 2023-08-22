@@ -83,13 +83,11 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT r_result.
-
+    r_result = new #( ).
     r_result->mo_app = app.
     r_result->mt_attri = attri.
     r_result->mv_type = type.
@@ -147,7 +145,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
 
 
   METHOD get_t_dissolve_dref.
