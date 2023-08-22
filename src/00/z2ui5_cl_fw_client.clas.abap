@@ -204,7 +204,15 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_handler->bind( value = val type  = z2ui5_cl_fw_handler=>cs_bind_type-one_way ).
+    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+                        app   = mo_handler->ms_db-app
+                        attri = mo_handler->ms_db-t_attri
+                        type  = z2ui5_cl_fw_model=>cs_bind_type-one_way
+                        data  = val
+                      ).
+
+    result = lo_binder->main_bind( ).
+    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -215,7 +223,15 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->bind( value = val type  = z2ui5_cl_fw_handler=>cs_bind_type-two_way ).
+    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+                        app   = mo_handler->ms_db-app
+                        attri = mo_handler->ms_db-t_attri
+                        type  = z2ui5_cl_fw_model=>cs_bind_type-two_way
+                        data  = val
+                      ).
+
+    result = lo_binder->main_bind( ).
+    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.

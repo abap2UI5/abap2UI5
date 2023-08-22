@@ -11,9 +11,7 @@ CLASS z2ui5_cl_fw_db DEFINITION
         id_prev           TYPE string,
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
-        BEGIN OF s_bind,
-          t_attri     TYPE z2ui5_cl_fw_handler=>ty_t_attri,
-        END OF s_bind,
+        t_attri           TYPE z2ui5_cl_fw_model=>ty_t_attri,
         app               TYPE REF TO z2ui5_if_app,
       END OF ty_s_db.
 
@@ -41,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -67,12 +65,12 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
             DATA(ls_db) = db.
             DATA(lo_app) = CAST object( ls_db-app ).
 
-            IF NOT line_exists( ls_db-s_bind-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
+            IF NOT line_exists( ls_db-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
               RAISE EXCEPTION x.
             ENDIF.
 
             lo_app = CAST object( ls_db-app ).
-            LOOP AT ls_db-s_bind-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
+            LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
 
               DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
               FIELD-SYMBOLS <attri> TYPE any.
@@ -122,7 +120,7 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
         IMPORTING
             data = result ).
 
-    LOOP AT result-s_bind-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
+    LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
       DATA(lv_check_rtti) = abap_true.
     ENDLOOP.
     IF lv_check_rtti = abap_false.
@@ -130,7 +128,7 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
     ENDIF.
 
     DATA(lo_app) = CAST object( result-app ) ##NEEDED.
-    LOOP AT result-s_bind-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
+    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
 
       FIELD-SYMBOLS <ref> TYPE any.
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
