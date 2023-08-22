@@ -66,7 +66,10 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
             DATA(lo_app) = CAST object( ls_db-app ).
 
             IF NOT line_exists( ls_db-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
-              RAISE EXCEPTION x.
+              RAISE EXCEPTION TYPE z2ui5_cl_fw_error
+              EXPORTING
+                val = `anonymous data reference in class but not binded`
+                previous = x.
             ENDIF.
 
             lo_app = CAST object( ls_db-app ).

@@ -12,7 +12,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         one_time TYPE string VALUE 'ONE_TIME',
       END OF cs_bind_type.
 
-    CONSTANTS cv_model_edit_name type string value `EDIT`.
+    CONSTANTS cv_model_edit_name TYPE string VALUE `EDIT`.
 
     TYPES:
       BEGIN OF ty_s_attri,
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = new #( ).
+    r_result = NEW #( ).
     r_result->mo_app = app.
     r_result->mt_attri = attri.
     r_result->mv_type = type.
@@ -115,8 +115,15 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
           CONTINUE.
 
-        WHEN cl_abap_classdescr=>typekind_oref
-          OR cl_abap_classdescr=>typekind_dref.
+        WHEN cl_abap_classdescr=>typekind_oref.
+
+
+        WHEN cl_abap_classdescr=>typekind_dref.
+          ls_attri = CORRESPONDING #( ls_attri_descr ).
+          ls_attri-name = is_attri_descr->name && `->` && ls_attri-name.
+          DATA(lt_diss) = get_t_dissolve_dref( REF #( ls_attri ) ).
+          INSERT lines of lt_diss INTO TABLE result.
+
 
         WHEN cl_abap_classdescr=>typekind_struct2
           OR cl_abap_classdescr=>typekind_struct1.

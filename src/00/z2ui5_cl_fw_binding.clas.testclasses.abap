@@ -1,11 +1,13 @@
-*"* use this source file for your ABAP unit test classes
-CLASS ltcl_simple_value DEFINITION FINAL FOR TESTING
+
+CLASS ltcl_value DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
   PUBLIC SECTION.
 
     DATA mv_value TYPE string.
+
+  PROTECTED SECTION.
   PRIVATE SECTION.
 
     METHODS test_one_way FOR TESTING RAISING cx_static_check.
@@ -17,11 +19,11 @@ CLASS ltcl_simple_value DEFINITION FINAL FOR TESTING
 ENDCLASS.
 
 
-CLASS ltcl_simple_value IMPLEMENTATION.
+CLASS ltcl_value IMPLEMENTATION.
 
   METHOD test_one_way.
 
-    DATA(lo_app) = NEW ltcl_simple_value( ).
+    DATA(lo_app) = NEW ltcl_value( ).
     lo_app->mv_value = `my value`.
 
     DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
@@ -43,7 +45,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
 
   METHOD test_two_way.
 
-    DATA(lo_app) = NEW ltcl_simple_value( ).
+    DATA(lo_app) = NEW ltcl_value( ).
     lo_app->mv_value = `my value`.
 
     DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
@@ -65,7 +67,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
 
   METHOD test_one_way_t_attri.
 
-    DATA(lo_app) = NEW ltcl_simple_value( ).
+    DATA(lo_app) = NEW ltcl_value( ).
     lo_app->mv_value = `my value`.
 
     DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
@@ -81,12 +83,11 @@ CLASS ltcl_simple_value IMPLEMENTATION.
 
     DATA(ls_attri) = lo_bind->mt_attri[ name = `MV_VALUE` bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way ] ##NEEDED.
 
-
   ENDMETHOD.
 
   METHOD test_one_way_multiple.
 
-    DATA(lo_app) = NEW ltcl_simple_value( ).
+    DATA(lo_app) = NEW ltcl_value( ).
     lo_app->mv_value = `my value`.
 
     DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
@@ -117,7 +118,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
 
   METHOD test_one_way_two_way_error.
 
-    DATA(lo_app) = NEW ltcl_simple_value( ).
+    DATA(lo_app) = NEW ltcl_value( ).
     lo_app->mv_value = `my value`.
 
     DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
@@ -358,7 +359,7 @@ CLASS ltcl_data_ref IMPLEMENTATION.
 ENDCLASS.
 
 
-CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
+CLASS ltcl_object DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -374,7 +375,7 @@ CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
     DATA mv_value TYPE string.
     DATA ms_struc TYPE ty_s_01.
 
-    DATA mo_obj TYPE REF TO ltcl_object_ref.
+    DATA mo_obj TYPE REF TO ltcl_object.
 
   PRIVATE SECTION.
 
@@ -384,11 +385,11 @@ CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
-CLASS ltcl_object_ref IMPLEMENTATION.
+CLASS ltcl_object IMPLEMENTATION.
 
   METHOD test_one_way_value.
 
-    DATA(lo_app) = NEW ltcl_object_ref( ).
+    DATA(lo_app) = NEW ltcl_object( ).
     lo_app->mo_obj = NEW #( ).
     lo_app->mo_obj->mv_value = `my value`.
 
@@ -412,7 +413,7 @@ CLASS ltcl_object_ref IMPLEMENTATION.
 
   METHOD test_one_way_struc.
 
-    DATA(lo_app) = NEW ltcl_object_ref( ).
+    DATA(lo_app) = NEW ltcl_object( ).
     lo_app->mo_obj = NEW #( ).
     lo_app->mo_obj->ms_struc-input = `my value`.
 
@@ -430,6 +431,124 @@ CLASS ltcl_object_ref IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
         exp                  = `/MO_OBJ__MS_STRUC_INPUT` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_01,
+        input    TYPE string,
+        input_02 TYPE string,
+        input_03 TYPE string,
+      END OF ty_s_01.
+    types: ty_T_01 type STANDARD TABLE OF ty_S_01 with EMPTY KEY.
+
+    DATA mr_value TYPE REF TO data.
+    DATA mr_struc TYPE REF TO data.
+    DATA mr_tab   TYPE REF TO data.
+
+    DATA mo_obj TYPE REF TO ltcl_object_ref.
+
+  PRIVATE SECTION.
+
+    METHODS test_one_way_value FOR TESTING RAISING cx_static_check.
+    METHODS test_one_way_struc FOR TESTING RAISING cx_static_check.
+    METHODS test_one_way_tab FOR TESTING RAISING cx_static_check.
+
+
+ENDCLASS.
+
+CLASS ltcl_object_ref IMPLEMENTATION.
+
+  METHOD test_one_way_value.
+
+    DATA(lo_app) = NEW ltcl_object_ref( ).
+    lo_app->mo_obj = NEW #( ).
+    CREATE DATA lo_app->mo_obj->mr_value TYPE string.
+
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN ('LO_APP->MO_OBJ->MR_VALUE->*') TO <any>.
+    <any> = `my value`.
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = <any>
+    ).
+
+    DATA(lv_result) = lo_bind->main( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MO_OBJ__MR_VALUE___` ).
+
+  ENDMETHOD.
+
+  METHOD test_one_way_struc.
+
+    DATA(lo_app) = NEW ltcl_object_ref( ).
+    lo_app->mo_obj = NEW #( ).
+    CREATE DATA lo_app->mo_obj->mr_struc TYPE ty_s_01.
+
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN ('LO_APP->MO_OBJ->MR_STRUC->INPUT') TO <any>.
+
+    <any> = `my value`.
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = <any>
+    ).
+
+    DATA(lv_result) = lo_bind->main( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MO_OBJ__MR_STRUC__INPUT` ).
+
+  ENDMETHOD.
+
+    METHOD test_one_way_tab.
+
+    DATA(lo_app) = NEW ltcl_object_ref( ).
+    lo_app->mo_obj = NEW #( ).
+    CREATE DATA lo_app->mo_obj->mr_tab TYPE ty_t_01.
+
+    FIELD-SYMBOLS <any> TYPE ty_t_01.
+    ASSIGN ('LO_APP->MO_OBJ->MR_TAB->*') TO <any>.
+
+
+    <any> = value #( (  input = 'test' ) ).
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = <any>
+    ).
+
+    DATA(lv_result) = lo_bind->main( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MO_OBJ__MR_TAB___` ).
 
   ENDMETHOD.
 

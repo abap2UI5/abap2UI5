@@ -125,7 +125,6 @@ ENDCLASS.
 
 CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
-
   METHOD app_set_next.
 
     app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_fw_utility=>get_uuid( ) ELSE app->id ).
