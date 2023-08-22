@@ -355,6 +355,4 @@ CLASS ltcl_data_ref IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-
 ENDCLASS.
