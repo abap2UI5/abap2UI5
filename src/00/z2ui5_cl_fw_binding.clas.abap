@@ -43,6 +43,12 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    METHODS get_t_attri_by_obj
+      IMPORTING
+        io_app           TYPE REF TO object
+      RETURNING
+        VALUE(rt_attri2) TYPE z2ui5_cl_fw_binding=>ty_t_attri.
+
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE ty_t_attri.
 
@@ -82,6 +88,12 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 
     METHODS dissolve_orefs.
 
+    METHODS set_attri_ready
+      IMPORTING
+        t_attri         TYPE REF TO ty_t_attri
+      RETURNING
+        VALUE(rr_attri) TYPE REF TO z2ui5_cl_fw_binding=>ty_s_attri.
+
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -103,29 +115,12 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   METHOD init_attri.
 
     IF mt_attri IS INITIAL.
-      DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( mo_app ).
-      DATA(lt_attri)  = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
-      DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
 
-      mt_attri = CORRESPONDING #( lt_attri ).
-
-      LOOP AT mt_attri  REFERENCE INTO DATA(lr_attri).
-        CASE lr_attri->type_kind.
-          WHEN cl_abap_classdescr=>typekind_iref
-            OR cl_abap_classdescr=>typekind_intf
-            OR cl_abap_classdescr=>typekind_oref
-            OR cl_abap_classdescr=>typekind_dref
-            OR cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-            CONTINUE.
-
-          WHEN OTHERS.
-            lr_attri->check_ready = abap_true.
-        ENDCASE.
-      ENDLOOP.
+      mt_attri  = get_t_attri_by_obj( mo_app ).
+      set_attri_ready( REF #( mt_attri ) ).
 
     ELSE.
-      LOOP AT mt_attri REFERENCE INTO lr_attri.
+      LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
         lr_attri->check_tested = abap_false.
       ENDLOOP.
     ENDIF.
@@ -143,19 +138,14 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( <obj> ).
-    DATA(lt_attri)  = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
-    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
+    DATA(lt_attri) = get_t_attri_by_obj( <obj> ).
 
+    LOOP AT lt_attri INTO DATA(ls_attri).
 
-    LOOP AT lt_attri INTO DATA(ls_attri_descr).
-
-      DATA(ls_attri) = VALUE ty_s_attri( ).
-      ls_attri = CORRESPONDING #( ls_attri_descr ).
-      ls_attri-name = is_attri_descr->name && `->` && ls_attri_descr-name.
+      ls_attri-name = is_attri_descr->name && `->` && ls_attri-name.
       ls_attri-check_temp  = abap_true.
 
-      CASE ls_attri_descr-type_kind.
+      CASE ls_attri-type_kind.
         WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
           CONTINUE.
         WHEN cl_abap_classdescr=>typekind_oref
@@ -276,8 +266,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       EXPORTING
         val = `Binding Error - No attribute found`.
 
-*    result = bind_one_time( ).
-
   ENDMETHOD.
 
 
@@ -291,22 +279,26 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA lr_ref TYPE REF TO data.
     GET REFERENCE OF <attri> INTO lr_ref.
 
-    IF mr_data = lr_ref.
-      IF bind->bind_type <> mv_type AND bind->bind_type IS NOT INITIAL.
-        z2ui5_cl_fw_utility=>raise(
-          `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).` ).
-      ENDIF.
-      bind->bind_type = mv_type.
-      bind->name_front = bind->name.
-      bind->name_front = replace( val = bind->name sub = `*` with = `_` occ = 0 ).
-      bind->name_front = replace( val = bind->name_front sub = `>` with = `_` occ = 0 ).
-      bind->name_front = replace( val = bind->name_front sub = `-` with = `_` occ = 0 ).
+    IF mr_data <> lr_ref.
+      RETURN.
+    ENDIF.
 
+    IF bind->bind_type <> mv_type AND bind->bind_type IS NOT INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        EXPORTING
+          val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
+    ENDIF.
+
+    bind->bind_type  = mv_type.
+    bind->name_front = bind->name.
+    bind->name_front = replace( val = bind->name sub = `*` with = `_` occ = 0 ).
+    bind->name_front = replace( val = bind->name_front sub = `>` with = `_` occ = 0 ).
+    bind->name_front = replace( val = bind->name_front sub = `-` with = `_` occ = 0 ).
+
+    result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+    IF strlen( result ) > 30.
+      bind->name_front = z2ui5_cl_fw_utility=>get_uuid_22( ).
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-      IF strlen( result ) > 30.
-        bind->name_front = z2ui5_cl_fw_utility=>get_uuid_22( ).
-        result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -333,6 +325,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     ENDLOOP.
 
+    set_attri_ready( REF #( lt_dissolve ) ).
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
@@ -340,16 +333,38 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD dissolve_drefs.
 
-    DATA lr_bind TYPE REF TO ty_s_attri.
+    DATA(lt_dissolve) = VALUE ty_t_attri( ).
 
-    LOOP AT mt_attri REFERENCE INTO lr_bind WHERE
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind) WHERE
           type_kind = cl_abap_classdescr=>typekind_dref AND
           check_dissolved = abap_false.
 
-      DATA(lt_dissolve_dref) = get_t_dissolve_dref( is_attri_descr = lr_bind ).
-      INSERT LINES OF lt_dissolve_dref INTO TABLE mt_attri.
+      DATA(lv_name) = `MO_APP->` && lr_bind->name && `->*`.
+      FIELD-SYMBOLS <data> TYPE any.
+      UNASSIGN <data>.
+      ASSIGN (lv_name) TO <data>.
+      IF <data> IS NOT ASSIGNED.
+        continue.
+      ENDIF.
+
+      DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
+
+      DATA(ls_new_bind) = VALUE ty_s_attri(
+         name = lr_bind->name && `->*`
+         type_kind = lo_descr->type_kind
+         type = lo_descr->get_relative_name(  )
+         check_temp = abap_true
+         check_ready = abap_true
+       ).
+
+      INSERT ls_new_bind INTO TABLE lt_dissolve.
+
+      lr_bind->check_dissolved = abap_true.
 
     ENDLOOP.
+
+    set_attri_ready( REF #( lt_dissolve ) ).
+    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
 
@@ -380,6 +395,40 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       INSERT LINES OF lt_diss_oref INTO TABLE mt_attri.
       lr_bind->check_dissolved = abap_true.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD set_attri_ready.
+
+    LOOP AT t_attri->*  REFERENCE INTO  rr_attri
+      WHERE check_ready = abap_false.
+
+
+      CASE rr_attri->type_kind.
+        WHEN cl_abap_classdescr=>typekind_iref
+          OR cl_abap_classdescr=>typekind_intf.
+          DELETE t_attri->*.
+
+        WHEN cl_abap_classdescr=>typekind_oref
+           OR cl_abap_classdescr=>typekind_dref
+           OR cl_abap_classdescr=>typekind_struct2
+           OR cl_abap_classdescr=>typekind_struct1.
+
+        WHEN OTHERS.
+          rr_attri->check_ready = abap_true.
+      ENDCASE.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_t_attri_by_obj.
+
+    DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( io_app ).
+    DATA(lt_attri)  = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
+    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
+    rt_attri2  = CORRESPONDING ty_t_attri( lt_attri ).
 
   ENDMETHOD.
 
