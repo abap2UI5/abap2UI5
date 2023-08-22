@@ -78,6 +78,16 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result)  TYPE ty_t_attri.
 
+    METHODS dissolve_attributes.
+
+    METHODS dissolve_drefs.
+
+    METHODS search_binding
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS dissolve_orefs.
+
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -122,7 +132,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
           ls_attri = CORRESPONDING #( ls_attri_descr ).
           ls_attri-name = is_attri_descr->name && `->` && ls_attri-name.
           DATA(lt_diss) = get_t_dissolve_dref( REF #( ls_attri ) ).
-          INSERT lines of lt_diss INTO TABLE result.
+          INSERT LINES OF lt_diss INTO TABLE result.
 
 
         WHEN cl_abap_classdescr=>typekind_struct2
@@ -248,85 +258,29 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD main.
 
-
-    " dissolve - first time
     IF mt_attri IS INITIAL.
-
-      DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_obj( mo_app ).
-      LOOP AT lt_attri INTO DATA(ls_attri_descr).
-        DATA(lt_dissolve) = get_t_dissolve_data( is_attri_descr = ls_attri_descr ).
-        INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
-      ENDLOOP.
-
+      dissolve_attributes( ).
     ENDIF.
 
-
-    " check - data
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
-        WHERE ( bind_type = `` OR bind_type = mv_type ) AND check_ready = abap_true.
-
-      result = bind( bind = lr_bind ).
-      IF result IS NOT INITIAL.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
-
-
-    " dissolve - data refs
-    DATA(lt_dref_diss_new) = VALUE ty_t_attri( ).
-
-    LOOP AT mt_attri REFERENCE INTO lr_bind WHERE
-          type_kind = cl_abap_classdescr=>typekind_dref AND
-          check_dissolved = abap_false.
-
-      DATA(lt_dissolve_dref) = get_t_dissolve_dref( is_attri_descr = lr_bind ).
-      INSERT LINES OF lt_dissolve_dref INTO TABLE lt_dref_diss_new.
-      lr_bind->check_dissolved = abap_true.
-    ENDLOOP.
-
-
-    " check - data refs
-    LOOP AT lt_dref_diss_new REFERENCE INTO lr_bind
-           WHERE bind_type = `` OR bind_type = mv_type.
-      result = bind( bind = lr_bind ).
-      IF result IS NOT INITIAL.
-        EXIT.
-      ENDIF.
-    ENDLOOP.
+    result = search_binding(  ).
     IF result IS NOT INITIAL.
-      INSERT LINES OF lt_dref_diss_new INTO TABLE mt_attri.
       RETURN.
     ENDIF.
 
+    dissolve_drefs( ).
 
-    " dissolve - obj refs
-    DATA(lt_oref_diss_new) = VALUE ty_t_attri( ).
-
-    LOOP AT mt_attri REFERENCE INTO lr_bind
-      WHERE type_kind = cl_abap_classdescr=>typekind_oref AND
-        check_dissolved = abap_false.
-
-      DATA(lt_diss_oref) = get_t_dissolve_oref( is_attri_descr = lr_bind ).
-      INSERT LINES OF lt_diss_oref INTO TABLE lt_oref_diss_new.
-      lr_bind->check_dissolved = abap_true.
-    ENDLOOP.
-
-
-    " check - obj refs
-    LOOP AT lt_oref_diss_new REFERENCE INTO lr_bind
-           WHERE bind_type = `` OR bind_type = mv_type.
-      result = bind( bind = lr_bind ).
-      IF result IS NOT INITIAL.
-        EXIT.
-      ENDIF.
-    ENDLOOP.
+    result = search_binding(  ).
     IF result IS NOT INITIAL.
-      INSERT LINES OF lt_oref_diss_new INTO TABLE mt_attri.
       RETURN.
     ENDIF.
 
+    dissolve_orefs( ).
 
-    "error or one time
+    result = search_binding(  ).
+    IF result IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
     z2ui5_cl_fw_utility=>raise( when = xsdbool( mv_type = cs_bind_type-two_way ) v = `Binding Error - Two way binding used but no attribute found` ).
     result = bind_one_time( ).
 
@@ -360,6 +314,61 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
       ENDIF.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD dissolve_attributes.
+
+    DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_obj( mo_app ).
+    LOOP AT lt_attri INTO DATA(ls_attri_descr).
+      DATA(lt_dissolve) = get_t_dissolve_data( is_attri_descr = ls_attri_descr ).
+      INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD dissolve_drefs.
+
+    DATA lr_bind TYPE REF TO z2ui5_cl_fw_binding=>ty_s_attri.
+
+    LOOP AT mt_attri REFERENCE INTO lr_bind WHERE
+          type_kind = cl_abap_classdescr=>typekind_dref AND
+          check_dissolved = abap_false.
+
+      DATA(lt_dissolve_dref) = get_t_dissolve_dref( is_attri_descr = lr_bind ).
+      INSERT LINES OF lt_dissolve_dref INTO TABLE mt_attri.
+      lr_bind->check_dissolved = abap_true.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD search_binding.
+
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
+        WHERE ( bind_type = `` OR bind_type = mv_type ) AND check_ready = abap_true.
+
+      result = bind( bind = lr_bind ).
+      IF result IS NOT INITIAL.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD dissolve_orefs.
+
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
+      WHERE type_kind = cl_abap_classdescr=>typekind_oref AND
+        check_dissolved = abap_false.
+
+      DATA(lt_diss_oref) = get_t_dissolve_oref( is_attri_descr = lr_bind ).
+      INSERT LINES OF lt_diss_oref INTO TABLE mt_attri.
+      lr_bind->check_dissolved = abap_true.
+    ENDLOOP.
 
   ENDMETHOD.
 

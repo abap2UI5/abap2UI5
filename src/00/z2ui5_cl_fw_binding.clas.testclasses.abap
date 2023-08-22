@@ -470,7 +470,6 @@ CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
     METHODS test_one_way_struc FOR TESTING RAISING cx_static_check.
     METHODS test_one_way_tab FOR TESTING RAISING cx_static_check.
 
-
 ENDCLASS.
 
 CLASS ltcl_object_ref IMPLEMENTATION.
