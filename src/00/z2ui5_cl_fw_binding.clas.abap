@@ -47,7 +47,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       IMPORTING
         io_app           TYPE REF TO object
       RETURNING
-        VALUE(rt_attri2) TYPE z2ui5_cl_fw_binding=>ty_t_attri.
+        VALUE(rt_attri2) TYPE ty_t_attri.
 
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE ty_t_attri.
@@ -63,12 +63,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         bind          TYPE REF TO ty_s_attri
       RETURNING
         VALUE(result) TYPE string.
-
-    METHODS get_t_dissolve_dref
-      IMPORTING
-        is_attri_descr TYPE REF TO ty_s_attri
-      RETURNING
-        VALUE(result)  TYPE ty_t_attri.
 
     METHODS init_attri.
 
@@ -92,7 +86,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       IMPORTING
         t_attri         TYPE REF TO ty_t_attri
       RETURNING
-        VALUE(rr_attri) TYPE REF TO z2ui5_cl_fw_binding=>ty_s_attri.
+        VALUE(rr_attri) TYPE REF TO ty_s_attri.
 
 
   PRIVATE SECTION.
@@ -158,47 +152,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
       INSERT ls_attri INTO TABLE result.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD get_t_dissolve_dref.
-
-    DATA(lv_name) = `MO_APP->` && is_attri_descr->name && `->*`.
-    FIELD-SYMBOLS <data> TYPE any.
-    UNASSIGN <data>.
-    ASSIGN (lv_name) TO <data>.
-    IF <data> IS NOT ASSIGNED.
-      RETURN.
-    ENDIF.
-
-    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
-
-    DATA(ls_new_bind) = VALUE ty_s_attri(
-       name = is_attri_descr->name && `->*`
-       type_kind = lo_descr->type_kind
-       type = lo_descr->get_relative_name(  )
-       check_temp = abap_true
-       check_ready = abap_true
-     ).
-
-    CASE ls_new_bind-type_kind.
-
-      WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
-        RETURN.
-
-      WHEN cl_abap_classdescr=>typekind_oref
-        OR cl_abap_classdescr=>typekind_dref
-        OR cl_abap_classdescr=>typekind_struct2
-        OR cl_abap_classdescr=>typekind_struct1.
-
-      WHEN OTHERS.
-        ls_new_bind-check_ready = abap_true.
-
-    ENDCASE.
-
-    is_attri_descr->check_dissolved = abap_true.
-    INSERT ls_new_bind INTO TABLE result.
 
   ENDMETHOD.
 
