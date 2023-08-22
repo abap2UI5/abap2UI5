@@ -22,7 +22,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_app_fw) = CAST z2ui5_cl_fw_app( lo_handler->ms_db-app ) ##NEEDED.
 
-
   ENDMETHOD.
 
   METHOD test_req_begin_app_start.

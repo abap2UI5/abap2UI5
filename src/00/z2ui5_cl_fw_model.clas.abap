@@ -14,7 +14,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
 
     METHODS main_set_backend
       IMPORTING
-        model   TYPE REF TO data.
+        model TYPE REF TO data ##NEEDED.
 
     METHODS main_set_frontend
       RETURNING
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = new #( ).
+    r_result = NEW #( ).
     r_result->mo_app = app.
     r_result->mt_attri = attri.
 

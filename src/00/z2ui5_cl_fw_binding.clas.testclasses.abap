@@ -77,9 +77,9 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    lo_bind->main_bind( ).
 
-    DATA(ls_attri) = lo_bind->mt_attri[ name = `MV_VALUE` bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way ].
+    DATA(ls_attri) = lo_bind->mt_attri[ name = `MV_VALUE` bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way ] ##NEEDED.
 
 
   ENDMETHOD.
@@ -129,7 +129,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    lo_bind->main_bind( ).
 
     DATA(lo_bind2) = z2ui5_cl_fw_binding=>factory(
         app      = lo_app
@@ -140,7 +140,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
 
     TRY.
 
-        DATA(lv_result2) = lo_bind2->main_bind( ).
+        lo_bind2->main_bind( ).
         cl_abap_unit_assert=>fail( ).
 
       CATCH cx_root.
