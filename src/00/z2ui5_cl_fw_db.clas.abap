@@ -66,7 +66,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
             DATA(lo_app) = CAST object( ls_db-app ).
 
             IF NOT line_exists( ls_db-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
-              RAISE EXCEPTION TYPE z2ui5_cl_fw_error
+              RAISE EXCEPTION TYPE z2ui5_cx_fw_error
               EXPORTING
                 val = `anonymous data reference in class but not binded`
                 previous = x.
@@ -91,7 +91,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
           CATCH cx_root INTO DATA(x2).
 
-            RAISE EXCEPTION TYPE z2ui5_cl_fw_error
+            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
               EXPORTING
                 val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ).
 

@@ -221,6 +221,22 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~_bind_local.
+
+    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid_22( ).
+    INSERT VALUE #( name           = lv_id
+                    data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( val )
+                    bind_type      = z2ui5_cl_fw_binding=>cs_bind_type-one_time )
+           INTO TABLE mo_handler->ms_db-t_attri.
+    result = |/{ lv_id }|.
+
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_bind_edit.
 
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(

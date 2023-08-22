@@ -170,10 +170,10 @@ CLASS ltcl_unit_test_sap_api IMPLEMENTATION.
   METHOD test_raise_error.
 
     TRY.
-        RAISE EXCEPTION TYPE z2ui5_cl_fw_error.
+        RAISE EXCEPTION TYPE z2ui5_cx_fw_error.
         cl_abap_unit_assert=>fail( ).
 
-      CATCH z2ui5_cl_fw_error INTO DATA(lx).
+      CATCH z2ui5_cx_fw_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_bound( lx ).
     ENDTRY.
 
@@ -548,7 +548,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         z2ui5_cl_fw_utility=>raise( `error occured` ).
         cl_abap_unit_assert=>fail( ).
 
-      CATCH z2ui5_cl_fw_error.
+      CATCH z2ui5_cx_fw_error.
     ENDTRY.
 
   ENDMETHOD.
@@ -558,7 +558,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     TRY.
         z2ui5_cl_fw_utility=>raise( when = xsdbool( 1 = 2 ) ).
 
-      CATCH z2ui5_cl_fw_error INTO DATA(lx).
+      CATCH z2ui5_cx_fw_error INTO DATA(lx).
         cl_abap_unit_assert=>fail( quit = 5 ).
     ENDTRY.
   ENDMETHOD.

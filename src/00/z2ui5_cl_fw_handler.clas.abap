@@ -364,7 +364,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     result->ms_db-id = z2ui5_cl_fw_utility=>get_uuid( ).
 
     IF ix IS NOT BOUND AND error_text IS NOT INITIAL.
-      ix = NEW z2ui5_cl_fw_error( val = error_text ).
+      ix = NEW z2ui5_cx_fw_error( val = error_text ).
     ENDIF.
 
     IF ix IS BOUND.

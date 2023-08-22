@@ -288,7 +288,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   METHOD raise.
 
     IF when = abap_true.
-      RAISE EXCEPTION TYPE z2ui5_cl_fw_error EXPORTING val = v.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error EXPORTING val = v.
     ENDIF.
 
   ENDMETHOD.
@@ -313,7 +313,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
                          lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
-        RAISE EXCEPTION TYPE z2ui5_cl_fw_error
+        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
           EXPORTING
             val = lv_text.
 
@@ -345,7 +345,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
 
-        RAISE EXCEPTION TYPE z2ui5_cl_fw_error
+        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
           EXPORTING
             val = lv_text.
 

@@ -49,15 +49,12 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_type  TYPE string.
     DATA mr_data TYPE REF TO data.
 
+
   PROTECTED SECTION.
 
     METHODS bind
       IMPORTING
         bind          TYPE REF TO ty_s_attri
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS bind_one_time
       RETURNING
         VALUE(result) TYPE string.
 
@@ -216,18 +213,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD bind_one_time.
-
-    DATA(lv_id) = z2ui5_cl_fw_utility=>get_uuid_22( ).
-    INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_fw_utility=>trans_any_2_json( mr_data )
-                    bind_type      = cs_bind_type-one_time )
-           INTO TABLE mt_attri.
-    result = |/{ lv_id }|.
-
-  ENDMETHOD.
-
-
   METHOD main.
 
     init_attri( ).
@@ -287,8 +272,11 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( mv_type = cs_bind_type-two_way ) v = `Binding Error - Two way binding used but no attribute found` ).
-    result = bind_one_time( ).
+    RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+      EXPORTING
+        val = `Binding Error - No attribute found`.
+
+*    result = bind_one_time( ).
 
   ENDMETHOD.
 
