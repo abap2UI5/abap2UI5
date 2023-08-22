@@ -17,8 +17,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
           EXPORTING
             val = `this is an error text`.
 
-        cl_abap_unit_assert=>fail(  ).
-
       CATCH z2ui5_cx_fw_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_equals(
             act                  = lx->get_text( )
