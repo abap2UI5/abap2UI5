@@ -33,7 +33,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -55,7 +55,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -77,7 +77,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    lo_bind->main_bind( ).
+    lo_bind->main( ).
 
     DATA(ls_attri) = lo_bind->mt_attri[ name = `MV_VALUE` bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way ] ##NEEDED.
 
@@ -98,7 +98,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     DATA(lo_bind2) = z2ui5_cl_fw_binding=>factory(
         app      = lo_app
@@ -107,7 +107,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    DATA(lv_result2) = lo_bind2->main_bind( ).
+    DATA(lv_result2) = lo_bind2->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -129,7 +129,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
         data     = lo_app->mv_value
     ).
 
-    lo_bind->main_bind( ).
+    lo_bind->main( ).
 
     DATA(lo_bind2) = z2ui5_cl_fw_binding=>factory(
         app      = lo_app
@@ -140,7 +140,7 @@ CLASS ltcl_simple_value IMPLEMENTATION.
 
     TRY.
 
-        lo_bind2->main_bind( ).
+        lo_bind2->main( ).
         cl_abap_unit_assert=>fail( ).
 
       CATCH cx_root.
@@ -199,7 +199,7 @@ CLASS ltcl_structure IMPLEMENTATION.
         data     = lo_app->ms_struc-input
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -221,7 +221,7 @@ CLASS ltcl_structure IMPLEMENTATION.
         data     = lo_app->ms_struc-s_02-input
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -243,7 +243,7 @@ CLASS ltcl_structure IMPLEMENTATION.
         data     = lo_app->ms_struc-s_02-s_03-input
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -265,7 +265,7 @@ CLASS ltcl_structure IMPLEMENTATION.
         data     = lo_app->ms_struc-s_02-s_03-s_04-input
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     DATA(ls_attri) = lo_bind->mt_attri[ name = `MS_STRUC-S_02-S_03-S_04-INPUT` bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way ].
 
@@ -321,7 +321,7 @@ CLASS ltcl_data_ref IMPLEMENTATION.
         data     = <field>
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
@@ -347,11 +347,89 @@ CLASS ltcl_data_ref IMPLEMENTATION.
         data     = <field>
     ).
 
-    DATA(lv_result) = lo_bind->main_bind( ).
+    DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
         act                  = lv_result
         exp                  = `/MR_STRUC__INPUT` ).
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    TYPES:
+      BEGIN OF ty_s_01,
+        input    TYPE string,
+        input_02 TYPE string,
+        input_03 TYPE string,
+      END OF ty_s_01.
+
+    DATA mv_value TYPE string.
+    DATA ms_struc TYPE ty_s_01.
+
+    DATA mo_obj TYPE REF TO ltcl_object_ref.
+
+  PRIVATE SECTION.
+
+    METHODS test_one_way_value FOR TESTING RAISING cx_static_check.
+    METHODS test_one_way_struc FOR TESTING RAISING cx_static_check.
+
+
+ENDCLASS.
+
+CLASS ltcl_object_ref IMPLEMENTATION.
+
+  METHOD test_one_way_value.
+
+    DATA(lo_app) = NEW ltcl_object_ref( ).
+    lo_app->mo_obj = NEW #( ).
+    lo_app->mo_obj->mv_value = `my value`.
+
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = lo_app->mo_obj->mv_value
+    ).
+
+    DATA(lv_result) = lo_bind->main( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MO_OBJ__MV_VALUE` ).
+
+  ENDMETHOD.
+
+  METHOD test_one_way_struc.
+
+    DATA(lo_app) = NEW ltcl_object_ref( ).
+    lo_app->mo_obj = NEW #( ).
+    lo_app->mo_obj->ms_struc-input = `my value`.
+
+    DATA(lt_attri) = VALUE z2ui5_cl_fw_binding=>ty_t_attri( ).
+
+    DATA(lo_bind) = z2ui5_cl_fw_binding=>factory(
+        app      = lo_app
+        attri    = lt_attri
+        type     = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+        data     = lo_app->mo_obj->ms_struc-input
+    ).
+
+    DATA(lv_result) = lo_bind->main( ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_result
+        exp                  = `/MO_OBJ__MS_STRUC_INPUT` ).
 
   ENDMETHOD.
 

@@ -38,7 +38,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
-    METHODS main_bind
+    METHODS main
       RETURNING
         VALUE(result) TYPE string.
 
@@ -239,7 +239,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD main_bind.
+  METHOD main.
 
 
     " dissolve - first time

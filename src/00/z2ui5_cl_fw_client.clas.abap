@@ -211,7 +211,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         data  = val
                       ).
 
-    result = lo_binder->main_bind( ).
+    result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
 
     IF path = abap_false.
@@ -230,7 +230,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         data  = val
                       ).
 
-    result = lo_binder->main_bind( ).
+    result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
 
     IF path = abap_false.
