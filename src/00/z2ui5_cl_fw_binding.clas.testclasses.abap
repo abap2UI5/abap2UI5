@@ -436,10 +436,7 @@ CLASS ltcl_object IMPLEMENTATION.
 
 ENDCLASS.
 
-
-CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
-  DURATION SHORT
-  RISK LEVEL HARMLESS.
+CLASS ltcl_object_ref_app DEFINITION.
 
   PUBLIC SECTION.
 
@@ -455,7 +452,17 @@ CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
     DATA mr_struc TYPE REF TO data.
     DATA mr_tab   TYPE REF TO data.
 
-    DATA mo_obj TYPE REF TO ltcl_object_ref.
+  PRIVATE SECTION.
+
+ENDCLASS.
+
+CLASS ltcl_object_ref DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    DATA mo_obj TYPE REF TO ltcl_object_ref_app.
 
   PRIVATE SECTION.
 
@@ -499,7 +506,7 @@ CLASS ltcl_object_ref IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_object_ref( ).
     lo_app->mo_obj = NEW #( ).
-    CREATE DATA lo_app->mo_obj->mr_struc TYPE ty_s_01.
+    CREATE DATA lo_app->mo_obj->mr_struc TYPE ltcl_object_ref_app=>ty_s_01.
 
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN ('LO_APP->MO_OBJ->MR_STRUC->INPUT') TO <any>.
@@ -527,9 +534,9 @@ CLASS ltcl_object_ref IMPLEMENTATION.
 
     DATA(lo_app) = NEW ltcl_object_ref( ).
     lo_app->mo_obj = NEW #( ).
-    CREATE DATA lo_app->mo_obj->mr_tab TYPE ty_t_01.
+    CREATE DATA lo_app->mo_obj->mr_tab TYPE  ltcl_object_ref_app=>ty_t_01.
 
-    FIELD-SYMBOLS <any> TYPE ty_t_01.
+    FIELD-SYMBOLS <any> TYPE  ltcl_object_ref_app=>ty_t_01.
     ASSIGN ('LO_APP->MO_OBJ->MR_TAB->*') TO <any>.
 
 
