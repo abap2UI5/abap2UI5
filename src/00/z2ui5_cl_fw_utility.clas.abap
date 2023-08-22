@@ -464,7 +464,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD get_t_attri_by_struc.
 
     FIELD-SYMBOLS <attribute> TYPE any.

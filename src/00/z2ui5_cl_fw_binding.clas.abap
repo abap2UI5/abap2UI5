@@ -23,7 +23,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         data_stringify  TYPE string,
         data_rtti       TYPE string,
         check_temp      TYPE abap_bool,
-
         check_tested    TYPE abap_bool,
         check_ready     TYPE abap_bool,
         check_dissolved TYPE abap_bool,
@@ -186,8 +185,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(ls_attri) = VALUE ty_s_attri(  ).
-
     DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
 
     DATA(ls_new_bind) = VALUE ty_s_attri(
@@ -337,20 +334,15 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
            check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
-      DATA(lt_attri_struc) = z2ui5_cl_fw_utility=>get_t_attri_by_struc( io_app = mo_app iv_attri = lr_attri->name ).
 
-      LOOP AT lt_attri_struc INTO DATA(ls_struc).
+      DATA(lt_attri) = z2ui5_cl_fw_utility=>get_t_attri_by_struc( io_app = mo_app iv_attri = lr_attri->name ).
+      LOOP AT lt_attri INTO DATA(ls_struc).
         DATA(ls_attri_struc) = VALUE ty_s_attri( ).
         ls_attri_struc = CORRESPONDING #( ls_struc ).
         ls_attri_struc-check_ready = abap_true.
         INSERT ls_attri_struc INTO TABLE lt_dissolve.
       ENDLOOP.
 
-*        WHEN OTHERS.
-*          lr_attri->check_ready = abap_true.
-*      ENDCASE.
-
-*      INSERT ls_attri INTO TABLE mt_attri.
     ENDLOOP.
 
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
@@ -360,7 +352,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD dissolve_drefs.
 
-    DATA lr_bind TYPE REF TO z2ui5_cl_fw_binding=>ty_s_attri.
+    DATA lr_bind TYPE REF TO ty_s_attri.
 
     LOOP AT mt_attri REFERENCE INTO lr_bind WHERE
           type_kind = cl_abap_classdescr=>typekind_dref AND
