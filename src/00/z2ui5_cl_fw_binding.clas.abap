@@ -43,18 +43,16 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS get_t_attri_by_obj
-      IMPORTING
-        io_app           TYPE REF TO object
+    METHODS main2
       RETURNING
-        VALUE(rt_attri2) TYPE ty_t_attri.
+        VALUE(result) TYPE string.
 
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE ty_t_attri.
     DATA mv_type  TYPE string.
     DATA mr_data TYPE REF TO data.
 
-    CLASS-METHODS update_binding
+    CLASS-METHODS update_attri
       IMPORTING
         t_attri       TYPE ty_t_attri
         app           TYPE REF TO object
@@ -62,6 +60,12 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         VALUE(result) TYPE ty_t_attri.
 
   PROTECTED SECTION.
+
+    METHODS get_t_attri_by_obj
+      IMPORTING
+        io_app           TYPE REF TO object
+      RETURNING
+        VALUE(rt_attri2) TYPE ty_t_attri.
 
     METHODS bind
       IMPORTING
@@ -163,7 +167,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD main.
+  METHOD main2.
 
     init_attri( ).
 
@@ -217,6 +221,42 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     "level 7 / MO_APP->MO_OBJ->MR_STRUC->COMP
     dissolve_struc( ).
+    result = search_binding(  ).
+    IF result IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+      EXPORTING
+        val = `Binding Error - No attribute found`.
+
+  ENDMETHOD.
+
+  METHOD main.
+
+    init_attri( ).
+
+    "level 0 / MO_APP->MV_VAL
+    result = search_binding(  ).
+    IF result IS NOT INITIAL.
+      RETURN.
+    ENDIF.
+
+    "level 1 / MO_APP->MS_STRUC-COMP
+    dissolve_struc( ).
+    "level 2 / MO_APP->MR_DATA->*
+    dissolve_drefs( ).
+    "level 3 / MO_APP->MR_STRUC->COMP
+    dissolve_struc( ).
+    "level 4 / MO_APP->MO_OBJ->MV_VAL
+    dissolve_orefs( ).
+    "level 5 / MO_APP->MO_OBJ->MR_STRUC-COMP
+    dissolve_struc( ).
+    "level 6 / MO_APP->MO_OBJ->MR_VAL->*
+    dissolve_drefs( ).
+    "level 7 / MO_APP->MO_OBJ->MR_STRUC->COMP
+    dissolve_struc( ).
+
     result = search_binding(  ).
     IF result IS NOT INITIAL.
       RETURN.
@@ -392,7 +432,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD update_binding.
+  METHOD update_attri.
 
     DATA(lo_bind) = NEW z2ui5_cl_fw_binding( ).
     lo_bind->mo_app = app.

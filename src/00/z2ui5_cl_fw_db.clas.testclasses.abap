@@ -1,4 +1,4 @@
-CLASS ltcl_text_xml_trans DEFINITION FINAL FOR TESTING
+CLASS ltcl_test DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -8,18 +8,15 @@ CLASS ltcl_text_xml_trans DEFINITION FINAL FOR TESTING
     DATA mr_data TYPE REF TO data.
 
   PRIVATE SECTION.
-    METHODS:
-      first_test FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
-CLASS ltcl_text_xml_trans IMPLEMENTATION.
+CLASS ltcl_test IMPLEMENTATION.
 
-  METHOD first_test.
+  METHOD test_trans_xml.
 
-    DATA(lo_app) = NEW ltcl_text_xml_trans( ).
-
-    FIELD-SYMBOLS: <fs_tab> TYPE ANY TABLE.
+    DATA(lo_app) = NEW ltcl_test( ).
 
     TYPES:
       BEGIN OF ty_s_attri,
@@ -45,7 +42,6 @@ CLASS ltcl_text_xml_trans IMPLEMENTATION.
       p_line_type  = new_struct_desc
       p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
-    DATA o_table TYPE REF TO data.
     CREATE DATA lo_app->mr_data TYPE HANDLE new_table_desc.
 
     FIELD-SYMBOLS <tab> TYPE table.
@@ -54,8 +50,16 @@ CLASS ltcl_text_xml_trans IMPLEMENTATION.
     DATA(lt_tab) = VALUE ty_t_attri( ( name = `test` ) ).
     <tab> = CORRESPONDING #( lt_tab ).
 
-    z2ui5_cl_fw_db=>trans_any_2_xml( VALUE #(
-        app = lo_app )  ).
+    TRY.
+
+        DATA(lv_xml) = z2ui5_cl_fw_db=>trans_any_2_xml( VALUE #( app = lo_app )  ).
+        cl_abap_unit_assert=>assert_not_initial( lv_xml ).
+
+      CATCH z2ui5_cx_fw_error.
+        " when rtti not installed, then no test...
+    ENDTRY.
+
+
 
   ENDMETHOD.
 

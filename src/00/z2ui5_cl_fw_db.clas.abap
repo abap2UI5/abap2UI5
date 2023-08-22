@@ -1,12 +1,12 @@
-class Z2UI5_CL_FW_DB definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_fw_db DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    BEGIN OF ty_s_db,
+    TYPES:
+      BEGIN OF ty_s_db,
         id                TYPE string,
         id_prev           TYPE string,
         id_prev_app       TYPE string,
@@ -15,34 +15,38 @@ public section.
         app               TYPE REF TO z2ui5_if_app,
       END OF ty_s_db .
 
-  class-methods CREATE
-    importing
-      !ID type STRING
-      !DB type TY_S_DB .
-  class-methods LOAD_APP
-    importing
-      !ID type CLIKE
-    returning
-      value(RESULT) type TY_S_DB .
-  class-methods READ
-    importing
-      !ID type CLIKE
-      !CHECK_LOAD_APP type ABAP_BOOL default ABAP_TRUE
-    returning
-      value(RESULT) type Z2UI5_T_DRAFT .
-  class-methods CLEANUP .
-  class-methods TRANS_ANY_2_XML
-    importing
-      !DB type TY_S_DB
-    returning
-      value(RESULT) type STRING .
-protected section.
-private section.
+    CLASS-METHODS create
+      IMPORTING
+        !id TYPE string
+        !db TYPE ty_s_db .
+    CLASS-METHODS load_app
+      IMPORTING
+        !id           TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_s_db .
+
+    CLASS-METHODS read
+      IMPORTING
+        !id             TYPE clike
+        !check_load_app TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(result)   TYPE z2ui5_t_draft .
+
+    CLASS-METHODS cleanup.
+
+    CLASS-METHODS trans_any_2_xml
+      IMPORTING
+        !db           TYPE ty_s_db
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -138,7 +142,7 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
   METHOD trans_any_2_xml.
 
     TRY.
-        DATA(lv_xml) = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( db ) ).
+        result = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( db ) ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
         TRY.
@@ -148,15 +152,11 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
             IF NOT line_exists( ls_db-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
 
-            ls_db-t_attri = z2ui5_cl_fw_binding=>update_binding(
-                t_attri = ls_db-t_attri
-                app     = ls_db-app
-            ).
+              ls_db-t_attri = z2ui5_cl_fw_binding=>update_attri(
+                  t_attri = ls_db-t_attri
+                  app     = ls_db-app
+              ).
 
-*              RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-*                EXPORTING
-*                  val      = `anonymous data reference in class but not binded`
-*                  previous = x.
             ENDIF.
 
             lo_app = CAST object( ls_db-app ).
@@ -174,7 +174,7 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
             ENDLOOP.
 
-            lv_xml = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( ls_db ) ).
+            result = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( ls_db ) ).
 
           CATCH cx_root INTO DATA(x2).
 

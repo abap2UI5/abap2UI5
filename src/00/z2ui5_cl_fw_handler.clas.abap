@@ -289,11 +289,11 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
+        DATA(lo_model) = z2ui5_cl_fw_model=>factory(
         app      = result->ms_db-app
         attri    = result->ms_db-t_attri ).
 
-        lo_binder->main_set_backend(
+        lo_model->main_set_backend(
             so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual  ).
 
       CATCH cx_root.

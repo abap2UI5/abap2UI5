@@ -12,6 +12,7 @@ CLASS z2ui5_cl_fw_client DEFINITION
     METHODS constructor
       IMPORTING
         handler TYPE REF TO z2ui5_cl_fw_handler.
+
   PROTECTED SECTION.
 
     METHODS set_arg_string

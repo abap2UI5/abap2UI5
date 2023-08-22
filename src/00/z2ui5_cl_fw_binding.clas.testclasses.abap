@@ -38,8 +38,8 @@ CLASS ltcl_value IMPLEMENTATION.
     DATA(lv_result) = lo_bind->main( ).
 
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_result
-        exp                  = `/MV_VALUE` ).
+        act = lv_result
+        exp = `/MV_VALUE` ).
 
   ENDMETHOD.
 
