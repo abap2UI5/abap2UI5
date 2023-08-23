@@ -79,19 +79,11 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
-    METHODS get_t_attri_by_object
-      IMPORTING
-        app              TYPE REF TO object
-      RETURNING
-        VALUE(rt_attri2) TYPE ty_t_attri.
-
     METHODS bind
       IMPORTING
         bind          TYPE REF TO ty_s_attri
       RETURNING
         VALUE(result) TYPE string.
-
-
 
     METHODS init_attri.
 
@@ -111,8 +103,11 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO ty_s_attri.
 
-
-
+    METHODS name_front_create
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
 
   PRIVATE SECTION.
 
@@ -150,42 +145,21 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD get_t_attri_by_oref.
 
+    DATA(lv_name) = COND #( WHEN val IS NOT INITIAL THEN `MO_APP` && `->` && val ELSE `MO_APP` ).
     FIELD-SYMBOLS <obj> TYPE any.
-    UNASSIGN <obj>.
-
-    DATA(lv_name) = `MO_APP`.
-    IF val IS NOT INITIAL.
-      lv_name = lv_name && `->` && val.
-    ENDIF.
-*    DATA(lv_name) = `MO_APP->` && to_upper( val ).
     ASSIGN (lv_name) TO <obj>.
-*    ASSIGN (lv_name) TO <obj>.
     IF sy-subrc <> 0 OR <obj> IS NOT BOUND.
       RETURN.
     ENDIF.
-
-*    DATA(lt_attri) = get_t_attri_by_object( <obj> ).
 
     DATA(lt_attri2) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( <obj> ).
     DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
     DATA(lt_attri)  = CORRESPONDING ty_t_attri( lt_attri2 ).
 
     LOOP AT lt_attri INTO DATA(ls_attri).
-
-*      ls_attri-name = val && `->` && ls_attri-name.
-*      ls_attri-check_temp  = abap_true.
-
-*      CASE ls_attri-type_kind.
-*        WHEN cl_abap_classdescr=>typekind_iref OR cl_abap_classdescr=>typekind_intf.
-*          CONTINUE.
-*        WHEN cl_abap_classdescr=>typekind_oref
-*          OR cl_abap_classdescr=>typekind_dref
-*          OR cl_abap_classdescr=>typekind_struct2
-*          OR cl_abap_classdescr=>typekind_struct1.
-*        WHEN OTHERS.
-*          ls_attri-check_ready = abap_true.
-*      ENDCASE.
-
+      IF val IS NOT INITIAL.
+        ls_attri-name = val && `->` && ls_attri-name.
+      ENDIF.
       INSERT ls_attri INTO TABLE result.
     ENDLOOP.
 
@@ -314,10 +288,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     bind->bind_type  = mv_type.
-    bind->name_front = bind->name.
-    bind->name_front = replace( val = bind->name sub = `*` with = `_` occ = 0 ).
-    bind->name_front = replace( val = bind->name_front sub = `>` with = `_` occ = 0 ).
-    bind->name_front = replace( val = bind->name_front sub = `-` with = `_` occ = 0 ).
+    bind->name_front = name_front_create( val = bind->name ).
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.
@@ -330,14 +301,12 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   METHOD get_t_attri_by_struc.
 
     DATA(lv_name) = `MO_APP->` && val.
-*    DATA(lv_name) = to_upper( val ).
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
-    DATA(lv_attri) = z2ui5_cl_fw_utility=>c_replace_assign_struc( val ).
-
     DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <attribute> ).
+    DATA(lv_attri) = z2ui5_cl_fw_utility=>c_replace_assign_struc( val ).
     LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
 
       DATA(lv_element) = lv_attri && lr_comp->name.
@@ -350,15 +319,14 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         INSERT LINES OF lt_attri INTO TABLE result.
 
       ELSE.
-
         DATA(ls_attri) = VALUE ty_s_attri(
             name      = lv_element
             type_kind = lr_comp->type->type_kind ).
         INSERT ls_attri INTO TABLE result.
 
       ENDIF.
-
     ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -459,15 +427,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_t_attri_by_object.
-
-*    DATA(lt_attri) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( app ).
-*    DELETE lt_attri WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
-*    rt_attri2  = CORRESPONDING ty_t_attri( lt_attri ).
-
-  ENDMETHOD.
-
   METHOD update_attri.
 
     DATA(lo_bind) = NEW z2ui5_cl_fw_binding( ).
@@ -488,9 +447,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   METHOD get_t_attri_by_dref.
 
     DATA(lv_name) = `MO_APP->` && val && `->*`.
-*    DATA(lv_name) = val && `->*`.
     FIELD-SYMBOLS <data> TYPE any.
-    UNASSIGN <data>.
     ASSIGN (lv_name) TO <data>.
     IF <data> IS NOT ASSIGNED.
       RETURN.
@@ -510,5 +467,14 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+
+  METHOD name_front_create.
+
+    result = replace( val = val    sub = `*` with = `_` occ = 0 ).
+    result = replace( val = result sub = `>` with = `_` occ = 0 ).
+    result = replace( val = result sub = `-` with = `_` occ = 0 ).
+
+  ENDMETHOD.
 
 ENDCLASS.
