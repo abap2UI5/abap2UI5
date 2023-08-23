@@ -49,12 +49,12 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
           FIELD-SYMBOLS <backend> TYPE any.
           ASSIGN (lv_name_back) TO <backend>.
-          z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+          z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
           DATA(lv_name_front) = `MODEL->` && lr_attri->name_front.
           FIELD-SYMBOLS <frontend> TYPE any.
           ASSIGN (lv_name_front) TO <frontend>.
-          z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+          z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
           CASE lr_attri->type_kind.
 
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
       DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
       FIELD-SYMBOLS <attribute> TYPE any.
       ASSIGN (lv_name_back) TO <attribute>.
-      z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+      z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
       CASE lr_attri->type_kind.
 

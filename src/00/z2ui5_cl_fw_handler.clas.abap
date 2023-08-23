@@ -168,15 +168,15 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
         FIELD-SYMBOLS <any> TYPE any.
         ASSIGN ('SO_BODY->MR_ACTUAL') TO <any>.
-        z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
         ASSIGN ('<ANY>->ARGUMENTS') TO <any>.
-        z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
         ASSIGN ('<ANY>->*') TO <any>.
-        z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         ASSIGN <any> TO <arg>.
-        z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
         FIELD-SYMBOLS <arg_row> TYPE any.
         LOOP AT <arg> ASSIGNING <arg_row>.
@@ -347,7 +347,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         result = NEW #( ).
         result->ms_db-id = z2ui5_cl_fw_utility=>get_uuid( ).
 
-        lv_classname = z2ui5_cl_fw_utility=>get_trim_upper( lv_classname ).
+        lv_classname = z2ui5_cl_fw_utility=>c_trim_upper( lv_classname ).
         CREATE OBJECT result->ms_db-app TYPE (lv_classname).
         result->ms_db-app->id = result->ms_db-id.
 

@@ -278,6 +278,26 @@ CLASS ltcl_structure IMPLEMENTATION.
 
 ENDCLASS.
 
+class ltcl_general definition final for testing
+  duration short
+  risk level harmless.
+
+  private section.
+    methods:
+      first_test for testing raising cx_static_check.
+endclass.
+
+
+class ltcl_general implementation.
+
+  method first_test.
+
+
+
+  endmethod.
+
+endclass.
+
 CLASS ltcl_data_ref DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.

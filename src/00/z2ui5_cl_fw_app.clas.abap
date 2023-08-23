@@ -130,7 +130,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
 
       content->input( placeholder = `fill in the class name and press 'check'`
-                      editable    = z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable )
+                      editable    = z2ui5_cl_fw_utility=>boolean_abap_2_json( ms_home-class_editable )
           value                   = client->_bind_edit( ms_home-classname ) ).
 
     ELSE.
@@ -144,7 +144,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
         )->link( text    = `Link to the Application`
                  target  = `_blank`
                  href    = lv_url
-                 enabled = z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) ).
+                 enabled = z2ui5_cl_fw_utility=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
     DATA(form) = grid->simple_form( title    = `Samples`
                                     editable = abap_true
@@ -206,7 +206,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
       WHEN `BUTTON_CHECK`.
         TRY.
             DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = z2ui5_cl_fw_utility=>get_trim_upper( ms_home-classname ).
+            ms_home-classname = z2ui5_cl_fw_utility=>c_trim_upper( ms_home-classname ).
             CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
             client->message_toast_display( `App is ready to start!` ).

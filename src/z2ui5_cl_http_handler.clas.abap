@@ -410,7 +410,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `        sap.z2ui5.oController = oView.getController();` && |\n| &&
                            `        var oViewNest = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
                            `        sap.z2ui5.oControllerNest = oViewNest.getController();` && |\n| &&
-                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>get_json_boolean( check_logging ) && `;` && |\n| &&
+                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n| &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n| &&

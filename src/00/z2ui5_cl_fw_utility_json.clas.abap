@@ -157,7 +157,7 @@ CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
 
   METHOD get_attribute.
 
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( mr_actual IS INITIAL ) ).
+    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( mr_actual IS INITIAL ) ).
 
     result = new( io_root = mo_root
                   iv_name = name ).
@@ -169,7 +169,7 @@ CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN (lv_name) TO <attribute>.
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
     result->mr_actual = <attribute>.
     result->mo_parent = me.
@@ -182,7 +182,7 @@ CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
 
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 )
+    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 )
                                 v    = `value of attribute in JSON not found` ).
     result = <attribute>.
 

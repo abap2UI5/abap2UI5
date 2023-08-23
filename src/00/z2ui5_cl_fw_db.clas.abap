@@ -51,9 +51,13 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
   METHOD cleanup.
 
-    DATA(lv_time) = z2ui5_cl_fw_utility=>get_timestampl( ).
-    DATA(lv_four_hours_ago) = cl_abap_tstmp=>subtractsecs( tstmp = lv_time
-                                                           secs  = 60 * 60 * 4 ).
+    DATA(lv_time) = z2ui5_cl_fw_utility=>time_get_timestampl( ).
+
+
+    DATA(lv_four_hours_ago) = z2ui5_cl_fw_utility=>time_substract_seconds(
+                                time    = lv_time
+                                seconds = 60 * 60 * 4
+                              ).
 
     DELETE FROM z2ui5_t_draft WHERE timestampl < @lv_four_hours_ago.
     COMMIT WORK.
@@ -69,12 +73,12 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
                                           uuid_prev           = db-id_prev
                                           uuid_prev_app       = db-id_prev_app
                                           uuid_prev_app_stack = db-id_prev_app_stack
-                                          uname               = z2ui5_cl_fw_utility=>get_user_tech( )
-                                          timestampl          = z2ui5_cl_fw_utility=>get_timestampl( )
+                                          uname               = z2ui5_cl_fw_utility=>func_get_user_tech( )
+                                          timestampl          = z2ui5_cl_fw_utility=>time_get_timestampl( )
                                           data                = lv_xml ).
 
     MODIFY z2ui5_t_draft FROM @ls_draft.
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
     COMMIT WORK AND WAIT.
 
   ENDMETHOD.
@@ -104,7 +108,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
       ASSIGN (lv_assign) TO <ref>.
 
-      z2ui5_cl_fw_utility=>rtti_set(
+      z2ui5_cl_fw_utility=>rtti_xml_set_to_data(
         EXPORTING
           rtti_data = lr_attri->data_rtti
          IMPORTING
@@ -134,7 +138,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     ENDIF.
 
-    z2ui5_cl_fw_utility=>raise( when = xsdbool( sy-subrc <> 0 ) ).
+    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
 
   ENDMETHOD.
 
@@ -168,7 +172,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
               ASSIGN (lv_assign) TO <attri>.
               ASSIGN <attri>->* TO <deref_attri>.
 
-              lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_get( <deref_attri> ).
+              lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_xml_get_by_data( <deref_attri> ).
               CLEAR <deref_attri>.
               CLEAR <attri>.
 
