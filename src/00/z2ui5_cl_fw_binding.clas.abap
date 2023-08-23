@@ -268,7 +268,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD bind.
 
     FIELD-SYMBOLS <attri> TYPE any.

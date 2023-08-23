@@ -74,6 +74,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_get_trim_upper       FOR TESTING RAISING cx_static_check.
     METHODS test_attri_by_ref         FOR TESTING RAISING cx_static_check.
     METHODS test_get_uuid             FOR TESTING RAISING cx_static_check.
+    METHODS test_get_uuid_22             FOR TESTING RAISING cx_static_check.
     METHODS test_get_user_tech        FOR TESTING RAISING cx_static_check.
     METHODS test_raise                FOR TESTING RAISING cx_static_check.
     METHODS test_any_2_json           FOR TESTING RAISING cx_static_check.
@@ -262,7 +263,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 *
 *    IF lt_attri_result <> lt_attri.
 *      cl_abap_unit_assert=>fail( msg  = 'utility - create t_attri failed'
-*                                 quit = 5 ).
+*                                  ).
 *    ENDIF.
 
   ENDMETHOD.
@@ -322,7 +323,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals( exp = `false` act = z2ui5_cl_fw_utility=>get_json_boolean( abap_false ) ).
 
     IF `{ABCD}` <> z2ui5_cl_fw_utility=>get_json_boolean( `{ABCD}` ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -336,7 +337,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         iv_end     = ` te`
         iv_replace = 'is a test te' ).
     IF lv_result <> `this is a test text`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -347,7 +348,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_time2) = z2ui5_cl_fw_utility=>get_timestampl( ).
 
     IF lv_time2 < lv_time.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -355,7 +356,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_get_trim_lower.
 
     IF z2ui5_cl_fw_utility=>get_trim_lower( ` JsadfHHs  ` ) <> `jsadfhhs`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -363,7 +364,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_get_trim_upper.
 
     IF z2ui5_cl_fw_utility=>get_trim_upper( ` JsadfHHs  ` ) <> `JSADFHHS`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -373,11 +374,25 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_uuid) = z2ui5_cl_fw_utility=>get_uuid( ).
 
     IF lv_uuid IS INITIAL.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
     IF strlen( lv_uuid ) <> 32.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_get_uuid_22.
+
+    DATA(lv_uuid) = z2ui5_cl_fw_utility=>get_uuid_22( ).
+
+    IF lv_uuid IS INITIAL.
+      cl_abap_unit_assert=>fail( ).
+    ENDIF.
+
+    IF strlen( lv_uuid ) <> 22.
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -385,7 +400,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_get_user_tech.
 
     IF sy-uname <> z2ui5_cl_fw_utility=>get_user_tech( ).
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -394,20 +409,20 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     TRY.
         z2ui5_cl_fw_utility=>raise( ).
-        cl_abap_unit_assert=>fail( quit = 5 ).
+        cl_abap_unit_assert=>fail(  ).
       CATCH cx_root.
     ENDTRY.
 
     TRY.
         z2ui5_cl_fw_utility=>raise( when = xsdbool( 1 = 1 ) ).
-        cl_abap_unit_assert=>fail( quit = 5 ).
+        cl_abap_unit_assert=>fail(  ).
       CATCH cx_root.
     ENDTRY.
 
     TRY.
         z2ui5_cl_fw_utility=>raise( when = xsdbool( 1 = 3 ) ).
       CATCH cx_root.
-        cl_abap_unit_assert=>fail( quit = 5 ).
+        cl_abap_unit_assert=>fail(  ).
     ENDTRY.
 
   ENDMETHOD.
@@ -431,7 +446,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr","SELECTED":false}]`.
 
     IF lv_result <> lv_tab_json.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -457,7 +472,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                CHANGING  data = lt_tab2 ).
 
     IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -488,7 +503,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                    ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
 
     IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -499,7 +514,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_url) = z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
 
     IF lv_url <> `sap-client=100&app_start=z2ui5_cl_app_hello_world`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -511,7 +526,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         url = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
     IF lv_param <> `z2ui5_cl_app_hello_world`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -520,11 +535,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
     IF lt_param[ n = `sap-client` ]-v <> `100`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
     IF lt_param[ n = `app_start` ]-v <> `z2ui5_cl_app_hello_world`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -537,7 +552,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
          url   = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
     IF lv_param <> `sap-client=100&app_start=z2ui5_cl_app_hello_world2`.
-      cl_abap_unit_assert=>fail( quit = 5 ).
+      cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
   ENDMETHOD.
@@ -559,7 +574,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         z2ui5_cl_fw_utility=>raise( when = xsdbool( 1 = 2 ) ).
 
       CATCH z2ui5_cx_fw_error INTO DATA(lx).
-        cl_abap_unit_assert=>fail( quit = 5 ).
+        cl_abap_unit_assert=>fail(  ).
     ENDTRY.
   ENDMETHOD.
 

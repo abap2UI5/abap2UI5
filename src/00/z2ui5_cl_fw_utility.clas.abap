@@ -145,7 +145,7 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
     CLASS-METHODS get_t_attri_by_struc
       IMPORTING
         io_app        TYPE REF TO object
-        iv_attri      TYPE csequence
+        iv_attri      TYPE clike
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
@@ -159,6 +159,50 @@ ENDCLASS.
 CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
 
+  METHOD get_t_attri_by_struc.
+
+    FIELD-SYMBOLS <attribute> TYPE any.
+
+    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
+    ASSIGN (lv_name) TO <attribute>.
+    raise( when = xsdbool( sy-subrc <> 0 ) ).
+
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
+    DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
+
+    DATA(lv_attri) = iv_attri.
+    DATA(lv_length) = strlen( lv_attri ) - 2.
+    DATA(lv_attri_end) = lv_attri+lv_length.
+
+    IF lv_attri_end = `>*`.
+      lv_attri_end = `>`.
+      lv_length = lv_length.
+    ELSE.
+      lv_attri_end = `-`.
+      lv_length = lv_length + 2.
+    ENDIF.
+    lv_attri = lv_attri(lv_length) && lv_attri_end.
+
+
+    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
+
+      DATA(lv_element) = lv_attri && lr_comp->name.
+
+      IF lr_comp->as_include = abap_true OR
+         lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2 OR
+         lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
+
+        INSERT LINES OF get_t_attri_by_struc( io_app   = io_app
+                                               iv_attri = lv_element ) INTO TABLE result.
+
+      ELSE.
+
+        INSERT VALUE #( name      = lv_element
+                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
+      ENDIF.
+
+    ENDLOOP.
+  ENDMETHOD.
 
   METHOD check_is_boolean.
 
@@ -464,50 +508,6 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_t_attri_by_struc.
-
-    FIELD-SYMBOLS <attribute> TYPE any.
-
-    DATA(lv_name) = `IO_APP->` && to_upper( iv_attri ).
-    ASSIGN (lv_name) TO <attribute>.
-    raise( when = xsdbool( sy-subrc <> 0 ) ).
-
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <attribute> ).
-    DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
-
-    DATA(lv_attri) = iv_attri.
-    DATA(lv_length) = strlen( lv_attri ) - 2.
-    DATA(lv_attri_end) = lv_attri+lv_length.
-
-    IF lv_attri_end = `>*`.
-      lv_attri_end = `>`.
-      lv_length = lv_length.
-    ELSE.
-      lv_attri_end = `-`.
-      lv_length = lv_length + 2.
-    ENDIF.
-    lv_attri = lv_attri(lv_length) && lv_attri_end.
-
-
-    LOOP AT lo_struct->get_components( ) REFERENCE INTO DATA(lr_comp).
-
-      DATA(lv_element) = lv_attri && lr_comp->name.
-
-      IF lr_comp->as_include = abap_true OR
-         lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2 OR
-         lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
-
-        INSERT LINES OF get_t_attri_by_struc( io_app   = io_app
-                                               iv_attri = lv_element ) INTO TABLE result.
-
-      ELSE.
-
-        INSERT VALUE #( name      = lv_element
-                        type_kind = lr_comp->type->type_kind ) INTO TABLE result.
-      ENDIF.
-
-    ENDLOOP.
-  ENDMETHOD.
 
 
   METHOD get_replace.
