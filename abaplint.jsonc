@@ -148,7 +148,7 @@
     "nesting": {
       "depth": 5
     },
-    "newline_between_methods": true,
+    "newline_between_methods": false,
     "no_aliases": true,
     "no_chained_assignment": true,
     "no_external_form_calls": true,
