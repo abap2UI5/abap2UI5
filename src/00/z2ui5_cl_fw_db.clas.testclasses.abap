@@ -48,6 +48,15 @@ CLASS ltcl_test IMPLEMENTATION.
     ASSIGN lo_app->mr_data->* TO <tab>.
 
     DATA(lt_tab) = VALUE ty_t_attri( ( name = `test` ) ).
+
+    DATA lr_struc TYPE REF TO data.
+    FIELD-SYMBOLS <any> TYPE any.
+    LOOP AT lt_tab INTO DATA(ls_tab2).
+      CREATE DATA lr_struc TYPE HANDLE new_struct_desc.
+      ASSIGN lr_struc->* TO <any>.
+      <any> = CORRESPONDING #( ls_tab2 ).
+      INSERT <any> INTO TABLE <tab>.
+    ENDLOOP.
     <tab> = CORRESPONDING #( lt_tab ).
 
     TRY.

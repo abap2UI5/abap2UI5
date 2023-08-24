@@ -154,9 +154,9 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     DATA(lt_attri2) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( <obj> ).
     DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
-    DATA(lt_attri)  = CORRESPONDING ty_t_attri( lt_attri2 ).
 
-    LOOP AT lt_attri INTO DATA(ls_attri).
+    LOOP AT lt_attri2 INTO DATA(ls_attri2).
+    data(ls_attri) = CORRESPONDING ty_S_attri( ls_attri2 ).
       IF val IS NOT INITIAL.
         ls_attri-name = val && `->` && ls_attri-name.
       ENDIF.
