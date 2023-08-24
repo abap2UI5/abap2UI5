@@ -79,7 +79,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
   METHOD test_dissolve_oref.
 
     DATA(lo_app)    = NEW ltcl_test_dissolve( ).
-    lo_app->mo_app = new #( ).
+    lo_app->mo_app = NEW #( ).
     DATA(lo_bind) = NEW z2ui5_cl_fw_binding( ).
     lo_bind->mo_app = lo_app.
 
@@ -161,6 +161,7 @@ CLASS ltcl_test_bind DEFINITION FINAL FOR TESTING
     METHODS test_oref_val   FOR TESTING RAISING cx_static_check.
     METHODS test_oref_struc FOR TESTING RAISING cx_static_check.
     METHODS test_oref_dref_val FOR TESTING RAISING cx_static_check.
+    METHODS test_local      FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -173,7 +174,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( lo_app->mv_value ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MV_VALUE` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -192,7 +193,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( lo_app->ms_struc-s_02-s_03-s_04-input ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MS_STRUC-S_02-S_03-S_04-INPUT` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -215,7 +216,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( <any> ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MR_VALUE->*` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -237,7 +238,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( <any> ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MR_STRUC->INPUT` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -256,7 +257,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( lo_app->mo_app->mv_value ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MO_APP->MV_VALUE` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -275,7 +276,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( lo_app->mo_app->ms_struc-input ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MO_APP->MS_STRUC-INPUT` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -298,7 +299,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     lo_bind->mo_app = lo_app.
     lo_bind->mr_data = REF #( <any> ).
-    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_way.
 
     DATA(ls_attri) = VALUE z2ui5_cl_fw_binding=>ty_s_attri( name = `MO_APP->MR_VALUE->*` ).
     DATA(lv_result) = lo_bind->bind( REF #( ls_attri ) ).
@@ -306,6 +307,21 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
      act                  = lv_result
      exp                  = `/MO_APP__MR_VALUE___` ).
+
+  ENDMETHOD.
+
+  METHOD test_local.
+
+    DATA(lo_bind)  = NEW z2ui5_cl_fw_binding( ).
+    DATA(lv_value) = `test`.
+    lo_bind->mr_data = REF #( lv_value ).
+    lo_bind->mv_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+
+    DATA(lv_result) = lo_bind->bind_local( ).
+
+    IF lv_result IS INITIAL.
+      cl_abap_unit_assert=>fail( ).
+    ENDIF.
 
   ENDMETHOD.
 

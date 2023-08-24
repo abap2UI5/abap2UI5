@@ -32,10 +32,10 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        app             TYPE REF TO object
-        attri           TYPE ty_t_attri optional
-        type            TYPE string
-        data            TYPE data
+        app             TYPE REF TO object OPTIONAL
+        attri           TYPE ty_t_attri OPTIONAL
+        type            TYPE string OPTIONAL
+        data            TYPE data OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -60,6 +60,10 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         VALUE(result) TYPE ty_t_attri.
 
   PROTECTED SECTION.
+
+    METHODS bind_local
+      RETURNING
+        VALUE(result) TYPE string.
 
     METHODS get_t_attri_by_dref
       IMPORTING
@@ -156,7 +160,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
 
     LOOP AT lt_attri2 INTO DATA(ls_attri2).
-    data(ls_attri) = CORRESPONDING ty_S_attri( ls_attri2 ).
+      DATA(ls_attri) = CORRESPONDING ty_s_attri( ls_attri2 ).
       IF val IS NOT INITIAL.
         ls_attri-name = val && `->` && ls_attri-name.
       ENDIF.
@@ -233,6 +237,11 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD main.
 
+    IF mv_type = cs_bind_type-one_time.
+      result = bind_local(  ).
+      RETURN.
+    ENDIF.
+
     "step 0 / MO_APP->MV_VAL
     dissolve_init( ).
 
@@ -264,6 +273,20 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_fw_error
       EXPORTING
         val = `Binding Error - No attribute found`.
+
+  ENDMETHOD.
+
+
+  METHOD bind_local.
+
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN mr_data->* TO <any>.
+    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+    INSERT VALUE #( name           = lv_id
+                    data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
+                    bind_type      = z2ui5_cl_fw_binding=>cs_bind_type-one_time )
+           INTO TABLE mt_attri.
+    result = |/{ lv_id }|.
 
   ENDMETHOD.
 
