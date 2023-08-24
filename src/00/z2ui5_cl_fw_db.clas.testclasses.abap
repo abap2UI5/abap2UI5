@@ -57,7 +57,6 @@ CLASS ltcl_test IMPLEMENTATION.
       <any> = CORRESPONDING #( ls_tab2 ).
       INSERT <any> INTO TABLE <tab>.
     ENDLOOP.
-    <tab> = CORRESPONDING #( lt_tab ).
 
     TRY.
 
