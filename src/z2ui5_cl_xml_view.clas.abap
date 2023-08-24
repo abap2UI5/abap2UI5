@@ -2888,7 +2888,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     LOOP AT ls_shlp-fielddescr ASSIGNING <ls_fielddescr>.
 
-      CLEAR: lv_cell_fieldname.
+      CLEAR lv_cell_fieldname.
       lv_cell_fieldname = `{` && <ls_fielddescr>-fieldname && `}`.
       lr_item->cells( )->text( lv_cell_fieldname ).
     ENDLOOP.
