@@ -19,9 +19,9 @@
   },
   "homepage": "https://github.com/abap2UI5/abap2UI5#readme",
   "devDependencies": {
-    "@abaplint/cli": "^2.102.15",
-    "@abaplint/database-sqlite": "^2.7.58",
-    "@abaplint/runtime": "^2.7.66",
-    "@abaplint/transpiler-cli": "^2.7.66"
+    "@abaplint/cli": "^2.102.28",
+    "@abaplint/database-sqlite": "^2.7.74",
+    "@abaplint/runtime": "^2.7.78",
+    "@abaplint/transpiler-cli": "^2.7.78"
   }
 }
