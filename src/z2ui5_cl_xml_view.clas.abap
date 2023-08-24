@@ -2799,7 +2799,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     LOOP AT ls_shlp-fielddescr ASSIGNING <ls_fielddescr>.
 
-      UNASSIGN: <lv_field>.
+      UNASSIGN <lv_field>.
 
       ASSIGN COMPONENT <ls_fielddescr>-fieldname OF STRUCTURE <ls_shlp_fields> TO <lv_field>.
       IF <lv_field> IS NOT ASSIGNED.
