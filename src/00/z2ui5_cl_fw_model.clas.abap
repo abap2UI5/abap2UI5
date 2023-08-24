@@ -23,7 +23,6 @@ CLASS z2ui5_cl_fw_model DEFINITION
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE z2ui5_cl_fw_binding=>ty_t_attri.
 
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -70,11 +69,12 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
               ASSIGN <frontend>->* TO <frontend>.
               CASE lr_attri->type_kind.
                 WHEN 'D' OR 'T'.
-                  /ui2/cl_json=>deserialize(
+                  z2ui5_cl_fw_utility=>trans_json_2_any(
                     EXPORTING
-                        json = `"` && <frontend> && `"`
+                        val = `"` && <frontend> && `"`
                     CHANGING
                         data = <backend> ).
+
                 WHEN OTHERS.
                   <backend> = <frontend>.
               ENDCASE.
@@ -83,7 +83,6 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
         CATCH cx_root.
       ENDTRY.
-
     ENDLOOP.
 
   ENDMETHOD.

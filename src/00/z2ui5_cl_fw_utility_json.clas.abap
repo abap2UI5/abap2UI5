@@ -145,12 +145,12 @@ CLASS Z2UI5_CL_FW_UTILITY_JSON IMPLEMENTATION.
     result = NEW #( ).
     result->mo_root = result.
 
-    /ui2/cl_json=>deserialize(
-        EXPORTING
-            json         = CONV string( iv_json )
-            assoc_arrays = abap_true
-        CHANGING
-            data         = result->mr_actual ).
+    z2ui5_cl_fw_utility=>trans_json_2_any(
+      EXPORTING
+        val  = iv_json
+      CHANGING
+        data = result->mr_actual
+    ).
 
   ENDMETHOD.
 

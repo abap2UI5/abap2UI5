@@ -90,6 +90,12 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(rv_attri) TYPE string.
 
+    CLASS-METHODS trans_json_2_any
+      IMPORTING
+        val  TYPE any
+      CHANGING
+        data TYPE any.
+
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING
         ir_tab_from TYPE REF TO data
@@ -419,6 +425,16 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD trans_json_2_any.
+
+    /ui2/cl_json=>deserialize(
+        EXPORTING
+            json         = conv string( val )
+            assoc_arrays = abap_true
+        CHANGING
+            data = data ).
+
+  ENDMETHOD.
 
   METHOD trans_ref_tab_2_tab.
 

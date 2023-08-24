@@ -59,7 +59,7 @@ ENDCLASS.
 
 CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
-  RISK LEVEL harmless.
+  RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
 
@@ -85,8 +85,9 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_rtti_get_t_attri_by_obj   FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_comp_by_struc  FOR TESTING RAISING cx_static_check.
 
-    METHODS test_trans_any_2_json     FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_any_2_json_02  FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_any_2     FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_any_2_02  FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_2_any     FOR TESTING RAISING cx_static_check.
     METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_xml_any_2_obj  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_xml_any_2_data FOR TESTING RAISING cx_static_check.
@@ -410,7 +411,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_trans_any_2_json.
+  METHOD test_trans_json_any_2.
 
     TYPES:
       BEGIN OF ty_row,
@@ -435,7 +436,50 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_trans_any_2_json_02.
+  METHOD test_trans_json_2_any.
+
+    DATA(lv_test) = `{ ` &&
+   ` "EDIT": { ` &&
+   `     "DATE": "2023-08-26", ` &&
+   `     "DEC1": -0.3333, ` &&
+   `     "DEC2": 0, ` &&
+   `     "DEC_SUM": -0.3333, ` &&
+   `     "INT1": 0, ` &&
+   `     "INT2": 0, ` &&
+   `     "INT_SUM": 0, ` &&
+   `     "TIME": "12:51:55" ` &&
+   ` }, ` &&
+   ` "oScroll": [], ` &&
+   ` "OMESSAGEMANAGER": [], ` &&
+   ` "ID": "0242B09497911EEE90CFA16736E6EEF8", ` &&
+   ` "ARGUMENTS": [{ ` &&
+   `     "EVENT": "BACK", ` &&
+   `     "METHOD": "UPDATE", ` &&
+   `     "CHECK_VIEW_DESTROY": false ` &&
+   ` }]  ` &&
+   `  }  `.
+
+    DATA mr_data TYPE REF TO data.
+
+    z2ui5_cl_fw_utility=>trans_json_2_any(
+      EXPORTING
+        val  = lv_test
+      CHANGING
+        data = mr_data
+    ).
+
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN (`MR_DATA->EDIT->TIME->*`) TO <any>.
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  =  <any>
+        exp                  =  `12:51:55`
+      ).
+
+  ENDMETHOD.
+
+
+  METHOD test_trans_json_any_2_02.
 
     TYPES:
       BEGIN OF ty_row,
