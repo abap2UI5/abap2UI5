@@ -85,9 +85,9 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_rtti_get_t_attri_by_obj   FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_comp_by_struc  FOR TESTING RAISING cx_static_check.
 
-    METHODS test_trans_json_any_2     FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_json_any_2_02  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_json_2_any     FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_any_2__w_tab     FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_any_2__W_struc  FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_2_any__w_dref     FOR TESTING RAISING cx_static_check.
     METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_xml_any_2__w_obj  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_xml_any_2__w_data FOR TESTING RAISING cx_static_check.
@@ -411,7 +411,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_trans_json_any_2.
+  METHOD test_trans_json_any_2__w_tab.
 
     TYPES:
       BEGIN OF ty_row,
@@ -436,7 +436,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_trans_json_2_any.
+  METHOD test_trans_json_2_any__w_dref.
 
     DATA(lv_test) = `{ ` &&
    ` "EDIT": { ` &&
@@ -479,7 +479,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_trans_json_any_2_02.
+  METHOD test_trans_json_any_2__W_struc.
 
     TYPES:
       BEGIN OF ty_row,
@@ -489,16 +489,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       END OF ty_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
-                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
-
     DATA(lt_tab2) = VALUE ty_t_tab( ).
-    DATA(lv_tab) = z2ui5_cl_fw_utility=>trans_json_any_2( lt_tab ).
 
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_tab
-                               CHANGING  data = lt_tab2 ).
+    DATA(ls_row) = VALUE ty_row( ).
+    ls_row-title = `test`.
 
-    IF lt_tab <> lt_tab2.
+    DATA(lv_json) = z2ui5_cl_fw_utility=>trans_json_any_2( ls_row ).
+
+    IF lv_json IS INITIAL.
       cl_abap_unit_assert=>fail(  ).
     ENDIF.
 
