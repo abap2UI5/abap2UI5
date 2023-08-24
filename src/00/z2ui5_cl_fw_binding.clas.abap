@@ -293,9 +293,11 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   METHOD bind.
 
     FIELD-SYMBOLS <attri> TYPE any.
-    DATA(lv_name) = `MO_APP->` && to_upper( bind->name ).
+    DATA(lv_name) = `MO_APP->` && bind->name.
     ASSIGN (lv_name) TO <attri>.
-    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error.
+    ENDIF.
 
     DATA lr_ref TYPE REF TO data.
     GET REFERENCE OF <attri> INTO lr_ref.
