@@ -424,8 +424,12 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       WHERE type_kind = cl_abap_classdescr=>typekind_oref
       AND   check_dissolved = abap_false.
 
-      lr_bind->check_dissolved = abap_true.
+
       DATA(lt_attri) = get_t_attri_by_oref( lr_bind->name ).
+      IF lt_attri IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      lr_bind->check_dissolved = abap_true.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
