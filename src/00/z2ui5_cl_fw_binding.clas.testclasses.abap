@@ -22,8 +22,8 @@ CLASS ltcl_test_dissolve DEFINITION FINAL FOR TESTING
         END OF s_02,
       END OF s_01.
 
-    DATA ms_struc TYPE s_01.
-    DATA mv_value TYPE string.
+    DATA ms_struc TYPE s_01 ##NEEDED.
+    DATA mv_value TYPE string ##NEEDED.
     DATA mr_value TYPE REF TO data.
     DATA mr_struc TYPE REF TO s_01.
     DATA mo_app TYPE REF TO ltcl_test_dissolve.

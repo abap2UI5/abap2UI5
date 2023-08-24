@@ -239,9 +239,7 @@ ENDCLASS.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
 
-
-
-  METHOD test_boolean_check  .
+  METHOD test_boolean_check.
 
     DATA(lv_bool) = xsdbool( 1 = 1 ).
     cl_abap_unit_assert=>assert_equals(

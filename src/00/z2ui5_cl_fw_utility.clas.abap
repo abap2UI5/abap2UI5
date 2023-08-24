@@ -394,12 +394,8 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD trans_xml_any_2.
 
-*    FIELD-SYMBOLS <object> TYPE any.
-*    ASSIGN object->* TO <object>.
-*    x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
-
     CALL TRANSFORMATION id
-         SOURCE data = any "<object>
+         SOURCE data = any
          RESULT XML result
          OPTIONS data_refs = `heap-or-create`.
 

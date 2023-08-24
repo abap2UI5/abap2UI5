@@ -146,7 +146,6 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
   METHOD trans_any_2_xml.
 
     TRY.
-*        result = z2ui5_cl_fw_utility=>trans_any_2_xml( REF #( db ) ).
         result = z2ui5_cl_fw_utility=>trans_xml_any_2( db ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
