@@ -1,6 +1,6 @@
 CLASS ltcl_unit_01_json DEFINITION FINAL FOR TESTING
-  DURATION short
-  RISK LEVEL DANGEROUS.
+  DURATION long
+  RISK LEVEL harmless.
 
   PRIVATE SECTION.
     METHODS test_json_attri     FOR TESTING RAISING cx_static_check.
