@@ -167,6 +167,13 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+
+    CLASS-METHODS rtti_get_type_kind
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -303,6 +310,13 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
                               sub = `\CLASS=` ).
 
   ENDMETHOD.
+
+  METHOD rtti_get_type_kind.
+
+    result = cl_abap_datadescr=>get_data_type_kind( val ).
+
+  ENDMETHOD.
+
 
 
   METHOD rtti_get_type_name.

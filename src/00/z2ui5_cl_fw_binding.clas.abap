@@ -126,6 +126,13 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mo_app = app.
     r_result->mt_attri = attri.
     r_result->mv_type = type.
+
+    DATA(lv_type_kind) = z2ui5_cl_fw_utility=>rtti_get_type_kind( data ).
+    IF lv_type_kind = cl_abap_typedescr=>typekind_dref.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        EXPORTING
+          val = `BINDING_WITH_REFERENCES_NOT_ALLOWED`.
+    ENDIF.
     r_result->mr_data = REF #( data ).
 
   ENDMETHOD.

@@ -82,11 +82,12 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
     METHODS test_rtti_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_name        FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_get_type_kind        FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_attri_by_obj   FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_comp_by_struc  FOR TESTING RAISING cx_static_check.
 
     METHODS test_trans_json_any_2__w_tab     FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_json_any_2__W_struc  FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_json_any_2__w_struc  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_json_2_any__w_dref     FOR TESTING RAISING cx_static_check.
     METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_xml_any_2__w_obj  FOR TESTING RAISING cx_static_check.
@@ -479,7 +480,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_trans_json_any_2__W_struc.
+  METHOD test_trans_json_any_2__w_struc.
 
     TYPES:
       BEGIN OF ty_row,
@@ -600,6 +601,26 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         act                  = lv_name
         exp                  =  `XSDBOOLEAN`
      ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_type_kind.
+
+    DATA(lv_string) = VALUE string( ).
+
+    DATA(lv_type_kind) = z2ui5_cl_fw_utility=>rtti_get_type_kind( lv_string  ).
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_type_kind
+        exp                  =  cl_abap_typedescr=>typekind_string
+     ).
+
+    DATA lr_string TYPE REF TO string.
+    CREATE DATA lr_string.
+    lv_type_kind = z2ui5_cl_fw_utility=>rtti_get_type_kind( lr_string  ).
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lv_type_kind
+        exp                  = cl_abap_typedescr=>typekind_dref
+    ).
 
   ENDMETHOD.
 
