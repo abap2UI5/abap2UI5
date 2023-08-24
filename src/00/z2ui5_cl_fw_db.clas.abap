@@ -88,11 +88,11 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     DATA(ls_db) = read( id ).
 
-    z2ui5_cl_fw_utility=>trans_xml_2_object(
+    z2ui5_cl_fw_utility=>trans_xml_2_any(
         EXPORTING
             xml  = ls_db-data
         IMPORTING
-            data = result ).
+            any = result ).
 
     LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
       DATA(lv_check_rtti) = abap_true.
@@ -146,7 +146,8 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
   METHOD trans_any_2_xml.
 
     TRY.
-        result = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( db ) ).
+*        result = z2ui5_cl_fw_utility=>trans_any_2_xml( REF #( db ) ).
+        result = z2ui5_cl_fw_utility=>trans_xml_any_2( db ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
         TRY.
@@ -178,7 +179,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
             ENDLOOP.
 
-            result = z2ui5_cl_fw_utility=>trans_object_2_xml( REF #( ls_db ) ).
+            result = z2ui5_cl_fw_utility=>trans_XML_any_2( REF #( ls_db ) ).
 
           CATCH cx_root INTO DATA(x2).
 

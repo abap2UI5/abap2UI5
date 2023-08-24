@@ -33,7 +33,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     CLASS-METHODS factory
       IMPORTING
         app             TYPE REF TO object
-        attri           TYPE ty_t_attri
+        attri           TYPE ty_t_attri optional
         type            TYPE string
         data            TYPE data
       RETURNING
@@ -85,17 +85,17 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS init_attri.
+    METHODS dissolve_init.
 
     METHODS dissolve_struc.
 
-    METHODS dissolve_drefs.
+    METHODS dissolve_dref.
 
     METHODS search_binding
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS dissolve_orefs.
+    METHODS dissolve_oref.
 
     METHODS set_attri_ready
       IMPORTING
@@ -127,7 +127,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD init_attri.
+  METHOD dissolve_init.
 
     IF mt_attri IS INITIAL.
 
@@ -168,7 +168,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD main2.
 
-    init_attri( ).
+    dissolve_init( ).
 
     "step 0 / MO_APP->MV_VAL
     result = search_binding(  ).
@@ -184,7 +184,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     "step 2 / MO_APP->MR_DATA->*
-    dissolve_drefs( ).
+    dissolve_dref( ).
     result = search_binding(  ).
     IF result IS NOT INITIAL.
       RETURN.
@@ -198,7 +198,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     "step 4 / MO_APP->MO_OBJ->MV_VAL
-    dissolve_orefs( ).
+    dissolve_oref( ).
     result = search_binding(  ).
     IF result IS NOT INITIAL.
       RETURN.
@@ -212,7 +212,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     "step 6 / MO_APP->MO_OBJ->MR_VAL->*
-    dissolve_drefs( ).
+    dissolve_dref( ).
     result = search_binding(  ).
     IF result IS NOT INITIAL.
       RETURN.
@@ -234,7 +234,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   METHOD main.
 
     "step 0 / MO_APP->MV_VAL
-    init_attri( ).
+    dissolve_init( ).
 
     result = search_binding(  ).
     IF result IS NOT INITIAL.
@@ -244,15 +244,15 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     "step 1 / MO_APP->MS_STRUC-COMP
     dissolve_struc( ).
     "step 2 / MO_APP->MR_DATA->*
-    dissolve_drefs( ).
+    dissolve_dref( ).
     "step 3 / MO_APP->MR_STRUC->COMP
     dissolve_struc( ).
     "step 4 / MO_APP->MO_OBJ->MV_VAL
-    dissolve_orefs( ).
+    dissolve_oref( ).
     "step 5 / MO_APP->MO_OBJ->MR_STRUC-COMP
     dissolve_struc( ).
     "step 6 / MO_APP->MO_OBJ->MR_VAL->*
-    dissolve_drefs( ).
+    dissolve_dref( ).
     "step 7 / MO_APP->MO_OBJ->MR_STRUC->COMP
     dissolve_struc( ).
 
@@ -350,7 +350,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD dissolve_drefs.
+  METHOD dissolve_dref.
 
     DATA(lt_dissolve) = VALUE ty_t_attri( ).
 
@@ -386,7 +386,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD dissolve_orefs.
+  METHOD dissolve_oref.
 
     DATA(lt_dissolve) = VALUE ty_t_attri( ).
 
@@ -433,11 +433,11 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     lo_bind->mo_app = app.
     lo_bind->mt_attri = t_attri.
 
-    lo_bind->init_attri( ).
+    lo_bind->dissolve_init( ).
 
-    lo_bind->dissolve_orefs( ).
-    lo_bind->dissolve_orefs( ).
-    lo_bind->dissolve_drefs( ).
+    lo_bind->dissolve_oref( ).
+    lo_bind->dissolve_oref( ).
+    lo_bind->dissolve_dref( ).
 
     result = lo_bind->mt_attri.
 
