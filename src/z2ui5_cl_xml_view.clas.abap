@@ -2877,7 +2877,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     LOOP AT ls_shlp-fieldprop ASSIGNING <ls_fieldprop> WHERE shlpoutput = abap_true.
 
-      CLEAR: lv_arg_fieldname.
+      CLEAR lv_arg_fieldname.
       lv_arg_fieldname = `${` && <ls_fieldprop>-fieldname && `}`.
       APPEND lv_arg_fieldname TO lt_arg.
     ENDLOOP.
