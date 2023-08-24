@@ -89,10 +89,10 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_trans_json_any_2_02  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_json_2_any     FOR TESTING RAISING cx_static_check.
     METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_any_2_obj  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_any_2_data FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_2_any_obj  FOR TESTING RAISING cx_static_check.
-    METHODS test_trans_xml_2_any_data FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_any_2__w_obj  FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_any_2__w_data FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_2_any__w_obj  FOR TESTING RAISING cx_static_check.
+    METHODS test_trans_xml_2_any__w_data FOR TESTING RAISING cx_static_check.
 
     METHODS test_url_param_create_url FOR TESTING RAISING cx_static_check.
     METHODS test_url_param_get        FOR TESTING RAISING cx_static_check.
@@ -677,7 +677,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_trans_xml_any_2_obj.
+  METHOD test_trans_xml_any_2__w_obj.
 
     DATA(lo_obj) = NEW ltcl_test_app( ).
     DATA(lv_xml) = z2ui5_cl_fw_utility=>trans_xml_any_2( lo_obj ).
@@ -687,7 +687,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     ENDIF.
   ENDMETHOD.
 
-  METHOD test_trans_xml_2_any_obj.
+  METHOD test_trans_xml_2_any__w_obj.
 
     DATA(lo_obj) = NEW ltcl_test_app( ).
     DATA(lo_obj2) = NEW ltcl_test_app( ).
@@ -706,7 +706,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_trans_xml_any_2_data.
+  METHOD test_trans_xml_any_2__w_data.
 
     TYPES:
       BEGIN OF ty_row,
@@ -730,7 +730,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_trans_xml_2_any_data.
+  METHOD test_trans_xml_2_any__w_data.
 
     TYPES:
       BEGIN OF ty_row,

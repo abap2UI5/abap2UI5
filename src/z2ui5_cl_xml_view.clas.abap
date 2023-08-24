@@ -772,33 +772,33 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !value                 TYPE clike OPTIONAL
         !placeholder           TYPE clike OPTIONAL
-        !displayFormat         TYPE clike OPTIONAL
-        !valueFormat           TYPE clike OPTIONAL
+        !displayformat         TYPE clike OPTIONAL
+        !valueformat           TYPE clike OPTIONAL
         !required              TYPE clike OPTIONAL
-        !valueState            TYPE clike OPTIONAL
-        !valueStateText        TYPE clike OPTIONAL
+        !valuestate            TYPE clike OPTIONAL
+        !valuestatetext        TYPE clike OPTIONAL
         !enabled               TYPE clike OPTIONAL
-        !showCurrentDateButton TYPE clike OPTIONAL
+        !showcurrentdatebutton TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
     METHODS time_picker
       IMPORTING
         !value         TYPE clike OPTIONAL
         !placeholder   TYPE clike OPTIONAL
         !enabled       TYPE clike OPTIONAL
-        !valueState    TYPE clike OPTIONAL
-        !displayFormat TYPE clike OPTIONAL
-        !valueFormat   TYPE clike OPTIONAL
+        !valuestate    TYPE clike OPTIONAL
+        !displayformat TYPE clike OPTIONAL
+        !valueformat   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_time_picker
       IMPORTING
         !value        TYPE clike OPTIONAL
         !placeholder  TYPE clike OPTIONAL
         !enabled      TYPE clike OPTIONAL
-        !valueState   TYPE clike OPTIONAL
+        !valuestate   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -894,7 +894,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !value           TYPE clike OPTIONAL
         !rows            TYPE clike OPTIONAL
         !height          TYPE clike OPTIONAL
-        !valueLiveUpdate TYPE clike OPTIONAL
+        !valueliveupdate TYPE clike OPTIONAL
         !width           TYPE clike OPTIONAL
         !editable        TYPE clike OPTIONAL
         !enabled         TYPE clike OPTIONAL
@@ -962,7 +962,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !min          TYPE clike OPTIONAL
         !max          TYPE clike OPTIONAL
         !step         TYPE clike OPTIONAL
-        !valueState   TYPE clike OPTIONAL
+        !valuestate   TYPE clike OPTIONAL
         !enabled      TYPE clike OPTIONAL
         !description  TYPE clike OPTIONAL
       RETURNING
@@ -1713,7 +1713,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2289,14 +2289,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     _generic( name   = `DatePicker`
               t_prop = VALUE #( ( n = `value`                 v = value )
-                                ( n = `displayFormat`         v = displayFormat )
-                                ( n = `valueFormat`           v = valueFormat )
+                                ( n = `displayFormat`         v = displayformat )
+                                ( n = `valueFormat`           v = valueformat )
                                 ( n = `required`              v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
-                                ( n = `valueState`            v = valueState )
-                                ( n = `valueStateText`        v = valueStateText )
+                                ( n = `valueState`            v = valuestate )
+                                ( n = `valueStateText`        v = valuestatetext )
                                 ( n = `placeholder`           v = placeholder )
                                 ( n = `enabled`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
-                                ( n = `showCurrentDateButton` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showCurrentDateButton ) ) ) ).
+                                ( n = `showCurrentDateButton` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showcurrentdatebutton ) ) ) ).
   ENDMETHOD.
 
 
@@ -2306,7 +2306,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `placeholder`  v = placeholder )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
-                                ( n = `valueState` v = valueState ) ) ).
+                                ( n = `valueState` v = valuestate ) ) ).
   ENDMETHOD.
 
 
@@ -2574,6 +2574,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     IF mo_parent->mv_name = name.
       result = mo_parent.
     ELSE.
+      IF mo_root = me.
+        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+          EXPORTING
+            val = `NO_CONTROL_FOUND_WITH_NAME_` && name.
+      ENDIF.
       result = mo_parent->get( name ).
     ENDIF.
 
@@ -3632,7 +3637,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `min`  v = min )
                                 ( n = `step` v = step )
                                 ( n = `value` v = value )
-                                ( n = `valueState` v = valueState )
+                                ( n = `valueState` v = valuestate )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `description` v = description ) ) ).
   ENDMETHOD.
@@ -3777,7 +3782,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( name   = `TextArea`
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `rows` v = rows )
-                                ( n = `valueLiveUpdate` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( valueLiveUpdate ) )
+                                ( n = `valueLiveUpdate` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( valueliveupdate ) )
                                 ( n = `height` v = height )
                                 ( n = `width` v = width )
                                 ( n = `editable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
@@ -3814,9 +3819,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `placeholder`  v = placeholder )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
-                                ( n = `valueState` v = valueState )
-                                ( n = `displayFormat` v = displayFormat )
-                                ( n = `valueFormat` v = valueFormat ) ) ).
+                                ( n = `valueState` v = valuestate )
+                                ( n = `displayFormat` v = displayformat )
+                                ( n = `valueFormat` v = valueformat ) ) ).
   ENDMETHOD.
 
 
