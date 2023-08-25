@@ -439,10 +439,15 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD http_post.
 
-    DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( body ).
+    TRY.
+        DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( body ).
+      CATCH cx_root INTO DATA(x).
+        lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
+    ENDTRY.
 
     DO.
       TRY.
+
           ROLLBACK WORK.
           CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
           ROLLBACK WORK.
@@ -459,7 +464,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
           result = lo_handler->request_end( ).
 
-        CATCH cx_root INTO DATA(x).
+        CATCH cx_root INTO x.
           lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
           CONTINUE.
       ENDTRY.

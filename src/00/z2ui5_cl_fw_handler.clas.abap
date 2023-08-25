@@ -157,12 +157,15 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
     TRY.
         DATA(lv_id_prev) = so_body->get_attribute( `ID` )->get_val( ).
-        result = set_app_client( lv_id_prev ).
-        result->ms_actual-check_on_navigated = abap_false.
       CATCH cx_root.
-        result = set_app_start( ).
-        result->ms_actual-check_on_navigated = abap_true.
     ENDTRY.
+    IF lv_id_prev IS INITIAL.
+      result = set_app_start( ).
+      result->ms_actual-check_on_navigated = abap_true.
+    ELSE.
+      result = set_app_client( lv_id_prev ).
+      result->ms_actual-check_on_navigated = abap_false.
+    ENDIF.
 
     TRY.
 

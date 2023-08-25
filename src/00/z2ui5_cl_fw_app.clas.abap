@@ -44,7 +44,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
 
   METHOD factory_error.
@@ -68,7 +68,12 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                                sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
-    DATA(lv_text) = mx_error->get_text( ).
+    DATA(lv_text) = ``.
+    DATA(lx_error) = mx_error.
+    WHILE lx_error IS BOUND.
+      lv_text = lv_text && `<p>` && lx_error->get_text( ) && `</p>`.
+      lx_error = lx_error->previous.
+    ENDWHILE.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
         enableformattedtext = abap_true
