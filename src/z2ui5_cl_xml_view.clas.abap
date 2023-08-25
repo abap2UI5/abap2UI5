@@ -1754,7 +1754,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
             !resetOnContextChange  TYPE clike OPTIONAL
             !showSetAsDefault      TYPE clike OPTIONAL
             !titleStyle            TYPE clike OPTIONAL
-            !for_                  TYPE clike OPTIONAL
+            !for                  TYPE clike OPTIONAL
             !cancel                TYPE clike OPTIONAL
             !initialized           TYPE clike OPTIONAL
             !manage                TYPE clike OPTIONAL
@@ -4305,7 +4305,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                            ( n = `resetOnContextChange` v = z2ui5_cl_fw_utility=>get_json_boolean( resetOnContextChange ) )
                                            ( n = `showSetAsDefault`     v = z2ui5_cl_fw_utility=>get_json_boolean( showSetAsDefault ) )
                                            ( n = `titleStyle`           v = titleStyle )
-                                           ( n = `for`                  v = for_ )
+                                           ( n = `for`                  v = for )
                                            ( n = `cancel`               v = cancel )
                                            ( n = `initialized`          v = initialized )
                                            ( n = `manage`               v = manage )
