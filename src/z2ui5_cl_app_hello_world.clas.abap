@@ -13,7 +13,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_HELLO_WORLD IMPLEMENTATION.
+CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -28,6 +28,17 @@ CLASS Z2UI5_CL_APP_HELLO_WORLD IMPLEMENTATION.
       WHEN 'BUTTON_POST'.
         client->message_toast_display( |{ product } { quantity } - send to the server| ).
     ENDCASE.
+
+*    z2ui5_cl_view=>factory( client
+*        )->c( `Shell`
+*        )->c( `Page` )->p( n = `title` v = `abap2UI5 - z2ui5_cl_app_hello_world`
+*        )->down->c( `SimpleForm`
+*                        )->p( n = `title`    v = `Hello World`
+*                        )->p( n = `editable` v = abap_true )->is_boolean(
+*                        )->p( n = `editable` v = abap_true )->is_bind_edit(
+*                        )->p( n = `editable` v = abap_true )->is_bind(
+*                        )->p( n = `editable` v = abap_true )->is_bind_local(
+*        )->up->c( ).
 
     client->view_display( z2ui5_cl_xml_view=>factory( client
         )->shell(
