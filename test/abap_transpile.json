@@ -14,7 +14,7 @@
     "addFilenames": true,
     "addCommonJS": true,
     "unknownTypes": "runtimeError",
-    "keywords": ["return", "in", "class"],
+    "keywords": ["return", "in", "class", "for"],
     "extraSetup": "../test/setup.mjs",
     "skip": [
     ]
