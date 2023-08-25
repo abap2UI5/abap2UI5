@@ -170,23 +170,23 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     TRY.
 
         FIELD-SYMBOLS <any> TYPE any.
-        ASSIGN ('SO_BODY->MR_ACTUAL') TO <any>.
-        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
-        ASSIGN ('<ANY>->ARGUMENTS') TO <any>.
-        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
-        ASSIGN ('<ANY>->*') TO <any>.
-        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN (`SO_BODY->MR_ACTUAL`) TO <any>.
+        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN (`<ANY>->ARGUMENTS`) TO <any>.
+        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+        ASSIGN (`<ANY>->*`) TO <any>.
+        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         ASSIGN <any> TO <arg>.
-        z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
         FIELD-SYMBOLS <arg_row> TYPE any.
         LOOP AT <arg> ASSIGNING <arg_row>.
 
           IF sy-tabix = 1.
             FIELD-SYMBOLS <val> TYPE any.
-            ASSIGN ('<ARG_ROW>->EVENT->*') TO <val>.
+            ASSIGN (`<ARG_ROW>->EVENT->*`) TO <val>.
             result->ms_actual-event = <val>.
           ELSE.
             ASSIGN <arg_row>->* TO <val>.
@@ -310,8 +310,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     result = app_set_next( ms_next-o_app_leave ).
 
     TRY.
-        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id             = result->ms_db-id
-                                               check_load_app = abap_false ).
+        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id = result->ms_db-id check_load_app = abap_false ).
         result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
       CATCH cx_root.
         result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
@@ -319,8 +318,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id
-                              db = ms_db ).
+      z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
     ENDIF.
 
   ENDMETHOD.
@@ -329,7 +327,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
   METHOD set_app_start.
 
     TRY.
-        DATA(lv_classname) = to_upper( so_body->get_attribute( 'APP_START' )->get_val( ) ).
+        DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
         lv_classname = shift_left( val = lv_classname
                                    sub = cl_abap_char_utilities=>horizontal_tab ).
         lv_classname = shift_right( val = lv_classname

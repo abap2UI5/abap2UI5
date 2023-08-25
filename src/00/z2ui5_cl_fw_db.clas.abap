@@ -78,7 +78,11 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
                                           data                = lv_xml ).
 
     MODIFY z2ui5_t_draft FROM @ls_draft.
-    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        EXPORTING
+          val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+    ENDIF.
     COMMIT WORK AND WAIT.
 
   ENDMETHOD.
@@ -94,15 +98,17 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
         IMPORTING
             any = result ).
 
-    LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
-      DATA(lv_check_rtti) = abap_true.
-    ENDLOOP.
-    IF lv_check_rtti = abap_false.
-      RETURN.
-    ENDIF.
+*    LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
+*      DATA(lv_check_rtti) = abap_true.
+*    ENDLOOP.
+*    IF lv_check_rtti = abap_false.
+*      RETURN.
+*    ENDIF.
 
     DATA(lo_app) = CAST object( result-app ) ##NEEDED.
-    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
+    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri)
+        WHERE data_rtti IS NOT INITIAL
+          AND type_kind = cl_abap_classdescr=>typekind_dref.
 
       FIELD-SYMBOLS <ref> TYPE any.
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
@@ -138,7 +144,11 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     ENDIF.
 
-    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        EXPORTING
+          val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
+    ENDIF.
 
   ENDMETHOD.
 

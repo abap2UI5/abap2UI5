@@ -339,7 +339,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA(lv_name) = `MO_APP->` && val.
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN (lv_name) TO <attribute>.
-    z2ui5_cl_fw_utility=>x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+    z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
     DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <attribute> ).
     DATA(lv_attri) = z2ui5_cl_fw_utility=>c_replace_assign_struc( val ).

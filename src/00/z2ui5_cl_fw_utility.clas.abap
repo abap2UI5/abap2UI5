@@ -466,7 +466,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     FIELD-SYMBOLS <lt_from> TYPE ty_t_ref.
 
     ASSIGN ir_tab_from->* TO <lt_from>.
-    x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+    x_check_raise( xsdbool( sy-subrc <> 0 ) ).
     CLEAR t_result.
 
     DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_datadescr=>describe_by_data( t_result ) ).
@@ -554,8 +554,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     LOOP AT t_params INTO DATA(ls_param).
       result = result && ls_param-n && `=` && ls_param-v && `&`.
     ENDLOOP.
-    result = shift_right( val = result
-                          sub = `&` ).
+    result = shift_right( val = result  sub = `&` ).
 
   ENDMETHOD.
 
