@@ -1,6 +1,6 @@
 CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
   DURATION long
-  RISK LEVEL critical.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
