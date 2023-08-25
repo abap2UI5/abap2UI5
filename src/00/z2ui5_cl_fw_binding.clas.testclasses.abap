@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION LOCAL FRIENDS ltcl_test_dissolve.
 
 CLASS ltcl_test_dissolve DEFINITION FINAL FOR TESTING
   DURATION short
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
@@ -129,7 +129,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION LOCAL FRIENDS ltcl_test_bind.
 
 CLASS ltcl_test_bind DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
@@ -329,7 +329,7 @@ ENDCLASS.
 
 CLASS ltcl_test_main_value DEFINITION FINAL FOR TESTING
   DURATION medium
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
@@ -480,7 +480,7 @@ ENDCLASS.
 
 CLASS ltcl_test_main_structure DEFINITION FINAL FOR TESTING
   DURATION medium
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
@@ -607,7 +607,7 @@ ENDCLASS.
 
 CLASS ltcl_test_main_data_ref DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
@@ -687,7 +687,7 @@ ENDCLASS.
 
 CLASS ltcl_test_main_object DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
@@ -784,7 +784,7 @@ ENDCLASS.
 
 CLASS ltcl_test_main_object_ref DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
-  RISK LEVEL harmless.
+  RISK LEVEL dangerous.
 
   PUBLIC SECTION.
 
