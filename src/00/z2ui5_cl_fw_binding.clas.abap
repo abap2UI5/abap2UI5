@@ -281,14 +281,9 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*    IF mv_type = cs_bind_type-one_way.
-*      result = bind_local( ).
-*      RETURN.
-*    ENDIF.
-
     RAISE EXCEPTION TYPE z2ui5_cx_fw_error
       EXPORTING
-        val = `Binding Error - No attribute found`.
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 
   ENDMETHOD.
 
