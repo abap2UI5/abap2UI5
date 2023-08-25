@@ -281,10 +281,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF mv_type = cs_bind_type-one_way.
-      result = bind_local( ).
-      RETURN.
-    ENDIF.
+*    IF mv_type = cs_bind_type-one_way.
+*      result = bind_local( ).
+*      RETURN.
+*    ENDIF.
 
     RAISE EXCEPTION TYPE z2ui5_cx_fw_error
       EXPORTING
