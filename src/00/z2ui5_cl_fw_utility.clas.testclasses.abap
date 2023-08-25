@@ -83,6 +83,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_rtti_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_name        FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_kind        FOR TESTING RAISING cx_static_check.
+    METHODS test_rtti_check_type_kind      FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_attri_by_obj   FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_comp_by_struc  FOR TESTING RAISING cx_static_check.
 
@@ -621,6 +622,23 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         act                  = lv_type_kind
         exp                  = cl_abap_typedescr=>typekind_dref
     ).
+
+  ENDMETHOD.
+
+  METHOD test_rtti_check_type_kind.
+
+    DATA(lv_string) = VALUE string( ).
+    cl_abap_unit_assert=>assert_equals(
+        act                  = z2ui5_cl_fw_utility=>rtti_check_type_kind_dref( lv_string )
+        exp                  =  abap_false
+     ).
+
+    DATA lr_string TYPE REF TO string.
+    CREATE DATA lr_string.
+    cl_abap_unit_assert=>assert_equals(
+        act                  = z2ui5_cl_fw_utility=>rtti_check_type_kind_dref( lr_string )
+        exp                  =  abap_true
+     ).
 
   ENDMETHOD.
 

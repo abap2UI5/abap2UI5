@@ -88,16 +88,12 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     DATA(ls_db) = read( id ).
 
-*    TRY.
     z2ui5_cl_fw_utility=>trans_xml_2_any(
         EXPORTING
             xml  = ls_db-data
         IMPORTING
             any = result ).
 
-*      CATCH cx_root INTO DATA(x).
-*        DATA(test) = ``.
-*    ENDTRY.
     LOOP AT result-t_attri TRANSPORTING NO FIELDS WHERE data_rtti <> ``.
       DATA(lv_check_rtti) = abap_true.
     ENDLOOP.
@@ -182,7 +178,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
             ENDLOOP.
 
-            result = z2ui5_cl_fw_utility=>trans_xml_any_2( REF #( ls_db ) ).
+            result = z2ui5_cl_fw_utility=>trans_xml_any_2( ls_db ).
 
           CATCH cx_root INTO DATA(x2).
 

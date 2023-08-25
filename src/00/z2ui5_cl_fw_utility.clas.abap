@@ -167,6 +167,11 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS rtti_check_type_kind_dref
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
@@ -317,7 +322,12 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD rtti_check_type_kind_dref.
 
+    DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
+    result = xsdbool( lv_type_kind = cl_abap_typedescr=>typekind_dref ).
+
+  ENDMETHOD.
 
   METHOD rtti_get_type_name.
 
@@ -443,7 +453,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
     /ui2/cl_json=>deserialize(
         EXPORTING
-            json         = conv string( val )
+            json         = CONV string( val )
             assoc_arrays = abap_true
         CHANGING
             data = data ).
