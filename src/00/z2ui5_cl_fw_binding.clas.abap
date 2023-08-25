@@ -80,6 +80,8 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     METHODS get_t_attri_by_oref
       IMPORTING
         val           TYPE clike OPTIONAL
+        check_temp    type abap_bool DEFAULT abap_false
+        PREFERRED PARAMETER val
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
@@ -163,10 +165,13 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     DATA(lt_attri2) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( <obj> ).
-    DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
+*    DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
 
-    LOOP AT lt_attri2 INTO DATA(ls_attri2).
+    LOOP AT lt_attri2 INTO DATA(ls_attri2)
+        where visibility = cl_abap_classdescr=>public
+           and is_interface = abap_false.
       DATA(ls_attri) = CORRESPONDING ty_s_attri( ls_attri2 ).
+      ls_attri-check_temp = check_temp.
       IF val IS NOT INITIAL.
         ls_attri-name = val && `->` && ls_attri-name.
       ENDIF.
@@ -431,7 +436,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       AND   check_dissolved = abap_false.
 
 
-      DATA(lt_attri) = get_t_attri_by_oref( lr_bind->name ).
+      DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name check_temp = abap_true ).
       IF lt_attri IS INITIAL.
         CONTINUE.
       ENDIF.

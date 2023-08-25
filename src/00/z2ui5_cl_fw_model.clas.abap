@@ -85,6 +85,20 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
+    LOOP AT mt_attri REFERENCE INTO lr_attri.
+
+      IF lr_attri->check_temp = abap_true.
+        DELETE mt_attri.
+        continue.
+      ENDIF.
+
+      CASE lr_attri->type_kind.
+        WHEN cl_abap_classdescr=>typekind_oref OR cl_abap_classdescr=>typekind_dref.
+          lr_attri->check_dissolved = abap_false.
+      ENDCASE.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
 
