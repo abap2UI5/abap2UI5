@@ -7,9 +7,9 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 
     CONSTANTS:
       BEGIN OF cs_bind_type,
-        one_way  TYPE string VALUE 'ONE_WAY',
-        two_way  TYPE string VALUE 'TWO_WAY',
-        one_time TYPE string VALUE 'ONE_TIME',
+        one_way  TYPE string VALUE `ONE_WAY`,
+        two_way  TYPE string VALUE `TWO_WAY`,
+        one_time TYPE string VALUE `ONE_TIME`,
       END OF cs_bind_type.
 
     CONSTANTS cv_model_edit_name TYPE string VALUE `EDIT`.

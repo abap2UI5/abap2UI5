@@ -77,16 +77,16 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
         enableformattedtext = abap_true
-        illustrationtype    = 'sapIllus-ErrorScreen'
-        title               = '500 Internal Server Error'
+        illustrationtype    = `sapIllus-ErrorScreen`
+        title               = `500 Internal Server Error`
         description         = lv_text
       )->additional_content(
         )->button(
-            text  = 'Home'
-            type  = 'Emphasized'
+            text  = `Home`
+            type  = `Emphasized`
             press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
         )->button(
-            text  = 'Restart'
+            text  = `Restart`
             press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
     client->view_display( view->stringify( ) ).
@@ -153,25 +153,25 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
     DATA(form) = grid->simple_form( title    = `Samples`
                                     editable = abap_true
-                                    layout   = 'ResponsiveGridLayout' ).
+                                    layout   = `ResponsiveGridLayout` ).
 
     IF mv_check_demo = abap_false.
-      form->message_strip( text = 'Oops! You need to install abap2UI5 demos before continuing...'
-                           type = 'Warning'
-          )->get( )->_generic( 'link' )->link( text   = `(HERE)`
-                                               target = '_blank'
+      form->message_strip( text = `Oops! You need to install abap2UI5 demos before continuing...`
+                           type = `Warning`
+          )->get( )->_generic( `link` )->link( text   = `(HERE)`
+                                               target = `_blank`
                                                href   = `https://github.com/oblomov-dev/abap2UI5-demos` ).
     ENDIF.
 
     DATA(cont) = form->content( `form` ).
     cont->label( ).
     cont->button(
-       text    = 'Continue...'
+       text    = `Continue...`
        press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
        enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
-    cont->button( visible = abap_false )->link( text   = 'More on GitHub...'
-                                               target = '_blank'
-                                               href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
+    cont->button( visible = abap_false )->link( text   = `More on GitHub...`
+                                               target = `_blank`
+                                               href   = `https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md` ).
 
     client->view_display( form->stringify( ) ).
 

@@ -20,7 +20,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
-      product  = 'tomatos'.
+      product  = 'products'.
       quantity = '500'.
     ENDIF.
 
