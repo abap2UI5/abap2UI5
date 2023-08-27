@@ -12,6 +12,7 @@ CLASS z2ui5_cl_fw_client DEFINITION
     METHODS constructor
       IMPORTING
         handler TYPE REF TO z2ui5_cl_fw_handler.
+
   PROTECTED SECTION.
 
     METHODS set_arg_string
@@ -204,8 +205,34 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    result = mo_handler->_create_binding( value = val
-                                          type  = z2ui5_cl_fw_handler=>cs_bind_type-one_way ).
+    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+                        app   = mo_handler->ms_db-app
+                        attri = mo_handler->ms_db-t_attri
+                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+                        data  = val
+                      ).
+
+    result = lo_binder->main( ).
+    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
+
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~_bind_local.
+
+    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+                        app   = mo_handler->ms_db-app
+                        attri = mo_handler->ms_db-t_attri
+                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
+                        data  = val
+                      ).
+
+    result = lo_binder->main( ).
+    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -216,8 +243,15 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    result = mo_handler->_create_binding( value = val
-                                          type  = z2ui5_cl_fw_handler=>cs_bind_type-two_way ).
+    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+                        app   = mo_handler->ms_db-app
+                        attri = mo_handler->ms_db-t_attri
+                        type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
+                        data  = val
+                      ).
+
+    result = lo_binder->main( ).
+    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -228,7 +262,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_fw_utility=>get_json_boolean( check_view_destroy ) && ` }`.
+    result = `onEvent( { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( check_view_destroy ) && ` }`.
     result = result && set_arg_string( t_arg ).
 
   ENDMETHOD.
@@ -239,6 +273,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     result = `onEventFrontend( { 'EVENT' : '` && val && `' }` && set_arg_string( t_arg ).
 
   ENDMETHOD.
+
 
   METHOD set_arg_string.
 
@@ -260,5 +295,4 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     result = result && `)`.
 
   ENDMETHOD.
-
 ENDCLASS.

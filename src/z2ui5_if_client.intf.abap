@@ -55,7 +55,7 @@ INTERFACE z2ui5_if_client
       type           TYPE string,
       message        TYPE string,
       additionaltext TYPE string,
-      aTargets       TYPE string,
+      atargets       TYPE string,
     END OF ty_s_message_manager,
     ty_t_message_manager TYPE TABLE OF ty_s_message_manager WITH EMPTY KEY.
 
@@ -171,6 +171,13 @@ INTERFACE z2ui5_if_client
       VALUE(result) TYPE string.
 
   METHODS _bind_edit
+    IMPORTING
+      val           TYPE data
+      path          TYPE abap_bool DEFAULT abap_false
+    RETURNING
+      VALUE(result) TYPE string.
+
+  METHODS _bind_local
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false

@@ -1,14 +1,15 @@
-CLASS z2ui5_cl_fw_app DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PROTECTED.
+class Z2UI5_CL_FW_APP definition
+  public
+  final
+  create protected .
 
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES z2ui5_if_app.
+  interfaces Z2UI5_IF_APP .
+  interfaces IF_SERIALIZABLE_OBJECT .
 
-    DATA:
-      BEGIN OF ms_home,
+  data:
+    BEGIN OF ms_home,
         btn_text               TYPE string,
         btn_event_id           TYPE string,
         btn_icon               TYPE string,
@@ -16,28 +17,24 @@ CLASS z2ui5_cl_fw_app DEFINITION
         class_value_state      TYPE string,
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
-      END OF ms_home.
+      END OF ms_home .
+  data CLIENT type ref to Z2UI5_IF_CLIENT .
+  data MV_CHECK_INITIALIZED type ABAP_BOOL .
+  data MV_CHECK_DEMO type ABAP_BOOL .
+  data MX_ERROR type ref to CX_ROOT .
 
-    CLASS-METHODS factory_start
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
-    CLASS-METHODS factory_error
-      IMPORTING
-        error         TYPE REF TO cx_root
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
-    DATA client TYPE REF TO z2ui5_if_client.
-    DATA mv_check_initialized TYPE abap_bool.
-    DATA mv_check_demo TYPE abap_bool.
-    DATA mx_error TYPE REF TO cx_root.
-
-    METHODS z2ui5_on_init.
-    METHODS z2ui5_on_event.
-    METHODS view_display_error.
-    METHODS view_display_start.
-
+  class-methods FACTORY_START
+    returning
+      value(RESULT) type ref to Z2UI5_CL_FW_APP .
+  class-methods FACTORY_ERROR
+    importing
+      !ERROR type ref to CX_ROOT
+    returning
+      value(RESULT) type ref to Z2UI5_CL_FW_APP .
+  methods Z2UI5_ON_INIT .
+  methods Z2UI5_ON_EVENT .
+  methods VIEW_DISPLAY_ERROR .
+  methods VIEW_DISPLAY_START .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -68,20 +65,25 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                                sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
-    data(lv_text) = mx_error->get_text( ).
+    DATA(lv_text) = ``.
+    DATA(lx_error) = mx_error.
+    WHILE lx_error IS BOUND.
+      lv_text = lv_text && `<p>` && lx_error->get_text( ) && `</p>`.
+      lx_error = lx_error->previous.
+    ENDWHILE.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( client )->shell( )->illustrated_message(
         enableformattedtext = abap_true
-        illustrationtype    = 'sapIllus-ErrorScreen'
-        title               = '500 Internal Server Error'
+        illustrationtype    = `sapIllus-ErrorScreen`
+        title               = `500 Internal Server Error`
         description         = lv_text
       )->additional_content(
         )->button(
-            text  = 'Home'
-            type  = 'Emphasized'
+            text  = `Home`
+            type  = `Emphasized`
             press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
         )->button(
-            text  = 'Restart'
+            text  = `Restart`
             press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
     client->view_display( view->stringify( ) ).
@@ -130,7 +132,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
 
       content->input( placeholder = `fill in the class name and press 'check'`
-                      editable    = z2ui5_cl_fw_utility=>get_json_boolean( ms_home-class_editable )
+                      editable    = z2ui5_cl_fw_utility=>boolean_abap_2_json( ms_home-class_editable )
           value                   = client->_bind_edit( ms_home-classname ) ).
 
     ELSE.
@@ -144,29 +146,29 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
         )->link( text    = `Link to the Application`
                  target  = `_blank`
                  href    = lv_url
-                 enabled = z2ui5_cl_fw_utility=>get_json_boolean( xsdbool( ms_home-class_editable = abap_false ) ) ).
+                 enabled = z2ui5_cl_fw_utility=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
     DATA(form) = grid->simple_form( title    = `Samples`
                                     editable = abap_true
-                                    layout   = 'ResponsiveGridLayout' ).
+                                    layout   = `ResponsiveGridLayout` ).
 
     IF mv_check_demo = abap_false.
-      form->message_strip( text = 'Oops! You need to install abap2UI5 demos before continuing...'
-                           type = 'Warning'
-          )->get( )->_generic( 'link' )->link( text   = `(HERE)`
-                                               target = '_blank'
+      form->message_strip( text = `Oops! You need to install abap2UI5 demos before continuing...`
+                           type = `Warning`
+          )->get( )->_generic( `link` )->link( text   = `(HERE)`
+                                               target = `_blank`
                                                href   = `https://github.com/oblomov-dev/abap2UI5-demos` ).
     ENDIF.
 
-    data(cont) = form->content( `form` ).
-        cont->label( ).
-      cont->button(
-         text    = 'Continue...'
-         press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
-         enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
-       cont->button( visible = abap_false )->link( text   = 'More on GitHub...'
-                                                  target = '_blank'
-                                                  href   = 'https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md' ).
+    DATA(cont) = form->content( `form` ).
+    cont->label( ).
+    cont->button(
+       text    = `Continue...`
+       press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
+       enabled = xsdbool( mv_check_demo = abap_true ) )->get( ).
+    cont->button( visible = abap_false )->link( text   = `More on GitHub...`
+                                               target = `_blank`
+                                               href   = `https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md` ).
 
     client->view_display( form->stringify( ) ).
 
@@ -206,7 +208,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
       WHEN `BUTTON_CHECK`.
         TRY.
             DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = z2ui5_cl_fw_utility=>get_trim_upper( ms_home-classname ).
+            ms_home-classname = z2ui5_cl_fw_utility=>c_trim_upper( ms_home-classname ).
             CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
             client->message_toast_display( `App is ready to start!` ).

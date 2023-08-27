@@ -1,6 +1,6 @@
 CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
-  DURATION medium
-  RISK LEVEL harmless.
+  DURATION long
+  RISK LEVEL DANGEROUS.
 
   PRIVATE SECTION.
     METHODS first_test FOR TESTING RAISING cx_static_check.
