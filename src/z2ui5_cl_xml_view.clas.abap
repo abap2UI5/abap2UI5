@@ -577,6 +577,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !class        TYPE clike OPTIONAL
         !id           TYPE clike OPTIONAL
         !ns           TYPE clike OPTIONAL
+        !tooltip      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS search_field
@@ -1708,6 +1709,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
           !selectedGroupItem         TYPE clike OPTIONAL
           !selectedPresetFilterItem  TYPE clike OPTIONAL
           !selectedSortItem          TYPE clike OPTIONAL
+          !filterItems               TYPE clike OPTIONAL
+          !sortItems                 TYPE clike OPTIONAL
+          !groupItems                TYPE clike OPTIONAL
         RETURNING
           VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1746,20 +1750,57 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS variant_management
       IMPORTING
-            !editable              TYPE clike OPTIONAL
-            !headerLevel           TYPE clike OPTIONAL
-            !inErrorState          TYPE clike OPTIONAL
-            !maxWidth              TYPE clike OPTIONAL
-            !modelName             TYPE clike OPTIONAL
-            !resetOnContextChange  TYPE clike OPTIONAL
-            !showSetAsDefault      TYPE clike OPTIONAL
-            !titleStyle            TYPE clike OPTIONAL
-            !for                  TYPE clike OPTIONAL
-            !cancel                TYPE clike OPTIONAL
-            !initialized           TYPE clike OPTIONAL
-            !manage                TYPE clike OPTIONAL
-            !save                  TYPE clike OPTIONAL
-            !select                TYPE clike OPTIONAL
+        !defaultVariantKey      TYPE clike OPTIONAL
+        !enabled                TYPE clike OPTIONAL
+        !inErrorState           TYPE clike OPTIONAL
+        !initialSelectionKey    TYPE clike OPTIONAL
+        !lifecycleSupport       TYPE clike OPTIONAL
+        !selectionKey           TYPE clike OPTIONAL
+        !showCreateTile         TYPE clike OPTIONAL
+        !showExecuteOnSelection TYPE clike OPTIONAL
+        !showSetAsDefault       TYPE clike OPTIONAL
+        !showShare              TYPE clike OPTIONAL
+        !standardItemAuthor     TYPE clike OPTIONAL
+        !standardItemText       TYPE clike OPTIONAL
+        !useFavorites           TYPE clike OPTIONAL
+        !visible                TYPE clike OPTIONAL
+        !variantItems           TYPE clike OPTIONAL
+        !manage                 TYPE clike OPTIONAL
+        !save                   TYPE clike OPTIONAL
+        !select                 TYPE clike OPTIONAL
+        !uservarcreate          TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS variant_items
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS variant_item
+      IMPORTING
+        !executeOnSelection      TYPE clike OPTIONAL
+        !global                  TYPE clike OPTIONAL
+        !labelReadOnly           TYPE clike OPTIONAL
+        !lifecyclePackage        TYPE clike OPTIONAL
+        !lifecycleTransportId    TYPE clike OPTIONAL
+        !namespace               TYPE clike OPTIONAL
+        !readOnly                TYPE clike OPTIONAL
+        !executeOnSelect         TYPE clike OPTIONAL
+        !author                  TYPE clike OPTIONAL
+        !changeable              TYPE clike OPTIONAL
+        !enabled                 TYPE clike OPTIONAL
+        !favorite                TYPE clike OPTIONAL
+        !key                     TYPE clike OPTIONAL
+        !text                    TYPE clike OPTIONAL
+        !title                   TYPE clike OPTIONAL
+        !textDirection           TYPE clike OPTIONAL
+        !originalTitle           TYPE clike OPTIONAL
+        !originalExecuteOnSelect TYPE clike OPTIONAL
+        !remove                  TYPE clike OPTIONAL
+        !rename                  TYPE clike OPTIONAL
+        !originalFavorite        TYPE clike OPTIONAL
+        !sharing                 TYPE clike OPTIONAL
+        !change                  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1781,6 +1822,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
             !showIcon         TYPE clike OPTIONAL
             !value            TYPE clike OPTIONAL
             !post             TYPE clike OPTIONAL
+            !class            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2003,6 +2045,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `icon`    v = icon )
                                 ( n = `type`    v = type )
                                 ( n = `id`      v = id )
+                                ( n = `tooltip` v = tooltip )
                                 ( n = `class`   v = class ) ) ).
   ENDMETHOD.
 
@@ -2361,7 +2404,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:config`    v = `sap.gantt.config` )
                        ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
-                       ( n = `xmlns:vm`        v = `sap.ui.fl.variants` )
+                       ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
                        ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
 
   ENDMETHOD.
@@ -2584,6 +2627,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `showExceededText` v = z2ui5_cl_fw_utility=>get_json_boolean( showExceededText ) )
                                          ( n = `showIcon`         v = z2ui5_cl_fw_utility=>get_json_boolean( showIcon ) )
                                          ( n = `value`            v = value )
+                                         ( n = `class`            v = class )
                                          ( n = `post`             v = post ) ) ).
 
     ENDMETHOD.
@@ -4293,24 +4337,68 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD variant_item.
+
+    result = _generic( name   = `VariantItem`
+                         ns     = `vm`
+                         t_prop = VALUE #( ( n = `executeOnSelection`      v = z2ui5_cl_fw_utility=>get_json_boolean( executeOnSelection ) )
+                                           ( n = `global`                  v = z2ui5_cl_fw_utility=>get_json_boolean( global ) )
+                                           ( n = `labelReadOnly`           v = z2ui5_cl_fw_utility=>get_json_boolean( labelReadOnly ) )
+                                           ( n = `lifecyclePackage`        v = lifecyclePackage )
+                                           ( n = `lifecycleTransportId`    v = lifecycleTransportId )
+                                           ( n = `namespace`               v = namespace )
+                                           ( n = `readOnly`                v = readOnly )
+                                           ( n = `executeOnSelect`         v = z2ui5_cl_fw_utility=>get_json_boolean( executeOnSelect ) )
+                                           ( n = `author`                  v = author )
+                                           ( n = `changeable`              v = z2ui5_cl_fw_utility=>get_json_boolean( changeable ) )
+                                           ( n = `enabled`                 v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
+                                           ( n = `favorite`                v = z2ui5_cl_fw_utility=>get_json_boolean( favorite ) )
+                                           ( n = `key`                     v = key )
+                                           ( n = `text`                    v = text )
+                                           ( n = `title`                   v = title )
+                                           ( n = `textDirection`           v = textDirection )
+                                           ( n = `originalTitle`           v = originalTitle )
+                                           ( n = `originalExecuteOnSelect` v = z2ui5_cl_fw_utility=>get_json_boolean( originalExecuteOnSelect ) )
+                                           ( n = `remove`                  v = z2ui5_cl_fw_utility=>get_json_boolean( remove ) )
+                                           ( n = `rename`                  v = z2ui5_cl_fw_utility=>get_json_boolean( rename ) )
+                                           ( n = `originalFavorite`        v = z2ui5_cl_fw_utility=>get_json_boolean( originalFavorite ) )
+                                           ( n = `sharing`                 v = z2ui5_cl_fw_utility=>get_json_boolean( sharing ) )
+                                           ( n = `change`                  v = change ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD variant_items.
+
+    result = _generic( name   = `variantItems`
+                         ns     = `vm` ).
+
+  ENDMETHOD.
+
+
   METHOD variant_management.
 
       result = _generic( name   = `VariantManagement`
                          ns     = `vm`
-                         t_prop = VALUE #( ( n = `editable`             v = z2ui5_cl_fw_utility=>get_json_boolean( editable ) )
-                                           ( n = `headerLevel`          v = headerLevel )
-                                           ( n = `inErrorState`         v = z2ui5_cl_fw_utility=>get_json_boolean( inErrorState ) )
-                                           ( n = `maxWidth`             v = maxWidth )
-                                           ( n = `modelName`            v = modelName )
-                                           ( n = `resetOnContextChange` v = z2ui5_cl_fw_utility=>get_json_boolean( resetOnContextChange ) )
-                                           ( n = `showSetAsDefault`     v = z2ui5_cl_fw_utility=>get_json_boolean( showSetAsDefault ) )
-                                           ( n = `titleStyle`           v = titleStyle )
-                                           ( n = `for`                  v = for )
-                                           ( n = `cancel`               v = cancel )
-                                           ( n = `initialized`          v = initialized )
-                                           ( n = `manage`               v = manage )
-                                           ( n = `save`                 v = save )
-                                           ( n = `select`               v = select ) ) ).
+                         t_prop = VALUE #( ( n = `defaultVariantKey`      v = defaultVariantKey )
+                                           ( n = `enabled`                v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
+                                           ( n = `inErrorState`           v = z2ui5_cl_fw_utility=>get_json_boolean( inErrorState ) )
+                                           ( n = `initialSelectionKey`    v = initialSelectionKey )
+                                           ( n = `lifecycleSupport`       v = z2ui5_cl_fw_utility=>get_json_boolean( lifecycleSupport ) )
+                                           ( n = `selectionKey`           v = selectionKey )
+                                           ( n = `showCreateTile`         v = z2ui5_cl_fw_utility=>get_json_boolean( showCreateTile ) )
+                                           ( n = `showExecuteOnSelection` v = z2ui5_cl_fw_utility=>get_json_boolean( showExecuteOnSelection ) )
+                                           ( n = `showSetAsDefault`       v = z2ui5_cl_fw_utility=>get_json_boolean( showSetAsDefault ) )
+                                           ( n = `showShare`              v = z2ui5_cl_fw_utility=>get_json_boolean( showShare ) )
+                                           ( n = `standardItemAuthor`     v = standardItemAuthor )
+                                           ( n = `standardItemText`       v = standardItemText )
+                                           ( n = `useFavorites`           v = z2ui5_cl_fw_utility=>get_json_boolean( useFavorites ) )
+                                           ( n = `variantItems`           v = variantItems )
+                                           ( n = `manage`                 v = manage )
+                                           ( n = `save`                   v = save )
+                                           ( n = `select`                 v = select )
+                                           ( n = `variantCreationByUserAllowed` v = uservarcreate )
+                                           ( n = `visible`                v = z2ui5_cl_fw_utility=>get_json_boolean( visible ) ) ) ).
 
   ENDMETHOD.
 
@@ -4354,6 +4442,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `selectedGroupItem`        v = selectedGroupItem )
                                 ( n = `selectedPresetFilterItem` v = selectedPresetFilterItem )
                                 ( n = `selectedSortItem`         v = selectedSortItem )
+                                ( n = `selectedSortItem`         v = selectedSortItem )
+                                ( n = `filterItems`              v = filterItems )
+                                ( n = `sortItems`                v = sortItems )
+                                ( n = `groupItems`               v = groupItems )
                                 ( n = `titleAlignment`           v = titleAlignment ) ) ).
 
   ENDMETHOD.
@@ -4361,22 +4453,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD view_settings_filter_item.
     result = _generic( name   = `ViewSettingsFilterItem`
-                  t_prop = VALUE #( ( n = `enabled`   v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
-                                    ( n = `key`       v = key )
-                                    ( n = `selected`       v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
-                                    ( n = `text`       v = text )
-                                    ( n = `textDirection`       v = textDirection )
-                                    ( n = `multiSelect` v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) ) ) ).
+                  t_prop = VALUE #( ( n = `enabled`         v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
+                                    ( n = `key`             v = key )
+                                    ( n = `selected`        v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
+                                    ( n = `text`            v = text )
+                                    ( n = `textDirection`   v = textDirection )
+                                    ( n = `multiSelect`     v = z2ui5_cl_fw_utility=>get_json_boolean( multiSelect ) ) ) ).
   ENDMETHOD.
 
 
   METHOD view_settings_item.
     result = _generic( name   = `ViewSettingsItem`
-                  t_prop = VALUE #( ( n = `enabled`   v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
-                                    ( n = `key`       v = key )
-                                    ( n = `selected`       v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
-                                    ( n = `text`       v = text )
-                                    ( n = `textDirection`       v = textDirection ) ) ).
+                  t_prop = VALUE #( ( n = `enabled`         v = z2ui5_cl_fw_utility=>get_json_boolean( enabled ) )
+                                    ( n = `key`             v = key )
+                                    ( n = `selected`        v = z2ui5_cl_fw_utility=>get_json_boolean( selected ) )
+                                    ( n = `text`            v = text )
+                                    ( n = `textDirection`   v = textDirection ) ) ).
 
   ENDMETHOD.
 
