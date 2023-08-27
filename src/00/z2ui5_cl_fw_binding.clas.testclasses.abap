@@ -611,12 +611,12 @@ CLASS ltcl_test_main_data_ref DEFINITION FINAL FOR TESTING
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_01,
-        input    TYPE string,
-        input_02 TYPE string,
-        input_03 TYPE string,
-      END OF ty_s_01.
+*    TYPES:
+*      BEGIN OF ty_s_01,
+*        input    TYPE string,
+*        input_02 TYPE string,
+*        input_03 TYPE string,
+*      END OF ty_s_01.
 
     DATA mr_value TYPE REF TO data ##NEEDED.
     DATA mr_struc TYPE REF TO data ##NEEDED.
@@ -772,11 +772,11 @@ CLASS ltcl_test_main_object_ref_app DEFINITION.
         input_02 TYPE string,
         input_03 TYPE string,
       END OF ty_s_01.
-    TYPES ty_t_01 TYPE STANDARD TABLE OF ty_s_01 WITH EMPTY KEY.
+    TYPES ty_t_01 TYPE STANDARD TABLE OF ty_s_01 WITH EMPTY KEY ##NEEDED.
 
-    DATA mr_value TYPE REF TO data.
-    DATA mr_struc TYPE REF TO data.
-    DATA mr_tab   TYPE REF TO data.
+    DATA mr_value TYPE REF TO data ##NEEDED.
+    DATA mr_struc TYPE REF TO data ##NEEDED.
+    DATA mr_tab   TYPE REF TO data ##NEEDED.
 
   PRIVATE SECTION.
 
@@ -788,7 +788,7 @@ CLASS ltcl_test_main_object_ref DEFINITION FINAL FOR TESTING
 
   PUBLIC SECTION.
 
-    DATA mo_obj TYPE REF TO ltcl_test_main_object_ref_app.
+    DATA mo_obj TYPE REF TO ltcl_test_main_object_ref_app ##NEEDED.
 
   PRIVATE SECTION.
 

@@ -5,7 +5,7 @@ CLASS ltcl_test DEFINITION FINAL FOR TESTING
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
-    DATA mr_data TYPE REF TO data.
+    DATA mr_data TYPE REF TO data ##NEEDED.
 
   PRIVATE SECTION.
     METHODS test_trans_xml FOR TESTING RAISING cx_static_check.
