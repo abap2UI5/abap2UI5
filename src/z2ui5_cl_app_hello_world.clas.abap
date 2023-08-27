@@ -29,18 +29,6 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
         client->message_toast_display( |{ product } { quantity } - send to the server| ).
     ENDCASE.
 
-*    z2ui5_cl_view=>factory( client
-*        )->c( `Shell`
-*           )->c( `Page` )->p( n = `title` v = `abap2UI5 - z2ui5_cl_app_hello_world`
-*               )->c( `SimpleForm`
-*                        )->p( n = `title`    v = `Hello World`
-*                        )->p( n = `editable` v = abap_true )->boolean(
-*                        )->p( n = `editable` v = abap_true )->bind_edit(
-*                        )->p( n = `editable` v = abap_true )->bind(
-*                        )->p( n = `editable` v = abap_true )->bind_local(
-*           )->g( `Page`
-*           )->up->.
-
     client->view_display( z2ui5_cl_xml_view=>factory( client
         )->shell(
         )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
