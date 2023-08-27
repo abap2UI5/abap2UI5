@@ -896,6 +896,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !rows            TYPE clike OPTIONAL
         !height          TYPE clike OPTIONAL
         !width           TYPE clike OPTIONAL
+        valueLiveUpdate  TYPE clike OPTIONAL
         !editable        TYPE clike OPTIONAL
         !enabled         TYPE clike OPTIONAL
         !growing         TYPE clike OPTIONAL
@@ -4067,6 +4068,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `rows` v = rows )
                                 ( n = `height` v = height )
                                 ( n = `width` v = width )
+                                ( n = `valueLiveUpdate` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( valueLiveUpdate ) )
                                 ( n = `editable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `id` v = id )
