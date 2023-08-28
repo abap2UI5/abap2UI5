@@ -59,9 +59,15 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
+    CLASS-DATA sv_uuid TYPE i.
+
   PROTECTED SECTION.
 
     METHODS bind_local
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS get_uuid
       RETURNING
         VALUE(result) TYPE string.
 
@@ -80,8 +86,8 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     METHODS get_t_attri_by_oref
       IMPORTING
         val           TYPE clike OPTIONAL
-        check_temp    type abap_bool DEFAULT abap_false
-        PREFERRED PARAMETER val
+        check_temp    TYPE abap_bool DEFAULT abap_false
+          PREFERRED PARAMETER val
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
@@ -168,8 +174,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 *    DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
 
     LOOP AT lt_attri2 INTO DATA(ls_attri2)
-        where visibility = cl_abap_classdescr=>public
-           and is_interface = abap_false.
+        WHERE visibility = cl_abap_classdescr=>public
+           AND is_interface = abap_false.
       DATA(ls_attri) = CORRESPONDING ty_s_attri( ls_attri2 ).
       ls_attri-check_temp = check_temp.
       IF val IS NOT INITIAL.
@@ -287,12 +293,19 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD get_uuid.
+
+    sv_uuid = sv_uuid + 1.
+    result = z2ui5_cl_fw_utility=>c_trim( CONV string( sv_uuid ) ).
+
+  ENDMETHOD.
 
   METHOD bind_local.
 
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+    DATA(lv_id) = get_uuid( ).
+    "z2ui5_cl_fw_utility=>func_get_uuid_22( ).
     INSERT VALUE #( name           = lv_id
                     data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
                     bind_type      = cs_bind_type-one_time )
@@ -328,7 +341,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.
-      bind->name_front = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+*      bind->name_front = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+      bind->name_front = get_uuid( ).
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
 
@@ -396,9 +410,15 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
       DATA(lt_attri) = get_t_attri_by_dref( lr_bind->name ).
       lr_bind->check_dissolved = abap_true.
+      IF lt_attri IS INITIAL.
+        CONTINUE.
+      ENDIF.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
+    IF lt_attri IS INITIAL.
+      RETURN.
+    ENDIF.
     set_attri_ready( REF #( lt_dissolve ) ).
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
@@ -439,6 +459,9 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
+    IF lt_attri IS INITIAL.
+      RETURN.
+    ENDIF.
     set_attri_ready( REF #( lt_dissolve ) ).
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 

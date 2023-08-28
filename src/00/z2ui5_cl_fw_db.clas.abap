@@ -176,16 +176,15 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
             lo_app = CAST object( ls_db-app ).
             LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
 
-              DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+              DATA(lv_assign) = 'LO_APP->' && lr_attri->name && `->*`.
               FIELD-SYMBOLS <attri> TYPE any.
-              FIELD-SYMBOLS <deref_attri> TYPE any.
               ASSIGN (lv_assign) TO <attri>.
-              ASSIGN <attri>->* TO <deref_attri>.
+              IF sy-subrc <> 0.
+                CONTINUE.
+              ENDIF.
 
-              lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_xml_get_by_data( <deref_attri> ).
-              CLEAR <deref_attri>.
+              lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_xml_get_by_data( <attri> ).
               CLEAR <attri>.
-
             ENDLOOP.
 
             result = z2ui5_cl_fw_utility=>trans_xml_any_2( ls_db ).
