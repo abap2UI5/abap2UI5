@@ -385,8 +385,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA(lt_dissolve) = VALUE ty_t_attri( ).
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE type_kind = cl_abap_classdescr=>typekind_struct1
-        OR    type_kind = cl_abap_classdescr=>typekind_struct2
+        WHERE ( type_kind = cl_abap_classdescr=>typekind_struct1
+        OR    type_kind = cl_abap_classdescr=>typekind_struct2 )
         AND   check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
