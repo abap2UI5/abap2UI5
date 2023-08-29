@@ -75,7 +75,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     METHODS get_t_attri_by_oref
       IMPORTING
         val           TYPE clike OPTIONAL
-        check_temp    TYPE abap_bool DEFAULT abap_false
           PREFERRED PARAMETER val
       RETURNING
         VALUE(result) TYPE ty_t_attri.
@@ -107,12 +106,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     METHODS name_front_create
       IMPORTING
         val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS name_front_shorten
-      IMPORTING
-        val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -223,7 +216,7 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
       WHERE type_kind = cl_abap_classdescr=>typekind_oref
       AND   check_dissolved = abap_false.
 
-      DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name check_temp = abap_true ).
+      DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name ).
       IF lt_attri IS INITIAL.
         CONTINUE.
       ENDIF.
@@ -403,15 +396,6 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
     result = replace( val = val    sub = `*` with = `_` occ = 0 ).
     result = replace( val = result sub = `>` with = `_` occ = 0 ).
     result = replace( val = result sub = `-` with = `_` occ = 0 ).
-
-  ENDMETHOD.
-
-
-  METHOD name_front_shorten.
-
-    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_session( ).
-    DATA(lv_length) = strlen( val ) - strlen( lv_id ).
-    result = lv_id && val(lv_length).
 
   ENDMETHOD.
 

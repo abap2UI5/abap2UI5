@@ -260,7 +260,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   METHOD func_get_uuid_session.
 
     sv_uuid = sv_uuid + 1.
-    result = z2ui5_cl_fw_utility=>c_trim( CONV string( sv_uuid ) ).
+    result = c_trim( CONV string( sv_uuid ) ).
 
   ENDMETHOD.
 
