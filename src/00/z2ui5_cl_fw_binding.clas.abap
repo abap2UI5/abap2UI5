@@ -171,7 +171,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     DATA(lt_attri2) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( <obj> ).
-*    DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
 
     LOOP AT lt_attri2 INTO DATA(ls_attri2)
         WHERE visibility = cl_abap_classdescr=>public
@@ -305,7 +304,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN mr_data->* TO <any>.
     DATA(lv_id) = get_uuid( ).
-    "z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+
     INSERT VALUE #( name           = lv_id
                     data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
                     bind_type      = cs_bind_type-one_time )
@@ -341,7 +340,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.
-*      bind->name_front = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
       bind->name_front = get_uuid( ).
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
@@ -450,7 +448,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       WHERE type_kind = cl_abap_classdescr=>typekind_oref
       AND   check_dissolved = abap_false.
 
-
       DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name check_temp = abap_true ).
       IF lt_attri IS INITIAL.
         CONTINUE.
@@ -529,7 +526,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     INSERT ls_new_bind INTO TABLE result.
 
   ENDMETHOD.
-
 
 
   METHOD name_front_create.
