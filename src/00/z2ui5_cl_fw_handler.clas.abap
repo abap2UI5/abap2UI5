@@ -302,6 +302,8 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
+    CLEAR result->ms_db-t_attri.
+
   ENDMETHOD.
 
 

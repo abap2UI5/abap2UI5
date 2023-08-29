@@ -22,7 +22,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         bind_type       TYPE string,
         data_stringify  TYPE string,
         data_rtti       TYPE string,
-        check_temp      TYPE abap_bool,
         check_tested    TYPE abap_bool,
         check_ready     TYPE abap_bool,
         check_dissolved TYPE abap_bool,
@@ -43,10 +42,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS main2
-      RETURNING
-        VALUE(result) TYPE string.
-
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE ty_t_attri.
     DATA mv_type  TYPE string.
@@ -59,15 +54,9 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
-    CLASS-DATA sv_uuid TYPE i.
-
   PROTECTED SECTION.
 
     METHODS bind_local
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS get_uuid
       RETURNING
         VALUE(result) TYPE string.
 
@@ -86,7 +75,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     METHODS get_t_attri_by_oref
       IMPORTING
         val           TYPE clike OPTIONAL
-        check_temp    TYPE abap_bool DEFAULT abap_false
           PREFERRED PARAMETER val
       RETURNING
         VALUE(result) TYPE ty_t_attri.
@@ -126,21 +114,80 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
-  METHOD factory.
+CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
-    r_result = NEW #( ).
-    r_result->mo_app = app.
-    r_result->mt_attri = attri.
-    r_result->mv_type = type.
 
-    IF z2ui5_cl_fw_utility=>rtti_check_type_kind_dref( data ).
+  METHOD bind.
+
+    FIELD-SYMBOLS <attri> TYPE any.
+    DATA(lv_name) = `MO_APP->` && bind->name.
+    ASSIGN (lv_name) TO <attri>.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error.
+    ENDIF.
+
+    DATA lr_ref TYPE REF TO data.
+    GET REFERENCE OF <attri> INTO lr_ref.
+
+    IF mr_data <> lr_ref.
+      RETURN.
+    ENDIF.
+
+    IF bind->bind_type <> mv_type AND bind->bind_type IS NOT INITIAL.
       RAISE EXCEPTION TYPE z2ui5_cx_fw_error
         EXPORTING
-          val = `BINDING_WITH_REFERENCES_NOT_ALLOWED`.
+          val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
     ENDIF.
-    r_result->mr_data = REF #( data ).
+
+    bind->bind_type  = mv_type.
+    bind->name_front = name_front_create( bind->name ).
+
+    result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+    IF strlen( result ) > 30.
+      bind->name_front = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+      result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD bind_local.
+
+    FIELD-SYMBOLS <any> TYPE any.
+    ASSIGN mr_data->* TO <any>.
+    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+
+    INSERT VALUE #( name           = lv_id
+                    data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
+                    bind_type      = cs_bind_type-one_time )
+           INTO TABLE mt_attri.
+    result = |/{ lv_id }|.
+
+  ENDMETHOD.
+
+
+  METHOD dissolve_dref.
+
+    DATA(lt_dissolve) = VALUE ty_t_attri( ).
+
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
+        WHERE type_kind = cl_abap_classdescr=>typekind_dref
+        AND   check_dissolved = abap_false.
+
+      DATA(lt_attri) = get_t_attri_by_dref( lr_bind->name ).
+      IF lt_attri IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      lr_bind->check_dissolved = abap_true.
+      INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
+    ENDLOOP.
+
+    IF lt_dissolve IS INITIAL.
+      RETURN.
+    ENDIF.
+    set_attri_ready( REF #( lt_dissolve ) ).
+    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
 
@@ -161,6 +208,91 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD dissolve_oref.
+
+    DATA(lt_dissolve) = VALUE ty_t_attri( ).
+
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
+      WHERE type_kind = cl_abap_classdescr=>typekind_oref
+      AND   check_dissolved = abap_false.
+
+      DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name ).
+      IF lt_attri IS INITIAL.
+        CONTINUE.
+      ENDIF.
+      lr_bind->check_dissolved = abap_true.
+      INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
+    ENDLOOP.
+
+    IF lt_dissolve IS INITIAL.
+      RETURN.
+    ENDIF.
+    set_attri_ready( REF #( lt_dissolve ) ).
+    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
+
+  ENDMETHOD.
+
+
+  METHOD dissolve_struc.
+
+    DATA(lt_dissolve) = VALUE ty_t_attri( ).
+
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
+        WHERE ( type_kind = cl_abap_classdescr=>typekind_struct1
+        OR    type_kind = cl_abap_classdescr=>typekind_struct2 )
+        AND   check_dissolved = abap_false.
+
+      lr_attri->check_dissolved = abap_true.
+      DATA(lt_attri) = get_t_attri_by_struc( lr_attri->name ).
+      INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
+    ENDLOOP.
+
+    set_attri_ready( REF #( lt_dissolve ) ).
+    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
+
+  ENDMETHOD.
+
+
+  METHOD factory.
+
+    r_result = NEW #( ).
+    r_result->mo_app = app.
+    r_result->mt_attri = attri.
+    r_result->mv_type = type.
+
+    IF z2ui5_cl_fw_utility=>rtti_check_type_kind_dref( data ).
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        EXPORTING
+          val = `BINDING_WITH_REFERENCES_NOT_ALLOWED`.
+    ENDIF.
+    r_result->mr_data = REF #( data ).
+
+  ENDMETHOD.
+
+
+  METHOD get_t_attri_by_dref.
+
+    DATA(lv_name) = `MO_APP->` && val && `->*`.
+    FIELD-SYMBOLS <data> TYPE any.
+    ASSIGN (lv_name) TO <data>.
+    IF <data> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+
+    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
+
+    DATA(ls_new_bind) = VALUE ty_s_attri(
+       name = val && `->*`
+       type_kind = lo_descr->type_kind
+       type = lo_descr->get_relative_name(  )
+       check_ready = abap_true
+     ).
+
+    INSERT ls_new_bind INTO TABLE result.
+
+  ENDMETHOD.
+
+
   METHOD get_t_attri_by_oref.
 
     DATA(lv_name) = COND #( WHEN val IS NOT INITIAL THEN `MO_APP` && `->` && val ELSE `MO_APP` ).
@@ -171,13 +303,11 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     DATA(lt_attri2) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( <obj> ).
-*    DELETE lt_attri2 WHERE visibility <> cl_abap_classdescr=>public OR is_interface = abap_true.
 
     LOOP AT lt_attri2 INTO DATA(ls_attri2)
         WHERE visibility = cl_abap_classdescr=>public
            AND is_interface = abap_false.
       DATA(ls_attri) = CORRESPONDING ty_s_attri( ls_attri2 ).
-      ls_attri-check_temp = check_temp.
       IF val IS NOT INITIAL.
         ls_attri-name = val && `->` && ls_attri-name.
       ENDIF.
@@ -187,70 +317,37 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD main2.
+  METHOD get_t_attri_by_struc.
 
-    dissolve_init( ).
+    DATA(lv_name) = `MO_APP->` && val.
+    FIELD-SYMBOLS <attribute> TYPE any.
+    ASSIGN (lv_name) TO <attribute>.
+    z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
-    "step 0 / MO_APP->MV_VAL
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
+    DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <attribute> ).
+    DATA(lv_attri) = z2ui5_cl_fw_utility=>c_replace_assign_struc( val ).
+    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
 
-    "step 1 / MO_APP->MS_STRUC-COMP
-    dissolve_struc( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
+      DATA(lv_element) = lv_attri && lr_comp->name.
 
-    "step 2 / MO_APP->MR_DATA->*
-    dissolve_dref( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
+      IF lr_comp->as_include = abap_true
+      OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2
+      OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
 
-    "step 3 / MO_APP->MR_STRUC->COMP
-    dissolve_struc( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
+        DATA(lt_attri) = get_t_attri_by_struc( lv_element ).
+        INSERT LINES OF lt_attri INTO TABLE result.
 
-    "step 4 / MO_APP->MO_OBJ->MV_VAL
-    dissolve_oref( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
+      ELSE.
+        DATA(ls_attri) = VALUE ty_s_attri(
+            name      = lv_element
+            type_kind = lr_comp->type->type_kind ).
+        INSERT ls_attri INTO TABLE result.
 
-    "step 5 / MO_APP->MO_OBJ->MR_STRUC-COMP
-    dissolve_struc( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
-
-    "step 6 / MO_APP->MO_OBJ->MR_VAL->*
-    dissolve_dref( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
-
-    "step 7 / MO_APP->MO_OBJ->MR_STRUC->COMP
-    dissolve_struc( ).
-    result = search_binding(  ).
-    IF result IS NOT INITIAL.
-      RETURN.
-    ENDIF.
-
-    RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-      EXPORTING
-        val = `Binding Error - No attribute found`.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
+
 
   METHOD main.
 
@@ -293,134 +390,12 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_uuid.
 
-    sv_uuid = sv_uuid + 1.
-    result = z2ui5_cl_fw_utility=>c_trim( CONV string( sv_uuid ) ).
+  METHOD name_front_create.
 
-  ENDMETHOD.
-
-  METHOD bind_local.
-
-    FIELD-SYMBOLS <any> TYPE any.
-    ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = get_uuid( ).
-    "z2ui5_cl_fw_utility=>func_get_uuid_22( ).
-    INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
-                    bind_type      = cs_bind_type-one_time )
-           INTO TABLE mt_attri.
-    result = |/{ lv_id }|.
-
-  ENDMETHOD.
-
-  METHOD bind.
-
-    FIELD-SYMBOLS <attri> TYPE any.
-    DATA(lv_name) = `MO_APP->` && bind->name.
-    ASSIGN (lv_name) TO <attri>.
-    IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error.
-    ENDIF.
-
-    DATA lr_ref TYPE REF TO data.
-    GET REFERENCE OF <attri> INTO lr_ref.
-
-    IF mr_data <> lr_ref.
-      RETURN.
-    ENDIF.
-
-    IF bind->bind_type <> mv_type AND bind->bind_type IS NOT INITIAL.
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-        EXPORTING
-          val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
-    ENDIF.
-
-    bind->bind_type  = mv_type.
-    bind->name_front = name_front_create( val = bind->name ).
-
-    result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-    IF strlen( result ) > 30.
-*      bind->name_front = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
-      bind->name_front = get_uuid( ).
-      result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-    ENDIF.
-
-  ENDMETHOD.
-
-  METHOD get_t_attri_by_struc.
-
-    DATA(lv_name) = `MO_APP->` && val.
-    FIELD-SYMBOLS <attribute> TYPE any.
-    ASSIGN (lv_name) TO <attribute>.
-    z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
-
-    DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <attribute> ).
-    DATA(lv_attri) = z2ui5_cl_fw_utility=>c_replace_assign_struc( val ).
-    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
-
-      DATA(lv_element) = lv_attri && lr_comp->name.
-
-      IF lr_comp->as_include = abap_true
-      OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2
-      OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
-
-        DATA(lt_attri) = get_t_attri_by_struc( lv_element ).
-        INSERT LINES OF lt_attri INTO TABLE result.
-
-      ELSE.
-        DATA(ls_attri) = VALUE ty_s_attri(
-            name      = lv_element
-            type_kind = lr_comp->type->type_kind ).
-        INSERT ls_attri INTO TABLE result.
-
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD dissolve_struc.
-
-    DATA(lt_dissolve) = VALUE ty_t_attri( ).
-
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE ( type_kind = cl_abap_classdescr=>typekind_struct1
-        OR    type_kind = cl_abap_classdescr=>typekind_struct2 )
-        AND   check_dissolved = abap_false.
-
-      lr_attri->check_dissolved = abap_true.
-      DATA(lt_attri) = get_t_attri_by_struc( lr_attri->name ).
-      INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
-    ENDLOOP.
-
-    set_attri_ready( REF #( lt_dissolve ) ).
-    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
-
-  ENDMETHOD.
-
-
-  METHOD dissolve_dref.
-
-    DATA(lt_dissolve) = VALUE ty_t_attri( ).
-
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
-        WHERE type_kind = cl_abap_classdescr=>typekind_dref
-        AND   check_dissolved = abap_false.
-
-      DATA(lt_attri) = get_t_attri_by_dref( lr_bind->name ).
-      lr_bind->check_dissolved = abap_true.
-      IF lt_attri IS INITIAL.
-        CONTINUE.
-      ENDIF.
-      INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
-    ENDLOOP.
-
-    IF lt_attri IS INITIAL.
-      RETURN.
-    ENDIF.
-    set_attri_ready( REF #( lt_dissolve ) ).
-    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
+    result = replace( val = val    sub = `*` with = `_` occ = 0 ).
+    result = replace( val = result sub = `>` with = `_` occ = 0 ).
+    result = replace( val = result sub = `-` with = `_` occ = 0 ).
 
   ENDMETHOD.
 
@@ -438,32 +413,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         RETURN.
       ENDIF.
     ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD dissolve_oref.
-
-    DATA(lt_dissolve) = VALUE ty_t_attri( ).
-
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
-      WHERE type_kind = cl_abap_classdescr=>typekind_oref
-      AND   check_dissolved = abap_false.
-
-
-      DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name check_temp = abap_true ).
-      IF lt_attri IS INITIAL.
-        CONTINUE.
-      ENDIF.
-      lr_bind->check_dissolved = abap_true.
-      INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
-    ENDLOOP.
-
-    IF lt_attri IS INITIAL.
-      RETURN.
-    ENDIF.
-    set_attri_ready( REF #( lt_dissolve ) ).
-    INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
 
@@ -490,6 +439,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD update_attri.
 
     DATA(lo_bind) = NEW z2ui5_cl_fw_binding( ).
@@ -505,39 +455,4 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     result = lo_bind->mt_attri.
 
   ENDMETHOD.
-
-
-  METHOD get_t_attri_by_dref.
-
-    DATA(lv_name) = `MO_APP->` && val && `->*`.
-    FIELD-SYMBOLS <data> TYPE any.
-    ASSIGN (lv_name) TO <data>.
-    IF <data> IS NOT ASSIGNED.
-      RETURN.
-    ENDIF.
-
-    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
-
-    DATA(ls_new_bind) = VALUE ty_s_attri(
-       name = val && `->*`
-       type_kind = lo_descr->type_kind
-       type = lo_descr->get_relative_name(  )
-       check_temp = abap_true
-       check_ready = abap_true
-     ).
-
-    INSERT ls_new_bind INTO TABLE result.
-
-  ENDMETHOD.
-
-
-
-  METHOD name_front_create.
-
-    result = replace( val = val    sub = `*` with = `_` occ = 0 ).
-    result = replace( val = result sub = `>` with = `_` occ = 0 ).
-    result = replace( val = result sub = `-` with = `_` occ = 0 ).
-
-  ENDMETHOD.
-
 ENDCLASS.
