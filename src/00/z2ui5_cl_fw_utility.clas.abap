@@ -304,10 +304,10 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
         ASSERT 1 = 0.
     ENDTRY.
 
-    result = replace( val = result sub = `}` with = `$` occ = 0 ).
-    result = replace( val = result sub = `{` with = `$` occ = 0 ).
-    result = replace( val = result sub = `"` with = `$` occ = 0 ).
-    result = replace( val = result sub = `'` with = `$` occ = 0 ).
+    result = replace( val = result sub = `}` with = `0` occ = 0 ).
+    result = replace( val = result sub = `{` with = `0` occ = 0 ).
+    result = replace( val = result sub = `"` with = `0` occ = 0 ).
+    result = replace( val = result sub = `'` with = `0` occ = 0 ).
 
   ENDMETHOD.
 
