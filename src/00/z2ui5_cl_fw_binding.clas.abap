@@ -59,15 +59,9 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
-    CLASS-DATA sv_uuid TYPE i.
-
   PROTECTED SECTION.
 
     METHODS bind_local
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS get_uuid
       RETURNING
         VALUE(result) TYPE string.
 
@@ -118,6 +112,12 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     METHODS name_front_create
       IMPORTING
         val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS name_front_shorten
+      IMPORTING
+        val           TYPE string
       RETURNING
         VALUE(result) TYPE string.
 
@@ -292,21 +292,19 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_uuid.
-
-    sv_uuid = sv_uuid + 1.
-    result = z2ui5_cl_fw_utility=>c_trim( CONV string( sv_uuid ) ).
-
-  ENDMETHOD.
 
   METHOD bind_local.
 
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = get_uuid( ).
-
+    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+      lv_id = replace( val = lv_id sub = `}` with = `$` occ = 0 ).
+      lv_id = replace( val = lv_id sub = `{` with = `$` occ = 0 ).
+      lv_id = replace( val = lv_id sub = `"` with = `$` occ = 0 ).
+      lv_id = replace( val = lv_id sub = `'` with = `$` occ = 0 ).
     INSERT VALUE #( name           = lv_id
                     data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
+                    check_temp     = abap_true
                     bind_type      = cs_bind_type-one_time )
            INTO TABLE mt_attri.
     result = |/{ lv_id }|.
@@ -336,11 +334,17 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     bind->bind_type  = mv_type.
-    bind->name_front = name_front_create( val = bind->name ).
+    bind->name_front = name_front_create( bind->name ).
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.
-      bind->name_front = get_uuid( ).
+*      bind->name_front =  name_front_shorten( bind->name_front ).
+      bind->name_front =  z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+      bind->name_front = replace( val = bind->name_front sub = `}` with = `$` occ = 0 ).
+      bind->name_front = replace( val = bind->name_front sub = `{` with = `$` occ = 0 ).
+      bind->name_front = replace( val = bind->name_front sub = `"` with = `$` occ = 0 ).
+      bind->name_front = replace( val = bind->name_front sub = `'` with = `$` occ = 0 ).
+
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
 
@@ -407,14 +411,14 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         AND   check_dissolved = abap_false.
 
       DATA(lt_attri) = get_t_attri_by_dref( lr_bind->name ).
-      lr_bind->check_dissolved = abap_true.
       IF lt_attri IS INITIAL.
         CONTINUE.
       ENDIF.
+      lr_bind->check_dissolved = abap_true.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
-    IF lt_attri IS INITIAL.
+    IF lt_dissolve IS INITIAL.
       RETURN.
     ENDIF.
     set_attri_ready( REF #( lt_dissolve ) ).
@@ -456,7 +460,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
-    IF lt_attri IS INITIAL.
+    IF lt_dissolve IS INITIAL.
       RETURN.
     ENDIF.
     set_attri_ready( REF #( lt_dissolve ) ).
@@ -533,6 +537,15 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     result = replace( val = val    sub = `*` with = `_` occ = 0 ).
     result = replace( val = result sub = `>` with = `_` occ = 0 ).
     result = replace( val = result sub = `-` with = `_` occ = 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD name_front_shorten.
+
+    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_session( ).
+    DATA(lv_length) = strlen( val ) - strlen( lv_id ).
+    result = lv_id && val(lv_length).
 
   ENDMETHOD.
 

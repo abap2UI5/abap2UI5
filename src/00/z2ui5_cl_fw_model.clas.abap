@@ -89,7 +89,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
       IF lr_attri->check_temp = abap_true.
         DELETE mt_attri.
-        continue.
+        CONTINUE.
       ENDIF.
 
       CASE lr_attri->type_kind.

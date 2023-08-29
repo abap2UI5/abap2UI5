@@ -48,6 +48,10 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    class-METHODS func_get_uuid_session
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS func_get_user_tech
       RETURNING
         VALUE(result) TYPE string.
@@ -179,6 +183,8 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-DATA sv_uuid TYPE i.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -251,6 +257,12 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     result = sy-uname.
   ENDMETHOD.
 
+  METHOD func_get_uuid_session.
+
+    sv_uuid = sv_uuid + 1.
+    result = z2ui5_cl_fw_utility=>c_trim( CONV string( sv_uuid ) ).
+
+  ENDMETHOD.
 
   METHOD func_get_uuid_32.
 
