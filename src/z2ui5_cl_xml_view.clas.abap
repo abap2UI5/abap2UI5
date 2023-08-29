@@ -821,6 +821,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !mode            TYPE clike OPTIONAL
         !selectionchange TYPE clike OPTIONAL
         !nodata          TYPE clike OPTIONAL
+        !showSeparators  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
     METHODS custom_list_item
@@ -3232,6 +3233,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `items`           v = items )
                                          ( n = `mode`            v = mode )
                                          ( n = `selectionChange` v = selectionchange )
+                                         ( n = `showSeparators ` v = showSeparators )
                                          ( n = `noData` v = nodata ) ) ).
   ENDMETHOD.
 
