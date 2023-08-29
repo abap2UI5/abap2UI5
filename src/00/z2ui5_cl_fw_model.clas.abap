@@ -47,13 +47,23 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
           DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
 
           FIELD-SYMBOLS <backend> TYPE any.
+          UNASSIGN <backend>.
           ASSIGN (lv_name_back) TO <backend>.
-          z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+          IF sy-subrc <> 0.
+            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+              EXPORTING
+                val = `NO_BACKEND_VALUE_FOUND_WITH_NAME__` && lv_name_back.
+          ENDIF.
 
           DATA(lv_name_front) = `MODEL->` && lr_attri->name_front.
           FIELD-SYMBOLS <frontend> TYPE any.
+          UNASSIGN <frontend>.
           ASSIGN (lv_name_front) TO <frontend>.
-          z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+          IF sy-subrc <> 0.
+            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+              EXPORTING
+                val = `NO_FRONTEND_VALUE_FOUND_WITH_NAME__` && lv_name_front.
+          ENDIF.
 
           CASE lr_attri->type_kind.
 
@@ -83,20 +93,6 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
         CATCH cx_root.
       ENDTRY.
-    ENDLOOP.
-
-    LOOP AT mt_attri REFERENCE INTO lr_attri.
-
-      IF lr_attri->check_temp = abap_true.
-        DELETE mt_attri.
-        CONTINUE.
-      ENDIF.
-
-      CASE lr_attri->type_kind.
-        WHEN cl_abap_classdescr=>typekind_oref OR cl_abap_classdescr=>typekind_dref.
-          lr_attri->check_dissolved = abap_false.
-      ENDCASE.
-
     ENDLOOP.
 
   ENDMETHOD.

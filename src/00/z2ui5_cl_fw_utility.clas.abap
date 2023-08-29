@@ -48,7 +48,7 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
       RETURNING
         VALUE(result) TYPE string.
 
-    class-METHODS func_get_uuid_session
+    CLASS-METHODS func_get_uuid_session
       RETURNING
         VALUE(result) TYPE string.
 
@@ -316,6 +316,11 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
       CATCH cx_root.
         ASSERT 1 = 0.
     ENDTRY.
+
+    result = replace( val = result sub = `}` with = `$` occ = 0 ).
+    result = replace( val = result sub = `{` with = `$` occ = 0 ).
+    result = replace( val = result sub = `"` with = `$` occ = 0 ).
+    result = replace( val = result sub = `'` with = `$` occ = 0 ).
 
   ENDMETHOD.
 

@@ -299,10 +299,10 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
         lo_model->main_set_backend(
             so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual  ).
 
-        result->ms_db-t_attri = lo_model->mt_attri.
-
       CATCH cx_root.
     ENDTRY.
+
+    CLEAR result->ms_db-t_attri.
 
   ENDMETHOD.
 
