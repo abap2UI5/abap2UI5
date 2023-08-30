@@ -17,16 +17,15 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     TYPES:
       BEGIN OF ty_s_attri,
         name            TYPE string,
+        name_front      TYPE string,
         type_kind       TYPE string,
         type            TYPE string,
         bind_type       TYPE string,
         data_stringify  TYPE string,
         data_rtti       TYPE string,
-        check_tested    TYPE abap_bool,
         check_ready     TYPE abap_bool,
         check_dissolved TYPE abap_bool,
         check_temp      TYPE abap_bool,
-        name_front      TYPE string,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -127,7 +126,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA(lv_name) = `MO_APP->` && bind->name.
     ASSIGN (lv_name) TO <attri>.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        exporting val = `BINDING_ERROR_ATTRIBUTE_NOT_FOUND_WITH_NAME__` && bind->name.
     ENDIF.
 
     DATA lr_ref TYPE REF TO data.
@@ -186,10 +186,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
-    IF lt_dissolve IS INITIAL.
-      RETURN.
-    ENDIF.
-    set_attri_ready( REF #( lt_dissolve ) ).
+
+*    set_attri_ready( REF #( lt_dissolve ) ).
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
@@ -197,16 +195,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD dissolve_init.
 
-    IF mv_check_attri = abap_false.
-      mv_check_attri = abap_true.
-
+    IF mt_attri IS INITIAL.
       mt_attri  = get_t_attri_by_oref( ).
-      set_attri_ready( REF #( mt_attri ) ).
-
-    else.
-      LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
-        lr_attri->check_tested = abap_false.
-      ENDLOOP.
     ENDIF.
 
   ENDMETHOD.
@@ -228,10 +218,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
-    IF lt_dissolve IS INITIAL.
-      RETURN.
-    ENDIF.
-    set_attri_ready( REF #( lt_dissolve ) ).
+
+*    set_attri_ready( REF #( lt_dissolve ) ).
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
@@ -251,7 +239,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       INSERT LINES OF lt_attri INTO TABLE lt_dissolve.
     ENDLOOP.
 
-    set_attri_ready( REF #( lt_dissolve ) ).
+*    set_attri_ready( REF #( lt_dissolve ) ).
     INSERT LINES OF lt_dissolve INTO TABLE mt_attri.
 
   ENDMETHOD.
@@ -409,12 +397,12 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD search_binding.
 
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
-        WHERE ( bind_type = `` OR bind_type = mv_type )
-        AND   check_ready = abap_true.
-*        AND   check_tested = abap_false.
+    set_attri_ready( REF #( mt_attri ) ).
 
-      lr_bind->check_tested = abap_true.
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
+*        WHERE ( bind_type = `` OR bind_type = mv_type )
+        where check_ready = abap_true.
+
       result = bind( lr_bind ).
       IF result IS NOT INITIAL.
         RETURN.
@@ -427,7 +415,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   METHOD set_attri_ready.
 
     LOOP AT t_attri->*  REFERENCE INTO  result
-      WHERE check_ready = abap_false.
+      WHERE check_ready = abap_false and
+            bind_type <> cs_bind_type-one_time.
 
       CASE result->type_kind.
         WHEN cl_abap_classdescr=>typekind_iref
