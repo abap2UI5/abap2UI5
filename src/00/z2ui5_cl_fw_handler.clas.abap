@@ -116,7 +116,6 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_handler.
 
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -166,6 +165,8 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       result = set_app_client( lv_id_prev ).
       result->ms_actual-check_on_navigated = abap_false.
     ENDIF.
+
+    result->ms_db-check_attri = abap_false.
 
     TRY.
 
@@ -264,8 +265,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     ENDIF.
 
     result = lo_resp->mo_root->stringify( ).
-    z2ui5_cl_fw_db=>create( id = ms_db-id
-                            db = ms_db ).
+    z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
 
   ENDMETHOD.
 
@@ -277,9 +277,10 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id
-                              db = ms_db ).
+      z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
     ENDIF.
+
+    CLEAR result->ms_db-t_attri.
 
   ENDMETHOD.
 
@@ -302,8 +303,6 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    CLEAR result->ms_db-t_attri.
-
   ENDMETHOD.
 
 
@@ -322,6 +321,8 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     IF check_no_db_save = abap_false.
       z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
     ENDIF.
+
+    CLEAR result->ms_db-t_attri.
 
   ENDMETHOD.
 

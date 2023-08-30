@@ -12,6 +12,7 @@ CLASS z2ui5_cl_fw_db DEFINITION
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
         t_attri           TYPE z2ui5_cl_fw_binding=>ty_t_attri,
+        check_attri       type abap_bool,
         app               TYPE REF TO z2ui5_if_app,
       END OF ty_s_db .
 
