@@ -163,8 +163,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                    setTimeout(() => {` && |\n| &&
                            `                        if (sap.z2ui5.checkTimerActive) {` && |\n| &&
                            `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n| &&
-                           `           //                 let oEvent = JSON.parse( sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].replaceAll( "'" , '"' ) );` && |\n| &&
-                           `                          //  let oArgs = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( ',' );` && |\n| &&
                            `                            let oArgs = [];` && |\n| &&
                            `                            oArgs.push( JSON.parse( (sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 0 ] + '}').replaceAll( "'" , '"' ) ) );` && |\n| &&
                            `                            let oArgsPara = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 1 ].split( ',' ).slice(1);` && |\n| &&
@@ -258,7 +256,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                } }` && |\n| &&
                            `                if (isUpdated == false){` && |\n| &&
                            `                     sap.z2ui5.oBody.EDIT = sap.z2ui5.oView.getModel().getData().EDIT;` && |\n| &&
-                           `                  //  sap.z2ui5.oBody.EDIT = sap.z2ui5.oLastView.getModel().getData().EDIT;` && |\n| &&
                            `                 }` && |\n| &&
                            |\n| &&
                            `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n| &&

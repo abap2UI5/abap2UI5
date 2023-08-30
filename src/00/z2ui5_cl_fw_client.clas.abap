@@ -174,6 +174,13 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~title_set.
+
+    mo_handler->ms_next-s_set-title = val.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~url_param_set.
 
     mo_handler->ms_next-s_set-search = val.
@@ -208,12 +215,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
+                        check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
                         data  = val
                       ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
+    mo_handler->ms_db-check_attri = lo_binder->mv_check_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -227,12 +236,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
+                        check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
                         data  = val
                       ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
+    mo_handler->ms_db-check_attri = lo_binder->mv_check_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.
@@ -246,12 +257,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
+                        check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
                         data  = val
                       ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
+    mo_handler->ms_db-check_attri = lo_binder->mv_check_attri.
 
     IF path = abap_false.
       result = `{` && result && `}`.
