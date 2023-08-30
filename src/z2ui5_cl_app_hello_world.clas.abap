@@ -7,6 +7,7 @@ CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
     DATA quantity          TYPE string.
     DATA check_initialized TYPE abap_bool.
 
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
