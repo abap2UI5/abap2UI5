@@ -248,7 +248,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
       ms_home-btn_event_id   = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
       ms_home-btn_icon       = `sap-icon://validate`.
-      ms_home-classname      = `z2ui5_cl_app_hello_world`.
+      ms_home-classname      = `Z2UI5_CL_APP_HELLO_WORLD`.
     ENDIF.
 
     mv_check_demo = abap_true.

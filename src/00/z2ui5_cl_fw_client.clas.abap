@@ -174,6 +174,13 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~title_set.
+
+    mo_handler->ms_next-s_set-title = val.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~url_param_set.
 
     mo_handler->ms_next-s_set-search = val.
