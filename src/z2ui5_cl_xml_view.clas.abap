@@ -1884,6 +1884,35 @@ CLASS z2ui5_cl_xml_view DEFINITION
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS responsive_splitter
+    IMPORTING
+      !defaultPane        TYPE clike OPTIONAL
+      !height             TYPE clike OPTIONAL
+      !width              TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS pane_container
+    IMPORTING
+      !resize             TYPE clike OPTIONAL
+      !orientation        TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS split_pane
+    IMPORTING
+      !id                  TYPE clike OPTIONAL
+      !requiredParentWidth TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS splitter_layout_data
+    IMPORTING
+      !size               TYPE clike OPTIONAL
+      !minSize            TYPE clike OPTIONAL
+      !resizable          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
 
@@ -3555,6 +3584,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD pane_container.
+    result = _generic( name   = `PaneContainer` ns = `layout`
+                       t_prop = VALUE #( ( n = `resize`       v = resize )
+                                         ( n = `orientation`  v = orientation  ) ) ).
+  ENDMETHOD.
+
+
   METHOD planning_calendar.
     result = _generic( name   = `PlanningCalendar`
                        t_prop = VALUE #(
@@ -3763,6 +3799,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD responsive_splitter.
+    result = _generic( name   = `ResponsiveSplitter` ns = `layout`
+                       t_prop = VALUE #( ( n = `defaultPane`  v = defaultPane )
+                                         ( n = `height`       v = height )
+                                         ( n = `width`        v = width  ) ) ).
+  ENDMETHOD.
+
+
   METHOD rows.
     result = _generic( `rows` ).
   ENDMETHOD.
@@ -3885,6 +3929,21 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD sort_items.
     result = _generic( name = `sortItems` ).
+  ENDMETHOD.
+
+
+  METHOD splitter_layout_data.
+    result = _generic( name   = `SplitterLayoutData` ns = `layout`
+                       t_prop = VALUE #( ( n = `size`         v = size )
+                                         ( n = `minSize`      v = minSize )
+                                         ( n = `resizable`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD split_pane.
+    result = _generic( name   = `SplitPane` ns = `layout`
+                       t_prop = VALUE #( ( n = `id`                   v = id )
+                                         ( n = `requiredParentWidth`  v = requiredParentWidth )  ) ).
   ENDMETHOD.
 
 
