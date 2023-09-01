@@ -1927,8 +1927,9 @@
       !searchbuttontext    TYPE clike OPTIONAL
       !searchevent         TYPE clike OPTIONAL
       !isshlp              TYPE any OPTIONAL
+      ircontroller         TYPE REF TO object OPTIONAL
     RETURNING
-      VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+      VALUE(result)        TYPE REF TO z2ui5_cl_xml_view ##NEEDED.
 
   PROTECTED SECTION.
 
@@ -2135,231 +2136,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `class`  v = class )
                                          ( n = `height`  v = height )
                ) ).
-
-  ENDMETHOD.
-
-
-  METHOD zcc_export_spreadsheet.
-
-    result = me.
-    _generic( name   = `ExportSpreadsheet`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `tableId`  v = tableid )
-                                ( n = `text`     v = text )
-                                ( n = `icon`     v = icon )
-                                ( n = `type`     v = type )
-              ) ).
-
-  ENDMETHOD.
-
-
-  METHOD zcc_export_spreadsheet_js.
-
-    DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
-                          |\n| &&
-                          `        sap.ui.define([` && |\n| &&
-                          `            "sap/ui/core/Control",` && |\n| &&
-                          `            "sap/m/Button",` && |\n| &&
-                          `            "sap/ui/export/Spreadsheet"` && |\n| &&
-                          `        ], function (Control, Button, Spreadsheet) {` && |\n| &&
-                          `            "use strict";` && |\n| &&
-                          |\n| &&
-                          `            return Control.extend("z2ui5.ExportSpreadsheet", {` && |\n| &&
-                          |\n| &&
-                          `                metadata: {` && |\n| &&
-                          `                    properties: {` && |\n| &&
-                          `                        tableId: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        type: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        icon: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        text: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        }` && |\n| &&
-                          `                    },` && |\n| &&
-                          |\n| &&
-                          |\n| &&
-                          `                    aggregations: {` && |\n| &&
-                          `                    },` && |\n| &&
-                          `                    events: { },` && |\n| &&
-                          `                    renderer: null` && |\n| &&
-                          `                },` && |\n| &&
-                          |\n| &&
-                          `                renderer: function (oRm, oControl) {` && |\n| &&
-                          |\n| &&
-                          `                    oControl.oExportButton = new Button({` && |\n| &&
-                          `                        text: oControl.getProperty("text"),` && |\n| &&
-                          `                        icon: oControl.getProperty("icon"), ` && |\n| &&
-                          `                        type: oControl.getProperty("type"), ` && |\n| &&
-                          `                        press: function (oEvent) { ` && |\n| &&
-                          |\n| &&
-                          `                             var aCols =` && columnconfig  && `;` && |\n| &&
-                          |\n| &&
-                          `                             var oBinding, oSettings, oSheet, oTable, vTableId, vViewPrefix,vPrefixTableId;` && |\n| &&
-                          `                             vTableId = oControl.getProperty("tableId")` && |\n| &&
-                          `                          //   vViewPrefix = sap.z2ui5.oView.sId;` && |\n| &&
-                          `                           //  vPrefixTableId = vViewPrefix + "--" + vTableId;` && |\n| &&
-                          `                             vPrefixTableId = sap.z2ui5.oView.createId( vTableId );` && |\n| &&
-                          `                             oTable = sap.ui.getCore().byId(vPrefixTableId);` && |\n| &&
-                          `                             oBinding = oTable.getBinding("rows");` && |\n| &&
-                          `                             if (oBinding == null) {` && |\n| &&
-                          `                               oBinding = oTable.getBinding("items");` && |\n| &&
-                          `                             };` && |\n| &&
-                          `                             oSettings = {` && |\n| &&
-                          `                               workbook: { columns: aCols },` && |\n| &&
-                          `                               dataSource: oBinding` && |\n| &&
-                          `                             };` && |\n| &&
-                          `                             oSheet = new Spreadsheet(oSettings);` && |\n| &&
-                          `                             oSheet.build()` && |\n| &&
-                          `                               .then(function() {` && |\n| &&
-                          `                               }).finally(function() {` && |\n| &&
-                          `                                 oSheet.destroy();` && |\n| &&
-                          `                               });` && |\n| &&
-                          `                         }.bind(oControl)` && |\n| &&
-                          `                  });` && |\n| &&
-                          |\n| &&
-                          `                    oRm.renderControl(oControl.oExportButton);` && |\n| &&
-                          `                }` && |\n| &&
-                          `            });` && |\n| &&
-                          `        });`.
-
-    result = zcc_plain_xml( `<html:script>` && js && `</html:script>` ).
-
-  ENDMETHOD.
-
-
-  METHOD zcc_file_uploader.
-
-    result = me.
-    _generic( name   = `FileUploader`
-              ns     = `z2ui5`
-              t_prop = VALUE #( (  n = `placeholder` v = placeholder )
-                                (  n = `upload`      v = upload )
-                                (  n = `path`        v = path )
-                                (  n = `value`       v = value ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD zcc_file_uploader_js.
-
-    DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
-                          |\n| &&
-                          `        sap.ui.define([` && |\n| &&
-                          `            "sap/ui/core/Control",` && |\n| &&
-                          `            "sap/m/Button",` && |\n| &&
-                          `            "sap/ui/unified/FileUploader"` && |\n| &&
-                          `        ], function (Control, Button, FileUploader) {` && |\n| &&
-                          `            "use strict";` && |\n| &&
-                          |\n| &&
-                          `            return Control.extend("z2ui5.FileUploader", {` && |\n| &&
-                          |\n| &&
-                          `                metadata: {` && |\n| &&
-                          `                    properties: {` && |\n| &&
-                          `                        value: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        path: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        tooltip: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        fileType: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        placeholder: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        buttonText: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: "Upload"` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        enabled: {` && |\n| &&
-                          `                            type: "boolean",` && |\n| &&
-                          `                            defaultValue: true` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        multiple: {` && |\n| &&
-                          `                            type: "boolean",` && |\n| &&
-                          `                            defaultValue: false` && |\n| &&
-                          `                        }` && |\n| &&
-                          `                    },` && |\n| &&
-                          |\n| &&
-                          |\n| &&
-                          `                    aggregations: {` && |\n| &&
-                          `                    },` && |\n| &&
-                          `                    events: {` && |\n| &&
-                          `                        "upload": {` && |\n| &&
-                          `                            allowPreventDefault: true,` && |\n| &&
-                          `                            parameters: {}` && |\n| &&
-                          `                        }` && |\n| &&
-                          `                    },` && |\n| &&
-                          `                    renderer: null` && |\n| &&
-                          `                },` && |\n| &&
-                          |\n| &&
-                          `                renderer: function (oRm, oControl) {` && |\n| &&
-                          |\n| &&
-                          `                    oControl.oUploadButton = new Button({` && |\n| &&
-                          `                        text: oControl.getProperty("buttonText"),` && |\n| &&
-                          `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
-                          `                        press: function (oEvent) { ` && |\n| &&
-                          |\n| &&
-                          `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
-                          |\n| &&
-                          `                            var file = sap.z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
-                          `                            var reader = new FileReader();` && |\n| &&
-                          |\n| &&
-                          `                            reader.onload = function (evt) {` && |\n| &&
-                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
-                          `                                this.setProperty("value", vContent);` && |\n| &&
-                          `                                this.fireUpload();` && |\n| &&
-                          `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n| &&
-                          `                            }.bind(this)` && |\n| &&
-                          |\n| &&
-                          `                            reader.readAsDataURL(file);` && |\n| &&
-                          `                        }.bind(oControl)` && |\n| &&
-                          `                    });` && |\n| &&
-                          |\n| &&
-                          `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
-                          `                        icon: "sap-icon://browse-folder",` && |\n| &&
-                          `                        iconOnly: true,` && |\n| &&
-                          `                        value: oControl.getProperty("path"),` && |\n| &&
-                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
-                          `                        change: function (oEvent) {` && |\n| &&
-                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
-                          `                            this.setProperty("path", value);` && |\n| &&
-                          `                            if (value) {` && |\n| &&
-                          `                                this.oUploadButton.setEnabled();` && |\n| &&
-                          `                            } else {` && |\n| &&
-                          `                                this.oUploadButton.setEnabled(false);` && |\n| &&
-                          `                            }` && |\n| &&
-                          `                            this.oUploadButton.rerender();` && |\n| &&
-                          `                            sap.z2ui5.oUpload = oEvent.oSource;` && |\n| &&
-                          `                        }.bind(oControl)` && |\n| &&
-                          `                    });` && |\n| &&
-                          |\n| &&
-                          `                    var hbox = new sap.m.HBox();` && |\n| &&
-                          `                    hbox.addItem(oControl.oFileUploader);` && |\n| &&
-                          `                    hbox.addItem(oControl.oUploadButton);` && |\n| &&
-                          `                    oRm.renderControl(hbox);` && |\n| &&
-                          `                }` && |\n| &&
-                          `            });` && |\n| &&
-                          `        });`.
-
-    result = zcc_plain_xml( `<html:script>` && js && `</html:script>` ).
 
   ENDMETHOD.
 
@@ -2836,285 +2612,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `toolbar`
                        ns   = 'gantt' ).
   ENDMETHOD.
-
-
-   METHOD zfc_ddic_search_help.
-
-     TYPES:
-      BEGIN OF ty_ddshfprop,
-        fieldname(30)   TYPE c,
-        shlpinput(1)    TYPE c,
-        shlpoutput(1)   TYPE c,
-        shlpselpos(2)   TYPE n,
-        shlplispos(2)   TYPE n,
-        shlpseldis(1)   TYPE c,
-        defaultval(21)  TYPE c,
-      END OF ty_ddshfprop.
-
-    TYPES:
-      BEGIN OF ty_ddfields,
-        tabname(30)     TYPE c,
-        fieldname(30)   TYPE c,
-        langu(1)        TYPE c,
-        position(4)     TYPE n,
-        offset(6)       TYPE n,
-        domname(30)     TYPE c,
-        rollname(30)    TYPE c,
-        checktable(30)  TYPE c,
-        leng(6)         TYPE n,
-        intlen(6)       TYPE n,
-        outputlen(6)    TYPE n,
-        decimals(6)     TYPE n,
-        datatype(4)     TYPE c,
-        inttype(1)      TYPE c,
-        reftable(30)    TYPE c,
-        reffield(30)    TYPE c,
-        precfield(30)   TYPE c,
-        authorid(3)     TYPE c,
-        memoryid(20)    TYPE c,
-        logflag(1)      TYPE c,
-        mask(20)        TYPE c,
-        masklen(4)      TYPE n,
-        convexit(5)     TYPE c,
-        headlen(2)      TYPE n,
-        scrlen1(2)      TYPE n,
-        scrlen2(2)      TYPE n,
-        scrlen3(2)      TYPE n,
-        fieldtext(60)   TYPE c,
-        reptext(55)     TYPE c,
-        scrtext_s(10)   TYPE c,
-        scrtext_m(20)   TYPE c,
-        scrtext_l(40)   TYPE c,
-        keyflag(1)      TYPE c,
-        lowercase(1)    TYPE c,
-        mac(1)          TYPE c,
-        genkey(1)       TYPE c,
-        noforkey(1)     TYPE c,
-        valexi(1)       TYPE c,
-        noauthch(1)     TYPE c,
-        sign(1)         TYPE c,
-        dynpfld(1)      TYPE c,
-        f4availabl(1)   TYPE c,
-        comptype(1)     TYPE c,
-        lfieldname(132) TYPE c,
-        ltrflddis(1)    TYPE c,
-        bidictrlc(1)    TYPE c,
-        outputstyle(2)  TYPE n,
-        nohistory(1)    TYPE c,
-        ampmformat(1)   TYPE c,
-    END OF ty_ddfields.
-
-     DATA: lv_grid_form_no     TYPE i,
-           lt_arg              TYPE string_table,
-           lv_arg_fieldname    TYPE string,
-           lv_cell_fieldname   TYPE string,
-           lv_path_result_itab TYPE string,
-           lv_path_shlp_fields TYPE string,
-           lt_fieldprop_sel    TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
-           lt_fieldprop_lis    TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
-           lt_ddffields        TYPE STANDARD TABLE OF ty_ddfields WITH EMPTY KEY.
-
-     FIELD-SYMBOLS:
-                    <lt_result_itab>   TYPE ANY TABLE,
-                    <ls_shlp_fields>   TYPE any,
-                    <lv_field>         TYPE any.
-
-* ---------- Get result itab reference ------------------------------------------------------------
-    lv_path_result_itab = 'IRCONTROLLER->' && resultitabname.
-    ASSIGN (lv_path_result_itab) TO <lt_result_itab>.
-* ---------- Get searchhelp input fields structure reference --------------------------------------
-    lv_path_shlp_fields = 'IRCONTROLLER->' && shlpfieldsstrucname.
-    ASSIGN (lv_path_shlp_fields) TO <ls_shlp_fields>.
-
-    IF <lt_result_itab> IS NOT ASSIGNED OR
-      <ls_shlp_fields> IS NOT ASSIGNED.
-      RETURN.
-    ENDIF.
-
-  IF isshlp IS INITIAL.
-    RETURN.
-  ELSE.
-    ASSIGN COMPONENT 'FIELDPROP' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_fieldprop>).
-    IF <fs_fieldprop> IS NOT ASSIGNED.
-      RETURN.
-    ENDIF.
-  ENDIF.
-
-* ---------- Set Selection and List properties ----------------------------------------------------
-    lt_fieldprop_sel = <fs_fieldprop>.
-    lt_fieldprop_lis = <fs_fieldprop>.
-    DELETE lt_fieldprop_sel WHERE shlpselpos IS INITIAL.
-    DELETE lt_fieldprop_lis WHERE shlplispos IS INITIAL.
-    SORT lt_fieldprop_sel BY shlpselpos.
-    SORT lt_fieldprop_lis BY shlplispos.
-
-    ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_isshlp_fielddescr>).
-    IF <fs_isshlp_fielddescr> IS NOT ASSIGNED.
-      RETURN.
-    ENDIF.
-    lt_ddffields = <fs_isshlp_fielddescr>.
-
-* -------------------------------------------------------------------------------------------------
-*Searchfield Grid
-* -------------------------------------------------------------------------------------------------
-    DATA(lr_grid_shlp) = irparent->content( )->toolbar( )->toolbar_spacer(
-          )->button( text = searchbuttontext
-                     type    = 'Emphasized'
-                     press   = irclient->_event( searchevent ) )->get_parent(
-            )->grid( 'L3 M3 S3' )->content( 'layout' ).
-
-* ---------- Create 4 forms (grid columns) --------------------------------------------------------
-    DATA(lr_form_shlp_1) = lr_grid_shlp->simple_form( )->content( 'form' ).
-    DATA(lr_form_shlp_2) = lr_grid_shlp->simple_form( )->content( 'form' ).
-    DATA(lr_form_shlp_3) = lr_grid_shlp->simple_form( )->content( 'form' ).
-    DATA(lr_form_shlp_4) = lr_grid_shlp->simple_form( )->content( 'form' ).
-
-    LOOP AT lt_fieldprop_sel ASSIGNING FIELD-SYMBOL(<ls_fieldprop_sel>).
-* ---------- Init loop data -----------------------------------------------------------------------
-      UNASSIGN: <lv_field>.
-* ---------- Get corresponding field description --------------------------------------------------
-      ASSIGN lt_ddffields[ fieldname = <ls_fieldprop_sel>-fieldname ] TO FIELD-SYMBOL(<ls_fielddescr>).
-
-      IF <ls_fielddescr> IS NOT ASSIGNED.
-        CONTINUE.
-      ENDIF.
-
-* ---------- Get field reference ------------------------------------------------------------------
-      ASSIGN COMPONENT <ls_fielddescr>-fieldname OF STRUCTURE <ls_shlp_fields> TO <lv_field>.
-      IF <lv_field> IS NOT ASSIGNED.
-        CONTINUE.
-      ENDIF.
-
-* ---------- Determine grid form number -----------------------------------------------------------
-      IF lv_grid_form_no IS INITIAL.
-        lv_grid_form_no = 1.
-      ELSEIF lv_grid_form_no = 4.
-        lv_grid_form_no = 1.
-      ELSE.
-        lv_grid_form_no = lv_grid_form_no + 1.
-      ENDIF.
-
-      CASE lv_grid_form_no.
-        WHEN 1.
-* ---------- Grid 1--------------------------------------------------------------------------------
-* ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_1->label( <ls_fielddescr>-scrtext_l ).
-
-* ---------- Set input field ----------------------------------------------------------------------
-          CASE <ls_fielddescr>-datatype.
-            WHEN 'DATS'.
-              lr_form_shlp_1->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN 'TIMS'.
-              lr_form_shlp_1->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN OTHERS.
-              lr_form_shlp_1->input( value = irclient->_bind_edit( <lv_field> ) ).
-          ENDCASE.
-
-        WHEN 2.
-* ---------- Grid 2--------------------------------------------------------------------------------
-* ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_2->label( <ls_fielddescr>-rollname ).
-
-* ---------- Set input field ----------------------------------------------------------------------
-          CASE <ls_fielddescr>-datatype.
-            WHEN 'DATS'.
-              lr_form_shlp_2->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN 'TIMS'.
-              lr_form_shlp_2->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN OTHERS.
-              lr_form_shlp_2->input( value = irclient->_bind_edit( <lv_field> ) ).
-          ENDCASE.
-
-        WHEN 3.
-* ---------- Grid 3--------------------------------------------------------------------------------
-* ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_3->label( <ls_fielddescr>-rollname ).
-
-* ---------- Set input field ----------------------------------------------------------------------
-          CASE <ls_fielddescr>-datatype.
-            WHEN 'DATS'.
-              lr_form_shlp_3->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN 'TIMS'.
-              lr_form_shlp_3->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN OTHERS.
-              lr_form_shlp_3->input( value = irclient->_bind_edit( <lv_field> ) ).
-          ENDCASE.
-
-        WHEN 4.
-* ---------- Grid 4--------------------------------------------------------------------------------
-* ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_4->label( <ls_fielddescr>-rollname ).
-
-* ---------- Set input field ----------------------------------------------------------------------
-          CASE <ls_fielddescr>-datatype.
-            WHEN 'DATS'.
-              lr_form_shlp_4->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN 'TIMS'.
-              lr_form_shlp_4->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
-            WHEN OTHERS.
-              lr_form_shlp_4->input( value = irclient->_bind_edit( <lv_field> ) ).
-          ENDCASE.
-
-      ENDCASE.
-
-      UNASSIGN <ls_fielddescr>.
-
-    ENDLOOP.
-
-* ---------- Create table -------------------------------------------------------------------------
-    DATA(lr_table) = irparent->table( items = irclient->_bind_edit( <lt_result_itab> ) ).
-* ---------- Create Columns -----------------------------------------------------------------------
-    DATA(lr_columns) = lr_table->columns( ).
-
-* ---------- Set column ---------------------------------------------------------------------------
-    LOOP AT lt_fieldprop_lis ASSIGNING FIELD-SYMBOL(<ls_fieldprop_lis>).
-* ---------- Init loop data -----------------------------------------------------------------------
-      UNASSIGN: <ls_fielddescr>.
-
-* ---------- Get corresponding field description --------------------------------------------------
-      ASSIGN lt_ddffields[ fieldname = <ls_fieldprop_lis>-fieldname ] TO <ls_fielddescr>.
-      IF <ls_fielddescr> IS NOT ASSIGNED.
-        CONTINUE.
-      ENDIF.
-
-      lr_columns->column( )->text( <ls_fielddescr>-rollname ).
-    ENDLOOP.
-
-* ---------- Build export parameter list ----------------------------------------------------------
-    LOOP AT lt_fieldprop_lis ASSIGNING <ls_fieldprop_lis> WHERE shlpoutput = abap_true.
-* ---------- Init loop data -----------------------------------------------------------------------
-      CLEAR: lv_arg_fieldname.
-
-* ---------- Build parameter name -----------------------------------------------------------------
-      lv_arg_fieldname = `${` && <ls_fieldprop_lis>-fieldname && `}`.
-
-* ---------- Collect output fields ----------------------------------------------------------------
-      APPEND lv_arg_fieldname TO lt_arg.
-    ENDLOOP.
-
-    DATA(lr_item) = lr_table->items(
-        )->column_list_item( type = 'Navigation'  press = irclient->_event( val    = resultitabevent
-                                                                            t_arg  = lt_arg ) ).
-
-* ---------- Set cell content ---------------------------------------------------------------------
-    LOOP AT lt_fieldprop_lis ASSIGNING <ls_fieldprop_lis>.
-* ---------- Init loop data -----------------------------------------------------------------------
-      CLEAR: lv_cell_fieldname.
-
-* ---------- Build cell name ----------------------------------------------------------------------
-      lv_cell_fieldname = `{` && <ls_fieldprop_lis>-fieldname && `}`.
-      lr_item->cells( )->text( lv_cell_fieldname ).
-
-    ENDLOOP.
-
-    lr_grid_shlp = irparent->buttons( )->button(
-          text  = closebuttontext
-          press = irclient->_event_client( irclient->cs_event-popup_close ) ).
-
-
-    result = lr_grid_shlp.
-
-   ENDMETHOD.
 
 
   METHOD generic_tag.
@@ -4872,11 +4369,515 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD zcc_export_spreadsheet.
+
+    result = me.
+    _generic( name   = `ExportSpreadsheet`
+              ns     = `z2ui5`
+              t_prop = VALUE #( ( n = `tableId`  v = tableid )
+                                ( n = `text`     v = text )
+                                ( n = `icon`     v = icon )
+                                ( n = `type`     v = type )
+              ) ).
+
+  ENDMETHOD.
+
+
+  METHOD zcc_export_spreadsheet_js.
+
+    DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
+                          |\n| &&
+                          `        sap.ui.define([` && |\n| &&
+                          `            "sap/ui/core/Control",` && |\n| &&
+                          `            "sap/m/Button",` && |\n| &&
+                          `            "sap/ui/export/Spreadsheet"` && |\n| &&
+                          `        ], function (Control, Button, Spreadsheet) {` && |\n| &&
+                          `            "use strict";` && |\n| &&
+                          |\n| &&
+                          `            return Control.extend("z2ui5.ExportSpreadsheet", {` && |\n| &&
+                          |\n| &&
+                          `                metadata: {` && |\n| &&
+                          `                    properties: {` && |\n| &&
+                          `                        tableId: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        type: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        icon: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        text: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
+                          |\n| &&
+                          |\n| &&
+                          `                    aggregations: {` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    events: { },` && |\n| &&
+                          `                    renderer: null` && |\n| &&
+                          `                },` && |\n| &&
+                          |\n| &&
+                          `                renderer: function (oRm, oControl) {` && |\n| &&
+                          |\n| &&
+                          `                    oControl.oExportButton = new Button({` && |\n| &&
+                          `                        text: oControl.getProperty("text"),` && |\n| &&
+                          `                        icon: oControl.getProperty("icon"), ` && |\n| &&
+                          `                        type: oControl.getProperty("type"), ` && |\n| &&
+                          `                        press: function (oEvent) { ` && |\n| &&
+                          |\n| &&
+                          `                             var aCols =` && columnconfig  && `;` && |\n| &&
+                          |\n| &&
+                          `                             var oBinding, oSettings, oSheet, oTable, vTableId, vViewPrefix,vPrefixTableId;` && |\n| &&
+                          `                             vTableId = oControl.getProperty("tableId")` && |\n| &&
+                          `                          //   vViewPrefix = sap.z2ui5.oView.sId;` && |\n| &&
+                          `                           //  vPrefixTableId = vViewPrefix + "--" + vTableId;` && |\n| &&
+                          `                             vPrefixTableId = sap.z2ui5.oView.createId( vTableId );` && |\n| &&
+                          `                             oTable = sap.ui.getCore().byId(vPrefixTableId);` && |\n| &&
+                          `                             oBinding = oTable.getBinding("rows");` && |\n| &&
+                          `                             if (oBinding == null) {` && |\n| &&
+                          `                               oBinding = oTable.getBinding("items");` && |\n| &&
+                          `                             };` && |\n| &&
+                          `                             oSettings = {` && |\n| &&
+                          `                               workbook: { columns: aCols },` && |\n| &&
+                          `                               dataSource: oBinding` && |\n| &&
+                          `                             };` && |\n| &&
+                          `                             oSheet = new Spreadsheet(oSettings);` && |\n| &&
+                          `                             oSheet.build()` && |\n| &&
+                          `                               .then(function() {` && |\n| &&
+                          `                               }).finally(function() {` && |\n| &&
+                          `                                 oSheet.destroy();` && |\n| &&
+                          `                               });` && |\n| &&
+                          `                         }.bind(oControl)` && |\n| &&
+                          `                  });` && |\n| &&
+                          |\n| &&
+                          `                    oRm.renderControl(oControl.oExportButton);` && |\n| &&
+                          `                }` && |\n| &&
+                          `            });` && |\n| &&
+                          `        });`.
+
+    result = zcc_plain_xml( `<html:script>` && js && `</html:script>` ).
+
+  ENDMETHOD.
+
+
+  METHOD zcc_file_uploader.
+
+    result = me.
+    _generic( name   = `FileUploader`
+              ns     = `z2ui5`
+              t_prop = VALUE #( (  n = `placeholder` v = placeholder )
+                                (  n = `upload`      v = upload )
+                                (  n = `path`        v = path )
+                                (  n = `value`       v = value ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD zcc_file_uploader_js.
+
+    DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
+                          |\n| &&
+                          `        sap.ui.define([` && |\n| &&
+                          `            "sap/ui/core/Control",` && |\n| &&
+                          `            "sap/m/Button",` && |\n| &&
+                          `            "sap/ui/unified/FileUploader"` && |\n| &&
+                          `        ], function (Control, Button, FileUploader) {` && |\n| &&
+                          `            "use strict";` && |\n| &&
+                          |\n| &&
+                          `            return Control.extend("z2ui5.FileUploader", {` && |\n| &&
+                          |\n| &&
+                          `                metadata: {` && |\n| &&
+                          `                    properties: {` && |\n| &&
+                          `                        value: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        path: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        tooltip: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        fileType: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        placeholder: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        buttonText: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: "Upload"` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        enabled: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: true` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        multiple: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
+                          |\n| &&
+                          |\n| &&
+                          `                    aggregations: {` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    events: {` && |\n| &&
+                          `                        "upload": {` && |\n| &&
+                          `                            allowPreventDefault: true,` && |\n| &&
+                          `                            parameters: {}` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    renderer: null` && |\n| &&
+                          `                },` && |\n| &&
+                          |\n| &&
+                          `                renderer: function (oRm, oControl) {` && |\n| &&
+                          |\n| &&
+                          `                    oControl.oUploadButton = new Button({` && |\n| &&
+                          `                        text: oControl.getProperty("buttonText"),` && |\n| &&
+                          `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
+                          `                        press: function (oEvent) { ` && |\n| &&
+                          |\n| &&
+                          `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
+                          |\n| &&
+                          `                            var file = sap.z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
+                          `                            var reader = new FileReader();` && |\n| &&
+                          |\n| &&
+                          `                            reader.onload = function (evt) {` && |\n| &&
+                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
+                          `                                this.setProperty("value", vContent);` && |\n| &&
+                          `                                this.fireUpload();` && |\n| &&
+                          `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n| &&
+                          `                            }.bind(this)` && |\n| &&
+                          |\n| &&
+                          `                            reader.readAsDataURL(file);` && |\n| &&
+                          `                        }.bind(oControl)` && |\n| &&
+                          `                    });` && |\n| &&
+                          |\n| &&
+                          `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
+                          `                        icon: "sap-icon://browse-folder",` && |\n| &&
+                          `                        iconOnly: true,` && |\n| &&
+                          `                        value: oControl.getProperty("path"),` && |\n| &&
+                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
+                          `                        change: function (oEvent) {` && |\n| &&
+                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
+                          `                            this.setProperty("path", value);` && |\n| &&
+                          `                            if (value) {` && |\n| &&
+                          `                                this.oUploadButton.setEnabled();` && |\n| &&
+                          `                            } else {` && |\n| &&
+                          `                                this.oUploadButton.setEnabled(false);` && |\n| &&
+                          `                            }` && |\n| &&
+                          `                            this.oUploadButton.rerender();` && |\n| &&
+                          `                            sap.z2ui5.oUpload = oEvent.oSource;` && |\n| &&
+                          `                        }.bind(oControl)` && |\n| &&
+                          `                    });` && |\n| &&
+                          |\n| &&
+                          `                    var hbox = new sap.m.HBox();` && |\n| &&
+                          `                    hbox.addItem(oControl.oFileUploader);` && |\n| &&
+                          `                    hbox.addItem(oControl.oUploadButton);` && |\n| &&
+                          `                    oRm.renderControl(hbox);` && |\n| &&
+                          `                }` && |\n| &&
+                          `            });` && |\n| &&
+                          `        });`.
+
+    result = zcc_plain_xml( `<html:script>` && js && `</html:script>` ).
+
+  ENDMETHOD.
+
+
   METHOD zcc_plain_xml.
     result = me.
     _generic( name   = `ZZPLAIN`
               t_prop = VALUE #( ( n = `VALUE` v = val ) ) ).
   ENDMETHOD.
+
+
+   METHOD zfc_ddic_search_help.
+
+     TYPES:
+      BEGIN OF ty_ddshfprop,
+        fieldname(30)   TYPE c,
+        shlpinput(1)    TYPE c,
+        shlpoutput(1)   TYPE c,
+        shlpselpos(2)   TYPE n,
+        shlplispos(2)   TYPE n,
+        shlpseldis(1)   TYPE c,
+        defaultval(21)  TYPE c,
+      END OF ty_ddshfprop.
+
+    TYPES:
+      BEGIN OF ty_ddfields,
+        tabname(30)     TYPE c,
+        fieldname(30)   TYPE c,
+        langu(1)        TYPE c,
+        position(4)     TYPE n,
+        offset(6)       TYPE n,
+        domname(30)     TYPE c,
+        rollname(30)    TYPE c,
+        checktable(30)  TYPE c,
+        leng(6)         TYPE n,
+        intlen(6)       TYPE n,
+        outputlen(6)    TYPE n,
+        decimals(6)     TYPE n,
+        datatype(4)     TYPE c,
+        inttype(1)      TYPE c,
+        reftable(30)    TYPE c,
+        reffield(30)    TYPE c,
+        precfield(30)   TYPE c,
+        authorid(3)     TYPE c,
+        memoryid(20)    TYPE c,
+        logflag(1)      TYPE c,
+        mask(20)        TYPE c,
+        masklen(4)      TYPE n,
+        convexit(5)     TYPE c,
+        headlen(2)      TYPE n,
+        scrlen1(2)      TYPE n,
+        scrlen2(2)      TYPE n,
+        scrlen3(2)      TYPE n,
+        fieldtext(60)   TYPE c,
+        reptext(55)     TYPE c,
+        scrtext_s(10)   TYPE c,
+        scrtext_m(20)   TYPE c,
+        scrtext_l(40)   TYPE c,
+        keyflag(1)      TYPE c,
+        lowercase(1)    TYPE c,
+        mac(1)          TYPE c,
+        genkey(1)       TYPE c,
+        noforkey(1)     TYPE c,
+        valexi(1)       TYPE c,
+        noauthch(1)     TYPE c,
+        sign(1)         TYPE c,
+        dynpfld(1)      TYPE c,
+        f4availabl(1)   TYPE c,
+        comptype(1)     TYPE c,
+        lfieldname(132) TYPE c,
+        ltrflddis(1)    TYPE c,
+        bidictrlc(1)    TYPE c,
+        outputstyle(2)  TYPE n,
+        nohistory(1)    TYPE c,
+        ampmformat(1)   TYPE c,
+    END OF ty_ddfields.
+
+     DATA: lv_grid_form_no     TYPE i,
+           lt_arg              TYPE string_table,
+           lv_arg_fieldname    TYPE string,
+           lv_cell_fieldname   TYPE string,
+           lv_path_result_itab TYPE string,
+           lv_path_shlp_fields TYPE string,
+           lt_fieldprop_sel    TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
+           lt_fieldprop_lis    TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
+           lt_ddffields        TYPE STANDARD TABLE OF ty_ddfields WITH EMPTY KEY.
+
+     FIELD-SYMBOLS:
+                    <lt_result_itab>   TYPE ANY TABLE,
+                    <ls_shlp_fields>   TYPE any,
+                    <lv_field>         TYPE any.
+
+* ---------- Get result itab reference ------------------------------------------------------------
+    lv_path_result_itab = 'IRCONTROLLER->' && resultitabname.
+    ASSIGN (lv_path_result_itab) TO <lt_result_itab>.
+* ---------- Get searchhelp input fields structure reference --------------------------------------
+    lv_path_shlp_fields = 'IRCONTROLLER->' && shlpfieldsstrucname.
+    ASSIGN (lv_path_shlp_fields) TO <ls_shlp_fields>.
+
+    IF <lt_result_itab> IS NOT ASSIGNED OR
+      <ls_shlp_fields> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+
+  IF isshlp IS INITIAL.
+    RETURN.
+  ELSE.
+    ASSIGN COMPONENT 'FIELDPROP' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_fieldprop>).
+    IF <fs_fieldprop> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+  ENDIF.
+
+* ---------- Set Selection and List properties ----------------------------------------------------
+    lt_fieldprop_sel = <fs_fieldprop>.
+    lt_fieldprop_lis = <fs_fieldprop>.
+    DELETE lt_fieldprop_sel WHERE shlpselpos IS INITIAL.
+    DELETE lt_fieldprop_lis WHERE shlplispos IS INITIAL.
+    SORT lt_fieldprop_sel BY shlpselpos.
+    SORT lt_fieldprop_lis BY shlplispos.
+
+    ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_isshlp_fielddescr>).
+    IF <fs_isshlp_fielddescr> IS NOT ASSIGNED.
+      RETURN.
+    ENDIF.
+    lt_ddffields = <fs_isshlp_fielddescr>.
+
+* -------------------------------------------------------------------------------------------------
+*Searchfield Grid
+* -------------------------------------------------------------------------------------------------
+    DATA(lr_grid_shlp) = irparent->content( )->toolbar( )->toolbar_spacer(
+          )->button( text = searchbuttontext
+                     type    = 'Emphasized'
+                     press   = irclient->_event( searchevent ) )->get_parent(
+            )->grid( 'L3 M3 S3' )->content( 'layout' ).
+
+* ---------- Create 4 forms (grid columns) --------------------------------------------------------
+    DATA(lr_form_shlp_1) = lr_grid_shlp->simple_form( )->content( 'form' ).
+    DATA(lr_form_shlp_2) = lr_grid_shlp->simple_form( )->content( 'form' ).
+    DATA(lr_form_shlp_3) = lr_grid_shlp->simple_form( )->content( 'form' ).
+    DATA(lr_form_shlp_4) = lr_grid_shlp->simple_form( )->content( 'form' ).
+
+    LOOP AT lt_fieldprop_sel ASSIGNING FIELD-SYMBOL(<ls_fieldprop_sel>).
+* ---------- Init loop data -----------------------------------------------------------------------
+      UNASSIGN: <lv_field>.
+* ---------- Get corresponding field description --------------------------------------------------
+      ASSIGN lt_ddffields[ fieldname = <ls_fieldprop_sel>-fieldname ] TO FIELD-SYMBOL(<ls_fielddescr>).
+
+      IF <ls_fielddescr> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+
+* ---------- Get field reference ------------------------------------------------------------------
+      ASSIGN COMPONENT <ls_fielddescr>-fieldname OF STRUCTURE <ls_shlp_fields> TO <lv_field>.
+      IF <lv_field> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+
+* ---------- Determine grid form number -----------------------------------------------------------
+      IF lv_grid_form_no IS INITIAL.
+        lv_grid_form_no = 1.
+      ELSEIF lv_grid_form_no = 4.
+        lv_grid_form_no = 1.
+      ELSE.
+        lv_grid_form_no = lv_grid_form_no + 1.
+      ENDIF.
+
+      CASE lv_grid_form_no.
+        WHEN 1.
+* ---------- Grid 1--------------------------------------------------------------------------------
+* ---------- Set field label ----------------------------------------------------------------------
+          lr_form_shlp_1->label( <ls_fielddescr>-scrtext_l ).
+
+* ---------- Set input field ----------------------------------------------------------------------
+          CASE <ls_fielddescr>-datatype.
+            WHEN 'DATS'.
+              lr_form_shlp_1->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN 'TIMS'.
+              lr_form_shlp_1->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN OTHERS.
+              lr_form_shlp_1->input( value = irclient->_bind_edit( <lv_field> ) ).
+          ENDCASE.
+
+        WHEN 2.
+* ---------- Grid 2--------------------------------------------------------------------------------
+* ---------- Set field label ----------------------------------------------------------------------
+          lr_form_shlp_2->label( <ls_fielddescr>-rollname ).
+
+* ---------- Set input field ----------------------------------------------------------------------
+          CASE <ls_fielddescr>-datatype.
+            WHEN 'DATS'.
+              lr_form_shlp_2->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN 'TIMS'.
+              lr_form_shlp_2->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN OTHERS.
+              lr_form_shlp_2->input( value = irclient->_bind_edit( <lv_field> ) ).
+          ENDCASE.
+
+        WHEN 3.
+* ---------- Grid 3--------------------------------------------------------------------------------
+* ---------- Set field label ----------------------------------------------------------------------
+          lr_form_shlp_3->label( <ls_fielddescr>-rollname ).
+
+* ---------- Set input field ----------------------------------------------------------------------
+          CASE <ls_fielddescr>-datatype.
+            WHEN 'DATS'.
+              lr_form_shlp_3->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN 'TIMS'.
+              lr_form_shlp_3->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN OTHERS.
+              lr_form_shlp_3->input( value = irclient->_bind_edit( <lv_field> ) ).
+          ENDCASE.
+
+        WHEN 4.
+* ---------- Grid 4--------------------------------------------------------------------------------
+* ---------- Set field label ----------------------------------------------------------------------
+          lr_form_shlp_4->label( <ls_fielddescr>-rollname ).
+
+* ---------- Set input field ----------------------------------------------------------------------
+          CASE <ls_fielddescr>-datatype.
+            WHEN 'DATS'.
+              lr_form_shlp_4->date_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN 'TIMS'.
+              lr_form_shlp_4->time_picker( value  = irclient->_bind_edit( <lv_field> ) ).
+            WHEN OTHERS.
+              lr_form_shlp_4->input( value = irclient->_bind_edit( <lv_field> ) ).
+          ENDCASE.
+
+      ENDCASE.
+
+      UNASSIGN <ls_fielddescr>.
+
+    ENDLOOP.
+
+* ---------- Create table -------------------------------------------------------------------------
+    DATA(lr_table) = irparent->table( items = irclient->_bind_edit( <lt_result_itab> ) ).
+* ---------- Create Columns -----------------------------------------------------------------------
+    DATA(lr_columns) = lr_table->columns( ).
+
+* ---------- Set column ---------------------------------------------------------------------------
+    LOOP AT lt_fieldprop_lis ASSIGNING FIELD-SYMBOL(<ls_fieldprop_lis>).
+* ---------- Init loop data -----------------------------------------------------------------------
+      UNASSIGN: <ls_fielddescr>.
+
+* ---------- Get corresponding field description --------------------------------------------------
+      ASSIGN lt_ddffields[ fieldname = <ls_fieldprop_lis>-fieldname ] TO <ls_fielddescr>.
+      IF <ls_fielddescr> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
+
+      lr_columns->column( )->text( <ls_fielddescr>-rollname ).
+    ENDLOOP.
+
+* ---------- Build export parameter list ----------------------------------------------------------
+    LOOP AT lt_fieldprop_lis ASSIGNING <ls_fieldprop_lis> WHERE shlpoutput = abap_true.
+* ---------- Init loop data -----------------------------------------------------------------------
+      CLEAR: lv_arg_fieldname.
+
+* ---------- Build parameter name -----------------------------------------------------------------
+      lv_arg_fieldname = `${` && <ls_fieldprop_lis>-fieldname && `}`.
+
+* ---------- Collect output fields ----------------------------------------------------------------
+      APPEND lv_arg_fieldname TO lt_arg.
+    ENDLOOP.
+
+    DATA(lr_item) = lr_table->items(
+        )->column_list_item( type = 'Navigation'  press = irclient->_event( val    = resultitabevent
+                                                                            t_arg  = lt_arg ) ).
+
+* ---------- Set cell content ---------------------------------------------------------------------
+    LOOP AT lt_fieldprop_lis ASSIGNING <ls_fieldprop_lis>.
+* ---------- Init loop data -----------------------------------------------------------------------
+      CLEAR: lv_cell_fieldname.
+
+* ---------- Build cell name ----------------------------------------------------------------------
+      lv_cell_fieldname = `{` && <ls_fieldprop_lis>-fieldname && `}`.
+      lr_item->cells( )->text( lv_cell_fieldname ).
+
+    ENDLOOP.
+
+    lr_grid_shlp = irparent->buttons( )->button(
+          text  = closebuttontext
+          press = irclient->_event_client( irclient->cs_event-popup_close ) ).
+
+
+    result = lr_grid_shlp.
+
+   ENDMETHOD.
 
 
   METHOD _generic.
