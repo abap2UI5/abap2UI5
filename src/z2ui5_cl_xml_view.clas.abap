@@ -1918,11 +1918,9 @@
   METHODS generate_ddic_shlp
     IMPORTING
       !irparent            TYPE REF TO Z2UI5_CL_XML_VIEW
-      !shlpid              TYPE clike OPTIONAL
       !resultitabname      TYPE clike OPTIONAL
       !shlpfieldsstrucname TYPE clike OPTIONAL
       !irclient            TYPE REF TO z2ui5_if_client OPTIONAL
-      !ircontroller        TYPE REF TO object OPTIONAL
       !resultitabevent     TYPE clike OPTIONAL
       !closebuttontext     TYPE clike OPTIONAL
       !searchbuttontext    TYPE clike OPTIONAL
@@ -2911,9 +2909,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            lv_cell_fieldname   TYPE string,
            lv_path_result_itab TYPE string,
            lv_path_shlp_fields TYPE string,
-           lt_fieldprop_sel    TYPE TABLE OF ty_ddshfprop,
-           lt_fieldprop_lis    TYPE TABLE OF ty_ddshfprop,
-           lt_ddffields        TYPE TABLE OF ty_ddfields.
+           lt_fieldprop_sel    TYPE STANDARD TABLE OF ty_ddshfprop,
+           lt_fieldprop_lis    TYPE STANDARD TABLE OF ty_ddshfprop,
+           lt_ddffields        TYPE STANDARD TABLE OF ty_ddfields.
 
      FIELD-SYMBOLS:
                     <lt_result_itab>   TYPE ANY TABLE,
@@ -2936,7 +2934,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     RETURN.
   ELSE.
     ASSIGN COMPONENT 'FIELDPROP' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_fieldprop>).
-    IF NOT <fs_fieldprop> IS ASSIGNED.
+    IF <fs_fieldprop> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
   ENDIF.
