@@ -1927,7 +1927,7 @@
       !searchbuttontext    TYPE clike OPTIONAL
       !searchevent         TYPE clike OPTIONAL
       !isshlp              TYPE any OPTIONAL
-      ircontroller         TYPE REF TO object OPTIONAL 
+      ircontroller         TYPE REF TO object OPTIONAL
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view ##NEEDED.
 
