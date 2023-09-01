@@ -2909,9 +2909,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
            lv_cell_fieldname   TYPE string,
            lv_path_result_itab TYPE string,
            lv_path_shlp_fields TYPE string,
-           lt_fieldprop_sel    TYPE STANDARD TABLE OF ty_ddshfprop,
-           lt_fieldprop_lis    TYPE STANDARD TABLE OF ty_ddshfprop,
-           lt_ddffields        TYPE STANDARD TABLE OF ty_ddfields.
+           lt_fieldprop_sel    TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
+           lt_fieldprop_lis    TYPE STANDARD TABLE OF ty_ddshfprop WITH EMPTY KEY,
+           lt_ddffields        TYPE STANDARD TABLE OF ty_ddfields WITH EMPTY KEY.
 
      FIELD-SYMBOLS:
                     <lt_result_itab>   TYPE ANY TABLE,
@@ -2948,7 +2948,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     SORT lt_fieldprop_lis BY shlplispos.
 
     ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_isshlp_fielddescr>).
-    IF NOT <fs_isshlp_fielddescr> IS ASSIGNED.
+    IF <fs_isshlp_fielddescr> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     lt_ddffields = <fs_isshlp_fielddescr>.
