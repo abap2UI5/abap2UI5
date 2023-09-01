@@ -2906,7 +2906,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     END OF ty_ddfields.
 
      DATA: lv_grid_form_no     TYPE i,
-           lt_arg              TYPE TABLE OF string,
+           lt_arg              TYPE STANDARD TABLE OF string WITH EMPTY KEY,
            lv_arg_fieldname    TYPE string,
            lv_cell_fieldname   TYPE string,
            lv_path_result_itab TYPE string,
