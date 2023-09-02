@@ -4732,7 +4732,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     ENDTRY.
 
     lt_fieldprop_sel = ls_shlp-fieldprop.
-    lt_fieldprop_lis = ls_shlp-fieldprop..
+    lt_fieldprop_lis = ls_shlp-fieldprop.
 
   ELSE.
 
