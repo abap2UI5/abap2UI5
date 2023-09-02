@@ -599,8 +599,14 @@
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS message_popover
       IMPORTING
-        !items        TYPE clike OPTIONAL
-        !groupitems   TYPE clike OPTIONAL
+        !items              TYPE clike OPTIONAL
+        !groupitems         TYPE clike OPTIONAL
+        !listselect         TYPE clike OPTIONAL
+        !activetitlepress   TYPE clike OPTIONAL
+        !placement          TYPE clike OPTIONAL
+        !afterclose         TYPE clike OPTIONAL
+        !beforeclose        TYPE clike OPTIONAL
+        !initiallyexpanded  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS message_item
@@ -610,7 +616,11 @@
         !subtitle          TYPE clike OPTIONAL
         !description       TYPE clike OPTIONAL
         !groupname         TYPE clike OPTIONAL
-        !markupdescription TYPE abap_bool OPTIONAL
+        !markupdescription TYPE clike OPTIONAL
+        !textDirection     TYPE clike OPTIONAL
+        !longtextUrl       TYPE clike OPTIONAL
+        !counter           TYPE clike OPTIONAL
+        !activeTitle       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS page
@@ -1928,6 +1938,7 @@
       !searchevent         TYPE clike OPTIONAL
       !isshlp              TYPE any OPTIONAL
       ircontroller         TYPE REF TO object OPTIONAL
+      shlpid               TYPE string OPTIONAL
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view ##NEEDED.
 
@@ -3108,11 +3119,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD message_item.
     result = _generic( name   = `MessageItem`
-                       t_prop = VALUE #( ( n = `type`        v = type )
-                                         ( n = `title`       v = title )
-                                         ( n = `subtitle`    v = subtitle )
-                                         ( n = `description` v = description )
-                                         ( n = `groupName`   v = groupname )
+                       t_prop = VALUE #( ( n = `type`                v = type )
+                                         ( n = `title`               v = title )
+                                         ( n = `subtitle`            v = subtitle )
+                                         ( n = `description`         v = description )
+                                         ( n = `longtextUrl`         v = longtextUrl )
+                                         ( n = `textDirection`       v = textDirection )
+                                         ( n = `groupName`           v = groupname )
+                                         ( n = `activeTitle`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( activeTitle ) )
+                                         ( n = `counter`             v = counter )
                                          ( n = `markupDescription`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( markupdescription ) ) ) ).
   ENDMETHOD.
 
@@ -3131,8 +3146,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD message_popover.
     result = _generic( name   = `MessagePopover`
-                       t_prop = VALUE #( ( n = `items`      v = items )
-                                         ( n = `groupItems` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( groupitems ) ) ) ).
+                       t_prop = VALUE #( ( n = `items`             v = items )
+                                         ( n = `activeTitlePress`  v = activetitlepress )
+                                         ( n = `placement`         v = placement )
+                                         ( n = `listSelect`        v = listselect )
+                                         ( n = `afterClose`        v = afterclose )
+                                         ( n = `beforeClose`       v = beforeClose )
+                                         ( n = `initiallyExpanded` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( initiallyexpanded ) )
+                                         ( n = `groupItems`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( groupitems ) ) ) ).
   ENDMETHOD.
 
 
@@ -4695,28 +4716,53 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     ENDIF.
 
   IF isshlp IS INITIAL.
-    RETURN.
+    TRY.
+      DATA ls_shlp TYPE shlp_descr.
+      DATA shlp_id(30) TYPE c.
+      shlp_id = shlpid.
+
+      "get shlp data
+      CALL FUNCTION 'F4IF_GET_SHLP_DESCR'
+        EXPORTING
+          shlpname = shlp_id
+        IMPORTING
+          shlp     = ls_shlp.
+    CATCH cx_root.
+      RETURN.
+    ENDTRY.
+
+    lt_fieldprop_sel = ls_shlp-fieldprop.
+    lt_fieldprop_lis = ls_shlp-fieldprop..
+
   ELSE.
+
     ASSIGN COMPONENT 'FIELDPROP' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_fieldprop>).
     IF <fs_fieldprop> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
+
+    lt_fieldprop_sel = <fs_fieldprop>.
+    lt_fieldprop_lis = <fs_fieldprop>.
+
   ENDIF.
 
 * ---------- Set Selection and List properties ----------------------------------------------------
-    lt_fieldprop_sel = <fs_fieldprop>.
-    lt_fieldprop_lis = <fs_fieldprop>.
+
     DELETE lt_fieldprop_sel WHERE shlpselpos IS INITIAL.
     DELETE lt_fieldprop_lis WHERE shlplispos IS INITIAL.
     SORT lt_fieldprop_sel BY shlpselpos.
     SORT lt_fieldprop_lis BY shlplispos.
 
-    ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE isshlp TO FIELD-SYMBOL(<fs_isshlp_fielddescr>).
+    IF ls_shlp IS NOT INITIAL.
+      ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE ls_shlp TO FIELD-SYMBOL(<fs_isshlp_fielddescr>).
+    ELSE.
+      ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE isshlp TO <fs_isshlp_fielddescr>.
+    ENDIF.
+
     IF <fs_isshlp_fielddescr> IS NOT ASSIGNED.
       RETURN.
     ENDIF.
     lt_ddffields = <fs_isshlp_fielddescr>.
-
 * -------------------------------------------------------------------------------------------------
 *Searchfield Grid
 * -------------------------------------------------------------------------------------------------
@@ -4776,7 +4822,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         WHEN 2.
 * ---------- Grid 2--------------------------------------------------------------------------------
 * ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_2->label( <ls_fielddescr>-rollname ).
+          lr_form_shlp_2->label( <ls_fielddescr>-scrtext_l ).
 
 * ---------- Set input field ----------------------------------------------------------------------
           CASE <ls_fielddescr>-datatype.
@@ -4791,7 +4837,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         WHEN 3.
 * ---------- Grid 3--------------------------------------------------------------------------------
 * ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_3->label( <ls_fielddescr>-rollname ).
+          lr_form_shlp_3->label( <ls_fielddescr>-scrtext_l ).
 
 * ---------- Set input field ----------------------------------------------------------------------
           CASE <ls_fielddescr>-datatype.
@@ -4806,7 +4852,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         WHEN 4.
 * ---------- Grid 4--------------------------------------------------------------------------------
 * ---------- Set field label ----------------------------------------------------------------------
-          lr_form_shlp_4->label( <ls_fielddescr>-rollname ).
+          lr_form_shlp_4->label( <ls_fielddescr>-scrtext_l ).
 
 * ---------- Set input field ----------------------------------------------------------------------
           CASE <ls_fielddescr>-datatype.
@@ -4840,7 +4886,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      lr_columns->column( )->text( <ls_fielddescr>-rollname ).
+      lr_columns->column( )->text( <ls_fielddescr>-scrtext_l ).
     ENDLOOP.
 
 * ---------- Build export parameter list ----------------------------------------------------------
