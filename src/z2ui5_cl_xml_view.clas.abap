@@ -4722,7 +4722,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
       shlp_id = shlpid.
 
       "get shlp data
-      CALL FUNCTION 'F4IF_GET_SHLP_DESCR'
+      data(lv_function) = `F4IF_GET_SHLP_DESCR`.
+      CALL FUNCTION lv_function
         EXPORTING
           shlpname = shlp_id
         IMPORTING
