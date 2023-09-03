@@ -4643,7 +4643,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
          high(45)      TYPE c,
        END OF ty_ddshselops.
 
-     TYPES t_ty_ddshselops TYPE TABLE OF ty_ddshselops WITH empty KEY.
+     TYPES t_ty_ddshselops TYPE TABLE OF ty_ddshselops WITH DEFAULT KEY.
 
      TYPES:
        BEGIN OF ty_ddshfprops,
@@ -4656,7 +4656,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
          defaultval(21) TYPE c,
        END OF ty_ddshfprops.
 
-     TYPES t_ty_ddshfprops TYPE TABLE OF ty_ddshfprops WITH empty KEY.
+     TYPES t_ty_ddshfprops TYPE TABLE OF ty_ddshfprops WITH DEFAULT KEY.
 
      TYPES:
        BEGIN OF ty_ddfields,
@@ -4711,7 +4711,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
          ampmformat(1)   TYPE c,
        END OF ty_ddfields.
 
-     TYPES t_ty_ddfields TYPE TABLE OF ty_ddfields WITH empty KEY.
+     TYPES t_ty_ddfields TYPE TABLE OF ty_ddfields WITH DEFAULT KEY.
 
      TYPES:
        BEGIN OF ty_ddshifaces,
@@ -4726,7 +4726,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
          topshlpfld(30) TYPE c,
        END OF ty_ddshifaces.
 
-     TYPES t_ty_ddshifaces TYPE TABLE OF ty_ddshifaces WITH empty KEY.
+     TYPES t_ty_ddshifaces TYPE TABLE OF ty_ddshifaces WITH DEFAULT KEY.
 
      TYPES:
        BEGIN OF ty_intdescr,
