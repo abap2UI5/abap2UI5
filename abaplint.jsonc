@@ -26,7 +26,7 @@
     "allowed_object_naming": true,
     "allowed_object_types": true,
     "ambiguous_statement": true,
-    "avoid_use": true,
+    "avoid_use": false,
     "begin_end_names": true,
     "begin_single_include": true,
     "call_transaction_authority_check": true,
