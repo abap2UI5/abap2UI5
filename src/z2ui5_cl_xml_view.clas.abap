@@ -4831,7 +4831,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
      SORT lt_fieldprop_lis BY shlplispos.
 
      IF ls_shlp IS NOT INITIAL.
-       ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE ls_shlp TO FIELD-SYMBOL(<fs_isshlp_fielddescr>).
+       field-symbols <fs_isshlp_fielddescr> type standard table.
+       ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE ls_shlp TO <fs_isshlp_fielddescr>.
      ELSE.
        ASSIGN COMPONENT 'FIELDDESCR' OF STRUCTURE isshlp TO <fs_isshlp_fielddescr>.
      ENDIF.
