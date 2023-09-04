@@ -117,13 +117,9 @@ INTERFACE z2ui5_if_client
 
   METHODS message_manager_add
     IMPORTING
-      val           TYPE ty_t_message_manager
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
+      val           TYPE ty_t_message_manager.
 
-  METHODS message_manager_clear
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
+  METHODS message_manager_clear.
 
   METHODS popup_model_update.
 
