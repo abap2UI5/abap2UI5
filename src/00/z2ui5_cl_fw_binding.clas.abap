@@ -26,6 +26,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_ready     TYPE abap_bool,
         check_dissolved TYPE abap_bool,
         check_temp      TYPE abap_bool,
+        view            type string,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -36,6 +37,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         type            TYPE string OPTIONAL
         data            TYPE data OPTIONAL
         check_attri     TYPE data OPTIONAL
+        view            type string optional
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -48,6 +50,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_type  TYPE string.
     DATA mr_data TYPE REF TO data.
     DATA mv_check_attri TYPE abap_bool.
+    data mv_view type string.
 
     CLASS-METHODS update_attri
       IMPORTING
@@ -145,6 +148,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     bind->bind_type  = mv_type.
     bind->name_front = name_front_create( bind->name ).
+    bind->view       = mv_view.
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.

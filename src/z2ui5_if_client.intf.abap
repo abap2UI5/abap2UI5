@@ -10,6 +10,14 @@ INTERFACE z2ui5_if_client
       nav_container_to TYPE string VALUE `NAV_CONTAINER_TO`,
     END OF cs_event.
 
+  CONSTANTS:
+    BEGIN OF cs_view,
+      main    TYPE string VALUE `MAIN`,
+      nested  TYPE string VALUE `NESTED`,
+      popover TYPE string VALUE `POPOVER`,
+      popup   TYPE string VALUE `POPUP`,
+    END OF cs_view.
+
   TYPES:
     BEGIN OF ty_s_name_value,
       n TYPE string,
@@ -106,6 +114,16 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
+  METHODS message_manager_add
+    IMPORTING
+      val           TYPE z2ui5_if_client=>ty_t_message_manager
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
+
+  METHODS message_manager_clear
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
+
   METHODS popup_model_update.
 
   METHODS popup_destroy.
@@ -153,7 +171,7 @@ INTERFACE z2ui5_if_client
 
   METHODS title_set
     IMPORTING
-      val type clike.
+      val TYPE clike.
 
   METHODS message_toast_display
     IMPORTING
@@ -178,6 +196,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
+      view          TYPE string OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 

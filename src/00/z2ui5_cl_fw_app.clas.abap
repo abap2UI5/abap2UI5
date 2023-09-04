@@ -126,7 +126,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
         )->text( `Define view, implement behaviour`
         )->link( text   = `(Example)`
                  target = `_blank`
-                 href   = `https://github.com/abap2ui5/ABAP2UI5/blob/main/src/z2ui5_cl_app_hello_world.clas.abap`
+                 href   = `https://github.com/abap2UI5/ABAP2UI5/blob/main/src/z2ui5_cl_fw_app_hello_world.clas.abap`
         )->label( `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
@@ -248,7 +248,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
       ms_home-btn_event_id   = `BUTTON_CHECK`.
       ms_home-class_editable = abap_true.
       ms_home-btn_icon       = `sap-icon://validate`.
-      ms_home-classname      = `Z2UI5_CL_APP_HELLO_WORLD`.
+      ms_home-classname      = `Z2UI5_CL_FW_APP_HELLO_WORLD`.
     ENDIF.
 
     mv_check_demo = abap_true.
