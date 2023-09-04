@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_http_handler DEFINITION
+CLASS z2ui5_cl_fw_http_handler DEFINITION
   PUBLIC
   CREATE PUBLIC.
 
@@ -15,6 +15,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         content_security_policy TYPE clike                            OPTIONAL
         check_logging           TYPE abap_bool                        OPTIONAL
+        custom_js               type string                           optional
           PREFERRED PARAMETER t_config
       RETURNING
         VALUE(r_result)         TYPE string.
@@ -26,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_http_handler IMPLEMENTATION.
+CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -240,22 +241,25 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `               if (!sap.z2ui5.oViewPopup.isOpen || sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n| &&
                            `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
+                              `                  sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                            `                  }` && |\n| &&
                            `                    }` && |\n| &&
                            `              if ( isUpdated == false ) { ` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover) {` && |\n| &&
                            `              if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n| &&
-                           `                        sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n| &&
+                           `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
+                              `                  sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                            `                } } }` && |\n| &&
                            `                if (isUpdated == false){` && |\n| &&
                            `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n| &&
                            `                       sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest.getModel().getData().EDIT;` && |\n| &&
-                           `                   //     sap.z2ui5.oBody.EDIT = sap.z2ui5.oLastView.getModel().getData().EDIT;` && |\n| &&
+                           `                   sap.z2ui5.oBody.VIEWNAME = 'NEST';` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
                            `                } }` && |\n| &&
                            `                if (isUpdated == false){` && |\n| &&
                            `                     sap.z2ui5.oBody.EDIT = sap.z2ui5.oView.getModel().getData().EDIT;` && |\n| &&
+                           `                  sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                            `                 }` && |\n| &&
                            |\n| &&
                            `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n| &&
@@ -338,7 +342,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                        };` && |\n| &&
                            `                        sap.ui.getCore().getMessageManager().registerObject(oView, true);` && |\n| &&
                            `                        sap.z2ui5.oView = oView;` && |\n| &&
-                           `                //        sap.z2ui5.oLastView = oView;` && |\n| &&
                            `                    },` && |\n| &&
                            `                    );` && |\n| &&
                            `                } else {` && |\n| &&
@@ -360,6 +363,16 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n| &&
                            `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n| &&
                            `                }` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.CHECK_CLEAR == true) {` && |\n| &&
+                           `                       sap.ui.getCore().getMessageManager().removeAllMessages();        ` && |\n| &&
+                           `                       sap.ui.getCore().getMessageManager().registerObject(oView, true);        } ` && |\n| &&
+                           `                if (sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.T_MESSAGE != "") {` && |\n| &&
+                           `                   sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.T_MESSAGE.forEach( item => { ` && |\n|  &&
+                           `                 sap.ui.getCore().getMessageManager().addMessages( new sap.ui.core.message.Message({` && |\n|  &&
+                           `                        message: item.MESSAGE, ` && |\n|  &&
+                           `                    //    persistent: true, // create message as transition message` && |\n|  &&
+                           `                         type: item.TYPE ` && |\n|  &&
+                           `                    }));}) }                         ` &&
                            `            },` && |\n| &&
                            `            readHttp: () => {` && |\n| &&
                            |\n| &&
@@ -426,6 +439,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                            `sap.z2ui5.Helper.DateAbapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapDateToDateObject = (d => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7]));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n| &&
+                           custom_js &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></html>`.

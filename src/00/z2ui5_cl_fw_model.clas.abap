@@ -9,6 +9,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
       IMPORTING
         app             TYPE REF TO object
         attri           TYPE z2ui5_cl_fw_binding=>ty_t_attri
+        viewname        TYPE string
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_model.
 
@@ -22,6 +23,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
 
     DATA mo_app   TYPE REF TO object.
     DATA mt_attri TYPE z2ui5_cl_fw_binding=>ty_t_attri.
+    DATA mv_viewname TYPE string.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -35,147 +37,15 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
     r_result = NEW #( ).
     r_result->mo_app = app.
     r_result->mt_attri = attri.
+    r_result->mv_viewname = viewname.
 
   ENDMETHOD.
 
   METHOD main_set_backend.
 
-
-*    DATA(lv_name_bind) = `MODEL->OBINDS`.
-*    FIELD-SYMBOLS <binds> TYPE any.
-*    UNASSIGN <binds>.
-*    ASSIGN (lv_name_bind) TO <binds>.
-*
-*
-*    DATA(lt_binds) = VALUE z2ui5_if_client=>ty_t_name_value( ).
-*
-*    z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
-*          EXPORTING
-*              ir_tab_from = <binds>
-*          IMPORTING
-*              t_result    = lt_binds ).
-*
-*    LOOP AT lt_binds REFERENCE INTO DATA(lr_comp).
-*
-*      DATA(lv_name_back) = `MO_APP->` && lr_comp->v.
-*
-*      FIELD-SYMBOLS <backend> TYPE any.
-*      UNASSIGN <backend>.
-*      ASSIGN (lv_name_back) TO <backend>.
-*      IF sy-subrc <> 0.
-*        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-*          EXPORTING
-*            val = `NO_BACKEND_VALUE_FOUND_WITH_NAME__` && lv_name_back.
-*      ENDIF.
-*
-*      DATA(lv_name_front) = `MODEL->` && lr_comp->n.
-*      FIELD-SYMBOLS <frontend> TYPE any.
-*      UNASSIGN <frontend>.
-*      ASSIGN (lv_name_front) TO <frontend>.
-*      IF sy-subrc <> 0.
-*        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-*          EXPORTING
-*            val = `NO_FRONTEND_VALUE_FOUND_WITH_NAME__` && lv_name_front.
-*      ENDIF.
-*
-*      DATA(lv_type_kind) = z2ui5_cl_fw_utility=>rtti_get_type_kind( <backend> ).
-*
-*      CASE lv_type_kind.
-*
-*        WHEN `h`.
-*          z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
-*            EXPORTING
-*                ir_tab_from = <frontend>
-*            IMPORTING
-*                t_result    = <backend> ).
-*
-*        WHEN OTHERS.
-*          ASSIGN <frontend>->* TO <frontend>.
-*          CASE lv_type_kind.
-*            WHEN 'D' OR 'T'.
-*              z2ui5_cl_fw_utility=>trans_json_2_any(
-*                EXPORTING
-*                    val = `"` && <frontend> && `"`
-*                CHANGING
-*                    data = <backend> ).
-*
-*            WHEN OTHERS.
-*              <backend> = <frontend>.
-*          ENDCASE.
-*
-*      ENDCASE.
-*
-*    ENDLOOP.
-
-
-*    FIELD-SYMBOLS <model> TYPE any.
-*    FIELD-SYMBOLS <comp> TYPE any.
-*    ASSIGN model->* TO <model>.
-*
-*    DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <model> ).
-*
-*    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
-*
-*      DATA(lv_name_back) = `MO_APP->` && lr_comp->name.
-*
-*      FIELD-SYMBOLS <backend> TYPE any.
-*      UNASSIGN <backend>.
-*      ASSIGN (lv_name_back) TO <backend>.
-*      IF sy-subrc <> 0.
-*        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-*          EXPORTING
-*            val = `NO_BACKEND_VALUE_FOUND_WITH_NAME__` && lv_name_back.
-*      ENDIF.
-*
-*      DATA(lv_name_front) = `MODEL->` && lr_comp->name.
-*      FIELD-SYMBOLS <frontend> TYPE any.
-*      UNASSIGN <frontend>.
-*      ASSIGN (lv_name_front) TO <frontend>.
-*      IF sy-subrc <> 0.
-*        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-*          EXPORTING
-*            val = `NO_FRONTEND_VALUE_FOUND_WITH_NAME__` && lv_name_front.
-*      ENDIF.
-*
-*      DATA(lv_type_kind) = z2ui5_cl_fw_utility=>rtti_get_type_kind( <backend> ).
-*
-*
-*
-*      CASE lv_type_kind.
-*
-*        WHEN `h`.
-*          z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
-*            EXPORTING
-*                ir_tab_from = <frontend>
-*            IMPORTING
-*                t_result    = <backend> ).
-*
-*        WHEN OTHERS.
-*          ASSIGN <frontend>->* TO <frontend>.
-*          CASE lv_type_kind.
-*            WHEN 'D' OR 'T'.
-*              z2ui5_cl_fw_utility=>trans_json_2_any(
-*                EXPORTING
-*                    val = `"` && <frontend> && `"`
-*                CHANGING
-*                    data = <backend> ).
-*
-*            WHEN OTHERS.
-*              <backend> = <frontend>.
-*          ENDCASE.
-*
-*      ENDCASE.
-*
-*    ENDLOOP.
-
-
-
-
-
-
-
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way.
+        WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way AND
+              viewname  = mv_viewname.
       TRY.
 
           DATA(lv_name_back) = `MO_APP->` && lr_attri->name.

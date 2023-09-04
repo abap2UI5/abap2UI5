@@ -168,8 +168,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~timer_set.
 
-    mo_handler->ms_next-s_set-s_timer-interval_ms     = interval_ms.
-    mo_handler->ms_next-s_set-s_timer-event_finished  = event_finished.
+    mo_handler->ms_next-s_set-s_timer-interval_ms    = interval_ms.
+    mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
 
   ENDMETHOD.
 
@@ -260,6 +260,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
                         data  = val
+                        view  = view
                       ).
 
     result = lo_binder->main( ).
@@ -308,4 +309,17 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     result = result && `)`.
 
   ENDMETHOD.
+
+  METHOD z2ui5_if_client~message_manager_add.
+
+    mo_handler->ms_next-s_set-s_message_manager-t_message = val.
+
+  ENDMETHOD.
+
+    METHOD z2ui5_if_client~message_manager_clear.
+
+    mo_handler->ms_next-s_set-s_message_manager-check_clear = abap_true.
+
+  ENDMETHOD.
+
 ENDCLASS.
