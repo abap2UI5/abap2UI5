@@ -115,6 +115,10 @@
       IMPORTING
         !text           TYPE clike OPTIONAL
         !additionaltext TYPE clike OPTIONAL
+        !key            TYPE clike OPTIONAL
+        !icon           TYPE clike OPTIONAL
+        !enabled        TYPE clike OPTIONAL
+        !textDirection  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -379,6 +383,7 @@
         !maxsuggestionwidth           TYPE clike OPTIONAL
         !fieldwidth                   TYPE clike OPTIONAL
         !valuehelponly                TYPE clike OPTIONAL
+        !width                        TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
@@ -506,10 +511,13 @@
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS radial_micro_chart
       IMPORTING
-        !sice         TYPE clike OPTIONAL
+        !size         TYPE clike OPTIONAL
         !percentage   TYPE clike OPTIONAL
         !press        TYPE clike OPTIONAL
         !valuecolor   TYPE clike OPTIONAL
+        !height       TYPE clike OPTIONAL
+        !alignContent TYPE clike OPTIONAL
+        !hideOnNoData TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS column_list_item
@@ -791,6 +799,14 @@
         !valuestatetext        TYPE clike OPTIONAL
         !enabled               TYPE clike OPTIONAL
         !showcurrentdatebutton TYPE clike OPTIONAL
+        !change                TYPE clike OPTIONAL
+        !hideInput             TYPE clike OPTIONAL
+        !showFooter            TYPE clike OPTIONAL
+        !visible               TYPE clike OPTIONAL
+        !showValueStateMessage TYPE clike OPTIONAL
+        !minDate               TYPE clike OPTIONAL
+        !maxDate               TYPE clike OPTIONAL
+        !editable              TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
@@ -872,21 +888,53 @@
       IMPORTING
         !selectedkey   TYPE clike OPTIONAL
         !showclearicon TYPE clike OPTIONAL
-        !label         TYPE clike OPTIONAL
+        !selectionchange TYPE clike OPTIONAL
+        !selectedItem TYPE clike OPTIONAL
         !items         TYPE clike OPTIONAL
         !change        TYPE clike OPTIONAL
+        !width TYPE clike OPTIONAL
+        !showSecondaryValues TYPE clike OPTIONAL
+        !placeholder TYPE clike OPTIONAL
+        !selectedItemId TYPE clike OPTIONAL
+        !name TYPE clike OPTIONAL
+        !value TYPE clike OPTIONAL
+        !valueState TYPE clike OPTIONAL
+        !valueStateText TYPE clike OPTIONAL
+        !textAlign TYPE clike OPTIONAL
+        !visible TYPE clike OPTIONAL
+        !showValueStateMessage TYPE clike OPTIONAL
+        !showButton TYPE clike OPTIONAL
+        !required TYPE clike OPTIONAL
+        !editable TYPE clike OPTIONAL
+        !enabled TYPE clike OPTIONAL
+        !filterSecondaryValues TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS multi_combobox
       IMPORTING
-        !selectionchange     TYPE clike OPTIONAL
-        !selectionfinish     TYPE clike OPTIONAL
-        !width               TYPE clike OPTIONAL
-        !showclearicon       TYPE clike OPTIONAL
-        !showsecondaryvalues TYPE clike OPTIONAL
-        !showselectall       TYPE clike OPTIONAL
-        !selectedkeys        TYPE clike OPTIONAL
-        !items               TYPE clike OPTIONAL
+        !selectionChange TYPE clike OPTIONAL
+        !selectedKeys TYPE clike OPTIONAL
+        !items TYPE clike OPTIONAL
+        !selectionFinish TYPE clike OPTIONAL
+        !width TYPE clike OPTIONAL
+        !showClearIcon TYPE clike OPTIONAL
+        !showSecondaryValues TYPE clike OPTIONAL
+        !placeholder TYPE clike OPTIONAL
+        !selectedItemId TYPE clike OPTIONAL
+        !selectedKey TYPE clike OPTIONAL
+        !name TYPE clike OPTIONAL
+        !value TYPE clike OPTIONAL
+        !valueState TYPE clike OPTIONAL
+        !valueStateText TYPE clike OPTIONAL
+        !textAlign TYPE clike OPTIONAL
+        !visible TYPE clike OPTIONAL
+        !showValueStateMessage TYPE clike OPTIONAL
+        !showButton TYPE clike OPTIONAL
+        !required TYPE clike OPTIONAL
+        !editable TYPE clike OPTIONAL
+        !enabled TYPE clike OPTIONAL
+        !filterSecondaryValues TYPE clike OPTIONAL
+        !showSelectAll TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
     METHODS grid
@@ -1205,6 +1253,7 @@
         !useentirewidth TYPE clike OPTIONAL
         !valuestate     TYPE clike OPTIONAL
         !width          TYPE clike OPTIONAL
+        !select         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1218,6 +1267,7 @@
         !textdirection TYPE clike OPTIONAL
         !valuestate    TYPE clike OPTIONAL
         !width         TYPE clike OPTIONAL
+        !select        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
 
@@ -2207,8 +2257,26 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( (  n = `showClearIcon` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showclearicon ) )
                                          (  n = `selectedKey`   v = selectedkey )
                                          (  n = `items`         v = items )
-                                         (  n = `label`         v = label )
+                                         (  n = `selectionchange`         v = selectionchange )
+                                         (  n = `selectedItem`         v = selectedItem )
+                                         (  n = `selectedItemId`         v = selectedItemId )
+                                         (  n = `name`         v = name )
+                                         (  n = `value`         v = value )
+                                         (  n = `valueState`         v = valueState )
+                                         (  n = `valueStateText`         v = valueStateText )
+                                         (  n = `textAlign`         v = textAlign )
+                                         (  n = `showSecondaryValues`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSecondaryValues ) )
+                                         (  n = `visible`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         (  n = `showValueStateMessage`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showValueStateMessage ) )
+                                         (  n = `showButton`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showButton ) )
+                                         (  n = `required`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
+                                         (  n = `editable`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                         (  n = `enabled`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                         (  n = `filterSecondaryValues`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( filterSecondaryValues ) )
+                                         (  n = `width`         v = width )
+                                         (  n = `placeholder`         v = placeholder )
                                          (  n = `change`        v = change ) ) ).
+
   ENDMETHOD.
 
 
@@ -2321,7 +2389,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `valueState`            v = valuestate )
                                 ( n = `valueStateText`        v = valuestatetext )
                                 ( n = `placeholder`           v = placeholder )
+                                ( n = `change`                v = change )
+                                ( n = `maxDate`               v = maxDate )
+                                ( n = `minDate`               v = minDate )
                                 ( n = `enabled`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                ( n = `visible`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                ( n = `editable`              v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                ( n = `hideInput`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideInput ) )
+                                ( n = `showFooter`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showFooter ) )
+                                ( n = `showValueStateMessage` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showValueStateMessage ) )
                                 ( n = `showCurrentDateButton` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showcurrentdatebutton ) ) ) ).
   ENDMETHOD.
 
@@ -2928,6 +3004,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `valueHelpOnly`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( valuehelponly ) )
                                 ( n = `class`            v = class )
                                 ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
+                                ( n = `width` v = width )
                                 ( n = `fieldWidth`          v = fieldwidth ) ) ).
   ENDMETHOD.
 
@@ -3075,6 +3152,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( name   = `ListItem`
               ns     = `core`
               t_prop = VALUE #( ( n = `text` v = text )
+                                ( n = `icon` v = icon )
+                                ( n = `key`  v = key )
+                                ( n = `textDirection`  v = textDirection )
+                                ( n = `enabled`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `additionalText` v = additionaltext ) ) ).
   ENDMETHOD.
 
@@ -3191,8 +3272,23 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          (  n = `items`               v = items )
                                          (  n = `selectionFinish`     v = selectionfinish )
                                          (  n = `width`               v = width )
-                                         (  n = `showClearIcon`       v = showclearicon )
-                                         (  n = `showSecondaryValues` v = showsecondaryvalues )
+                                         (  n = `showSecondaryValues` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showsecondaryvalues ) )
+                                         (  n = `placeholder`         v = placeholder )
+                                         (  n = `selectedItemId`         v = selectedItemId )
+                                         (  n = `selectedKey`         v = selectedKey )
+                                         (  n = `name`                v = name )
+                                         (  n = `value`                v = value )
+                                         (  n = `valueState`                v = valueState )
+                                         (  n = `valueStateText`                v = valueStateText )
+                                         (  n = `textAlign`                v = textAlign )
+                                         (  n = `visible`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         (  n = `showValueStateMessage`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showValueStateMessage ) )
+                                         (  n = `showClearIcon`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showClearIcon ) )
+                                         (  n = `showButton`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showButton ) )
+                                         (  n = `required`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
+                                         (  n = `editable`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                         (  n = `enabled`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                         (  n = `filterSecondaryValues`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( filterSecondaryValues ) )
                                          (  n = `showSelectAll`       v = showselectall ) ) ).
   ENDMETHOD.
 
@@ -3542,7 +3638,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               ns     = `mchart`
               t_prop = VALUE #( ( n = `percentage`  v = percentage )
                                 ( n = `press`       v = press )
-                                ( n = `sice`        v = sice )
+                                ( n = `size`        v = size )
+                                ( n = `height`      v = height )
+                                ( n = `alignContent`      v = alignContent )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
                                 ( n = `valueColor`  v = valuecolor ) ) ).
   ENDMETHOD.
 
@@ -3560,6 +3659,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                      ( n = `groupName`       v = groupname )
                                      ( n = `valueState`      v = valuestate )
                                      ( n = `width`           v = width )
+                                     ( n = `select`          v = select )
            ) ).
   ENDMETHOD.
 
@@ -3573,6 +3673,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `selectedIndex`  v = selectedindex )
                                          ( n = `textDirection`  v = textdirection )
                                          ( n = `valueState`     v = valuestate )
+                                         ( n = `select`         v = select )
                                          ( n = `width`          v = width )
                        ) ).
   ENDMETHOD.
