@@ -1,6 +1,6 @@
 CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
   DURATION long
-  RISK LEVEL dangerous.
+  RISK LEVEL harmless.
 
   PUBLIC SECTION.
 
@@ -302,7 +302,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     ENDIF.
     DATA(lv_id) = CONV string( <val> ).
 
-    DATA(lv_request) = `{"EDIT":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+    DATA(lv_request) = `{ "VIEWNAME": "MAIN" , "EDIT":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
     lv_response = z2ui5_cl_fw_http_handler=>http_post( lv_request ).
 
     CLEAR lo_data.
