@@ -226,6 +226,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         AND   check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
+      lr_attri->check_ready     = abap_true.
       DATA(lt_attri) = get_t_attri_by_struc( lr_attri->name ).
       INSERT LINES OF lt_attri INTO TABLE mt_attri.
     ENDLOOP.
