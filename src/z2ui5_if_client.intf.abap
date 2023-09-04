@@ -75,6 +75,7 @@ INTERFACE z2ui5_if_client
       t_message_manager      TYPE ty_t_message_manager,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
+      viewname               type string,
       s_draft                TYPE ty_s_draft,
       s_cursor               TYPE ty_s_cursor,
       s_config               TYPE ty_s_config,
@@ -116,7 +117,7 @@ INTERFACE z2ui5_if_client
 
   METHODS message_manager_add
     IMPORTING
-      val           TYPE z2ui5_if_client=>ty_t_message_manager
+      val           TYPE ty_t_message_manager
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_fw_handler.
 
@@ -196,7 +197,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
-      view          TYPE string OPTIONAL
+      view          TYPE string default cs_view-main
     RETURNING
       VALUE(result) TYPE string.
 

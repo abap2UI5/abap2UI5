@@ -260,6 +260,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
                         data  = val
+                        view  = view
                       ).
 
     result = lo_binder->main( ).
