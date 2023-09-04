@@ -1,6 +1,6 @@
 CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
   DURATION LONG
-  RISK LEVEL HARMLESS.
+  RISK LEVEL dangerous.
 
   PRIVATE SECTION.
     METHODS test_req_begin_fw_start FOR TESTING RAISING cx_static_check.

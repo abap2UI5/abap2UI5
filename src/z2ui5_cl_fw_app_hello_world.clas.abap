@@ -31,7 +31,7 @@ CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory( client
-*        )->shell(
+        )->shell(
         )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
             )->simple_form( title    = 'Hello World'
                             editable = abap_true

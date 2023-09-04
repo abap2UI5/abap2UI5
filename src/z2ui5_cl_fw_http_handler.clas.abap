@@ -241,7 +241,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `               if (!sap.z2ui5.oViewPopup.isOpen || sap.z2ui5.oViewPopup.isOpen() == true) {` && |\n| &&
                            `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
-                              `                  sap.z2ui5.oBody.VIEWNAME = 'POPUP';` && |\n| &&
+                              `                  sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                            `                  }` && |\n| &&
                            `                    }` && |\n| &&
                            `              if ( isUpdated == false ) { ` && |\n| &&
@@ -249,7 +249,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `              if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n| &&
                            `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n| &&
                            `                    isUpdated = true;` && |\n| &&
-                              `                  sap.z2ui5.oBody.VIEWNAME = 'POPOVER';` && |\n| &&
+                              `                  sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                            `                } } }` && |\n| &&
                            `                if (isUpdated == false){` && |\n| &&
                            `                   if (sap.z2ui5.oViewNest == this.getView() ) {` && |\n| &&
