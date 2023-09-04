@@ -55,7 +55,7 @@ CLASS z2ui5_cl_fw_handler DEFINITION
         END OF s_msg_toast,
         BEGIN OF s_message_manager,
           t_message   TYPE z2ui5_if_client=>ty_t_message_manager,
-          check_clear TYPE string,
+          check_clear TYPE abap_bool,
         END OF s_message_manager,
         _viewmodel TYPE string,
       END OF ty_s_next2.
