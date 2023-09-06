@@ -12,7 +12,7 @@ CLASS z2ui5_cl_fw_db DEFINITION
         id_prev_app       TYPE string,
         id_prev_app_stack TYPE string,
         t_attri           TYPE z2ui5_cl_fw_binding=>ty_t_attri,
-        check_attri       type abap_bool,
+        check_attri       TYPE abap_bool,
         app               TYPE REF TO z2ui5_if_app,
       END OF ty_s_db .
 
@@ -172,13 +172,16 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
               DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
               FIELD-SYMBOLS <attri> TYPE any.
               FIELD-SYMBOLS <deref_attri> TYPE any.
+              UNASSIGN <deref_attri>.
+              UNASSIGN <attri>.
               ASSIGN (lv_assign) TO <attri>.
               ASSIGN <attri>->* TO <deref_attri>.
-              IF sy-subrc <> 0 OR <deref_attri> IS INITIAL.
+              IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
-
-              lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_xml_get_by_data( <deref_attri> ).
+              IF <deref_attri> IS NOT INITIAL.
+                lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_xml_get_by_data( <deref_attri> ).
+              ENDIF.
               CLEAR <deref_attri>.
               CLEAR <attri>.
             ENDLOOP.
