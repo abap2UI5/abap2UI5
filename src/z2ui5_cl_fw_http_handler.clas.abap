@@ -166,8 +166,9 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                            let method = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 0 ];` && |\n| &&
                            `                            let oArgs = [];` && |\n| &&
                            `                            oArgs.push( JSON.parse( (sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 0 ] + '}').replaceAll( "'" , '"' ) ) );` && |\n| &&
-                           `                            let oArgsPara = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 1 ].split( ',' ).slice(1);` && |\n| &&
-                           `                            oArgsPara.forEach( ( item, index, arr ) => { arr[index] = item.replace( '"' , '' ); } );;` && |\n| &&
+                           `                         //   let oArgsPara = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 1 ].split( ',' ).slice(1);` && |\n| &&
+                           `                            let oArgsPara = sap.z2ui5.oResponse.PARAMS.S_TIMER.EVENT_FINISHED.split( '(' )[ 1 ].split( ')' )[ 0 ].split( '}' )[ 1 ].split( '"' ).slice(1);` && |\n| &&
+                           `                      //      oArgsPara.forEach( ( item, index, arr ) => { arr[index] = item.replace( '"' , '' ); } );;` && |\n| &&
                            `                            oArgs = oArgs.concat( oArgsPara );` && |\n| &&
                            `                            if (method == 'onEvent'){  sap.z2ui5.oController.onEvent(...oArgs);  }else{ sap.z2ui5.oController.onEventFrontend(...oArgs);  }` && |\n| &&
                            `                        }` && |\n| &&
