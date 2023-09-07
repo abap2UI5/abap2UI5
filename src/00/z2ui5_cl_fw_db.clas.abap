@@ -179,9 +179,9 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
               IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
-              IF <deref_attri> IS NOT INITIAL.
+*              IF <deref_attri> IS NOT INITIAL.
                 lr_attri->data_rtti = z2ui5_cl_fw_utility=>rtti_xml_get_by_data( <deref_attri> ).
-              ENDIF.
+*              ENDIF.
               CLEAR <deref_attri>.
               CLEAR <attri>.
             ENDLOOP.
