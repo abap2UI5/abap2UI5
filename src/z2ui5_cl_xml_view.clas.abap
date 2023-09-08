@@ -786,6 +786,21 @@
         !src          TYPE clike OPTIONAL
         !class        TYPE clike OPTIONAL
         !height       TYPE clike OPTIONAL
+        !width       TYPE clike OPTIONAL
+        !useMap       TYPE clike OPTIONAL
+        !mode       TYPE clike OPTIONAL
+        !lazyLoading       TYPE clike OPTIONAL
+        !densityAware       TYPE clike OPTIONAL
+        !decorative       TYPE clike OPTIONAL
+        !backgroundSize       TYPE clike OPTIONAL
+        !backgroundRepeat       TYPE clike OPTIONAL
+        !backgroundPosition       TYPE clike OPTIONAL
+        !ariaHasPopup       TYPE clike OPTIONAL
+        !alt       TYPE clike OPTIONAL
+        !activeSrc       TYPE clike OPTIONAL
+        !press       TYPE clike OPTIONAL
+        !load       TYPE clike OPTIONAL
+        !error       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS date_picker
@@ -843,12 +858,28 @@
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS list
       IMPORTING
-        !headertext      TYPE clike OPTIONAL
-        !items           TYPE clike OPTIONAL
-        !mode            TYPE clike OPTIONAL
-        !selectionchange TYPE clike OPTIONAL
-        !nodata          TYPE clike OPTIONAL
-        !showSeparators  TYPE clike OPTIONAL
+        !headertext                 TYPE clike OPTIONAL
+        !items                      TYPE clike OPTIONAL
+        !mode                       TYPE clike OPTIONAL
+        !selectionchange            TYPE clike OPTIONAL
+        !showseparators             TYPE clike OPTIONAL
+        !footertext                 TYPE clike OPTIONAL
+        !growingdirection           TYPE clike OPTIONAL
+        !growingthreshold           TYPE clike OPTIONAL
+        !growingtriggertext         TYPE clike OPTIONAL
+        !headerlevel                TYPE clike OPTIONAL
+        !multiselectmode            TYPE clike OPTIONAL
+        !nodatatext                 TYPE clike OPTIONAL
+        !sticky                     TYPE clike OPTIONAL
+        !modeanimationon            TYPE clike OPTIONAL
+        !growingscrolltoload        TYPE clike OPTIONAL
+        !includeiteminselection     TYPE clike OPTIONAL
+        !growing                    TYPE clike OPTIONAL
+        !inset                      TYPE clike OPTIONAL
+        !rememberselections         TYPE clike OPTIONAL
+        !showunread                 TYPE clike OPTIONAL
+        !visible                    TYPE clike OPTIONAL
+        !nodata                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
     METHODS custom_list_item
@@ -992,17 +1023,29 @@
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS object_attribute
       IMPORTING
-        !title        TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
+        !title          TYPE clike OPTIONAL
+        !text           TYPE clike OPTIONAL
+        !active         TYPE clike OPTIONAL
+        !ariaHasPopup   TYPE clike OPTIONAL
+        !textDirection  TYPE clike OPTIONAL
+        !visible        TYPE clike OPTIONAL
+        !press          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_number
       IMPORTING
-        !state        TYPE clike OPTIONAL
-        !emphasized   TYPE clike OPTIONAL
-        !number       TYPE clike OPTIONAL
-        !unit         TYPE clike OPTIONAL
+        !state              TYPE clike OPTIONAL
+        !emphasized         TYPE clike OPTIONAL
+        !number             TYPE clike OPTIONAL
+        !textDirection      TYPE clike OPTIONAL
+        !textAlign          TYPE clike OPTIONAL
+        !numberUnit         TYPE clike OPTIONAL
+        !inverted           TYPE clike OPTIONAL
+        !emptyIndicatorMode TYPE clike OPTIONAL
+        !active             TYPE clike OPTIONAL
+        !unit               TYPE clike OPTIONAL
+        !visible            TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1358,6 +1401,7 @@
         !displayonly   TYPE clike OPTIONAL
         !textdirection TYPE clike OPTIONAL
         !width         TYPE clike OPTIONAL
+        !visible       TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
@@ -1437,6 +1481,7 @@
         !textdirection         TYPE clike OPTIONAL
         !title                 TYPE clike OPTIONAL
         !press                 TYPE clike OPTIONAL
+        !visible               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1992,6 +2037,110 @@
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view ##NEEDED.
 
+  METHODS object_header
+      IMPORTING
+        !backgrounddesign     TYPE clike OPTIONAL
+        !condensed            TYPE clike OPTIONAL
+        !fullscreenoptimized  TYPE clike OPTIONAL
+        !icon                 TYPE clike OPTIONAL
+        !iconactive           TYPE clike OPTIONAL
+        !iconalt              TYPE clike OPTIONAL
+        !icondensityaware     TYPE clike OPTIONAL
+        !icontooltip          TYPE clike OPTIONAL
+        !imageshape           TYPE clike OPTIONAL
+        !intro                TYPE clike OPTIONAL
+        !introactive          TYPE clike OPTIONAL
+        !introhref            TYPE clike OPTIONAL
+        !introtarget          TYPE clike OPTIONAL
+        !introtextdirection   TYPE clike OPTIONAL
+        !number               TYPE clike OPTIONAL
+        !numberstate          TYPE clike OPTIONAL
+        !numbertextdirection  TYPE clike OPTIONAL
+        !numberunit           TYPE clike OPTIONAL
+        !responsive           TYPE clike OPTIONAL
+        !showtitleselector    TYPE clike OPTIONAL
+        !title                TYPE clike OPTIONAL
+        !titleactive          TYPE clike OPTIONAL
+        !titlehref            TYPE clike OPTIONAL
+        !titlelevel           TYPE clike OPTIONAL
+        !titleselectortooltip TYPE clike OPTIONAL
+        !titletarget          TYPE clike OPTIONAL
+        !titletextdirection   TYPE clike OPTIONAL
+        !iconpress            TYPE clike OPTIONAL
+        !intropress           TYPE clike OPTIONAL
+        !titlepress           TYPE clike OPTIONAL
+        !titleselectorpress   TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS additional_numbers
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS header_container
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS markers
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS statuses
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS first_status
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS second_status
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS object_marker
+    IMPORTING
+      !additionalInfo TYPE clike OPTIONAL
+      !type           TYPE clike OPTIONAL
+      !visibility     TYPE clike OPTIONAL
+      !visible        TYPE clike OPTIONAL
+      !press          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+
+  METHODS object_list_item
+    IMPORTING
+      !activeIcon           TYPE clike OPTIONAL
+      !icon                 TYPE clike OPTIONAL
+      !iconDensityAware     TYPE clike OPTIONAL
+      !intro                TYPE clike OPTIONAL
+      !introTextDirection   TYPE clike OPTIONAL
+      !number               TYPE clike OPTIONAL
+      !numberState          TYPE clike OPTIONAL
+      !numberTextDirection  TYPE clike OPTIONAL
+      !numberUnit           TYPE clike OPTIONAL
+      !title                TYPE clike OPTIONAL
+      !titleTextDirection   TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS detail_box
+        RETURNING
+          VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS light_box
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS light_box_item
+    IMPORTING
+      !alt          TYPE clike OPTIONAL
+      !imageSrc     TYPE clike OPTIONAL
+      !subtitle     TYPE clike OPTIONAL
+      !title        TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2023,6 +2172,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD additional_content.
     result = _generic( `additionalContent` ).
+  ENDMETHOD.
+
+
+  METHOD additional_numbers.
+    result = _generic( name = `additionalNumbers` ).
   ENDMETHOD.
 
 
@@ -2412,6 +2566,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD detail_box.
+    result = _generic( `detailBox` ).
+  ENDMETHOD.
+
+
   METHOD dialog.
 
     result = _generic( name   = `Dialog`
@@ -2616,6 +2775,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD first_status.
+    result = _generic( name = `firstStatus` ).
+  ENDMETHOD.
+
+
   METHOD flexible_column_layout.
 
     result = _generic( name   = `FlexibleColumnLayout`
@@ -2802,6 +2966,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD header_container.
+    result = _generic( name = `headerContainer` ).
+  ENDMETHOD.
+
+
   METHOD header_content.
     result = _generic( name = `headerContent`
                        ns   = ns ).
@@ -2945,8 +3114,23 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( name   = `Image`
               t_prop = VALUE #(
                 ( n = `src` v = src )
-                ( n = class v = class )
+                ( n = `class` v = class )
                 ( n = `height` v = height )
+                ( n = `alt` v = alt )
+                ( n = `activeSrc` v = activeSrc )
+                ( n = `ariaHasPopup` v = ariaHasPopup )
+                ( n = `backgroundPosition` v = backgroundPosition )
+                ( n = `backgroundRepeat` v = backgroundRepeat )
+                ( n = `backgroundSize` v = backgroundSize )
+                ( n = `mode` v = mode )
+                ( n = `useMap` v = useMap )
+                ( n = `width` v = width )
+                ( n = `error` v = error )
+                ( n = `press` v = press )
+                ( n = `load` v = load )
+                ( n = `decorative` v =  z2ui5_cl_fw_utility=>boolean_abap_2_json( decorative ) )
+                ( n = `densityAware` v =  z2ui5_cl_fw_utility=>boolean_abap_2_json( densityAware ) )
+                ( n = `lazyLoading` v =  z2ui5_cl_fw_utility=>boolean_abap_2_json( lazyLoading ) )
                  ) ).
   ENDMETHOD.
 
@@ -2964,14 +3148,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `InfoLabel`
                        ns     = 'tnt'
                        t_prop = VALUE #(
-                           ( n = `id`                   v = id )
-                           ( n = `text`                 v = text )
-                           ( n = `renderMode `          v = rendermode  )
-                           ( n = `colorScheme`          v = colorscheme )
-                           ( n = `displayOnly`          v = displayonly )
-                           ( n = `icon`                 v = icon )
-                           ( n = `textDirection`        v = textdirection )
-                           ( n = `width`                v = width ) ) ).
+                           ( n = `id`               v = id )
+                           ( n = `text`             v = text )
+                           ( n = `renderMode `      v = rendermode  )
+                           ( n = `colorScheme`      v = colorscheme )
+                           ( n = `displayOnly`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayonly ) )
+                           ( n = `icon`             v = icon )
+                           ( n = `textDirection`    v = textdirection )
+                           ( n = `visible`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                           ( n = `width`            v = width ) ) ).
 
   ENDMETHOD.
 
@@ -3123,6 +3308,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD light_box.
+    result = _generic( `LightBox` ).
+  ENDMETHOD.
+
+
+  METHOD light_box_item.
+    result =  _generic( name   = `LightBoxItem`
+                        t_prop = VALUE #( ( n = `alt`         v = alt )
+                                          ( n = `imageSrc`    v = imageSrc )
+                                          ( n = `subtitle`    v = subtitle )
+                                          ( n = `title`       v = title ) ) ).
+  ENDMETHOD.
+
+
   METHOD link.
     result = me.
     _generic( name   = `Link`
@@ -3138,12 +3337,28 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD list.
     result = _generic( name   = `List`
-                       t_prop = VALUE #( ( n = `headerText`      v = headertext )
-                                         ( n = `items`           v = items )
-                                         ( n = `mode`            v = mode )
-                                         ( n = `selectionChange` v = selectionchange )
-                                         ( n = `showSeparators ` v = showSeparators )
-                                         ( n = `noData` v = nodata ) ) ).
+                       t_prop = VALUE #( ( n = `headerText`             v = headertext )
+                                         ( n = `items`                  v = items )
+                                         ( n = `mode`                   v = mode )
+                                         ( n = `selectionChange`        v = selectionchange )
+                                         ( n = `showSeparators`         v = showSeparators )
+                                         ( n = `footerText`             v = footerText )
+                                         ( n = `growingDirection`       v = growingDirection )
+                                         ( n = `growingThreshold`       v = growingThreshold )
+                                         ( n = `growingTriggerText`     v = growingTriggerText )
+                                         ( n = `headerLevel`            v = headerLevel )
+                                         ( n = `multiSelectMode`        v = multiSelectMode )
+                                         ( n = `noDataText`             v = noDataText )
+                                         ( n = `sticky`                 v = sticky )
+                                         ( n = `modeAnimationOn`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( modeAnimationOn ) )
+                                         ( n = `growingScrollToLoad`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( growingScrollToLoad ) )
+                                         ( n = `includeItemInSelection` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( includeItemInSelection ) )
+                                         ( n = `growing`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( growing ) )
+                                         ( n = `inset`                  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( inset ) )
+                                         ( n = `rememberSelections`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( rememberSelections ) )
+                                         ( n = `showUnread`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showUnread ) )
+                                         ( n = `visible`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         ( n = `noData`                 v = nodata ) ) ).
   ENDMETHOD.
 
 
@@ -3164,6 +3379,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `mainContents`
                        ns     = `tnt` ).
 
+  ENDMETHOD.
+
+
+  METHOD markers.
+    result = _generic( name = `markers` ).
   ENDMETHOD.
 
 
@@ -3347,8 +3567,50 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
 
     _generic( name   = `ObjectAttribute`
-              t_prop = VALUE #( (  n = `title`       v = title )
-                                (  n = `text`           v = text ) ) ).
+              t_prop = VALUE #( ( n = `title`          v = title )
+                                ( n = `textDirection`  v = textDirection )
+                                ( n = `ariaHasPopup`   v = ariaHasPopup )
+                                ( n = `press`          v = press )
+                                ( n = `active`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( active ) )
+                                ( n = `visible`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                ( n = `text`           v = text ) ) ).
+  ENDMETHOD.
+
+
+  METHOD object_header.
+
+   result = _generic( name   = `ObjectHeader`
+                      t_prop = VALUE #( ( n = `backgrounddesign`     v = backgroundDesign )
+                                        ( n = `condensed`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( condensed ) )
+                                        ( n = `fullscreenoptimized`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( fullScreenOptimized ) )
+                                        ( n = `icon`                 v = icon )
+                                        ( n = `iconactive`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconActive ) )
+                                        ( n = `iconalt`              v = iconAlt )
+                                        ( n = `icondensityaware`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconDensityAware ) )
+                                        ( n = `icontooltip`          v = iconTooltip )
+                                        ( n = `imageshape`           v = imageShape )
+                                        ( n = `intro`                v = intro )
+                                        ( n = `introactive`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( introActive ) )
+                                        ( n = `introhref`            v = introHref )
+                                        ( n = `introtarget`          v = introTarget )
+                                        ( n = `introtextdirection`   v = introTextDirection )
+                                        ( n = `number`               v = number )
+                                        ( n = `numberstate`          v = numberState )
+                                        ( n = `numbertextdirection`  v = numberTextDirection )
+                                        ( n = `numberunit`           v = numberUnit )
+                                        ( n = `responsive`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( responsive ) )
+                                        ( n = `showtitleselector`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showTitleSelector ) )
+                                        ( n = `title`                v = title )
+                                        ( n = `titleactive`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( titleActive ) )
+                                        ( n = `titlehref`            v = titleHref )
+                                        ( n = `titlelevel`           v = titleLevel )
+                                        ( n = `titleselectortooltip` v = titleSelectorTooltip )
+                                        ( n = `titletarget`          v = titleTarget )
+                                        ( n = `titletextdirection`   v = titleTextDirection )
+                                        ( n = `iconpress`            v = iconPress )
+                                        ( n = `intropress`           v = introPress )
+                                        ( n = `titlepress`           v = titlePress )
+                                        ( n = `titleselectorpress`   v = titleSelectorPress ) ) ).
   ENDMETHOD.
 
 
@@ -3359,18 +3621,51 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `textDirection` v = textdirection )
                                          ( n = `title` v = title )
                                          ( n = `titleActive` v = titleactive )
-                                         ( n = `visible` v = visible )
+                                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                          ( n = `titlePress` v = titlepress ) ) ).
+  ENDMETHOD.
+
+
+  METHOD object_list_item.
+    result = _generic( name   = `ObjectListItem`
+                       t_prop = VALUE #( ( n = `activeIcon`          v = activeIcon )
+                                         ( n = `icon`                v = icon )
+                                         ( n = `intro`               v = intro )
+                                         ( n = `introTextDirection`  v = introTextDirection )
+                                         ( n = `number`              v = number )
+                                         ( n = `numberState`         v = numberState )
+                                         ( n = `numberTextDirection` v = numberTextDirection )
+                                         ( n = `numberUnit`          v = numberUnit )
+                                         ( n = `title`               v = title )
+                                         ( n = `titleTextDirection`  v = titleTextDirection )
+                                         ( n = `iconDensityAware`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconDensityAware ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD object_marker.
+    result = _generic( name = `ObjectMarker`
+                       t_prop = VALUE #( ( n = `additionalInfo` v = additionalInfo )
+                                         ( n = `type`           v = type )
+                                         ( n = `visible`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         ( n = `press`          v = press )
+                                         ( n = `visibility`     v = visibility ) ) ).
   ENDMETHOD.
 
 
   METHOD object_number.
     result = me.
     _generic( name   = `ObjectNumber`
-              t_prop = VALUE #( ( n = `emphasized`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( emphasized ) )
-                                ( n = `number`      v = number )
-                                ( n = `state`       v = state )
-                                ( n = `unit`        v = unit ) ) ).
+              t_prop = VALUE #( ( n = `emphasized`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( emphasized ) )
+                                ( n = `number`             v = number )
+                                ( n = `state`              v = state )
+                                ( n = `textAlign`          v = textAlign )
+                                ( n = `textDirection`      v = textDirection )
+                                ( n = `emptyIndicatorMode` v = emptyIndicatorMode )
+                                ( n = `numberunit`         v = numberunit )
+                                ( n = `active`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( active ) )
+                                ( n = `inverted`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( inverted ) )
+                                ( n = `visible`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                ( n = `unit`               v = unit ) ) ).
   ENDMETHOD.
 
 
@@ -3412,17 +3707,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD object_status.
     result = _generic( name   = `ObjectStatus`
-                       t_prop = VALUE #( ( n = `active` v = active )
-                                         ( n = `emptyIndicatorMode` v = emptyindicatormode )
-                                         ( n = `icon` v = icon )
-                                         ( n = `iconDensityAware` v = icondensityaware )
-                                         ( n = `inverted` v = inverted )
-                                         ( n = `state` v = state )
+                       t_prop = VALUE #( ( n = `active`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( active ) )
+                                         ( n = `emptyIndicatorMode`    v = emptyindicatormode )
+                                         ( n = `icon`                  v = icon )
+                                         ( n = `iconDensityAware`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconDensityAware ) )
+                                         ( n = `inverted`              v = z2ui5_cl_fw_utility=>boolean_abap_2_json( inverted ) )
+                                         ( n = `state`                 v = state )
                                          ( n = `stateAnnouncementText` v = stateannouncementtext )
-                                         ( n = `text` v = text )
-                                         ( n = `textDirection` v = textdirection )
-                                         ( n = `title` v = title )
-                                         ( n = `press` v = press ) ) ).
+                                         ( n = `text`                  v = text )
+                                         ( n = `textDirection`         v = textdirection )
+                                         ( n = `title`                 v = title )
+                                         ( n = `visible`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         ( n = `press`                 v = press ) ) ).
   ENDMETHOD.
 
 
@@ -3755,6 +4051,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD second_status.
+    result = _generic( name = `secondStatus` ).
+  ENDMETHOD.
+
+
   METHOD sections.
     result = _generic( name = `sections`
                        ns   = `uxap` ).
@@ -3886,6 +4187,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `counter`     v = counter )
                                 ( n = `selected`    v = selected ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD statuses.
+    result = _generic( name = `statuses` ).
   ENDMETHOD.
 
 
