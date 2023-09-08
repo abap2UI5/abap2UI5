@@ -3661,9 +3661,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `textAlign`          v = textAlign )
                                 ( n = `textDirection`      v = textDirection )
                                 ( n = `emptyIndicatorMode` v = emptyIndicatorMode )
+                                ( n = `numberunit`         v = numberunit )
                                 ( n = `active`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( active ) )
                                 ( n = `inverted`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( inverted ) )
-                                ( n = `visible`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                ( n = `visible`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                 ( n = `unit`               v = unit ) ) ).
   ENDMETHOD.
 
