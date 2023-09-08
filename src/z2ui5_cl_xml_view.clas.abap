@@ -341,6 +341,7 @@
         !valuehelprequest TYPE clike OPTIONAL
         !enabled          TYPE clike OPTIONAL
         !class            TYPE clike OPTIONAL
+        !change            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
     METHODS tokens
@@ -3525,6 +3526,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `width` v = width )
                                          ( n = `value` v = value )
                                          ( n = `id` v = id )
+                                         ( n = `change` v = change )
                                          ( n = `valueHelpRequest` v = valuehelprequest )
                                          ( n = `class` v = class ) ) ).
   ENDMETHOD.
