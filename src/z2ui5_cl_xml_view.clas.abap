@@ -2142,6 +2142,159 @@
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+
+  METHODS line_micro_chart
+    IMPORTING
+      !color                  TYPE clike OPTIONAL
+      !height                 TYPE clike OPTIONAL
+      !leftBottomLabel        TYPE clike OPTIONAL
+      !leftTopLabel           TYPE clike OPTIONAL
+      !maxXValue              TYPE clike OPTIONAL
+      !minXValue              TYPE clike OPTIONAL
+      !minYValue              TYPE clike OPTIONAL
+      !rightBottomLabel       TYPE clike OPTIONAL
+      !rightTopLabel          TYPE clike OPTIONAL
+      !size                   TYPE clike OPTIONAL
+      !threshold              TYPE clike OPTIONAL
+      !thresholdDisplayValue  TYPE clike OPTIONAL
+      !width                  TYPE clike OPTIONAL
+      !press                  TYPE clike OPTIONAL
+      !hideOnNoData           TYPE clike OPTIONAL
+      !showBottomLabels       TYPE clike OPTIONAL
+      !showPoints             TYPE clike OPTIONAL
+      !showThresholdLine      TYPE clike OPTIONAL
+      !showThresholdValue     TYPE clike OPTIONAL
+      !showTopLabels          TYPE clike OPTIONAL
+      !maxYValue              TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS stacked_bar_micro_chart
+    IMPORTING
+      !height             TYPE clike OPTIONAL
+      !press              TYPE clike OPTIONAL
+      !maxValue           TYPE clike OPTIONAL
+      !precision          TYPE clike OPTIONAL
+      !size               TYPE clike OPTIONAL
+      !hideOnNoData       TYPE clike OPTIONAL
+      !displayZeroValue   TYPE clike OPTIONAL
+      !showLabels         TYPE clike OPTIONAL
+      !width              TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS column_micro_chart
+    IMPORTING
+      !width               TYPE clike OPTIONAL
+      !press               TYPE clike OPTIONAL
+      !size                TYPE clike OPTIONAL
+      !alignContent        TYPE clike OPTIONAL
+      !hideOnNoData        TYPE clike OPTIONAL
+      !allowColumnLabels   TYPE clike OPTIONAL
+      !showBottomLabels    TYPE clike OPTIONAL
+      !showTopLabels       TYPE clike OPTIONAL
+      !height              TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS comparison_micro_chart
+    IMPORTING
+      !colorPalette   TYPE clike OPTIONAL
+      !press          TYPE clike OPTIONAL
+      !size           TYPE clike OPTIONAL
+      !height         TYPE clike OPTIONAL
+      !maxValue       TYPE clike OPTIONAL
+      !minValue       TYPE clike OPTIONAL
+      !scale          TYPE clike OPTIONAL
+      !width          TYPE clike OPTIONAL
+      !hideOnNoData   TYPE clike OPTIONAL
+      !shrinkable     TYPE clike OPTIONAL
+      !view           TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS delta_micro_chart
+    IMPORTING
+      !color              TYPE clike OPTIONAL
+      !press              TYPE clike OPTIONAL
+      !size               TYPE clike OPTIONAL
+      !height             TYPE clike OPTIONAL
+      !width              TYPE clike OPTIONAL
+      !deltaDisplayValue  TYPE clike OPTIONAL
+      !displayValue1      TYPE clike OPTIONAL
+      !displayValue2      TYPE clike OPTIONAL
+      !title2             TYPE clike OPTIONAL
+      !value1             TYPE clike OPTIONAL
+      !value2             TYPE clike OPTIONAL
+      !view               TYPE clike OPTIONAL
+      !hideOnNoData       TYPE clike OPTIONAL
+      !title1             TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS bullet_micro_chart
+    IMPORTING
+      !actualValueLabel   TYPE clike OPTIONAL
+      !press              TYPE clike OPTIONAL
+      !size               TYPE clike OPTIONAL
+      !height             TYPE clike OPTIONAL
+      !width              TYPE clike OPTIONAL
+      !deltaValueLabel    TYPE clike OPTIONAL
+      !maxValue           TYPE clike OPTIONAL
+      !minValue           TYPE clike OPTIONAL
+      !mode               TYPE clike OPTIONAL
+      !scale              TYPE clike OPTIONAL
+      !targetValue        TYPE clike OPTIONAL
+      !targetValueLabel   TYPE clike OPTIONAL
+      !scaleColor         TYPE clike OPTIONAL
+      !hideOnNoData       TYPE clike OPTIONAL
+      !showActualValue    TYPE clike OPTIONAL
+      !showDeltaValue     TYPE clike OPTIONAL
+      !showTargetValue    TYPE clike OPTIONAL
+      !showThresholds     TYPE clike OPTIONAL
+      !showValueMarker    TYPE clike OPTIONAL
+      !smallRangeAllowed  TYPE clike OPTIONAL
+      !forecastValue      TYPE clike OPTIONAL
+      !savidm             TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS harvey_ball_micro_chart
+    IMPORTING
+      !colorPalette   TYPE clike OPTIONAL
+      !press          TYPE clike OPTIONAL
+      !size           TYPE clike OPTIONAL
+      !height         TYPE clike OPTIONAL
+      !width          TYPE clike OPTIONAL
+      !total          TYPE clike OPTIONAL
+      !totalLabel     TYPE clike OPTIONAL
+      !alignContent   TYPE clike OPTIONAL
+      !hideOnNoData   TYPE clike OPTIONAL
+      !formattedLabel TYPE clike OPTIONAL
+      !showFractions  TYPE clike OPTIONAL
+      !showTotal      TYPE clike OPTIONAL
+      !totalScale     TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS area_micro_chart
+    IMPORTING
+      !colorPalette   TYPE clike OPTIONAL
+      !press          TYPE clike OPTIONAL
+      !size           TYPE clike OPTIONAL
+      !height         TYPE clike OPTIONAL
+      !maxXValue      TYPE clike OPTIONAL
+      !maxYValue      TYPE clike OPTIONAL
+      !minXValue      TYPE clike OPTIONAL
+      !minYValue      TYPE clike OPTIONAL
+      !view           TYPE clike OPTIONAL
+      !alignContent   TYPE clike OPTIONAL
+      !hideOnNoData   TYPE clike OPTIONAL
+      !showLabel      TYPE clike OPTIONAL
+      !width          TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2188,6 +2341,26 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD appointment_items.
     result = _generic( name = `appointmentItems` ).
+  ENDMETHOD.
+
+
+  METHOD area_micro_chart.
+    result = me.
+    _generic( name   = `AreaMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `colorPalette`  v = colorPalette )
+                                ( n = `press`       v = press )
+                                ( n = `size`        v = size )
+                                ( n = `height`      v = height )
+                                ( n = `maxXValue`      v = maxXValue )
+                                ( n = `maxYValue`      v = maxYValue )
+                                ( n = `minXValue`      v = minXValue )
+                                ( n = `minYValue`      v = minYValue )
+                                ( n = `view`      v = view )
+                                ( n = `alignContent`      v = alignContent )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `showLabel`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showLabel ) )
+                                ( n = `width`  v = width ) ) ).
   ENDMETHOD.
 
 
@@ -2294,6 +2467,35 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `BlockLayoutRow`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `rowColorSet` v = rowcolorset ) ) ).
+  ENDMETHOD.
+
+
+  METHOD bullet_micro_chart.
+    result = me.
+    _generic( name   = `BulletMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `actualValueLabel`  v = actualValueLabel )
+                                ( n = `press`       v = press )
+                                ( n = `size`        v = size )
+                                ( n = `height`      v = height )
+                                ( n = `width`      v = width )
+                                ( n = `deltaValueLabel`      v = deltaValueLabel )
+                                ( n = `maxValue`      v = maxValue )
+                                ( n = `minValue`      v = minValue )
+                                ( n = `mode`      v = mode )
+                                ( n = `scale`      v = scale )
+                                ( n = `targetValue`      v = targetValue )
+                                ( n = `targetValueLabel`      v = targetValueLabel )
+                                ( n = `scaleColor`      v = scaleColor )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `showActualValue`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showActualValue ) )
+                                ( n = `showActualValueInDeltaMode`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( savidm ) )
+                                ( n = `showDeltaValue`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showDeltaValue ) )
+                                ( n = `showTargetValue`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showTargetValue ) )
+                                ( n = `showThresholds`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showThresholds ) )
+                                ( n = `showValueMarker`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showValueMarker ) )
+                                ( n = `smallRangeAllowed`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( smallRangeAllowed ) )
+                                ( n = `forecastValue`  v = forecastValue ) ) ).
   ENDMETHOD.
 
 
@@ -2407,6 +2609,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD column_micro_chart.
+    result = me.
+    _generic( name   = `ColumnMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `width`  v = width )
+                                ( n = `press`       v = press )
+                                ( n = `size`        v = size )
+                                ( n = `alignContent`      v = alignContent )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `allowColumnLabels`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( allowColumnLabels ) )
+                                ( n = `showBottomLabels`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showBottomLabels ) )
+                                ( n = `showTopLabels`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showTopLabels ) )
+                                ( n = `height`  v = height ) ) ).
+  ENDMETHOD.
+
+
   METHOD combobox.
     result = _generic( name   = `ComboBox`
                        t_prop = VALUE #( (  n = `showClearIcon` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showclearicon ) )
@@ -2432,6 +2650,24 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          (  n = `placeholder`         v = placeholder )
                                          (  n = `change`        v = change ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD comparison_micro_chart.
+    result = me.
+    _generic( name   = `ComparisonMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `colorPalette`  v = colorPalette )
+                                ( n = `press`       v = press )
+                                ( n = `size`        v = size )
+                                ( n = `height`      v = height )
+                                ( n = `maxValue`      v = maxValue )
+                                ( n = `minValue`      v = minValue )
+                                ( n = `scale`      v = scale )
+                                ( n = `width`      v = width )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `shrinkable`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( shrinkable ) )
+                                ( n = `view`  v = view ) ) ).
   ENDMETHOD.
 
 
@@ -2462,8 +2698,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                        ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+                       ( n = `xmlns:p13n`      v = `sap.m.p13n` )
                        ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
-
   ENDMETHOD.
 
 
@@ -2564,6 +2800,27 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `placeholder`  v = placeholder )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `valueState` v = valuestate ) ) ).
+  ENDMETHOD.
+
+
+  METHOD delta_micro_chart.
+    result = me.
+    _generic( name   = `DeltaMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `color`  v = color )
+                                ( n = `press`       v = press )
+                                ( n = `size`        v = size )
+                                ( n = `height`      v = height )
+                                ( n = `width`      v = width )
+                                ( n = `deltaDisplayValue`      v = deltaDisplayValue )
+                                ( n = `displayValue1`      v = displayValue1 )
+                                ( n = `displayValue2`      v = displayValue2 )
+                                ( n = `title2`      v = title2 )
+                                ( n = `value1`      v = value1 )
+                                ( n = `value2`      v = value2 )
+                                ( n = `view`      v = view )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `title1`  v = title1 ) ) ).
   ENDMETHOD.
 
 
@@ -2948,6 +3205,26 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD harvey_ball_micro_chart.
+    result = me.
+    _generic( name   = `HarveyBallMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `colorPalette`  v = colorPalette )
+                                ( n = `press`       v = press )
+                                ( n = `size`        v = size )
+                                ( n = `height`      v = height )
+                                ( n = `width`      v = width )
+                                ( n = `total`      v = total )
+                                ( n = `totalLabel`      v = totalLabel )
+                                ( n = `alignContent`      v = alignContent )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `formattedLabel`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( formattedLabel ) )
+                                ( n = `showFractions`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showFractions ) )
+                                ( n = `showTotal`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showTotal ) )
+                                ( n = `totalScale`  v = totalScale ) ) ).
+  ENDMETHOD.
+
+
   METHOD hbox.
     result = _generic( name   = `HBox`
                        t_prop = VALUE #( ( n = `class`          v = class )
@@ -3320,6 +3597,34 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                           ( n = `imageSrc`    v = imageSrc )
                                           ( n = `subtitle`    v = subtitle )
                                           ( n = `title`       v = title ) ) ).
+  ENDMETHOD.
+
+
+  METHOD line_micro_chart.
+    result = me.
+    _generic( name   = `LineMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `color`  v = color )
+                                ( n = `height`       v = height )
+                                ( n = `leftBottomLabel`        v = leftBottomLabel )
+                                ( n = `leftTopLabel`      v = leftTopLabel )
+                                ( n = `maxXValue`      v = maxXValue )
+                                ( n = `minXValue`      v = minXValue )
+                                ( n = `minYValue`      v = minYValue )
+                                ( n = `rightBottomLabel`      v = rightBottomLabel )
+                                ( n = `rightTopLabel`      v = rightTopLabel )
+                                ( n = `size`      v = size )
+                                ( n = `threshold`      v = threshold )
+                                ( n = `thresholdDisplayValue`      v = thresholdDisplayValue )
+                                ( n = `width`      v = width )
+                                ( n = `press`      v = press )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `showBottomLabels`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showBottomLabels ) )
+                                ( n = `showPoints`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showPoints ) )
+                                ( n = `showThresholdLine`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showThresholdLine ) )
+                                ( n = `showThresholdValue`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showThresholdValue ) )
+                                ( n = `showTopLabels`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showTopLabels ) )
+                                ( n = `maxYValue`  v = maxYValue ) ) ).
   ENDMETHOD.
 
 
@@ -4161,6 +4466,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `SplitPane` ns = `layout`
                        t_prop = VALUE #( ( n = `id`                   v = id )
                                          ( n = `requiredParentWidth`  v = requiredParentWidth )  ) ).
+  ENDMETHOD.
+
+
+  METHOD stacked_bar_micro_chart.
+    result = me.
+    _generic( name   = `StackedBarMicroChart`
+              ns     = `mchart`
+              t_prop = VALUE #( ( n = `height`  v = height )
+                                ( n = `press`       v = press )
+                                ( n = `maxValue`        v = maxValue )
+                                ( n = `precision`      v = precision )
+                                ( n = `size`      v = size )
+                                ( n = `hideOnNoData`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( hideOnNoData ) )
+                                ( n = `displayZeroValue`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayZeroValue ) )
+                                ( n = `showLabels`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showLabels ) )
+                                ( n = `width`  v = width ) ) ).
   ENDMETHOD.
 
 
