@@ -106,6 +106,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~nest_view_display2.
+
+    mo_handler->ms_next-s_set-s_view_nest2-xml = val.
+    mo_handler->ms_next-s_set-s_view_nest2-id = id.
+    mo_handler->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
+    mo_handler->ms_next-s_set-s_view_nest2-method_insert = method_insert.
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_client~nest_view_model_update.
 
@@ -113,6 +121,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~nest_view_model_update2.
+
+    mo_handler->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_client~popover_destroy.
 

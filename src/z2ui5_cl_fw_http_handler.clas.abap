@@ -12,13 +12,14 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
     CLASS-METHODS http_get
       IMPORTING
-        t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-        content_security_policy TYPE clike                            OPTIONAL
-        check_logging           TYPE abap_bool                        OPTIONAL
-        custom_js               type string                           optional
+        t_config                  TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        content_security_policy   TYPE clike                            OPTIONAL
+        check_logging             TYPE abap_bool                        OPTIONAL
+        custom_js                 TYPE string                           OPTIONAL
+        custom_js_oneventfrontend TYPE string                           OPTIONAL
           PREFERRED PARAMETER t_config
       RETURNING
-        VALUE(r_result)         TYPE string.
+        VALUE(r_result)           TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -133,7 +134,25 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                            oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_INSERT](oView);` && |\n| &&
                            `                            sap.z2ui5.checkNestAfter = true;` && |\n| &&
                            `                            sap.z2ui5.oViewNest = oView;` && |\n| &&
-                           `                            sap.z2ui5.oView.setModel( sap.z2ui5.oViewNest.getModel( ) );` && |\n| &&
+                           `                      //      sap.z2ui5.oView.setModel( sap.z2ui5.oViewNest.getModel( ) );` && |\n| &&
+                           `                      //      sap.z2ui5.oLastView = oView;` && |\n| &&
+                           `                        },);` && |\n| &&
+                           `                    }` && |\n| &&
+                           `                }` && |\n| &&
+                           `                if (sap.z2ui5.checkNestAfter2 == false) {` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.XML !== '') {` && |\n| &&
+                           `                        sap.z2ui5.oController.NestViewDestroy2( );` && |\n| &&
+                           `                        new sap.ui.core.mvc.XMLView.create({` && |\n| &&
+                           `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.XML,` && |\n| &&
+                           `                            controller: sap.z2ui5.oControllerNest2,` && |\n| &&
+                           `                        }).then(oView => {` && |\n| &&
+                           `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.ID);` && |\n| &&
+                           `                            try { oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.METHOD_DESTROY](); } catch { }` && |\n| &&
+                           `                            oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.METHOD_INSERT](oView);` && |\n| &&
+                           `                            sap.z2ui5.checkNestAfter2 = true;` && |\n| &&
+                           `                            sap.z2ui5.oViewNest2 = oView;` && |\n| &&
+                           `                      //      sap.z2ui5.oView.setModel( sap.z2ui5.oViewNest.getModel( ) );` && |\n| &&
                            `                      //      sap.z2ui5.oLastView = oView;` && |\n| &&
                            `                        },);` && |\n| &&
                            `                    }` && |\n| &&
@@ -200,6 +219,12 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                }` && |\n| &&
                            `                sap.z2ui5.oViewNest.destroy();` && |\n| &&
                            `            },` && |\n| &&
+                           `               NestViewDestroy2: () => {` && |\n| &&
+                           `                if (!sap.z2ui5.oViewNest2) {` && |\n| &&
+                           `                    return;` && |\n| &&
+                           `                }` && |\n| &&
+                           `                sap.z2ui5.oViewNest2.destroy();` && |\n| &&
+                           `            },` && |\n| &&
                            `            ViewDestroy: () => {` && |\n| &&
                            `                if (!sap.z2ui5.oView) {` && |\n| &&
                            `                    return;` && |\n| &&
@@ -209,6 +234,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `            ` && |\n| &&
                            `            onEventFrontend: (...args) => {` && |\n| &&
                            |\n| &&
+                               custom_js_oneventfrontend &&
                            `                switch (args[0].EVENT) {` && |\n| &&
                            `                    case 'LOCATION_RELOAD':` && |\n| &&
                            `                        window.location = args[1];` && |\n| &&
@@ -322,6 +348,10 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                        console.log('UI5-XML-Nest:');` && |\n| &&
                            `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML);` && |\n| &&
                            `                    }` && |\n| &&
+                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.XML !== '') {` && |\n| &&
+                           `                        console.log('UI5-XML-Nest2:');` && |\n| &&
+                           `                        console.log(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.XML);` && |\n| &&
+                           `                    }` && |\n| &&
                            `                }` && |\n| &&
                            |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY == true) { sap.z2ui5.oController.ViewDestroy(); }` && |\n| &&
@@ -347,7 +377,8 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                    );` && |\n| &&
                            `                } else {` && |\n| &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
-                           `                 if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));  }` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));  }` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest2.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));  }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopup.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopover.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
                            `                    sap.z2ui5.oController.onAfterRendering();` && |\n| &&
@@ -392,6 +423,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            |\n| &&
                            `                sap.z2ui5.checkTimerActive = false;` && |\n| &&
                            `                sap.z2ui5.checkNestAfter   = false;` && |\n| &&
+                           `                sap.z2ui5.checkNestAfter2   = false;` && |\n| &&
                            |\n| &&
                            `                sap.z2ui5.oBody.OLOCATION = {` && |\n| &&
                            `                    ORIGIN: window.location.origin,` && |\n| &&
@@ -425,7 +457,9 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `        var oView = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
                            `        sap.z2ui5.oController = oView.getController();` && |\n| &&
                            `        var oViewNest = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
+                           `        var oViewNest2 = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
                            `        sap.z2ui5.oControllerNest = oViewNest.getController();` && |\n| &&
+                           `        sap.z2ui5.oControllerNest2 = oViewNest.getController();` && |\n| &&
                            `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n| &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
