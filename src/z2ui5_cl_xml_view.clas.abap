@@ -4375,6 +4375,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `plugins`             v = plugins )
                                          ( n = `textDirection`       v = textDirection )
                                          ( n = `value`               v = value )
+                                         ( n = `beforeEditorInit`    v = beforeEditorInit )
+                                         ( n = `change`              v = change )
+                                         ( n = `ready`               v = ready )
+                                         ( n = `readyRecurring`      v = readyRecurring )
                                          ( n = `required`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
                                          ( n = `sanitizeValue`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sanitizeValue ) )
                                          ( n = `showGroupClipboard`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupClipboard ) )
@@ -4388,6 +4392,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `useLegacyTheme`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useLegacyTheme ) )
                                          ( n = `wrapping`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                          ( n = `width`               v = width ) ) ).
+
   ENDMETHOD.
 
 
