@@ -2295,6 +2295,40 @@
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS data
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS rich_text_editor
+    IMPORTING
+      !buttonGroups         TYPE clike OPTIONAL
+      !customToolbar        TYPE clike OPTIONAL
+      !editable             TYPE clike OPTIONAL
+      !editorType           TYPE clike OPTIONAL
+      !height               TYPE clike OPTIONAL
+      !plugins              TYPE clike OPTIONAL
+      !required             TYPE clike OPTIONAL
+      !sanitizeValue        TYPE clike OPTIONAL
+      !showGroupClipboard   TYPE clike OPTIONAL
+      !showGroupFont        TYPE clike OPTIONAL
+      !showGroupFontStyle   TYPE clike OPTIONAL
+      !showGroupInsert      TYPE clike OPTIONAL
+      !showGroupLink        TYPE clike OPTIONAL
+      !showGroupStructure   TYPE clike OPTIONAL
+      !showGroupTextAlign   TYPE clike OPTIONAL
+      !showGroupUndo        TYPE clike OPTIONAL
+      !textDirection        TYPE clike OPTIONAL
+      !useLegacyTheme       TYPE clike OPTIONAL
+      !value                TYPE clike OPTIONAL
+      !width                TYPE clike OPTIONAL
+      !wrapping             TYPE clike OPTIONAL
+      !beforeEditorInit     TYPE clike OPTIONAL
+      !change               TYPE clike OPTIONAL
+      !ready                TYPE clike OPTIONAL
+      !readyRecurring       TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2688,7 +2722,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
                        ( n = `xmlns:uxap`      v = `sap.uxap` )
                        ( n = `xmlns:sap`       v = `sap` )
-                       ( n = `xmlns:text`      v = `sap.ui.richtextedito` )
+                       ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
                        ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
                        ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
                        ( n = `xmlns:u`         v = `sap.ui.unified` )
@@ -2767,6 +2801,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD custom_list_item.
     result = _generic( `CustomListItem` ).
+  ENDMETHOD.
+
+
+  METHOD data.
+    result = _generic( name = `data`
+                       ns   = `mchart` ).
   ENDMETHOD.
 
 
@@ -4321,6 +4361,38 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `defaultPane`  v = defaultPane )
                                          ( n = `height`       v = height )
                                          ( n = `width`        v = width  ) ) ).
+  ENDMETHOD.
+
+
+  METHOD rich_text_editor.
+    result = _generic( name   = `RichTextEditor`
+                       ns     = `text`
+                       t_prop = VALUE #( ( n = `buttonGroups`        v = buttonGroups )
+                                         ( n = `customToolbar`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( customToolbar ) )
+                                         ( n = `editable`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                         ( n = `height`              v = height )
+                                         ( n = `editorType`          v = editorType )
+                                         ( n = `plugins`             v = plugins )
+                                         ( n = `textDirection`       v = textDirection )
+                                         ( n = `value`               v = value )
+                                         ( n = `beforeEditorInit`    v = beforeEditorInit )
+                                         ( n = `change`              v = change )
+                                         ( n = `ready`               v = ready )
+                                         ( n = `readyRecurring`      v = readyRecurring )
+                                         ( n = `required`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
+                                         ( n = `sanitizeValue`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sanitizeValue ) )
+                                         ( n = `showGroupClipboard`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupClipboard ) )
+                                         ( n = `showGroupFont`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupFont ) )
+                                         ( n = `showGroupFontStyle`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupFontStyle ) )
+                                         ( n = `showGroupInsert`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupInsert ) )
+                                         ( n = `showGroupLink`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupLink ) )
+                                         ( n = `showGroupStructure`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupStructure ) )
+                                         ( n = `showGroupTextAlign`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupTextAlign ) )
+                                         ( n = `showGroupUndo`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGroupUndo ) )
+                                         ( n = `useLegacyTheme`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useLegacyTheme ) )
+                                         ( n = `wrapping`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                                         ( n = `width`               v = width ) ) ).
+
   ENDMETHOD.
 
 

@@ -28,7 +28,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -53,7 +53,8 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
     ENDIF.
     z2ui5_cl_fw_db=>cleanup( ).
 
-    r_result = `<html>` && |\n| &&
+    r_result = `<!DOCTYPE html>` && |\n| &&
+               `<html>` && |\n| &&
                `<head>` && |\n| &&
                   lv_sec_policy && |\n| &&
                `    <meta charset="UTF-8">` && |\n| &&
