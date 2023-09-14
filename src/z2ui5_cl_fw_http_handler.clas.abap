@@ -195,6 +195,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                    }, sap.z2ui5.oResponse.PARAMS.S_TIMER.INTERVAL_MS, oEvent);` && |\n| &&
                            `                }` && |\n| &&
                            `                sap.ui.core.BusyIndicator.hide();` && |\n| &&
+                           `              if (sap.z2ui5.isBusy) { sap.z2ui5.isBusy = false; }` && |\n| &&
+                           `            if (sap.z2ui5.b) { sap.z2ui5.b.close(); }` && |\n| &&
                            `            },` && |\n| &&
                            `            PopupDestroy: () => {` && |\n| &&
                            `                if (!sap.z2ui5.oViewPopup) {` && |\n| &&
@@ -234,7 +236,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `            },` && |\n| &&
                            `            ` && |\n| &&
                            `            onEventFrontend: (...args) => {` && |\n| &&
-                           |\n| &&
                                custom_js_oneventfrontend &&
                            `                switch (args[0].EVENT) {` && |\n| &&
                            `                    case 'LOCATION_RELOAD':` && |\n| &&
@@ -258,8 +259,11 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `            },` && |\n| &&
                            |\n| &&
                            `            onEvent: function (...args) {` && |\n| &&
+                                 `   if ( sap.z2ui5.isBusy && sap.z2ui5.isBusy == true ){  sap.z2ui5.b = new sap.m.BusyDialog();    sap.z2ui5.b.open(); return; } ` &&
+                          `                sap.z2ui5.isBusy = true; ` &&
                            `                if (!window.navigator.onLine) {` && |\n| &&
                            `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
+                           `                    sap.z2ui5.isBusy = false; ` && |\n| &&
                            `                    return;` && |\n| &&
                            `                }` && |\n| &&
                            `                sap.ui.core.BusyIndicator.show();` && |\n| &&
