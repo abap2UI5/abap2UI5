@@ -148,7 +148,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     bind->bind_type  = mv_type.
-    bind->name_front = name_front_create( bind->name ).
+    bind->name_front = to_lower( name_front_create( bind->name ) ).
     bind->viewname   = mv_view.
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
@@ -157,6 +157,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
 
+*    result = to_lower( result ).
   ENDMETHOD.
 
 

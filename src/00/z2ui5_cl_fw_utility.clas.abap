@@ -55,6 +55,7 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
     CLASS-METHODS trans_json_any_2
       IMPORTING
         any           TYPE any
+        pretty_name   type clike default /ui2/cl_json=>pretty_mode-none
       RETURNING
         VALUE(result) TYPE string.
 
@@ -421,7 +422,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize( any ).
+    result = /ui2/cl_json=>serialize( data = any pretty_name = pretty_name ).
 
   ENDMETHOD.
 
