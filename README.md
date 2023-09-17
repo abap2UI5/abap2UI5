@@ -48,7 +48,7 @@
 #### Apps & Extensions
 * Add your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
 * Integrate your apps with the SAP Business Technology Platform [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
-* Explore abap2UI5-tools, a collection of useful tools & apps [(abap2UI5-tools)](https://github.com/abap2UI5/abap2ui5-tools)
+* Explore abap2UI5-tools, a collection of tools & utility functions [(abap2UI5-tools)](https://github.com/abap2UI5/abap2ui5-tools)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
 * And finally, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
 
