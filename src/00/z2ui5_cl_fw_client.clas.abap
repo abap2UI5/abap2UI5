@@ -231,6 +231,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
                         data  = val
+                        pretty_name = pretty_name
                       ).
 
     result = lo_binder->main( ).
@@ -252,6 +253,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         check_attri = mo_handler->ms_db-check_attri
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
                         data  = val
+                        pretty_name = pretty_name
                       ).
 
     result = lo_binder->main( ).
@@ -274,6 +276,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
                         data  = val
                         view  = view
+                        pretty_name = pretty_name
                       ).
 
     result = lo_binder->main( ).
