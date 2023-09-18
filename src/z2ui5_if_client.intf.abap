@@ -195,6 +195,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
+      pretty_name   type clike     DEFAULT /ui2/cl_json=>pretty_mode-none
     RETURNING
       VALUE(result) TYPE string.
 
@@ -203,6 +204,7 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
       view          TYPE string default cs_view-main
+      pretty_name   type clike     DEFAULT /ui2/cl_json=>pretty_mode-none
     RETURNING
       VALUE(result) TYPE string.
 
@@ -210,6 +212,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
+      pretty_name   type clike     DEFAULT /ui2/cl_json=>pretty_mode-none
     RETURNING
       VALUE(result) TYPE string.
 

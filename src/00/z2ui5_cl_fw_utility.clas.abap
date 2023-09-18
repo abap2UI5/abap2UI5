@@ -422,7 +422,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize( data = any pretty_name = pretty_name ).
+    result = /ui2/cl_json=>serialize( data = any pretty_name = conv #( pretty_name ) ).
 
   ENDMETHOD.
 
