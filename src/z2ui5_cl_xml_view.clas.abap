@@ -443,6 +443,8 @@
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS items
+      IMPORTING
+        !ns  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS interact_donut_chart
@@ -1100,6 +1102,8 @@
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS toolbar
+      IMPORTING
+        ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS text
@@ -2083,10 +2087,14 @@
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS markers
+      IMPORTING
+        !ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS statuses
+      IMPORTING
+        !ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2329,6 +2337,41 @@
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS upload_set
+    IMPORTING
+      !id                 TYPE clike OPTIONAL
+      !instantUpload      TYPE clike OPTIONAL
+      !showIcons          TYPE clike OPTIONAL
+      !uploadEnabled      TYPE clike OPTIONAL
+      !terminationEnabled TYPE clike OPTIONAL
+      !fileTypes          TYPE clike OPTIONAL
+      !maxFileNameLength  TYPE clike OPTIONAL
+      !maxFileSize        TYPE clike OPTIONAL
+      !mediaTypes         TYPE clike OPTIONAL
+      !uploadUrl          TYPE clike OPTIONAL
+      !items              TYPE clike OPTIONAL
+      !mode               TYPE clike OPTIONAL
+      !selectionChanged   TYPE clike OPTIONAL
+      !sameFilenameAllowed   TYPE clike OPTIONAL
+      !fileRenamed  TYPE clike OPTIONAL
+      !uploadButtonInvisible  TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS upload_set_toolbar_placeholder
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS upload_set_item
+    IMPORTING
+      !fileName     TYPE clike OPTIONAL
+      !mediaType    TYPE clike OPTIONAL
+      !url          TYPE clike OPTIONAL
+      !thumbnailUrl TYPE clike OPTIONAL
+      !markers      TYPE clike OPTIONAL
+      !statuses     TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2733,6 +2776,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                        ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
                        ( n = `xmlns:p13n`      v = `sap.m.p13n` )
+                       ( n = `xmlns:upload`    v = `sap.m.upload` )
                        ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
   ENDMETHOD.
 
@@ -3601,7 +3645,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD items.
-    result = _generic( `items` ).
+    result = _generic( name = `items`  ns = ns ).
   ENDMETHOD.
 
 
@@ -3729,7 +3773,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD markers.
-    result = _generic( name = `markers` ).
+    result = _generic( name = `markers` ns = ns ).
   ENDMETHOD.
 
 
@@ -4586,7 +4630,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD statuses.
-    result = _generic( name = `statuses` ).
+    result = _generic( name = `statuses` ns = ns ).
   ENDMETHOD.
 
 
@@ -4831,7 +4875,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD toolbar.
 
-    result = _generic( `Toolbar` ).
+    result = _generic( name = `Toolbar` ns = ns ).
 
   ENDMETHOD.
 
@@ -5012,6 +5056,45 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `template`
                        ns   = 'table' ).
 
+  ENDMETHOD.
+
+
+  METHOD upload_set.
+    result = _generic( name   = `UploadSet`
+                       ns     = 'upload'
+                       t_prop = VALUE #( ( n = `id`                       v = id )
+                                         ( n = `instantUpload`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( instantUpload ) )
+                                         ( n = `showIcons`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showIcons ) )
+                                         ( n = `uploadEnabled`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadEnabled ) )
+                                         ( n = `terminationEnabled`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( terminationEnabled ) )
+           ( n = `uploadButtonInvisible`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadButtonInvisible ) )
+                                         ( n = `fileTypes`                v = fileTypes )
+                                         ( n = `maxFileNameLength`        v = maxFileNameLength )
+                                         ( n = `maxFileSize`              v = maxFileSize )
+                                         ( n = `mediaTypes`               v = mediaTypes )
+                                         ( n = `items`                    v = items )
+                                         ( n = `uploadUrl`                v = uploadUrl )
+                                         ( n = `mode`                     v = mode )
+           ( n = `fileRenamed`              v = fileRenamed )
+           ( n = `sameFilenameAllowed`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sameFilenameAllowed ) )
+                                         ( n = `selectionChanged`         v = selectionChanged ) ) ).
+  ENDMETHOD.
+
+
+  METHOD upload_set_item.
+    result = _generic( name   = `UploadSetItem`
+                   ns     = 'upload'
+                   t_prop = VALUE #( ( n = `fileName`      v = fileName )
+                                     ( n = `mediaType`     v = mediaType )
+                                     ( n = `url`           v = url )
+                                     ( n = `thumbnailUrl`  v = thumbnailUrl )
+                                     ( n = `markers`       v = markers )
+                                     ( n = `statuses`      v = statuses ) ) ).
+  ENDMETHOD.
+
+
+  METHOD upload_set_toolbar_placeholder.
+    result = _generic( name = `UploadSetToolbarPlaceholder` ns = `upload` ).
   ENDMETHOD.
 
 
