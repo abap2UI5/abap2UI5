@@ -13,8 +13,8 @@ INTERFACE z2ui5_if_client
   CONSTANTS:
     BEGIN OF cs_view,
       main     TYPE string VALUE `MAIN`,
-      nested   TYPE string VALUE `NESTED`,
-      nested2  TYPE string VALUE `NESTED2`,
+      nested   TYPE string VALUE `NEST`,
+      nested2  TYPE string VALUE `NEST2`,
       popover  TYPE string VALUE `POPOVER`,
       popup    TYPE string VALUE `POPUP`,
     END OF cs_view.
