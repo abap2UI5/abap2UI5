@@ -443,6 +443,8 @@
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS items
+      IMPORTING
+        !ns  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS interact_donut_chart
@@ -1100,6 +1102,8 @@
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS toolbar
+      IMPORTING
+        ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS text
@@ -1132,10 +1136,15 @@
 
     METHODS zcc_file_uploader
       IMPORTING
-        !value        TYPE clike OPTIONAL
-        !path         TYPE clike OPTIONAL
-        !placeholder  TYPE clike OPTIONAL
-        !upload       TYPE clike OPTIONAL
+        !value             TYPE clike OPTIONAL
+        !path              TYPE clike OPTIONAL
+        !placeholder       TYPE clike OPTIONAL
+        !upload            TYPE clike OPTIONAL
+        !icononly          TYPE clike OPTIONAL
+        !buttononly        TYPE clike OPTIONAL
+        !buttontext        TYPE clike OPTIONAL
+        !uploadbuttontext  TYPE clike OPTIONAL
+        !checkdirectupload TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -2083,10 +2092,14 @@
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS markers
+      IMPORTING
+        !ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS statuses
+      IMPORTING
+        !ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2329,6 +2342,41 @@
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS upload_set
+    IMPORTING
+      !id                 TYPE clike OPTIONAL
+      !instantUpload      TYPE clike OPTIONAL
+      !showIcons          TYPE clike OPTIONAL
+      !uploadEnabled      TYPE clike OPTIONAL
+      !terminationEnabled TYPE clike OPTIONAL
+      !fileTypes          TYPE clike OPTIONAL
+      !maxFileNameLength  TYPE clike OPTIONAL
+      !maxFileSize        TYPE clike OPTIONAL
+      !mediaTypes         TYPE clike OPTIONAL
+      !uploadUrl          TYPE clike OPTIONAL
+      !items              TYPE clike OPTIONAL
+      !mode               TYPE clike OPTIONAL
+      !selectionChanged   TYPE clike OPTIONAL
+      !sameFilenameAllowed   TYPE clike OPTIONAL
+      !fileRenamed  TYPE clike OPTIONAL
+      !uploadButtonInvisible  TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS upload_set_toolbar_placeholder
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS upload_set_item
+    IMPORTING
+      !fileName     TYPE clike OPTIONAL
+      !mediaType    TYPE clike OPTIONAL
+      !url          TYPE clike OPTIONAL
+      !thumbnailUrl TYPE clike OPTIONAL
+      !markers      TYPE clike OPTIONAL
+      !statuses     TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2733,6 +2781,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                        ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
                        ( n = `xmlns:p13n`      v = `sap.m.p13n` )
+                       ( n = `xmlns:upload`    v = `sap.m.upload` )
                        ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
   ENDMETHOD.
 
@@ -3601,7 +3650,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD items.
-    result = _generic( `items` ).
+    result = _generic( name = `items`  ns = ns ).
   ENDMETHOD.
 
 
@@ -3729,7 +3778,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD markers.
-    result = _generic( name = `markers` ).
+    result = _generic( name = `markers` ns = ns ).
   ENDMETHOD.
 
 
@@ -4586,7 +4635,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD statuses.
-    result = _generic( name = `statuses` ).
+    result = _generic( name = `statuses` ns = ns ).
   ENDMETHOD.
 
 
@@ -4831,7 +4880,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD toolbar.
 
-    result = _generic( `Toolbar` ).
+    result = _generic( name = `Toolbar` ns = ns ).
 
   ENDMETHOD.
 
@@ -5012,6 +5061,45 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `template`
                        ns   = 'table' ).
 
+  ENDMETHOD.
+
+
+  METHOD upload_set.
+    result = _generic( name   = `UploadSet`
+                       ns     = 'upload'
+                       t_prop = VALUE #( ( n = `id`                       v = id )
+                                         ( n = `instantUpload`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( instantUpload ) )
+                                         ( n = `showIcons`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showIcons ) )
+                                         ( n = `uploadEnabled`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadEnabled ) )
+                                         ( n = `terminationEnabled`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( terminationEnabled ) )
+           ( n = `uploadButtonInvisible`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadButtonInvisible ) )
+                                         ( n = `fileTypes`                v = fileTypes )
+                                         ( n = `maxFileNameLength`        v = maxFileNameLength )
+                                         ( n = `maxFileSize`              v = maxFileSize )
+                                         ( n = `mediaTypes`               v = mediaTypes )
+                                         ( n = `items`                    v = items )
+                                         ( n = `uploadUrl`                v = uploadUrl )
+                                         ( n = `mode`                     v = mode )
+           ( n = `fileRenamed`              v = fileRenamed )
+           ( n = `sameFilenameAllowed`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sameFilenameAllowed ) )
+                                         ( n = `selectionChanged`         v = selectionChanged ) ) ).
+  ENDMETHOD.
+
+
+  METHOD upload_set_item.
+    result = _generic( name   = `UploadSetItem`
+                   ns     = 'upload'
+                   t_prop = VALUE #( ( n = `fileName`      v = fileName )
+                                     ( n = `mediaType`     v = mediaType )
+                                     ( n = `url`           v = url )
+                                     ( n = `thumbnailUrl`  v = thumbnailUrl )
+                                     ( n = `markers`       v = markers )
+                                     ( n = `statuses`      v = statuses ) ) ).
+  ENDMETHOD.
+
+
+  METHOD upload_set_toolbar_placeholder.
+    result = _generic( name = `UploadSetToolbarPlaceholder` ns = `upload` ).
   ENDMETHOD.
 
 
@@ -5294,15 +5382,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     _generic( name   = `FileUploader`
               ns     = `z2ui5`
-              t_prop = VALUE #( (  n = `placeholder` v = placeholder )
-                                (  n = `upload`      v = upload )
-                                (  n = `path`        v = path )
-                                (  n = `value`       v = value ) ) ).
+              t_prop = VALUE #( (  n = `placeholder`        v = placeholder )
+                                (  n = `upload`             v = upload )
+                                (  n = `path`               v = path )
+                                (  n = `value`              v = value )
+                                (  n = `iconOnly`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
+                                (  n = `buttonOnly`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
+                                (  n = `buttonText`         v = buttontext )
+                                (  n = `uploadButtonText`   v = uploadbuttontext )
+                                (  n = `checkDirectUpload`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
 
   ENDMETHOD.
 
 
-  METHOD zcc_file_uploader_js.
+   METHOD zcc_file_uploader_js.
 
     DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
                           |\n| &&
@@ -5339,13 +5432,29 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           `                        },` && |\n| &&
                           `                        buttonText: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        uploadButtonText: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
                           `                            defaultValue: "Upload"` && |\n| &&
                           `                        },` && |\n| &&
                           `                        enabled: {` && |\n| &&
                           `                            type: "boolean",` && |\n| &&
                           `                            defaultValue: true` && |\n| &&
                           `                        },` && |\n| &&
+                          `                        iconOnly: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        buttonOnly: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        },` && |\n| &&
                           `                        multiple: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        checkDirectUpload: {` && |\n| &&
                           `                            type: "boolean",` && |\n| &&
                           `                            defaultValue: false` && |\n| &&
                           `                        }` && |\n| &&
@@ -5365,8 +5474,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           |\n| &&
                           `                renderer: function (oRm, oControl) {` && |\n| &&
                           |\n| &&
-                          `                    oControl.oUploadButton = new Button({` && |\n| &&
-                          `                        text: oControl.getProperty("buttonText"),` && |\n| &&
+                          `                    if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
+                          `                     oControl.oUploadButton = new Button({` && |\n| &&
+                          `                        text: oControl.getProperty("uploadButtonText"),` && |\n| &&
                           `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
                           `                        press: function (oEvent) { ` && |\n| &&
                           |\n| &&
@@ -5384,14 +5494,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           |\n| &&
                           `                            reader.readAsDataURL(file);` && |\n| &&
                           `                        }.bind(oControl)` && |\n| &&
-                          `                    });` && |\n| &&
+                          `                     });` && |\n| &&
+                          `                    }` && |\n| &&
                           |\n| &&
                           `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
                           `                        icon: "sap-icon://browse-folder",` && |\n| &&
-                          `                        iconOnly: true,` && |\n| &&
+                          `                        iconOnly: oControl.getProperty("iconOnly"),` && |\n| &&
+                          `                        buttonOnly: oControl.getProperty("buttonOnly"),` && |\n| &&
+                          `                        buttonText: oControl.getProperty("buttonText"),` && |\n| &&
+                          `                        uploadOnChange: true,` && |\n| &&
                           `                        value: oControl.getProperty("path"),` && |\n| &&
                           `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
                           `                        change: function (oEvent) {` && |\n| &&
+                          `                           if (oControl.getProperty("checkDirectUpload")) {` && |\n| &&
+                          `                             return; ` && |\n| &&
+                          `                           }` && |\n| &&
+                          |\n| &&
                           `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
                           `                            this.setProperty("path", value);` && |\n| &&
                           `                            if (value) {` && |\n| &&
@@ -5401,6 +5519,25 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           `                            }` && |\n| &&
                           `                            this.oUploadButton.rerender();` && |\n| &&
                           `                            sap.z2ui5.oUpload = oEvent.oSource;` && |\n| &&
+                          `                        }.bind(oControl),` && |\n| &&
+                          `                        uploadComplete: function (oEvent) {` && |\n| &&
+                          `                           if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
+                          `                             return; ` && |\n| &&
+                          `                           }` && |\n| &&
+                          |\n| &&
+                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
+                          `                            this.setProperty("path", value);` && |\n| &&
+                          |\n| &&
+                          `                            var file = oEvent.oSource.oFileUpload.files[0];` && |\n| &&
+                          `                            var reader = new FileReader();` && |\n| &&
+                          |\n| &&
+                          `                            reader.onload = function (evt) {` && |\n| &&
+                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
+                          `                                this.setProperty("value", vContent);` && |\n| &&
+                          `                                this.fireUpload();` && |\n| &&
+                          `                            }.bind(this)` && |\n| &&
+                          |\n| &&
+                          `                            reader.readAsDataURL(file);` && |\n| &&
                           `                        }.bind(oControl)` && |\n| &&
                           `                    });` && |\n| &&
                           |\n| &&
