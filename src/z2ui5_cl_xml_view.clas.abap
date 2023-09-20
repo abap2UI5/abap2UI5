@@ -2357,6 +2357,8 @@
       !items              TYPE clike OPTIONAL
       !mode               TYPE clike OPTIONAL
       !selectionChanged   TYPE clike OPTIONAL
+      !uploadCompleted    TYPE clike OPTIONAL
+      !afterItemAdded     TYPE clike OPTIONAL
       !sameFilenameAllowed   TYPE clike OPTIONAL
       !fileRenamed  TYPE clike OPTIONAL
       !uploadButtonInvisible  TYPE clike OPTIONAL
@@ -5072,7 +5074,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `showIcons`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showIcons ) )
                                          ( n = `uploadEnabled`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadEnabled ) )
                                          ( n = `terminationEnabled`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( terminationEnabled ) )
-           ( n = `uploadButtonInvisible`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadButtonInvisible ) )
+                                         ( n = `uploadButtonInvisible`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( uploadButtonInvisible ) )
                                          ( n = `fileTypes`                v = fileTypes )
                                          ( n = `maxFileNameLength`        v = maxFileNameLength )
                                          ( n = `maxFileSize`              v = maxFileSize )
@@ -5080,8 +5082,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `items`                    v = items )
                                          ( n = `uploadUrl`                v = uploadUrl )
                                          ( n = `mode`                     v = mode )
-           ( n = `fileRenamed`              v = fileRenamed )
-           ( n = `sameFilenameAllowed`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sameFilenameAllowed ) )
+                                         ( n = `fileRenamed`              v = fileRenamed )
+                                         ( n = `uploadCompleted`          v = uploadCompleted )
+                                         ( n = `afterItemAdded`           v = afterItemAdded )
+                                         ( n = `sameFilenameAllowed`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sameFilenameAllowed ) )
                                          ( n = `selectionChanged`         v = selectionChanged ) ) ).
   ENDMETHOD.
 
