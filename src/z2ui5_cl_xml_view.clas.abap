@@ -4649,6 +4649,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `sidePanelMaxWidth`      v = sidePanelMaxWidth )
                                          ( n = `sidePanelResizable`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sidePanelResizable ) )
                                          ( n = `actionBarExpanded`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( actionBarExpanded ) )
+                                         ( n = `toggle`    v = toggle )
                                          ( n = `ariaLabel`  v = ariaLabel ) ) ).
   ENDMETHOD.
 
