@@ -1997,6 +1997,7 @@
       !showValueStateMessage TYPE clike OPTIONAL
       !visible               TYPE clike OPTIONAL
       !fieldWidth            TYPE clike OPTIONAL
+      !liveChange            TYPE clike OPTIONAL
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2360,8 +2361,29 @@
       !uploadCompleted    TYPE clike OPTIONAL
       !afterItemAdded     TYPE clike OPTIONAL
       !sameFilenameAllowed   TYPE clike OPTIONAL
-      !fileRenamed  TYPE clike OPTIONAL
       !uploadButtonInvisible  TYPE clike OPTIONAL
+      !directory        TYPE clike OPTIONAL
+      !multiple  TYPE clike OPTIONAL
+      !dragDropDescription TYPE clike OPTIONAL
+      !dragDropText TYPE clike OPTIONAL
+      !noDataText TYPE clike OPTIONAL
+      !noDataDescription   TYPE clike OPTIONAL
+      !noDataIllustrationType TYPE clike OPTIONAL
+      !afterItemEdited     TYPE clike OPTIONAL
+      !afterItemRemoved TYPE clike OPTIONAL
+      !beforeItemAdded TYPE clike OPTIONAL
+      !beforeItemEdited TYPE clike OPTIONAL
+      !beforeItemRemoved TYPE clike OPTIONAL
+      !beforeUploadStarts TYPE clike OPTIONAL
+      !beforeUploadTermination TYPE clike OPTIONAL
+      !fileNameLengthExceeded TYPE clike OPTIONAL
+      !fileRenamed TYPE clike OPTIONAL
+      !fileSizeExceeded TYPE clike OPTIONAL
+      !fileTypeMismatch TYPE clike OPTIONAL
+      !itemDragStart TYPE clike OPTIONAL
+      !itemDrop TYPE clike OPTIONAL
+      !mediaTypeMismatch TYPE clike OPTIONAL
+      !uploadTerminated TYPE clike OPTIONAL
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2377,8 +2399,61 @@
       !thumbnailUrl TYPE clike OPTIONAL
       !markers      TYPE clike OPTIONAL
       !statuses     TYPE clike OPTIONAL
+      !enabledEdit  TYPE clike OPTIONAL
+      !enabledRemove TYPE clike OPTIONAL
+      !selected TYPE clike OPTIONAL
+      !visibleEdit TYPE clike OPTIONAL
+      !visibleRemove TYPE clike OPTIONAL
+      !uploadState TYPE clike OPTIONAL
+      !uploadUrl TYPE clike OPTIONAL
+      !openPressed TYPE clike OPTIONAL
+      !removePressed TYPE clike OPTIONAL
     RETURNING
-      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS markers_as_status
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS rules
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS mask_input_rule
+    IMPORTING
+      !maskFormatSymbol TYPE clike OPTIONAL
+      !regex            TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS side_panel
+    IMPORTING
+      !actionBarExpanded TYPE clike OPTIONAL
+      !ariaLabel            TYPE clike OPTIONAL
+      !sidePanelMaxWidth            TYPE clike OPTIONAL
+      !sidePanelMinWidth            TYPE clike OPTIONAL
+      !sidePanelPosition            TYPE clike OPTIONAL
+      !sidePanelResizable            TYPE clike OPTIONAL
+      !sidePanelResizeLargerStep   TYPE clike OPTIONAL
+      !sidePanelResizeStep   TYPE clike OPTIONAL
+      !sidePanelWidth   TYPE clike OPTIONAL
+      !toggle   TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS side_panel_item
+    IMPORTING
+      !icon TYPE clike OPTIONAL
+      !text TYPE clike OPTIONAL
+      !key TYPE clike OPTIONAL
+      !enabled TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS main_content
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -3772,6 +3847,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD main_content.
+    result = _generic( name = `mainContent`
+                       ns   = `f` ).
+  ENDMETHOD.
+
+
   METHOD main_contents.
     result = _generic( name   = `mainContents`
                        ns     = `tnt` ).
@@ -3781,6 +3862,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD markers.
     result = _generic( name = `markers` ns = ns ).
+  ENDMETHOD.
+
+
+  METHOD markers_as_status.
+    result = _generic( name = `markersAsStatus`
+                       ns   = `upload` ).
   ENDMETHOD.
 
 
@@ -3795,6 +3882,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `textDirection`         v = textDirection )
                                 ( n = `value`                 v = value )
                                 ( n = `width`                 v = width )
+                                ( n = `liveChange`            v = liveChange )
                                 ( n = `valueState`            v = valueState )
                                 ( n = `valueStateText`        v = valueStateText )
                                 ( n = `placeholderSymbol`     v = placeholderSymbol )
@@ -3803,6 +3891,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `showValueStateMessage` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showValueStateMessage ) )
                                 ( n = `visible`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                 ( n = `fieldWidth`            v = fieldwidth ) ) ).
+  ENDMETHOD.
+
+
+  METHOD mask_input_rule.
+    result = _generic( name   = `MaskInputRule`
+                       t_prop = VALUE #( ( n = `maskFormatSymbol` v = maskFormatSymbol )
+                                         ( n = `regex`            v = regex ) ) ).
   ENDMETHOD.
 
 
@@ -4458,6 +4553,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD rules.
+    result = _generic( `rules` ).
+  ENDMETHOD.
+
+
   METHOD scroll_container.
     result = _generic( name   = `ScrollContainer`
                        t_prop = VALUE #( ( n = `height`      v = height )
@@ -4538,6 +4638,32 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #(
                            ( n = `width`                           v = width ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD side_panel.
+    result = _generic( name   = `SidePanel`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `sidePanelWidth`  v = sidePanelWidth )
+                                         ( n = `sidePanelResizeStep`      v = sidePanelResizeStep )
+                                         ( n = `sidePanelResizeLargerStep`      v = sidePanelResizeLargerStep )
+                                         ( n = `sidePanelPosition`      v = sidePanelPosition )
+                                         ( n = `sidePanelMinWidth`      v = sidePanelMinWidth )
+                                         ( n = `sidePanelMaxWidth`      v = sidePanelMaxWidth )
+                                         ( n = `sidePanelResizable`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sidePanelResizable ) )
+                                         ( n = `actionBarExpanded`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( actionBarExpanded ) )
+                                         ( n = `toggle`    v = toggle )
+                                         ( n = `ariaLabel`  v = ariaLabel ) ) ).
+  ENDMETHOD.
+
+
+  METHOD side_panel_item.
+    result = _generic( name   = `SidePanelItem`
+                       ns     = `f`
+                       t_prop = VALUE #( ( n = `icon` v = icon )
+                                         ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                         ( n = `key` v = key )
+                                         ( n = `text` v = text ) ) ).
   ENDMETHOD.
 
 
@@ -5083,6 +5209,27 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `uploadUrl`                v = uploadUrl )
                                          ( n = `mode`                     v = mode )
                                          ( n = `fileRenamed`              v = fileRenamed )
+                                         ( n = `directory`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( directory ) )
+                                         ( n = `multiple`                 v = z2ui5_cl_fw_utility=>boolean_abap_2_json( multiple ) )
+                                         ( n = `dragDropDescription`      v = dragDropDescription )
+                                         ( n = `dragDropText`             v = dragDropText )
+                                         ( n = `noDataText`               v = noDataText )
+                                         ( n = `noDataDescription`        v = noDataDescription )
+                                         ( n = `noDataIllustrationType`   v = noDataIllustrationType )
+                                         ( n = `afterItemEdited`          v = afterItemEdited )
+                                         ( n = `afterItemRemoved`         v = afterItemRemoved )
+                                         ( n = `beforeItemAdded`          v = beforeItemAdded )
+                                         ( n = `beforeItemEdited`         v = beforeItemEdited )
+                                         ( n = `beforeItemRemoved`        v = beforeItemRemoved )
+                                         ( n = `beforeUploadStarts`       v = beforeUploadStarts )
+                                         ( n = `beforeUploadTermination`  v = beforeUploadTermination )
+                                         ( n = `fileNameLengthExceeded`   v = fileNameLengthExceeded )
+                                         ( n = `fileSizeExceeded`         v = fileSizeExceeded )
+                                         ( n = `fileTypeMismatch`         v = fileTypeMismatch )
+                                         ( n = `itemDragStart`            v = itemDragStart )
+                                         ( n = `itemDrop`                 v = itemDrop )
+                                         ( n = `mediaTypeMismatch`        v = mediaTypeMismatch )
+                                         ( n = `uploadTerminated`         v = uploadTerminated )
                                          ( n = `uploadCompleted`          v = uploadCompleted )
                                          ( n = `afterItemAdded`           v = afterItemAdded )
                                          ( n = `sameFilenameAllowed`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sameFilenameAllowed ) )
@@ -5098,6 +5245,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                      ( n = `url`           v = url )
                                      ( n = `thumbnailUrl`  v = thumbnailUrl )
                                      ( n = `markers`       v = markers )
+                                     ( n = `enabledEdit`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabledEdit ) )
+                                     ( n = `enabledRemove` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabledRemove ) )
+                                     ( n = `selected`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( selected ) )
+                                     ( n = `visibleEdit`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visibleEdit ) )
+                                     ( n = `visibleRemove` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visibleRemove ) )
+                                     ( n = `uploadState`   v = uploadState )
+                                     ( n = `uploadUrl`     v = uploadUrl )
+                                     ( n = `openPressed`   v = openPressed )
+                                     ( n = `removePressed` v = removePressed )
                                      ( n = `statuses`      v = statuses ) ) ).
   ENDMETHOD.
 
