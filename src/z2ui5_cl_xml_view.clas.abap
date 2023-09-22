@@ -3978,7 +3978,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD multi_combobox.
-    result = _generic( name   = `ComboBox`
+    result = _generic( name   = `MultiComboBox`
                        t_prop = VALUE #( (  n = `selectionChange`     v = selectionchange )
                                          (  n = `selectedKeys`        v = selectedkeys )
                                          (  n = `items`               v = items )
