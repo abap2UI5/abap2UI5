@@ -2000,6 +2000,7 @@
       !visible               TYPE clike OPTIONAL
       !fieldWidth            TYPE clike OPTIONAL
       !liveChange            TYPE clike OPTIONAL
+      !change                TYPE clike OPTIONAL
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -3968,6 +3969,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `value`                 v = value )
                                 ( n = `width`                 v = width )
                                 ( n = `liveChange`            v = liveChange )
+                                ( n = `change`                v = change )
                                 ( n = `valueState`            v = valueState )
                                 ( n = `valueStateText`        v = valueStateText )
                                 ( n = `placeholderSymbol`     v = placeholderSymbol )
