@@ -1168,6 +1168,7 @@
         !rowselectionchange     TYPE clike OPTIONAL
         !selectionbehavior      TYPE clike DEFAULT 'RowSelector'
         !selectedindex          TYPE clike OPTIONAL
+        !id                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_columns
@@ -1250,6 +1251,7 @@
         !rowselectionchange       TYPE clike OPTIONAL
         !customfilter             TYPE clike OPTIONAL
         !id                       TYPE clike OPTIONAL
+        !flex                    TYPE clike OPTIONAL
           PREFERRED PARAMETER rows
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
@@ -1998,6 +2000,7 @@
       !visible               TYPE clike OPTIONAL
       !fieldWidth            TYPE clike OPTIONAL
       !liveChange            TYPE clike OPTIONAL
+      !change                TYPE clike OPTIONAL
     RETURNING
       VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2454,6 +2457,80 @@
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS quick_view
+    IMPORTING
+      !placement TYPE clike OPTIONAL
+      !width TYPE clike OPTIONAL
+      !afterClose TYPE clike OPTIONAL
+      !afterOpen TYPE clike OPTIONAL
+      !beforeClose TYPE clike OPTIONAL
+      !beforeOpen TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS quick_view_page
+    IMPORTING
+      !description TYPE clike OPTIONAL
+      !header TYPE clike OPTIONAL
+      !pageId TYPE clike OPTIONAL
+      !title TYPE clike OPTIONAL
+      !titleUrl TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS quick_view_page_avatar
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS quick_view_group
+    IMPORTING
+      !heading TYPE clike OPTIONAL
+      !visible TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS quick_view_group_element
+    IMPORTING
+      !emailSubject TYPE clike OPTIONAL
+      !label TYPE clike OPTIONAL
+      !pageLinkId TYPE clike OPTIONAL
+      !target TYPE clike OPTIONAL
+      !type TYPE clike OPTIONAL
+      !url TYPE clike OPTIONAL
+      !value TYPE clike OPTIONAL
+      !visible TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS variant_management_fl
+    IMPORTING
+      !displayTextFSV TYPE clike OPTIONAL
+      !editable TYPE clike OPTIONAL
+      !executeOnSelectionForStanDflt  TYPE clike OPTIONAL
+      !headerLevel  TYPE clike OPTIONAL
+      !inErrorState TYPE clike OPTIONAL
+      !maxWidth TYPE clike OPTIONAL
+      !modelName  TYPE clike OPTIONAL
+      !resetOnContextChange TYPE clike OPTIONAL
+      !showSetAsDefault TYPE clike OPTIONAL
+      !titleStyle TYPE clike OPTIONAL
+      !updateVariantInURL TYPE clike OPTIONAL
+      !for  TYPE clike OPTIONAL
+      !cancel TYPE clike OPTIONAL
+      !initialized  TYPE clike OPTIONAL
+      !manage TYPE clike OPTIONAL
+      !save TYPE clike OPTIONAL
+      !select TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS column_element_data
+    IMPORTING
+      !cellsLarge TYPE clike OPTIONAL
+      !cellsSmall TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2759,6 +2836,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD column_element_data.
+    result =  _generic( name   = `ColumnElementData` ns = `form`
+                        t_prop = VALUE #( ( n = `cellsLarge` v = cellsLarge )
+                                          ( n = `cellsSmall` v = cellsSmall ) ) ).
+  ENDMETHOD.
+
+
   METHOD column_list_item.
     result = _generic( name   = `ColumnListItem`
                        t_prop = VALUE #( ( n = `vAlign`   v = valign )
@@ -2857,8 +2941,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                        ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+                       ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
                        ( n = `xmlns:p13n`      v = `sap.m.p13n` )
                        ( n = `xmlns:upload`    v = `sap.m.upload` )
+                       ( n = `xmlns:fl`        v = `sap.ui.fl` )
                        ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
   ENDMETHOD.
 
@@ -3264,7 +3350,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `GanttChartWithTable`
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `id` v = id )
-                                       ( n = `shapeSelectionMode` v = shapeselectionmode ) ) ).
+                                         ( n = `shapeSelectionMode` v = shapeselectionmode ) ) ).
   ENDMETHOD.
 
 
@@ -3272,8 +3358,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `GanttRowSettings`
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `rowId` v = rowid )
-                                   ( n = `shapes1` v = shapes1 )
-                                   ( n = `shapes2` v = shapes2 ) ) ).
+                                         ( n = `shapes1` v = shapes1 )
+                                         ( n = `shapes2` v = shapes2 ) ) ).
   ENDMETHOD.
 
 
@@ -3883,6 +3969,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `value`                 v = value )
                                 ( n = `width`                 v = width )
                                 ( n = `liveChange`            v = liveChange )
+                                ( n = `change`                v = change )
                                 ( n = `valueState`            v = valueState )
                                 ( n = `valueStateText`        v = valueStateText )
                                 ( n = `placeholderSymbol`     v = placeholderSymbol )
@@ -4418,6 +4505,52 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD proportion_zoom_strategy.
     result = _generic( name = `ProportionZoomStrategy`
                        ns   = `axistime` ).
+  ENDMETHOD.
+
+
+  METHOD quick_view.
+    result = _generic( name   = `QuickView`
+                       t_prop = VALUE #( ( n = `placement`      v = placement )
+                                         ( n = `width`    v = width )
+                                         ( n = `afterClose`    v = afterClose )
+                                         ( n = `afterOpen`    v = afterOpen )
+                                         ( n = `beforeClose`    v = beforeClose )
+                                         ( n = `beforeOpen`  v = beforeOpen ) ) ).
+  ENDMETHOD.
+
+
+  METHOD quick_view_group.
+    result = _generic( name = `QuickViewGroup`
+                       t_prop   = VALUE #( ( n = `heading` v = heading )
+                                           ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD quick_view_group_element.
+    result =  _generic( name   = `QuickViewGroupElement`
+                        t_prop = VALUE #( ( n = `emailSubject`  v = emailSubject )
+                                          ( n = `label`       v = label )
+                                          ( n = `pageLinkId`  v = pageLinkId )
+                                          ( n = `target`      v = target )
+                                          ( n = `type`      v = type )
+                                          ( n = `url`      v = url )
+                                          ( n = `value`      v = value )
+                                          ( n = `visible`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD quick_view_page.
+    result = _generic( name   = `QuickViewPage`
+                       t_prop = VALUE #( ( n = `description`   v = description )
+                                         ( n = `header`       v = header )
+                                         ( n = `pageId`       v = pageId )
+                                         ( n = `title`       v = title )
+                                         ( n = `titleUrl` v = titleUrl ) ) ).
+  ENDMETHOD.
+
+
+  METHOD quick_view_page_avatar.
+    result = _generic( name = `avatar` ).
   ENDMETHOD.
 
 
@@ -5086,6 +5219,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                         ( n = `columnSelect`            v = columnselect )
                                         ( n = `rowSelectionChange`      v = rowselectionchange )
                                         ( n = `selectionBehavior`       v = selectionbehavior )
+                                        ( n = `id`                      v = id )
                                         ( n = `selectedIndex`           v = selectedindex ) ) ).
   ENDMETHOD.
 
@@ -5177,7 +5311,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `filter`                    v = filter )
                            ( n = `sort`                      v = sort )
                            ( n = `customFilter`              v = customfilter )
-                           ( n = `id`              v = id )
+                           ( n = `id`                        v = id )
+                           ( n = `fl:flexibility`            v = flex )
                            ( n = `rowSelectionChange`        v = rowselectionchange )
                             ) ).
 
@@ -5320,12 +5455,35 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                            ( n = `standardItemText`       v = standardItemText )
                                            ( n = `useFavorites`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useFavorites ) )
                                            ( n = `variantItems`           v = variantItems )
-                                           ( n = `manage`                 v = manage )
+                                           ( n = `manage`                  v = manage )
                                            ( n = `save`                   v = save )
                                            ( n = `select`                 v = select )
                                            ( n = `variantCreationByUserAllowed` v = uservarcreate )
                                            ( n = `visible`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD variant_management_fl.
+    result = _generic( name   = `VariantManagement`
+                       ns     = `flvm`
+                       t_prop = VALUE #( ( n = `displayTextForExecuteOnSelectionForStandardVariant`  v = displaytextfsv )
+                                         ( n = `editable`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable )  )
+                                         ( n = `executeOnSelectionForStandardDefault`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( executeonselectionforstandflt ) )
+                                         ( n = `headerLevel`      v = headerLevel )
+                                         ( n = `inErrorState`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( inErrorState ) )
+                                         ( n = `maxWidth`      v = maxWidth )
+                                         ( n = `modelName`      v = modelName )
+                                         ( n = `resetOnContextChange`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resetOnContextChange ) )
+                                         ( n = `showSetAsDefault`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSetAsDefault ) )
+                                         ( n = `titleStyle`      v = titleStyle )
+                                         ( n = `updateVariantInURL`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( updateVariantInURL ) )
+                                         ( n = `cancel`    v = cancel )
+                                         ( n = `initialized`    v = initialized )
+                                         ( n = `manage`    v = manage )
+                                         ( n = `save`    v = save )
+                                         ( n = `select`    v = select )
+                                         ( n = `for`  v = for ) ) ).
   ENDMETHOD.
 
 
