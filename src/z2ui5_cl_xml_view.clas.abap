@@ -254,9 +254,23 @@
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS avatar
       IMPORTING
-        !src          TYPE clike OPTIONAL
-        !class        TYPE clike OPTIONAL
-        !displaysize  TYPE clike OPTIONAL
+        !src               TYPE clike OPTIONAL
+        !class             TYPE clike OPTIONAL
+        !displaysize       TYPE clike OPTIONAL
+        !ariaHasPopup      TYPE clike OPTIONAL
+        !backgroundColor   TYPE clike OPTIONAL
+        !badgeIcon         TYPE clike OPTIONAL
+        !badgeTooltip      TYPE clike OPTIONAL
+        !badgeValueState   TYPE clike OPTIONAL
+        !customDisplaySize TYPE clike OPTIONAL
+        !customFontSize    TYPE clike OPTIONAL
+        !displayShape      TYPE clike OPTIONAL
+        !fallbackIcon      TYPE clike OPTIONAL
+        !imageFitType      TYPE clike OPTIONAL
+        !initials          TYPE clike OPTIONAL
+        !showBorder        TYPE clike OPTIONAL
+        !decorative        TYPE clike OPTIONAL
+        !enabled           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS header_title
@@ -589,6 +603,12 @@
         !id           TYPE clike OPTIONAL
         !ns           TYPE clike OPTIONAL
         !tooltip      TYPE clike OPTIONAL
+        !width        TYPE clike OPTIONAL
+        !iconFirst        TYPE clike OPTIONAL
+        !iconDensityAware        TYPE clike OPTIONAL
+        !ariaHasPopup        TYPE clike OPTIONAL
+        !activeIcon        TYPE clike OPTIONAL
+        !accessibleRole        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS search_field
@@ -883,6 +903,7 @@
         !showunread                 TYPE clike OPTIONAL
         !visible                    TYPE clike OPTIONAL
         !nodata                     TYPE clike OPTIONAL
+        !id                         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
     METHODS custom_list_item
@@ -2605,6 +2626,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( name   = `Avatar`
               t_prop = VALUE #( ( n = `src`         v = src )
                                 ( n = `class`       v = class )
+                                ( n = `ariaHasPopup`       v = ariaHasPopup )
+                                ( n = `backgroundColor`       v = backgroundColor )
+                                ( n = `badgeIcon`       v = badgeIcon )
+                                ( n = `badgeTooltip`       v = badgeTooltip )
+                                ( n = `badgeValueState`       v = badgeValueState )
+                                ( n = `customDisplaySize`       v = customDisplaySize )
+                                ( n = `customFontSize`       v = customFontSize )
+                                ( n = `displayShape`       v = displayShape )
+                                ( n = `fallbackIcon`       v = fallbackIcon )
+                                ( n = `imageFitType`       v = imageFitType )
+                                ( n = `initials`       v = initials )
+                                ( n = `showBorder`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showBorder ) )
+                                ( n = `decorative`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( decorative ) )
+                                ( n = `enabled`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `displaysize` v = displaysize ) ) ).
   ENDMETHOD.
 
@@ -2744,10 +2779,16 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `text`    v = text )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                ( n = `iconDensityAware` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconDensityAware ) )
+                                ( n = `iconFirst` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconFirst ) )
                                 ( n = `icon`    v = icon )
                                 ( n = `type`    v = type )
                                 ( n = `id`      v = id )
+                                ( n = `width`   v = width )
                                 ( n = `tooltip` v = tooltip )
+                                ( n = `accessibleRole` v = accessibleRole )
+                                ( n = `activeIcon` v = activeIcon )
+                                ( n = `ariaHasPopup` v = ariaHasPopup )
                                 ( n = `class`   v = class ) ) ).
   ENDMETHOD.
 
@@ -3907,6 +3948,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `headerLevel`            v = headerLevel )
                                          ( n = `multiSelectMode`        v = multiSelectMode )
                                          ( n = `noDataText`             v = noDataText )
+                                         ( n = `id`                     v = id )
                                          ( n = `sticky`                 v = sticky )
                                          ( n = `modeAnimationOn`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( modeAnimationOn ) )
                                          ( n = `growingScrollToLoad`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( growingScrollToLoad ) )
