@@ -404,14 +404,16 @@
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
     METHODS dialog
       IMPORTING
-        !title         TYPE clike OPTIONAL
-        !icon          TYPE clike OPTIONAL
-        !showheader    TYPE clike OPTIONAL
-        !stretch       TYPE clike OPTIONAL
-        !contentheight TYPE clike OPTIONAL
-        !contentwidth  TYPE clike OPTIONAL
-        !resizable     TYPE clike OPTIONAL
-          PREFERRED PARAMETER title
+        !title               TYPE clike OPTIONAL
+        !icon                TYPE clike OPTIONAL
+        !showheader          TYPE clike OPTIONAL
+        !stretch             TYPE clike OPTIONAL
+        !contentheight       TYPE clike OPTIONAL
+        !contentwidth        TYPE clike OPTIONAL
+        !resizable           TYPE clike OPTIONAL
+        !HORIZONTALSCROLLING type CLIKE optional
+        !VERTICALSCROLLING   type CLIKE optional
+      PREFERRED PARAMETER title
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS carousel
@@ -3131,7 +3133,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `showHeader`  v = showheader )
                                          ( n = `contentWidth`  v = contentwidth )
                                          ( n = `contentHeight`  v = contentheight )
-                                         ( n = `resizable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) ) ) ).
+                                         ( n = `resizable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) )
+                                         ( n = `horizontalScrolling`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( horizontalscrolling ) )
+                                         ( n = `verticalScrolling`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( verticalscrolling ) ) ) ).
 
   ENDMETHOD.
 
