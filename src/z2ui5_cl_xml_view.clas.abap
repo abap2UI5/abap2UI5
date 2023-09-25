@@ -3133,7 +3133,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `showHeader`  v = showheader )
                                          ( n = `contentWidth`  v = contentwidth )
                                          ( n = `contentHeight`  v = contentheight )
-                                         ( n = `resizable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) ) 
+                                         ( n = `resizable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) )
                                          ( n = `horizontalScrolling`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( horizontalscrolling ) )
                                          ( n = `verticalScrolling`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( verticalscrolling ) ) ) ).
 
