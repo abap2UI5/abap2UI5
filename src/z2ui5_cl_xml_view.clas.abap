@@ -399,19 +399,22 @@
         !fieldwidth                   TYPE clike OPTIONAL
         !valuehelponly                TYPE clike OPTIONAL
         !width                        TYPE clike OPTIONAL
+        !change                       TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
     METHODS dialog
       IMPORTING
-        !title         TYPE clike OPTIONAL
-        !icon          TYPE clike OPTIONAL
-        !showheader    TYPE clike OPTIONAL
-        !stretch       TYPE clike OPTIONAL
-        !contentheight TYPE clike OPTIONAL
-        !contentwidth  TYPE clike OPTIONAL
-        !resizable     TYPE clike OPTIONAL
-          PREFERRED PARAMETER title
+        !title               TYPE clike OPTIONAL
+        !icon                TYPE clike OPTIONAL
+        !showheader          TYPE clike OPTIONAL
+        !stretch             TYPE clike OPTIONAL
+        !contentheight       TYPE clike OPTIONAL
+        !contentwidth        TYPE clike OPTIONAL
+        !resizable           TYPE clike OPTIONAL
+        !HORIZONTALSCROLLING type CLIKE optional
+        !VERTICALSCROLLING   type CLIKE optional
+      PREFERRED PARAMETER title
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS carousel
@@ -619,7 +622,14 @@
         !id           TYPE clike OPTIONAL
         !change       TYPE clike OPTIONAL
         !livechange   TYPE clike OPTIONAL
-        !autocomplete TYPE clike OPTIONAL
+        !suggest TYPE clike OPTIONAL
+        !enabled TYPE clike OPTIONAL
+        !enableSuggestions TYPE clike OPTIONAL
+        !maxLength TYPE clike OPTIONAL
+        !placeholder TYPE clike OPTIONAL
+        !showRefreshButton TYPE clike OPTIONAL
+        !showSearchButton TYPE clike OPTIONAL
+        !visible TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS message_view
@@ -1207,9 +1217,39 @@
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS filter_bar
       IMPORTING
-        !usetoolbar   TYPE clike DEFAULT 'false'
-        !search       TYPE clike OPTIONAL
-        !filterchange TYPE clike OPTIONAL
+        !usetoolbar     TYPE clike DEFAULT 'false'
+        !search TYPE clike OPTIONAL
+        !id TYPE clike OPTIONAL
+        !persistencyKey TYPE clike OPTIONAL
+        !afterVariantLoad TYPE clike OPTIONAL
+        !afterVariantSave TYPE clike OPTIONAL
+        !assignedFiltersChanged TYPE clike OPTIONAL
+        !beforeVariantFetch TYPE clike OPTIONAL
+        !cancel TYPE clike OPTIONAL
+        !clear TYPE clike OPTIONAL
+        !filterChange TYPE clike OPTIONAL
+        !filtersDialogBeforeOpen TYPE clike OPTIONAL
+        !filtersDialogCancel TYPE clike OPTIONAL
+        !filtersDialogClosed TYPE clike OPTIONAL
+        !initialise TYPE clike OPTIONAL
+        !initialized TYPE clike OPTIONAL
+        !reset TYPE clike OPTIONAL
+        !filterContainerWidth TYPE clike OPTIONAL
+        !header TYPE clike OPTIONAL
+        !advancedMode TYPE clike OPTIONAL
+        !isRunningInValueHelpDialog TYPE clike OPTIONAL
+        !showAllFilters TYPE clike OPTIONAL
+        !showClearOnFB TYPE clike OPTIONAL
+        !showFilterConfiguration TYPE clike OPTIONAL
+        !showGoOnFB TYPE clike OPTIONAL
+        !showRestoreButton TYPE clike OPTIONAL
+        !showRestoreOnFB TYPE clike OPTIONAL
+        !useSnapshot TYPE clike OPTIONAL
+        !searchEnabled TYPE clike OPTIONAL
+        !considerGroupTitle TYPE clike OPTIONAL
+        !deltaVariantMode TYPE clike OPTIONAL
+        !disableSearchMatchesPatternW TYPE clike OPTIONAL
+        !filterBarExpanded TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS filter_group_items
@@ -2552,6 +2592,17 @@
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS fb_control
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS smart_variant_management
+    IMPORTING
+      !id TYPE clike OPTIONAL
+      !showExecuteOnSelection TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2982,6 +3033,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                        ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+                       ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
                        ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
                        ( n = `xmlns:p13n`      v = `sap.m.p13n` )
                        ( n = `xmlns:upload`    v = `sap.m.upload` )
@@ -3131,7 +3183,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `showHeader`  v = showheader )
                                          ( n = `contentWidth`  v = contentwidth )
                                          ( n = `contentHeight`  v = contentheight )
-                                         ( n = `resizable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) ) ) ).
+                                         ( n = `resizable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resizable ) )
+                                         ( n = `horizontalScrolling`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( horizontalscrolling ) )
+                                         ( n = `verticalScrolling`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( verticalscrolling ) ) ) ).
 
   ENDMETHOD.
 
@@ -3230,6 +3284,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD fb_control.
+    result = _generic( name = `control`
+                       ns   = `fb` ).
+  ENDMETHOD.
+
+
   METHOD feed_input.
     result = _generic( name   = `FeedInput`
                        t_prop = VALUE #( ( n = `buttonTooltip`    v = buttonTooltip )
@@ -3293,9 +3353,39 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     result = _generic( name   = `FilterBar`
                        ns     = 'fb'
-                       t_prop = VALUE #( ( n = 'useToolbar'    v = usetoolbar )
-                                         ( n = 'search'        v = search )
-                                         ( n = 'filterChange'  v = filterchange ) ) ).
+                       t_prop = VALUE #( ( n = 'useToolbar'     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useToolbar ) )
+                                         ( n = 'search'         v = search )
+                                         ( n = 'id'             v = id )
+                                         ( n = 'persistencyKey' v = persistencyKey )
+                                         ( n = 'afterVariantLoad' v = afterVariantLoad )
+                                         ( n = 'afterVariantSave' v = afterVariantSave )
+                                         ( n = 'assignedFiltersChanged' v = assignedFiltersChanged )
+                                         ( n = 'beforeVariantFetch' v = beforeVariantFetch )
+                                         ( n = 'cancel' v = cancel )
+                                         ( n = 'clear' v = clear )
+                                         ( n = 'filtersDialogBeforeOpen' v = filtersDialogBeforeOpen )
+                                         ( n = 'filtersDialogCancel' v = filtersDialogCancel )
+                                         ( n = 'filtersDialogClosed' v = filtersDialogClosed )
+                                         ( n = 'initialise' v = initialise )
+                                         ( n = 'initialized' v = initialized )
+                                         ( n = 'reset' v = reset )
+                                         ( n = 'filterContainerWidth' v = filterContainerWidth )
+                                         ( n = 'header' v = header )
+                                         ( n = 'advancedMode' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( advancedMode ) )
+                                         ( n = 'isRunningInValueHelpDialog' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( isRunningInValueHelpDialog ) )
+                                         ( n = 'showAllFilters' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showAllFilters ) )
+                                         ( n = 'showClearOnFB' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showClearOnFB ) )
+                                         ( n = 'showFilterConfiguration' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showFilterConfiguration ) )
+                                         ( n = 'showGoOnFB' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showGoOnFB ) )
+                                         ( n = 'showRestoreButton' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showRestoreButton ) )
+                                         ( n = 'showRestoreOnFB' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showRestoreOnFB ) )
+                                         ( n = 'useSnapshot' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useSnapshot ) )
+                                         ( n = 'searchEnabled' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( searchEnabled ) )
+                                         ( n = 'considerGroupTitle' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( considerGroupTitle ) )
+                                         ( n = 'deltaVariantMode' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( deltaVariantMode ) )
+                                         ( n = 'disableSearchMatchesPatternWarning' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( disableSearchMatchesPatternW ) )
+                                         ( n = 'filterBarExpanded' v = z2ui5_cl_fw_utility=>boolean_abap_2_json( filterBarExpanded ) )
+                                         ( n = 'filterChange'   v = filterchange ) ) ).
   ENDMETHOD.
 
 
@@ -3759,6 +3849,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `showValueHelp`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showvaluehelp ) )
                                 ( n = `valueHelpOnly`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( valuehelponly ) )
                                 ( n = `class`            v = class )
+                                ( n = `change`            v = change )
                                 ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
                                 ( n = `width` v = width )
                                 ( n = `fieldWidth`          v = fieldwidth ) ) ).
@@ -4751,7 +4842,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `value`  v = value )
                                 ( n = `id`     v = id )
                                 ( n = `change` v = change )
-                                ( n = `autocomplete` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( autocomplete ) )
+                                ( n = `maxLength` v = maxLength )
+                                ( n = `placeholder` v = placeholder )
+                                ( n = `suggest` v = suggest )
+                                ( n = `enableSuggestions` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableSuggestions ) )
+                                ( n = `showRefreshButton` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showRefreshButton ) )
+                                ( n = `showSearchButton` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSearchButton ) )
+                                ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `liveChange` v = livechange ) ) ).
   ENDMETHOD.
 
@@ -4851,6 +4949,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `columnsL`   v = columnsl )
                                          ( n = `columnsM`   v = columnsm )
                                          ( n = `editable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD smart_variant_management.
+    result = _generic( name   = `SmartVariantManagement` ns = `svm`
+                       t_prop = VALUE #( ( n = `id`      v = id )
+                                         ( n = `showExecuteOnSelection`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showExecuteOnSelection ) ) ) ).
   ENDMETHOD.
 
 
