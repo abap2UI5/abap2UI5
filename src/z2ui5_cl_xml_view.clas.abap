@@ -138,6 +138,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !autopopinmode       TYPE clike OPTIONAL
         !inset               TYPE clike OPTIONAL
         !showseparators      TYPE clike OPTIONAL
+        !showOverlay      TYPE clike OPTIONAL
+        !hiddenInPopin      TYPE clike OPTIONAL
+        !popinLayout      TYPE clike OPTIONAL
+        !fixedLayout      TYPE clike OPTIONAL
+        !backgroundDesign      TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
@@ -401,6 +406,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !valuehelponly                TYPE clike OPTIONAL
         !width                        TYPE clike OPTIONAL
         !change                       TYPE clike OPTIONAL
+        !valueHelpIconSrc             TYPE clike OPTIONAL
+        !textFormatter                TYPE clike OPTIONAL
+        !textFormatMode               TYPE clike OPTIONAL
+        !maxLength               TYPE clike OPTIONAL
+        !startSuggestion               TYPE clike OPTIONAL
+        !enableSuggestionsHighlighting TYPE clike OPTIONAL
+        !enableTableAutoPopinMode TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
@@ -457,6 +469,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !minscreenwidth TYPE clike OPTIONAL
         !demandpopin    TYPE clike OPTIONAL
         !halign         TYPE clike OPTIONAL
+        !visible         TYPE clike OPTIONAL
+        !vAlign         TYPE clike OPTIONAL
+        !styleClass         TYPE clike OPTIONAL
+        !sortIndicator         TYPE clike OPTIONAL
+        !popinDisplay         TYPE clike OPTIONAL
+        !mergeFunctionName         TYPE clike OPTIONAL
+        !mergeDuplicates         TYPE clike OPTIONAL
+        !importance         TYPE clike OPTIONAL
+        !autoPopinWidth         TYPE clike OPTIONAL
           PREFERRED PARAMETER width
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -935,6 +956,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !type         TYPE clike OPTIONAL
         !selected     TYPE clike OPTIONAL
         !counter      TYPE clike OPTIONAL
+        !wrapping      TYPE clike OPTIONAL
+        !wrapCharLimit      TYPE clike OPTIONAL
+        !infoStateInverted      TYPE clike OPTIONAL
+        !infoState      TYPE clike OPTIONAL
+        !iconInset      TYPE clike OPTIONAL
+        !adaptTitleSize      TYPE clike OPTIONAL
+        !activeIcon      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS item
@@ -2920,6 +2948,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `width` v = width )
                                          ( n = `minScreenWidth` v = minscreenwidth )
                                          ( n = `halign` v = halign )
+                                         ( n = `autoPopinWidth` v = autoPopinWidth )
+                                         ( n = `vAlign` v = vAlign )
+                                         ( n = `importance` v = importance )
+                                         ( n = `mergeFunctionName` v = mergeFunctionName )
+                                         ( n = `popinDisplay` v = popinDisplay )
+                                         ( n = `sortIndicator` v = sortIndicator )
+                                         ( n = `styleClass` v = styleClass )
+                                         ( n = `mergeDuplicates` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( mergeDuplicates ) )
+                                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                          ( n = `demandPopin` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( demandpopin ) ) ) ).
   ENDMETHOD.
 
@@ -3829,12 +3866,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               t_prop = VALUE #( ( n = `id`               v = id )
                                 ( n = `placeholder`      v = placeholder )
                                 ( n = `type`             v = type )
+                                ( n = `maxLength`        v = maxLength )
                                 ( n = `showClearIcon`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showclearicon ) )
                                 ( n = `description`      v = description )
                                 ( n = `editable`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
                                 ( n = `enabled`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `visible`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
-                                ( n = `showTableSuggestionValueHelp`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showtablesuggestionvaluehelp ) )
+                                ( n = `enableTableAutoPopinMode` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableTableAutoPopinMode ) )
+                                ( n = `enableSuggestionsHighlighting`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableSuggestionsHighlighting ) )
+                                ( n = `showTableSuggestionValueHelp`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showtablesuggestionvaluehelp ) )
                                 ( n = `valueState`       v = valuestate )
                                 ( n = `valueStateText`   v = valuestatetext )
                                 ( n = `value`            v = value )
@@ -3852,7 +3892,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `class`            v = class )
                                 ( n = `change`            v = change )
                                 ( n = `maxSuggestionWidth` v = maxsuggestionwidth )
-                                ( n = `width` v = width )
+                                ( n = `width`             v = width )
+                                ( n = `textFormatter`     v = textFormatter )
+                                ( n = `startSuggestion`     v = startSuggestion )
+                                ( n = `valueHelpIconSrc` v = valueHelpIconSrc )
+                                ( n = `textFormatMode`  v = textFormatMode )
                                 ( n = `fieldWidth`          v = fieldwidth ) ) ).
   ENDMETHOD.
 
@@ -5026,6 +5070,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `press`       v = press )
                                 ( n = `type`        v = type )
                                 ( n = `counter`     v = counter )
+                                ( n = `activeIcon`     v = activeIcon )
+                                ( n = `adaptTitleSize`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( adaptTitleSize ) )
+                                ( n = `iconInset`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconInset ) )
+                                ( n = `infoStateInverted`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( infoStateInverted ) )
+                                ( n = `wrapping`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                                ( n = `infoState`     v = infoState )
+                                ( n = `wrapCharLimit`     v = wrapCharLimit )
                                 ( n = `selected`    v = selected ) ) ).
   ENDMETHOD.
 
@@ -5136,8 +5187,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `inset`             v = inset )
                            ( n = `width`            v = width )
                            ( n = `id`            v = id )
+                           ( n = `hiddenInPopin`            v = hiddenInPopin )
+                           ( n = `popinLayout`            v = popinLayout )
                            ( n = `selectionChange`  v = selectionchange )
+                           ( n = `backgroundDesign`  v = backgroundDesign )
                            ( n = `alternateRowColors`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( alternaterowcolors ) )
+                           ( n = `fixedLayout`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( fixedLayout ) )
+                           ( n = `showOverlay`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showOverlay ) )
                            ( n = `autoPopinMode`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( autopopinmode ) ) ) ).
   ENDMETHOD.
 
