@@ -4397,7 +4397,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                      ( n = `showTitleInHeaderContent` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showtitleinheadercontent ) )
                      ( n = `showEditHeaderButton`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showeditheaderbutton ) )
                      ( n = `editHeaderButtonPress`    v = editheaderbuttonpress )
-                     ( n = `upperCaseAnchorBar`       v = uppercaseanchorbar ) 
+                     ( n = `upperCaseAnchorBar`       v = uppercaseanchorbar )
                      ( n = `showFooter`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showfooter ) ) ) ).
   ENDMETHOD.
 
