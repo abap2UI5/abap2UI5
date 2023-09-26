@@ -1,4 +1,4 @@
- CLASS z2ui5_cl_xml_view DEFINITION
+CLASS z2ui5_cl_xml_view DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED.
