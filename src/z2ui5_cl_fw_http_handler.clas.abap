@@ -173,6 +173,9 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        if (oControl === undefined) {` && |\n| &&
                            `                            oControl = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_POPOVER.OPEN_BY_ID);` && |\n| &&
                            `                        }` && |\n| &&
+                           `                        if (oControl === undefined) {` && |\n| &&
+                           `                            oControl = sap.z2ui5.oViewNest.byId(sap.z2ui5.oResponse.PARAMS.S_POPOVER.OPEN_BY_ID);` && |\n| &&
+                           `                        }` && |\n| &&
                            `                        oFragment.openBy(oControl);` && |\n| &&
                            `                        sap.z2ui5.oViewPopover = oFragment;` && |\n| &&
                            `                    });` && |\n| &&
@@ -259,8 +262,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `            },` && |\n| &&
                            |\n| &&
                            `            onEvent: function (...args) {` && |\n| &&
-                                 `   if ( sap.z2ui5.isBusy ) { if( sap.z2ui5.isBusy == true ){  sap.z2ui5.b = new sap.m.BusyDialog();    sap.z2ui5.b.open(); return; } } ` &&
-                          `                sap.z2ui5.isBusy = true; ` &&
+                           `   if ( sap.z2ui5.isBusy ) { if( sap.z2ui5.isBusy == true ){  sap.z2ui5.b = new sap.m.BusyDialog();    sap.z2ui5.b.open(); return; } } ` &&
+                           `                sap.z2ui5.isBusy = true; ` &&
                            `                if (!window.navigator.onLine) {` && |\n| &&
                            `                    sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
                            `                    sap.z2ui5.isBusy = false; ` && |\n| &&
