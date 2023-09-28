@@ -108,6 +108,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !initialfocus  TYPE clike OPTIONAL
         !contentwidth  TYPE clike OPTIONAL
         !contentheight TYPE clike OPTIONAL
+        !showheader    type clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4615,7 +4616,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `placement`     v = placement )
                                          ( n = `initialFocus`  v = initialfocus )
                                          ( n = `contentHeight` v = contentheight )
-                                         ( n = `contentWidth`  v = contentwidth ) ) ).
+                                         ( n = `contentWidth`  v = contentwidth ) 
+                                         ( n = `showHeader`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showHeader ) ) ) ).
   ENDMETHOD.
 
 
