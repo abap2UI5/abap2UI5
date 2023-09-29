@@ -97,6 +97,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !justifycontent TYPE clike OPTIONAL
         !wrap           TYPE clike OPTIONAL
         !visible        TYPE clike OPTIONAL
+        !direction      TYPE clike OPTIONAL
+        !displayInline      TYPE clike OPTIONAL
+        !backgroundDesign      TYPE clike OPTIONAL
+        !alignContent      TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
@@ -108,7 +112,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !initialfocus  TYPE clike OPTIONAL
         !contentwidth  TYPE clike OPTIONAL
         !contentheight TYPE clike OPTIONAL
-        !showheader    type clike OPTIONAL
+        !showheader    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2633,6 +2637,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS form_toolbar
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -3482,6 +3490,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `fitContainer`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( fitcontainer ) )
                                          ( n = `justifyContent`  v = justifycontent )
                                          ( n = `wrap`  v = wrap )
+                                         ( n = `direction`  v = direction )
+                                         ( n = `alignContent`  v = alignContent )
+                                         ( n = `backgroundDesign`  v = backgroundDesign )
+                                         ( n = `displayInline`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayInline ) )
                                          ( n = `visible`  v = visible ) ) ).
   ENDMETHOD.
 
@@ -3507,6 +3519,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     _generic( name   = `FormattedText`
               t_prop = VALUE #( ( n = `htmlText` v = htmltext ) ) ).
+  ENDMETHOD.
+
+
+  METHOD form_toolbar.
+    result = _generic( name = `toolbar`
+                       ns   = `form` ).
   ENDMETHOD.
 
 
@@ -4616,8 +4634,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `placement`     v = placement )
                                          ( n = `initialFocus`  v = initialfocus )
                                          ( n = `contentHeight` v = contentheight )
-                                         ( n = `contentWidth`  v = contentwidth )
-                                         ( n = `showHeader`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showHeader ) ) ) ).
+                                         ( n = `showheader`    v = showheader )
+                                         ( n = `contentWidth`  v = contentwidth ) ) ).
   ENDMETHOD.
 
 
