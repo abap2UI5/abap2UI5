@@ -68,6 +68,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
   METHOD create.
 
+    db-app->id = id.
     DATA(lv_xml) = trans_any_2_xml( db ).
 
     DATA(ls_draft) = VALUE z2ui5_t_draft( uuid                = id
