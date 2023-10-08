@@ -13,7 +13,7 @@
 #### Key Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
-* low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF or RAP)
+* low system footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
 * high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2308)
 * easy installation – abapGit project, no additional app deployment needed
