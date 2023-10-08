@@ -13,7 +13,7 @@
 #### Key Features
 * easy to use – implement just one interface for a standalone UI5 application
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
-* low system footprint – based on a plain http handler (no BSP, OData, CDS, BOPF or RAP)
+* low system footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
 * high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2308)
 * easy installation – abapGit project, no additional app deployment needed
@@ -36,14 +36,17 @@
 8. Repository Setup with abapGit, abaplint & open-abap [(Blog SCN - 21.08.2023)](https://blogs.sap.com/2023/08/21/abap2ui5-a1-repository-setup-with-abapgit-abaplint-open-abap/)<br>
 9. Community Feedback & New Features [(Blog SCN - 11.09.2023)](https://blogs.sap.com/2023/09/11/abap2ui5-a2-community-feedback-new-features/)<br>
 
-#### More
+#### References
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
+* Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
+* Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
+* Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
+
+#### More
 * Try out abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
-* Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
-* Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
-* Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
+* Analyse your Views & Models with this Codesandbox [(sandbox/abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
 * Want to help out? Check out the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
