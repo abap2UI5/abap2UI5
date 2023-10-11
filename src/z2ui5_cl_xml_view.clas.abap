@@ -4064,6 +4064,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `width`   v = width )
                                 ( n = `wrapping`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `wrappingType`   v = wrappingType )
+                                ( n = `design`   v = design )
                                 ( n = `labelFor` v = labelfor ) ) ).
   ENDMETHOD.
 
