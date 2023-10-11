@@ -471,6 +471,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS column
       IMPORTING
         !width          TYPE clike OPTIONAL
+        !id          TYPE clike OPTIONAL
         !minscreenwidth TYPE clike OPTIONAL
         !demandpopin    TYPE clike OPTIONAL
         !halign         TYPE clike OPTIONAL
@@ -700,6 +701,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !id             TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
         !ns             TYPE clike OPTIONAL
+        !backgroundDesign             TYPE clike OPTIONAL
+        !contentOnlyBusy             TYPE clike OPTIONAL
+        !enableScrolling             TYPE clike OPTIONAL
+        !navButtonTooltip             TYPE clike OPTIONAL
+        !floatingFooter             TYPE clike OPTIONAL
+        !showFooter             TYPE clike OPTIONAL
+        !showSubHeader             TYPE clike OPTIONAL
+        !titleAlignment             TYPE clike OPTIONAL
+        !titleLevel             TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -837,6 +847,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !text         TYPE clike OPTIONAL
         !labelfor     TYPE clike OPTIONAL
         !design       TYPE clike OPTIONAL
+        !displayOnly       TYPE clike OPTIONAL
+        !required       TYPE clike OPTIONAL
+        !showColon       TYPE clike OPTIONAL
+        !textAlign       TYPE clike OPTIONAL
+        !textDirection       TYPE clike OPTIONAL
+        !vAlign       TYPE clike OPTIONAL
+        !width       TYPE clike OPTIONAL
+        !wrapping       TYPE clike OPTIONAL
+        !wrappingType       TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1176,6 +1195,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !text         TYPE clike OPTIONAL
         !class        TYPE clike OPTIONAL
         !ns           TYPE clike OPTIONAL
+        !emptyIndicatorMode           TYPE clike OPTIONAL
+        !maxLines           TYPE clike OPTIONAL
+        !renderWhitespace           TYPE clike OPTIONAL
+        !textAlign           TYPE clike OPTIONAL
+        !textDirection           TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+        !wrapping           TYPE clike OPTIONAL
+        !wrappingType           TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1984,6 +2011,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !save                   TYPE clike OPTIONAL
         !select                 TYPE clike OPTIONAL
         !uservarcreate          TYPE clike OPTIONAL
+        !id                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2641,6 +2669,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS paging_button
+    IMPORTING
+      !count  TYPE clike OPTIONAL
+      !nextButtonTooltip  TYPE clike OPTIONAL
+      !previousButtonTooltip  TYPE clike OPTIONAL
+      !position  TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -2956,7 +2993,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `Column`
                        t_prop = VALUE #( ( n = `width` v = width )
                                          ( n = `minScreenWidth` v = minscreenwidth )
-                                         ( n = `halign` v = halign )
+                                         ( n = `hAlign` v = halign )
                                          ( n = `autoPopinWidth` v = autoPopinWidth )
                                          ( n = `vAlign` v = vAlign )
                                          ( n = `importance` v = importance )
@@ -2964,6 +3001,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `popinDisplay` v = popinDisplay )
                                          ( n = `sortIndicator` v = sortIndicator )
                                          ( n = `styleClass` v = styleClass )
+                                         ( n = `id`         v = id )
                                          ( n = `mergeDuplicates` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( mergeDuplicates ) )
                                          ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                          ( n = `demandPopin` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( demandpopin ) ) ) ).
@@ -4017,7 +4055,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     _generic( name   = `Label`
               t_prop = VALUE #( ( n = `text`     v = text )
-                                ( n = `design`   v = design )
+                                ( n = `displayOnly`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayOnly ) )
+                                ( n = `required`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
+                                ( n = `showColon`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showColon ) )
+                                ( n = `textAlign`   v = textAlign )
+                                ( n = `textDirection`   v = textDirection )
+                                ( n = `vAlign`   v = vAlign )
+                                ( n = `width`   v = width )
+                                ( n = `wrapping`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                                ( n = `wrappingType`   v = wrappingType )
                                 ( n = `labelFor` v = labelfor ) ) ).
   ENDMETHOD.
 
@@ -4549,6 +4595,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `navButtonPress` v = navbuttonpress )
                                          ( n = `showHeader` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showheader ) )
                                          ( n = `class` v = class )
+                                         ( n = `backgroundDesign` v = backgroundDesign )
+                                         ( n = `navButtonTooltip` v = navButtonTooltip )
+                                         ( n = `titleAlignment` v = titleAlignment )
+                                         ( n = `titleLevel` v = titleLevel )
+                                         ( n = `contentOnlyBusy` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( contentOnlyBusy ) )
+                                         ( n = `enableScrolling` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableScrolling ) )
+                                         ( n = `floatingFooter` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( floatingFooter ) )
+                                         ( n = `showFooter` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showFooter ) )
+                                         ( n = `showSubHeader` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSubHeader ) )
                                          ( n = `id` v = id ) ) ).
   ENDMETHOD.
 
@@ -4556,6 +4611,16 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD pages.
     result = _generic( name   = `pages`  ).
 
+  ENDMETHOD.
+
+
+  METHOD paging_button.
+    result = me.
+    _generic( name   = `PagingButton`
+              t_prop = VALUE #( ( n = `count`  v = count )
+                                ( n = `nextButtonTooltip`    v = nextButtonTooltip )
+                                ( n = `position`    v = position )
+                                ( n = `previousButtonTooltip`  v = previousButtonTooltip ) ) ).
   ENDMETHOD.
 
 
@@ -5268,6 +5333,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( name   = `Text`
               ns     = ns
               t_prop = VALUE #( ( n = `text`  v = text )
+                                ( n = `emptyIndicatorMode`  v = emptyIndicatorMode )
+                                ( n = `maxLines`  v = maxLines )
+                                ( n = `renderWhitespace`  v = renderWhitespace )
+                                ( n = `textAlign`  v = textAlign )
+                                ( n = `textDirection`  v = textDirection )
+                                ( n = `width`  v = width )
+                                ( n = `wrapping`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                                ( n = `wrappingType`  v = wrappingType )
                                 ( n = `class` v = class ) ) ).
   ENDMETHOD.
 
@@ -5680,9 +5753,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                            ( n = `standardItemText`       v = standardItemText )
                                            ( n = `useFavorites`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useFavorites ) )
                                            ( n = `variantItems`           v = variantItems )
-                                           ( n = `manage`                  v = manage )
+                                           ( n = `manage`                 v = manage )
                                            ( n = `save`                   v = save )
                                            ( n = `select`                 v = select )
+                                           ( n = `id`                     v = id )
                                            ( n = `variantCreationByUserAllowed` v = uservarcreate )
                                            ( n = `visible`                v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) ) ) ).
 
