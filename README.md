@@ -15,7 +15,7 @@
 * pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
 * low system footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2308)
+* high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2311)
 * easy installation – abapGit project, no additional app deployment needed
 
 #### Compatibility
@@ -47,7 +47,6 @@
 * Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Analyse your Views & Models with this Codesandbox [(sandbox/abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
-* Want to help out? Check out the contribution guidelines [(abap2UI5/contribution)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 
 #### Apps & Extensions
 * Add your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
@@ -89,4 +88,5 @@ ENDMETHOD.
 #### FAQ
 * check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
 * still open questions? find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
