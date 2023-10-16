@@ -1648,21 +1648,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !class        TYPE clike OPTIONAL
         !select       TYPE clike OPTIONAL
         !expand       TYPE clike OPTIONAL
-        !expandable   TYPE abap_bool OPTIONAL
-        !expanded     TYPE abap_bool OPTIONAL
+        !expandable   TYPE clike OPTIONAL
+        !expanded     TYPE clike OPTIONAL
         !selectedkey  TYPE clike OPTIONAL
+        !upperCase  TYPE clike OPTIONAL
+        !tabsOverflowMode  TYPE clike OPTIONAL
+        !tabDensityMode  TYPE clike OPTIONAL
+        !stretchContentHeight  TYPE clike OPTIONAL
+        !maxNestingLevel  TYPE clike OPTIONAL
+        !headerMode  TYPE clike OPTIONAL
+        !headerBackgroundDesign  TYPE clike OPTIONAL
+        !enableTabReordering  TYPE clike OPTIONAL
+        !backgroundDesign  TYPE clike OPTIONAL
+        !applyContentPadding  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS icon_tab_filter
       IMPORTING
         !items        TYPE clike OPTIONAL
-        !showall      TYPE abap_bool OPTIONAL
+        !showall      TYPE clike OPTIONAL
         !icon         TYPE clike OPTIONAL
         !iconcolor    TYPE clike OPTIONAL
         !count        TYPE clike OPTIONAL
         !text         TYPE clike OPTIONAL
         !key          TYPE clike OPTIONAL
+        !design          TYPE clike OPTIONAL
+        !iconDensityAware          TYPE clike OPTIONAL
+        !visible          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -2678,35 +2691,69 @@ CLASS z2ui5_cl_xml_view DEFINITION
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-methods TIMELINE
-    importing
-      !ID type CLIKE optional
-      !ENABLEDOUBLESIDED type CLIKE optional
-      !GROUPBY type CLIKE optional
-      !GROWINGTHRESHOLD type CLIKE optional
-      !FILTERTITLE type CLIKE optional
-      !SORTOLDESTFIRST type CLIKE optional
-      !ALIGNMENT type CLIKE optional
-      !AXISORIENTATION type CLIKE optional
-      !CONTENT type CLIKE optional
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  METHODS timeline
+      importing
+        !ID type CLIKE optional
+        !ENABLEDOUBLESIDED type CLIKE optional
+        !GROUPBY type CLIKE optional
+        !GROWINGTHRESHOLD type CLIKE optional
+        !FILTERTITLE type CLIKE optional
+        !SORTOLDESTFIRST type CLIKE optional
+        !ALIGNMENT type CLIKE optional
+        !AXISORIENTATION type CLIKE optional
+        !CONTENT type CLIKE optional
+      returning
+        value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
 
-  methods TIMELINEITEM
-    importing
-      !ID type CLIKE optional
-      !DATETIME type CLIKE optional
-      !TITLE type CLIKE optional
-      !USERNAMECLICKABLE type CLIKE optional
-      !USERNAMECLICKED type CLIKE optional
-      !SELECT type CLIKE optional
-      !USERPICTURE type CLIKE optional
-      !TEXT type CLIKE optional
-      !USERNAME type CLIKE optional
-      !FILTERVALUE type CLIKE optional
-      !ICON type CLIKE optional
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+    METHODS timelineitem
+      IMPORTING
+        !ID type CLIKE optional
+        !DATETIME type CLIKE optional
+        !TITLE type CLIKE optional
+        !USERNAMECLICKABLE type CLIKE optional
+        !USERNAMECLICKED type CLIKE optional
+        !SELECT type CLIKE optional
+        !USERPICTURE type CLIKE optional
+        !TEXT type CLIKE optional
+        !USERNAME type CLIKE optional
+        !FILTERVALUE type CLIKE optional
+        !ICON type CLIKE optional
+      RETURNING
+        VALUE(RESULT) TYPE REF TO Z2UI5_CL_XML_VIEW .
+
+    METHODS split_container
+      IMPORTING
+        !id type CLIKE optional
+        !initialDetail type CLIKE optional
+        !initialMaster type CLIKE optional
+        !backgroundColor type CLIKE optional
+        !backgroundImage type CLIKE optional
+        !backgroundOpacity type CLIKE optional
+        !backgroundRepeat type CLIKE optional
+        !defaultTransitionNameDetail type CLIKE optional
+        !defaultTransitionNameMaster type CLIKE optional
+        !masterButtonText type CLIKE optional
+        !masterButtonTooltip type CLIKE optional
+        !mode type CLIKE optional
+        !afterDetailNavigate type CLIKE optional
+        !afterMasterClose type CLIKE optional
+        !afterMasterNavigate type CLIKE optional
+        !afterMasterOpen type CLIKE optional
+        !beforeMasterClose type CLIKE optional
+        !beforeMasterOpen type CLIKE optional
+        !detailNavigate type CLIKE optional
+        !masterButton type CLIKE optional
+        !masterNavigate type CLIKE optional
+      RETURNING
+        VALUE(RESULT) TYPE REF TO Z2UI5_CL_XML_VIEW .
+
+    METHODS detail_pages
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS master_pages
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
 
@@ -3289,6 +3336,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD detail_pages.
+    result = _generic( name = `detailPages` ).
+  ENDMETHOD.
+
+
   METHOD dialog.
 
     result = _generic( name   = `Dialog`
@@ -3845,8 +3897,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `class`       v = class )
                                        ( n = `select`      v = select )
                                        ( n = `expand`      v = expand )
-                                       ( n = `expandable`  v = expandable )
-                                       ( n = `expanded`    v = expanded )
+                                       ( n = `expandable`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expandable ) )
+                                       ( n = `expanded`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
+                                       ( n = `applyContentPadding`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( applyContentPadding ) )
+                                       ( n = `backgroundDesign`    v = backgroundDesign )
+                                       ( n = `enableTabReordering`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableTabReordering ) )
+                                       ( n = `headerBackgroundDesign`    v = headerBackgroundDesign )
+                                       ( n = `stretchContentHeight`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( stretchContentHeight ) )
+                                       ( n = `headerMode`    v = headerMode )
+                                       ( n = `maxNestingLevel`    v = maxNestingLevel )
+                                       ( n = `tabDensityMode`    v = tabDensityMode )
+                                       ( n = `tabsOverflowMode`    v = tabsOverflowMode )
+                                       ( n = `upperCase`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( upperCase ) )
                                        ( n = `selectedKey` v = selectedkey ) ) ).
   ENDMETHOD.
 
@@ -3856,8 +3918,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `IconTabFilter`
                        t_prop = VALUE #( ( n = `icon`        v = icon )
                                        (  n = `items`    v = items )
+                                       (  n = `design`    v = design )
                                        ( n = `iconColor`   v = iconcolor )
-                                       ( n = `showAll`     v = showall )
+                                       ( n = `showAll`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showall ) )
+                                       ( n = `iconDensityAware`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconDensityAware ) )
+                                       ( n = `visible`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                        ( n = `count`       v = count )
                                        ( n = `text`        v = text )
                                        ( n = `key`         v = key ) ) ).
@@ -4259,6 +4324,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `MaskInputRule`
                        t_prop = VALUE #( ( n = `maskFormatSymbol` v = maskFormatSymbol )
                                          ( n = `regex`            v = regex ) ) ).
+  ENDMETHOD.
+
+
+  METHOD master_pages.
+    result = _generic( name = `masterPages` ).
   ENDMETHOD.
 
 
@@ -5153,6 +5223,35 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD split_container.
+
+    result = me.
+    _generic( name   = `SplitContainer`
+              t_prop = VALUE #( ( n = `id`                          v = id )
+                                ( n = `initialDetail`               v = initialDetail )
+                                ( n = `initialMaster`               v = initialMaster )
+                                ( n = `backgroundColor`             v = backgroundColor )
+                                ( n = `backgroundImage`             v = backgroundImage )
+                                ( n = `backgroundOpacity`           v = backgroundOpacity )
+                                ( n = `backgroundRepeat`            v = backgroundRepeat )
+                                ( n = `defaultTransitionNameDetail` v = defaultTransitionNameDetail )
+                                ( n = `defaultTransitionNameMaster` v = defaultTransitionNameMaster )
+                                ( n = `masterButtonText`            v = masterButtonText )
+                                ( n = `masterButtonTooltip`         v = masterButtonTooltip )
+                                ( n = `afterDetailNavigate`         v = afterDetailNavigate )
+                                ( n = `afterMasterClose`            v = afterMasterClose )
+                                ( n = `afterMasterNavigate`         v = afterMasterNavigate )
+                                ( n = `afterMasterOpen`             v = afterMasterOpen )
+                                ( n = `beforeMasterClose`           v = beforeMasterClose )
+                                ( n = `beforeMasterOpen`            v = beforeMasterOpen )
+                                ( n = `detailNavigate`              v = detailNavigate )
+                                ( n = `masterButton`                v = masterButton )
+                                ( n = `masterNavigate`              v = masterNavigate )
+                                ( n = `mode`                        v = mode ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD split_pane.
     result = _generic( name   = `SplitPane` ns = `layout`
                        t_prop = VALUE #( ( n = `id`                   v = id )
@@ -5400,6 +5499,40 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `unit`   v = unit )
                                 ( n = `footer` v = footer ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD timeline.
+
+    result = _generic( name   = `Timeline`
+                       ns     = 'commons'
+                       t_prop = VALUE #( ( n = 'id'                 v = id )
+                                         ( n = 'enableDoubleSided'  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabledoublesided ) )
+                                         ( n = 'groupBy'            v = groupby )
+                                         ( n = 'growingThreshold'   v = growingthreshold )
+                                         ( n = 'filterTitle'        v = filtertitle )
+                                         ( n = 'sortOldestFirst'    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sortoldestfirst ) )
+                                         ( n = 'alignment'          v = ALIGNMENT )
+                                         ( n = 'axisOrientation'    v = axisOrientation )
+                                         ( n = 'content'            v = content ) ) ).
+  ENDMETHOD.
+
+
+  METHOD timelineitem.
+
+    result = _generic( name   = `TimelineItem`
+                       ns     = 'commons'
+                       t_prop = VALUE #( ( n = 'id'                     v = id )
+                                         ( n = 'dateTime'               v = datetime )
+                                         ( n = 'title'                  v = title )
+                                         ( n = 'userNameClickable'      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( usernameclickable ) )
+                                         ( n = 'userNameClicked'        v = usernameclicked )
+                                         ( n = 'select'                 v = select )
+                                         ( n = 'userPicture'            v = userpicture )
+                                         ( n = 'text'                   v = text )
+                                         ( n = 'userName'               v = username )
+                                         ( n = 'filterValue'            v = filtervalue )
+                                         ( n = 'icon'                   v = icon ) ) ).
   ENDMETHOD.
 
 
@@ -6612,38 +6745,5 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     INSERT val INTO TABLE mt_prop.
     result = me.
 
-  ENDMETHOD.
-
-METHOD timeline.
-
-    result = _generic( name   = `Timeline`
-                       ns     = 'commons'
-                       t_prop = VALUE #( ( n = 'id'                 v = id )
-                                         ( n = 'enableDoubleSided'  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabledoublesided ) )
-                                         ( n = 'groupBy'            v = groupby )
-                                         ( n = 'growingThreshold'   v = growingthreshold )
-                                         ( n = 'filterTitle'        v = filtertitle )
-                                         ( n = 'sortOldestFirst'    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sortoldestfirst ) )
-                                         ( n = 'alignment'          v = ALIGNMENT )
-                                         ( n = 'axisOrientation'    v = axisOrientation )
-                                         ( n = 'content'            v = content ) ) ).
-  ENDMETHOD.
-
-
-  METHOD timelineitem.
-
-    result = _generic( name   = `TimelineItem`
-                       ns     = 'commons'
-                       t_prop = VALUE #( ( n = 'id'                     v = id )
-                                         ( n = 'dateTime'               v = datetime )
-                                         ( n = 'title'                  v = title )
-                                         ( n = 'userNameClickable'      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( usernameclickable ) )
-                                         ( n = 'userNameClicked'        v = usernameclicked )
-                                         ( n = 'select'                 v = select )
-                                         ( n = 'userPicture'            v = userpicture )
-                                         ( n = 'text'                   v = text )
-                                         ( n = 'userName'               v = username )
-                                         ( n = 'filterValue'            v = filtervalue )
-                                         ( n = 'icon'                   v = icon ) ) ).
   ENDMETHOD.
 ENDCLASS.
