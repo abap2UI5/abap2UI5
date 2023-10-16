@@ -2678,6 +2678,36 @@ CLASS z2ui5_cl_xml_view DEFINITION
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+methods TIMELINE
+    importing
+      !ID type CLIKE optional
+      !ENABLEDOUBLESIDED type CLIKE optional
+      !GROUPBY type CLIKE optional
+      !GROWINGTHRESHOLD type CLIKE optional
+      !FILTERTITLE type CLIKE optional
+      !SORTOLDESTFIRST type CLIKE optional
+      !ALIGNMENT type CLIKE optional
+      !AXISORIENTATION type CLIKE optional
+      !CONTENT type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods TIMELINEITEM
+    importing
+      !ID type CLIKE optional
+      !DATETIME type CLIKE optional
+      !TITLE type CLIKE optional
+      !USERNAMECLICKABLE type CLIKE optional
+      !USERNAMECLICKED type CLIKE optional
+      !SELECT type CLIKE optional
+      !USERPICTURE type CLIKE optional
+      !TEXT type CLIKE optional
+      !USERNAME type CLIKE optional
+      !FILTERVALUE type CLIKE optional
+      !ICON type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
@@ -6582,5 +6612,38 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     INSERT val INTO TABLE mt_prop.
     result = me.
 
+  ENDMETHOD.
+
+METHOD timeline.
+
+    result = _generic( name   = `Timeline`
+                       ns     = 'commons'
+                       t_prop = VALUE #( ( n = 'id'                 v = id )
+                                         ( n = 'enableDoubleSided'  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabledoublesided ) )
+                                         ( n = 'groupBy'            v = groupby )
+                                         ( n = 'growingThreshold'   v = growingthreshold )
+                                         ( n = 'filterTitle'        v = filtertitle )
+                                         ( n = 'sortOldestFirst'    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sortoldestfirst ) )
+                                         ( n = 'alignment'          v = ALIGNMENT )
+                                         ( n = 'axisOrientation'    v = axisOrientation )
+                                         ( n = 'content'            v = content ) ) ).
+  ENDMETHOD.
+
+
+  METHOD timelineitem.
+
+    result = _generic( name   = `TimelineItem`
+                       ns     = 'commons'
+                       t_prop = VALUE #( ( n = 'id'                     v = id )
+                                         ( n = 'dateTime'               v = datetime )
+                                         ( n = 'title'                  v = title )
+                                         ( n = 'userNameClickable'      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( usernameclickable ) )
+                                         ( n = 'userNameClicked'        v = usernameclicked )
+                                         ( n = 'select'                 v = select )
+                                         ( n = 'userPicture'            v = userpicture )
+                                         ( n = 'text'                   v = text )
+                                         ( n = 'userName'               v = username )
+                                         ( n = 'filterValue'            v = filtervalue )
+                                         ( n = 'icon'                   v = icon ) ) ).
   ENDMETHOD.
 ENDCLASS.
