@@ -1080,6 +1080,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !growing         TYPE clike OPTIONAL
         !growingmaxlines TYPE clike OPTIONAL
         !id              TYPE clike OPTIONAL
+        !REQUIRED        type CLIKE optional
+        !VALUESTATE      type CLIKE optional
+        !VALUESTATETEXT  type CLIKE optional
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
@@ -5487,7 +5490,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `id` v = id )
                                 ( n = `growing` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( growing ) )
-                                ( n = `growingMaxLines` v = growingmaxlines ) ) ).
+                                ( n = `growingMaxLines` v = growingmaxlines )
+                                ( n = `required`        v = required )
+                                ( n = `valueState`      v = valuestate )
+                                ( n = `valueStateText`  v = valuestatetext ) ) ).
   ENDMETHOD.
 
 
