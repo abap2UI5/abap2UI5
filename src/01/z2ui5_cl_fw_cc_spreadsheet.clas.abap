@@ -128,7 +128,4 @@ CLASS Z2UI5_CL_FW_CC_SPREADSHEET IMPLEMENTATION.
     result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
 
   ENDMETHOD.
-
-
-
 ENDCLASS.
