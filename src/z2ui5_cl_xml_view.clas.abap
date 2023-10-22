@@ -712,7 +712,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !titlelevel       TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS panel
       IMPORTING
         !expandable   TYPE clike OPTIONAL
@@ -721,7 +722,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         stickyHeader  type clike optional
         height  type clike optional
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS vbox
       IMPORTING
         !height         TYPE clike OPTIONAL
@@ -4690,7 +4692,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `Panel`
                        t_prop = VALUE #( ( n = `expandable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expandable ) )
                                          ( n = `expanded`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
-                                         ( n = `stickyHeader`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
+                                         ( n = `stickyHeader`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( stickyheader ) )
                                          ( n = `height`   v = height )
                                          ( n = `headerText` v = headertext ) ) ).
 
