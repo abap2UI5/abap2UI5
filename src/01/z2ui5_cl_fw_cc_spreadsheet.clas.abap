@@ -7,13 +7,13 @@ CLASS z2ui5_cl_fw_cc_spreadsheet DEFINITION
 
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS zcc_export_spreadsheet_js
+    METHODS load_cc
       IMPORTING
         !columnconfig TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS zcc_export_spreadsheet
+    METHODS control
       IMPORTING
         !tableid      TYPE clike
         !type         TYPE clike OPTIONAL
@@ -33,7 +33,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_FW_CC_SPREADSHEET IMPLEMENTATION.
 
 
-  METHOD zcc_export_spreadsheet.
+  METHOD control.
 
     result = mo_view.
     mo_view->_generic( name   = `ExportSpreadsheet`
@@ -47,7 +47,7 @@ CLASS Z2UI5_CL_FW_CC_SPREADSHEET IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD zcc_export_spreadsheet_js.
+  METHOD load_cc.
 
     DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
                           |\n| &&

@@ -7,7 +7,7 @@ CLASS z2ui5_cl_fw_cc_file_uploader DEFINITION
 
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS control_upload_button
+    METHODS control
       IMPORTING
         !value             TYPE clike OPTIONAL
         !path              TYPE clike OPTIONAL
@@ -21,7 +21,7 @@ CLASS z2ui5_cl_fw_cc_file_uploader DEFINITION
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS get_js
+    METHODS load_cc
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -35,7 +35,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_FW_CC_FILE_UPLOADER IMPLEMENTATION.
 
 
-  METHOD control_upload_button.
+  METHOD control.
 
     result = mo_view.
     mo_view->_generic( name   = `FileUploader`
@@ -53,7 +53,7 @@ CLASS Z2UI5_CL_FW_CC_FILE_UPLOADER IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_js.
+  METHOD load_cc.
 
     DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
                           |\n| &&
