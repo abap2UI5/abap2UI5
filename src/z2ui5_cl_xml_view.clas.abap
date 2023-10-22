@@ -718,6 +718,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !expandable   TYPE clike OPTIONAL
         !expanded     TYPE clike OPTIONAL
         !headertext   TYPE clike OPTIONAL
+        stickyHeader  type clike optional
+        height  type clike optional
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS vbox
@@ -4684,10 +4686,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD panel.
+
     result = _generic( name   = `Panel`
-                       t_prop = VALUE #( ( n = `expandable` v = expandable )
-                                         ( n = `expanded`   v = expanded )
+                       t_prop = VALUE #( ( n = `expandable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expandable ) )
+                                         ( n = `expanded`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
+                                         ( n = `stickyHeader`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
+                                         ( n = `height`   v = height )
                                          ( n = `headerText` v = headertext ) ) ).
+
   ENDMETHOD.
 
 
