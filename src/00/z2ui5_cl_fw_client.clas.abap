@@ -267,6 +267,13 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~_bind_clear.
+
+    CLEAR mo_handler->ms_db-t_attri.
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_client~_bind_edit.
 
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
@@ -332,7 +339,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD z2ui5_if_client~message_manager_clear.
+  METHOD z2ui5_if_client~message_manager_clear.
 
     mo_handler->ms_next-s_set-s_message_manager-check_clear = abap_true.
 

@@ -223,4 +223,6 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+    methods _bind_clear.
+
 ENDINTERFACE.
