@@ -269,7 +269,23 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_clear.
 
-    CLEAR mo_handler->ms_db-t_attri.
+    LOOP AT mo_handler->ms_db-t_attri REFERENCE INTO DATA(lr_bind)
+          WHERE check_ready = abap_true.
+
+      FIELD-SYMBOLS <attri> TYPE any.
+      DATA(lv_name) = `MO_HANDLER->MS_DB-APP` && lr_bind->name.
+      ASSIGN (lv_name) TO <attri>.
+
+      IF sy-subrc = 0.
+        DATA lr_ref TYPE REF TO data.
+        GET REFERENCE OF <attri> INTO lr_ref.
+        IF val <> lr_ref.
+          DELETE mo_handler->ms_db-t_attri.
+          RETURN.
+        ENDIF.
+      ENDIF.
+
+    ENDLOOP.
 
   ENDMETHOD.
 

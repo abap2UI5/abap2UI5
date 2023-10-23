@@ -95,6 +95,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n| &&
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
+                           `                    jQuery.sap.delayedCall(10, this, () => {` && |\n| &&
                            `                    sap.z2ui5.oResponse.PARAMS.T_SCROLL.forEach(item => {` && |\n| &&
                            `                        try {` && |\n| &&
                            `                            sap.z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
@@ -104,7 +105,9 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                                $(ele).scrollTop(item.V);` && |\n| &&
                            `                            } catch { }` && |\n| &&
                            `                        }` && |\n| &&
+                           `                     });` && |\n| &&
                            `                    }` && |\n| &&
+                           `                   ` && |\n| &&
                            `                    );` && |\n| &&
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_DESTROY == true) {` && |\n| &&
@@ -116,6 +119,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        definition: sap.z2ui5.oResponse.PARAMS.S_POPUP.XML,` && |\n| &&
                            `                        controller: sap.z2ui5.oController,` && |\n| &&
                            `                    }).then(oFragment => {` && |\n| &&
+                           `                        debugger;` && |\n| &&
                            `                        oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n| &&
                            `                        sap.z2ui5.oView.addDependent(oFragment);` && |\n| &&
                            `                        oFragment.open();` && |\n| &&
