@@ -26,6 +26,10 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_barcode.
 
+    METHODS load_cc
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -47,6 +51,139 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
       ( sym = 'ean5' desc = 'EAN-5' text = '90200' opts = 'includetext guardwhitespace' )
       ( sym = 'ean2' desc = 'EAN-2' text = '05'    opts = 'includetext guardwhitespace' )
     ).
+
+  ENDMETHOD.
+
+   METHOD load_cc.
+
+    DATA(js) = `jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
+                          |\n| &&
+                          `        sap.ui.require([` && |\n| &&
+                          `            "sap/ui/core/Control",` && |\n| &&
+                          `        ], function (Control) {` && |\n| &&
+                          `            "use strict";` && |\n| &&
+                          |\n| &&
+                          `            return Control.extend("z2ui5.bwipjs", {` && |\n| &&
+                          |\n| &&
+                          `                metadata: {` && |\n| &&
+                          `                    properties: {` && |\n| &&
+                          `                        bcid: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        text: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        scale: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        height: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        includetext: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        textalign: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: ""` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
+                          |\n| &&
+                          |\n| &&
+                          `                    aggregations: {` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    events: {` && |\n| &&
+                          `                        "upload": {` && |\n| &&
+                          `                            allowPreventDefault: true,` && |\n| &&
+                          `                            parameters: {}` && |\n| &&
+                          `                        }` && |\n| &&
+                          `                    },` && |\n| &&
+                          `                    renderer: null` && |\n| &&
+                          `                },` && |\n| &&
+                          |\n| &&
+                          `                renderer: function (oRm, oControl) {` && |\n| &&
+                          |\n| &&
+                          `                    return;` && |\n| &&
+                          `                    if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
+                          `                     oControl.oUploadButton = new Button({` && |\n| &&
+                          `                        text: oControl.getProperty("uploadButtonText"),` && |\n| &&
+                          `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
+                          `                        press: function (oEvent) { ` && |\n| &&
+                          |\n| &&
+                          `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
+                          |\n| &&
+                          `                            var file = sap.z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
+                          `                            var reader = new FileReader();` && |\n| &&
+                          |\n| &&
+                          `                            reader.onload = function (evt) {` && |\n| &&
+                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
+                          `                                this.setProperty("value", vContent);` && |\n| &&
+                          `                                this.fireUpload();` && |\n| &&
+                          `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n| &&
+                          `                            }.bind(this)` && |\n| &&
+                          |\n| &&
+                          `                            reader.readAsDataURL(file);` && |\n| &&
+                          `                        }.bind(oControl)` && |\n| &&
+                          `                     });` && |\n| &&
+                          `                    }` && |\n| &&
+                          |\n| &&
+                          `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
+                          `                        icon: "sap-icon://browse-folder",` && |\n| &&
+                          `                        iconOnly: oControl.getProperty("iconOnly"),` && |\n| &&
+                          `                        buttonOnly: oControl.getProperty("buttonOnly"),` && |\n| &&
+                          `                        buttonText: oControl.getProperty("buttonText"),` && |\n| &&
+                          `                        uploadOnChange: true,` && |\n| &&
+                          `                        value: oControl.getProperty("path"),` && |\n| &&
+                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
+                          `                        change: function (oEvent) {` && |\n| &&
+                          `                           if (oControl.getProperty("checkDirectUpload")) {` && |\n| &&
+                          `                             return; ` && |\n| &&
+                          `                           }` && |\n| &&
+                          |\n| &&
+                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
+                          `                            this.setProperty("path", value);` && |\n| &&
+                          `                            if (value) {` && |\n| &&
+                          `                                this.oUploadButton.setEnabled();` && |\n| &&
+                          `                            } else {` && |\n| &&
+                          `                                this.oUploadButton.setEnabled(false);` && |\n| &&
+                          `                            }` && |\n| &&
+                          `                            this.oUploadButton.rerender();` && |\n| &&
+                          `                            sap.z2ui5.oUpload = oEvent.oSource;` && |\n| &&
+                          `                        }.bind(oControl),` && |\n| &&
+                          `                        uploadComplete: function (oEvent) {` && |\n| &&
+                          `                           if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
+                          `                             return; ` && |\n| &&
+                          `                           }` && |\n| &&
+                          |\n| &&
+                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
+                          `                            this.setProperty("path", value);` && |\n| &&
+                          |\n| &&
+                          `                            var file = oEvent.oSource.oFileUpload.files[0];` && |\n| &&
+                          `                            var reader = new FileReader();` && |\n| &&
+                          |\n| &&
+                          `                            reader.onload = function (evt) {` && |\n| &&
+                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
+                          `                                this.setProperty("value", vContent);` && |\n| &&
+                          `                                this.fireUpload();` && |\n| &&
+                          `                            }.bind(this)` && |\n| &&
+                          |\n| &&
+                          `                            reader.readAsDataURL(file);` && |\n| &&
+                          `                        }.bind(oControl)` && |\n| &&
+                          `                    });` && |\n| &&
+                          |\n| &&
+                          `                    var hbox = new sap.m.HBox();` && |\n| &&
+                          `                    hbox.addItem(oControl.oFileUploader);` && |\n| &&
+                          `                    hbox.addItem(oControl.oUploadButton);` && |\n| &&
+                          `                    oRm.renderControl(hbox);` && |\n| &&
+                          `                }` && |\n| &&
+                          `            });` && |\n| &&
+                          `        });`.
+
+    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
 
   ENDMETHOD.
 
