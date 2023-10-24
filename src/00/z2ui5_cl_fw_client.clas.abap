@@ -269,23 +269,39 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_clear.
 
-    LOOP AT mo_handler->ms_db-t_attri REFERENCE INTO DATA(lr_bind)
-          WHERE check_ready = abap_true.
+    mo_handler->ms_db-t_attri[ name = val ]-check_dissolved = abap_false.
 
-      FIELD-SYMBOLS <attri> TYPE any.
-      DATA(lv_name) = `MO_HANDLER->MS_DB-APP` && lr_bind->name.
-      ASSIGN (lv_name) TO <attri>.
-
-      IF sy-subrc = 0.
-        DATA lr_ref TYPE REF TO data.
-        GET REFERENCE OF <attri> INTO lr_ref.
-        IF val <> lr_ref.
-          DELETE mo_handler->ms_db-t_attri.
-          RETURN.
-        ENDIF.
+    LOOP AT mo_handler->ms_db-t_attri REFERENCE INTO DATA(lr_bind2).
+      IF lr_bind2->name CS val && `-`.
+        DELETE mo_handler->ms_db-t_attri.
       ENDIF.
-
     ENDLOOP.
+    return.
+
+*    DATA(lr_in) = REF #( val ).
+*
+*    FIELD-SYMBOLS <app> TYPE any.
+*    DATA object TYPE REF TO object.
+*    ASSIGN ('MO_HANDLER->MS_DB-APP') TO <app>.
+*    object = CAST #( <app> ).
+*
+*    LOOP AT mo_handler->ms_db-t_attri REFERENCE INTO DATA(lr_bind).
+**          WHERE check_ready = abap_true.
+*
+*      FIELD-SYMBOLS <attri> TYPE any.
+*      DATA(lv_name) = `OBJECT->` && lr_bind->name.
+*      ASSIGN (lv_name) TO <attri>.
+*
+*      IF sy-subrc = 0.
+*        DATA lr_ref TYPE REF TO data.
+*        GET REFERENCE OF <attri> INTO lr_ref.
+*        IF lr_in = lr_ref.
+*          DELETE mo_handler->ms_db-t_attri.
+*          RETURN.
+*        ENDIF.
+*      ENDIF.
+*
+*    ENDLOOP.
 
   ENDMETHOD.
 
