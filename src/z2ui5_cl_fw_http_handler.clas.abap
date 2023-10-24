@@ -95,7 +95,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                    });` && |\n| &&
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.T_SCROLL) {` && |\n| &&
-                           `                    jQuery.sap.delayedCall(1, this, () => {` && |\n| &&
+                           `              //      jQuery.sap.delayedCall(1, this, () => {` && |\n| &&
                            `                    sap.z2ui5.oResponse.PARAMS.T_SCROLL.forEach(item => {` && |\n| &&
                            `                        try {` && |\n| &&
                            `                            sap.z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n| &&
@@ -103,9 +103,9 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                            try {` && |\n| &&
                            `                                var ele = '#' + sap.z2ui5.oView.byId(item.N).getId() + '-inner';` && |\n| &&
                            `                                $(ele).scrollTop(item.V);` && |\n| &&
-                           `                            } catch { }` && |\n| &&
+                           `                            } catch { setTimeout( function( item ) { sap.z2ui5.oView.byId(item.N).scrollTo(item.V); } , 1 , item);}` && |\n| &&
                            `                        }` && |\n| &&
-                           `                     });` && |\n| &&
+                           `          //           });` && |\n| &&
                            `                    }` && |\n| &&
                            `                   ` && |\n| &&
                            `                    );` && |\n| &&
