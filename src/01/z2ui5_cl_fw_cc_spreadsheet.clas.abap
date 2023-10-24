@@ -49,9 +49,9 @@ CLASS Z2UI5_CL_FW_CC_SPREADSHEET IMPLEMENTATION.
 
   METHOD load_cc.
 
-    DATA(js) = ` debugger; jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
+    DATA(js) = ` jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
                           |\n| &&
-                          `        sap.ui.define([` && |\n| &&
+                          `        sap.ui.require([` && |\n| &&
                           `            "sap/ui/core/Control",` && |\n| &&
                           `            "sap/m/Button",` && |\n| &&
                           `            "sap/ui/export/Spreadsheet"` && |\n| &&

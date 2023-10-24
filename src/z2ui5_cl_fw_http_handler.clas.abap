@@ -54,7 +54,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
     z2ui5_cl_fw_db=>cleanup( ).
 
     r_result = `<!DOCTYPE html>` && |\n| &&
-               `<html>` && |\n| &&
+               `<html lang="en">` && |\n| &&
                `<head>` && |\n| &&
                   lv_sec_policy && |\n| &&
                `    <meta charset="UTF-8">` && |\n| &&
@@ -76,8 +76,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         ` ></script></head>` && |\n| &&
         `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
-        `</body>` && |\n| &&
-        `</html><abc/>` && |\n|.
+        `` && |\n| &&
+        `<abc/>` && |\n|.
 
     r_result = r_result && `<script>` && |\n| &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n| &&
@@ -493,7 +493,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            custom_js &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
-                           `<abc/></html>`.
+                           `<abc/></body></html>`.
 
 *                               `     sap.z2ui5.checkLogActive = ` && z2ui5_lcl_utility=>get_json_boolean( check_logging ) && `;` && |\n|  &&
   ENDMETHOD.

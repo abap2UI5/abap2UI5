@@ -227,4 +227,4 @@ INTERFACE z2ui5_if_client
     IMPORTING
     val           TYPE data.
 
-ENDINTERFACE.
+endinterface.
