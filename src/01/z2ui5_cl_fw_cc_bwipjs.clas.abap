@@ -112,8 +112,7 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
                           `                },` && |\n| &&
                           |\n| &&
                           `                renderer: function (oRm, oControl) {` && |\n| &&
-
-                          ` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
+` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
                           `    // The return value is the canvas element` && |\n|  &&
                           `  setTimeout(  (oControl) => {  let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
                           `            bcid:        oControl.getProperty("bcid"),       // Barcode type` && |\n|  &&
