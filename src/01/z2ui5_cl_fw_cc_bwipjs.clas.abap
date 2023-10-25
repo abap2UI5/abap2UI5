@@ -18,7 +18,7 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
 
     CONSTANTS cv_src TYPE string VALUE `https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js`.
 
-    METHODS get_js
+    METHODS load_lib
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -28,8 +28,14 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
 
     METHODS load_cc
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS control
+        importing
+            bcid type clike optional
+            text type clike optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -39,9 +45,9 @@ ENDCLASS.
 
 CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
 
-  METHOD get_js.
+  METHOD load_lib.
 
-    result = mo_view->_cc_plain_xml( `<html:script>` && cv_src && `</html:script>` ).
+    result = mo_view->_cc_plain_xml( `<html:script type="text/javascript" src="` && cv_src && `" />` ).
 
   ENDMETHOD.
 
@@ -56,7 +62,7 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
 
    METHOD load_cc.
 
-    DATA(js) = `jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
+    DATA(js) = `debugger;  jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
                           |\n| &&
                           `        sap.ui.require([` && |\n| &&
                           `            "sap/ui/core/Control",` && |\n| &&
@@ -106,8 +112,19 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
                           `                },` && |\n| &&
                           |\n| &&
                           `                renderer: function (oRm, oControl) {` && |\n| &&
-                          |\n| &&
-                          `                    return;` && |\n| &&
+
+                          ` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
+                          `    // The return value is the canvas element` && |\n|  &&
+                          `  setTimeout(  (oControl) => {  let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
+                          `            bcid:        oControl.getProperty("bcid"),       // Barcode type` && |\n|  &&
+                          `            text:        oControl.getProperty("text"),    // Text to encode` && |\n|  &&
+                          `            scale:       3,               // 3x scaling factor` && |\n|  &&
+                          `            height:      10,              // Bar height, in millimeters` && |\n|  &&
+                          `            includetext: true,            // Show human-readable text` && |\n|  &&
+                          `            textxalign:  'center',        // Always good to set this` && |\n|  &&
+                          `        });` && |\n|  &&
+                          `   } , 100 , oControl ) ` && |\n| &&
+                          `                  debugger;  return;` && |\n| &&
                           `                    if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
                           `                     oControl.oUploadButton = new Button({` && |\n| &&
                           `                        text: oControl.getProperty("uploadButtonText"),` && |\n| &&
@@ -184,6 +201,17 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
                           `        });`.
 
     result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
+
+  ENDMETHOD.
+
+  METHOD control.
+
+    result = mo_view.
+    mo_view->_generic( name   = `bwipjs`
+              ns     = `z2ui5`
+              t_prop = VALUE #( ( n = `bcid`  v = bcid )
+                                ( n = `text`     v = text )
+              ) ).
 
   ENDMETHOD.
 
