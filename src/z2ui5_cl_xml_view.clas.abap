@@ -731,6 +731,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !class          TYPE clike OPTIONAL
         !rendertype     TYPE clike OPTIONAL
         !aligncontent   TYPE clike OPTIONAL
+        !direction   TYPE clike OPTIONAL
         !alignitems     TYPE clike OPTIONAL
         !width          TYPE clike OPTIONAL
         !wrap           TYPE clike OPTIONAL
@@ -745,6 +746,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !alignitems     TYPE clike OPTIONAL
         !width          TYPE clike OPTIONAL
         !height         TYPE clike OPTIONAL
+        !renderType         TYPE clike OPTIONAL
         !wrap           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -1073,11 +1075,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER span
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS text_area
       IMPORTING
         !value           TYPE clike OPTIONAL
         !rows            TYPE clike OPTIONAL
+        !cols            TYPE clike OPTIONAL
         !height          TYPE clike OPTIONAL
+        class          TYPE clike OPTIONAL
         !width           TYPE clike OPTIONAL
         valueliveupdate  TYPE clike OPTIONAL
         !editable        TYPE clike OPTIONAL
@@ -1086,6 +1091,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !growingmaxlines TYPE clike OPTIONAL
         !id              TYPE clike OPTIONAL
         !required        TYPE clike OPTIONAL
+        placeholder      type clike optional
         !valuestate      TYPE clike OPTIONAL
         !valuestatetext  TYPE clike OPTIONAL
           PREFERRED PARAMETER value
@@ -3753,6 +3759,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `alignContent`   v = aligncontent )
                                          ( n = `alignItems`     v = alignitems )
                                          ( n = `width`          v = width )
+                                         ( n = `renderType`          v = renderType )
                                          ( n = `height`         v = height )
                                          ( n = `wrap`           v = wrap )
                                          ( n = `justifyContent` v = justifycontent ) ) ).
@@ -5446,16 +5453,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     _generic( name   = `TextArea`
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `rows` v = rows )
+                                ( n = `cols` v = cols )
                                 ( n = `height` v = height )
                                 ( n = `width` v = width )
                                 ( n = `valueLiveUpdate` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( valueliveupdate ) )
                                 ( n = `editable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                ( n = `class` v = class )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `id` v = id )
                                 ( n = `growing` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( growing ) )
                                 ( n = `growingMaxLines` v = growingmaxlines )
                                 ( n = `required`        v = required )
                                 ( n = `valueState`      v = valuestate )
+                                ( n = `placeholder`      v = placeholder )
                                 ( n = `valueStateText`  v = valuestatetext ) ) ).
   ENDMETHOD.
 
@@ -5927,6 +5937,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `renderType`      v = rendertype )
                                          ( n = `alignContent`    v = aligncontent )
                                          ( n = `alignItems`      v = alignitems )
+                                         ( n = `direction`      v = direction )
                                          ( n = `width`           v = width )
                                          ( n = `wrap`            v = wrap )
                                          ( n = `class`           v = class ) ) ).

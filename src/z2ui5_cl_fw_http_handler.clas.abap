@@ -269,6 +269,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `            },` && |\n| &&
                            |\n| &&
                            `            onEvent: function (...args) {` && |\n| &&
+                           `   //         return;` && |\n| &&
                            `   if ( sap.z2ui5.isBusy ) { if( sap.z2ui5.isBusy == true ){  sap.z2ui5.b = new sap.m.BusyDialog();    sap.z2ui5.b.open(); return; } } ` &&
                            `                sap.z2ui5.isBusy = true; ` &&
                            `                if (!window.navigator.onLine) {` && |\n| &&
