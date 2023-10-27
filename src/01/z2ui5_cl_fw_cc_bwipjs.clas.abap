@@ -31,9 +31,11 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS control
-        importing
-            bcid type clike optional
-            text type clike optional
+      IMPORTING
+        bcid          TYPE clike OPTIONAL
+        text          TYPE clike OPTIONAL
+        scale         TYPE clike OPTIONAL
+        height        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
   PROTECTED SECTION.
@@ -54,13 +56,17 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
   METHOD get_t_barcode_types.
 
     result = VALUE #(
-      ( sym = 'ean5' desc = 'EAN-5' text = '90200' opts = 'includetext guardwhitespace' )
-      ( sym = 'ean2' desc = 'EAN-2' text = '05'    opts = 'includetext guardwhitespace' )
+      ( sym = 'ean5'    desc = 'EAN-5'     text = '90200'                   opts = 'includetext guardwhitespace' )
+      ( sym = 'ean2'    desc = 'EAN-2'     text = '05'                      opts = 'includetext guardwhitespace' )
+      ( sym = 'ean13'   desc = 'EAN-13'    text = '9520123456788'           opts = 'includetext guardwhitespace' )
+      ( sym = 'upca'    desc = 'UPC-A'     text = '012345000058'            opts = 'includetext' )
+      ( sym = 'isbn'    desc = 'ISBN'      text = '978-1-56581-231-4 90000' opts = 'includetext guardwhitespace' )
+      ( sym = 'qrcode'  desc = 'QR Code'   text = 'http://goo.gl/0bis'      opts = 'eclevel=M' )
     ).
 
   ENDMETHOD.
 
-   METHOD load_cc.
+  METHOD load_cc.
 
     DATA(js) = `debugger;  jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
                           |\n| &&
@@ -117,8 +123,8 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
                           `  setTimeout(  (oControl) => {  let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
                           `            bcid:        oControl.getProperty("bcid"),       // Barcode type` && |\n|  &&
                           `            text:        oControl.getProperty("text"),    // Text to encode` && |\n|  &&
-                          `            scale:       3,               // 3x scaling factor` && |\n|  &&
-                          `            height:      10,              // Bar height, in millimeters` && |\n|  &&
+                          `            scale:       oControl.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
+                          `            height:      oControl.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
                           `            includetext: true,            // Show human-readable text` && |\n|  &&
                           `            textxalign:  'center',        // Always good to set this` && |\n|  &&
                           `        });` && |\n|  &&
@@ -208,8 +214,10 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `bwipjs`
               ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `bcid`  v = bcid )
-                                ( n = `text`     v = text )
+              t_prop = VALUE #( ( n = `bcid`   v = bcid )
+                                ( n = `text`   v = text )
+                                ( n = `scale`  v = scale )
+                                ( n = `height` v = height )
               ) ).
 
   ENDMETHOD.

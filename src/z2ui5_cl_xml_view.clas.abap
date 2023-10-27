@@ -71,6 +71,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS html
+      IMPORTING
+        !content     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS illustrated_message
       IMPORTING
         !enableverticalresponsiveness TYPE clike OPTIONAL
@@ -6075,6 +6081,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = NEW #( ).
     result->mo_view = me.
+
+  ENDMETHOD.
+
+  METHOD html.
+
+  result = _generic( name = `HTML`
+                     ns   = `core`
+                     t_prop = value  #(
+                        ( n = 'content' v = content ) )
+                      ).
 
   ENDMETHOD.
 
