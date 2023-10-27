@@ -5,8 +5,6 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
     TYPES:
       BEGIN OF ty_s_barcode,
         sym  TYPE string,
@@ -30,6 +28,9 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS constructor
+      IMPORTING
+        view TYPE REF TO z2ui5_cl_xml_view.
     METHODS control
       IMPORTING
         bcid          TYPE clike OPTIONAL
@@ -38,7 +39,10 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
         height        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
+    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
+
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -46,6 +50,12 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
+
+  METHOD constructor.
+
+    me->mo_view = view.
+
+  ENDMETHOD.
 
   METHOD load_lib.
 

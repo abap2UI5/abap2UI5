@@ -5,25 +5,26 @@ CLASS z2ui5_cl_fw_cc_spreadsheet DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
     METHODS load_cc
       IMPORTING
         !columnconfig TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS constructor
+      IMPORTING
+        view TYPE REF TO z2ui5_cl_xml_view.
     METHODS control
       IMPORTING
-        !tableid      TYPE clike
-        !type         TYPE clike OPTIONAL
-        !text         TYPE clike OPTIONAL
-        !icon         TYPE clike OPTIONAL
+         tableid      TYPE clike
+         type         TYPE clike OPTIONAL
+         text         TYPE clike OPTIONAL
+         icon         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-
   PROTECTED SECTION.
+      DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -31,6 +32,12 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_FW_CC_SPREADSHEET IMPLEMENTATION.
+
+  METHOD CONSTRUCTOR.
+
+    ME->MO_VIEW = VIEW.
+
+  ENDMETHOD.
 
 
   METHOD control.

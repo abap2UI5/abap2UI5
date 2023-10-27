@@ -6079,8 +6079,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD _cc.
 
-    result = NEW #( ).
-    result->mo_view = me.
+    result = NEW #( me ).
 
   ENDMETHOD.
 
