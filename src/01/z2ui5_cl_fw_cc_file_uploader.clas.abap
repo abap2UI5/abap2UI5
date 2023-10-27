@@ -5,8 +5,6 @@ CLASS z2ui5_cl_fw_cc_file_uploader DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
     METHODS control
       IMPORTING
         !value             TYPE clike OPTIONAL
@@ -21,11 +19,15 @@ CLASS z2ui5_cl_fw_cc_file_uploader DEFINITION
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS constructor
+      IMPORTING
+        view TYPE REF TO z2ui5_cl_xml_view.
     METHODS load_cc
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
   PROTECTED SECTION.
+      DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -33,6 +35,12 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_FW_CC_FILE_UPLOADER IMPLEMENTATION.
+
+  METHOD CONSTRUCTOR.
+
+    ME->MO_VIEW = VIEW.
+
+  ENDMETHOD.
 
 
   METHOD control.
