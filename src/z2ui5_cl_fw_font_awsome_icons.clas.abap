@@ -1,28 +1,25 @@
-CLASS z2ui5_cl_fw_font_awsome_icons DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_FW_FONT_AWSOME_ICONS definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view .
+  data MO_VIEW type ref to Z2UI5_CL_XML_VIEW .
 
-    METHODS load_icons
-      IMPORTING
-        !font_uri     TYPE clike
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-
-    METHODS load_animation_js
-      IMPORTING
-        !faw_js_url   TYPE clike
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
+  methods LOAD_ICONS
+    importing
+      !FONT_URI type CLIKE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods LOAD_ANIMATION_JS
+    importing
+      !FAW_JS_URL type CLIKE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods CONSTRUCTOR
+    importing
+      !VIEW type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
