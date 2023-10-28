@@ -20,7 +20,7 @@ CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS get_t_barcode_types
+    class-METHODS get_t_barcode_types
       RETURNING
         VALUE(result) TYPE ty_t_barcode.
 
