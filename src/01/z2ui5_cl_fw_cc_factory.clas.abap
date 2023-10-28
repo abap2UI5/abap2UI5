@@ -17,6 +17,10 @@ CLASS z2ui5_cl_fw_cc_factory DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_demo_output.
 
+    METHODS load_font_awsome
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_font_awsome_icons.
+
     METHODS constructor
       IMPORTING
         i_view TYPE REF TO z2ui5_cl_xml_view.
@@ -32,25 +36,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_factory IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
 
-  METHOD constructor.
-
-    me->mo_view = i_view.
-
-  ENDMETHOD.
-
-  METHOD ui5_file_uploader.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
-  METHOD ui5_spreadsheet.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
 
   METHOD bwip_js.
 
@@ -58,10 +45,38 @@ CLASS z2ui5_cl_fw_cc_factory IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD constructor.
+
+    me->mo_view = i_view.
+
+  ENDMETHOD.
+
+
   METHOD gui_demo_output.
 
     result = NEW #( mo_view ).
 
   ENDMETHOD.
 
+
+  METHOD load_font_awsome.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD ui5_file_uploader.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD ui5_spreadsheet.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
 ENDCLASS.
