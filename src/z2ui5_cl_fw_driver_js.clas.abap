@@ -48,7 +48,6 @@ CLASS z2ui5_cl_fw_driver_js DEFINITION
         donebtntext              TYPE string,
       END OF ty_config .
 
-    DATA config TYPE ty_config .
 
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view .
 
