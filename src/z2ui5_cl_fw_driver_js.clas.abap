@@ -268,7 +268,7 @@ CLASS Z2UI5_CL_FW_DRIVER_JS IMPLEMENTATION.
 
     IF css_url IS INITIAL.
       IF local_css = abap_true.
-        css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n| .
+        css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n|.
       ENDIF.
     ELSE.
       css = css && `<html:style>` && css_url && `</html:style>` && |\n|.
