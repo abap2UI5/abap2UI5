@@ -11,12 +11,12 @@
 </p>
 
 #### Key Features
-* easy to use – implement just one interface for a standalone UI5 application
-* pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
-* low system footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
-* cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* high system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2311)
-* easy installation – abapGit project, no additional app deployment needed
+* Easy to use – implement just one interface for a standalone UI5 application
+* Pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
+* Low system footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
+* Cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
+* High system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2311)
+* Easy installation – abapGit project, no additional app deployment needed
 
 #### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
@@ -87,7 +87,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### Usage
-Create a new UI5 App by implementing the following interface:
+Create a new UI5 App by implementing the abap2UI5 interface, check out this example:
 ```abap
 CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
 
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
 ENDCLASS.
 ```
 #### FAQ
-* check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
-* still open questions? find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
-* want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
-* as always - your comments, questions, wishes and bugs are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
+* Still have open questions? find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
+* As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
