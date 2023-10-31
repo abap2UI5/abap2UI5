@@ -50,7 +50,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-
+    METHODS icon
+      IMPORTING
+        !src          TYPE clike OPTIONAL
+        !size         TYPE clike OPTIONAL
+        !color        TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dynamic_page
       IMPORTING
@@ -73,7 +80,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS html
       IMPORTING
-        !content     TYPE clike OPTIONAL
+        !content      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -604,10 +611,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !ns           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS sub_header
+      IMPORTING
+        ns            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS custom_data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -725,8 +736,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !expandable   TYPE clike OPTIONAL
         !expanded     TYPE clike OPTIONAL
         !headertext   TYPE clike OPTIONAL
-        stickyHeader  type clike optional
-        height  type clike optional
+        stickyheader  TYPE clike OPTIONAL
+        height        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -737,7 +748,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !class          TYPE clike OPTIONAL
         !rendertype     TYPE clike OPTIONAL
         !aligncontent   TYPE clike OPTIONAL
-        !direction   TYPE clike OPTIONAL
+        !direction      TYPE clike OPTIONAL
         !alignitems     TYPE clike OPTIONAL
         !width          TYPE clike OPTIONAL
         !wrap           TYPE clike OPTIONAL
@@ -752,7 +763,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !alignitems     TYPE clike OPTIONAL
         !width          TYPE clike OPTIONAL
         !height         TYPE clike OPTIONAL
-        !renderType         TYPE clike OPTIONAL
+        !rendertype     TYPE clike OPTIONAL
         !wrap           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
@@ -1088,7 +1099,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !rows            TYPE clike OPTIONAL
         !cols            TYPE clike OPTIONAL
         !height          TYPE clike OPTIONAL
-        class          TYPE clike OPTIONAL
+        class            TYPE clike OPTIONAL
         !width           TYPE clike OPTIONAL
         valueliveupdate  TYPE clike OPTIONAL
         !editable        TYPE clike OPTIONAL
@@ -1097,7 +1108,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !growingmaxlines TYPE clike OPTIONAL
         !id              TYPE clike OPTIONAL
         !required        TYPE clike OPTIONAL
-        placeholder      type clike optional
+        placeholder      TYPE clike OPTIONAL
         !valuestate      TYPE clike OPTIONAL
         !valuestatetext  TYPE clike OPTIONAL
           PREFERRED PARAMETER value
@@ -1826,10 +1837,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS tool_page
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS tool_header
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-    METHODS subheader
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1853,7 +1862,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS pages
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
 
     METHODS main_contents
       RETURNING
@@ -2679,7 +2687,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS timelineitem
+    METHODS timeline_item
       IMPORTING
         !id                TYPE clike OPTIONAL
         !datetime          TYPE clike OPTIONAL
@@ -3765,7 +3773,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `alignContent`   v = aligncontent )
                                          ( n = `alignItems`     v = alignitems )
                                          ( n = `width`          v = width )
-                                         ( n = `renderType`          v = renderType )
+                                         ( n = `renderType`          v = rendertype )
                                          ( n = `height`         v = height )
                                          ( n = `wrap`           v = wrap )
                                          ( n = `justifyContent` v = justifycontent ) ) ).
@@ -3863,6 +3871,17 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `class`  v = class )
                                          ( n = `width`  v = width ) ) ).
+  ENDMETHOD.
+
+
+  METHOD html.
+
+    result = _generic( name = `HTML`
+                       ns   = `core`
+                       t_prop = VALUE  #(
+                          ( n = 'content' v = content ) )
+                        ).
+
   ENDMETHOD.
 
 
@@ -5314,14 +5333,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD subheader.
-    result = _generic( name = `subHeader`
-                       ns   = `tnt` ).
-  ENDMETHOD.
-
-
   METHOD sub_header.
-    result = _generic( `subHeader` ).
+
+    result = _generic( name = `subHeader`
+                      ns   = ns ).
+
   ENDMETHOD.
 
 
@@ -5503,7 +5519,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD timelineitem.
+  METHOD timeline_item.
 
     result = _generic( name   = `TimelineItem`
                        ns     = 'commons'
@@ -6046,6 +6062,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD _cc.
+
+    result = NEW #( me ).
+
+  ENDMETHOD.
+
+
   METHOD _cc_plain_xml.
 
     result = me.
@@ -6053,6 +6077,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `VALUE` v = val ) ) ).
 
   ENDMETHOD.
+
 
   METHOD _generic.
 
@@ -6077,19 +6102,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD _cc.
+  METHOD icon.
 
-    result = NEW #( me ).
-
-  ENDMETHOD.
-
-  METHOD html.
-
-  result = _generic( name = `HTML`
-                     ns   = `core`
-                     t_prop = value  #(
-                        ( n = 'content' v = content ) )
-                      ).
+    result = me.
+     _generic( name   = `Icon`
+                       ns     = `core`
+                       t_prop = VALUE #( ( n = `size`  v = size )
+                                         ( n = `color`  v = color )
+                                         ( n = `class`  v = class )
+                                         ( n = `src`  v = src )
+                                         ) ).
 
   ENDMETHOD.
 

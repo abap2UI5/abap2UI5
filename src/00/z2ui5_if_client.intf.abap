@@ -3,11 +3,13 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
-      popup_close      TYPE string VALUE `POPUP_CLOSE`,
-      open_new_tab     TYPE string VALUE `OPEN_NEW_TAB`,
-      popover_close    TYPE string VALUE `POPOVER_CLOSE`,
-      location_reload  TYPE string VALUE `LOCATION_RELOAD`,
-      nav_container_to TYPE string VALUE `NAV_CONTAINER_TO`,
+      popup_close            TYPE string VALUE `POPUP_CLOSE`,
+      open_new_tab           TYPE string VALUE `OPEN_NEW_TAB`,
+      popover_close          TYPE string VALUE `POPOVER_CLOSE`,
+      location_reload        TYPE string VALUE `LOCATION_RELOAD`,
+      nav_container_to       TYPE string VALUE `NAV_CONTAINER_TO`,
+      nest_nav_container_to  TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
+      nest2_nav_container_to TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
     END OF cs_event.
 
   CONSTANTS:
@@ -172,7 +174,7 @@ INTERFACE z2ui5_if_client
 
   METHODS timer_set
     IMPORTING
-      interval_ms    TYPE clike
+      interval_ms    TYPE clike OPTIONAL
       event_finished TYPE clike.
 
   METHODS title_set
@@ -185,9 +187,10 @@ INTERFACE z2ui5_if_client
 
   METHODS _event
     IMPORTING
-      val                TYPE clike
+      val                TYPE clike OPTIONAL
       check_view_destroy TYPE abap_bool    DEFAULT abap_false
       t_arg              TYPE string_table OPTIONAL
+        PREFERRED PARAMETER val
     RETURNING
       VALUE(result)      TYPE string.
 
@@ -203,7 +206,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
-      view          TYPE string DEFAULT cs_view-main
+      view          TYPE string    DEFAULT cs_view-main
       pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
     RETURNING
       VALUE(result) TYPE string.
@@ -225,6 +228,6 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind_clear
     IMPORTING
-    val           TYPE data.
+      val TYPE data.
 
-endinterface.
+ENDINTERFACE.
