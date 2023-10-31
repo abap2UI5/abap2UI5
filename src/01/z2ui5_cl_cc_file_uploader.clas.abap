@@ -1,117 +1,128 @@
-CLASS z2ui5_cl_fw_cc_bwipjs DEFINITION
+CLASS z2ui5_cl_cc_file_uploader DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_barcode,
-        sym  TYPE string,
-        desc TYPE string,
-        text TYPE string,
-        opts TYPE string,
-      END OF ty_s_barcode.
-    TYPES ty_t_barcode TYPE STANDARD TABLE OF ty_s_barcode WITH EMPTY KEY.
-
-    CONSTANTS cv_src TYPE string VALUE `https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js`.
-
-    METHODS load_lib
+    METHODS control
+      IMPORTING
+        !value             TYPE clike OPTIONAL
+        !path              TYPE clike OPTIONAL
+        !placeholder       TYPE clike OPTIONAL
+        !upload            TYPE clike OPTIONAL
+        !icononly          TYPE clike OPTIONAL
+        !buttononly        TYPE clike OPTIONAL
+        !buttontext        TYPE clike OPTIONAL
+        !uploadbuttontext  TYPE clike OPTIONAL
+        !checkdirectupload TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    class-METHODS get_t_barcode_types
-      RETURNING
-        VALUE(result) TYPE ty_t_barcode.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS constructor
       IMPORTING
         view TYPE REF TO z2ui5_cl_xml_view.
-    METHODS control
-      IMPORTING
-        bcid          TYPE clike OPTIONAL
-        text          TYPE clike OPTIONAL
-        scale         TYPE clike OPTIONAL
-        height        TYPE clike OPTIONAL
+    METHODS load_cc
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
   PROTECTED SECTION.
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
+      DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
 
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
 
-  METHOD constructor.
+  METHOD CONSTRUCTOR.
 
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-  METHOD load_lib.
-
-    result = mo_view->_cc_plain_xml( `<html:script type="text/javascript" src="` && cv_src && `" />` ).
+    ME->MO_VIEW = VIEW.
 
   ENDMETHOD.
 
-  METHOD get_t_barcode_types.
 
-    result = VALUE #(
-      ( sym = 'ean5'    desc = 'EAN-5'     text = '90200'                   opts = 'includetext guardwhitespace' )
-      ( sym = 'ean2'    desc = 'EAN-2'     text = '05'                      opts = 'includetext guardwhitespace' )
-      ( sym = 'ean13'   desc = 'EAN-13'    text = '9520123456788'           opts = 'includetext guardwhitespace' )
-      ( sym = 'upca'    desc = 'UPC-A'     text = '012345000058'            opts = 'includetext' )
-      ( sym = 'isbn'    desc = 'ISBN'      text = '978-1-56581-231-4 90000' opts = 'includetext guardwhitespace' )
-      ( sym = 'qrcode'  desc = 'QR Code'   text = 'http://goo.gl/0bis'      opts = 'eclevel=M' )
-    ).
+  METHOD control.
+
+    result = mo_view.
+    mo_view->_generic( name   = `FileUploader`
+              ns     = `z2ui5`
+              t_prop = VALUE #( (  n = `placeholder`        v = placeholder )
+                                (  n = `upload`             v = upload )
+                                (  n = `path`               v = path )
+                                (  n = `value`              v = value )
+                                (  n = `iconOnly`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
+                                (  n = `buttonOnly`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
+                                (  n = `buttonText`         v = buttontext )
+                                (  n = `uploadButtonText`   v = uploadbuttontext )
+                                (  n = `checkDirectUpload`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
 
   ENDMETHOD.
+
 
   METHOD load_cc.
 
-    DATA(js) = `debugger;  jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
+    DATA(js) = `jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
                           |\n| &&
                           `        sap.ui.require([` && |\n| &&
                           `            "sap/ui/core/Control",` && |\n| &&
-                          `        ], function (Control) {` && |\n| &&
+                          `            "sap/m/Button",` && |\n| &&
+                          `            "sap/ui/unified/FileUploader"` && |\n| &&
+                          `        ], function (Control, Button, FileUploader) {` && |\n| &&
                           `            "use strict";` && |\n| &&
                           |\n| &&
-                          `            return Control.extend("z2ui5.bwipjs", {` && |\n| &&
+                          `            return Control.extend("z2ui5.FileUploader", {` && |\n| &&
                           |\n| &&
                           `                metadata: {` && |\n| &&
                           `                    properties: {` && |\n| &&
-                          `                        bcid: {` && |\n| &&
+                          `                        value: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
                           `                            defaultValue: ""` && |\n| &&
                           `                        },` && |\n| &&
-                          `                        text: {` && |\n| &&
+                          `                        path: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
                           `                            defaultValue: ""` && |\n| &&
                           `                        },` && |\n| &&
-                          `                        scale: {` && |\n| &&
+                          `                        tooltip: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
                           `                            defaultValue: ""` && |\n| &&
                           `                        },` && |\n| &&
-                          `                        height: {` && |\n| &&
+                          `                        fileType: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
                           `                            defaultValue: ""` && |\n| &&
                           `                        },` && |\n| &&
-                          `                        includetext: {` && |\n| &&
+                          `                        placeholder: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
                           `                            defaultValue: ""` && |\n| &&
                           `                        },` && |\n| &&
-                          `                        textalign: {` && |\n| &&
+                          `                        buttonText: {` && |\n| &&
                           `                            type: "string",` && |\n| &&
                           `                            defaultValue: ""` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        uploadButtonText: {` && |\n| &&
+                          `                            type: "string",` && |\n| &&
+                          `                            defaultValue: "Upload"` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        enabled: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: true` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        iconOnly: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        buttonOnly: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        multiple: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
+                          `                        },` && |\n| &&
+                          `                        checkDirectUpload: {` && |\n| &&
+                          `                            type: "boolean",` && |\n| &&
+                          `                            defaultValue: false` && |\n| &&
                           `                        }` && |\n| &&
                           `                    },` && |\n| &&
                           |\n| &&
@@ -128,18 +139,7 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
                           `                },` && |\n| &&
                           |\n| &&
                           `                renderer: function (oRm, oControl) {` && |\n| &&
-` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
-                          `    // The return value is the canvas element` && |\n|  &&
-                          `  setTimeout(  (oControl) => {  let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
-                          `            bcid:        oControl.getProperty("bcid"),       // Barcode type` && |\n|  &&
-                          `            text:        oControl.getProperty("text"),    // Text to encode` && |\n|  &&
-                          `            scale:       oControl.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
-                          `            height:      oControl.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
-                          `            includetext: true,            // Show human-readable text` && |\n|  &&
-                          `            textxalign:  'center',        // Always good to set this` && |\n|  &&
-                          `        });` && |\n|  &&
-                          `   } , 100 , oControl ) ` && |\n| &&
-                          `                  debugger;  return;` && |\n| &&
+                          |\n| &&
                           `                    if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
                           `                     oControl.oUploadButton = new Button({` && |\n| &&
                           `                        text: oControl.getProperty("uploadButtonText"),` && |\n| &&
@@ -218,18 +218,4 @@ CLASS z2ui5_cl_fw_cc_bwipjs IMPLEMENTATION.
     result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
 
   ENDMETHOD.
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `bwipjs`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `bcid`   v = bcid )
-                                ( n = `text`   v = text )
-                                ( n = `scale`  v = scale )
-                                ( n = `height` v = height )
-              ) ).
-
-  ENDMETHOD.
-
 ENDCLASS.

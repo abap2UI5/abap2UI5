@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_FW_CC_FILE_UPLOADER</CLSNAME>
+    <CLSNAME>Z2UI5_CL_CC_DEMO_OUTPUT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ui5 control - file uploader</DESCRIPT>
+    <DESCRIPT>sap gui - cl_demo_output</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
