@@ -699,6 +699,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !accessiblerole   TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS search_field
       IMPORTING
         !search            TYPE clike OPTIONAL
@@ -717,12 +718,25 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !visible           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS message_view
       IMPORTING
         !items        TYPE clike OPTIONAL
         !groupitems   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS barcode_scanner_button
+      IMPORTING
+        !id        TYPE clike OPTIONAL
+        !scanSuccess   TYPE clike OPTIONAL
+        !scanFail   TYPE clike OPTIONAL
+        !inputLiveUpdate   TYPE clike OPTIONAL
+        !dialogTitle   TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+
     METHODS message_popover
       IMPORTING
         !items             TYPE clike OPTIONAL
@@ -3493,6 +3507,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD barcode_scanner_button.
+    result = _generic( name   = `BarcodeScannerButton`
+                       ns     = 'ndc'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `scanSuccess`                           v = scanSuccess )
+                           ( n = `scanFail`           v = scanFail )
+                           ( n = `inputLiveUpdate`                 v = inputLiveUpdate )
+                           ( n = `dialogTitle`                  v = dialogTitle ) ) ).
+
+  ENDMETHOD.
+
   METHOD end_column_pages.
     " todo, implement method
     result = me.
@@ -4415,7 +4441,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ns    = `vk`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
-                            ( n = `autoAdjustHeight`  v = autoadjustheight )
+                            ( n = `autoAdjustHeight`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( autoadjustheight ) )
                         ) ).
 
   ENDMETHOD.
