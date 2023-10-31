@@ -112,9 +112,9 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
             )->label( 'quantity'
-            )->input( value = client->_bind_edit( quantity )
+            )->input( client->_bind_edit( quantity )
             )->label( 'product'
-            )->input( value = client->_bind_edit( product )
+            )->input( client->_bind_edit( product )
             )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
       )->stringify( ) ).
 
