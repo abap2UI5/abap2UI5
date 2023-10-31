@@ -108,7 +108,7 @@ CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory( client
-      )->page( title = 'abap2UI5 - Hello World App'
+      )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
             )->label( 'quantity'
