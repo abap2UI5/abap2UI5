@@ -42,20 +42,20 @@
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 
-#### More
-* Try out abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
-* Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
-* Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
-* Analyse your Views & Models with this Codesandbox [(abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
-
 #### Apps & Extensions
 * Add your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
 * Integrate your apps with the SAP Business Technology Platform [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
 * Explore abap2UI5-tools, a collection of tools & utility functions [(abap2UI5-tools)](https://github.com/abap2UI5/abap2ui5-tools)
 * Add more functions with Custom Controls & External Libraries [(custom controls)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
-* And finally, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
 
+#### More
+* Try out abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
+* Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
+* Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
+* Analyse your Views & Models with this Codesandbox [(abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
+* And finally, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
+  
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
