@@ -86,6 +86,49 @@ METHOD if_http_service_extension~handle_request.
 
 ENDMETHOD.
 ```
+#### Usage
+Create a new class with an implementation of the following interface:
+```abap
+CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_app.
+
+    DATA product           TYPE string.
+    DATA quantity          TYPE string.
+    DATA check_initialized TYPE abap_bool.
+
+ENDCLASS.
+
+CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
+
+  METHOD z2ui5_if_app~main.
+
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+      product  = 'products'.
+    ENDIF.
+
+    CASE client->get( )-event.
+      WHEN 'BUTTON_POST'.
+        client->message_toast_display( |{ product } { quantity } - send to the server| ).
+    ENDCASE.
+
+    client->view_display( z2ui5_cl_xml_view=>factory( client
+        )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
+            )->simple_form( title    = 'Hello World' editable = abap_true
+                )->content( ns = `form`
+                    )->title( 'Make an input here and send it to the server...'
+                    )->label( 'quantity'
+                    )->input( value = client->_bind_edit( quantity )
+                    )->label( 'product'
+                    )->input( value   = product enabled = abap_false
+                    )->button( text  = 'post' press = client->_event( 'BUTTON_POST' )
+         )->stringify( ) ).
+
+  ENDMETHOD.
+ENDCLASS.
+```
 #### FAQ
 * check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
 * still open questions? find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
