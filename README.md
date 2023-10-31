@@ -89,7 +89,7 @@ ENDMETHOD.
 #### Usage
 Create a new UI5 App by implementing the abap2UI5 interface, check out this example:
 ```abap
-CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
+CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -98,7 +98,7 @@ CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
 
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
+CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
