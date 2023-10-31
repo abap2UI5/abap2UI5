@@ -250,32 +250,39 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !ns           TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS snapped_content
       IMPORTING
         !ns           TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS heading
       IMPORTING
         !ns           TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS actions
       IMPORTING
         !ns           TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS snapped_title_on_mobile
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS header
       IMPORTING
         !ns           TYPE clike DEFAULT `f`
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS navigation_actions
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS avatar
       IMPORTING
         !src               TYPE clike OPTIONAL
@@ -297,12 +304,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !enabled           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS header_title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS sections
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS object_page_section
       IMPORTING
         !titleuppercase TYPE clike OPTIONAL
@@ -311,28 +321,34 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !id             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS sub_sections
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS object_page_sub_section
       IMPORTING
         !id           TYPE clike OPTIONAL
         !title        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS shell
       IMPORTING
         !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS blocks
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS layout_data
       IMPORTING
         !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS flex_item_data
       IMPORTING
         !growfactor       TYPE clike OPTIONAL
@@ -341,6 +357,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !styleclass       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS code_editor
       IMPORTING
         !value        TYPE clike OPTIONAL
@@ -350,21 +367,26 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !editable     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS suggestion_items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS suggestion_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS suggestion_rows
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS vertical_layout
       IMPORTING
         !class        TYPE clike OPTIONAL
         !width        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS multi_input
       IMPORTING
         !showclearicon    TYPE clike OPTIONAL
@@ -382,9 +404,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !change           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS tokens
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS token
       IMPORTING
         !key          TYPE clike OPTIONAL
@@ -394,6 +418,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !editable     TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS input
       IMPORTING
         !id                            TYPE clike OPTIONAL
@@ -434,6 +459,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)                  TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS dialog
       IMPORTING
         !title               TYPE clike OPTIONAL
@@ -448,6 +474,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS carousel
       IMPORTING
         !height       TYPE clike OPTIONAL
@@ -455,12 +482,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !loop         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS buttons
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS get_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS get_parent
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -477,10 +507,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-
     METHODS columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS column
       IMPORTING
         !width             TYPE clike OPTIONAL
@@ -500,11 +530,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER width
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS items
       IMPORTING
         !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS interact_donut_chart
       IMPORTING
         !selectionchanged  TYPE clike OPTIONAL
@@ -515,9 +547,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS segments
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS interact_donut_chart_segment
       IMPORTING
         !label          TYPE clike OPTIONAL
@@ -526,6 +560,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !selected       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS interact_bar_chart
       IMPORTING
         !selectionchanged  TYPE clike OPTIONAL
@@ -536,9 +571,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showerror         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS bars
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS interact_bar_chart_bar
       IMPORTING
         !label          TYPE clike OPTIONAL
@@ -547,6 +584,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !selected       TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS interact_line_chart
       IMPORTING
         !selectionchanged  TYPE clike OPTIONAL
@@ -558,9 +596,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showerror         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS points
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS interact_line_chart_point
       IMPORTING
         !label          TYPE clike OPTIONAL
@@ -2737,7 +2777,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-  PROTECTED SECTION.
 
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -2750,14 +2789,60 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     DATA mi_client TYPE REF TO z2ui5_if_client.
 
-  PRIVATE SECTION.
+
+    METHODS container_content
+      IMPORTING
+        !id           TYPE clike OPTIONAL
+        !title        TYPE clike OPTIONAL
+        !icon         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS map_container
+      IMPORTING
+        !id               TYPE clike OPTIONAL
+        !autoadjustheight TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS spot
+     IMPORTING
+        !id             TYPE clike OPTIONAL
+        !position TYPE clike OPTIONAL
+        !contentOffset TYPE clike OPTIONAL
+        !type TYPE clike OPTIONAL
+        !scale TYPE clike OPTIONAL
+        !tooltip TYPE clike OPTIONAL
+        !image TYPE clike OPTIONAL
+        !icon TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS analytic_map
+       IMPORTING
+        !id             TYPE clike OPTIONAL
+        !initialPosition TYPE clike OPTIONAL
+        !initialZoom TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS spots
+     IMPORTING
+        !id    TYPE clike OPTIONAL
+        !items TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS vos
+          RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
 
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2773,6 +2858,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD additional_numbers.
     result = _generic( name = `additionalNumbers` ).
+  ENDMETHOD.
+
+
+  METHOD analytic_map.
+
+    result = _generic( name = `AnalyticMap`
+                      ns    = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `initialPosition`  v = initialPosition )
+                            ( n = `initialZoom`  v = initialZoom )
+                        ) ).
+
   ENDMETHOD.
 
 
@@ -3177,6 +3275,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
                        ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                        ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+                       ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
+                       ( n = `xmlns:vk`        v = `sap.ui.vk` )
+                       ( n = `xmlns:vbm`        v = `sap.ui.vbm` )
+                       ( n = `xmlns:ndc`        v = `sap.ndc` )
                        ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
                        ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
                        ( n = `xmlns:p13n`      v = `sap.m.p13n` )
@@ -3186,7 +3288,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD container_content.
+
+    result = _generic( name = `ContainerContent`
+                      ns    = `vk`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `title`  v = title )
+                            ( n = `icon`  v = icon )
+                        ) ).
+
+  ENDMETHOD.
+
+
   METHOD container_toolbar.
+
     result = _generic( name   = `ContainerToolbar`
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `showSearchButton`          v = showsearchbutton )
@@ -3885,6 +4001,20 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD icon.
+
+    result = me.
+    _generic( name   = `Icon`
+                      ns     = `core`
+                      t_prop = VALUE #( ( n = `size`  v = size )
+                                        ( n = `color`  v = color )
+                                        ( n = `class`  v = class )
+                                        ( n = `src`  v = src )
+                                        ) ).
+
+  ENDMETHOD.
+
+
   METHOD icon_tab_bar.
 
     result = _generic( name   = `IconTabBar`
@@ -4275,6 +4405,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD main_contents.
     result = _generic( name   = `mainContents`
                        ns     = `tnt` ).
+
+  ENDMETHOD.
+
+
+  METHOD map_container.
+
+    result = _generic( name = `MapContainer`
+                      ns    = `vk`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `autoAdjustHeight`  v = autoadjustheight )
+                        ) ).
 
   ENDMETHOD.
 
@@ -5257,7 +5399,39 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD spot.
+
+    result = me.
+    _generic( name = `Spot`
+                      ns    = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `position`  v = position )
+                            ( n = `contentOffset`  v = contentOffset )
+                            ( n = `type`  v = type )
+                            ( n = `scale`  v = scale )
+                            ( n = `tooltip`  v = tooltip )
+                            ( n = `image`  v = image )
+                            ( n = `icon`  v = icon )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD spots.
+
+    result = _generic( name = `Spots`
+                      ns    = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `items`  v = items )
+                        ) ).
+
+  ENDMETHOD.
+
+
   METHOD stacked_bar_micro_chart.
+
     result = me.
     _generic( name   = `StackedBarMicroChart`
               ns     = `mchart`
@@ -6028,6 +6202,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD vos.
+
+    result = _generic( name = `vos`
+                      ns    = `vbm`
+                  ).
+
+  ENDMETHOD.
+
+
   METHOD xml_get.
 
     CASE mv_name.
@@ -6101,18 +6284,4 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
 
   ENDMETHOD.
-
-  METHOD icon.
-
-    result = me.
-     _generic( name   = `Icon`
-                       ns     = `core`
-                       t_prop = VALUE #( ( n = `size`  v = size )
-                                         ( n = `color`  v = color )
-                                         ( n = `class`  v = class )
-                                         ( n = `src`  v = src )
-                                         ) ).
-
-  ENDMETHOD.
-
 ENDCLASS.
