@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_cc_demo_output DEFINITION
+CLASS z2ui5_cl_cc_demo_output DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -21,7 +21,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_demo_output IMPLEMENTATION.
+CLASS z2ui5_cl_cc_demo_output IMPLEMENTATION.
 
   METHOD constructor.
 

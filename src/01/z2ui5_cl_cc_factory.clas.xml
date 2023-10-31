@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_FW_DRIVER_JS</CLSNAME>
+    <CLSNAME>Z2UI5_CL_CC_FACTORY</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>driverjs - product tours, highlights, contextual help &amp; more</DESCRIPT>
+    <DESCRIPT>abap2UI5 - cc factory</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

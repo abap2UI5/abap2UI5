@@ -1688,7 +1688,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS _cc
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_factory.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_factory.
 
     METHODS gantt_chart_container
       RETURNING

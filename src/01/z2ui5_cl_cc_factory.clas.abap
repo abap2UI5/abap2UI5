@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_cc_factory DEFINITION
+CLASS z2ui5_cl_cc_factory DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -7,19 +7,19 @@ CLASS z2ui5_cl_fw_cc_factory DEFINITION
 
     METHODS ui5_file_uploader
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_file_uploader.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_file_uploader.
 
     METHODS ui5_spreadsheet
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_spreadsheet.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_spreadsheet.
 
     METHODS gui_demo_output
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_demo_output.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_demo_output.
 
     METHODS load_font_awesome
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_font_awesome_icons.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_font_awesome_icons.
 
     METHODS constructor
       IMPORTING
@@ -27,11 +27,11 @@ CLASS z2ui5_cl_fw_cc_factory DEFINITION
 
     METHODS bwip_js
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_bwipjs.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_bwipjs.
 
     METHODS driver_js
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_driver_js.
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_driver_js.
 
   PROTECTED SECTION.
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
@@ -41,7 +41,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_FACTORY IMPLEMENTATION.
 
 
   METHOD bwip_js.
