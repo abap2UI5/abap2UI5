@@ -1,4 +1,4 @@
-class Z2UI5_CL_FW_FONT_AWSOME_ICONS definition
+class Z2UI5_CL_FW_FONT_AWESOME_ICONS definition
   public
   final
   create public .
@@ -27,24 +27,24 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_FONT_AWSOME_ICONS IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_FONT_AWESOME_ICONS IMPLEMENTATION.
 
 
-  METHOD constructor.
+  METHOD CONSTRUCTOR.
 
     me->mo_view = view.
 
   ENDMETHOD.
 
 
-  METHOD load_animation_js.
+  METHOD LOAD_ANIMATION_JS.
 
     result = mo_view->_cc_plain_xml( `<html:script src="` && faw_js_url && `" ></html:script>` ).
 
   ENDMETHOD.
 
 
-  METHOD load_icons.
+  METHOD LOAD_ICONS.
 
     DATA(js) = `debugger;` && |\n| &&
 *               `const metadataURI = "` && metadata_uri && `";` && |\n| &&

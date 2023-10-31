@@ -17,16 +17,21 @@ CLASS z2ui5_cl_fw_cc_factory DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_demo_output.
 
-    METHODS load_font_awsome
+    METHODS load_font_awesome
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_font_awsome_icons.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_font_awesome_icons.
 
     METHODS constructor
       IMPORTING
         i_view TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS bwip_js
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_cc_bwipjs.
+
+    METHODS driver_js
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_driver_js.
 
   PROTECTED SECTION.
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
@@ -53,6 +58,13 @@ CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD driver_js.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
   METHOD gui_demo_output.
 
     result = NEW #( mo_view ).
@@ -60,7 +72,7 @@ CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD load_font_awsome.
+  METHOD load_font_awesome.
 
     result = NEW #( mo_view ).
 

@@ -265,6 +265,21 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        var navConTo = sap.z2ui5.oView.byId(args[2]);` && |\n| &&
                            `                        navCon.to(navConTo);` && |\n| &&
                            `                        break;` && |\n| &&
+                           `                    case 'NEST_NAV_CONTAINER_TO':` && |\n| &&
+                           `                        var navCon = sap.z2ui5.oViewNest.byId(args[1]);` && |\n| &&
+                           `                        var navConTo = sap.z2ui5.oViewNest.byId(args[2]);` && |\n| &&
+                           `                        navCon.to(navConTo);` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                    case 'NEST2_NAV_CONTAINER_TO':` && |\n| &&
+                           `                        var navCon = sap.z2ui5.oViewNest2.byId(args[1]);` && |\n| &&
+                           `                        var navConTo = sap.z2ui5.oViewNest.byId(args[2]);` && |\n| &&
+                           `                        navCon.to(navConTo);` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                    case 'DRIVE':` && |\n| &&
+                           `                        if( driverObj !== undefined ) {` && |\n| &&
+                           `                          driverObj.drive();` && |\n| &&
+                           `                        };` && |\n| &&
+                           `                        break;` && |\n| &&
                            `                }` && |\n| &&
                            `            },` && |\n| &&
                            |\n| &&
