@@ -87,7 +87,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### Usage
-Create UI5 Apps by implementing the abap2UI5 interface:
+Develop UI5 Apps by implementing the abap2UI5 interface:
 ```abap
 CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
