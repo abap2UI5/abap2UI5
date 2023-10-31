@@ -33,6 +33,18 @@ CLASS z2ui5_cl_cc_factory DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_driver_js.
 
+    METHODS timer
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_timer.
+
+    METHODS info
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_info.
+
+    METHODS geolocation
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_geolocation.
+
   PROTECTED SECTION.
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
@@ -43,6 +55,17 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_CC_FACTORY IMPLEMENTATION.
 
+ METHOD info.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+  METHOD timer.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
 
   METHOD bwip_js.
 
@@ -91,4 +114,11 @@ CLASS Z2UI5_CL_CC_FACTORY IMPLEMENTATION.
     result = NEW #( mo_view ).
 
   ENDMETHOD.
+
+  METHOD GEOLOCATION.
+
+result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
 ENDCLASS.

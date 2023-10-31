@@ -14,6 +14,7 @@ CLASS z2ui5_cl_cc_spreadsheet DEFINITION
     METHODS constructor
       IMPORTING
         view TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS control
       IMPORTING
          tableid      TYPE clike
