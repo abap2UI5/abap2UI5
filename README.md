@@ -87,7 +87,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### Usage
-Create a new UI5 app by implementation the following interface:
+Create a new UI5 App by implementing the following interface:
 ```abap
 CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
 
