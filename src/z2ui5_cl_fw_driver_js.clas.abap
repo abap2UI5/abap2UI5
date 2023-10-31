@@ -68,7 +68,7 @@ CLASS z2ui5_cl_fw_driver_js DEFINITION
       IMPORTING
         !config       TYPE ty_config
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view ##NEEDED.
 
     CLASS-METHODS get_css_local
       RETURNING
@@ -281,7 +281,7 @@ CLASS Z2UI5_CL_FW_DRIVER_JS IMPLEMENTATION.
       js = js && `<html:script src="` && js_url && `" ></html:script>` && |\n|.
     ENDIF.
 
-    DATA(final) = js && |\n| && css.
+    DATA(final) = js && |\n| && css ##NEEDED.
 
     result = mo_view->_cc_plain_xml( js )->get_parent( )->_cc_plain_xml( css ).
 
