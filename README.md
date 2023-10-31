@@ -106,7 +106,7 @@ CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
-      product  = 'products'.
+      product  = 'Product-001'.
     ENDIF.
 
     CASE client->get( )-event.
