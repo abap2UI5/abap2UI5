@@ -1,12 +1,36 @@
   CLASS z2ui5_cl_cc_driver_js DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC.
 
     PUBLIC SECTION.
 
-      TYPES showbuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
-      TYPES disablebuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
+      CONSTANTS:
+        BEGIN OF buttons,
+          all            TYPE string VALUE `['next','previous','close']`,
+          next           TYPE string VALUE `['next']`,
+          previous       TYPE string VALUE `['previous']`,
+          close          TYPE string VALUE `['close']`,
+          next_previous  TYPE string VALUE `['next','previous']`,
+          next_close     TYPE string VALUE `['next','close']`,
+          previous_close TYPE string VALUE `['previous','close']`,
+        END OF buttons.
+
+      CONSTANTS:
+        BEGIN OF side,
+          top    TYPE string VALUE `top`,
+          right  TYPE string VALUE `right`,
+          bottom TYPE string VALUE `bottom`,
+          left   TYPE string VALUE `left`,
+          end    TYPE string VALUE `end`,
+        END OF side.
+
+      CONSTANTS:
+        BEGIN OF align,
+          start  TYPE string VALUE `start`,
+          center TYPE string VALUE `center`,
+          end    TYPE string VALUE `end`,
+        END OF align.
 
       TYPES:
         BEGIN OF ty_config_steps_popover,
@@ -14,21 +38,22 @@
           description     TYPE string,
           side            TYPE string,
           align           TYPE string,
-          show_buttons    TYPE showbuttons_array,
-          disable_buttons TYPE disablebuttons_array,
+          show_buttons    TYPE string,
+          disable_buttons TYPE string,
           next_btn_text   TYPE string,
           prev_btn_text   TYPE string,
           done_btn_text   TYPE string,
           show_progress   TYPE abap_bool,
           progress_text   TYPE string,
           popover_class   TYPE string,
-        END OF ty_config_steps_popover .
+        END OF ty_config_steps_popover.
+
       TYPES:
         BEGIN OF ty_config_steps,
           element     TYPE string,
           elementview TYPE string,
           popover     TYPE ty_config_steps_popover,
-        END OF ty_config_steps .
+        END OF ty_config_steps.
 
       TYPES ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH DEFAULT KEY.
 
@@ -53,14 +78,15 @@
           next_btn_text              TYPE string,
           prev_btn_text              TYPE string,
           done_btn_text              TYPE string,
-        END OF ty_config .
+        END OF ty_config.
 
+      DATA config TYPE ty_config.
 
-      DATA mo_view TYPE REF TO z2ui5_cl_xml_view .
+      DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
       METHODS constructor
         IMPORTING
-          !view TYPE REF TO z2ui5_cl_xml_view .
+          !view TYPE REF TO z2ui5_cl_xml_view.
 
       METHODS load_lib
         IMPORTING
@@ -69,21 +95,21 @@
           !local_css    TYPE abap_bool OPTIONAL
           !local_js     TYPE abap_bool OPTIONAL
         RETURNING
-          VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+          VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
       METHODS set_drive_config
         IMPORTING
           !config       TYPE ty_config
         RETURNING
-          VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+          VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
       CLASS-METHODS get_css_local
         RETURNING
-          VALUE(result) TYPE string .
+          VALUE(result) TYPE string.
 
       CLASS-METHODS get_js_local
         RETURNING
-          VALUE(result) TYPE string .
+          VALUE(result) TYPE string.
     PROTECTED SECTION.
     PRIVATE SECTION.
 
@@ -132,7 +158,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
 
     METHOD get_js_local.
-      result = `debugger;` && |\n|  &&
+      result = `` && |\n|  &&
   `this.driver=this.driver||{};this.driver.js=function(D){&quot;use strict&quot;;let F={};function z(e={}){F={animate:!0,allowClose:!0,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,showProgress:!1,stagePadding:10,stageRadius:5,` &&
   `popoverOffset:10,showButtons:[&quot;next&quot;,&quot;previous&quot;,&quot;close&quot;],disableButtons:[],overlayColor:&quot;#000&quot;,...e}}function a(e){return e?F[e]:F}function W(e,o,t,i){return(e/=i/2)&lt;1?t/2*e*e+o:-t/2*(--e*(e-2)-1)+o}` &&
   `function q(` &&
@@ -273,7 +299,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
       IF css_url IS INITIAL.
         IF local_css = abap_true.
-          css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n|.
+          css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n| .
         ENDIF.
       ELSE.
         css = css && `<html:style>` && css_url && `</html:style>` && |\n|.
@@ -287,7 +313,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
         js = js && `<html:script src="` && js_url && `" ></html:script>` && |\n|.
       ENDIF.
 
-      DATA(final) = js && |\n| && css ##NEEDED.
+      DATA(final) = js && |\n| && css.
 
       result = mo_view->_cc_plain_xml( js )->get_parent( )->_cc_plain_xml( css ).
 
@@ -296,48 +322,32 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
     METHOD set_drive_config.
 
-      DATA lt_config TYPE ty_config.
-      DATA(selector) = `` ##NEEDED.
-      DATA(view) = ``.
 
-
-      lt_config = config.
-
-      LOOP AT lt_config-steps ASSIGNING FIELD-SYMBOL(<fs_step>).
-
-        CASE <fs_step>-element(1).
-          WHEN `#`.
-          WHEN `.`.
-        ENDCASE.
-
-        CASE to_upper( <fs_step>-elementview ).
-          WHEN `NEST`.
-            view = `oViewNest`.
-          WHEN `NEST2`.
-            view = `oViewNest2`.
-          WHEN `POPOVER`.
-            view = `oViewPopover`.
-          WHEN `POPUP`.
-            view = `oViewPopup`.
-          WHEN OTHERS.
-*           DEFAULT AS MAIN VIEW
-            view = `oView`.
-        ENDCASE.
-
-        CLEAR <fs_step>-elementview.
-      ENDLOOP.
-
-      DATA(lv_config_json) = ``.
-      lv_config_json = /ui2/cl_json=>serialize(
-                               data             = lt_config
+      DATA(lv_config_json) = /ui2/cl_json=>serialize(
+                               data             = config
                                compress         = abap_true
                                pretty_name      = 'X' ).
 
 
-      DATA(drive_js) = `const driver = window.driver.js.driver;` && |\n|.
+      DATA(drive_js) = `const driver = window.driver.js.driver;` && |\n| &&
+                       `var config = ` && lv_config_json && `;` && |\n| &&
+                       `var iLength = config.steps.length;` && |\n| &&
+                       `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
+                       `  switch ( config.steps[i].elementview ) {` && |\n| &&
+                       `    case 'NEST':` && |\n| &&
+                       `    config.steps[i].element = '#' + sap.z2ui5.oViewNest.createId( config.steps[i].element );` && |\n| &&
+                       `    case 'NEST2':` && |\n| &&
+                       `    config.steps[i].element = '#' + sap.z2ui5.oViewNest2.createId( config.steps[i].element );` && |\n| &&
+                       `    case 'POPUP':` && |\n| &&
+                       `    config.steps[i].element = '#' + sap.z2ui5.oViewPopup.createId( config.steps[i].element );` && |\n| &&
+                       `    case 'POPOVER':` && |\n| &&
+                       `    config.steps[i].element = '#' + sap.z2ui5.oViewPopover.createId( config.steps[i].element );` && |\n| &&
+                       `    case 'MAIN':` && |\n| &&
+                       `    config.steps[i].element = '#' + sap.z2ui5.oView.createId( config.steps[i].element );` && |\n| &&
+                       `  };` && |\n| &&
+                       `};` && |\n| &&
+                       `const driverObj = driver( config );` && |\n|.
 
-
-      drive_js = drive_js &&  `const driverObj = driver(` && |\n| && lv_config_json && |\n| && `);`.
 
       result = mo_view->_cc_plain_xml( `<html:script>` && drive_js && `</html:script>` ).
 
