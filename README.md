@@ -10,11 +10,11 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-*This project offers a pure ABAP approach for developing UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables through Selection Screens and ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+*abap2UI5 offers a pure ABAP approach for developing UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables through Selection Screens and ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
 * **User-Friendly:** Implement just one interface for a standalone UI5 application
-* **100% ABAP:** Develop using pure ABAP (no JavaScript, DDL, EML or Customizing)
+* **100% ABAP:** Developing using pure ABAP (no JavaScript, DDL, EML or Customizing)
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
 * **Broad System Compatibility:** Compatible with all ABAP releases (from NW 7.02 to ABAP 2311)
@@ -105,14 +105,14 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
-        client->message_toast_display( |{ product } { quantity } - send to the server| ).
+        client->message_toast_display( |{ quantity } Product ABC - send to the server| ).
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory( client
       )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
-            )->label( 'Product-001'
+            )->label( 'Product-ABC'
             )->input( client->_bind_edit( quantity )
             )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
       )->stringify( ) ).
