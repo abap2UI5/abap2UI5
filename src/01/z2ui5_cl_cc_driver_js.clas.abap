@@ -287,7 +287,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
         js = js && `<html:script src="` && js_url && `" ></html:script>` && |\n|.
       ENDIF.
 
-      DATA(final) = js && |\n| && css.
+      DATA(final) = js && |\n| && css ##NEEDED.
 
       result = mo_view->_cc_plain_xml( js )->get_parent( )->_cc_plain_xml( css ).
 
@@ -297,7 +297,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
     METHOD set_drive_config.
 
       DATA lt_config TYPE ty_config.
-      DATA(selector) = ``.
+      DATA(selector) = `` ##NEEDED.
       DATA(view) = ``.
 
 
