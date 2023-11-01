@@ -27,7 +27,8 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_dissolved TYPE abap_bool,
         check_temp      TYPE abap_bool,
         viewname        TYPE string,
-        pretty_name     type string,
+        pretty_name     TYPE string,
+        depth           TYPE i,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -39,7 +40,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         data            TYPE data OPTIONAL
         check_attri     TYPE data OPTIONAL
         view            TYPE string OPTIONAL
-        pretty_name     type clike optional
+        pretty_name     TYPE clike OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -123,7 +124,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
+CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
 
   METHOD bind.
@@ -132,9 +133,10 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
     DATA(lv_name) = `MO_APP->` && bind->name.
     ASSIGN (lv_name) TO <attri>.
     IF sy-subrc <> 0.
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-        EXPORTING
-          val = `BINDING_ERROR_ATTRIBUTE_NOT_FOUND_WITH_NAME__` && bind->name.
+      RETURN.
+*      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+*        EXPORTING
+*          val = `BINDING_ERROR_ATTRIBUTE_NOT_FOUND_WITH_NAME__` && bind->name.
     ENDIF.
 
     DATA lr_ref TYPE REF TO data.
@@ -209,13 +211,17 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
       WHERE type_kind = cl_abap_classdescr=>typekind_oref
-      AND   check_dissolved = abap_false.
+      AND   check_dissolved = abap_false
+      AND   depth < 5.
 
       DATA(lt_attri) = get_t_attri_by_oref( val = lr_bind->name ).
       IF lt_attri IS INITIAL.
         CONTINUE.
       ENDIF.
       lr_bind->check_dissolved = abap_true.
+      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
+        lr_attri->depth = lr_bind->depth + 1.
+      ENDLOOP.
       INSERT LINES OF lt_attri INTO TABLE mt_attri.
     ENDLOOP.
 
