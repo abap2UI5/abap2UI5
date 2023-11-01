@@ -327,7 +327,8 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
         CLEAR <fs_step>-elementview.
       ENDLOOP.
 
-      DATA(lv_config_json) = /ui2/cl_json=>serialize(
+      DATA(lv_config_json) = ``.
+      lv_config_json = /ui2/cl_json=>serialize(
                                data             = lt_config
                                compress         = abap_true
                                pretty_name      = 'X' ).
