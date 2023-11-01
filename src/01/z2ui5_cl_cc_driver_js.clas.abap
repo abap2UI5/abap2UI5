@@ -14,7 +14,7 @@
           next_previous  TYPE string VALUE `['next','previous']`,
           next_close     TYPE string VALUE `['next','close']`,
           previous_close TYPE string VALUE `['previous','close']`,
-        END OF buttons.
+        END OF buttons ##NEEDED.
 
       CONSTANTS:
         BEGIN OF side,
@@ -23,14 +23,14 @@
           bottom TYPE string VALUE `bottom`,
           left   TYPE string VALUE `left`,
           end    TYPE string VALUE `end`,
-        END OF side.
+        END OF side ##NEEDED.
 
       CONSTANTS:
         BEGIN OF align,
           start  TYPE string VALUE `start`,
           center TYPE string VALUE `center`,
           end    TYPE string VALUE `end`,
-        END OF align.
+        END OF align ##NEEDED.
 
       TYPES:
         BEGIN OF ty_config_steps_popover,
@@ -312,7 +312,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
         js = js && `<html:script src="` && js_url && `" ></html:script>` && |\n|.
       ENDIF.
 
-      DATA(final) = js && |\n| && css.
+      DATA(final) = js && |\n| && css ##NEEDED.
 
       result = mo_view->_cc_plain_xml( js )->get_parent( )->_cc_plain_xml( css ).
 
@@ -321,8 +321,9 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
     METHOD set_drive_config.
 
-
-      DATA(lv_config_json) = /ui2/cl_json=>serialize(
+    "needed for transpilation to js
+     DATA(lv_config_json) = ``.
+     lv_config_json = /ui2/cl_json=>serialize(
                                data             = config
                                compress         = abap_true
                                pretty_name      = 'X' ).
