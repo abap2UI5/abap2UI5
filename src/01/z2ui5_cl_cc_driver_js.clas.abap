@@ -30,7 +30,7 @@
           popover     TYPE ty_config_steps_popover,
         END OF ty_config_steps .
 
-      TYPES: ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH DEFAULT KEY.
+      TYPES ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH DEFAULT KEY.
 
       TYPES:
         BEGIN OF ty_config,
