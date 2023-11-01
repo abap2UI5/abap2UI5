@@ -105,14 +105,14 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
-        client->message_toast_display( |{ product } { quantity } - send to the server| ).
+        client->message_toast_display( |{ quantity } Product ABC - send to the server| ).
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory( client
       )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
-            )->label( 'Product-001'
+            )->label( 'Product-ABC'
             )->input( client->_bind_edit( quantity )
             )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
       )->stringify( ) ).
