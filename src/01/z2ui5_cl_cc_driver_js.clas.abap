@@ -6,7 +6,7 @@
     PUBLIC SECTION.
 
       TYPES showbuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
-      TYPES: disablebuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
+      TYPES disablebuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
 
       TYPES:
         BEGIN OF ty_config_steps_popover,
