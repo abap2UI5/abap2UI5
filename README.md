@@ -93,7 +93,6 @@ CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    DATA product  TYPE string.
     DATA quantity TYPE string.
 
 ENDCLASS.
@@ -111,10 +110,8 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
       )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
-            )->label( 'quantity'
+            )->label( 'Product-001'
             )->input( client->_bind_edit( quantity )
-            )->label( 'product'
-            )->input( client->_bind_edit( product )
             )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
       )->stringify( ) ).
 
