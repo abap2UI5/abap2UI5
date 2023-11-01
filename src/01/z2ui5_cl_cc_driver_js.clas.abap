@@ -337,7 +337,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
       DATA(drive_js) = `const driver = window.driver.js.driver;` && |\n|.
 
 
-      drive_js = drive_js &&  `const driverObj = driver(` && |\n| && lv_config_json && |\n| && `);`..
+      drive_js = drive_js &&  `const driverObj = driver(` && |\n| && lv_config_json && |\n| && `);`.
 
       result = mo_view->_cc_plain_xml( `<html:script>` && drive_js && `</html:script>` ).
 
