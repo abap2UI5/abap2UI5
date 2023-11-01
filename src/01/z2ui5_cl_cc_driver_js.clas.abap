@@ -6,7 +6,7 @@
     PUBLIC SECTION.
 
       CONSTANTS:
-        BEGIN OF buttons,
+        BEGIN OF buttons ##NEEDED,
           all            TYPE string VALUE `['next','previous','close']`,
           next           TYPE string VALUE `['next']`,
           previous       TYPE string VALUE `['previous']`,
