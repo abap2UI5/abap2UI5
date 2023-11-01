@@ -17,7 +17,7 @@
         END OF buttons.
 
       CONSTANTS:
-        BEGIN OF side,
+        BEGIN OF side ##NEEDED,
           top    TYPE string VALUE `top`,
           right  TYPE string VALUE `right`,
           bottom TYPE string VALUE `bottom`,
@@ -26,7 +26,7 @@
         END OF side.
 
       CONSTANTS:
-        BEGIN OF align,
+        BEGIN OF align ##NEEDED,
           start  TYPE string VALUE `start`,
           center TYPE string VALUE `center`,
           end    TYPE string VALUE `end`,
