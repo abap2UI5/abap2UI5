@@ -80,7 +80,6 @@
           done_btn_text              TYPE string,
         END OF ty_config.
 
-      DATA config TYPE ty_config.
 
       DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
