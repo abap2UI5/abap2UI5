@@ -17,7 +17,7 @@
 * **100% ABAP:** Develop using pure ABAP (no JavaScript, DDL, EML or Customizing)
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
-* **Broad System Compatibility:** Compatible with all ABAP releases, from NW 7.02 to ABAP 2311
+* **Broad System Compatibility:** Compatible with all ABAP releases (from NW 7.02 to ABAP 2311)
 * **Easy installation:** abapGit project, no additional app deployment needed
 
 #### Compatibility
