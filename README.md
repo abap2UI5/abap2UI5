@@ -10,15 +10,15 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-*This project offers a pure ABAP approach to developing UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to create inputs and tables through Selection Screens and ALVs. It is designed with a minimal system footprint and runs in both on-premise and cloud environments.*
+*This project offers a pure ABAP approach to develop UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to show inputs and tables through Selection Screens and ALVs. It is designed with a minimal system footprint and runs in both on-premise and cloud environments.*
 
 #### Key Features
-* User-Friendly – implement just one interface for a standalone UI5 application
-* Pure ABAP – develop using 100% ABAP (no JavaScript, DDL, EML or Customizing)
-* Minimal System Footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
-* Cloud and On-Premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* Broad System Compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2311)
-* Easy installation – abapGit project, no additional app deployment needed
+* **User-Friendly:** Implement just one interface for a standalone UI5 application
+* **Pure ABAP:** Develop using 100% ABAP (no JavaScript, DDL, EML or Customizing)
+* **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
+* **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
+* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP 2311)
+* **Easy installation:** abapGit project, no additional app deployment needed
 
 #### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
