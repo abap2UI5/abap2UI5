@@ -14,7 +14,7 @@
           next_previous  TYPE string VALUE `['next','previous']`,
           next_close     TYPE string VALUE `['next','close']`,
           previous_close TYPE string VALUE `['previous','close']`,
-        END OF buttons ##NEEDED.
+        END OF buttons.
 
       CONSTANTS:
         BEGIN OF side,
@@ -23,14 +23,14 @@
           bottom TYPE string VALUE `bottom`,
           left   TYPE string VALUE `left`,
           end    TYPE string VALUE `end`,
-        END OF side ##NEEDED.
+        END OF side.
 
       CONSTANTS:
         BEGIN OF align,
           start  TYPE string VALUE `start`,
           center TYPE string VALUE `center`,
           end    TYPE string VALUE `end`,
-        END OF align ##NEEDED.
+        END OF align.
 
       TYPES:
         BEGIN OF ty_config_steps_popover,
