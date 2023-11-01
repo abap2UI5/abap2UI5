@@ -10,7 +10,7 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-***abap2UI5** offers a pure ABAP approach for developing UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables through Selection Screens and ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+***Abap2UI5** offers a pure ABAP approach for developing UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables through Selection Screens and ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
 * **User-Friendly:** Implement just one interface for a standalone UI5 application
