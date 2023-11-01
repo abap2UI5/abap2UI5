@@ -1,85 +1,91 @@
-CLASS z2ui5_cl_cc_driver_js DEFINITION
+  CLASS z2ui5_cl_cc_driver_js DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
-  PUBLIC SECTION.
+    PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_config_steps_popover,
-        title          TYPE string,
-        description    TYPE string,
-        side           TYPE string,
-        align          TYPE string,
-        showbuttons    TYPE string,
-        disablebuttons TYPE string,
-        nextbtntext    TYPE string,
-        prevbtntext    TYPE string,
-        donebtntext    TYPE string,
-        showprogress   TYPE abap_bool,
-        progresstext   TYPE string,
-        popoverclass   TYPE string,
-      END OF ty_config_steps_popover .
-    TYPES:
-      BEGIN OF ty_config_steps,
-        element TYPE string,
-        popover TYPE ty_config_steps_popover,
-      END OF ty_config_steps .
-    TYPES:
-      BEGIN OF ty_config,
-        steps                    TYPE ty_config_steps,
-        animate                  TYPE abap_bool,
-        overlaycolor             TYPE string,
-        smoothscroll             TYPE abap_bool,
-        allowclose               TYPE abap_bool,
-        overlayopacity           TYPE i,
-        stagepadding             TYPE i,
-        stageradius              TYPE i,
-        allowkeyboardcontrol     TYPE abap_bool,
-        disableactiveinteraction TYPE abap_bool,
-        popoverclass             TYPE string,
-        popoveroffset            TYPE i,
-        showbuttons              TYPE string,
-        disablebuttons           TYPE string,
-        showprogress             TYPE abap_bool,
-        progresstext             TYPE string,
-        nextbtntext              TYPE string,
-        prevbtntext              TYPE string,
-        donebtntext              TYPE string,
-      END OF ty_config .
+      TYPES showbuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
+      TYPES disablebuttons_array TYPE STANDARD TABLE OF int4 WITH NON-UNIQUE KEY table_line.
+
+      TYPES:
+        BEGIN OF ty_config_steps_popover,
+          title           TYPE string,
+          description     TYPE string,
+          side            TYPE string,
+          align           TYPE string,
+          show_buttons    TYPE showbuttons_array,
+          disable_buttons TYPE disablebuttons_array,
+          next_btn_text   TYPE string,
+          prev_btn_text   TYPE string,
+          done_btn_text   TYPE string,
+          show_progress   TYPE abap_bool,
+          progress_text   TYPE string,
+          popover_class   TYPE string,
+        END OF ty_config_steps_popover .
+      TYPES:
+        BEGIN OF ty_config_steps,
+          element     TYPE string,
+          elementview TYPE string,
+          popover     TYPE ty_config_steps_popover,
+        END OF ty_config_steps .
+
+      TYPES ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH DEFAULT KEY.
+
+      TYPES:
+        BEGIN OF ty_config,
+          steps                      TYPE ty_config_steps_tt,
+          animate                    TYPE abap_bool,
+          overlay_color              TYPE string,
+          smooths_croll              TYPE abap_bool,
+          allow_close                TYPE abap_bool,
+          overlay_opacity            TYPE i,
+          stage_padding              TYPE i,
+          stage_radius               TYPE i,
+          allow_keyboard_control     TYPE abap_bool,
+          disable_active_interaction TYPE abap_bool,
+          popover_class              TYPE string,
+          popover_offset             TYPE i,
+          show_buttons               TYPE string,
+          disable_buttons            TYPE string,
+          show_progress              TYPE abap_bool,
+          progress_text              TYPE string,
+          next_btn_text              TYPE string,
+          prev_btn_text              TYPE string,
+          done_btn_text              TYPE string,
+        END OF ty_config .
 
 
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view .
+      DATA mo_view TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS constructor
-      IMPORTING
-        !view TYPE REF TO z2ui5_cl_xml_view .
+      METHODS constructor
+        IMPORTING
+          !view TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS load_lib
-      IMPORTING
-        !js_url       TYPE clike OPTIONAL
-        !css_url      TYPE clike OPTIONAL
-        !local_css    TYPE abap_bool OPTIONAL
-        !local_js     TYPE abap_bool OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+      METHODS load_lib
+        IMPORTING
+          !js_url       TYPE clike OPTIONAL
+          !css_url      TYPE clike OPTIONAL
+          !local_css    TYPE abap_bool OPTIONAL
+          !local_js     TYPE abap_bool OPTIONAL
+        RETURNING
+          VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS set_drive_config
-      IMPORTING
-        !config       TYPE ty_config
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view ##NEEDED.
+      METHODS set_drive_config
+        IMPORTING
+          !config       TYPE ty_config
+        RETURNING
+          VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    CLASS-METHODS get_css_local
-      RETURNING
-        VALUE(result) TYPE string .
+      CLASS-METHODS get_css_local
+        RETURNING
+          VALUE(result) TYPE string .
 
-    CLASS-METHODS get_js_local
-      RETURNING
-        VALUE(result) TYPE string .
-
-  PROTECTED SECTION.
-  PRIVATE SECTION.
+      CLASS-METHODS get_js_local
+        RETURNING
+          VALUE(result) TYPE string .
+    PROTECTED SECTION.
+    PRIVATE SECTION.
 
 ENDCLASS.
 
@@ -88,54 +94,54 @@ ENDCLASS.
 CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
 
-  METHOD constructor.
+    METHOD constructor.
 
-    me->mo_view = view.
+      me->mo_view = view.
 
-  ENDMETHOD.
-
-
-  METHOD get_css_local.
-    result = `` && |\n|  &&
-`.driver-active .driver-overlay,.driver-active *{pointer-events:none}.driver-active .driver-active-element,.driver-active .driver-active-element *,.driver-popover,.driver-popover *{pointer-events:auto}` &&
-`@keyframes animate-fade-in{0%{opacity:0}to{opacity:1}}.driver-fade .driver-overlay{animation:animate-fade-in .2s ease-in-out}` &&
-`.driver-fade .driver-popover{animation:animate-fade-in .2s}` &&
-`.driver-popover{all:unset;box-sizing:border-box;color:#2d2d2d;margin:0;padding:15px;border-radius:5px;min-width:250px;max-width:300px;box-shadow:0 1px 10px #0006;z-index:1000000000;position:fixed;top:0;right:0;background-color:#fff}` &&
-`.driver-popover *{font-family:Helvetica Neue,Inter,ui-sans-serif,"Apple Color Emoji",Helvetica,Arial,sans-serif}.driver-popover-title{font:19px/normal sans-serif;font-weight:700;display:block;position:relative;line-height:1.5;zoom:1;margin:0}` &&
-`.driver-popover-close-btn{all:unset;position:absolute;top:0;right:0;width:32px;height:28px;cursor:pointer;font-size:18px;font-weight:500;color:#d2d2d2;z-index:1;text-align:center;transition:color;transition-duration:.2s}` &&
-`.driver-popover-close-btn:hover,.driver-popover-close-btn:focus{color:#2d2d2d}` &&
-`.driver-popover-title[style*=block]+.driver-popover-description{margin-top:5px}.driver-popover-description{margin-bottom:0;font:14px/normal sans-serif;line-height:1.5;font-weight:400;zoom:1}` &&
-`.driver-popover-footer{margin-top:15px;text-align:right;zoom:1;display:flex;align-items:center;justify-content:space-between}.driver-popover-progress-text{font-size:13px;font-weight:400;color:#727272;zoom:1}` &&
-`.driver-popover-footer button{all:unset;display:inline-block;box-sizing:border-box;padding:3px 7px;text-decoration:none;text-shadow:1px 1px 0 #fff;background-color:#fff;color:#2d2d2d;font:12px/normal sans-serif;` &&
-`    cursor:pointer;outline:0;zoom:1;line-height:1.3;border:1px solid #ccc;border-radius:3px}` &&
-`.driver-popover-footer .driver-popover-btn-disabled{opacity:.5;pointer-events:none}:not(body):has(>.driver-active-element){overflow:hidden!important}` &&
-`.driver-no-interaction,.driver-no-interaction *{pointer-events:none!important}.driver-popover-footer button:hover,` &&
-`.driver-popover-footer button:focus{background-color:#f7f7f7}.driver-popover-navigation-btns{display:flex;flex-grow:1;justify-content:flex-end}.driver-popover-navigation-btns button+button{margin-left:4px}` &&
-`.driver-popover-arrow{content:"";position:absolute;border:5px solid #fff}.driver-popover-arrow-side-over{display:none}` &&
-`.driver-popover-arrow-side-left{left:100%;border-right-color:transparent;border-bottom-color:transparent;border-top-color:transparent}` &&
-`.driver-popover-arrow-side-right{right:100%;border-left-color:transparent;border-bottom-color:transparent;border-top-color:transparent}` &&
-`.driver-popover-arrow-side-top{top:100%;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent}` &&
-`.driver-popover-arrow-side-bottom{bottom:100%;border-left-color:transparent;border-top-color:transparent;border-right-color:transparent}` &&
-`.driver-popover-arrow-side-center{display:none}.driver-popover-arrow-side-left.driver-popover-arrow-align-start,.driver-popover-arrow-side-right.driver-popover-arrow-align-start{top:15px}` &&
-`.driver-popover-arrow-side-top.driver-popover-arrow-align-start,.driver-popover-arrow-side-bottom.driver-popover-arrow-align-start{left:15px}` &&
-`.driver-popover-arrow-align-end.driver-popover-arrow-side-left,.driver-popover-arrow-align-end.driver-popover-arrow-side-right{bottom:15px}` &&
-`.driver-popover-arrow-side-top.driver-popover-arrow-align-end,.driver-popover-arrow-side-bottom.driver-popover-arrow-align-end{right:15px}` &&
-`.driver-popover-arrow-side-left.driver-popover-arrow-align-center,.driver-popover-arrow-side-right.driver-popover-arrow-align-center{top:50%;margin-top:-5px}` &&
-`.driver-popover-arrow-side-top.driver-popover-arrow-align-center,.driver-popover-arrow-side-bottom.driver-popover-arrow-align-center{left:50%;margin-left:-5px}.driver-popover-arrow-none{display:none}`.
-  ENDMETHOD.
+    ENDMETHOD.
 
 
-  METHOD get_js_local.
-    result = `debugger;` && |\n|  &&
-`this.driver=this.driver||{};this.driver.js=function(D){&quot;use strict&quot;;let F={};function z(e={}){F={animate:!0,allowClose:!0,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,showProgress:!1,stagePadding:10,stageRadius:5,` &&
-`popoverOffset:10,showButtons:[&quot;next&quot;,&quot;previous&quot;,&quot;close&quot;],disableButtons:[],overlayColor:&quot;#000&quot;,...e}}function a(e){return e?F[e]:F}function W(e,o,t,i){return(e/=i/2)&lt;1?t/2*e*e+o:-t/2*(--e*(e-2)-1)+o}` &&
-`function q(` &&
-`e){const o=&#39;a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input[type=&quot;text&quot;]:not([disabled]), input[type=&quot;radio&quot;]:not([disabled]), input[type=&quot;checkbox&quot;]:not([disabled]), select:not(` &&
-`[disabled])&#39;;return e.flatMap(t=&gt;{const i=t.matches(o),p=Array.from(t.querySelectorAll(o));return[...i?[t]:[],...p]}).filter(t=&gt;getComputedStyle(t).pointerEvents!==&quot;none&quot;&amp;&amp;ae(t))}function V(e){if(!e||se(e))return;` &&
-`const o=a(` &&
-`&quot;smoothScroll&quot;);e.scrollIntoView({behavior:!o||re(e)?&quot;auto&quot;:&quot;smooth&quot;,inline:&quot;center&quot;,block:&quot;center&quot;})}function re(e){if(!e||!e.parentElement)return;const o=e.parentElement;return ` &&
-`o.scrollHeight&gt;o.clientHeight}function se(e){const o=e.getBoundingClientRect();return o.top&gt;=0&amp;&amp;o.left&gt;=0&amp;&amp;o.bottom&lt;=(window.innerHeight||document.documentElement.clientHeight)&amp;&amp;o.right&lt;=(` &&
-`window.innerWidth||document.documentElement.clientWidth)}function ae(e){return!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)}let N={};function b(e,o){N[e]=o}function l(e){return e?N[e]:N}function K(){N={}}let E={};function O(e,o)` &&
+    METHOD get_css_local.
+      result = `` && |\n|  &&
+  `.driver-active .driver-overlay,.driver-active *{pointer-events:none}.driver-active .driver-active-element,.driver-active .driver-active-element *,.driver-popover,.driver-popover *{pointer-events:auto}` &&
+  `@keyframes animate-fade-in{0%{opacity:0}to{opacity:1}}.driver-fade .driver-overlay{animation:animate-fade-in .2s ease-in-out}` &&
+  `.driver-fade .driver-popover{animation:animate-fade-in .2s}` &&
+  `.driver-popover{all:unset;box-sizing:border-box;color:#2d2d2d;margin:0;padding:15px;border-radius:5px;min-width:250px;max-width:300px;box-shadow:0 1px 10px #0006;z-index:1000000000;position:fixed;top:0;right:0;background-color:#fff}` &&
+  `.driver-popover *{font-family:Helvetica Neue,Inter,ui-sans-serif,"Apple Color Emoji",Helvetica,Arial,sans-serif}.driver-popover-title{font:19px/normal sans-serif;font-weight:700;display:block;position:relative;line-height:1.5;zoom:1;margin:0}` &&
+  `.driver-popover-close-btn{all:unset;position:absolute;top:0;right:0;width:32px;height:28px;cursor:pointer;font-size:18px;font-weight:500;color:#d2d2d2;z-index:1;text-align:center;transition:color;transition-duration:.2s}` &&
+  `.driver-popover-close-btn:hover,.driver-popover-close-btn:focus{color:#2d2d2d}` &&
+  `.driver-popover-title[style*=block]+.driver-popover-description{margin-top:5px}.driver-popover-description{margin-bottom:0;font:14px/normal sans-serif;line-height:1.5;font-weight:400;zoom:1}` &&
+  `.driver-popover-footer{margin-top:15px;text-align:right;zoom:1;display:flex;align-items:center;justify-content:space-between}.driver-popover-progress-text{font-size:13px;font-weight:400;color:#727272;zoom:1}` &&
+  `.driver-popover-footer button{all:unset;display:inline-block;box-sizing:border-box;padding:3px 7px;text-decoration:none;text-shadow:1px 1px 0 #fff;background-color:#fff;color:#2d2d2d;font:12px/normal sans-serif;` &&
+  `    cursor:pointer;outline:0;zoom:1;line-height:1.3;border:1px solid #ccc;border-radius:3px}` &&
+  `.driver-popover-footer .driver-popover-btn-disabled{opacity:.5;pointer-events:none}:not(body):has(>.driver-active-element){overflow:hidden!important}` &&
+  `.driver-no-interaction,.driver-no-interaction *{pointer-events:none!important}.driver-popover-footer button:hover,` &&
+  `.driver-popover-footer button:focus{background-color:#f7f7f7}.driver-popover-navigation-btns{display:flex;flex-grow:1;justify-content:flex-end}.driver-popover-navigation-btns button+button{margin-left:4px}` &&
+  `.driver-popover-arrow{content:"";position:absolute;border:5px solid #fff}.driver-popover-arrow-side-over{display:none}` &&
+  `.driver-popover-arrow-side-left{left:100%;border-right-color:transparent;border-bottom-color:transparent;border-top-color:transparent}` &&
+  `.driver-popover-arrow-side-right{right:100%;border-left-color:transparent;border-bottom-color:transparent;border-top-color:transparent}` &&
+  `.driver-popover-arrow-side-top{top:100%;border-right-color:transparent;border-bottom-color:transparent;border-left-color:transparent}` &&
+  `.driver-popover-arrow-side-bottom{bottom:100%;border-left-color:transparent;border-top-color:transparent;border-right-color:transparent}` &&
+  `.driver-popover-arrow-side-center{display:none}.driver-popover-arrow-side-left.driver-popover-arrow-align-start,.driver-popover-arrow-side-right.driver-popover-arrow-align-start{top:15px}` &&
+  `.driver-popover-arrow-side-top.driver-popover-arrow-align-start,.driver-popover-arrow-side-bottom.driver-popover-arrow-align-start{left:15px}` &&
+  `.driver-popover-arrow-align-end.driver-popover-arrow-side-left,.driver-popover-arrow-align-end.driver-popover-arrow-side-right{bottom:15px}` &&
+  `.driver-popover-arrow-side-top.driver-popover-arrow-align-end,.driver-popover-arrow-side-bottom.driver-popover-arrow-align-end{right:15px}` &&
+  `.driver-popover-arrow-side-left.driver-popover-arrow-align-center,.driver-popover-arrow-side-right.driver-popover-arrow-align-center{top:50%;margin-top:-5px}` &&
+  `.driver-popover-arrow-side-top.driver-popover-arrow-align-center,.driver-popover-arrow-side-bottom.driver-popover-arrow-align-center{left:50%;margin-left:-5px}.driver-popover-arrow-none{display:none}`.
+    ENDMETHOD.
+
+
+    METHOD get_js_local.
+      result = `debugger;` && |\n|  &&
+  `this.driver=this.driver||{};this.driver.js=function(D){&quot;use strict&quot;;let F={};function z(e={}){F={animate:!0,allowClose:!0,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,showProgress:!1,stagePadding:10,stageRadius:5,` &&
+  `popoverOffset:10,showButtons:[&quot;next&quot;,&quot;previous&quot;,&quot;close&quot;],disableButtons:[],overlayColor:&quot;#000&quot;,...e}}function a(e){return e?F[e]:F}function W(e,o,t,i){return(e/=i/2)&lt;1?t/2*e*e+o:-t/2*(--e*(e-2)-1)+o}` &&
+  `function q(` &&
+  `e){const o=&#39;a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input[type=&quot;text&quot;]:not([disabled]), input[type=&quot;radio&quot;]:not([disabled]), input[type=&quot;checkbox&quot;]:not([disabled]), select:not(` &&
+  `[disabled])&#39;;return e.flatMap(t=&gt;{const i=t.matches(o),p=Array.from(t.querySelectorAll(o));return[...i?[t]:[],...p]}).filter(t=&gt;getComputedStyle(t).pointerEvents!==&quot;none&quot;&amp;&amp;ae(t))}function V(e){if(!e||se(e))return;` &&
+  `const o=a(` &&
+  `&quot;smoothScroll&quot;);e.scrollIntoView({behavior:!o||re(e)?&quot;auto&quot;:&quot;smooth&quot;,inline:&quot;center&quot;,block:&quot;center&quot;})}function re(e){if(!e||!e.parentElement)return;const o=e.parentElement;return ` &&
+  `o.scrollHeight&gt;o.clientHeight}function se(e){const o=e.getBoundingClientRect();return o.top&gt;=0&amp;&amp;o.left&gt;=0&amp;&amp;o.bottom&lt;=(window.innerHeight||document.documentElement.clientHeight)&amp;&amp;o.right&lt;=(` &&
+  `window.innerWidth||document.documentElement.clientWidth)}function ae(e){return!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)}let N={};function b(e,o){N[e]=o}function l(e){return e?N[e]:N}function K(){N={}}let E={};function O(e,o)` &&
 `{E[e]=o}function _(e){var o;(o=E[e])==null||o.call(E)}function ce(){E={}}function le(e,o,t,i){let p=l(&quot;__activeStagePosition&quot;);const n=p||t.getBoundingClientRect(),f=i.getBoundingClientRect(),w=W(e,n.x,f.x-n.x,o),r=W(e,n.y,f.y-n.y,o),v=W(e,` &&
 `n.width,f.width-n.width,o),s=W(e,n.height,f.height-n.height,o);p={x:w,y:r,width:v,height:s},Y(p),b(&quot;__activeStagePosition&quot;,p)}function X(e){if(!e)return;const o=e.getBoundingClientRect(),t={x:o.x,y:o.y,width:o.width,height:o.height};b(` &&
 `&quot;__activeStagePosition&quot;,t),Y(t)}function de(){const e=l(&quot;__activeStagePosition&quot;),o=l(&quot;__overlaySvg&quot;);if(!e)return;if(!o){console.warn(&quot;No stage svg found.&quot;);return}const t=window.innerWidth,` &&
@@ -257,55 +263,84 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 `D.driver=ke,Object.defineProperty(` &&
 `D,Symbol.toStringTag,{value:&quot;Module&quot;}),D}({});`.
 
-  ENDMETHOD.
+    ENDMETHOD.
 
 
-  METHOD load_lib.
+    METHOD load_lib.
 
-    DATA(js) = ``.
-    DATA(css) = ``.
+      DATA(js) = ``.
+      DATA(css) = ``.
 
-    IF css_url IS INITIAL.
-      IF local_css = abap_true.
-        css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n|.
+      IF css_url IS INITIAL.
+        IF local_css = abap_true.
+          css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n|.
+        ENDIF.
+      ELSE.
+        css = css && `<html:style>` && css_url && `</html:style>` && |\n|.
       ENDIF.
-    ELSE.
-      css = css && `<html:style>` && css_url && `</html:style>` && |\n|.
-    ENDIF.
 
-    IF js_url IS INITIAL.
-      IF local_js = abap_true.
-        js = js && `<html:script>` && get_js_local( ) && `</html:script>` && |\n|.
+      IF js_url IS INITIAL.
+        IF local_js = abap_true.
+          js = js && `<html:script>` && get_js_local( ) && `</html:script>` && |\n|.
+        ENDIF.
+      ELSE.
+        js = js && `<html:script src="` && js_url && `" ></html:script>` && |\n|.
       ENDIF.
-    ELSE.
-      js = js && `<html:script src="` && js_url && `" ></html:script>` && |\n|.
-    ENDIF.
 
-    DATA(final) = js && |\n| && css ##NEEDED.
+      DATA(final) = js && |\n| && css ##NEEDED.
 
-    result = mo_view->_cc_plain_xml( js )->get_parent( )->_cc_plain_xml( css ).
+      result = mo_view->_cc_plain_xml( js )->get_parent( )->_cc_plain_xml( css ).
 
-  ENDMETHOD.
+    ENDMETHOD.
 
 
-  METHOD set_drive_config.
+    METHOD set_drive_config.
+
+      DATA lt_config TYPE ty_config.
+      DATA(selector) = `` ##NEEDED.
+      DATA(view) = ``.
 
 
-    DATA(drive_js) = `debugger; const driver = window.driver.js.driver;`.
+      lt_config = config.
 
-    drive_js = drive_js &&
-               `const driverObj = driver({` && |\n| &&
-*               `  showProgress: ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( config-showprogress ) && `,` && |\n| &&
-               `  showProgress: true,` && |\n| &&
-               `  steps: [` && |\n| &&
-               `    { element: '#__xmlview5--choper725', popover: { title: 'Animated Tour Example', description: 'Here is the code example showing animated tour. Let\'s walk you through it.', side: "left", align: 'start' }},` && |\n| &&
-               `    { element: '#__xmlview5--choper725-1', popover: { title: 'Animated Tour Example', description: 'Here is the code example showing animated tour. Let\'s walk you through it.', side: "left", align: 'start' }},` && |\n| &&
-               `    { element: '#__xmlview5--choper725-2', popover: { title: 'Import the Library', description: 'It works the same in vanilla JavaScript as well as frameworks.', side: "bottom", align: 'start' }},` && |\n| &&
-               `  ]` && |\n| &&
-               `});`.
+      LOOP AT lt_config-steps ASSIGNING FIELD-SYMBOL(<fs_step>).
 
-    result = mo_view->_cc_plain_xml( `<html:script>` && drive_js && `</html:script>` ).
-*    result = drive_js.
+        CASE <fs_step>-element(1).
+          WHEN `#`.
+          WHEN `.`.
+        ENDCASE.
 
-  ENDMETHOD.
+        CASE to_upper( <fs_step>-elementview ).
+          WHEN `NEST`.
+            view = `oViewNest`.
+          WHEN `NEST2`.
+            view = `oViewNest2`.
+          WHEN `POPOVER`.
+            view = `oViewPopover`.
+          WHEN `POPUP`.
+            view = `oViewPopup`.
+          WHEN OTHERS.
+*           DEFAULT AS MAIN VIEW
+            view = `oView`.
+        ENDCASE.
+
+        CLEAR <fs_step>-elementview.
+      ENDLOOP.
+
+      DATA(lv_config_json) = ``.
+      lv_config_json = /ui2/cl_json=>serialize(
+                               data             = lt_config
+                               compress         = abap_true
+                               pretty_name      = 'X' ).
+
+
+      DATA(drive_js) = `const driver = window.driver.js.driver;` && |\n|.
+
+
+      drive_js = drive_js &&  `const driverObj = driver(` && |\n| && lv_config_json && |\n| && `);`.
+
+      result = mo_view->_cc_plain_xml( `<html:script>` && drive_js && `</html:script>` ).
+
+
+    ENDMETHOD.
 ENDCLASS.
