@@ -10,13 +10,15 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
+*This project offers a pure ABAP approach for developing UI5 apps, eliminating the need for JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables through Selection Screens and ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+
 #### Key Features
-* Easy to use – implement just one interface for a standalone UI5 application
-* Pure ABAP – development using 100% ABAP (no JavaScript, DDL, EML or Customizing)
-* Low system footprint – based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
-* Cloud and on-premise ready – works with both language versions (ABAP for Cloud, Standard ABAP)
-* High system compatibility – runs on all ABAP releases (from NW 7.02 to ABAP 2311)
-* Easy installation – abapGit project, no additional app deployment needed
+* **User-Friendly:** Implement just one interface for a standalone UI5 application
+* **100% ABAP:** Develop using pure ABAP (no JavaScript, DDL, EML or Customizing)
+* **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
+* **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
+* **Broad System Compatibility:** Compatible with all ABAP releases (from NW 7.02 to ABAP 2311)
+* **Easy Installation:** abapGit project, no additional app deployment required
 
 #### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
@@ -26,21 +28,21 @@
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
 
 #### Information (Blog Series)
-1. Introduction: Developing UI5 Apps in Pure ABAP [(Blog SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
-2. Displaying Selection Screens & Tables [(Blog SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
-3. Popups, F4-Help, Messages & Controller Logic [(Blog SCN - 30.03.2023)](https://blogs.sap.com/2023/03/30/abap2ui5-3-4-flow-logic-pop-ups-f4-help/)<br>
-4. Advanced Functionality & Demonstrations [(Blog SCN - 02.04.2023)](https://blogs.sap.com/2023/04/02/abap2ui5-4-5-additional-features-demos/)<br>
-5. Extensions with XML Views, HTML, JS & CC [(Blog SCN - 12.04.2023)](https://blogs.sap.com/2023/04/12/abap2ui5-5-6-extensions-with-xml-views-html-js-custom-controls/)<br>
-6. Installation, Configuration & Debugging [(Blog SCN - 14.04.2023)](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)<br>
-7. Technical Background: Under the Hood of abap2UI5 [(Blog SCN - 26.04.2023)](https://blogs.sap.com/2023/04/26/abap2ui5-7-7-technical-background-under-the-hood-of-abap2ui5/)<br>
-8. Repository Setup with abapGit, abaplint & open-abap [(Blog SCN - 21.08.2023)](https://blogs.sap.com/2023/08/21/abap2ui5-a1-repository-setup-with-abapgit-abaplint-open-abap/)<br>
-9. Community Feedback & New Features I [(Blog SCN - 11.09.2023)](https://blogs.sap.com/2023/09/11/abap2ui5-a2-community-feedback-new-features/)<br>
+1. Introduction: Developing UI5 Apps in Pure ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
+2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
+3. Popups, F4-Help, Messages & Controller Logic [(SCN - 30.03.2023)](https://blogs.sap.com/2023/03/30/abap2ui5-3-4-flow-logic-pop-ups-f4-help/)<br>
+4. Advanced Functionality & Demonstrations [(SCN - 02.04.2023)](https://blogs.sap.com/2023/04/02/abap2ui5-4-5-additional-features-demos/)<br>
+5. Extensions with XML Views, HTML, JS & CC [(SCN - 12.04.2023)](https://blogs.sap.com/2023/04/12/abap2ui5-5-6-extensions-with-xml-views-html-js-custom-controls/)<br>
+6. Installation, Configuration & Debugging [(SCN - 14.04.2023)](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)<br>
+7. Technical Background: Under the Hood of abap2UI5 [(SCN - 26.04.2023)](https://blogs.sap.com/2023/04/26/abap2ui5-7-7-technical-background-under-the-hood-of-abap2ui5/)<br>
+8. Repository Setup with abapGit, abaplint & open-abap [(SCN - 21.08.2023)](https://blogs.sap.com/2023/08/21/abap2ui5-a1-repository-setup-with-abapgit-abaplint-open-abap/)<br>
+9. Community Feedback & New Features I [(SCN - 11.09.2023)](https://blogs.sap.com/2023/09/11/abap2ui5-a2-community-feedback-new-features/)<br>
 
 #### References
 * Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
-* Part of the SAP Developer Code Challenge [(community - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
+* Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 
 #### Apps & Extensions
 * Add your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
@@ -54,7 +56,7 @@
 * Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Analyse your Views & Models with this Codesandbox [(abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
-* And finally, don't forget to explore the [Samples Repository 🧭](https://github.com/abap2UI5/abap2UI5-samples) 
+* And finally, don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
   
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
@@ -93,7 +95,6 @@ CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    DATA product  TYPE string.
     DATA quantity TYPE string.
 
 ENDCLASS.
@@ -111,10 +112,8 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
       )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
-            )->label( 'quantity'
+            )->label( 'Product-001'
             )->input( client->_bind_edit( quantity )
-            )->label( 'product'
-            )->input( client->_bind_edit( product )
             )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
       )->stringify( ) ).
 
@@ -123,6 +122,6 @@ ENDCLASS.
 ```
 #### FAQ
 * Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
-* Still have open questions? find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* Still have open questions? Find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
