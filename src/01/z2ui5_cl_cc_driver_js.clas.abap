@@ -62,7 +62,7 @@
           steps                      TYPE ty_config_steps_tt,
           animate                    TYPE abap_bool,
           overlay_color              TYPE string,
-          smooths_croll              TYPE abap_bool,
+          smooth_scroll              TYPE abap_bool,
           allow_close                TYPE abap_bool,
           overlay_opacity            TYPE i,
           stage_padding              TYPE i,
@@ -329,7 +329,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
                                pretty_name      = 'X' ).
 
 
-      DATA(drive_js) = `const driver = window.driver.js.driver;` && |\n| &&
+      DATA(drive_js) = `debugger;const driver = window.driver.js.driver;` && |\n| &&
                        `var config = ` && lv_config_json && `;` && |\n| &&
                        `var iLength = config.steps.length;` && |\n| &&
                        `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
