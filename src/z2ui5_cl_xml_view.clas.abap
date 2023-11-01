@@ -2961,6 +2961,19 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD barcode_scanner_button.
+    result = _generic( name   = `BarcodeScannerButton`
+                       ns     = 'ndc'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `scanSuccess`                           v = scanSuccess )
+                           ( n = `scanFail`           v = scanFail )
+                           ( n = `inputLiveUpdate`                 v = inputLiveUpdate )
+                           ( n = `dialogTitle`                  v = dialogTitle ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD bars.
     result = _generic( name = `bars`
                        ns   = `mchart` ).
@@ -3506,18 +3519,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD barcode_scanner_button.
-    result = _generic( name   = `BarcodeScannerButton`
-                       ns     = 'ndc'
-                       t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `scanSuccess`                           v = scanSuccess )
-                           ( n = `scanFail`           v = scanFail )
-                           ( n = `inputLiveUpdate`                 v = inputLiveUpdate )
-                           ( n = `dialogTitle`                  v = dialogTitle ) ) ).
-
-  ENDMETHOD.
 
   METHOD end_column_pages.
     " todo, implement method
