@@ -728,13 +728,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS barcode_scanner_button
       IMPORTING
-        !id        TYPE clike OPTIONAL
-        !scanSuccess   TYPE clike OPTIONAL
-        !scanFail   TYPE clike OPTIONAL
-        !inputLiveUpdate   TYPE clike OPTIONAL
-        !dialogTitle   TYPE clike OPTIONAL
+        !id              TYPE clike OPTIONAL
+        !scansuccess     TYPE clike OPTIONAL
+        !scanfail        TYPE clike OPTIONAL
+        !inputliveupdate TYPE clike OPTIONAL
+        !dialogtitle     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
 
 
     METHODS message_popover
@@ -2791,19 +2791,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-
-    DATA mv_name  TYPE string.
-    DATA mv_ns     TYPE string.
-    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
-
-    DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
-    DATA mo_previous   TYPE REF TO z2ui5_cl_xml_view.
-    DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
-    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
-
-    DATA mi_client TYPE REF TO z2ui5_if_client.
-
-
     METHODS container_content
       IMPORTING
         !id           TYPE clike OPTIONAL
@@ -2820,43 +2807,55 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS spot
-     IMPORTING
-        !id             TYPE clike OPTIONAL
-        !position TYPE clike OPTIONAL
-        !contentOffset TYPE clike OPTIONAL
-        !type TYPE clike OPTIONAL
-        !scale TYPE clike OPTIONAL
-        !tooltip TYPE clike OPTIONAL
-        !image TYPE clike OPTIONAL
-        !icon TYPE clike OPTIONAL
+      IMPORTING
+        !id            TYPE clike OPTIONAL
+        !position      TYPE clike OPTIONAL
+        !contentoffset TYPE clike OPTIONAL
+        !type          TYPE clike OPTIONAL
+        !scale         TYPE clike OPTIONAL
+        !tooltip       TYPE clike OPTIONAL
+        !image         TYPE clike OPTIONAL
+        !icon          TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytic_map
-       IMPORTING
-        !id             TYPE clike OPTIONAL
-        !initialPosition TYPE clike OPTIONAL
-        !initialZoom TYPE clike OPTIONAL
+      IMPORTING
+        !id              TYPE clike OPTIONAL
+        !initialposition TYPE clike OPTIONAL
+        !initialzoom     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS spots
-     IMPORTING
-        !id    TYPE clike OPTIONAL
-        !items TYPE clike OPTIONAL
+      IMPORTING
+        !id           TYPE clike OPTIONAL
+        !items        TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vos
-          RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  PROTECTED SECTION.
+    DATA mv_name  TYPE string.
+    DATA mv_ns     TYPE string.
+    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
 
+    DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_previous   TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
+    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
+
+    DATA mi_client TYPE REF TO z2ui5_if_client.
+
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2881,8 +2880,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ns    = `vbm`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
-                            ( n = `initialPosition`  v = initialPosition )
-                            ( n = `initialZoom`  v = initialZoom )
+                            ( n = `initialPosition`  v = initialposition )
+                            ( n = `initialZoom`  v = initialzoom )
                         ) ).
 
   ENDMETHOD.
@@ -2958,19 +2957,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD bar.
     result = _generic( `Bar` ).
-  ENDMETHOD.
-
-
-  METHOD barcode_scanner_button.
-    result = _generic( name   = `BarcodeScannerButton`
-                       ns     = 'ndc'
-                       t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `scanSuccess`                           v = scanSuccess )
-                           ( n = `scanFail`           v = scanFail )
-                           ( n = `inputLiveUpdate`                 v = inputLiveUpdate )
-                           ( n = `dialogTitle`                  v = dialogTitle ) ) ).
-
   ENDMETHOD.
 
 
@@ -3519,6 +3505,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD barcode_scanner_button.
+    result = _generic( name   = `BarcodeScannerButton`
+                       ns     = 'ndc'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `scanSuccess`                           v = scansuccess )
+                           ( n = `scanFail`           v = scanfail )
+                           ( n = `inputLiveUpdate`                 v = inputliveupdate )
+                           ( n = `dialogTitle`                  v = dialogtitle ) ) ).
+
+  ENDMETHOD.
 
   METHOD end_column_pages.
     " todo, implement method
@@ -5434,7 +5432,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
                             ( n = `position`  v = position )
-                            ( n = `contentOffset`  v = contentOffset )
+                            ( n = `contentOffset`  v = contentoffset )
                             ( n = `type`  v = type )
                             ( n = `scale`  v = scale )
                             ( n = `tooltip`  v = tooltip )
