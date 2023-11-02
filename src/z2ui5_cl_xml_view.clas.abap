@@ -2791,19 +2791,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-
-    DATA mv_name  TYPE string.
-    DATA mv_ns     TYPE string.
-    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
-
-    DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
-    DATA mo_previous   TYPE REF TO z2ui5_cl_xml_view.
-    DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
-    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
-
-    DATA mi_client TYPE REF TO z2ui5_if_client.
-
-
     METHODS container_content
       IMPORTING
         !id           TYPE clike OPTIONAL
@@ -2851,7 +2838,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  PROTECTED SECTION.
+    DATA mv_name  TYPE string.
+    DATA mv_ns     TYPE string.
+    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
 
+    DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_previous   TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
+    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
+
+    DATA mi_client TYPE REF TO z2ui5_if_client.
+
+  PRIVATE SECTION.
 ENDCLASS.
 
 
