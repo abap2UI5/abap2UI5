@@ -839,6 +839,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !columnsxl    TYPE clike OPTIONAL
         !columnsl     TYPE clike OPTIONAL
         !columnsm     TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2855,7 +2856,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -2957,6 +2958,19 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD bar.
     result = _generic( `Bar` ).
+  ENDMETHOD.
+
+
+  METHOD barcode_scanner_button.
+    result = _generic( name   = `BarcodeScannerButton`
+                       ns     = 'ndc'
+                       t_prop = VALUE #(
+                           ( n = `id`                              v = id )
+                           ( n = `scanSuccess`                           v = scansuccess )
+                           ( n = `scanFail`           v = scanfail )
+                           ( n = `inputLiveUpdate`                 v = inputliveupdate )
+                           ( n = `dialogTitle`                  v = dialogtitle ) ) ).
+
   ENDMETHOD.
 
 
@@ -3505,18 +3519,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD barcode_scanner_button.
-    result = _generic( name   = `BarcodeScannerButton`
-                       ns     = 'ndc'
-                       t_prop = VALUE #(
-                           ( n = `id`                              v = id )
-                           ( n = `scanSuccess`                           v = scansuccess )
-                           ( n = `scanFail`           v = scanfail )
-                           ( n = `inputLiveUpdate`                 v = inputliveupdate )
-                           ( n = `dialogTitle`                  v = dialogtitle ) ) ).
-
-  ENDMETHOD.
 
   METHOD end_column_pages.
     " todo, implement method
@@ -5342,6 +5344,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `form`
                        t_prop = VALUE #( ( n = `title`    v = title )
                                          ( n = `layout`   v = layout )
+                                         ( n = `id`       v = id )
                                          ( n = `columnsXL`   v = columnsxl )
                                          ( n = `columnsL`   v = columnsl )
                                          ( n = `columnsM`   v = columnsm )

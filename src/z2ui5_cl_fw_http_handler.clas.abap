@@ -27,7 +27,8 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
+
+CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -274,9 +275,16 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                        var navConTo = sap.z2ui5.oViewNest.byId(args[2]);` && |\n| &&
                            `                        navCon.to(navConTo);` && |\n| &&
                            `                        break;` && |\n| &&
-                           `                    case 'DRIVE':` && |\n| &&
-                           `                        if( driverObj !== undefined ) {` && |\n| &&
+                           `                    case 'DRIVERJS_DRIVE':` && |\n| &&
+                           `                        if( driver !== undefined && config !== undefined ) {` && |\n| &&
+                           `                          driverObj = driver(config);` && |\n| &&
                            `                          driverObj.drive();` && |\n| &&
+                           `                        };` && |\n| &&
+                           `                        break;` && |\n| &&
+                           `                    case 'DRIVERJS_HIGHLIGHT':` && |\n| &&
+                           `                        if( driver !== undefined && highlight_driver_config !== undefined && highlight_config !== undefined ) {` && |\n| &&
+                           `                          driverObj = driver(highlight_driver_config);` && |\n| &&
+                           `                          driverObj.highlight(highlight_config);` && |\n| &&
                            `                        };` && |\n| &&
                            `                        break;` && |\n| &&
                            `                }` && |\n| &&
