@@ -416,9 +416,11 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
                    `};` && |\n|.
 
         drive_js = drive_js && |\n| &&
-                   `for (key of Object.keys(config.steps.popover)) {` && |\n| &&
-                   `  if( key.startsWith('on') ) {` && |\n| &&
-                   `    config.steps.popover[key] = new Function( config.steps.popover[key] );` && |\n| &&
+                   `for (var j = 0; j &lt; config.steps.length; j++) {` && |\n| &&
+                   `  for (key of Object.keys(config.steps[j].popover)) {` && |\n| &&
+                   `    if( key.startsWith('on') ) {` && |\n| &&
+                   `      config.steps[j].popover[key] = new Function( config.steps[kj].popover[key] );` && |\n| &&
+                   `    };` && |\n| &&
                    `  };` && |\n| &&
                    `};` && |\n|.
 
