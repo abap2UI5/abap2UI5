@@ -46,10 +46,14 @@
           show_progress     TYPE abap_bool,
           progress_text     TYPE string,
           popover_class     TYPE string,
-          on_popover_render TYPE string,  " onPopoverRender?: (popover: PopoverDOM, options: { config: Config; state: State }) => void;
-          on_next_click     TYPE string,  " onNextClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_prev_click     TYPE string,  " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_close_click    TYPE string,  " onCloseClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          " onPopoverRender?: (popover: PopoverDOM, options: { config: Config; state: State }) => void;
+          on_popover_render TYPE string,
+          " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_next_click     TYPE string,
+          " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_prev_click     TYPE string,
+          " onCloseClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_close_click    TYPE string,
         END OF ty_config_steps_popover.
 
       TYPES:
@@ -57,9 +61,12 @@
           element              TYPE string,
           elementview          TYPE string,
           popover              TYPE ty_config_steps_popover,
-          on_deselected        TYPE string, " onDeselected?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_highlight_started TYPE string, " onHighlightStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_highlighted       TYPE string, " onHighlighted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          " onDeselected?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_deselected        TYPE string,
+          " onHighlightStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlight_started TYPE string,
+          " onHighlighted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlighted       TYPE string,
         END OF ty_config_steps.
 
       TYPES ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH DEFAULT KEY.
@@ -85,15 +92,24 @@
           next_btn_text              TYPE string,
           prev_btn_text              TYPE string,
           done_btn_text              TYPE string,
-          on_popover_render          TYPE string, " onPopoverRender?: (popover: PopoverDOM, options: { config: Config; state: State }) => void;
-          on_highlight_started       TYPE string, " onHighlightStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_highlighted             TYPE string, " onHighlighted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_deselected              TYPE string, " onDeselected?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_destroy_started         TYPE string, " onDestroyStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_destroyed               TYPE string, " onDestroyed?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_next_click              TYPE string, " onNextClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_prev_click              TYPE string, " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
-          on_close_click             TYPE string, " onCloseClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          " onPopoverRender?: (popover: PopoverDOM, options: { config: Config; state: State }) => void;
+          on_popover_render          TYPE string,
+          " onHighlightStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlight_started       TYPE string,
+          " onHighlighted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlighted             TYPE string,
+          " onDeselected?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_deselected              TYPE string,
+          " onDestroyStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_destroy_started         TYPE string,
+          " onDestroyed?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_destroyed               TYPE string,
+          " onNextClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_next_click              TYPE string,
+          " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_prev_click              TYPE string,
+          " onCloseClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_close_click             TYPE string,
         END OF ty_config.
 
 
@@ -339,8 +355,6 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
     METHOD set_driver_configs.
 
-      DATA(lv_function_prefix) = `() => {`.
-      DATA(lv_function_suffix) = `}`.
       DATA(ls_config) = steps_config.
       DATA(ls_highlight_config) = highlight_config.
       DATA(ls_highlight_driver_config) = highlight_driver_config.
