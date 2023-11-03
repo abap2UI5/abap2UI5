@@ -10,7 +10,7 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-*... offers a pure ABAP approach for developing UI5 apps without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+*...offers a pure ABAP approach for developing UI5 apps without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
 * **User-Friendly:** Implement just one interface for a standalone UI5 application
@@ -43,6 +43,7 @@
 * Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
+* Showcased at SAP TechEd 2023 [(youtube - 02.11.2023)](https://www.youtube.com/watch?v=kLbF0ooStZs&t=3052s)
 
 #### Apps & Extensions
 * Add your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
