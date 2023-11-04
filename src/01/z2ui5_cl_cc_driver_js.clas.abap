@@ -34,25 +34,39 @@
 
       TYPES:
         BEGIN OF ty_config_steps_popover,
-          title           TYPE string,
-          description     TYPE string,
-          side            TYPE string,
-          align           TYPE string,
-          show_buttons    TYPE string,
-          disable_buttons TYPE string,
-          next_btn_text   TYPE string,
-          prev_btn_text   TYPE string,
-          done_btn_text   TYPE string,
-          show_progress   TYPE abap_bool,
-          progress_text   TYPE string,
-          popover_class   TYPE string,
+          title             TYPE string,
+          description       TYPE string,
+          side              TYPE string,
+          align             TYPE string,
+          show_buttons      TYPE string,
+          disable_buttons   TYPE string,
+          next_btn_text     TYPE string,
+          prev_btn_text     TYPE string,
+          done_btn_text     TYPE string,
+          show_progress     TYPE abap_bool,
+          progress_text     TYPE string,
+          popover_class     TYPE string,
+          " onPopoverRender?: (popover: PopoverDOM, options: { config: Config; state: State }) => void;
+          on_popover_render TYPE string,
+          " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_next_click     TYPE string,
+          " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_prev_click     TYPE string,
+          " onCloseClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_close_click    TYPE string,
         END OF ty_config_steps_popover.
 
       TYPES:
         BEGIN OF ty_config_steps,
-          element     TYPE string,
-          elementview TYPE string,
-          popover     TYPE ty_config_steps_popover,
+          element              TYPE string,
+          elementview          TYPE string,
+          popover              TYPE ty_config_steps_popover,
+          " onDeselected?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_deselected        TYPE string,
+          " onHighlightStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlight_started TYPE string,
+          " onHighlighted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlighted       TYPE string,
         END OF ty_config_steps.
 
       TYPES ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH DEFAULT KEY.
@@ -78,6 +92,24 @@
           next_btn_text              TYPE string,
           prev_btn_text              TYPE string,
           done_btn_text              TYPE string,
+          " onPopoverRender?: (popover: PopoverDOM, options: { config: Config; state: State }) => void;
+          on_popover_render          TYPE string,
+          " onHighlightStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlight_started       TYPE string,
+          " onHighlighted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_highlighted             TYPE string,
+          " onDeselected?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_deselected              TYPE string,
+          " onDestroyStarted?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_destroy_started         TYPE string,
+          " onDestroyed?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_destroyed               TYPE string,
+          " onNextClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_next_click              TYPE string,
+          " onPrevClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_prev_click              TYPE string,
+          " onCloseClick?: (element?: Element, step: DriveStep, options: { config: Config; state: State }) => void;;
+          on_close_click             TYPE string,
         END OF ty_config.
 
 
@@ -96,11 +128,13 @@
         RETURNING
           VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-      METHODS set_drive_config
+      METHODS set_driver_configs
         IMPORTING
-          !config       TYPE ty_config
+          !steps_config            TYPE ty_config OPTIONAL
+          !highlight_config        TYPE ty_config_steps OPTIONAL
+          !highlight_driver_config TYPE ty_config OPTIONAL
         RETURNING
-          VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+          VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
       CLASS-METHODS get_css_local
         RETURNING
@@ -319,35 +353,145 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
     ENDMETHOD.
 
 
-    METHOD set_drive_config.
+    METHOD set_driver_configs.
 
-    "needed for transpilation to js
-     DATA(lv_config_json) = ``.
-     lv_config_json = /ui2/cl_json=>serialize(
-                               data             = config
-                               compress         = abap_true
-                               pretty_name      = 'X' ).
+      DATA(ls_config) = steps_config.
+      DATA(ls_highlight_config) = highlight_config.
+      DATA(ls_highlight_driver_config) = highlight_driver_config.
+
+      "load driver object from window object
+      DATA(drive_js) = `const driver = window.driver.js.driver;` && |\n| &&
+                       `let driverObj = new Object();` && |\n|.
+
+      "handle tour
+      IF steps_config IS NOT INITIAL.
+
+        LOOP AT ls_config-steps ASSIGNING FIELD-SYMBOL(<step>).
+          IF <step>-popover-title IS NOT INITIAL.
+            <step>-popover-title = escape( val = <step>-popover-title format = cl_abap_format=>e_html_js_html ).
+          ENDIF.
+          IF <step>-popover-description IS NOT INITIAL.
+            <step>-popover-description = escape( val = <step>-popover-description format = cl_abap_format=>e_html_js_html ).
+          ENDIF.
+        ENDLOOP.
+
+        "needed for transpilation to js
+        DATA(lv_config_json) = ``.
+        lv_config_json = /ui2/cl_json=>serialize(
+                                  data             = ls_config
+                                  compress         = abap_true
+                                  pretty_name      = 'X' ).
 
 
-      DATA(drive_js) = `debugger;const driver = window.driver.js.driver;` && |\n| &&
-                       `var config = ` && lv_config_json && `;` && |\n| &&
-                       `var iLength = config.steps.length;` && |\n| &&
-                       `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
-                       `  switch ( config.steps[i].elementview ) {` && |\n| &&
-                       `    case 'NEST':` && |\n| &&
-                       `    config.steps[i].element = '#' + sap.z2ui5.oViewNest.createId( config.steps[i].element );` && |\n| &&
-                       `    case 'NEST2':` && |\n| &&
-                       `    config.steps[i].element = '#' + sap.z2ui5.oViewNest2.createId( config.steps[i].element );` && |\n| &&
-                       `    case 'POPUP':` && |\n| &&
-                       `    config.steps[i].element = '#' + sap.z2ui5.oViewPopup.createId( config.steps[i].element );` && |\n| &&
-                       `    case 'POPOVER':` && |\n| &&
-                       `    config.steps[i].element = '#' + sap.z2ui5.oViewPopover.createId( config.steps[i].element );` && |\n| &&
-                       `    case 'MAIN':` && |\n| &&
-                       `    config.steps[i].element = '#' + sap.z2ui5.oView.createId( config.steps[i].element );` && |\n| &&
-                       `  };` && |\n| &&
-                       `};` && |\n| &&
-                       `const driverObj = driver( config );` && |\n|.
+        drive_js = drive_js && `var config = ` && lv_config_json && `;` && |\n| &&
+                               `var iLength = config.steps.length;` && |\n| &&
+                               `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
+                               `  switch ( config.steps[i].elementview ) {` && |\n| &&
+                               `    case 'NEST':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewNest.createId( config.steps[i].element );` && |\n| &&
+                               `    case 'NEST2':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewNest2.createId( config.steps[i].element );` && |\n| &&
+                               `    case 'POPUP':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewPopup.createId( config.steps[i].element );` && |\n| &&
+                               `    case 'POPOVER':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewPopover.createId( config.steps[i].element );` && |\n| &&
+                               `    // MAIN view is default` && |\n| &&
+                               `    default:` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oView.createId( config.steps[i].element );` && |\n| &&
+                               `  };` && |\n| &&
+                               `};`.
 
+        drive_js = drive_js && |\n| && `debugger;` &&
+                   `for (var key of Object.keys(config)) {` && |\n| &&
+                   `  if( key.startsWith('on') ) {` && |\n| &&
+                   `    config[key] = new Function( config[key] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+        drive_js = drive_js && |\n| &&
+                   `for (key of Object.keys(config.steps)) {` && |\n| &&
+                   `  if( key.startsWith('on') ) {` && |\n| &&
+                   `    config.steps[key] = new Function( config.steps[key] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+        drive_js = drive_js && |\n| &&
+                   `for (var j = 0; j &lt; config.steps.length; j++) {` && |\n| &&
+                   `  for (key of Object.keys(config.steps[j].popover)) {` && |\n| &&
+                   `    if( key.startsWith('on') ) {` && |\n| &&
+                   `      config.steps[j].popover[key] = new Function( config.steps[kj].popover[key] );` && |\n| &&
+                   `    };` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+
+      ENDIF.
+
+      "handle highlight
+      IF highlight_config IS NOT INITIAL AND highlight_driver_config IS NOT INITIAL.
+
+        DATA(lv_highlight_driver_config_jn) = ``.
+        lv_highlight_driver_config_jn = /ui2/cl_json=>serialize(
+                                                   data             = ls_highlight_driver_config
+                                                   compress         = abap_true
+                                                   pretty_name      = 'X' ).
+
+        drive_js = drive_js && |\n| &&
+                   `var highlight_driver_config = ` && lv_highlight_driver_config_jn && `;` && |\n|.
+
+
+        IF ls_highlight_config-popover-title IS NOT INITIAL.
+          ls_highlight_config-popover-title = escape( val = ls_highlight_config-popover-title format = cl_abap_format=>e_html_js_html ).
+        ENDIF.
+
+        IF ls_highlight_config-popover-description IS NOT INITIAL.
+          ls_highlight_config-popover-description = escape( val = ls_highlight_config-popover-description format = cl_abap_format=>e_html_js_html ).
+        ENDIF.
+
+        DATA(lv_highlight_config_json) = ``.
+        lv_highlight_config_json = /ui2/cl_json=>serialize(
+                                            data             = ls_highlight_config
+                                            compress         = abap_true
+                                            pretty_name      = 'X' ).
+
+        drive_js = drive_js && |\n| &&
+                   `var highlight_config = ` && lv_highlight_config_json && `;` && |\n| &&
+                   `switch ( highlight_config.elementview ) {` && |\n| &&
+                   `  case 'NEST':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewNest.createId( highlight_config.element );` && |\n| &&
+                   `  case 'NEST2':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewNest2.createId( highlight_config.element );` && |\n| &&
+                   `  case 'POPUP':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewPopup.createId( highlight_config.element );` && |\n| &&
+                   `  case 'POPOVER':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewPopover.createId( highlight_config.element );` && |\n| &&
+                   `  // MAIN view is default` && |\n| &&
+                   `  default:` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oView.createId( highlight_config.element );` && |\n| &&
+                   `};`.
+
+        drive_js = drive_js && |\n| &&
+                   `for (var key1 of Object.keys(highlight_config)) {` && |\n| &&
+                   `  if( key1.startsWith('on') ) {` && |\n| &&
+                   `    highlight_config[key1] = new Function( highlight_config[key1] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+        drive_js = drive_js && |\n| &&
+                   `for (var key1 of Object.keys(highlight_config.popover)) {` && |\n| &&
+                   `  if( key1.startsWith('on') ) {` && |\n| &&
+                   `    highlight_config.popover[key1] = new Function( highlight_config.popover[key1] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+        drive_js = drive_js && |\n| &&
+                   `for (key1 of Object.keys(highlight_driver_config)) {` && |\n| &&
+                   `  if( key.startsWith('on') ) {` && |\n| &&
+                   `    highlight_driver_config[key] = new Function( highlight_driver_config[key] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};`.
+
+      ENDIF.
 
       result = mo_view->_cc_plain_xml( `<html:script>` && drive_js && `</html:script>` ).
 
