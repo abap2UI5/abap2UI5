@@ -53,7 +53,7 @@
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
 
 #### More
-* Try out abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
+* Experiment with abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Analyse your Views & Models with this Codesandbox [(abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
