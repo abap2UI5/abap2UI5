@@ -122,7 +122,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 ENDCLASS.
 ```
 #### FAQ
-* Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
+* Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for more installation & configuration guidelines
 * Still have open questions? Find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
