@@ -2859,6 +2859,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !id           TYPE clike OPTIONAL
         !items        TYPE clike OPTIONAL
+        PREFERRED PARAMETER items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 

@@ -8,11 +8,10 @@ CLASS z2ui5_cl_view DEFINITION
     CLASS-DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
 
     CLASS-METHODS class_constructor.
+
     CLASS-METHODS factory
       IMPORTING
         t_ns          TYPE z2ui5_if_client=>ty_t_name_value DEFAULT mt_prop
-        client        TYPE REF TO z2ui5_if_client OPTIONAL
-          PREFERRED PARAMETER client
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
 
@@ -118,9 +117,13 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
   METHOD get_m.
 
+    result = new #( ).
+
   ENDMETHOD.
 
   METHOD get_ui.
+
+ result = new #( ).
 
   ENDMETHOD.
 
