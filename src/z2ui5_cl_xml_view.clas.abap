@@ -1005,26 +1005,26 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS link
       IMPORTING
-        !text         TYPE clike OPTIONAL
-        !href         TYPE clike OPTIONAL
-        !target       TYPE clike OPTIONAL
-        !enabled      TYPE clike OPTIONAL
-        !press        TYPE clike OPTIONAL
-        !id           TYPE clike OPTIONAL
-        !ns           TYPE clike OPTIONAL
+        !text               TYPE clike OPTIONAL
+        !href               TYPE clike OPTIONAL
+        !target             TYPE clike OPTIONAL
+        !enabled            TYPE clike OPTIONAL
+        !press              TYPE clike OPTIONAL
+        !id                 TYPE clike OPTIONAL
+        !ns                 TYPE clike OPTIONAL
         !wrapping           TYPE clike OPTIONAL
-        !width           TYPE clike OPTIONAL
-        !validateurl           TYPE clike OPTIONAL
-        !textdirection           TYPE clike OPTIONAL
-        !textalign           TYPE clike OPTIONAL
-        !subtle           TYPE clike OPTIONAL
-        !rel           TYPE clike OPTIONAL
-        !emptyindicatormode           TYPE clike OPTIONAL
-        !emphasized           TYPE clike OPTIONAL
-        !ariahaspopup           TYPE clike OPTIONAL
-        !accessiblerole           TYPE clike OPTIONAL
+        !width              TYPE clike OPTIONAL
+        !validateurl        TYPE clike OPTIONAL
+        !textdirection      TYPE clike OPTIONAL
+        !textalign          TYPE clike OPTIONAL
+        !subtle             TYPE clike OPTIONAL
+        !rel                TYPE clike OPTIONAL
+        !emptyindicatormode TYPE clike OPTIONAL
+        !emphasized         TYPE clike OPTIONAL
+        !ariahaspopup       TYPE clike OPTIONAL
+        !accessiblerole     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS list
       IMPORTING
@@ -1329,9 +1329,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS xml_get
       RETURNING
         VALUE(result) TYPE string .
+
     METHODS stringify
       RETURNING
         VALUE(result) TYPE string .
+
     METHODS tree_table
       IMPORTING
         !rows                   TYPE clike
@@ -1765,11 +1767,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS icon_tab_separator
       IMPORTING
         !icon             TYPE clike OPTIONAL
-        !iconDensityAware TYPE clike OPTIONAL
+        !icondensityaware TYPE clike OPTIONAL
         !visible          TYPE clike OPTIONAL
-        !id          TYPE clike OPTIONAL
+        !id               TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
 
     METHODS _cc
@@ -1919,19 +1921,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS icon_tab_header
       IMPORTING
-        !selectedkey  TYPE clike OPTIONAL
-        !items        TYPE clike OPTIONAL
-        !select       TYPE clike OPTIONAL
-        !mode         TYPE clike OPTIONAL
-        !ariaTexts         TYPE clike OPTIONAL
-        !backgroundDesign         TYPE clike OPTIONAL
-        !enableTabReordering         TYPE clike OPTIONAL
-        !maxNestingLevel         TYPE clike OPTIONAL
-        !tabDensityMode         TYPE clike OPTIONAL
-        !tabsOverflowMode         TYPE clike OPTIONAL
-        !visible         TYPE clike OPTIONAL
+        !selectedkey         TYPE clike OPTIONAL
+        !items               TYPE clike OPTIONAL
+        !select              TYPE clike OPTIONAL
+        !mode                TYPE clike OPTIONAL
+        !ariatexts           TYPE clike OPTIONAL
+        !backgrounddesign    TYPE clike OPTIONAL
+        !enabletabreordering TYPE clike OPTIONAL
+        !maxnestinglevel     TYPE clike OPTIONAL
+        !tabdensitymode      TYPE clike OPTIONAL
+        !tabsoverflowmode    TYPE clike OPTIONAL
+        !visible             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS nav_container
       IMPORTING
@@ -2859,7 +2861,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !id           TYPE clike OPTIONAL
         !items        TYPE clike OPTIONAL
-        PREFERRED PARAMETER items
+          PREFERRED PARAMETER items
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2881,28 +2883,29 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !cancelbuttonpress TYPE clike OPTIONAL
         !visible           TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS expandable_text
       IMPORTING
-        !id                TYPE clike OPTIONAL
-        !emptyIndicatorMode  TYPE clike OPTIONAL
-        !maxCharacters  TYPE clike OPTIONAL
-        !overflowMode  TYPE clike OPTIONAL
-        !renderWhitespace  TYPE clike OPTIONAL
-        !text  TYPE clike OPTIONAL
-        !textAlign  TYPE clike OPTIONAL
-        !textDirection  TYPE clike OPTIONAL
-        !visible  TYPE clike OPTIONAL
-        !wrappingType  TYPE clike OPTIONAL
+        !id                 TYPE clike OPTIONAL
+        !emptyindicatormode TYPE clike OPTIONAL
+        !maxcharacters      TYPE clike OPTIONAL
+        !overflowmode       TYPE clike OPTIONAL
+        !renderwhitespace   TYPE clike OPTIONAL
+        !text               TYPE clike OPTIONAL
+        !textalign          TYPE clike OPTIONAL
+        !textdirection      TYPE clike OPTIONAL
+        !visible            TYPE clike OPTIONAL
+        !wrappingtype       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
     DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
 
+    DATA mt_ns  TYPE SORTED TABLE OF string WITH UNIQUE KEY table_line.
     DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
     DATA mo_previous   TYPE REF TO z2ui5_cl_xml_view.
     DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
@@ -2915,7 +2918,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -3173,7 +3176,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `id`      v = id )
                                 ( n = `width`   v = width )
                                 ( n = `tooltip` v = tooltip )
-                                ( n = `textDirection` v = textDirection )
+                                ( n = `textDirection` v = textdirection )
                                 ( n = `accessibleRole` v = accessiblerole )
                                 ( n = `activeIcon` v = activeicon )
                                 ( n = `ariaHasPopup` v = ariahaspopup )
@@ -3355,41 +3358,41 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD constructor.
 
-    mt_prop = VALUE #( ( n = `xmlns`           v = `sap.m` )
-                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
-                       ( n = `xmlns:core`      v = `sap.ui.core` )
-                       ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
-                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
-*                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
-*                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                       ( n = `xmlns:table `    v = `sap.ui.table` )
-                       ( n = `xmlns:f`         v = `sap.f` )
-                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
-                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
-                       ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
-                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
-                       ( n = `xmlns:uxap`      v = `sap.uxap` )
-                       ( n = `xmlns:sap`       v = `sap` )
-                       ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
-                       ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
-                       ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
-                       ( n = `xmlns:u`         v = `sap.ui.unified` )
-                       ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
-                       ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
-                       ( n = `xmlns:config`    v = `sap.gantt.config` )
-                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
-                       ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
-                       ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
-                       ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
-                       ( n = `xmlns:vk`        v = `sap.ui.vk` )
-                       ( n = `xmlns:vbm`        v = `sap.ui.vbm` )
-                       ( n = `xmlns:ndc`        v = `sap.ndc` )
-                       ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
-                       ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
-                       ( n = `xmlns:p13n`      v = `sap.m.p13n` )
-                       ( n = `xmlns:upload`    v = `sap.m.upload` )
-                       ( n = `xmlns:fl`        v = `sap.ui.fl` )
-                       ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
+*    mt_prop = VALUE #( ( n = `xmlns`           v = `sap.m` )
+*                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
+*                       ( n = `xmlns:core`      v = `sap.ui.core` )
+*                       ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
+*                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
+**                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
+**                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
+*                       ( n = `xmlns:table `    v = `sap.ui.table` )
+*                       ( n = `xmlns:f`         v = `sap.f` )
+*                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
+*                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
+*                       ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
+*                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
+*                       ( n = `xmlns:uxap`      v = `sap.uxap` )
+*                       ( n = `xmlns:sap`       v = `sap` )
+*                       ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
+*                       ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
+*                       ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
+*                       ( n = `xmlns:u`         v = `sap.ui.unified` )
+*                       ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
+*                       ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
+*                       ( n = `xmlns:config`    v = `sap.gantt.config` )
+*                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
+*                       ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
+*                       ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+*                       ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
+*                       ( n = `xmlns:vk`        v = `sap.ui.vk` )
+*                       ( n = `xmlns:vbm`        v = `sap.ui.vbm` )
+*                       ( n = `xmlns:ndc`        v = `sap.ndc` )
+*                       ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
+*                       ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
+*                       ( n = `xmlns:p13n`      v = `sap.m.p13n` )
+*                       ( n = `xmlns:upload`    v = `sap.m.upload` )
+*                       ( n = `xmlns:fl`        v = `sap.ui.fl` )
+*                       ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
   ENDMETHOD.
 
 
@@ -3608,14 +3611,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `ExpandableText`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
-                             ( n = `emptyIndicatorMode`  v = emptyIndicatorMode )
-                             ( n = `maxCharacters`         v = maxCharacters )
-                             ( n = `overflowMode`  v = overflowMode )
-                             ( n = `renderWhitespace`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( renderWhitespace ) )
+                             ( n = `emptyIndicatorMode`  v = emptyindicatormode )
+                             ( n = `maxCharacters`         v = maxcharacters )
+                             ( n = `overflowMode`  v = overflowmode )
+                             ( n = `renderWhitespace`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( renderwhitespace ) )
                              ( n = `text`        v = text )
-                             ( n = `textAlign`         v = textAlign )
-                             ( n = `textDirection`       v = textDirection )
-                             ( n = `wrappingType` v = wrappingType )
+                             ( n = `textAlign`         v = textalign )
+                             ( n = `textDirection`       v = textdirection )
+                             ( n = `wrappingType` v = wrappingtype )
                              ( n = `visible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                          ) ).
   ENDMETHOD.
@@ -4200,7 +4203,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     result = _generic( name = `IconTabSeparator`
                         t_prop = VALUE #( ( n = `icon` v = icon )
-                                          ( n = `iconDensityAware` v = iconDensityAware )
+                                          ( n = `iconDensityAware` v = icondensityaware )
                                           ( n = `id` v = id )
                                           ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                         ) ).
@@ -4488,14 +4491,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `href`    v = href )
                                 ( n = `press`   v = press )
                                 ( n = `id`      v = id )
-                                ( n = `accessibleRole`      v = accessibleRole )
-                                ( n = `ariaHasPopup`      v = ariaHasPopup )
-                                ( n = `emptyIndicatorMode`      v = emptyIndicatorMode )
+                                ( n = `accessibleRole`      v = accessiblerole )
+                                ( n = `ariaHasPopup`      v = ariahaspopup )
+                                ( n = `emptyIndicatorMode`      v = emptyindicatormode )
                                 ( n = `rel`      v = rel )
                                 ( n = `subtle`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( subtle ) )
-                                ( n = `textAlign`      v = textAlign )
-                                ( n = `textDirection`      v = textDirection )
-                                ( n = `validateUrl`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( validateUrl ) )
+                                ( n = `textAlign`      v = textalign )
+                                ( n = `textDirection`      v = textdirection )
+                                ( n = `validateUrl`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( validateurl ) )
                                 ( n = `width`      v = width )
                                 ( n = `wrapping`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `emphasized`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( emphasized ) )
@@ -6368,6 +6371,67 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
+    IF me = mo_root.
+      DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
+
+      INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE mt_prop.
+      INSERT VALUE #( n = `xmlns:mvc`       v = `sap.ui.core.mvc` ) INTO TABLE mt_prop.
+
+      lt_prop = VALUE #(
+*                      ( n = `xmlns`           v = `sap.m` )
+                      ( n = `xmlns:z2ui5`     v = `z2ui5` )
+                      ( n = `xmlns:core`      v = `sap.ui.core` )
+*                      ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
+                      ( n = `xmlns:layout`    v = `sap.ui.layout` )
+*                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
+*                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
+                      ( n = `xmlns:table `    v = `sap.ui.table` )
+                      ( n = `xmlns:f`         v = `sap.f` )
+                      ( n = `xmlns:form`      v = `sap.ui.layout.form` )
+                      ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
+                      ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
+                      ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
+                      ( n = `xmlns:uxap`      v = `sap.uxap` )
+                      ( n = `xmlns:sap`       v = `sap` )
+                      ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
+                      ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
+                      ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
+                      ( n = `xmlns:u`         v = `sap.ui.unified` )
+                      ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
+                      ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
+                      ( n = `xmlns:config`    v = `sap.gantt.config` )
+                      ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
+                      ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
+                      ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+                      ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
+                      ( n = `xmlns:vk`        v = `sap.ui.vk` )
+                      ( n = `xmlns:vbm`        v = `sap.ui.vbm` )
+                      ( n = `xmlns:ndc`        v = `sap.ndc` )
+                      ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
+                      ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
+                      ( n = `xmlns:p13n`      v = `sap.m.p13n` )
+                      ( n = `xmlns:upload`    v = `sap.m.upload` )
+                      ( n = `xmlns:fl`        v = `sap.ui.fl` )
+                      ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
+
+      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
+
+        LOOP AT lt_prop REFERENCE INTO DATA(lr_prop).
+
+          DATA(ns) = lr_prop->n+6.
+          IF ns = lr_ns->*.
+            INSERT lr_prop->* INTO TABLE mt_prop.
+            DELETE lt_prop.
+            EXIT.
+          ENDIF.
+
+        ENDLOOP.
+
+      ENDLOOP.
+
+
+    ENDIF.
+
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
     DATA(lv_tmp3) = REDUCE #( INIT val = `` FOR row IN mt_prop WHERE ( v <> `` )
                           NEXT val = |{ val } { row-n }="{ escape(
@@ -6412,6 +6476,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD _generic.
+
+    TRY.
+        INSERT CONV #( ns ) INTO TABLE mo_root->mt_ns.
+      CATCH cx_root.
+    ENDTRY.
 
     DATA(result2) = NEW z2ui5_cl_xml_view( ).
     result2->mv_name   = name.
