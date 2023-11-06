@@ -697,6 +697,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !ariahaspopup     TYPE clike OPTIONAL
         !activeicon       TYPE clike OPTIONAL
         !accessiblerole   TYPE clike OPTIONAL
+        !textdirection    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1011,6 +1012,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press        TYPE clike OPTIONAL
         !id           TYPE clike OPTIONAL
         !ns           TYPE clike OPTIONAL
+        !wrapping           TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+        !validateurl           TYPE clike OPTIONAL
+        !textdirection           TYPE clike OPTIONAL
+        !textalign           TYPE clike OPTIONAL
+        !subtle           TYPE clike OPTIONAL
+        !rel           TYPE clike OPTIONAL
+        !emptyindicatormode           TYPE clike OPTIONAL
+        !emphasized           TYPE clike OPTIONAL
+        !ariahaspopup           TYPE clike OPTIONAL
+        !accessiblerole           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1187,11 +1199,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS generic_tag
       IMPORTING
+        !id             TYPE clike OPTIONAL
         !arialabelledby TYPE clike OPTIONAL
         !text           TYPE clike OPTIONAL
         !design         TYPE clike OPTIONAL
         !status         TYPE clike OPTIONAL
         !class          TYPE clike OPTIONAL
+        !press          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS object_attribute
@@ -1744,10 +1758,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !design           TYPE clike OPTIONAL
         !icondensityaware TYPE clike OPTIONAL
         !visible          TYPE clike OPTIONAL
+        !id               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS icon_tab_separator
+      IMPORTING
+        !icon             TYPE clike OPTIONAL
+        !iconDensityAware TYPE clike OPTIONAL
+        !visible          TYPE clike OPTIONAL
+        !id          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1903,6 +1923,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !items        TYPE clike OPTIONAL
         !select       TYPE clike OPTIONAL
         !mode         TYPE clike OPTIONAL
+        !ariaTexts         TYPE clike OPTIONAL
+        !backgroundDesign         TYPE clike OPTIONAL
+        !enableTabReordering         TYPE clike OPTIONAL
+        !maxNestingLevel         TYPE clike OPTIONAL
+        !tabDensityMode         TYPE clike OPTIONAL
+        !tabsOverflowMode         TYPE clike OPTIONAL
+        !visible         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -2839,6 +2866,37 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS action_sheet
+      IMPORTING
+        !id                TYPE clike OPTIONAL
+        !cancelbuttontext  TYPE clike OPTIONAL
+        !placement         TYPE clike OPTIONAL
+        !showcancelbutton  TYPE clike OPTIONAL
+        !title             TYPE clike OPTIONAL
+        !afterclose        TYPE clike OPTIONAL
+        !afteropen         TYPE clike OPTIONAL
+        !beforeclose       TYPE clike OPTIONAL
+        !beforeopen        TYPE clike OPTIONAL
+        !cancelbuttonpress TYPE clike OPTIONAL
+        !visible           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS expandable_text
+      IMPORTING
+        !id                TYPE clike OPTIONAL
+        !emptyIndicatorMode  TYPE clike OPTIONAL
+        !maxCharacters  TYPE clike OPTIONAL
+        !overflowMode  TYPE clike OPTIONAL
+        !renderWhitespace  TYPE clike OPTIONAL
+        !text  TYPE clike OPTIONAL
+        !textAlign  TYPE clike OPTIONAL
+        !textDirection  TYPE clike OPTIONAL
+        !visible  TYPE clike OPTIONAL
+        !wrappingType  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -2862,6 +2920,24 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD actions.
     result = _generic( name = `actions`
                        ns   = ns ).
+  ENDMETHOD.
+
+
+  METHOD action_sheet.
+    result = _generic( name = `ActionSheet`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `cancelbuttontext`  v = cancelbuttontext )
+                             ( n = `placement`         v = placement )
+                             ( n = `showCancelButton`  v = showcancelbutton )
+                             ( n = `title`             v = title )
+                             ( n = `afterClose`        v = afterclose )
+                             ( n = `afterOpen`         v = afteropen )
+                             ( n = `beforeClose`       v = beforeclose )
+                             ( n = `beforeOpen`        v = beforeopen )
+                             ( n = `cancelButtonPress` v = cancelbuttonpress )
+                             ( n = `visible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                         ) ).
   ENDMETHOD.
 
 
@@ -3096,6 +3172,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `id`      v = id )
                                 ( n = `width`   v = width )
                                 ( n = `tooltip` v = tooltip )
+                                ( n = `textDirection` v = textDirection )
                                 ( n = `accessibleRole` v = accessiblerole )
                                 ( n = `activeIcon` v = activeicon )
                                 ( n = `ariaHasPopup` v = ariahaspopup )
@@ -3526,6 +3603,23 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD expandable_text.
+    result = _generic( name = `ExpandableText`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `emptyIndicatorMode`  v = emptyIndicatorMode )
+                             ( n = `maxCharacters`         v = maxCharacters )
+                             ( n = `overflowMode`  v = overflowMode )
+                             ( n = `renderWhitespace`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( renderWhitespace ) )
+                             ( n = `text`        v = text )
+                             ( n = `textAlign`         v = textAlign )
+                             ( n = `textDirection`       v = textDirection )
+                             ( n = `wrappingType` v = wrappingType )
+                             ( n = `visible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
   METHOD expanded_content.
     result = _generic( name = `expandedContent`
                        ns   = ns ).
@@ -3815,6 +3909,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `class`        v = class )
                                          ( n = `design`          v = design )
                                          ( n = `status`  v = status )
+                                         ( n = `id`  v = id )
+                                         ( n = `press`  v = press )
                                          ( n = `text`   v = text ) ) ).
 
   ENDMETHOD.
@@ -4076,6 +4172,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                        ( n = `visible`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                        ( n = `count`       v = count )
                                        ( n = `text`        v = text )
+                                       ( n = `id`        v = id )
                                        ( n = `key`         v = key ) ) ).
   ENDMETHOD.
 
@@ -4086,6 +4183,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( (  n = `selectedKey`     v = selectedkey )
                                          (  n = `items`           v = items )
                                          (  n = `select`          v = select )
+                                         (  n = `ariaTexts`          v = ariatexts )
+                                         (  n = `backgroundDesign`          v = backgrounddesign )
+                                         (  n = `enableTabReordering`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabletabreordering ) )
+                                         (  n = `maxNestingLevel`          v = maxnestinglevel )
+                                         (  n = `tabDensityMode`          v = tabdensitymode )
+                                         (  n = `tabsOverflowMode`          v = tabsoverflowmode )
+                                         (  n = `visible`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                          (  n = `mode`            v = mode  ) ) ).
 
   ENDMETHOD.
@@ -4093,7 +4197,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD icon_tab_separator.
 
-    result = _generic( `IconTabSeparator` ).
+    result = _generic( name = `IconTabSeparator`
+                        t_prop = VALUE #( ( n = `icon` v = icon )
+                                          ( n = `iconDensityAware` v = iconDensityAware )
+                                          ( n = `id` v = id )
+                                          ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                        ) ).
 
   ENDMETHOD.
 
@@ -4378,6 +4487,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `href`    v = href )
                                 ( n = `press`   v = press )
                                 ( n = `id`      v = id )
+                                ( n = `accessibleRole`      v = accessibleRole )
+                                ( n = `ariaHasPopup`      v = ariaHasPopup )
+                                ( n = `emptyIndicatorMode`      v = emptyIndicatorMode )
+                                ( n = `rel`      v = rel )
+                                ( n = `subtle`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( subtle ) )
+                                ( n = `textAlign`      v = textAlign )
+                                ( n = `textDirection`      v = textDirection )
+                                ( n = `validateUrl`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( validateUrl ) )
+                                ( n = `width`      v = width )
+                                ( n = `wrapping`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                                ( n = `emphasized`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( emphasized ) )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) ) ) ).
   ENDMETHOD.
 
