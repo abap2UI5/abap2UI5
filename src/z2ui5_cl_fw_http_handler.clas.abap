@@ -276,16 +276,16 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        navCon.to(navConTo);` && |\n| &&
                            `                        break;` && |\n| &&
                            `                    case 'DRIVERJS_DRIVE':` && |\n| &&
-                           `                        if( driver !== undefined && config !== undefined ) {` && |\n| &&
+                           `                        if( driver !== undefined ) { if( config !== undefined ) {` && |\n| &&
                            `                          driverObj = driver(config);` && |\n| &&
                            `                          driverObj.drive();` && |\n| &&
-                           `                        };` && |\n| &&
+                           `                        } };` && |\n| &&
                            `                        break;` && |\n| &&
                            `                    case 'DRIVERJS_HIGHLIGHT':` && |\n| &&
-                           `                        if( driver !== undefined && highlight_driver_config !== undefined && highlight_config !== undefined ) {` && |\n| &&
+                           `                        if( driver !== undefined ) { if ( highlight_driver_config !== undefined ) { if (highlight_config !== undefined ) {` && |\n| &&
                            `                          driverObj = driver(highlight_driver_config);` && |\n| &&
                            `                          driverObj.highlight(highlight_config);` && |\n| &&
-                           `                        };` && |\n| &&
+                           `                        } }};` && |\n| &&
                            `                        break;` && |\n| &&
                            `                }` && |\n| &&
                            `            },` && |\n| &&
