@@ -10,11 +10,11 @@
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
-*...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display inputs and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+*...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
-* **User-Friendly:** Implement just one interface for a standalone UI5 application
-* **100% ABAP:** Developing using pure ABAP (no JavaScript, DDL, EML or Customizing)
+* **User-Friendly:** Implement just a single interface for a standalone UI5 application
+* **100% ABAP:** Developing in pure ABAP (no JavaScript, DDL, EML or Customizing)
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
 * **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP 2311)
@@ -39,28 +39,28 @@
 9. Community Feedback & New Features I [(SCN - 11.09.2023)](https://blogs.sap.com/2023/09/11/abap2ui5-a2-community-feedback-new-features/)<br>
 
 #### References
-* Find abap2UI5 in the ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Featured in the SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Featured in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
+* Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
+* Featured on SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
+* Highlighted in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
 * Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
 * Showcased at SAP TechEd 2023 [(youtube - 02.11.2023)](https://www.youtube.com/watch?v=kLbF0ooStZs&t=3052s)
 
 #### Apps & Extensions
-* Add your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
-* Integrate your apps with the SAP Business Technology Platform [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
+* Integrate your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
+* Connect with the SAP Business Technology Platform [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
 * Explore abap2UI5-tools, a collection of tools & utility functions [(abap2UI5-tools)](https://github.com/abap2UI5/abap2ui5-tools)
-* Add more functions with Custom Controls & External Libraries [(custom controls)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
+* Enhance functionality with Custom Controls & External Libraries [(custom controls)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
 
 #### More
-* Try out abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
+* Experiment with abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
 * Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Analyse your Views & Models with this Codesandbox [(abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
 * And finally, don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
   
 #### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and create a new HTTP service with the following handler:
+Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
 ```abap
 METHOD if_http_extension~handle_request.
@@ -90,7 +90,7 @@ METHOD if_http_service_extension~handle_request.
 ENDMETHOD.
 ```
 #### Usage
-Develop UI5 Apps by implementing the abap2UI5 interface:
+Implement the abap2UI5 interface as shown in the following example:
 ```abap
 CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 ENDCLASS.
 ```
 #### FAQ
-* Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for installation & configuration guidelines
+* Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for more installation & configuration guidelines
 * Still have open questions? Find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
