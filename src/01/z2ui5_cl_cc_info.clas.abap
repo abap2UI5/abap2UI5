@@ -117,8 +117,8 @@ ENDMETHOD.
     `   });` && |\n|  &&
     `});`.
 
-    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
-
+*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
   ENDMETHOD.
 
 ENDCLASS.

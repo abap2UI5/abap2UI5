@@ -3654,6 +3654,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mo_root   = result.
     result->mo_parent = result.
 
+    INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:mvc`       v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
+
   ENDMETHOD.
 
 
@@ -3670,6 +3673,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mv_ns     = `core`.
     result->mo_root   = result.
     result->mo_parent = result.
+
+    INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:core`       v = `sap.ui.core` ) INTO TABLE result->mt_prop.
 
   ENDMETHOD.
 
@@ -4554,6 +4560,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD main_contents.
+
     result = _generic( name   = `mainContents`
                        ns     = `tnt` ).
 
@@ -4748,6 +4755,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD nav_container.
+
     result = _generic( name   = `NavContainer`
                        t_prop = VALUE #(
                         (  n = `initialPage`  v = initialpage  )
@@ -5945,8 +5953,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD tool_header.
+
     result = _generic( name = `ToolHeader`
                        ns   = `tnt` ).
+
   ENDMETHOD.
 
 
@@ -6374,8 +6384,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     IF me = mo_root.
       DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
 
-      INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE mt_prop.
-      INSERT VALUE #( n = `xmlns:mvc`       v = `sap.ui.core.mvc` ) INTO TABLE mt_prop.
+
 
       lt_prop = VALUE #(
 *                      ( n = `xmlns`           v = `sap.m` )
@@ -6412,7 +6421,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                       ( n = `xmlns:p13n`      v = `sap.m.p13n` )
                       ( n = `xmlns:upload`    v = `sap.m.upload` )
                       ( n = `xmlns:fl`        v = `sap.ui.fl` )
-                      ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
+                      ( n = `xmlns:tnt`      v = `sap.tnt` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
 
