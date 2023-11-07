@@ -3656,6 +3656,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE result->mt_prop.
     INSERT VALUE #( n = `xmlns:mvc`       v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:core`       v = `sap.ui.core` ) INTO TABLE result->mt_prop.
 
   ENDMETHOD.
 
@@ -6389,7 +6390,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       lt_prop = VALUE #(
 *                      ( n = `xmlns`           v = `sap.m` )
                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
-                      ( n = `xmlns:core`      v = `sap.ui.core` )
+*                      ( n = `xmlns:core`      v = `sap.ui.core` )
 *                      ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
