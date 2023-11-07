@@ -266,7 +266,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `      shellHash: hash` && |\n|  &&
                            `    }` && |\n|  &&
                            `  });  break;` && |\n|  &&
-
                            `                    case 'LOCATION_RELOAD':` && |\n| &&
                            `                        window.location = args[1];` && |\n| &&
                            `                        break;` && |\n| &&
