@@ -3,13 +3,15 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
-      popup_close            TYPE string VALUE `POPUP_CLOSE`,
-      open_new_tab           TYPE string VALUE `OPEN_NEW_TAB`,
-      popover_close          TYPE string VALUE `POPOVER_CLOSE`,
-      location_reload        TYPE string VALUE `LOCATION_RELOAD`,
-      nav_container_to       TYPE string VALUE `NAV_CONTAINER_TO`,
-      nest_nav_container_to  TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
-      nest2_nav_container_to TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
+      popup_close                TYPE string VALUE `POPUP_CLOSE`,
+      open_new_tab               TYPE string VALUE `OPEN_NEW_TAB`,
+      popover_close              TYPE string VALUE `POPOVER_CLOSE`,
+      location_reload            TYPE string VALUE `LOCATION_RELOAD`,
+      nav_container_to           TYPE string VALUE `NAV_CONTAINER_TO`,
+      nest_nav_container_to      TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
+      nest2_nav_container_to     TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
+      CROSS_APP_NAV_TO_EXT TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
+      CROSS_APP_NAV_TO_PREV_APP TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
     END OF cs_event.
 
   CONSTANTS:
