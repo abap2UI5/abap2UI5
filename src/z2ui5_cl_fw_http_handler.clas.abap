@@ -24,6 +24,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
   PROTECTED SECTION.
   PRIVATE SECTION.
 
+
 ENDCLASS.
 
 
@@ -248,6 +249,24 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `            onEventFrontend: (...args) => {` && |\n| &&
                                custom_js_oneventfrontend &&
                            `                switch (args[0].EVENT) {` && |\n| &&
+                           `  case 'CROSS_APP_NAV_TO_PREV_APP': ` && |\n| &&
+                           `  var oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation"); ` && |\n| &&
+                           ` oCrossAppNavigator.backToPreviousApp();` && |\n| &&
+                           ` break;` && |\n| &&
+                           `  case 'CROSS_APP_NAV_TO_EXT': ` && |\n| &&
+                           ` var oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
+                           |\n|  &&
+                           `  const hash = ( oCrossAppNavigator.hrefForExternal({` && |\n|  &&
+                           `    target: args[1],` && |\n|  &&
+                           `    params: args[2]` && |\n|  &&
+                           `  })) || "";` && |\n|  &&
+                           |\n|  &&
+                           `  oCrossAppNavigator.toExternal({` && |\n|  &&
+                           `    target: {` && |\n|  &&
+                           `      shellHash: hash` && |\n|  &&
+                           `    }` && |\n|  &&
+                           `  });  break;` && |\n|  &&
+
                            `                    case 'LOCATION_RELOAD':` && |\n| &&
                            `                        window.location = args[1];` && |\n| &&
                            `                        break;` && |\n| &&
