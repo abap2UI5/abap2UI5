@@ -249,10 +249,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `            onEventFrontend: (...args) => {` && |\n| &&
                                custom_js_oneventfrontend &&
                            `                switch (args[0].EVENT) {` && |\n| &&
-                           `  case 'CROSS_APP_NAV_TO_PREV_APP': ` && |\n| &&
-                           `  var oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation"); ` && |\n| &&
-                           ` oCrossAppNavigator.backToPreviousApp();` && |\n| &&
-                           ` break;` && |\n| &&
                            `  case 'CROSS_APP_NAV_TO_EXT': ` && |\n| &&
                            ` var oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
                            |\n|  &&
@@ -261,11 +257,22 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `    params: args[2]` && |\n|  &&
                            `  })) || "";` && |\n|  &&
                            |\n|  &&
-                           `  oCrossAppNavigator.toExternal({` && |\n|  &&
-                           `    target: {` && |\n|  &&
-                           `      shellHash: hash` && |\n|  &&
-                           `    }` && |\n|  &&
-                           `  });  break;` && |\n|  &&
+                           ` if (args[3] === 'EXT') {` && |\n| &&
+                           |\n| &&
+                           `   var url = window.location.href.split('#')[0] + hash;` && |\n| &&
+                           `   sap.m.URLHelper.redirect(url, true);` && |\n| &&
+                           |\n| &&
+                           `  }` && |\n| &&
+                           ` else {` && |\n| &&
+                           |\n| &&
+                           `    oCrossAppNavigator.toExternal({` && |\n|  &&
+                           `      target: {` && |\n|  &&
+                           `          shellHash: hash` && |\n|  &&
+                           `      }` && |\n|  &&
+                           `    });` && |\n|  &&
+                           |\n| &&
+                           ` }` && |\n| &&
+                           ` break;` && |\n| &&
                            `                    case 'LOCATION_RELOAD':` && |\n| &&
                            `                        window.location = args[1];` && |\n| &&
                            `                        break;` && |\n| &&
