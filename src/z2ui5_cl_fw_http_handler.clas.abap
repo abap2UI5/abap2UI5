@@ -259,7 +259,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `  const hash = ( oCrossAppNavigator.hrefForExternal({` && |\n|  &&
                            `    target: args[1],` && |\n|  &&
                            `    params: args[2]` && |\n|  &&
-                           `  })) || "";` && |\n|  &&
+                           `  } )) || "";` && |\n|  &&
                            |\n|  &&
                            ` if (args[3] === 'EXT') {` && |\n| &&
                            |\n| &&
@@ -461,7 +461,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                    sap.m.MessageBox[sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TYPE](sap.z2ui5.oResponse.PARAMS.S_MSG_BOX.TEXT);` && |\n| &&
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.SEARCH != "") {` && |\n| &&
-                           `                 history.replaceState(null, null, sap.z2ui5.oResponse.SEARCH );` && |\n| &&
+                           `                 history.replaceState(null, null, window.location.pathname + '?' + sap.z2ui5.oResponse.SEARCH );` && |\n| &&
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.CHECK_CLEAR == true) {` && |\n| &&
                            `                       sap.ui.getCore().getMessageManager().removeAllMessages();        ` && |\n| &&
@@ -493,11 +493,14 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                sap.z2ui5.checkNestAfter   = false;` && |\n| &&
                            `                sap.z2ui5.checkNestAfter2   = false;` && |\n| &&
                            |\n| &&
+                           `               debugger;` && |\n| &&
                            `                sap.z2ui5.oBody.OLOCATION = {` && |\n| &&
                            `                    ORIGIN: window.location.origin,` && |\n| &&
                            `                    PATHNAME: sap.z2ui5.pathname,` && |\n| &&
                            `                    SEARCH: window.location.search,` && |\n| &&
                            `                    VERSION: sap.ui.getVersionInfo().gav,` && |\n| &&
+                           `                    CHECK_LAUNCHPAD_ACTIVE: sap.ushell !== undefined,` && |\n| &&
+                           `                    STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n| &&
                            `                };` && |\n| &&
                            `                   if(sap.z2ui5.search) {  sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search; }` && |\n| &&
                            |\n| &&
@@ -528,7 +531,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `        var oViewNest2 = sap.ui.xmlview({ viewContent: xml });` && |\n| &&
                            `        sap.z2ui5.oControllerNest = oViewNest.getController();` && |\n| &&
                            `        sap.z2ui5.oControllerNest2 = oViewNest.getController();` && |\n| &&
-                           `     sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
+                           `        sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
                            `        sap.z2ui5.oBody = {};` && |\n| &&
                            `        sap.z2ui5.oBody.APP_START = sap.z2ui5.APP_START;` && |\n| &&
                            `        sap.z2ui5.oController.Roundtrip();` && |\n| &&
