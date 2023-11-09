@@ -177,7 +177,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
     TRY.
         FIELD-SYMBOLS <struc> TYPE any.
-        DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ). "->get_val( ).
+        DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
         ASSIGN ls_params->* TO <struc>.
 
         DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <struc> ).
