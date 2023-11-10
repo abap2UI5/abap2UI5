@@ -129,7 +129,6 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
                           `                },` && |\n| &&
                           |\n| &&
                           `   onAfterRendering() {  ` &&
-
                           ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
                           `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n|  &&
                           `            text:        this.getProperty("text"),    // Text to encode` && |\n|  &&
@@ -139,7 +138,6 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
                           `            textxalign:  'center',        // Always good to set this` && |\n|  &&
                           `        });` && |\n|  &&
                           `  },` && |\n| &&
-
                           `                renderer: function (oRm, oControl) {` && |\n| &&
 ` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
                           `    // The return value is the canvas element` && |\n|  &&
