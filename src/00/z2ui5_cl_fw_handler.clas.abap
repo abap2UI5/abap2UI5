@@ -134,7 +134,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
 
   METHOD app_set_next.
@@ -166,40 +166,58 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
     TRY.
         DATA(location)     = so_body->get_attribute( `OLOCATION` ).
         ss_config-body     = body.
-        ss_config-check_launchpad_active  = location->get_attribute( `CHECK_LAUNCHPAD_ACTIVE` )->get_val( ).
-        ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
-        ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
-        ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
-        ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
+
+        TRY.
+            ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-check_launchpad_active  = location->get_attribute( `CHECK_LAUNCHPAD_ACTIVE` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            FIELD-SYMBOLS <struc> TYPE any.
+            DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
+            ASSIGN ls_params->* TO <struc>.
+
+            DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <struc> ).
+
+            LOOP AT lt_comp INTO DATA(ls_comp).
+
+              FIELD-SYMBOLS <val_ref> TYPE REF TO data.
+              FIELD-SYMBOLS <tab> TYPE table.
+              FIELD-SYMBOLS <val2> TYPE data.
+              ASSIGN COMPONENT ls_comp-name OF STRUCTURE <struc> TO <val_ref>.
+              ASSIGN <val_ref>->* TO <tab>.
+              ASSIGN <tab>[ 1 ] TO <val_ref>.
+              ASSIGN <val_ref>->* TO <val2>.
+
+              INSERT VALUE #( n = ls_comp-name v = <val2> ) INTO TABLE ss_config-t_startup_params.
+
+            ENDLOOP.
+          CATCH cx_root.
+        ENDTRY.
+
       CATCH cx_root.
     ENDTRY.
     ss_config-view_model_edit_name = z2ui5_cl_fw_binding=>cv_model_edit_name.
-
-    TRY.
-        FIELD-SYMBOLS <struc> TYPE any.
-        DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
-        ASSIGN ls_params->* TO <struc>.
-
-        DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <struc> ).
-
-        LOOP AT lt_comp INTO data(ls_comp).
-
-          FIELD-SYMBOLS <val_ref> TYPE REF TO data.
-          FIELD-SYMBOLS <tab> TYPE table.
-          FIELD-SYMBOLS <val2> TYPE data.
-          ASSIGN COMPONENT ls_comp-name OF STRUCTURE <struc> TO <val_ref>.
-          assign <val_ref>->* to <tab>.
-          assign <tab>[ 1 ] to <val_ref>.
-          ASSIGN <val_ref>->* to <val2>.
-
-          insert value #( n = ls_comp-name v = <val2> ) into table ss_config-t_startup_params.
-
-        ENDLOOP.
-
-
-      CATCH cx_root.
-    ENDTRY.
-
 
 
     TRY.
