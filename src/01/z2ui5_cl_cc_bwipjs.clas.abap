@@ -128,93 +128,23 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
                           `                    renderer: null` && |\n| &&
                           `                },` && |\n| &&
                           |\n| &&
-                          `                renderer: function (oRm, oControl) {` && |\n| &&
-` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
-                          `    // The return value is the canvas element` && |\n|  &&
-                          `  setTimeout(  (oControl) => {  let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
-                          `            bcid:        oControl.getProperty("bcid"),       // Barcode type` && |\n|  &&
-                          `            text:        oControl.getProperty("text"),    // Text to encode` && |\n|  &&
-                          `            scale:       oControl.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
-                          `            height:      oControl.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
+                          `   onAfterRendering() {  ` &&
+                          ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
+                          `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n|  &&
+                          `            text:        this.getProperty("text"),    // Text to encode` && |\n|  &&
+                          `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
+                          `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
                           `            includetext: true,            // Show human-readable text` && |\n|  &&
                           `            textxalign:  'center',        // Always good to set this` && |\n|  &&
                           `        });` && |\n|  &&
-                          `   } , 100 , oControl ) ` && |\n| &&
-                          `                  debugger;  return;` && |\n| &&
-                          `                    if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
-                          `                     oControl.oUploadButton = new Button({` && |\n| &&
-                          `                        text: oControl.getProperty("uploadButtonText"),` && |\n| &&
-                          `                        enabled: oControl.getProperty("path") !== "",` && |\n| &&
-                          `                        press: function (oEvent) { ` && |\n| &&
-                          |\n| &&
-                          `                            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n| &&
-                          |\n| &&
-                          `                            var file = sap.z2ui5.oUpload.oFileUpload.files[0];` && |\n| &&
-                          `                            var reader = new FileReader();` && |\n| &&
-                          |\n| &&
-                          `                            reader.onload = function (evt) {` && |\n| &&
-                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
-                          `                                this.setProperty("value", vContent);` && |\n| &&
-                          `                                this.fireUpload();` && |\n| &&
-                          `                                //this.getView().byId('picture' ).getDomRef().src = vContent;` && |\n| &&
-                          `                            }.bind(this)` && |\n| &&
-                          |\n| &&
-                          `                            reader.readAsDataURL(file);` && |\n| &&
-                          `                        }.bind(oControl)` && |\n| &&
-                          `                     });` && |\n| &&
-                          `                    }` && |\n| &&
-                          |\n| &&
-                          `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
-                          `                        icon: "sap-icon://browse-folder",` && |\n| &&
-                          `                        iconOnly: oControl.getProperty("iconOnly"),` && |\n| &&
-                          `                        buttonOnly: oControl.getProperty("buttonOnly"),` && |\n| &&
-                          `                        buttonText: oControl.getProperty("buttonText"),` && |\n| &&
-                          `                        uploadOnChange: true,` && |\n| &&
-                          `                        value: oControl.getProperty("path"),` && |\n| &&
-                          `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
-                          `                        change: function (oEvent) {` && |\n| &&
-                          `                           if (oControl.getProperty("checkDirectUpload")) {` && |\n| &&
-                          `                             return; ` && |\n| &&
-                          `                           }` && |\n| &&
-                          |\n| &&
-                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
-                          `                            this.setProperty("path", value);` && |\n| &&
-                          `                            if (value) {` && |\n| &&
-                          `                                this.oUploadButton.setEnabled();` && |\n| &&
-                          `                            } else {` && |\n| &&
-                          `                                this.oUploadButton.setEnabled(false);` && |\n| &&
-                          `                            }` && |\n| &&
-                          `                            this.oUploadButton.rerender();` && |\n| &&
-                          `                            sap.z2ui5.oUpload = oEvent.oSource;` && |\n| &&
-                          `                        }.bind(oControl),` && |\n| &&
-                          `                        uploadComplete: function (oEvent) {` && |\n| &&
-                          `                           if (!oControl.getProperty("checkDirectUpload")) {` && |\n| &&
-                          `                             return; ` && |\n| &&
-                          `                           }` && |\n| &&
-                          |\n| &&
-                          `                            var value = oEvent.getSource().getProperty("value");` && |\n| &&
-                          `                            this.setProperty("path", value);` && |\n| &&
-                          |\n| &&
-                          `                            var file = oEvent.oSource.oFileUpload.files[0];` && |\n| &&
-                          `                            var reader = new FileReader();` && |\n| &&
-                          |\n| &&
-                          `                            reader.onload = function (evt) {` && |\n| &&
-                          `                                var vContent = evt.currentTarget.result;` && |\n| &&
-                          `                                this.setProperty("value", vContent);` && |\n| &&
-                          `                                this.fireUpload();` && |\n| &&
-                          `                            }.bind(this)` && |\n| &&
-                          |\n| &&
-                          `                            reader.readAsDataURL(file);` && |\n| &&
-                          `                        }.bind(oControl)` && |\n| &&
-                          `                    });` && |\n| &&
-                          |\n| &&
-                          `                    var hbox = new sap.m.HBox();` && |\n| &&
-                          `                    hbox.addItem(oControl.oFileUploader);` && |\n| &&
-                          `                    hbox.addItem(oControl.oUploadButton);` && |\n| &&
-                          `                    oRm.renderControl(hbox);` && |\n| &&
+                          `  },` && |\n| &&
+                          `                renderer: function (oRm, oControl) {` && |\n| &&
+` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
+                          `    // The return value is the canvas element` && |\n|  &&
                           `                }` && |\n| &&
                           `            });` && |\n| &&
                           `        });`.
+
 
 *    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
 
