@@ -136,6 +136,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
+
   METHOD app_set_next.
 
     app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_fw_utility=>func_get_uuid_32( ) ELSE app->id ).
@@ -157,6 +158,7 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD request_begin.
 
     so_body = z2ui5_cl_fw_utility_json=>factory( body ).
@@ -164,10 +166,55 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     TRY.
         DATA(location)     = so_body->get_attribute( `OLOCATION` ).
         ss_config-body     = body.
-        ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
-        ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
-        ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
-        ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
+
+        TRY.
+            ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            ss_config-check_launchpad_active  = location->get_attribute( `CHECK_LAUNCHPAD_ACTIVE` )->get_val( ).
+          CATCH cx_root.
+        ENDTRY.
+
+        TRY.
+            FIELD-SYMBOLS <struc> TYPE any.
+            DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
+            ASSIGN ls_params->* TO <struc>.
+
+            DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <struc> ).
+
+            LOOP AT lt_comp INTO DATA(ls_comp).
+
+              FIELD-SYMBOLS <val_ref> TYPE REF TO data.
+              FIELD-SYMBOLS <tab> TYPE table.
+              FIELD-SYMBOLS <val2> TYPE data.
+              ASSIGN COMPONENT ls_comp-name OF STRUCTURE <struc> TO <val_ref>.
+              ASSIGN <val_ref>->* TO <tab>.
+              ASSIGN <tab>[ 1 ] TO <val_ref>.
+              ASSIGN <val_ref>->* TO <val2>.
+
+              INSERT VALUE #( n = ls_comp-name v = <val2> ) INTO TABLE ss_config-t_startup_params.
+
+            ENDLOOP.
+          CATCH cx_root.
+        ENDTRY.
+
       CATCH cx_root.
     ENDTRY.
     ss_config-view_model_edit_name = z2ui5_cl_fw_binding=>cv_model_edit_name.
@@ -407,6 +454,4 @@ CLASS z2ui5_cl_fw_handler IMPLEMENTATION.
     result->ms_db-app->id = result->ms_db-id.
 
   ENDMETHOD.
-
-
 ENDCLASS.

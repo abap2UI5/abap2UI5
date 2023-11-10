@@ -44,6 +44,8 @@ INTERFACE z2ui5_if_client
       pathname             TYPE string,
       search               TYPE string,
       body                 TYPE string,
+      CHECK_LAUNCHPAD_ACTIVE                 TYPE abap_bool,
+      t_startup_params type ty_t_name_value,
     END OF ty_s_config.
 
   TYPES:
