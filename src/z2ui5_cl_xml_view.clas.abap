@@ -480,6 +480,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !height       TYPE clike OPTIONAL
         !class        TYPE clike OPTIONAL
         !loop         TYPE clike OPTIONAL
+        !id         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -828,6 +829,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width        TYPE clike OPTIONAL
         !vertical     TYPE clike OPTIONAL
         !horizontal   TYPE clike OPTIONAL
+        !id   TYPE clike OPTIONAL
         !focusable    TYPE clike OPTIONAL
           PREFERRED PARAMETER height
       RETURNING
@@ -935,6 +937,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width         TYPE clike OPTIONAL
         !wrapping      TYPE clike OPTIONAL
         !wrappingtype  TYPE clike OPTIONAL
+        !id            TYPE clike OPTIONAL
+        !class         TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
@@ -980,6 +984,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !mindate               TYPE clike OPTIONAL
         !maxdate               TYPE clike OPTIONAL
         !editable              TYPE clike OPTIONAL
+        !width              TYPE clike OPTIONAL
+        !id              TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
@@ -991,6 +997,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !valuestate    TYPE clike OPTIONAL
         !displayformat TYPE clike OPTIONAL
         !valueformat   TYPE clike OPTIONAL
+        !required   TYPE clike OPTIONAL
+        !width   TYPE clike OPTIONAL
           PREFERRED PARAMETER value
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
@@ -1051,6 +1059,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !visible                TYPE clike OPTIONAL
         !nodata                 TYPE clike OPTIONAL
         !id                     TYPE clike OPTIONAL
+        !itemPress                     TYPE clike OPTIONAL
+        !select                     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS custom_list_item
@@ -1078,6 +1088,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !iconinset         TYPE clike OPTIONAL
         !adapttitlesize    TYPE clike OPTIONAL
         !activeicon        TYPE clike OPTIONAL
+        !unread            TYPE clike OPTIONAL
+        !highlight         TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS item
@@ -1303,6 +1315,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !width              TYPE clike OPTIONAL
         !wrapping           TYPE clike OPTIONAL
         !wrappingtype       TYPE clike OPTIONAL
+        !id                 TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
@@ -1653,12 +1666,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS block_layout
       IMPORTING
         !background   TYPE clike OPTIONAL
+        !id   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS block_layout_row
       IMPORTING
         !rowcolorset  TYPE clike OPTIONAL
+        !id  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -1671,6 +1686,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !titlelevel           TYPE clike OPTIONAL
         !width                TYPE clike OPTIONAL
         !class                TYPE clike OPTIONAL
+        !id                   TYPE clike OPTIONAL
       RETURNING
         VALUE(result)         TYPE REF TO z2ui5_cl_xml_view .
 
@@ -2918,7 +2934,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -3107,7 +3123,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD block_layout.
     result = _generic( name   = `BlockLayout`
                        ns     = `layout`
-                       t_prop = VALUE #( ( n = `background` v = background ) ) ).
+                       t_prop = VALUE #( ( n = `background` v = background )
+                                         ( n = `id` v = id ) ) ).
   ENDMETHOD.
 
 
@@ -3120,6 +3137,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `titleAlignment` v = titlealignment )
                                          ( n = `width` v = width )
                                          ( n = `class` v = class )
+                                         ( n = `id` v = id )
                                          ( n = `titleLevel` v = titlelevel ) ) ).
   ENDMETHOD.
 
@@ -3127,7 +3145,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD block_layout_row.
     result = _generic( name   = `BlockLayoutRow`
                        ns     = `layout`
-                       t_prop = VALUE #( ( n = `rowColorSet` v = rowcolorset ) ) ).
+                       t_prop = VALUE #( ( n = `rowColorSet` v = rowcolorset )
+                                         ( n = `id` v = id ) ) ).
   ENDMETHOD.
 
 
@@ -3221,6 +3240,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `loop`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( loop ) )
                                          ( n = `class`  v = class )
                                          ( n = `height`  v = height )
+                                         ( n = `id`  v = id )
                ) ).
 
   ENDMETHOD.
@@ -3496,6 +3516,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `change`                v = change )
                                 ( n = `maxDate`               v = maxdate )
                                 ( n = `minDate`               v = mindate )
+                                ( n = `width`               v = width )
+                                ( n = `id`               v = id )
                                 ( n = `enabled`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
                                 ( n = `visible`               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                 ( n = `editable`              v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
@@ -4431,6 +4453,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `wrapping`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `wrappingType`   v = wrappingtype )
                                 ( n = `design`   v = design )
+                                ( n = `id`   v = id )
+                                ( n = `class`   v = class )
                                 ( n = `labelFor` v = labelfor ) ) ).
   ENDMETHOD.
 
@@ -4518,6 +4542,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `headerText`             v = headertext )
                                          ( n = `items`                  v = items )
                                          ( n = `mode`                   v = mode )
+                                         ( n = `itemPress`                   v = itemPress )
+                                         ( n = `select`                   v = select )
                                          ( n = `selectionChange`        v = selectionchange )
                                          ( n = `showSeparators`         v = showseparators )
                                          ( n = `footerText`             v = footertext )
@@ -5360,6 +5386,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `ScrollContainer`
                        t_prop = VALUE #( ( n = `height`      v = height )
                                          ( n = `width`       v = width )
+                                         ( n = `id`       v = id )
                                          ( n = `vertical`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( vertical ) )
                                          ( n = `horizontal`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( horizontal ) )
                                          ( n = `focusable`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( focusable ) ) ) ).
@@ -5620,10 +5647,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `counter`     v = counter )
                                 ( n = `activeIcon`     v = activeicon )
                                 ( n = `adaptTitleSize`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( adapttitlesize ) )
+                                ( n = `unread`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( unread ) )
                                 ( n = `iconInset`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconinset ) )
                                 ( n = `infoStateInverted`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( infostateinverted ) )
                                 ( n = `wrapping`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `infoState`     v = infostate )
+                                ( n = `highlight`     v = highlight )
                                 ( n = `wrapCharLimit`     v = wrapcharlimit )
                                 ( n = `selected`    v = selected ) ) ).
   ENDMETHOD.
@@ -5799,6 +5828,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `textAlign`  v = textalign )
                                 ( n = `textDirection`  v = textdirection )
                                 ( n = `width`  v = width )
+                                ( n = `id`  v = id )
                                 ( n = `wrapping`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `wrappingType`  v = wrappingtype )
                                 ( n = `class` v = class ) ) ).
@@ -5887,6 +5917,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `value` v = value )
                                 ( n = `placeholder`  v = placeholder )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                ( n = `required` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
+                                ( n = `width` v = width )
                                 ( n = `valueState` v = valuestate )
                                 ( n = `displayFormat` v = displayformat )
                                 ( n = `valueFormat` v = valueformat ) ) ).
