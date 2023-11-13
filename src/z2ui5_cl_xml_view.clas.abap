@@ -2919,7 +2919,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
-    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA mt_prop  TYPE SORTED TABLE OF z2ui5_if_client=>ty_s_name_value with non-UNIQUE key n.
 
     DATA mt_ns  TYPE SORTED TABLE OF string WITH UNIQUE KEY table_line.
     DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
@@ -6427,7 +6427,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                      ( n = `xmlns:table `    v = `sap.ui.table` )
+                      ( n = `xmlns:table`    v = `sap.ui.table` )
                       ( n = `xmlns:f`         v = `sap.f` )
                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
@@ -6462,7 +6462,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
           DATA(ns) = lr_prop->n+6.
           IF ns = lr_ns->*.
+          try.
             INSERT lr_prop->* INTO TABLE mt_prop.
+            catch cx_root.
+            endtry.
             DELETE lt_prop.
             EXIT.
           ENDIF.
@@ -6471,7 +6474,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
       ENDLOOP.
 
-
+    DELETE ADJACENT DUPLICATES FROM mt_prop COMPARING n.
     ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
