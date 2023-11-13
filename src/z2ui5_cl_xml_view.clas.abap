@@ -865,6 +865,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !text         TYPE clike OPTIONAL
         !wrapping     TYPE clike OPTIONAL
         !level        TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2913,6 +2915,37 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !textdirection      TYPE clike OPTIONAL
         !visible            TYPE clike OPTIONAL
         !wrappingtype       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS select
+      IMPORTING
+        !id                   TYPE clike OPTIONAL
+        !autoadjustwidth      TYPE clike OPTIONAL
+        !columnratio          TYPE clike OPTIONAL
+        !editable             TYPE clike OPTIONAL
+        !enabled              TYPE clike OPTIONAL
+        !forceselection       TYPE clike OPTIONAL
+        !icon                 TYPE clike OPTIONAL
+        !maxwidth             TYPE clike OPTIONAL
+        !name                 TYPE clike OPTIONAL
+        !required             TYPE clike OPTIONAL
+        !resetonmissingkey    TYPE clike OPTIONAL
+        !selecteditemid       TYPE clike OPTIONAL
+        !selectedkey          TYPE clike OPTIONAL
+        !showsecondaryvalues  TYPE clike OPTIONAL
+        !textalign            TYPE clike OPTIONAL
+        !textdirection        TYPE clike OPTIONAL
+        !type                 TYPE clike OPTIONAL
+        !valuestate           TYPE clike OPTIONAL
+        !valuestatetext       TYPE clike OPTIONAL
+        !visible              TYPE clike OPTIONAL
+        !width                TYPE clike OPTIONAL
+        !wrapitemstext        TYPE clike OPTIONAL
+        !items                TYPE clike OPTIONAL
+        !selecteditem         TYPE clike OPTIONAL
+        !change               TYPE clike OPTIONAL
+        !livechange           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5446,6 +5479,39 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD select.
+    result = _generic( name = `Select`
+                       t_prop = VALUE #(
+                             ( n = `id`                  v = id )
+                             ( n = `autoAdjustWidth`     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( autoAdjustWidth ) )
+                             ( n = `columnRatio`         v = columnRatio )
+                             ( n = `editable`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                             ( n = `enabled`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                             ( n = `forceSelection`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( forceSelection ) )
+                             ( n = `icon`                v = icon )
+                             ( n = `maxWidth`            v = maxWidth )
+                             ( n = `name`                v = name )
+                             ( n = `required`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( required ) )
+                             ( n = `resetOnMissingKey`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( resetOnMissingKey ) )
+                             ( n = `selectedItemId`      v = selectedItemId )
+                             ( n = `selectedKey`         v = selectedKey )
+                             ( n = `showSecondaryValues` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSecondaryValues ) )
+                             ( n = `textAlign`           v = textAlign )
+                             ( n = `textDirection`       v = textDirection )
+                             ( n = `type`                v = type )
+                             ( n = `valueState`          v = valueState )
+                             ( n = `valueStateText`      v = valueStateText )
+                             ( n = `width`               v = width )
+                             ( n = `wrapItemsText`       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapItemsText ) )
+                             ( n = `items`               v = items )
+                             ( n = `selectedItem`        v = selectedItem )
+                             ( n = `change`              v = change )
+                             ( n = `liveChange`          v = liveChange )
+                             ( n = `visible`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
   METHOD shapes1.
     result = _generic( name = `shapes1`
                        ns   = `gantt` ).
@@ -5932,6 +5998,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     _generic( ns     = ns
               name   = lv_name
               t_prop = VALUE #( ( n = `text`     v = text )
+                                ( n = `class`     v = class )
+                                ( n = `id`     v = id )
                                 ( n = `wrapping` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `level` v = level ) ) ).
   ENDMETHOD.
