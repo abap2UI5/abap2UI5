@@ -4195,8 +4195,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `width` v = width )
                                          ( n = `id` v = id )
                                          ( n = `scroll` v = scroll )
-
-       ) ).
+) ).
   ENDMETHOD.
 
 
