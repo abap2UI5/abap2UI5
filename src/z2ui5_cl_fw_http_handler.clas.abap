@@ -120,7 +120,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        definition: sap.z2ui5.oResponse.PARAMS.S_POPUP.XML,` && |\n| &&
                            `                        controller: sap.z2ui5.oController,` && |\n| &&
                            `                    }).then(oFragment => {` && |\n| &&
-                           `                        debugger;` && |\n| &&
+*                           `                        debugger;` && |\n| &&
                            `                        oFragment.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL))` && |\n| &&
                            `                        sap.z2ui5.oView.addDependent(oFragment);` && |\n| &&
                            `                        oFragment.open();` && |\n| &&
@@ -493,7 +493,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                sap.z2ui5.checkNestAfter   = false;` && |\n| &&
                            `                sap.z2ui5.checkNestAfter2   = false;` && |\n| &&
                            |\n| &&
-                           `               debugger;` && |\n| &&
+*                           `               debugger;` && |\n| &&
                            `                sap.z2ui5.oBody.OLOCATION = {` && |\n| &&
                            `                    ORIGIN: window.location.origin,` && |\n| &&
                            `                    PATHNAME: sap.z2ui5.pathname,` && |\n| &&
@@ -538,7 +538,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.log = () => {  console.log(sap.z2ui5.oResponse.OVIEWMODEL ); };` && |\n| &&
                            `        sap.z2ui5.oController.oUtil = {}; ` && |\n| &&
                            `        sap.z2ui5.oController.oUtil.oDate = {}; ` && |\n| &&
-                           `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { debugger; return new Date(s); }` && |\n| &&
+                           `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { return new Date(s); }` && |\n| &&
                            `  jQuery.sap.declare("sap.z2ui5.Helper");` && |\n|  &&
                            `sap.z2ui5.Helper = {};` && |\n| &&
                            `sap.z2ui5.Helper.DateCreateObject = (s => new Date(s));` && |\n| &&

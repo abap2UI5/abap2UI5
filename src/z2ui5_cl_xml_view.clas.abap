@@ -53,9 +53,22 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS icon
       IMPORTING
         !src          TYPE clike OPTIONAL
+        !press          TYPE clike OPTIONAL
         !size         TYPE clike OPTIONAL
         !color        TYPE clike OPTIONAL
         !class        TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+        !useicontooltip           TYPE clike OPTIONAL
+        !notabstop           TYPE clike OPTIONAL
+        !hovercolor           TYPE clike OPTIONAL
+        !hoverbackgroundcolor           TYPE clike OPTIONAL
+        !height           TYPE clike OPTIONAL
+        !decorative           TYPE clike OPTIONAL
+        !backgroundcolor           TYPE clike OPTIONAL
+        !alt           TYPE clike OPTIONAL
+        !activecolor           TYPE clike OPTIONAL
+        !activebackgroundcolor           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1302,6 +1315,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS toolbar
       IMPORTING
         ns            TYPE clike OPTIONAL
+        id            TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
+        width         TYPE clike OPTIONAL
+        active        TYPE clike OPTIONAL
+        ariaHasPopup  TYPE clike OPTIONAL
+        design        TYPE clike OPTIONAL
+        enabled       TYPE clike OPTIONAL
+        height        TYPE clike OPTIONAL
+        style         TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS text
@@ -2786,21 +2809,52 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !alignment         TYPE clike OPTIONAL
         !axisorientation   TYPE clike OPTIONAL
         !content           TYPE clike OPTIONAL
+        !enablemodelfilter TYPE clike OPTIONAL
+        !enablescroll      TYPE clike OPTIONAL
+        !forcegrowing      TYPE clike OPTIONAL
+        !group             TYPE clike OPTIONAL
+        !lazyloading       TYPE clike OPTIONAL
+        !showheaderbar     TYPE clike OPTIONAL
+        !showicons         TYPE clike OPTIONAL
+        !showitemfilter    TYPE clike OPTIONAL
+        !showsearch        TYPE clike OPTIONAL
+        !showsort          TYPE clike OPTIONAL
+        !showtimefilter    TYPE clike OPTIONAL
+        !sort              TYPE clike OPTIONAL
+        !groupbytype       TYPE clike OPTIONAL
+        !textheight        TYPE clike OPTIONAL
+        !width             TYPE clike OPTIONAL
+        !height            TYPE clike OPTIONAL
+        !nodatatext        TYPE clike OPTIONAL
+        !filterList        TYPE clike OPTIONAL
+        !customFilter      TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS timeline_item
-      IMPORTING
+      IMporting
         !id                TYPE clike OPTIONAL
         !datetime          TYPE clike OPTIONAL
         !title             TYPE clike OPTIONAL
         !usernameclickable TYPE clike OPTIONAL
+        !useicontooltip    TYPE clike OPTIONAL
         !usernameclicked   TYPE clike OPTIONAL
         !select            TYPE clike OPTIONAL
         !userpicture       TYPE clike OPTIONAL
         !text              TYPE clike OPTIONAL
         !username          TYPE clike OPTIONAL
         !filtervalue       TYPE clike OPTIONAL
+        !icondisplayshape  TYPE clike OPTIONAL
+        !iconinitials      TYPE clike OPTIONAL
+        !iconsize          TYPE clike OPTIONAL
+        !icontooltip       TYPE clike OPTIONAL
+        !maxcharacters     TYPE clike OPTIONAL
+        !replycount        TYPE clike OPTIONAL
+        !status            TYPE clike OPTIONAL
+        !customactionclicked  TYPE clike OPTIONAL
+        !press             TYPE clike OPTIONAL
+        !replylistopen     TYPE clike OPTIONAL
+        !replypost         TYPE clike OPTIONAL
         !icon              TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
@@ -2948,6 +3002,29 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !livechange           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS embedded_control
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
+  METHODS header_container_control
+    IMPORTING
+      !backgroundDesign TYPE clike OPTIONAL
+      !gridLayout       TYPE clike OPTIONAL
+      !height           TYPE clike OPTIONAL
+      !orientation      TYPE clike OPTIONAL
+      !scrollStep       TYPE clike OPTIONAL
+      !scrollStepByItem TYPE clike OPTIONAL
+      !scrollTime       TYPE clike OPTIONAL
+      !showDividers     TYPE clike OPTIONAL
+      !showOverflowItem TYPE clike OPTIONAL
+      !visible          TYPE clike OPTIONAL
+      !width            TYPE clike OPTIONAL
+      !id               TYPE clike OPTIONAL
+      !scroll           TYPE clike OPTIONAL
+    RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
 
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
@@ -3656,6 +3733,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD embedded_control.
+    result = _generic( name = `embeddedControl`
+                       ns   = `commons` ).
+  ENDMETHOD.
+
+
   METHOD end_column_pages.
     " todo, implement method
     result = me.
@@ -4097,6 +4180,25 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD header_container_control.
+    result = _generic( name = `HeaderContainer`
+                       t_prop = VALUE #( ( n = `backgroundDesign` v = backgroundDesign )
+                                         ( n = `gridLayout` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( gridLayout ) )
+                                         ( n = `height` v = height )
+                                         ( n = `orientation` v = orientation )
+                                         ( n = `scrollStep` v = scrollStep )
+                                         ( n = `scrollStepByItem` v = scrollStepByItem )
+                                         ( n = `scrollTime` v = scrollTime )
+                                         ( n = `showDividers` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showDividers ) )
+                                         ( n = `showOverflowItem` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showOverflowItem ) )
+                                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         ( n = `width` v = width )
+                                         ( n = `id` v = id )
+                                         ( n = `scroll` v = scroll )
+) ).
+  ENDMETHOD.
+
+
   METHOD header_content.
     result = _generic( name = `headerContent`
                        ns   = ns ).
@@ -4199,7 +4301,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                         ( n = `color`  v = color )
                                         ( n = `class`  v = class )
                                         ( n = `src`  v = src )
-                                        ) ).
+                                        ( n = `activeColor`  v = activeColor )
+                                        ( n = `activeBackgroundColor`  v = activeBackgroundColor )
+                                        ( n = `alt`  v = alt )
+                                        ( n = `backgroundColor`  v = backgroundColor )
+                                        ( n = `height`  v = height )
+                                        ( n = `width`  v = width )
+                                        ( n = `id`  v = id )
+                                        ( n = `press`  v = press )
+                                        ( n = `hoverBackgroundColor`  v = hoverBackgroundColor )
+                                        ( n = `hoverColor`  v = hoverColor )
+                                        ( n = `decorative`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( decorative ) )
+                                        ( n = `noTabStop`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( noTabStop ) )
+                                        ( n = `useIconTooltip`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useIconTooltip ) )
+                                     ) ).
 
   ENDMETHOD.
 
@@ -5944,8 +6059,27 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = 'growingThreshold'   v = growingthreshold )
                                          ( n = 'filterTitle'        v = filtertitle )
                                          ( n = 'sortOldestFirst'    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sortoldestfirst ) )
+                                         ( n = 'enableModelFilter'  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableModelFilter ) )
+                                         ( n = 'enableScroll'       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableScroll ) )
+                                         ( n = 'forceGrowing'       v = z2ui5_cl_fw_utility=>boolean_abap_2_json( forceGrowing ) )
+                                         ( n = 'group'              v = z2ui5_cl_fw_utility=>boolean_abap_2_json( group ) )
+                                         ( n = 'lazyLoading'        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( lazyLoading ) )
+                                         ( n = 'showHeaderBar'      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showHeaderBar ) )
+                                         ( n = 'showIcons'          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showIcons ) )
+                                         ( n = 'showItemFilter'     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showItemFilter ) )
+                                         ( n = 'showSearch'         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSearch ) )
+                                         ( n = 'showSort'           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showSort ) )
+                                         ( n = 'showTimeFilter'     v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showTimeFilter ) )
+                                         ( n = 'sort'               v = z2ui5_cl_fw_utility=>boolean_abap_2_json( sort ) )
+                                         ( n = 'groupByType'        v = groupByType )
+                                         ( n = 'textHeight'         v = textHeight )
+                                         ( n = 'width'              v = width )
+                                         ( n = 'height'             v = height )
+                                         ( n = 'noDataText'         v = noDataText )
                                          ( n = 'alignment'          v = alignment )
                                          ( n = 'axisOrientation'    v = axisorientation )
+                                         ( n = 'filterList'         v = filterList )
+                                         ( n = 'customFilter'       v = customFilter )
                                          ( n = 'content'            v = content ) ) ).
   ENDMETHOD.
 
@@ -5958,12 +6092,24 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = 'dateTime'               v = datetime )
                                          ( n = 'title'                  v = title )
                                          ( n = 'userNameClickable'      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( usernameclickable ) )
+                                         ( n = 'useIconTooltip'         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( useIconTooltip ) )
                                          ( n = 'userNameClicked'        v = usernameclicked )
+                                         ( n = 'userPicture'            v = userPicture )
                                          ( n = 'select'                 v = select )
-                                         ( n = 'userPicture'            v = userpicture )
                                          ( n = 'text'                   v = text )
                                          ( n = 'userName'               v = username )
                                          ( n = 'filterValue'            v = filtervalue )
+                                         ( n = 'iconDisplayShape'       v = iconDisplayShape )
+                                         ( n = 'iconInitials'           v = iconInitials )
+                                         ( n = 'iconSize'               v = iconSize )
+                                         ( n = 'iconTooltip'            v = iconTooltip )
+                                         ( n = 'maxCharacters'          v = maxCharacters )
+                                         ( n = 'replyCount'             v = replyCount )
+                                         ( n = 'status'                 v = status )
+                                         ( n = 'customActionClicked'    v = customActionClicked )
+                                         ( n = 'press'                  v = press )
+                                         ( n = 'replyListOpen'          v = replyListOpen )
+                                         ( n = 'replyPost'              v = replyPost )
                                          ( n = 'icon'                   v = icon ) ) ).
   ENDMETHOD.
 
@@ -5994,8 +6140,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD title.
     DATA(lv_name) = COND #( WHEN ns = 'f' THEN 'title' ELSE `Title` ).
 
+
     result = me.
-    _generic( ns     = ns
+    _generic( ns     = COND #( WHEN level IS NOT INITIAL THEN `webc` ELSE ns )
               name   = lv_name
               t_prop = VALUE #( ( n = `text`     v = text )
                                 ( n = `class`     v = class )
@@ -6039,7 +6186,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD toolbar.
 
-    result = _generic( name = `Toolbar` ns = ns ).
+    result = _generic( name = `Toolbar`
+                       ns = ns
+                       t_prop = VALUE #( ( n = `active`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( active ) )
+                                         ( n = `ariaHasPopup`  v = ariaHasPopup )
+                                         ( n = `design`  v = design )
+                                         ( n = `enabled`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                         ( n = `visible`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         ( n = `height`  v = height )
+                                         ( n = `style`  v = style )
+                                         ( n = `width`  v = width )
+                                         ( n = `id`  v = id )
+                                         ( n = `press`  v = press ) ) ).
 
   ENDMETHOD.
 
