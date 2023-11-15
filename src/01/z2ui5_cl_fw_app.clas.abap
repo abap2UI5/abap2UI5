@@ -104,7 +104,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
       )->page( shownavbutton = abap_false ).
 
     page->header_content(
-            )->title( `abap2UI5 - Developing UI5 Apps in pure ABAP`
+            )->title( `abap2UI5 - Developing UI5 Apps in Pure ABAP`
             )->toolbar_spacer(
             )->link( text   = `SCN`
                      target = `_blank`
@@ -124,7 +124,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
            )->content( `form` ).
 
     content->label( `Step 1`
-        )->text( `Create a global class in your abap system`
+        )->text( `Create a new class in your abap system`
         )->label( `Step 2`
         )->text( `Add the interface: Z2UI5_IF_APP`
         )->label( `Step 3`
