@@ -40,7 +40,7 @@ CLASS z2ui5_cl_view_m DEFINITION
                 startsuggestion               TYPE clike OPTIONAL
                 enablesuggestionshighlighting TYPE clike OPTIONAL
                 enabletableautopopinmode      TYPE clike OPTIONAL
-          PREFERRED PARAMETER value
+                  PREFERRED PARAMETER value
       RETURNING VALUE(result)                 TYPE REF TO z2ui5_cl_view_m.
 
     METHODS page
@@ -59,7 +59,7 @@ CLASS z2ui5_cl_view_m DEFINITION
                 showsubheader    TYPE clike OPTIONAL
                 titlealignment   TYPE clike OPTIONAL
                 titlelevel       TYPE clike OPTIONAL
-          PREFERRED PARAMETER title
+                  PREFERRED PARAMETER title
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_view_m.
 
     METHODS shell
@@ -69,7 +69,7 @@ CLASS z2ui5_cl_view_m DEFINITION
       IMPORTING text          TYPE clike OPTIONAL
                 wrapping      TYPE clike OPTIONAL
                 level         TYPE clike OPTIONAL
-          PREFERRED PARAMETER text
+                  PREFERRED PARAMETER text
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_m.
 
     METHODS button
@@ -106,8 +106,34 @@ CLASS z2ui5_cl_view_m DEFINITION
                 wrappingtype  TYPE clike OPTIONAL
                 id            TYPE clike OPTIONAL
                 class         TYPE clike OPTIONAL
-          PREFERRED PARAMETER text
+                  PREFERRED PARAMETER text
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+
+    METHODS link
+      IMPORTING
+        !text               TYPE clike OPTIONAL
+        !href               TYPE clike OPTIONAL
+        !target             TYPE clike OPTIONAL
+        !enabled            TYPE clike OPTIONAL
+        !press              TYPE clike OPTIONAL
+        !id                 TYPE clike OPTIONAL
+        !wrapping           TYPE clike OPTIONAL
+        !width              TYPE clike OPTIONAL
+        !validateurl        TYPE clike OPTIONAL
+        !textdirection      TYPE clike OPTIONAL
+        !textalign          TYPE clike OPTIONAL
+        !subtle             TYPE clike OPTIONAL
+        !rel                TYPE clike OPTIONAL
+        !emptyindicatormode TYPE clike OPTIONAL
+        !emphasized         TYPE clike OPTIONAL
+        !ariahaspopup       TYPE clike OPTIONAL
+        !accessiblerole     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_view_m.
+
+    METHODS headercontent
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view_m.
 
   PROTECTED SECTION.
 
@@ -116,6 +142,39 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_view_m IMPLEMENTATION.
+
+  METHOD headercontent.
+
+    result = _add( n = `headerContent`
+                   ns  = `sap.m` )->_ns_m( ).
+
+  ENDMETHOD.
+
+  METHOD link.
+
+    result = me.
+
+    _add( n   = `Link`
+          ns  = `sap.m`
+          t_p = VALUE #( ( n = `text`    v = text )
+                                ( n = `target`  v = target )
+                                ( n = `href`    v = href )
+                                ( n = `press`   v = press )
+                                ( n = `id`      v = id )
+                                ( n = `accessibleRole`      v = accessiblerole )
+                                ( n = `ariaHasPopup`      v = ariahaspopup )
+                                ( n = `emptyIndicatorMode`      v = emptyindicatormode )
+                                ( n = `rel`      v = rel )
+                                ( n = `subtle`      v = _2bool( subtle ) )
+                                ( n = `textAlign`      v = textalign )
+                                ( n = `textDirection`      v = textdirection )
+                                ( n = `validateUrl`      v = _2bool( validateurl ) )
+                                ( n = `width`      v = width )
+                                ( n = `wrapping`      v = _2bool( wrapping ) )
+                                ( n = `emphasized`      v = _2bool( emphasized ) )
+                                ( n = `enabled` v = _2bool( enabled ) ) ) ).
+  ENDMETHOD.
+
   METHOD button.
     result = me.
     _add( n   = `Button`

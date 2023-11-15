@@ -37,6 +37,10 @@ CLASS z2ui5_cl_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
 
+    METHODS _ns_ndc
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view_ndc.
+
     METHODS _ns_m
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_m.
@@ -95,11 +99,7 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
   METHOD _2bool.
 
-*    IF  val.
-    result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
-*    ELSE.
-    result = val.
-*    ENDIF.
+    result = z2ui5_cl_fw_utility=>boolean_abap_2_json( val ).
 
   ENDMETHOD.
 
@@ -194,10 +194,10 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    data(lo_node) = NEW lcl_view_node( ).
+    DATA(lo_node) = NEW lcl_view_node( ).
     DATA(result2) = NEW z2ui5_cl_view( lo_node ).
-    result2->_node->mv_name   = n.
-    result2->_node->mv_ns     = ns.
+    result2->_node->mv_name  = n.
+    result2->_node->mv_ns    = ns.
     result2->_node->mt_prop  = t_p.
     DELETE result2->_node->mt_prop WHERE v = ``.
     result2->_node->mo_parent = _node.
@@ -259,6 +259,13 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD _ns_ndc.
+
+    result = NEW #( _node ).
+
+  ENDMETHOD.
+
+
   METHOD _ns_m.
 
     result = NEW #( _node ).
@@ -282,7 +289,8 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
   METHOD _stringify.
 
-    result = _2xml( NEW #( _node->mo_root ) ).
+    DATA(lo_node) = NEW z2ui5_cl_view( _node->mo_root ).
+    result = _2xml( lo_node ).
 
   ENDMETHOD.
 ENDCLASS.
