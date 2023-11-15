@@ -1,15 +1,15 @@
-class Z2UI5_CL_FW_APP definition
-  public
-  final
-  create protected .
+CLASS z2ui5_cl_fw_app DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PROTECTED .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces Z2UI5_IF_APP .
-  interfaces IF_SERIALIZABLE_OBJECT .
+    INTERFACES z2ui5_if_app .
+    INTERFACES if_serializable_object .
 
-  data:
-    BEGIN OF ms_home,
+    DATA:
+      BEGIN OF ms_home,
         btn_text               TYPE string,
         btn_event_id           TYPE string,
         btn_icon               TYPE string,
@@ -18,30 +18,30 @@ public section.
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home .
-  data CLIENT type ref to Z2UI5_IF_CLIENT .
-  data MV_CHECK_INITIALIZED type ABAP_BOOL .
-  data MV_CHECK_DEMO type ABAP_BOOL .
-  data MX_ERROR type ref to CX_ROOT .
+    DATA client TYPE REF TO z2ui5_if_client .
+    DATA mv_check_initialized TYPE abap_bool .
+    DATA mv_check_demo TYPE abap_bool .
+    DATA mx_error TYPE REF TO cx_root .
 
-  class-methods FACTORY_START
-    returning
-      value(RESULT) type ref to Z2UI5_CL_FW_APP .
-  class-methods FACTORY_ERROR
-    importing
-      !ERROR type ref to CX_ROOT
-    returning
-      value(RESULT) type ref to Z2UI5_CL_FW_APP .
-  methods Z2UI5_ON_INIT .
-  methods Z2UI5_ON_EVENT .
-  methods VIEW_DISPLAY_ERROR .
-  methods VIEW_DISPLAY_START .
+    CLASS-METHODS factory_start
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app .
+    CLASS-METHODS factory_error
+      IMPORTING
+        !error        TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app .
+    METHODS z2ui5_on_init .
+    METHODS z2ui5_on_event .
+    METHODS view_display_error .
+    METHODS view_display_start .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
 
   METHOD factory_error.
@@ -162,7 +162,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                            type = `Warning`
           )->get( )->_generic( `link` )->link( text   = `(HERE)`
                                                target = `_blank`
-                                               href   = `https://github.com/oblomov-dev/abap2UI5-demos` ).
+                                               href   = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
     DATA(cont) = form->content( `form` ).
