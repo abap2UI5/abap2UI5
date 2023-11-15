@@ -274,7 +274,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~factory_view.
 
-    result = z2ui5_cL_view=>_factory( check_popup ).
+    result = z2ui5_cl_ui5=>_factory( check_popup ).
 
   ENDMETHOD.
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_view DEFINITION
+CLASS z2ui5_cl_ui5 DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -8,19 +8,19 @@ CLASS z2ui5_cl_view DEFINITION
       IMPORTING
         check_popup   TYPE abap_bool DEFAULT abap_false
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _go_up
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _go_root
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _go_new
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _add
       IMPORTING
@@ -28,22 +28,22 @@ CLASS z2ui5_cl_view DEFINITION
         ns            TYPE clike OPTIONAL
         t_p           TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _add_p
       IMPORTING
         n             TYPE clike
         v             TYPE clike
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _ns_ndc
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_ndc.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_ndc.
 
     METHODS _ns_m
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS _ns_ui
       RETURNING
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_view DEFINITION
 
     METHODS constructor
       IMPORTING
-        node TYPE REF TO object OPTIONAL.
+        node TYPE REF TO z2ui5_cl_fw_utility_xml OPTIONAL.
 
     METHODS _stringify
       RETURNING
@@ -65,7 +65,7 @@ CLASS z2ui5_cl_view DEFINITION
 
     CLASS-METHODS _2xml
       IMPORTING
-        obj           TYPE REF TO z2ui5_cl_view
+        obj           TYPE REF TO z2ui5_cl_ui5
       RETURNING
         VALUE(result) TYPE string.
 
@@ -82,7 +82,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_view IMPLEMENTATION.
+CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -91,7 +91,7 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
       me->_node = NEW #( ).
       me->_node->mo_root = me->_node.
     ELSE.
-      me->_node = CAST #( node ).
+      me->_node = node.
     ENDIF.
 
   ENDMETHOD.
@@ -178,7 +178,7 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
     result = |{ result }>|.
 
     LOOP AT obj->_node->mt_child INTO DATA(lr_child).
-      DATA(lo_child) = NEW z2ui5_cl_view( lr_child ).
+      DATA(lo_child) = NEW z2ui5_cl_ui5( lr_child ).
       result = result && _2xml( lo_child ).
     ENDLOOP.
 
@@ -195,7 +195,7 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
     ENDTRY.
 
     DATA(lo_node) = NEW z2ui5_cl_fw_utility_xml( ).
-    DATA(result2) = NEW z2ui5_cl_view( lo_node ).
+    DATA(result2) = NEW z2ui5_cl_ui5( lo_node ).
     result2->_node->mv_name  = n.
     result2->_node->mv_ns    = ns.
     result2->_node->mt_prop  = t_p.
@@ -289,7 +289,7 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
   METHOD _stringify.
 
-    DATA(lo_node) = NEW z2ui5_cl_view( _node->mo_root ).
+    DATA(lo_node) = NEW z2ui5_cl_ui5( _node->mo_root ).
     result = _2xml( lo_node ).
 
   ENDMETHOD.

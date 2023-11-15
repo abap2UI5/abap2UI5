@@ -1,7 +1,7 @@
-CLASS z2ui5_cl_view_m DEFINITION
+CLASS z2ui5_cl_ui5_sap_m DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC INHERITING FROM z2ui5_cl_view.
+  CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
 
   PUBLIC SECTION.
     METHODS input
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_view_m DEFINITION
                 enablesuggestionshighlighting TYPE clike OPTIONAL
                 enabletableautopopinmode      TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
-      RETURNING VALUE(result)                 TYPE REF TO z2ui5_cl_view_m.
+      RETURNING VALUE(result)                 TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS page
       IMPORTING title            TYPE clike OPTIONAL
@@ -60,17 +60,17 @@ CLASS z2ui5_cl_view_m DEFINITION
                 titlealignment   TYPE clike OPTIONAL
                 titlelevel       TYPE clike OPTIONAL
                   PREFERRED PARAMETER title
-      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_view_m.
+      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS shell
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS title
       IMPORTING text          TYPE clike OPTIONAL
                 wrapping      TYPE clike OPTIONAL
                 level         TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS button
       IMPORTING text             TYPE clike OPTIONAL
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_view_m DEFINITION
                 activeicon       TYPE clike OPTIONAL
                 accessiblerole   TYPE clike OPTIONAL
                 textdirection    TYPE clike OPTIONAL
-      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_view_m.
+      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS label
       IMPORTING text          TYPE clike OPTIONAL
@@ -107,7 +107,7 @@ CLASS z2ui5_cl_view_m DEFINITION
                 id            TYPE clike OPTIONAL
                 class         TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS link
       IMPORTING
@@ -129,11 +129,11 @@ CLASS z2ui5_cl_view_m DEFINITION
         !ariahaspopup       TYPE clike OPTIONAL
         !accessiblerole     TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)       TYPE REF TO z2ui5_cl_view_m.
+        VALUE(result)       TYPE REF TO z2ui5_cl_ui5_sap_m.
 
     METHODS headercontent
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_m.
 
   PROTECTED SECTION.
 
@@ -141,7 +141,7 @@ CLASS z2ui5_cl_view_m DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_view_m IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_sap_m IMPLEMENTATION.
 
   METHOD headercontent.
 
