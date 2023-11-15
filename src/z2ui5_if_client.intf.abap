@@ -3,15 +3,15 @@ INTERFACE z2ui5_if_client
 
   CONSTANTS:
     BEGIN OF cs_event,
-      popup_close                TYPE string VALUE `POPUP_CLOSE`,
-      open_new_tab               TYPE string VALUE `OPEN_NEW_TAB`,
-      popover_close              TYPE string VALUE `POPOVER_CLOSE`,
-      location_reload            TYPE string VALUE `LOCATION_RELOAD`,
-      nav_container_to           TYPE string VALUE `NAV_CONTAINER_TO`,
-      nest_nav_container_to      TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
-      nest2_nav_container_to     TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
-      CROSS_APP_NAV_TO_EXT TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
-      CROSS_APP_NAV_TO_PREV_APP TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
+      popup_close               TYPE string VALUE `POPUP_CLOSE`,
+      open_new_tab              TYPE string VALUE `OPEN_NEW_TAB`,
+      popover_close             TYPE string VALUE `POPOVER_CLOSE`,
+      location_reload           TYPE string VALUE `LOCATION_RELOAD`,
+      nav_container_to          TYPE string VALUE `NAV_CONTAINER_TO`,
+      nest_nav_container_to     TYPE string VALUE `NEST_NAV_CONTAINER_TO`,
+      nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
+      cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
+      cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
     END OF cs_event.
 
   CONSTANTS:
@@ -38,14 +38,14 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_config,
-      view_model_edit_name TYPE string,
-      version              TYPE string,
-      origin               TYPE string,
-      pathname             TYPE string,
-      search               TYPE string,
-      body                 TYPE string,
-      CHECK_LAUNCHPAD_ACTIVE                 TYPE abap_bool,
-      t_startup_params type ty_t_name_value,
+      view_model_edit_name   TYPE string,
+      version                TYPE string,
+      origin                 TYPE string,
+      pathname               TYPE string,
+      search                 TYPE string,
+      body                   TYPE string,
+      check_launchpad_active TYPE abap_bool,
+      t_startup_params       TYPE ty_t_name_value,
     END OF ty_s_config.
 
   TYPES:
@@ -103,17 +103,18 @@ INTERFACE z2ui5_if_client
       method_insert  TYPE clike
       method_destroy TYPE clike OPTIONAL.
 
-  METHODS nest_view_display2
+  METHODS nest_view_destroy.
+  METHODS nest_view_model_update.
+
+  METHODS nest2_view_display
     IMPORTING
       val            TYPE clike
       id             TYPE clike
       method_insert  TYPE clike
       method_destroy TYPE clike OPTIONAL.
 
-  METHODS nest_view_destroy.
-
-  METHODS nest_view_model_update.
-  METHODS nest_view_model_update2.
+  METHODS nest2_view_destroy.
+  METHODS nest2_view_model_update.
 
   METHODS cursor_set
     IMPORTING
@@ -233,5 +234,8 @@ INTERFACE z2ui5_if_client
   METHODS _bind_clear
     IMPORTING
       val TYPE data.
+
+  METHODS factory_view
+    RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view.
 
 ENDINTERFACE.

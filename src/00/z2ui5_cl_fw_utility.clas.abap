@@ -3,6 +3,20 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
 
   PUBLIC SECTION.
 
+    CLASS-METHODS app_get_url_source_code
+      IMPORTING
+        client        TYPE REF TO z2ui5_if_client
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS app_get_url
+      IMPORTING
+        client         TYPE REF TO z2ui5_if_client
+        value(classname) type string optional
+      RETURNING
+        VALUE(result) TYPE string.
+
+
     CLASS-METHODS url_param_get
       IMPORTING
         val           TYPE string
@@ -55,7 +69,7 @@ CLASS z2ui5_cl_fw_utility DEFINITION PUBLIC
     CLASS-METHODS trans_json_any_2
       IMPORTING
         any           TYPE any
-        pretty_name   type clike default /ui2/cl_json=>pretty_mode-none
+        pretty_name   TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
       RETURNING
         VALUE(result) TYPE string.
 
@@ -187,7 +201,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
+CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
 
 
   METHOD boolean_abap_2_json.
@@ -457,7 +471,7 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize( data = any pretty_name = conv #( pretty_name ) ).
+    result = /ui2/cl_json=>serialize( data = any pretty_name = CONV #( pretty_name ) ).
 
   ENDMETHOD.
 
@@ -637,4 +651,31 @@ CLASS Z2UI5_CL_FW_UTILITY IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_fw_error EXPORTING val = v.
 
   ENDMETHOD.
+
+  METHOD app_get_url.
+
+    if classname is INITIAL.
+    classname = z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( client->get( )-s_draft-app ).
+    endif.
+
+    DATA(lv_url) = to_lower( client->get( )-s_config-origin && client->get( )-s_config-pathname ) && `?`.
+    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( client->get( )-s_config-search ).
+    DELETE lt_param WHERE n = `app_start`.
+    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
+
+    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
+
+  ENDMETHOD.
+
+  METHOD app_get_url_source_code.
+
+    DATA(ls_draft) = client->get( )-s_draft.
+    DATA(ls_config) = client->get( )-s_config.
+
+    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
+       && z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
+
+  ENDMETHOD.
+
+
 ENDCLASS.

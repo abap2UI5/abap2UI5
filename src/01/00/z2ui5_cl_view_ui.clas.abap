@@ -1,29 +1,30 @@
 CLASS z2ui5_cl_view_ui DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
+  CREATE PUBLIC INHERITING FROM z2ui5_cl_view.
 
   PUBLIC SECTION.
 
-    CLASS-DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
-
-    CLASS-METHODS class_constructor.
-
-    CLASS-METHODS factory
+    METHODS simpleform
       IMPORTING
-        t_ns          TYPE z2ui5_if_client=>ty_t_name_value DEFAULT mt_prop
+        !title        TYPE clike OPTIONAL
+        !layout       TYPE clike OPTIONAL
+        !editable     TYPE clike OPTIONAL
+        !columnsxl    TYPE clike OPTIONAL
+        !columnsl     TYPE clike OPTIONAL
+        !columnsm     TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
+          PREFERRED PARAMETER title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
 
+    METHODS content
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+
+    DATA _view TYPE REF TO z2ui5_cl_view.
+
   PROTECTED SECTION.
-
-    DATA mv_name  TYPE string.
-    DATA mv_ns     TYPE string.
-
-
-    DATA mo_root   TYPE REF TO z2ui5_cl_view_ui.
-    DATA mo_parent TYPE REF TO z2ui5_cl_view_ui.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -31,26 +32,26 @@ ENDCLASS.
 
 CLASS z2ui5_cl_view_ui IMPLEMENTATION.
 
-  METHOD class_constructor.
+  METHOD content.
 
-    mt_prop  = VALUE #( BASE mt_prop
-                                (  n = 'displayBlock'   v = 'true' )
-                                (  n = 'height'         v = '100%' ) ).
+    result = _view->add(
+        ns   = `form`
+        name = `content` )->ns_ui( ).
 
   ENDMETHOD.
 
-  METHOD factory.
+  METHOD simpleform.
 
-    result = NEW #( ).
-
-    IF t_ns IS NOT INITIAL.
-      result->mt_prop = t_ns.
-    ENDIF.
-
-    result->mv_name   = `View`.
-    result->mv_ns     = `mvc`.
-    result->mo_root   = result.
-    result->mo_parent = result.
+    result = add(
+        name   = `SimpleForm`
+        ns     = `form`
+        t_prop = VALUE #( ( n = `title`      v = title )
+                          ( n = `layout`     v = layout )
+                          ( n = `id`         v = id )
+                          ( n = `columnsXL`  v = columnsxl )
+                          ( n = `columnsL`   v = columnsl )
+                          ( n = `columnsM`   v = columnsm )
+                          ( n = `editable`   v = b2json( editable ) ) ) )->ns_ui( ).
 
   ENDMETHOD.
 

@@ -4227,27 +4227,31 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD hlp_get_app_url.
 
-    IF classname IS NOT SUPPLIED.
-      classname = z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( mi_client->get( )-s_draft-app ).
-    ENDIF.
+    result = z2ui5_cl_fw_utility=>app_get_url( mi_client ).
 
-    DATA(lv_url) = to_lower( mi_client->get( )-s_config-origin && mi_client->get( )-s_config-pathname ) && `?`.
-    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( mi_client->get( )-s_config-search ).
-    DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
-
-    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
+*    IF classname IS NOT SUPPLIED.
+*      classname = z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( mi_client->get( )-s_draft-app ).
+*    ENDIF.
+*
+*    DATA(lv_url) = to_lower( mi_client->get( )-s_config-origin && mi_client->get( )-s_config-pathname ) && `?`.
+*    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( mi_client->get( )-s_config-search ).
+*    DELETE lt_param WHERE n = `app_start`.
+*    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
+*
+*    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
 
   ENDMETHOD.
 
 
   METHOD hlp_get_source_code_url.
 
-    DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
-    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
+    result = z2ui5_cl_fw_utility=>app_get_url_source_code( mo_root->mi_client ).
 
-    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-       && z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
+*    DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
+*    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
+*
+*    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
+*       && z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
 
   ENDMETHOD.
 
@@ -4256,7 +4260,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     result = z2ui5_cl_fw_utility=>url_param_get(
       val = val
-      url = mi_client->get( )-s_config-search ).
+      url = mo_root->mi_client->get( )-s_config-search ).
 
   ENDMETHOD.
 
@@ -4264,7 +4268,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD hlp_set_url_param.
 
     DATA(result) = z2ui5_cl_fw_utility=>url_param_set(
-      url   = mi_client->get( )-s_config-search
+      url   = mo_root->mi_client->get( )-s_config-search
       name  = n
       value = v ).
 
