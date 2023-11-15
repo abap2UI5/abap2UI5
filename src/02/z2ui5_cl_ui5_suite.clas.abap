@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_view_suite DEFINITION
+CLASS z2ui5_cl_ui5_suite DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
@@ -11,7 +11,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_view_suite IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_suite IMPLEMENTATION.
 
 
 ENDCLASS.

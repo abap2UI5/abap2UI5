@@ -39,19 +39,19 @@ CLASS z2ui5_cl_ui5 DEFINITION
 
     METHODS _ns_ndc
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_ndc.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ndc.
 
     METHODS _ns_m
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_sap_m.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS _ns_ui
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS _ns_zcc
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS constructor
       IMPORTING

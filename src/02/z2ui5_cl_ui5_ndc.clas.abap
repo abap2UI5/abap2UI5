@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_sap_ndc DEFINITION
+CLASS z2ui5_cl_ui5_ndc DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
@@ -10,7 +10,7 @@ CLASS z2ui5_cl_ui5_sap_ndc DEFINITION
                 scanfail        TYPE clike OPTIONAL
                 inputliveupdate TYPE clike OPTIONAL
                 dialogtitle     TYPE clike OPTIONAL
-      RETURNING VALUE(result)   TYPE REF TO z2ui5_cl_ui5_sap_ndc.
+      RETURNING VALUE(result)   TYPE REF TO z2ui5_cl_ui5_ndc.
 
   PROTECTED SECTION.
 
@@ -19,7 +19,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UI5_SAP_NDC IMPLEMENTATION.
+CLASS Z2UI5_CL_UI5_NDC IMPLEMENTATION.
 
 
   METHOD barcodescannerbutton.

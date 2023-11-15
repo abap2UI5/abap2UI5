@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_view_ui DEFINITION
+CLASS z2ui5_cl_ui5_ui DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
@@ -13,10 +13,10 @@ CLASS z2ui5_cl_view_ui DEFINITION
                 columnsm      TYPE clike OPTIONAL
                 id            TYPE clike OPTIONAL
           PREFERRED PARAMETER title
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS content
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
   PROTECTED SECTION.
 
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_view_ui DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_view_ui IMPLEMENTATION.
+CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
   METHOD content.
     result = _add( ns = `sap.ui.layout.form`
                    n  = `content` )->_ns_ui( ).

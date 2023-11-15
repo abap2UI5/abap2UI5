@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_VIEW_SUITE</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UI5_NDC</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>namespace sap.suite</DESCRIPT>
+    <DESCRIPT>ns - sap.ndc</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
