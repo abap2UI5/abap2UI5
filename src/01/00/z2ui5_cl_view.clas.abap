@@ -194,7 +194,8 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    DATA(result2) = NEW z2ui5_cl_view( NEW lcl_view_node( ) ).
+    data(lo_node) = NEW lcl_view_node( ).
+    DATA(result2) = NEW z2ui5_cl_view( lo_node ).
     result2->_node->mv_name   = n.
     result2->_node->mv_ns     = ns.
     result2->_node->mt_prop  = t_p.
@@ -221,19 +222,18 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
     result = NEW #( ).
 
-    data(lv_n) = COND #( WHEN check_popup = abap_true THEN `FragmentDefinition` ELSE `View` ).
-    data(lv_ns) = COND #( WHEN check_popup = abap_true THEN `core` ELSE `sap.ui.core.mvc` ).
-    result = result->_add(
-        n   = lv_n
-        ns  = lv_ns
-     ).
+    DATA(lv_n) = COND #( WHEN check_popup = abap_true THEN `FragmentDefinition` ELSE `View` ).
+    DATA(lv_ns) = COND #( WHEN check_popup = abap_true THEN `sap.ui.core` ELSE `sap.ui.core.mvc` ).
 
-    result->_add_p( n = `displayBlock`  v = `true` ).
-    result->_add_p( n = `height`  v = `100%` ).
+    result = result->_add( n = lv_n ns  = lv_ns ).
+
+    IF check_popup = abap_false.
+      result->_add_p( n = `displayBlock`  v = `true` ).
+      result->_add_p( n = `height`  v = `100%` ).
+    ENDIF.
 
     result->_node->mt_ns = result->_node->mo_root->mt_ns.
     result->_node->mo_root = result->_node.
-
 
   ENDMETHOD.
 
