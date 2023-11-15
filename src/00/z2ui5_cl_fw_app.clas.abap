@@ -93,7 +93,12 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
   METHOD view_display_start.
 
-    DATA(lv_url) = z2ui5_cl_xml_view=>factory( client )->hlp_get_app_url( ms_home-classname ).
+*    DATA(lv_url) = z2ui5_cl_xml_view=>factory( client )->hlp_get_app_url( ms_home-classname ).
+    DATA(lv_url) = z2ui5_cl_fw_utility=>app_get_url(
+                     client    = client
+                     classname = ms_home-classname
+                   ).
+
 
     DATA(page) = z2ui5_cl_xml_view=>factory( client )->shell(
       )->page( shownavbutton = abap_false ).

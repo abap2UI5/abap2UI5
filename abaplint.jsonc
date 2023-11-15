@@ -119,7 +119,7 @@
     "in_statement_indentation": false,
     "indentation": false,
     "inline_data_old_versions": true,
-    "intf_referencing_clas": true,
+    "intf_referencing_clas": false,
     "keep_single_parameter_on_one_line": false,
     "keyword_case": false,
     "line_break_multiple_parameters": false,
