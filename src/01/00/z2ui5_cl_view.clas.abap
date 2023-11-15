@@ -4,61 +4,76 @@ CLASS z2ui5_cl_view DEFINITION
 
   PUBLIC SECTION.
 
-
-    METHODS to_parent
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
-    METHODS to_root
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
-    METHODS to_previous
+    CLASS-METHODS _factory
+      IMPORTING
+        check_popup   TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
 
-    METHODS stringify
+    METHODS _go_up
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view.
+
+    METHODS _go_root
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view.
+
+    METHODS _go_new
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view.
+
+    METHODS _add
+      IMPORTING
+        n             TYPE clike
+        ns            TYPE clike OPTIONAL
+        t_p           TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view.
+
+    METHODS _add_p
+      IMPORTING
+        n             TYPE clike
+        v             TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view.
+
+    METHODS _ns_m
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view_m.
+
+    METHODS _ns_ui
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+
+    METHODS _ns_zcc
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
+
+    METHODS constructor
+      IMPORTING
+        node TYPE REF TO object OPTIONAL.
+
+    METHODS _stringify
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS add_property
-      IMPORTING
-        val           TYPE z2ui5_if_client=>ty_s_name_value OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
-
-    METHODS add
-      IMPORTING
-        name          TYPE clike
-        ns            TYPE clike OPTIONAL
-        t_prop        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
-    METHODS ns_m
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_m.
-    METHODS ns_ui
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
-    METHODS ns_zcc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
-
   PROTECTED SECTION.
 
-    DATA mt_prop  TYPE z2ui5_if_client=>ty_t_name_value.
-    DATA mv_name  TYPE string.
-    DATA mv_ns     TYPE string.
-    DATA mo_root   TYPE REF TO z2ui5_cl_view.
-    DATA mo_previous   TYPE REF TO z2ui5_cl_view.
-    DATA mo_parent TYPE REF TO z2ui5_cl_view.
-    DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_view WITH EMPTY KEY.
+    CLASS-METHODS _2xml
+      IMPORTING
+        obj           TYPE REF TO z2ui5_cl_view
+      RETURNING
+        VALUE(result) TYPE string.
 
-    CLASS-METHODS b2json
+    CLASS-METHODS _2bool
       IMPORTING
         val           TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
+    DATA _node TYPE REF TO lcl_view_node.
+
 ENDCLASS.
 
 
@@ -66,7 +81,19 @@ ENDCLASS.
 CLASS z2ui5_cl_view IMPLEMENTATION.
 
 
-  METHOD b2json.
+  METHOD constructor.
+
+    IF node IS NOT BOUND.
+      me->_node = NEW #( ).
+      me->_node->mo_root = me->_node.
+    ELSE.
+      me->_node = CAST #( node ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD _2bool.
 
 *    IF  val.
     result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
@@ -77,68 +104,191 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD add_property.
+  METHOD _2xml.
 
-    INSERT val INTO TABLE mt_prop.
-    result = me.
+    IF obj->_node->mv_name = `ZZPLAIN`.
+      result = obj->_node->mt_prop[ n = `VALUE` ]-v.
+      RETURN.
+    ENDIF.
+
+    DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
+    lt_prop = VALUE #(
+                   ( n = ``          v = `sap.m` )
+
+                   ( n = `f`         v = `sap.f` )
+                   ( n = `ndc`       v = `sap.ndc` )
+                   ( n = `tnt`       v = `sap.tnt` )
+
+                   ( n = `mvc`       v = `sap.ui.core.mvc` )
+                   ( n = `core`      v = `sap.ui.core` )
+                   ( n = `form`      v = `sap.ui.layout.form` )
+                   ( n = `l`         v = `sap.ui.layout` )
+                   ( n = `t`         v = `sap.ui.table` )
+                   ( n = `fl`        v = `sap.ui.fl` )
+                   ( n = `vk`        v = `sap.ui.vk` )
+                   ( n = `vbm`       v = `sap.ui.vbm` )
+
+                   ( n = `z2ui5`     v = `z2ui5` )
+
+*                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
+*                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
+
+
+
+                    ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
+                    ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
+                    ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
+                    ( n = `xmlns:uxap`      v = `sap.uxap` )
+                    ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
+                    ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
+                    ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
+                    ( n = `xmlns:u`         v = `sap.ui.unified` )
+                    ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
+                    ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
+                    ( n = `xmlns:config`    v = `sap.gantt.config` )
+                    ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
+                    ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
+                    ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
+                    ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
+
+                    ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
+                    ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
+                    ( n = `xmlns:p13n`      v = `sap.m.p13n` )
+                    ( n = `xmlns:upload`    v = `sap.m.upload` ) ).
+
+    IF obj->_node = obj->_node->mo_root.
+
+      LOOP AT obj->_node->mt_ns INTO DATA(lv_ns_tmp).
+
+        DATA(ls_prop) = lt_prop[ v = lv_ns_tmp ].
+        ls_prop-n = `xmlns` && COND #( WHEN ls_prop-n IS NOT INITIAL THEN `:` && ls_prop-n ).
+        INSERT ls_prop INTO TABLE obj->_node->mt_prop.
+
+      ENDLOOP.
+
+    ENDIF.
+
+    DATA(lv_ns) = lt_prop[ v = obj->_node->mv_ns ]-n.
+    lv_ns = COND #( WHEN lv_ns <> `` THEN |{ lv_ns }:| ).
+
+    DATA(lv_element) = obj->_node->mv_name.
+    DATA(lv_prop) = REDUCE #( INIT val = `` FOR row IN obj->_node->mt_prop
+                       NEXT val = |{ val } { row-n }="{ escape( val    = COND #( WHEN row-v = abap_true THEN `true` ELSE row-v )
+                                                                format = cl_abap_format=>e_xml_attr ) }"| ).
+
+    result = |{ result }<{ lv_ns }{ lv_element }{ lv_prop }|.
+
+    IF obj->_node->mt_child IS INITIAL.
+      result = |{ result }/>|.
+      RETURN.
+    ENDIF.
+
+    result = |{ result }>|.
+
+    LOOP AT obj->_node->mt_child INTO DATA(lr_child).
+      DATA(lo_child) = NEW z2ui5_cl_view( lr_child ).
+      result = result && _2xml( lo_child ).
+    ENDLOOP.
+
+    result = |{ result }</{ lv_ns }{ lv_element }>|.
 
   ENDMETHOD.
 
-  METHOD add.
 
-    DATA(result2) = NEW z2ui5_cl_view( ).
-    result2->mv_name   = name.
-    result2->mv_ns     = ns.
-    result2->mt_prop  = t_prop.
-    result2->mo_parent = me.
-    result2->mo_root   = mo_root.
-    INSERT result2 INTO TABLE mt_child.
+  METHOD _add.
 
-    mo_root->mo_previous = result2.
+    TRY.
+        INSERT CONV #( ns ) INTO TABLE _node->mo_root->mt_ns.
+      CATCH cx_root.
+    ENDTRY.
+
+    DATA(result2) = NEW z2ui5_cl_view( NEW lcl_view_node( ) ).
+    result2->_node->mv_name   = n.
+    result2->_node->mv_ns     = ns.
+    result2->_node->mt_prop  = t_p.
+    DELETE result2->_node->mt_prop WHERE v = ``.
+    result2->_node->mo_parent = _node.
+    result2->_node->mo_root   = _node->mo_root.
+    INSERT result2->_node INTO TABLE _node->mt_child.
+
+    _node->mo_root->mo_previous = result2->_node.
     result = result2.
 
   ENDMETHOD.
 
-  METHOD ns_m.
+
+  METHOD _add_p.
+
+    INSERT VALUE #( n = n v = v ) INTO TABLE _node->mt_prop.
+    result = me.
+
+  ENDMETHOD.
+
+
+  METHOD _factory.
 
     result = NEW #( ).
 
-  ENDMETHOD.
+    result = result->_add(
+        n   = COND #( WHEN check_popup = abap_true THEN `FragmentDefinition` ELSE `View` )
+        ns  = COND #( WHEN check_popup = abap_true THEN `core` ELSE `sap.ui.core.mvc` )
+     ).
 
-  METHOD ns_ui.
+    result->_add_p( n = `displayBlock`  v = `true` ).
+    result->_add_p( n = `height`  v = `100%` ).
 
-    result = NEW #( ).
+    result->_node->mt_ns = result->_node->mo_root->mt_ns.
+    result->_node->mo_root = result->_node.
 
-  ENDMETHOD.
-
-  METHOD ns_zcc.
-
-    result = NEW #( ).
-
-  ENDMETHOD.
-
-  METHOD stringify.
-
-    result = ``.
 
   ENDMETHOD.
 
-  METHOD to_parent.
 
-    result = mo_parent.
+  METHOD _go_new.
 
-  ENDMETHOD.
-
-  METHOD to_previous.
-
-    result = mo_previous.
+    result = NEW #( _node->mo_previous ).
 
   ENDMETHOD.
 
-  METHOD to_root.
 
-    result = mo_root.
+  METHOD _go_root.
+
+    result = NEW #( _node->mo_root ).
 
   ENDMETHOD.
 
+
+  METHOD _go_up.
+
+    result = NEW #( _node->mo_parent ).
+
+  ENDMETHOD.
+
+
+  METHOD _ns_m.
+
+    result = NEW #( _node ).
+
+  ENDMETHOD.
+
+
+  METHOD _ns_ui.
+
+    result = NEW #( _node ).
+
+  ENDMETHOD.
+
+
+  METHOD _ns_zcc.
+
+    result = NEW #( _node ).
+
+  ENDMETHOD.
+
+
+  METHOD _stringify.
+
+    result = _2xml( NEW #( _node->mo_root ) ).
+
+  ENDMETHOD.
 ENDCLASS.

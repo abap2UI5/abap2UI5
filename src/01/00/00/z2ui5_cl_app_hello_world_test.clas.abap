@@ -29,18 +29,18 @@ CLASS z2ui5_cl_app_hello_world_test IMPLEMENTATION.
         client->message_toast_display( |{ product } { quantity } - send to the server| ).
     ENDCASE.
 
-    client->view_display( client->factory_view( )->ns_m(
+    client->view_display( client->factory_view( )->_ns_m(
         )->shell(
-        )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world' )->ns_ui(
+        )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world' )->_ns_ui(
             )->simpleform( title = 'Hello World' editable = abap_true
-                )->content( )->ns_m(
+                )->content( )->_ns_m(
                     )->title( 'Make an input here and send it to the server...'
                     )->label( 'quantity'
                     )->input( client->_bind_edit( quantity )
                     )->label( 'product'
                     )->input( value = product enabled = abap_false
                     )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
-         )->stringify( ) ).
+         )->_stringify( ) ).
 
   ENDMETHOD.
 ENDCLASS.

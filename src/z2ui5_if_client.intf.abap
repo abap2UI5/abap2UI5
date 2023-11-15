@@ -236,6 +236,8 @@ INTERFACE z2ui5_if_client
       val TYPE data.
 
   METHODS factory_view
+  IMPORTING
+    check_popup type abap_bool default abap_false
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_view.
 

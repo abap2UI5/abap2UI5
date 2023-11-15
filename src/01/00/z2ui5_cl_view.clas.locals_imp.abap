@@ -1,0 +1,5 @@
+
+
+CLASS lcl_view_node IMPLEMENTATION.
+
+ENDCLASS.

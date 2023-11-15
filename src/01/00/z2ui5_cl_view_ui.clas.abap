@@ -22,8 +22,6 @@ CLASS z2ui5_cl_view_ui DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
 
-    DATA _view TYPE REF TO z2ui5_cl_view.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -34,24 +32,24 @@ CLASS z2ui5_cl_view_ui IMPLEMENTATION.
 
   METHOD content.
 
-    result = _view->add(
-        ns   = `form`
-        name = `content` )->ns_ui( ).
+    result = _add(
+        ns   = `sap.ui.layout.form`
+        n = `content` )->_ns_ui( ).
 
   ENDMETHOD.
 
   METHOD simpleform.
 
-    result = add(
-        name   = `SimpleForm`
-        ns     = `form`
-        t_prop = VALUE #( ( n = `title`      v = title )
-                          ( n = `layout`     v = layout )
-                          ( n = `id`         v = id )
-                          ( n = `columnsXL`  v = columnsxl )
-                          ( n = `columnsL`   v = columnsl )
-                          ( n = `columnsM`   v = columnsm )
-                          ( n = `editable`   v = b2json( editable ) ) ) )->ns_ui( ).
+    result = _add(
+        n   = `SimpleForm`
+        ns     = `sap.ui.layout.form`
+        t_p = VALUE #( ( n = `title`      v = title )
+                       ( n = `layout`     v = layout )
+                       ( n = `id`         v = id )
+                       ( n = `columnsXL`  v = columnsxl )
+                       ( n = `columnsL`   v = columnsl )
+                       ( n = `columnsM`   v = columnsm )
+                       ( n = `editable`   v = _2bool( editable ) ) ) )->_ns_ui( ).
 
   ENDMETHOD.
 
