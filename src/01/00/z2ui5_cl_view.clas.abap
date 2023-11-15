@@ -114,7 +114,6 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
     DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
     lt_prop = VALUE #(
                    ( n = ``          v = `sap.m` )
-
                    ( n = `f`         v = `sap.f` )
                    ( n = `ndc`       v = `sap.ndc` )
                    ( n = `tnt`       v = `sap.tnt` )
@@ -127,14 +126,9 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
                    ( n = `fl`        v = `sap.ui.fl` )
                    ( n = `vk`        v = `sap.ui.vk` )
                    ( n = `vbm`       v = `sap.ui.vbm` )
-
                    ( n = `z2ui5`     v = `z2ui5` )
-
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-
-
-
                     ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
                     ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
                     ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
@@ -150,7 +144,6 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
                     ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                     ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
                     ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
-
                     ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
                     ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
                     ( n = `xmlns:p13n`      v = `sap.m.p13n` )
