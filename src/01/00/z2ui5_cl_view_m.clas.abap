@@ -121,7 +121,6 @@ CLASS z2ui5_cl_view_m DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_m.
 
-    DATA _view TYPE REF TO z2ui5_cl_view.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -199,7 +198,7 @@ CLASS z2ui5_cl_view_m IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD shell.
-    result = _view->add( `Shell` )->ns_m( ).
+    result = add( `Shell` )->ns_m( ).
   ENDMETHOD.
 
   METHOD input.

@@ -5,7 +5,6 @@ CLASS z2ui5_cl_view_zcc DEFINITION
 
   PUBLIC SECTION.
 
-    DATA _view TYPE REF TO z2ui5_cl_view.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
