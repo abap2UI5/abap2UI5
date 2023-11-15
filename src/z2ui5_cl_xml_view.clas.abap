@@ -4227,7 +4227,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD hlp_get_app_url.
 
-    result = z2ui5_cl_fw_utility=>app_get_url( mi_client ).
+    result = z2ui5_cl_fw_utility=>app_get_url( client = mi_client classname = classname ).
 
 *    IF classname IS NOT SUPPLIED.
 *      classname = z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( mi_client->get( )-s_draft-app ).

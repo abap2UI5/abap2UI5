@@ -272,6 +272,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~factory_view.
+
+    result = NEW #( ).
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_clear.
 
@@ -282,7 +287,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
         DELETE mo_handler->ms_db-t_attri.
       ENDIF.
     ENDLOOP.
-    return.
+    RETURN.
 
 *    DATA(lr_in) = REF #( val ).
 *

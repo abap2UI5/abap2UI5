@@ -236,6 +236,7 @@ INTERFACE z2ui5_if_client
       val TYPE data.
 
   METHODS factory_view
-    RETURNING VALUE(result) TYPE REF TO z2ui5_cl_view.
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_view.
 
 ENDINTERFACE.

@@ -106,35 +106,46 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
   METHOD ns_m.
 
-    result = NEW z2ui5_cl_view_m( ).
+    result = NEW #( ).
     result->_view = me.
 
   ENDMETHOD.
 
   METHOD ns_ui.
 
-    result = NEW z2ui5_cl_view_ui( ).
+    result = NEW #( ).
     result->_view = me.
 
   ENDMETHOD.
 
   METHOD ns_zcc.
 
+    result = NEW #( ).
+    result->_view = me.
+
   ENDMETHOD.
 
   METHOD stringify.
+
+    result = ``.
 
   ENDMETHOD.
 
   METHOD to_parent.
 
+    result = mo_parent.
+
   ENDMETHOD.
 
   METHOD to_previous.
 
+    result = mo_previous.
+
   ENDMETHOD.
 
   METHOD to_root.
+
+    result = mo_root.
 
   ENDMETHOD.
 

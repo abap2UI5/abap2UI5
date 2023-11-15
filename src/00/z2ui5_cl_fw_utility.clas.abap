@@ -655,15 +655,15 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
   METHOD app_get_url.
 
     if classname is INITIAL.
-    classname = z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( client->get( )-s_draft-app ).
+    classname = rtti_get_classname_by_ref( client->get( )-s_draft-app ).
     endif.
 
     DATA(lv_url) = to_lower( client->get( )-s_config-origin && client->get( )-s_config-pathname ) && `?`.
-    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( client->get( )-s_config-search ).
+    DATA(lt_param) = url_param_get_tab( client->get( )-s_config-search ).
     DELETE lt_param WHERE n = `app_start`.
     INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
 
-    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
+    result = lv_url && url_param_create_url( lt_param ).
 
   ENDMETHOD.
 
@@ -673,7 +673,7 @@ CLASS z2ui5_cl_fw_utility IMPLEMENTATION.
     DATA(ls_config) = client->get( )-s_config.
 
     result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-       && z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
+       && rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
 
   ENDMETHOD.
 
