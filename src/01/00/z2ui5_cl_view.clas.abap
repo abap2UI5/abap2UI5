@@ -221,9 +221,11 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
 
     result = NEW #( ).
 
+    data(lv_n) = COND #( WHEN check_popup = abap_true THEN `FragmentDefinition` ELSE `View` ).
+    data(lv_ns) = COND #( WHEN check_popup = abap_true THEN `core` ELSE `sap.ui.core.mvc` ).
     result = result->_add(
-        n   = COND #( WHEN check_popup = abap_true THEN `FragmentDefinition` ELSE `View` )
-        ns  = COND #( WHEN check_popup = abap_true THEN `core` ELSE `sap.ui.core.mvc` )
+        n   = lv_n
+        ns  = lv_ns
      ).
 
     result->_add_p( n = `displayBlock`  v = `true` ).
