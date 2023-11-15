@@ -76,7 +76,7 @@ CLASS z2ui5_cl_view DEFINITION
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    DATA _node TYPE REF TO z2ui5_cl_view__node.
+    DATA _node TYPE REF TO z2ui5_cl_fw_utility_xml.
 
 ENDCLASS.
 
@@ -194,7 +194,7 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    DATA(lo_node) = NEW z2ui5_cl_view__node( ).
+    DATA(lo_node) = NEW z2ui5_cl_fw_utility_xml( ).
     DATA(result2) = NEW z2ui5_cl_view( lo_node ).
     result2->_node->mv_name  = n.
     result2->_node->mv_ns    = ns.
