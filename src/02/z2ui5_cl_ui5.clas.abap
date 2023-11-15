@@ -63,6 +63,8 @@ CLASS z2ui5_cl_ui5 DEFINITION
 
   PROTECTED SECTION.
 
+    DATA _node TYPE REF TO z2ui5_cl_fw_utility_xml.
+
     CLASS-METHODS _2xml
       IMPORTING
         obj           TYPE REF TO z2ui5_cl_ui5
@@ -76,8 +78,6 @@ CLASS z2ui5_cl_ui5 DEFINITION
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-    DATA _node TYPE REF TO z2ui5_cl_fw_utility_xml.
-
 ENDCLASS.
 
 
@@ -88,10 +88,10 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   METHOD constructor.
 
     IF node IS NOT BOUND.
-      me->_node = NEW #( ).
-      me->_node->mo_root = me->_node.
+      _node = NEW #( ).
+      _node->mo_root = _node.
     ELSE.
-      me->_node = node.
+      _node = node.
     ENDIF.
 
   ENDMETHOD.
