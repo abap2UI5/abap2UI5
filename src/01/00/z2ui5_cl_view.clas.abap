@@ -102,21 +102,18 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
   METHOD ns_m.
 
     result = NEW #( ).
-    result->_view = me.
 
   ENDMETHOD.
 
   METHOD ns_ui.
 
     result = NEW #( ).
-    result->_view = me.
 
   ENDMETHOD.
 
   METHOD ns_zcc.
 
     result = NEW #( ).
-    result->_view = me.
 
   ENDMETHOD.
 
