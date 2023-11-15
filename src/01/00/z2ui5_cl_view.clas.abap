@@ -117,7 +117,6 @@ CLASS z2ui5_cl_view IMPLEMENTATION.
                    ( n = `f`         v = `sap.f` )
                    ( n = `ndc`       v = `sap.ndc` )
                    ( n = `tnt`       v = `sap.tnt` )
-
                    ( n = `mvc`       v = `sap.ui.core.mvc` )
                    ( n = `core`      v = `sap.ui.core` )
                    ( n = `form`      v = `sap.ui.layout.form` )
