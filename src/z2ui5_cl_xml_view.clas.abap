@@ -28,7 +28,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS hlp_get_app_url
       IMPORTING
-        VALUE(classname) TYPE string OPTIONAL
+        classname TYPE string OPTIONAL
       RETURNING
         VALUE(result)    TYPE string.
 

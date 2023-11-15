@@ -4,22 +4,13 @@ CLASS z2ui5_cl_view DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS add
-      IMPORTING
-        !name         TYPE clike
-        !ns           TYPE clike OPTIONAL
-        !t_prop       TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_view.
 
     METHODS to_parent
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
-
     METHODS to_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
-
     METHODS to_previous
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
@@ -30,22 +21,26 @@ CLASS z2ui5_cl_view DEFINITION
 
     METHODS add_property
       IMPORTING
-        !val          TYPE z2ui5_if_client=>ty_s_name_value OPTIONAL
+        val           TYPE z2ui5_if_client=>ty_s_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view.
 
+    METHODS add
+      IMPORTING
+        name          TYPE clike
+        ns            TYPE clike OPTIONAL
+        t_prop        TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_view.
     METHODS ns_m
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_m.
-
     METHODS ns_ui
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
-
     METHODS ns_zcc
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_view_ui.
-
 
   PROTECTED SECTION.
 

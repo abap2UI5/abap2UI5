@@ -131,7 +131,7 @@ ENDCLASS.
 CLASS z2ui5_cl_view_m IMPLEMENTATION.
   METHOD button.
     result = me.
-    _view->add( name   = `Button`
+    add( name   = `Button`
                 t_prop = VALUE #( ( n = `press`   v = press )
                                   ( n = `text`    v = text )
                                   ( n = `enabled` v = b2json( enabled ) )
@@ -152,7 +152,7 @@ CLASS z2ui5_cl_view_m IMPLEMENTATION.
 
   METHOD label.
     result = me.
-    _view->add( name   = `Label`
+    add( name   = `Label`
                 t_prop = VALUE #( ( n = `text`           v = text )
                                   ( n = `displayOnly`    v = b2json( displayonly ) )
                                   ( n = `required`       v = b2json( required ) )
@@ -171,13 +171,14 @@ CLASS z2ui5_cl_view_m IMPLEMENTATION.
 
   METHOD title.
     result = me.
-    _view->add( name   = `Title`
+    add( name   = `Title`
                 t_prop = VALUE #( ( n = `text`     v = text )
                                   ( n = `wrapping` v = b2json( wrapping ) )
                                   ( n = `level`    v = level ) ) ).
   ENDMETHOD.
 
   METHOD page.
+
     result = add( name   = `Page`
                   t_prop = VALUE #( ( n = `title`            v = title )
                                     ( n = `showNavButton`    v = b2json( shownavbutton ) )
@@ -194,15 +195,16 @@ CLASS z2ui5_cl_view_m IMPLEMENTATION.
                                     ( n = `showFooter`       v = b2json( showfooter ) )
                                     ( n = `showSubHeader`    v = b2json( showsubheader ) )
                                     ( n = `id`               v = id ) ) )->ns_m( ).
+
   ENDMETHOD.
 
   METHOD shell.
-    result = add( `Shell` )->ns_m( ).
+    result = _view->add( `Shell` )->ns_m( ).
   ENDMETHOD.
 
   METHOD input.
     result = me.
-    _view->add( name   = `Input`
+    add( name   = `Input`
                 t_prop = VALUE #( ( n = `id`                       v = id )
                                   ( n = `placeholder`              v = placeholder )
                                   ( n = `type`                     v = type )
