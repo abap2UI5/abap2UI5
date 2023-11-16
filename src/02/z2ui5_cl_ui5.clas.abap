@@ -18,7 +18,7 @@ CLASS z2ui5_cl_ui5 DEFINITION
 
     METHODS _add
       IMPORTING n             TYPE clike
-                ns            TYPE clike                            OPTIONAL
+                ns            TYPE clike
                 t_p           TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 

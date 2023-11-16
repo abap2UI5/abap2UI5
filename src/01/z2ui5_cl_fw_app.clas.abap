@@ -159,7 +159,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     IF mv_check_demo = abap_false.
       form->_ns_m( )->messagestrip( text = `Oops! You need to install abap2UI5 demos before continuing...`
                            type = `Warning`
-          )->_go_new( )->_add( `link` )->_ns_m( )->link( text   = `(HERE)`
+          )->_go_new( )->_add( n = `link` ns = `sap.m` )->_ns_m( )->link( text   = `(HERE)`
                                                target = `_blank`
                                                href   = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.

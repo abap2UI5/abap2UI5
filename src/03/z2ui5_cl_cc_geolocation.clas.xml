@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CC_GEOLOCATION</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>browser - geolocation</DESCRIPT>
+    <DESCRIPT>cc - geolocation</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
