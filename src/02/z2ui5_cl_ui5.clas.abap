@@ -99,9 +99,10 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
                        ( n = `vbm`       v = `sap.ui.vbm` )
                        ( n = `z2ui5`     v = `z2ui5` )
                        ( n = `mchart`    v = `sap.suite.ui.microchart` )
+                       ( n = `editor`    v = `sap.ui.codeeditor` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
+
                        ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
                        ( n = `xmlns:uxap`      v = `sap.uxap` )
                        ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
@@ -129,9 +130,13 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
             INSERT ls_prop INTO TABLE obj->_node->mt_prop.
 
           CATCH cx_root.
+
+            data(lv_text) = cond #( when lv_ns_tmp is initial then `XML_VIEW_NOT_VALID_NAMESPACE_EMPTY`
+                else `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp ).
+
             RAISE EXCEPTION TYPE z2ui5_cx_fw_error
               EXPORTING
-                val = `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp.
+                val = lv_text.
         ENDTRY.
       ENDLOOP.
 

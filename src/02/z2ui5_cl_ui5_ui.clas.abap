@@ -16,7 +16,10 @@ CLASS z2ui5_cl_ui5_ui DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS content
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
+      IMPORTING
+        ns            TYPE clike DEFAULT `sap.ui.layout.form`
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS tabcontainer
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
@@ -29,14 +32,33 @@ CLASS z2ui5_cl_ui5_ui DEFINITION
     METHODS grid
       IMPORTING class         TYPE clike OPTIONAL
                 default_span  TYPE clike OPTIONAL
-          PREFERRED PARAMETER default_span
+                  PREFERRED PARAMETER default_span
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS griddata
       IMPORTING span          TYPE clike OPTIONAL
-          PREFERRED PARAMETER span
+                  PREFERRED PARAMETER span
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
+    METHODS codeeditor
+      IMPORTING
+        !value        TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !height       TYPE clike OPTIONAL
+        !width        TYPE clike OPTIONAL
+        !editable     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui .
+    METHODS listitem
+      IMPORTING
+        !text           TYPE clike OPTIONAL
+        !additionaltext TYPE clike OPTIONAL
+        !key            TYPE clike OPTIONAL
+        !icon           TYPE clike OPTIONAL
+        !enabled        TYPE clike OPTIONAL
+        !textdirection  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)   TYPE REF TO z2ui5_cl_ui5_ui.
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -44,6 +66,30 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
+
+  METHOD listitem.
+    result = me.
+    _add( n   = `ListItem`
+              ns     = `sap.ui.core`
+              t_p  = VALUE #( ( n = `text` v = text )
+                                ( n = `icon` v = icon )
+                                ( n = `key`  v = key )
+                                ( n = `textDirection`  v = textdirection )
+                                ( n = `enabled`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                ( n = `additionalText` v = additionaltext ) ) ).
+  ENDMETHOD.
+
+  METHOD codeeditor.
+    result = me.
+    _add( n   = `CodeEditor`
+              ns     = `sap.ui.codeeditor`
+              t_p = VALUE #( ( n = `value`   v = value )
+                                ( n = `type`    v = type )
+                                ( n = `editable`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                ( n = `height` v = height )
+                                ( n = `width`  v = width ) ) )->_ns_ui( ).
+  ENDMETHOD.
+
   METHOD griddata.
     result = me.
     _add( n   = `GridData`
@@ -70,7 +116,7 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD content.
-    result = _add( ns = `sap.ui.layout.form`
+    result = _add( ns = ns
                    n  = `content` )->_ns_ui( ).
   ENDMETHOD.
 

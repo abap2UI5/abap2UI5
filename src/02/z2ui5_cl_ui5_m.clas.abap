@@ -4,6 +4,15 @@ CLASS z2ui5_cl_ui5_m DEFINITION
   CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
 
   PUBLIC SECTION.
+    METHODS suggestionitems
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS toolbarspacer
+      IMPORTING
+        !ns           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m .
+
     METHODS input
       IMPORTING id                            TYPE clike OPTIONAL
                 value                         TYPE clike OPTIONAL
@@ -144,7 +153,7 @@ CLASS z2ui5_cl_ui5_m DEFINITION
                 wrapping           TYPE clike OPTIONAL
                 wrappingtype       TYPE clike OPTIONAL
                 id                 TYPE clike OPTIONAL
-          PREFERRED PARAMETER text
+                  PREFERRED PARAMETER text
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS layoutdata
@@ -169,6 +178,41 @@ CLASS z2ui5_cl_ui5_m DEFINITION
                 aligncontent     TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_ui5_m.
 
+    METHODS footer
+      IMPORTING ns            TYPE string OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS overflowtoolbar
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS overflowtoolbartogglebutton
+      IMPORTING text          TYPE clike OPTIONAL
+                icon          TYPE clike OPTIONAL
+                type          TYPE clike OPTIONAL
+                enabled       TYPE clike OPTIONAL
+                press         TYPE clike OPTIONAL
+                tooltip       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS overflowtoolbarbutton
+      IMPORTING text          TYPE clike OPTIONAL
+                icon          TYPE clike OPTIONAL
+                type          TYPE clike OPTIONAL
+                enabled       TYPE clike OPTIONAL
+                press         TYPE clike OPTIONAL
+                tooltip       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS overflowtoolbarmenubutton
+      IMPORTING text          TYPE clike OPTIONAL
+                icon          TYPE clike OPTIONAL
+                buttonmode    TYPE clike OPTIONAL
+                type          TYPE clike OPTIONAL
+                enabled       TYPE clike OPTIONAL
+                tooltip       TYPE clike OPTIONAL
+                defaultaction TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -176,6 +220,63 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
+  METHOD toolbarspacer.
+
+    result = me.
+    _add( n  = `ToolbarSpacer`
+          ns =  `sap.m` )->_ns_m( ).
+
+  ENDMETHOD.
+
+  METHOD overflowtoolbar.
+    result = _add( n = `OverflowToolbar`  ns = `sap.m` )->_ns_m( ).
+  ENDMETHOD.
+
+  METHOD overflowtoolbarbutton.
+    result = me.
+    _add( n   = `OverflowToolbarButton`
+          ns  = `sap.m`
+          t_p = VALUE #( ( n = `press`   v = press )
+                         ( n = `text`    v = text )
+                         ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                         ( n = `icon`    v = icon )
+                         ( n = `type`    v = type )
+                         ( n = `tooltip` v = tooltip ) ) ).
+  ENDMETHOD.
+
+  METHOD overflowtoolbarmenubutton.
+    result = _add( n   = `OverflowToolbarMenuButton`
+                   ns  = `sap.m`
+                   t_p = VALUE #( ( n = `buttonMode` v = buttonmode )
+                                  ( n = `defaultAction` v = defaultaction )
+                                  ( n = `text`    v = text )
+                                  ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                  ( n = `icon`    v = icon )
+                                  ( n = `type`    v = type )
+                                  ( n = `tooltip` v = tooltip ) ) )->_ns_m( ).
+  ENDMETHOD.
+
+  METHOD overflowtoolbartogglebutton.
+    result = me.
+    _add( n   = `OverflowToolbarToggleButton`
+          ns  = `sap.m`
+          t_p = VALUE #( ( n = `press`   v = press )
+                         ( n = `text`    v = text )
+                         ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                         ( n = `icon`    v = icon )
+                         ( n = `type`    v = type )
+                         ( n = `tooltip` v = tooltip ) ) ).
+  ENDMETHOD.
+
+  METHOD footer.
+    result = _add( ns = `sap.m`
+                   n  = `footer` )->_ns_m( ).
+  ENDMETHOD.
+
+  METHOD suggestionitems.
+    result = _add( ns = `sap.m` n = `suggestionItems` )->_ns_m( ).
+  ENDMETHOD.
+
   METHOD items.
     result = _add( n = `items`  ns = `sap.m` )->_ns_m( ).
   ENDMETHOD.
