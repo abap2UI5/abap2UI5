@@ -177,7 +177,6 @@ CLASS z2ui5_cl_ui5_m DEFINITION
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS footer
-      IMPORTING ns            TYPE string OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS overflowtoolbar
