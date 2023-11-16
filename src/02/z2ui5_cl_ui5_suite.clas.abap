@@ -4,7 +4,6 @@ CLASS z2ui5_cl_ui5_suite DEFINITION
   CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
 
   PUBLIC SECTION.
-
     METHODS interactdonutchart
       IMPORTING selectionchanged  TYPE clike OPTIONAL
                 errormessage      TYPE clike OPTIONAL
@@ -17,14 +16,12 @@ CLASS z2ui5_cl_ui5_suite DEFINITION
     METHODS segments
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_suite.
 
-  METHODS interactdonutchartsegment
-      IMPORTING
-        !label          TYPE clike OPTIONAL
-        !value          TYPE clike OPTIONAL
-        !displayedvalue TYPE clike OPTIONAL
-        !selected       TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result)   TYPE REF TO z2ui5_cl_ui5_suite.
+    METHODS interactdonutchartsegment
+      IMPORTING label          TYPE clike OPTIONAL
+                value          TYPE clike OPTIONAL
+                displayedvalue TYPE clike OPTIONAL
+                selected       TYPE clike OPTIONAL
+      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_ui5_suite.
 
   PROTECTED SECTION.
 
@@ -33,7 +30,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_suite IMPLEMENTATION.
-
   METHOD interactdonutchartsegment.
     result = _add( n   = `InteractiveDonutChartSegment`
                    ns  = `sap.suite.ui.microchart`

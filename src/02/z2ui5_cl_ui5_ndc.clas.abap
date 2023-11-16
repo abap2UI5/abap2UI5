@@ -18,10 +18,7 @@ CLASS z2ui5_cl_ui5_ndc DEFINITION
 ENDCLASS.
 
 
-
-CLASS Z2UI5_CL_UI5_NDC IMPLEMENTATION.
-
-
+CLASS z2ui5_cl_ui5_ndc IMPLEMENTATION.
   METHOD barcodescannerbutton.
     result = _add( n   = `BarcodeScannerButton`
                    ns  = 'sap.ndc'

@@ -27,19 +27,15 @@ CLASS z2ui5_cl_ui5_ui DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS grid
-      IMPORTING
-        !class        TYPE clike OPTIONAL
-        !default_span TYPE clike OPTIONAL
+      IMPORTING class         TYPE clike OPTIONAL
+                default_span  TYPE clike OPTIONAL
           PREFERRED PARAMETER default_span
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
     METHODS griddata
-      IMPORTING
-        !span         TYPE clike OPTIONAL
+      IMPORTING span          TYPE clike OPTIONAL
           PREFERRED PARAMETER span
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
   PROTECTED SECTION.
 
@@ -48,8 +44,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
-
-
   METHOD griddata.
     result = me.
     _add( n   = `GridData`
@@ -58,11 +52,10 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD grid.
-
     result = _add( n   = `Grid`
-                       ns     = `sap.ui.layout`
-                       t_p = VALUE #( ( n = `defaultSpan` v = default_span )
-                                      ( n = `class`       v = class ) ) )->_ns_ui( ).
+                   ns  = `sap.ui.layout`
+                   t_p = VALUE #( ( n = `defaultSpan` v = default_span )
+                                  ( n = `class`       v = class ) ) )->_ns_ui( ).
   ENDMETHOD.
 
   METHOD tab.
