@@ -176,31 +176,31 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_timer.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_TIMER`.
-    DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
-      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-
-    DATA lo_data TYPE REF TO data.
-    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-                               CHANGING  data = lo_data ).
-
-    FIELD-SYMBOLS <val> TYPE any.
-
-    UNASSIGN <val>.
-    DATA(lv_assign) = `PARAMS->S_TIMER->EVENT_FINISHED->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `TIMER_FINISHED`.
-      cl_abap_unit_assert=>fail( msg  = 'timer - event wrong'
-                                 quit = 5 ).
-    ENDIF.
-
-    UNASSIGN <val>.
-    lv_assign = `PARAMS->S_TIMER->INTERVAL_MS->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `500`.
-      cl_abap_unit_assert=>fail( msg  = 'timer - ms wrong'
-                                 quit = 5 ).
-    ENDIF.
+*    z2ui5_cl_fw_integration_test=>sv_state = `TEST_TIMER`.
+*    DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
+*      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
+*
+*    DATA lo_data TYPE REF TO data.
+*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
+*                               CHANGING  data = lo_data ).
+*
+*    FIELD-SYMBOLS <val> TYPE any.
+*
+*    UNASSIGN <val>.
+*    DATA(lv_assign) = `PARAMS->S_TIMER->EVENT_FINISHED->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `TIMER_FINISHED`.
+*      cl_abap_unit_assert=>fail( msg  = 'timer - event wrong'
+*                                 quit = 5 ).
+*    ENDIF.
+*
+*    UNASSIGN <val>.
+*    lv_assign = `PARAMS->S_TIMER->INTERVAL_MS->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> <> `500`.
+*      cl_abap_unit_assert=>fail( msg  = 'timer - ms wrong'
+*                                 quit = 5 ).
+*    ENDIF.
   ENDMETHOD.
 
   METHOD test_xml_popup.

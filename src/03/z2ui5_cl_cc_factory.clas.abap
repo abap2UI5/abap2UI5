@@ -17,7 +17,7 @@ CLASS z2ui5_cl_cc_factory DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_demo_output.
 
-    METHODS load_font_awesome
+    METHODS font_awesome
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_font_awesome_icons.
 
@@ -36,6 +36,10 @@ CLASS z2ui5_cl_cc_factory DEFINITION
     METHODS timer
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_timer.
+
+    METHODS title
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_title.
 
     METHODS info
       RETURNING
@@ -62,6 +66,12 @@ CLASS Z2UI5_CL_CC_FACTORY IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD timer.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+  METHOD title.
 
     result = NEW #( mo_view ).
 
@@ -95,7 +105,7 @@ CLASS Z2UI5_CL_CC_FACTORY IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD load_font_awesome.
+  METHOD font_awesome.
 
     result = NEW #( mo_view ).
 

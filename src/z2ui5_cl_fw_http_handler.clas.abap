@@ -539,14 +539,14 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.oController.oUtil = {}; ` && |\n| &&
                            `        sap.z2ui5.oController.oUtil.oDate = {}; ` && |\n| &&
                            `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { return new Date(s); }` && |\n| &&
-                            z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
                            `  jQuery.sap.declare("sap.z2ui5.Helper");` && |\n|  &&
                            `sap.z2ui5.Helper = {};` && |\n| &&
                            `sap.z2ui5.Helper.DateCreateObject = (s => new Date(s));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapDateToDateObject = (d => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7]));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n| &&
-                           custom_js &&
+                           custom_js && |\n|  &&
+                           z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></body></html>`.

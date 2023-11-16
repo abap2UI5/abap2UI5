@@ -215,8 +215,7 @@ CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
                           `            });` && |\n| &&
                           `        });`.
 
-*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
 
   ENDMETHOD.
 ENDCLASS.

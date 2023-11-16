@@ -40,7 +40,7 @@ CLASS Z2UI5_CL_CC_FONT_AWESOME_ICONS IMPLEMENTATION.
   METHOD LOAD_ANIMATION_JS.
 
 *    result = mo_view->_cc_plain_xml( `<html:script src="` && faw_js_url && `" ></html:script>` ).
-    result = mo_view->_generic( ns = `html` name = `script` t_prop = value #( ( n = `src` v = faw_js_url ) ) ).
+    result = mo_view->_generic( ns = `html` name = `script` t_prop = value #( ( n = `src` v = faw_js_url ) ) )->get_parent( ).
 
     enDMETHOD.
 
@@ -125,7 +125,8 @@ CLASS Z2UI5_CL_CC_FONT_AWESOME_ICONS IMPLEMENTATION.
                 ` }))` && |\n| &&
                 `})`.
 
-    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
+*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` )->get_parent( ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js  )->get_parent( ).
 
   ENDMETHOD.
 ENDCLASS.

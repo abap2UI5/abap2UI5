@@ -13,6 +13,8 @@ CLASS z2ui5_cl_cc_timer DEFINITION
       IMPORTING
         finished      TYPE clike OPTIONAL
         delayms       TYPE clike OPTIONAL
+        checkrepeat   TYPE clike OPTIONAL
+        PREFERRED PARAMETER finished
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -47,13 +49,14 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
               ns     = `z2ui5`
               t_prop = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
+                                ( n = `checkRepeat`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkrepeat ) )
               ) ).
 
   ENDMETHOD.
 
   METHOD load_cc.
 
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
 
   ENDMETHOD.
 
@@ -72,6 +75,10 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `                    type: "string",` && |\n|  &&
     `                    defaultValue: ""` && |\n|  &&
     `                },` && |\n|  &&
+    `                checkRepeat: {` && |\n|  &&
+    `                    type: "boolean",` && |\n|  &&
+    `                    defaultValue: false` && |\n|  &&
+    `                },` && |\n|  &&
     `            },` && |\n|  &&
     `            events: {` && |\n|  &&
     `                 "finished": { ` && |\n|  &&
@@ -88,12 +95,17 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `       onAfterRendering() {` && |\n|  &&
     |\n|  &&
     `       },` && |\n|  &&
-    `       ` && |\n|  &&
-    `       renderer(oRm, oControl) {` && |\n|  &&
-    |\n|  &&
+    `       delayedCall( oControl){` && |\n|  &&
+    `           ` && |\n|  &&
     `            setTimeout((oControl) => {` && |\n|  &&
     `                oControl.fireFinished();` && |\n|  &&
+    `              if ( oControl.getProperty( "checkRepeat" ) ) { oControl.delayedCall( oControl ); }  ` && |\n|  &&
     `              }, parseInt( oControl.getProperty("delayMS") ), oControl );` && |\n|  &&
+    `       },` && |\n|  &&
+    `       renderer(oRm, oControl) {` && |\n|  &&
+    |\n|  &&
+
+    `        oControl.delayedCall( oControl );` && |\n|  &&
     `        }` && |\n|  &&
     `   });` && |\n|  &&
     `});`.

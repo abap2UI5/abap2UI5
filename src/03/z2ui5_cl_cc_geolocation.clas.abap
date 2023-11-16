@@ -158,7 +158,7 @@ CLASS z2ui5_cl_cc_geolocation IMPLEMENTATION.
     `});`.
 
 *    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
   ENDMETHOD.
 
 ENDCLASS.
