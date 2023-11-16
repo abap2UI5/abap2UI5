@@ -104,8 +104,7 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `       },` && |\n|  &&
     `       renderer(oRm, oControl) {` && |\n|  &&
     |\n|  &&
-
-    `        oControl.delayedCall( oControl );` && |\n|  &&
+`        oControl.delayedCall( oControl );` && |\n|  &&
     `        }` && |\n|  &&
     `   });` && |\n|  &&
     `});`.
