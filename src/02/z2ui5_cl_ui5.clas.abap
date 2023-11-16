@@ -49,6 +49,10 @@ CLASS z2ui5_cl_ui5 DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
 
+    METHODS _ns_suite
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_suite.
+
     METHODS _ns_zcc
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
@@ -122,14 +126,17 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
                    ( n = `form`      v = `sap.ui.layout.form` )
                    ( n = `l`         v = `sap.ui.layout` )
                    ( n = `t`         v = `sap.ui.table` )
+                   ( n = `webc`      v = `sap.ui.webc.main` )
                    ( n = `fl`        v = `sap.ui.fl` )
                    ( n = `vk`        v = `sap.ui.vk` )
                    ( n = `vbm`       v = `sap.ui.vbm` )
                    ( n = `z2ui5`     v = `z2ui5` )
+                   ( n = `mchart`    v = `sap.suite.ui.microchart` )
+
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
                     ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
-                    ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
+
                     ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
                     ( n = `xmlns:uxap`      v = `sap.uxap` )
                     ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
@@ -151,11 +158,16 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
     IF obj->_node = obj->_node->mo_root.
 
       LOOP AT obj->_node->mt_ns INTO DATA(lv_ns_tmp).
+        TRY.
+            DATA(ls_prop) = lt_prop[ v = lv_ns_tmp ].
+            ls_prop-n = `xmlns` && COND #( WHEN ls_prop-n IS NOT INITIAL THEN `:` && ls_prop-n ).
+            INSERT ls_prop INTO TABLE obj->_node->mt_prop.
 
-        DATA(ls_prop) = lt_prop[ v = lv_ns_tmp ].
-        ls_prop-n = `xmlns` && COND #( WHEN ls_prop-n IS NOT INITIAL THEN `:` && ls_prop-n ).
-        INSERT ls_prop INTO TABLE obj->_node->mt_prop.
-
+          CATCH cx_sy_itab_line_not_found.
+            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+              EXPORTING
+                val = `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp.
+        ENDTRY.
       ENDLOOP.
 
     ENDIF.
@@ -293,4 +305,11 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
     result = _2xml( lo_node ).
 
   ENDMETHOD.
+
+  METHOD _ns_suite.
+
+    result = NEW #( _node ).
+
+  ENDMETHOD.
+
 ENDCLASS.

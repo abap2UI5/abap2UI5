@@ -135,14 +135,95 @@ CLASS z2ui5_cl_ui5_m DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
-  PROTECTED SECTION.
+    METHODS text
+      IMPORTING
+        !text               TYPE clike OPTIONAL
+        !class              TYPE clike OPTIONAL
+        !emptyindicatormode TYPE clike OPTIONAL
+        !maxlines           TYPE clike OPTIONAL
+        !renderwhitespace   TYPE clike OPTIONAL
+        !textalign          TYPE clike OPTIONAL
+        !textdirection      TYPE clike OPTIONAL
+        !width              TYPE clike OPTIONAL
+        !wrapping           TYPE clike OPTIONAL
+        !wrappingtype       TYPE clike OPTIONAL
+        !id                 TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
+      RETURNING
+        VALUE(result)       TYPE REF TO z2ui5_cl_ui5_m.
 
+    METHODS layoutdata
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS items
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS flexbox
+      IMPORTING
+        !class            TYPE clike OPTIONAL
+        !rendertype       TYPE clike OPTIONAL
+        !width            TYPE clike OPTIONAL
+        !fitcontainer     TYPE clike OPTIONAL
+        !height           TYPE clike OPTIONAL
+        !alignitems       TYPE clike OPTIONAL
+        !justifycontent   TYPE clike OPTIONAL
+        !wrap             TYPE clike OPTIONAL
+        !visible          TYPE clike OPTIONAL
+        !direction        TYPE clike OPTIONAL
+        !displayinline    TYPE clike OPTIONAL
+        !backgrounddesign TYPE clike OPTIONAL
+        !aligncontent     TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_ui5_m.
+
+
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
 
+  METHOD items.
+    result = _add( n = `items`  ns = `sap.m` )->_ns_m( ).
+  ENDMETHOD.
+
+  METHOD flexbox.
+    result = _add( n   = `FlexBox`
+                   ns  = `sap.m`
+                   t_p = VALUE #( ( n = `class`  v = class )
+                                         ( n = `renderType`  v = rendertype )
+                                         ( n = `width`  v = width )
+                                         ( n = `height`  v = height )
+                                         ( n = `alignItems`  v = alignitems )
+                                         ( n = `fitContainer`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( fitcontainer ) )
+                                         ( n = `justifyContent`  v = justifycontent )
+                                         ( n = `wrap`  v = wrap )
+                                         ( n = `direction`  v = direction )
+                                         ( n = `alignContent`  v = aligncontent )
+                                         ( n = `backgroundDesign`  v = backgrounddesign )
+                                         ( n = `displayInline`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayinline ) )
+                                         ( n = `visible`  v = visible ) ) )->_ns_m( ).
+  ENDMETHOD.
+
+  METHOD text.
+    result = me.
+    _add( n   = `Text`
+          ns  = `sap.m`
+          t_p = VALUE #( ( n = `text`  v = text )
+                                ( n = `emptyIndicatorMode`  v = emptyindicatormode )
+                                ( n = `maxLines`  v = maxlines )
+                                ( n = `renderWhitespace`  v = renderwhitespace )
+                                ( n = `textAlign`  v = textalign )
+                                ( n = `textDirection`  v = textdirection )
+                                ( n = `width`  v = width )
+                                ( n = `id`  v = id )
+                                ( n = `wrapping`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                                ( n = `wrappingType`  v = wrappingtype )
+                                ( n = `class` v = class ) ) ).
+  ENDMETHOD.
   METHOD headercontent.
 
     result = _add( n = `headerContent`
@@ -195,6 +276,12 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                          ( n = `activeIcon` v = activeicon )
                          ( n = `ariaHasPopup` v = ariahaspopup )
                          ( n = `class`   v = class ) ) ).
+  ENDMETHOD.
+
+  METHOD layoutdata.
+
+    result = _add(  n = `layoutData` ns = `sap.m`
+                       )->_ns_m( ).
   ENDMETHOD.
 
   METHOD label.
