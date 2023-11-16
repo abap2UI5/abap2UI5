@@ -8,8 +8,6 @@ CLASS z2ui5_cl_ui5_m DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS toolbarspacer
-      IMPORTING
-        !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_ui5_m .
 

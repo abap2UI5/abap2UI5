@@ -102,7 +102,6 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
                        ( n = `editor`    v = `sap.ui.codeeditor` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-
                        ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
                        ( n = `xmlns:uxap`      v = `sap.uxap` )
                        ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
