@@ -212,7 +212,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _go_new.
-    result = NEW #( _node->mo_previous ).
+    result = NEW #( _node->mo_root->mo_previous ).
   ENDMETHOD.
 
   METHOD _go_root.

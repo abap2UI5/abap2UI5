@@ -8,8 +8,7 @@ CLASS z2ui5_cl_ui5_m DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS toolbarspacer
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m .
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
     METHODS input
       IMPORTING id                            TYPE clike OPTIONAL
@@ -218,11 +217,9 @@ ENDCLASS.
 
 CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
   METHOD toolbarspacer.
-
     result = me.
     _add( n  = `ToolbarSpacer`
-          ns =  `sap.m` )->_ns_m( ).
-
+          ns = `sap.m` )->_ns_m( ).
   ENDMETHOD.
 
   METHOD overflowtoolbar.
