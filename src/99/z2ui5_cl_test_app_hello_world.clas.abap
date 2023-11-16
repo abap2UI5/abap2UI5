@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
+CLASS z2ui5_cl_test_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -7,14 +7,13 @@ CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
     DATA quantity          TYPE string.
     DATA check_initialized TYPE abap_bool.
 
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
+CLASS z2ui5_cl_test_app_hello_world IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -30,18 +29,18 @@ CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
         client->message_toast_display( |{ product } { quantity } - send to the server| ).
     ENDCASE.
 
-    client->view_display( z2ui5_cl_xml_view=>factory(
+    client->view_display( client->factory_view( )->_ns_m(
         )->shell(
-        )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world'
-            )->simple_form( title    = 'Hello World' editable = abap_true
-                )->content( ns = `form`
+        )->page( title = 'abap2UI5 - z2ui5_cl_app_hello_world' )->_ns_ui(
+            )->simpleform( title = 'Hello World' editable = abap_true
+                )->content( )->_ns_m(
                     )->title( 'Make an input here and send it to the server...'
                     )->label( 'quantity'
                     )->input( client->_bind_edit( quantity )
                     )->label( 'product'
-                    )->input( value   = product enabled = abap_false
-                    )->button( text  = 'post' press = client->_event( 'BUTTON_POST' )
-         )->stringify( ) ).
+                    )->input( value = product enabled = abap_false
+                    )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
+         )->_stringify( ) ).
 
   ENDMETHOD.
 ENDCLASS.
