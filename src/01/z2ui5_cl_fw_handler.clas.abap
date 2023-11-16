@@ -65,7 +65,7 @@ CLASS z2ui5_cl_fw_handler DEFINITION
           t_message   TYPE z2ui5_if_client=>ty_t_message_manager,
           check_clear TYPE abap_bool,
         END OF s_message_manager,
-        _viewmodel TYPE string,
+*        _viewmodel TYPE string,
       END OF ty_s_next2.
 
     TYPES:
