@@ -129,8 +129,9 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
             INSERT ls_prop INTO TABLE obj->_node->mt_prop.
 
           CATCH cx_root.
-            RAISE EXCEPTION NEW z2ui5_cx_fw_error(
-                                    val = `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp ).
+            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+              EXPORTING
+                val = `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp.
         ENDTRY.
       ENDLOOP.
 
