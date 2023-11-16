@@ -539,6 +539,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `        sap.z2ui5.oController.oUtil = {}; ` && |\n| &&
                            `        sap.z2ui5.oController.oUtil.oDate = {}; ` && |\n| &&
                            `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { return new Date(s); }` && |\n| &&
+                            z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
                            `  jQuery.sap.declare("sap.z2ui5.Helper");` && |\n|  &&
                            `sap.z2ui5.Helper = {};` && |\n| &&
                            `sap.z2ui5.Helper.DateCreateObject = (s => new Date(s));` && |\n| &&

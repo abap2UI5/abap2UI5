@@ -11,8 +11,8 @@ CLASS z2ui5_cl_cc_timer DEFINITION
 
     METHODS control
       IMPORTING
-        finished TYPE clike OPTIONAL
-        delayMS  TYPE clike OPTIONAL
+        finished      TYPE clike OPTIONAL
+        delayms       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -20,8 +20,12 @@ CLASS z2ui5_cl_cc_timer DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    class-METHODS get_js
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
-      DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
+    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -36,20 +40,26 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
 
   ENDMETHOD.
 
-method control.
+  METHOD control.
 
- result = mo_view.
+    result = mo_view.
     mo_view->_generic( name   = `CCTimer`
               ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `delayMS`  v = delayMS )
+              t_prop = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
               ) ).
 
-ENDMETHOD.
+  ENDMETHOD.
 
   METHOD load_cc.
 
-    DATA(js) = ` jQuery.sap.declare("z2ui5.CCTimer");` && |\n| &&
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) ).
+
+  ENDMETHOD.
+
+  METHOD get_js.
+
+    result = ` jQuery.sap.declare("z2ui5.CCTimer");` && |\n| &&
     `sap.ui.require([` && |\n|  &&
     `   "sap/ui/core/Control"` && |\n|  &&
     `], (Control) => {` && |\n|  &&
@@ -88,8 +98,6 @@ ENDMETHOD.
     `   });` && |\n|  &&
     `});`.
 
-*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
   ENDMETHOD.
 
 ENDCLASS.
