@@ -138,6 +138,28 @@ CLASS z2ui5_cl_ui5_m DEFINITION
     METHODS headercontent
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
+
+    METHODS illustratedmessage
+      IMPORTING
+        !enableverticalresponsiveness TYPE clike OPTIONAL
+        !enableformattedtext          TYPE clike OPTIONAL
+        !illustrationtype             TYPE clike OPTIONAL
+        !title                        TYPE clike OPTIONAL
+        !description                  TYPE clike OPTIONAL
+        !illustrationsize             TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)                 TYPE REF TO z2ui5_cl_ui5_m.
+
+    METHODS messagestrip
+      IMPORTING
+        !text         TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !showicon     TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+          PREFERRED PARAMETER text
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
     METHODS text
       IMPORTING text               TYPE clike OPTIONAL
                 class              TYPE clike OPTIONAL
@@ -209,6 +231,10 @@ CLASS z2ui5_cl_ui5_m DEFINITION
                 defaultaction TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
+    METHODS additionalcontent
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
   PROTECTED SECTION.
 
   PRIVATE SECTION.
@@ -216,6 +242,24 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
+
+  METHOD additionalcontent.
+    result = _add( ns = `sap.m` n = `additionalContent` )->_ns_m( ).
+  ENDMETHOD.
+
+
+  METHOD illustratedmessage.
+
+    result = _add( ns = `sap.m`
+                    n  = `IllustratedMessage`
+                       t_p = VALUE #( ( n = `enableVerticalResponsiveness` v = enableverticalresponsiveness )
+                       ( n = `illustrationType`             v = illustrationtype )
+                       ( n = `enableFormattedText`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableformattedtext ) )
+                       ( n = `illustrationSize`             v = illustrationsize )
+                       ( n = `description`             v = description )
+                       ( n = `title`             v = title )
+                       ) )->_ns_m( ).
+  ENDMETHOD.
   METHOD toolbarspacer.
     result = me.
     _add( n  = `ToolbarSpacer`
@@ -291,6 +335,15 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                                   ( n = `backgroundDesign`  v = backgrounddesign )
                                   ( n = `displayInline`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayinline ) )
                                   ( n = `visible`  v = visible ) ) )->_ns_m( ).
+  ENDMETHOD.
+
+  METHOD messagestrip.
+    result = me.
+    _add( n   = `MessageStrip`
+              t_p = VALUE #( ( n = `text`     v = text )
+                                ( n = `type`     v = type )
+                                ( n = `showIcon` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showicon ) )
+                                ( n = `class`    v = class ) ) ).
   ENDMETHOD.
 
   METHOD text.
