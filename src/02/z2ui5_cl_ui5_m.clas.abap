@@ -340,6 +340,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
   METHOD messagestrip.
     result = me.
     _add( n   = `MessageStrip`
+          ns  = `sap.m`
               t_p = VALUE #( ( n = `text`     v = text )
                                 ( n = `type`     v = type )
                                 ( n = `showIcon` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showicon ) )

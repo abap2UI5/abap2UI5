@@ -109,7 +109,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
         client->message_toast_display( |{ quantity } Product ABC - send to the server| ).
     ENDCASE.
 
-    client->view_display( z2ui5_cl_xml_view=>factory( client
+    client->view_display( z2ui5_cl_xml_view=>factory(
       )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
