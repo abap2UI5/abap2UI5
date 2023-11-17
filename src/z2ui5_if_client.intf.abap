@@ -207,6 +207,11 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
+  METHODS timer_set
+    IMPORTING
+      interval_ms    TYPE clike OPTIONAL
+      event_finished TYPE clike.
+
   METHODS _bind_local
     IMPORTING
       val           TYPE data
