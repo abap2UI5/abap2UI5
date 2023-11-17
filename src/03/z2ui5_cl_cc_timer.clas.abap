@@ -87,13 +87,7 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `                 }` && |\n|  &&
     `            }` && |\n|  &&
     `       },` && |\n|  &&
-    |\n|  &&
-    `       init () {` && |\n|  &&
-    |\n|  &&
-    `       },` && |\n|  &&
-    |\n|  &&
     `       onAfterRendering() {` && |\n|  &&
-    |\n|  &&
     `       },` && |\n|  &&
     `       delayedCall( oControl){` && |\n|  &&
     `           ` && |\n|  &&
@@ -103,7 +97,6 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `              }, parseInt( oControl.getProperty("delayMS") ), oControl );` && |\n|  &&
     `       },` && |\n|  &&
     `       renderer(oRm, oControl) {` && |\n|  &&
-    |\n|  &&
     `        oControl.delayedCall( oControl );` && |\n|  &&
     `        }` && |\n|  &&
     `   });` && |\n|  &&
