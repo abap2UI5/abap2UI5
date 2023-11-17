@@ -22,27 +22,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS constructor.
 
-    METHODS hlp_get_source_code_url
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS hlp_get_app_url
-      IMPORTING
-        classname TYPE string OPTIONAL
-      RETURNING
-        VALUE(result)    TYPE string.
-
-    METHODS hlp_get_url_param
-      IMPORTING
-        !val          TYPE string
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS hlp_set_url_param
-      IMPORTING
-        !n TYPE clike
-        !v TYPE clike.
-
     METHODS horizontal_layout
       IMPORTING
         !class        TYPE clike OPTIONAL
@@ -4227,58 +4206,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     result = _generic( name = `heading`
                        ns   = ns ).
-
-  ENDMETHOD.
-
-
-  METHOD hlp_get_app_url.
-
-    result = z2ui5_cl_fw_utility=>app_get_url( client = mi_client classname = classname ).
-
-*    IF classname IS NOT SUPPLIED.
-*      classname = z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( mi_client->get( )-s_draft-app ).
-*    ENDIF.
-*
-*    DATA(lv_url) = to_lower( mi_client->get( )-s_config-origin && mi_client->get( )-s_config-pathname ) && `?`.
-*    DATA(lt_param) = z2ui5_cl_fw_utility=>url_param_get_tab( mi_client->get( )-s_config-search ).
-*    DELETE lt_param WHERE n = `app_start`.
-*    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
-*
-*    result = lv_url && z2ui5_cl_fw_utility=>url_param_create_url( lt_param ).
-
-  ENDMETHOD.
-
-
-  METHOD hlp_get_source_code_url.
-
-    result = z2ui5_cl_fw_utility=>app_get_url_source_code( mo_root->mi_client ).
-
-*    DATA(ls_draft) = mo_root->mi_client->get( )-s_draft.
-*    DATA(ls_config) = mo_root->mi_client->get( )-s_config.
-*
-*    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-*       && z2ui5_cl_fw_utility=>rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
-
-  ENDMETHOD.
-
-
-  METHOD hlp_get_url_param.
-
-    result = z2ui5_cl_fw_utility=>url_param_get(
-      val = val
-      url = mo_root->mi_client->get( )-s_config-search ).
-
-  ENDMETHOD.
-
-
-  METHOD hlp_set_url_param.
-
-    DATA(result) = z2ui5_cl_fw_utility=>url_param_set(
-      url   = mo_root->mi_client->get( )-s_config-search
-      name  = n
-      value = v ).
-
-    mi_client->url_param_set( result ).
 
   ENDMETHOD.
 

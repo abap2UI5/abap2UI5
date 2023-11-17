@@ -177,15 +177,6 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
-  METHODS timer_set
-    IMPORTING
-      interval_ms    TYPE clike OPTIONAL
-      event_finished TYPE clike.
-
-  METHODS title_set
-    IMPORTING
-      val TYPE clike.
-
   METHODS message_toast_display
     IMPORTING
       text TYPE string.
