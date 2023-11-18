@@ -27,6 +27,9 @@ CLASS z2ui5_cl_ui5 DEFINITION
                 v             TYPE clike
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
+  METHODS _ns
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
+
     METHODS _ns_ndc
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ndc.
 
@@ -41,6 +44,9 @@ CLASS z2ui5_cl_ui5 DEFINITION
 
     METHODS _ns_zcc
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
+
+    METHODS _ns_html
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_html.
 
     METHODS constructor
       IMPORTING node TYPE REF TO z2ui5_cl_fw_utility_xml OPTIONAL.
@@ -221,6 +227,14 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
   METHOD _go_up.
     result = NEW #( _node->mo_parent ).
+  ENDMETHOD.
+
+  METHOD _ns.
+    result = NEW #( _node ).
+  ENDMETHOD.
+
+  METHOD _ns_html.
+    result = NEW #( _node ).
   ENDMETHOD.
 
   METHOD _ns_ndc.
