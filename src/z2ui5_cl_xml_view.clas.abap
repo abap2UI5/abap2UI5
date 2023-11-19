@@ -3076,11 +3076,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
   METHODS dependents
     IMPORTING
       !ns             TYPE clike OPTIONAL
-      !headerposition TYPE clike OPTIONAL
-      !height         TYPE clike OPTIONAL
-      !visible        TYPE clike OPTIONAL
-      !width          TYPE clike OPTIONAL
-      !id             TYPE clike OPTIONAL
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
