@@ -78,6 +78,25 @@ CLASS z2ui5_cl_ui5_m DEFINITION
                   PREFERRED PARAMETER text
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
 
+  METHODS bar
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m .
+
+
+    METHODS content_middle
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m .
+
+   METHODS panel
+      IMPORTING
+        !expandable   TYPE clike OPTIONAL
+        !expanded     TYPE clike OPTIONAL
+        !headertext   TYPE clike OPTIONAL
+        stickyheader  TYPE clike OPTIONAL
+        height        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
+
     METHODS button
       IMPORTING text             TYPE clike OPTIONAL
                 icon             TYPE clike OPTIONAL
@@ -242,6 +261,17 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
+
+  METHOD panel.
+
+    result = _add( n = `Panel` ns = `sap.m`
+                   t_p = VALUE #( ( n = `expandable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expandable ) )
+                                         ( n = `expanded`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
+                                         ( n = `stickyHeader`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( stickyheader ) )
+                                         ( n = `height`   v = height )
+                                         ( n = `headerText` v = headertext ) ) )->_ns_m( ).
+
+  ENDMETHOD.
 
   METHOD additionalcontent.
     result = _add( ns = `sap.m` n = `additionalContent` )->_ns_m( ).
@@ -470,8 +500,17 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD shell.
-    result = _add( n = `Shell`  ns = `sap.m` )->_ns_m( ).
+    result = _add( n = `Shell` ns = `sap.m` )->_ns_m( ).
   ENDMETHOD.
+
+  METHOD bar.
+    result = _add( n = `Bar` ns = `sap.m` )->_ns_m( ).
+  ENDMETHOD.
+
+    METHOD content_middle.
+    result = _add( n = `contentMiddle` ns = `sap.m` )->_ns_m( ).
+  ENDMETHOD.
+
 
   METHOD input.
     result = me.

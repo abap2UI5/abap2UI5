@@ -3075,89 +3075,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
   METHODS dependents
     IMPORTING
-      !ns             TYPE clike OPTIONAL
+      !ns TYPE clike OPTIONAL
     RETURNING
       VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
-
-  METHODS card
-    IMPORTING
-      !id TYPE clike OPTIONAL
-      !class TYPE clike OPTIONAL
-      !headerposition TYPE clike OPTIONAL
-      !height TYPE clike OPTIONAL
-      !visible TYPE clike OPTIONAL
-      !width TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
-
-  METHODS card_header
-    IMPORTING
-      !id TYPE clike OPTIONAL
-      !class TYPE clike OPTIONAL
-      !iconalt TYPE clike OPTIONAL
-      !iconbackgroundcolor TYPE clike OPTIONAL
-      !icondisplayshape TYPE clike OPTIONAL
-      !iconinitials TYPE clike OPTIONAL
-      !iconsize TYPE clike OPTIONAL
-      !iconsrc TYPE clike OPTIONAL
-      !iconvisible TYPE clike OPTIONAL
-      !statusText TYPE clike OPTIONAL
-      !statusvisible TYPE clike OPTIONAL
-      !subtitle TYPE clike OPTIONAL
-      !subtitlemaxlines TYPE clike OPTIONAL
-      !title TYPE clike OPTIONAL
-      !titlemaxlines TYPE clike OPTIONAL
-      !visible TYPE clike OPTIONAL
-      !datatimestamp TYPE clike OPTIONAL
-      !press TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-  METHODS numeric_header
-    IMPORTING
-      !id TYPE clike OPTIONAL
-      !class TYPE clike OPTIONAL
-      !visible TYPE clike OPTIONAL
-      !datatimestamp TYPE clike OPTIONAL
-      !press TYPE clike OPTIONAL
-      !details TYPE clike OPTIONAL
-      !detailsMaxLines TYPE clike OPTIONAL
-      !detailsState TYPE clike OPTIONAL
-      !iconAlt TYPE clike OPTIONAL
-      !iconBackgroundColor TYPE clike OPTIONAL
-      !iconDisplayShape TYPE clike OPTIONAL
-      !iconInitials TYPE clike OPTIONAL
-      !iconSize TYPE clike OPTIONAL
-      !iconSrc TYPE clike OPTIONAL
-      !iconVisible TYPE clike OPTIONAL
-      !number TYPE clike OPTIONAL
-      !numberSize TYPE clike OPTIONAL
-      !numberVisible TYPE clike OPTIONAL
-      !scale TYPE clike OPTIONAL
-      !sideIndicatorsAlignment TYPE clike OPTIONAL
-      !state TYPE clike OPTIONAL
-      !statusText TYPE clike OPTIONAL
-      !statusVisible TYPE clike OPTIONAL
-      !subtitle TYPE clike OPTIONAL
-      !subtitleMaxLines TYPE clike OPTIONAL
-      !title TYPE clike OPTIONAL
-      !titleMaxLines TYPE clike OPTIONAL
-      !trend TYPE clike OPTIONAL
-      !unitOfMeasurement TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-  METHODS numeric_side_indicator
-    IMPORTING
-      !id TYPE clike OPTIONAL
-      !class TYPE clike OPTIONAL
-      !visible TYPE clike OPTIONAL
-      !number TYPE clike OPTIONAL
-      !state TYPE clike OPTIONAL
-      !title TYPE clike OPTIONAL
-      !unit TYPE clike OPTIONAL
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
@@ -3475,44 +3395,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `tooltip`                v = tooltip )
                            ( n = `color`                  v = color ) ) ).
 
-  ENDMETHOD.
-
-
-  METHOD card.
-    result = _generic( name = `Card` ns = `f`
-                   t_prop = VALUE #(
-                         ( n = `id`  v = id )
-                         ( n = `class`  v = class )
-                         ( n = `headerPosition`  v = headerposition )
-                         ( n = `height`  v = height )
-                         ( n = `width`  v = width )
-                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
-                     ) ).
-  ENDMETHOD.
-
-
-  METHOD card_header.
-    result = _generic( name = `Header` ns = `f`
-                   t_prop = VALUE #(
-                         ( n = `id`  v = id )
-                         ( n = `class`  v = class )
-                         ( n = `dataTimestamp`  v = dataTimestamp )
-                         ( n = `iconAlt`  v = iconAlt )
-                         ( n = `iconBackgroundColor`  v = iconBackgroundColor )
-                         ( n = `iconDisplayShape`  v = iconDisplayShape )
-                         ( n = `iconInitials`  v = iconInitials )
-                         ( n = `iconSize`  v = iconSize )
-                         ( n = `iconSrc`  v = iconSrc )
-                         ( n = `statusText`  v = statusText )
-                         ( n = `statusVisible`  v = statusVisible )
-                         ( n = `subtitle`  v = subtitle )
-                         ( n = `subtitleMaxLines`  v = subtitleMaxLines )
-                         ( n = `title`  v = title )
-                         ( n = `press`  v = press )
-                         ( n = `titleMaxLines`  v = titleMaxLines )
-                         ( n = `iconVisible`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconVisible ) )
-                         ( n = `visible`    v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
-                     ) ).
   ENDMETHOD.
 
 
@@ -5118,57 +5000,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `icon`       v = icon )
                                          ( n = `withMargin` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( withmargin ) ) ) ).
 
-  ENDMETHOD.
-
-
-  METHOD numeric_header.
-
-      result = _generic( name = `NumericHeader` ns = `f`
-                     t_prop = VALUE #(
-                           ( n = `id`  v = id )
-                           ( n = `class`  v = class )
-                           ( n = `datatimestamp`  v = datatimestamp )
-                           ( n = `press`  v = press )
-                           ( n = `details`  v = details )
-                           ( n = `detailsMaxLines`  v = detailsMaxLines )
-                           ( n = `detailsState`  v = detailsState )
-                           ( n = `iconAlt`  v = iconAlt )
-                           ( n = `iconBackgroundColor`  v = iconBackgroundColor )
-                           ( n = `iconDisplayShape`  v = iconDisplayShape )
-                           ( n = `iconSize`  v = iconSize )
-                           ( n = `iconSrc`  v = iconSrc )
-                           ( n = `iconInitials`  v = iconInitials )
-                           ( n = `number`  v = number )
-                           ( n = `numberSize`  v = numberSize )
-                           ( n = `scale`  v = scale )
-                           ( n = `sideIndicatorsAlignment`  v = sideIndicatorsAlignment )
-                           ( n = `state`  v = state )
-                           ( n = `statusText`  v = statusText )
-                           ( n = `subtitle`  v = subtitle )
-                           ( n = `subtitleMaxLines`  v = subtitleMaxLines )
-                           ( n = `title`  v = title )
-                           ( n = `titleMaxLines`  v = titleMaxLines )
-                           ( n = `trend`  v = trend )
-                           ( n = `unitOfMeasurement`  v = unitOfMeasurement )
-                           ( n = `statusVisible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( statusVisible ) )
-                           ( n = `numberVisible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( numberVisible ) )
-                           ( n = `iconVisible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconVisible ) )
-                           ( n = `visible`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
-                       ) ).
-  ENDMETHOD.
-
-
-  METHOD numeric_side_indicator.
-    result = _generic( name = `NumericSideIndicator`  ns = `f`
-                       t_prop = VALUE #(
-                             ( n = `id`  v = id )
-                             ( n = `class`  v = class )
-                             ( n = `unit`  v = unit )
-                             ( n = `title`  v = title )
-                             ( n = `state`  v = state )
-                             ( n = `number`  v = number )
-                             ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
-                         ) ).
   ENDMETHOD.
 
 
