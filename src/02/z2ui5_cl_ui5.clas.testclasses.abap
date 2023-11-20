@@ -30,7 +30,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_factory_popup.
 
-    DATA(lo_tree) = z2ui5_cl_ui5=>_factory( check_popup = abap_true )..
+    DATA(lo_tree) = z2ui5_cl_ui5=>_factory( check_popup = abap_true ).
 
     DATA(lv_result) = lo_tree->_stringify( ).
     cl_abap_unit_assert=>assert_equals(
@@ -82,9 +82,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_go.
 
-    DATA(lo_tree) = z2ui5_cl_ui5=>_factory( ).
-    DATA(lo_parent) = lo_tree->_add( n = 'XML' ns = `core` ).
-    DATA(lo_child) = lo_parent->_add( n = `XML_CHILD` ns = `core` ).
+*    DATA(lo_tree) = z2ui5_cl_ui5=>_factory( ).
+*    DATA(lo_parent) = lo_tree->_add( n = 'XML' ns = `core` ).
+*    DATA(lo_child) = lo_parent->_add( n = `XML_CHILD` ns = `core` ).
 
 *    IF lo_parent->_go_new( )->_ <> lo_child.
 *      cl_abap_unit_assert=>abort( ).
@@ -102,11 +102,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_ns.
 
-    DATA(lo_html) = NEW z2ui5_cl_ui5( )->_ns_html( ).
-    DATA(lo_m) = NEW z2ui5_cl_ui5( )->_ns_m( ).
-    DATA(lo_ndc) = NEW z2ui5_cl_ui5( )->_ns_ndc( ).
-    DATA(lo_suite) = NEW z2ui5_cl_ui5( )->_ns_suite( ).
-    DATA(lo_zcc) = NEW z2ui5_cl_ui5( )->_ns_zcc( ).
+    DATA(lo_html) = NEW z2ui5_cl_ui5( )->_ns_html( ) ##NEEDED.
+    DATA(lo_m) = NEW z2ui5_cl_ui5( )->_ns_m( ) ##NEEDED.
+    DATA(lo_ndc) = NEW z2ui5_cl_ui5( )->_ns_ndc( ) ##NEEDED.
+    DATA(lo_suite) = NEW z2ui5_cl_ui5( )->_ns_suite( ) ##NEEDED.
+    DATA(lo_zcc) = NEW z2ui5_cl_ui5( )->_ns_zcc( ) ##NEEDED.
 
   ENDMETHOD.
 

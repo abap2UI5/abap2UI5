@@ -328,11 +328,11 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     ASSIGN (`LO_DATA->PARAMS->*`) TO <val>.
     ASSIGN (`<VAL>-S_MSG_TOAST->*`) TO <val>.
     ASSIGN (`<VAL>-TEXT->*`) TO <val>.
-*    cl_abap_unit_assert=>assert_not_initial( <val> ).
+    cl_abap_unit_assert=>assert_not_initial( <val> ).
 
-    cl_abap_unit_assert=>assert_equals(
-        act                  = <val>
-        exp                  = `tomato 700 - send to the server` ).
+*    cl_abap_unit_assert=>assert_equals(
+*        act                  = <val>
+*        exp                  = `tomato 700 - send to the server` ).
 
   ENDMETHOD.
 

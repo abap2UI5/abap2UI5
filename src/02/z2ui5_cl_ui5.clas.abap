@@ -172,8 +172,8 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
     result = |{ result }>|.
 
-    IF obj->_node->mv_content IS NOT INITIAL. " = `ZZPLAIN`.
-      result = result && obj->_node->mv_content. "obj->_node->mt_prop[ n = `VALUE` ]-v.
+    IF obj->_node->mv_content IS NOT INITIAL.
+      result = result && obj->_node->mv_content.
       result = |{ result }</{ lv_ns }{ lv_element }>|.
       RETURN.
     ENDIF.
@@ -278,7 +278,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
   METHOD _stringify.
     DATA(lo_node) = NEW z2ui5_cl_ui5( _node->mo_root ).
-    result = lo_node->_2xml( lo_node ).
+    result = _2xml( lo_node ).
   ENDMETHOD.
 
   METHOD _ns_suite.
