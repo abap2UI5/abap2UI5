@@ -40,7 +40,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
       lt_config = VALUE #(
           (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-          (  n = `data-sap-ui-libs`          v = `sap.m` )
+*          (  n = `data-sap-ui-libs`          v = `sap.m` )
           (  n = `data-sap-ui-bindingSyntax` v = `complex` )
           (  n = `data-sap-ui-frameOptions`  v = `trusted` )
           (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
@@ -432,11 +432,11 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            |\n| &&
                            `                    sap.z2ui5.oController.ViewDestroy();` && |\n| &&
                            |\n| &&
-                           `                    new sap.ui.core.mvc.XMLView.create({` && |\n| &&
+                           `                   new sap.ui.core.mvc.XMLView.create({` && |\n| &&
                            `                        definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n| &&
                            `                        controller: sap.z2ui5.oController,` && |\n| &&
                            `                    }).then(oView => {` && |\n| &&
-                           `                        oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                       oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
                            `                        if (sap.z2ui5.oParent) {` && |\n| &&
                            `                            sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                            `                            sap.z2ui5.oParent.insertPage(oView);` && |\n| &&
@@ -497,7 +497,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                sap.z2ui5.checkNestAfter   = false;` && |\n| &&
                            `                sap.z2ui5.checkNestAfter2   = false;` && |\n| &&
                            |\n| &&
-*                           `               debugger;` && |\n| &&
+*                           `          debugger;` && |\n| &&
                            `                sap.z2ui5.oBody.OLOCATION = {` && |\n| &&
                            `                    ORIGIN: window.location.origin,` && |\n| &&
                            `                    PATHNAME: sap.z2ui5.pathname,` && |\n| &&

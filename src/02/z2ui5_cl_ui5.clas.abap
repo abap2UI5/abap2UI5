@@ -27,7 +27,11 @@ CLASS z2ui5_cl_ui5 DEFINITION
                 v             TYPE clike
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
-  METHODS _ns
+    METHODS _add_c
+      IMPORTING val           TYPE clike
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
+
+    METHODS _ns
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _ns_ndc
@@ -47,6 +51,9 @@ CLASS z2ui5_cl_ui5 DEFINITION
 
     METHODS _ns_html
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_html.
+
+    METHODS _ns_webc
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
 
     METHODS constructor
       IMPORTING node TYPE REF TO z2ui5_cl_fw_utility_xml OPTIONAL.
@@ -84,10 +91,6 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _2xml.
-    IF obj->_node->mv_name = `ZZPLAIN`.
-      result = obj->_node->mt_prop[ n = `VALUE` ]-v.
-      RETURN.
-    ENDIF.
 
     DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
     lt_prop = VALUE #( ( n = ``          v = `sap.m` )
@@ -106,12 +109,14 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
                        ( n = `z2ui5`     v = `z2ui5` )
                        ( n = `mchart`    v = `sap.suite.ui.microchart` )
                        ( n = `editor`    v = `sap.ui.codeeditor` )
+                       ( n = `wf`        v = `sap.ui.webc.fiori` )
+                       ( n = `wm`        v = `sap.ui.webc.main` )
+                       ( n = `html`      v = `http://www.w3.org/1999/xhtml` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
+*                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
                        ( n = `xmlns:uxap`      v = `sap.uxap` )
                        ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
-                       ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
                        ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
                        ( n = `xmlns:u`         v = `sap.ui.unified` )
                        ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
@@ -136,8 +141,8 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
           CATCH cx_root.
 
-            data(lv_text) = cond #( when lv_ns_tmp is initial then `XML_VIEW_NOT_VALID_NAMESPACE_EMPTY`
-                else `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp ).
+            DATA(lv_text) = COND #( WHEN lv_ns_tmp IS INITIAL THEN `XML_VIEW_NOT_VALID_NAMESPACE_EMPTY`
+                ELSE `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp ).
 
             RAISE EXCEPTION TYPE z2ui5_cx_fw_error
               EXPORTING
@@ -160,12 +165,18 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
     result = |{ result }<{ lv_ns }{ lv_element }{ lv_prop }|.
 
-    IF obj->_node->mt_child IS INITIAL.
+    IF obj->_node->mt_child IS INITIAL AND obj->_node->mv_content IS INITIAL.
       result = |{ result }/>|.
       RETURN.
     ENDIF.
 
     result = |{ result }>|.
+
+    IF obj->_node->mv_content IS NOT INITIAL.
+      result = result && obj->_node->mv_content.
+      result = |{ result }</{ lv_ns }{ lv_element }>|.
+      RETURN.
+    ENDIF.
 
     LOOP AT obj->_node->mt_child INTO DATA(lr_child).
       DATA(lo_child) = NEW z2ui5_cl_ui5( lr_child ).
@@ -206,7 +217,10 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
     DATA(lv_n) = COND #( WHEN check_popup = abap_true THEN `FragmentDefinition` ELSE `View` ).
     DATA(lv_ns) = COND #( WHEN check_popup = abap_true THEN `sap.ui.core` ELSE `sap.ui.core.mvc` ).
 
-    result = result->_add( n = lv_n ns  = lv_ns ).
+    result->_node->mv_name = lv_n.
+    result->_node->mv_ns = lv_ns.
+    INSERT lv_ns INTO TABLE result->_node->mo_root->mt_ns.
+    "( n = lv_n ns  = lv_ns ).
 
     IF check_popup = abap_false.
       result->_add_p( n = `displayBlock`  v = `true` ).
@@ -226,6 +240,11 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _go_up.
+    IF _node = _node->mo_root.
+      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        EXPORTING
+          val = `XML_VIEW_PARSER_ERROR - go_up on root element not possible`.
+    ENDIF.
     result = NEW #( _node->mo_parent ).
   ENDMETHOD.
 
@@ -234,6 +253,10 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _ns_html.
+    result = NEW #( _node ).
+  ENDMETHOD.
+
+  METHOD _ns_webc.
     result = NEW #( _node ).
   ENDMETHOD.
 
@@ -261,4 +284,10 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   METHOD _ns_suite.
     result = NEW #( _node ).
   ENDMETHOD.
+
+  METHOD _add_c.
+    _node->mv_content = val.
+    result = me.
+  ENDMETHOD.
+
 ENDCLASS.

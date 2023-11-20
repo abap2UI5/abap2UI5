@@ -14,7 +14,6 @@ CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
     METHODS test_bind_two_way  FOR TESTING RAISING cx_static_check.
     METHODS test_message_toast FOR TESTING RAISING cx_static_check.
     METHODS test_message_box   FOR TESTING RAISING cx_static_check.
-    METHODS test_timer         FOR TESTING RAISING cx_static_check.
     METHODS test_landing_page  FOR TESTING RAISING cx_static_check.
     METHODS test_scroll_cursor FOR TESTING RAISING cx_static_check.
     METHODS test_navigate      FOR TESTING RAISING cx_static_check.
@@ -174,34 +173,6 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_timer.
-
-*    z2ui5_cl_fw_integration_test=>sv_state = `TEST_TIMER`.
-*    DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
-*      `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
-*
-*    DATA lo_data TYPE REF TO data.
-*    /ui2/cl_json=>deserialize( EXPORTING json = lv_response
-*                               CHANGING  data = lo_data ).
-*
-*    FIELD-SYMBOLS <val> TYPE any.
-*
-*    UNASSIGN <val>.
-*    DATA(lv_assign) = `PARAMS->S_TIMER->EVENT_FINISHED->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `TIMER_FINISHED`.
-*      cl_abap_unit_assert=>fail( msg  = 'timer - event wrong'
-*                                 quit = 5 ).
-*    ENDIF.
-*
-*    UNASSIGN <val>.
-*    lv_assign = `PARAMS->S_TIMER->INTERVAL_MS->*`.
-*    ASSIGN lo_data->(lv_assign) TO <val>.
-*    IF <val> <> `500`.
-*      cl_abap_unit_assert=>fail( msg  = 'timer - ms wrong'
-*                                 quit = 5 ).
-*    ENDIF.
-  ENDMETHOD.
 
   METHOD test_xml_popup.
 
@@ -343,7 +314,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
 
     DATA(lv_id) = CONV string( <val> ).
-    DATA(lv_request) = `{"EDIT":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+    DATA(lv_request) = `{"EDIT":{"QUANTITY":"700"},"ID": "` && lv_id && `" ,"ARGUMENTS": [{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}], "VIEWNAME" : "MAIN"}`.
     lv_response = z2ui5_cl_fw_http_handler=>http_post( lv_request ).
 
     CLEAR lo_data.
@@ -355,7 +326,8 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
     UNASSIGN <val>.
     ASSIGN (`LO_DATA->PARAMS->*`) TO <val>.
-    ASSIGN (`<VAL>->S_MSG_TOAST->TEXT->*`) TO <val>.
+    ASSIGN (`<VAL>-S_MSG_TOAST->*`) TO <val>.
+    ASSIGN (`<VAL>-TEXT->*`) TO <val>.
     cl_abap_unit_assert=>assert_not_initial( <val> ).
 
 *    cl_abap_unit_assert=>assert_equals(

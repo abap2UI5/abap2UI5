@@ -34,10 +34,9 @@ CLASS z2ui5_cl_ui5_html IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD script.
-    result = me.
-    _add( n   = `script`
+    result = _add( n   = `script`
           ns  = `http://www.w3.org/1999/xhtml`
-          t_p = VALUE #( ( n = `src` v = src ) ) ).
+          t_p = VALUE #( ( n = `src` v = src ) ) )->_ns_html( ).
   ENDMETHOD.
 
   METHOD style.
