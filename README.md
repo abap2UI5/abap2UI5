@@ -76,6 +76,9 @@ METHOD if_http_extension~handle_request.
 ENDMETHOD.
 ```
 ##### ABAP for Cloud  :cloud:
+<details>
+<summary>show code...</summary>
+   
 ```abap
 METHOD if_http_service_extension~handle_request.
 
@@ -89,6 +92,9 @@ METHOD if_http_service_extension~handle_request.
 
 ENDMETHOD.
 ```
+
+</details>
+
 #### Usage
 Implement the abap2UI5 interface as shown in the following example:
 ```abap
