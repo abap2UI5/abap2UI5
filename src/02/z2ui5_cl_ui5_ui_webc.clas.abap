@@ -98,6 +98,8 @@ CLASS Z2UI5_CL_UI5_UI_WEBC IMPLEMENTATION.
                     ( n = `id` v = id )
                     ( n = `text` v = text )
                     ( n = `click` v = click )
+                    ( n = `width` v = width )
+                    ( n = `value` v = value )
                     ) )->_ns_webc( ).
 
   ENDMETHOD.
