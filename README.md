@@ -127,7 +127,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
   ENDMETHOD.
 ENDCLASS.
 ```
-Or check out this example with lists and events:
+Or check out this bigger example with tables and events:
 <details>
 <summary>show code...</summary>
    
