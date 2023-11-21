@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CC_FOCUS</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>cc - document.title</DESCRIPT>
+    <DESCRIPT>cc - set focus and cursor</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
