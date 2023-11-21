@@ -366,6 +366,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS suggestion_item
+      IMPORTING
+        !description   TYPE clike OPTIONAL
+        !icon          TYPE clike OPTIONAL
+        !key           TYPE clike OPTIONAL
+        !text          TYPE clike OPTIONAL
+        !textdirection TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS suggestion_columns
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -6141,6 +6151,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD suggestion_items.
     result = _generic( `suggestionItems` ).
+  ENDMETHOD.
+
+
+  METHOD suggestion_item.
+    result = me.
+    _generic( name   = `SuggestionItem`
+              t_prop = VALUE #( ( n = `description`   v = description )
+                                ( n = `icon`          v = icon )
+                                ( n = `key`           v = key )
+                                ( n = `text`          v = text )
+                                ( n = `textDirection` v = textdirection ) ) ).
   ENDMETHOD.
 
 
