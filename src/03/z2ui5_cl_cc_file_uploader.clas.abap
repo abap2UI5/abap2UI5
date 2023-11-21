@@ -16,6 +16,7 @@ CLASS z2ui5_cl_cc_file_uploader DEFINITION
         !buttontext        TYPE clike OPTIONAL
         !uploadbuttontext  TYPE clike OPTIONAL
         !checkdirectupload TYPE clike OPTIONAL
+        !filetype TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
@@ -35,6 +36,7 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
+
 
   METHOD CONSTRUCTOR.
 
@@ -56,6 +58,7 @@ CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
                                 (  n = `buttonOnly`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
                                 (  n = `buttonText`         v = buttontext )
                                 (  n = `uploadButtonText`   v = uploadbuttontext )
+                                (  n = `fileType`           v = filetype )
                                 (  n = `checkDirectUpload`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
 
   ENDMETHOD.
@@ -168,6 +171,7 @@ CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
                           `                        iconOnly: oControl.getProperty("iconOnly"),` && |\n| &&
                           `                        buttonOnly: oControl.getProperty("buttonOnly"),` && |\n| &&
                           `                        buttonText: oControl.getProperty("buttonText"),` && |\n| &&
+                          `                        fileType: oControl.getProperty("fileType"),` && |\n| &&
                           `                        uploadOnChange: true,` && |\n| &&
                           `                        value: oControl.getProperty("path"),` && |\n| &&
                           `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
