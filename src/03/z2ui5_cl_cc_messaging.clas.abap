@@ -16,7 +16,7 @@ CLASS z2ui5_cl_cc_messaging DEFINITION
         descriptionurl TYPE string,
         persistent     TYPE string,
       END OF ty_s_item.
-    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY.
+    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY ##NEEDED.
 
     METHODS constructor
       IMPORTING
@@ -143,9 +143,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
         `           setTimeout( (oControl) => { ` && |\n|  &&
 *    `               Messaging.registerObject(sap.z2ui5.oView, true);` && |\n|  &&
     `                   ` && |\n|  &&
-
     `   ` && |\n|  &&
-
     `               }, 50 , oControl );` && |\n|  &&
     `       }` && |\n|  &&
     `   });` && |\n|  &&
