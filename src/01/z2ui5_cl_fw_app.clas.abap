@@ -137,7 +137,8 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
       content->input( placeholder = `fill in the class name and press 'check'`
                       editable    = z2ui5_cl_fw_utility=>boolean_abap_2_json( ms_home-class_editable )
-          value                   = client->_bind_edit( ms_home-classname ) ).
+                      value       = client->_bind_edit( ms_home-classname )
+                      submit      = client->_event( ms_home-btn_event_id ) ).
 
     ELSE.
       content->text( ms_home-classname ).

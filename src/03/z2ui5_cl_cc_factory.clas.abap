@@ -37,6 +37,10 @@ CLASS z2ui5_cl_cc_factory DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_timer.
 
+    METHODS messaging
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_messaging.
+
     METHODS title
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_title.
@@ -44,6 +48,10 @@ CLASS z2ui5_cl_cc_factory DEFINITION
     METHODS focus
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_cc_focus.
+
+   METHODS scroll
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_cc_scroll.
 
     METHODS info
       RETURNING
@@ -62,6 +70,18 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_cc_factory IMPLEMENTATION.
+
+  METHOD scroll.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+  METHOD messaging.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
 
   METHOD focus.
 

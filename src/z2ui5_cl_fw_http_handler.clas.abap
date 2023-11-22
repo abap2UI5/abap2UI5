@@ -443,7 +443,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        } else {` && |\n| &&
                            `                            oView.placeAt("content")` && |\n| &&
                            `                        };` && |\n| &&
-                           `                        sap.ui.getCore().getMessageManager().registerObject(oView, true);` && |\n| &&
+                           `                       sap.ui.getCore().getMessageManager().registerObject(oView, true);` && |\n| &&
                            `                        sap.z2ui5.oView = oView;` && |\n| &&
                            `                    },` && |\n| &&
                            `                    );` && |\n| &&
@@ -469,7 +469,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                }` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.CHECK_CLEAR == true) {` && |\n| &&
                            `                       sap.ui.getCore().getMessageManager().removeAllMessages();        ` && |\n| &&
-                           `                       sap.ui.getCore().getMessageManager().registerObject(oView, true);        } ` && |\n| &&
+                           `                       sap.ui.getCore().getMessageManager().registerObject(oView, true);         ` && |\n| &&
+                           `                       } ` && |\n| &&
                            `                if (sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.T_MESSAGE != "") {` && |\n| &&
                            `                   sap.z2ui5.oResponse.PARAMS.S_MESSAGE_MANAGER.T_MESSAGE.forEach( item => { ` && |\n|  &&
                            `                 sap.ui.getCore().getMessageManager().addMessages( new sap.ui.core.message.Message({` && |\n|  &&
