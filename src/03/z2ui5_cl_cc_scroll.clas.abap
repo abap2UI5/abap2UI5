@@ -10,7 +10,7 @@ CLASS z2ui5_cl_cc_scroll DEFINITION
         id       TYPE string,
         scrollto TYPE string,
       END OF ty_s_item.
-    TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY.
+    TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY ##NEEDED.
 
     METHODS constructor
       IMPORTING
