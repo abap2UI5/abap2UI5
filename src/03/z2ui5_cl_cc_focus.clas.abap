@@ -5,18 +5,20 @@ CLASS z2ui5_cl_cc_focus DEFINITION
 
   PUBLIC SECTION.
 
+    INTERFACES z2ui5_if_cc.
+
     METHODS constructor
       IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
+        view TYPE REF TO z2ui5_cl_xml_view optional.
 
     METHODS control
       IMPORTING
-        focusId          TYPE clike OPTIONAL
-        selectionStart   TYPE clike OPTIONAL
-        selectionEnd     TYPE clike OPTIONAL
-        setUpdate        TYPE clike OPTIONAL
+        focusid        TYPE clike OPTIONAL
+        selectionstart TYPE clike OPTIONAL
+        selectionend   TYPE clike OPTIONAL
+        setupdate      TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS load_cc
       RETURNING
@@ -34,7 +36,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_focus IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_FOCUS IMPLEMENTATION.
+
 
   METHOD constructor.
 
@@ -42,25 +45,21 @@ CLASS z2ui5_cl_cc_focus IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD control.
 
     result = mo_view.
     mo_view->_generic( name   = `Focus`
               ns     = `z2ui5`
               t_prop = VALUE #(
-                ( n = `setUpdate`       v = setUpdate )
-                ( n = `selectionStart`  v = selectionStart )
-                ( n = `selectionEnd`    v = selectionEnd )
-                ( n = `focusId`         v = focusId )
+                ( n = `setUpdate`       v = setupdate )
+                ( n = `selectionStart`  v = selectionstart )
+                ( n = `selectionEnd`    v = selectionend )
+                ( n = `focusId`         v = focusid )
        ) ).
 
   ENDMETHOD.
 
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
-
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -104,4 +103,15 @@ CLASS z2ui5_cl_cc_focus IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD load_cc.
+
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_cc~get_js.
+    result = get_js( ).
+  ENDMETHOD.
 ENDCLASS.

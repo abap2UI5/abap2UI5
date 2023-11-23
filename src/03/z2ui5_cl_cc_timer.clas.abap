@@ -4,17 +4,18 @@ CLASS z2ui5_cl_cc_timer DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+    INTERFACES z2ui5_if_cc.
 
     METHODS constructor
       IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
+        view TYPE REF TO z2ui5_cl_xml_view optional.
 
     METHODS control
       IMPORTING
         finished      TYPE clike OPTIONAL
         delayms       TYPE clike OPTIONAL
         checkrepeat   TYPE clike OPTIONAL
-        PREFERRED PARAMETER finished
+          PREFERRED PARAMETER finished
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -22,7 +23,7 @@ CLASS z2ui5_cl_cc_timer DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    class-METHODS get_js
+    CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
 
@@ -102,6 +103,10 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `   });` && |\n|  &&
     `});`.
 
+  ENDMETHOD.
+
+  METHOD z2ui5_if_cc~get_js.
+    get_js( ).
   ENDMETHOD.
 
 ENDCLASS.

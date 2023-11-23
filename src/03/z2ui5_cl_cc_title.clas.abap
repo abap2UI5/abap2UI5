@@ -5,9 +5,11 @@ CLASS z2ui5_cl_cc_title DEFINITION
 
   PUBLIC SECTION.
 
+    INTERFACES z2ui5_if_cc.
+
     METHODS constructor
       IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
+        view TYPE REF TO z2ui5_cl_xml_view optional.
 
     METHODS control
       IMPORTING
@@ -31,13 +33,15 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_title IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_TITLE IMPLEMENTATION.
+
 
   METHOD constructor.
 
     me->mo_view = view.
 
   ENDMETHOD.
+
 
   METHOD control.
 
@@ -48,11 +52,6 @@ CLASS z2ui5_cl_cc_title IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
-
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -88,4 +87,15 @@ CLASS z2ui5_cl_cc_title IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD load_cc.
+
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_cc~get_js.
+    result = get_js( ).
+  ENDMETHOD.
 ENDCLASS.
