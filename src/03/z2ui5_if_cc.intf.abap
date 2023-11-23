@@ -1,0 +1,10 @@
+INTERFACE z2ui5_if_cc
+  PUBLIC .
+
+  TYPES ty_t_cc TYPE STANDARD TABLE OF REF TO z2ui5_if_cc WITH DEFAULT KEY.
+
+  METHODS get_js
+    RETURNING
+      VALUE(result) TYPE string.
+
+ENDINTERFACE.

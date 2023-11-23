@@ -17,6 +17,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
         check_logging             TYPE abap_bool                        OPTIONAL
         custom_js                 TYPE string                           OPTIONAL
         custom_js_oneventfrontend TYPE string                           OPTIONAL
+        t_load_cc                 TYPE z2ui5_if_cc=>ty_t_cc             OPTIONAL
           PREFERRED PARAMETER t_config
       RETURNING
         VALUE(r_result)           TYPE string.
@@ -29,13 +30,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
 
     DATA(lt_config) = t_config.
-
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
           (  n = `data-sap-ui-theme`         v = `sap_horizon` )
@@ -45,6 +45,18 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
           (  n = `data-sap-ui-frameOptions`  v = `trusted` )
           (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
     ENDIF.
+
+    DATA(lt_load_cc) = t_load_cc.
+    IF t_load_cc IS INITIAL.
+      INSERT NEW z2ui5_cl_cc_timer( ) INTO TABLE lt_load_cc.
+      INSERT NEW z2ui5_cl_cc_focus( ) INTO TABLE lt_load_cc.
+      INSERT NEW z2ui5_cl_cc_title( ) INTO TABLE lt_load_cc.
+    ENDIF.
+    DATA(lv_cc) = ``.
+    LOOP AT lt_load_cc INTO DATA(li_cc).
+      lv_cc = lv_cc && li_cc->get_js( ) && |\n|.
+    ENDLOOP.
+
 
     IF content_security_policy IS NOT SUPPLIED.
       DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
@@ -552,6 +564,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `sap.z2ui5.Helper.DateAbapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n| &&
                            custom_js && |\n|  &&
                            z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
+*                           VALUE string( FOR z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
+                           lv_cc && |\n|  &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></body></html>`.
