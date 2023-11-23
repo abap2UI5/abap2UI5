@@ -4,7 +4,6 @@ CLASS z2ui5_cl_cc_timer DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    INTERFACES z2ui5_if_cc.
 
     METHODS constructor
       IMPORTING
@@ -103,10 +102,6 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `   });` && |\n|  &&
     `});`.
 
-  ENDMETHOD.
-
-  METHOD z2ui5_if_cc~get_js.
-    get_js( ).
   ENDMETHOD.
 
 ENDCLASS.

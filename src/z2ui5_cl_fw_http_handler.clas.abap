@@ -17,7 +17,6 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
         check_logging             TYPE abap_bool                        OPTIONAL
         custom_js                 TYPE string                           OPTIONAL
         custom_js_oneventfrontend TYPE string                           OPTIONAL
-        t_load_cc                 TYPE z2ui5_if_cc=>ty_t_cc             OPTIONAL
           PREFERRED PARAMETER t_config
       RETURNING
         VALUE(r_result)           TYPE string.
@@ -46,16 +45,17 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
           (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
     ENDIF.
 
-    DATA(lt_load_cc) = t_load_cc.
-    IF t_load_cc IS INITIAL.
-      INSERT NEW z2ui5_cl_cc_timer( ) INTO TABLE lt_load_cc.
-      INSERT NEW z2ui5_cl_cc_focus( ) INTO TABLE lt_load_cc.
-      INSERT NEW z2ui5_cl_cc_title( ) INTO TABLE lt_load_cc.
-    ENDIF.
-    DATA(lv_cc) = ``.
-    LOOP AT lt_load_cc INTO DATA(li_cc).
-      lv_cc = lv_cc && li_cc->get_js( ) && |\n|.
-    ENDLOOP.
+*    DATA(lt_load_cc) = t_load_cc.
+*    IF t_load_cc IS INITIAL.
+    data(lv_add_js) =
+        z2ui5_cl_cc_timer=>get_js( ) &&
+        z2ui5_cl_cc_focus=>get_js( ) &&
+        z2ui5_cl_cc_title=>get_js( ) &&
+        custom_js.
+*    DATA(lv_cc) = ``.
+*    LOOP AT lt_load_cc INTO DATA(li_cc).
+*      lv_cc = lv_cc && li_cc->get_js( ) && |\n|.
+*    ENDLOOP.
 
 
     IF content_security_policy IS NOT SUPPLIED.
@@ -562,10 +562,11 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `sap.z2ui5.Helper.DateAbapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapDateToDateObject = (d => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7]));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapDateTimeToDateObject = ((d,t = '000000') => new Date(d.slice(0,4), (d[4]+d[5])-1, d[6]+d[7],t.slice(0,2),t.slice(2,4),t.slice(4,6)));` && |\n| &&
-                           custom_js && |\n|  &&
-                           z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
+*                           custom_js && |\n|  &&
+*                           z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
 *                           VALUE string( FOR z2ui5_cl_cc_timer=>get_js( ) && |\n|  &&
-                           lv_cc && |\n|  &&
+*                           lv_cc && |\n|  &&
+                           lv_add_js && |\n| &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></body></html>`.
