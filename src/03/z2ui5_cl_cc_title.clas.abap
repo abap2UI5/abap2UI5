@@ -44,7 +44,7 @@ CLASS Z2UI5_CL_CC_TITLE IMPLEMENTATION.
   METHOD control.
 
     result = mo_view.
-    mo_view->_generic( name   = `CCTitle`
+    mo_view->_generic( name   = `Title`
               ns     = `z2ui5`
               t_prop = VALUE #( ( n = `title`  v = title ) ) ).
 
@@ -53,10 +53,10 @@ CLASS Z2UI5_CL_CC_TITLE IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `jQuery.sap.declare("z2ui5.CCTitle");` && |\n|  &&
+    result = `jQuery.sap.declare("z2ui5.Title");` && |\n|  &&
              `sap.ui.require(["sap/ui/core/Control"], (Control)=>{` && |\n|  &&
              `        "use strict";` && |\n|  &&
-             `        return Control.extend("z2ui5.CCTitle", {` && |\n|  &&
+             `        return Control.extend("z2ui5.Title", {` && |\n|  &&
              `            metadata: {` && |\n|  &&
              `                properties: {` && |\n|  &&
              `                    title: {` && |\n|  &&

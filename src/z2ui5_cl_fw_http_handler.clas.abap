@@ -51,6 +51,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
         z2ui5_cl_cc_timer=>get_js( ) &&
         z2ui5_cl_cc_focus=>get_js( ) &&
         z2ui5_cl_cc_title=>get_js( ) &&
+        z2ui5_cl_cc_scroll=>get_js( ) &&
         custom_js.
 *    DATA(lv_cc) = ``.
 *    LOOP AT lt_load_cc INTO DATA(li_cc).
@@ -369,6 +370,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                  sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                            `                 }` && |\n| &&
                            |\n| &&
+                           `             sap.z2ui5.onBeforeRoundtrip.forEach( item => { if( item !== undefined) { item(); }  })` && |\n| &&
                            `                if (args[ 0 ].CHECK_VIEW_DESTROY){` && |\n| &&
                            `                    sap.z2ui5.oController.ViewDestroy();` && |\n| &&
                            `                }` && |\n| &&
@@ -557,6 +559,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `        sap.z2ui5.oController.oUtil.oDate = {}; ` && |\n| &&
                            `        sap.z2ui5.oController.oUtil.oDate.createObject = (s) => { return new Date(s); }` && |\n| &&
                            `  jQuery.sap.declare("sap.z2ui5.Helper");` && |\n|  &&
+                           `sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
                            `sap.z2ui5.Helper = {};` && |\n| &&
                            `sap.z2ui5.Helper.DateCreateObject = (s => new Date(s));` && |\n| &&
                            `sap.z2ui5.Helper.DateAbapTimestampToDate = (sTimestamp => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp));` && |\n| &&

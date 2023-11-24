@@ -124,19 +124,19 @@ CLASS Z2UI5_CL_FW_INTEGRATION_TEST IMPLEMENTATION.
 
     ENDCASE.
 
-    IF sv_state = 'TEST_SCROLL_CURSOR'.
-
-      client->view_display( `test` ).
-      client->cursor_set( id             = 'id_text2'
-                          cursorpos      = '5'
-                          selectionstart = '5'
-                          selectionend   = '10' ).
-
-      client->scroll_position_set( VALUE #( v = '99999'
-                                ( n = 'id_page' )
-                                ( n = 'id_text3' ) ) ).
-
-    ENDIF.
+*    IF sv_state = 'TEST_SCROLL_CURSOR'.
+*
+**      client->view_display( `test` ).
+**      client->cursor_set( id             = 'id_text2'
+**                          cursorpos      = '5'
+**                          selectionstart = '5'
+**                          selectionend   = '10' ).
+**
+**      client->scroll_position_set( VALUE #( v = '99999'
+**                                ( n = 'id_page' )
+**                                ( n = 'id_text3' ) ) ).
+*
+*    ENDIF.
 
     IF sv_state = 'TEST_NAVIGATE'.
       DATA(lo_app) = NEW z2ui5_cl_fw_integration_test( ).
