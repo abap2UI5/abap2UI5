@@ -52,7 +52,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       event                  = mo_handler->ms_actual-event
       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
       t_event_arg            = mo_handler->ms_actual-t_event_arg
-      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+*      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
       t_message_manager      = mo_handler->ms_actual-t_message_manager
       s_draft                = CORRESPONDING #( mo_handler->ms_db )
       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
@@ -180,7 +180,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~scroll_position_set.
 
-    mo_handler->ms_next-s_set-t_scroll = val.
+*    mo_handler->ms_next-s_set-t_scroll = val.
 
   ENDMETHOD.
 

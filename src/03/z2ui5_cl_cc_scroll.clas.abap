@@ -78,8 +78,22 @@ CLASS z2ui5_cl_cc_scroll IMPLEMENTATION.
              `          }` && |\n|  &&
              `      },` && |\n|  &&
              |\n|  &&
+             `      setBackend() {  ` && |\n| &&
+               `   if (this.mProperties.items){ this.mProperties.items.forEach(item => {` && |\n| &&
+                           `                        try {` && |\n| &&
+                           `                            item.SCROLLTO = sap.z2ui5.oView.byId(item.ID).getScrollDelegate().getScrollTop();` && |\n| &&
+                           `                        } catch (e) {` && |\n| &&
+                           `                            try {` && |\n| &&
+                           `                                var ele = '#' + sap.z2ui5.oView.byId(item.ID).getId() + '-inner';` && |\n| &&
+                           `                                item.SCROLLTO = $(ele).scrollTop();` && |\n| &&
+                           `                            } catch (e) { }` && |\n| &&
+                           `                        }` && |\n| &&
+                           `                    });` && |\n| &&
+             `  } },` && |\n|  &&
+             `      init() {    sap.z2ui5.onBeforeRoundtrip.push( this.setBackend.bind(this) );   },` && |\n|  &&
              `      renderer(oRm, oControl) {` && |\n|  &&
              |\n|  &&
+             `       ` && |\n|  &&
              `            if (!oControl.getProperty("setUpdate")){ return; }` && |\n|  &&
              |\n|  &&
              `            oControl.setProperty("setUpdate", false);` && |\n|  &&

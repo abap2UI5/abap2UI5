@@ -61,7 +61,7 @@ CLASS Z2UI5_CL_CC_FOCUS IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `debugger; jQuery.sap.declare("z2ui5.Focus");` && |\n|  &&
+    result = `jQuery.sap.declare("z2ui5.Focus");` && |\n|  &&
              `sap.ui.require([` && |\n|  &&
              `  "sap/ui/core/Control",` && |\n|  &&
              `], (Control) => {` && |\n|  &&
@@ -82,7 +82,7 @@ CLASS Z2UI5_CL_CC_FOCUS IMPLEMENTATION.
              |\n|  &&
              `      renderer(oRm, oControl) {` && |\n|  &&
              |\n|  &&
-             `  debugger;        if (!oControl.getProperty("setUpdate")){ return; }` && |\n|  &&
+             `        if (!oControl.getProperty("setUpdate")){ return; }` && |\n|  &&
              `            oControl.setProperty("setUpdate", false);` && |\n|  &&
              |\n|  &&
              `          setTimeout((oControl) => {` && |\n|  &&
