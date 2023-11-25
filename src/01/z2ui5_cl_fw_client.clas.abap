@@ -37,11 +37,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~cursor_set.
 
-    mo_handler->ms_next-s_set-s_cursor = VALUE #(
-      id             = id
-      cursorpos      = cursorpos
-      selectionend   = selectionend
-      selectionstart = selectionstart ).
+*    mo_handler->ms_next-s_set-s_cursor = VALUE #(
+*      id             = id
+*      cursorpos      = cursorpos
+*      selectionend   = selectionend
+*      selectionstart = selectionstart ).
 
   ENDMETHOD.
 
@@ -52,8 +52,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       event                  = mo_handler->ms_actual-event
       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
       t_event_arg            = mo_handler->ms_actual-t_event_arg
-      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
-      t_message_manager      = mo_handler->ms_actual-t_message_manager
+*      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+*      t_message_manager      = mo_handler->ms_actual-t_message_manager
       s_draft                = CORRESPONDING #( mo_handler->ms_db )
       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
       s_config               = z2ui5_cl_fw_handler=>ss_config ).
@@ -105,15 +105,15 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~timer_set.
 
-    mo_handler->ms_next-s_set-s_timer-interval_ms    = interval_ms.
-    mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
+*    mo_handler->ms_next-s_set-s_timer-interval_ms    = interval_ms.
+*    mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~title_set.
 
-    mo_handler->ms_next-s_set-title = val.
+*    mo_handler->ms_next-s_set-title = val.
 
   ENDMETHOD.
 
@@ -376,13 +376,13 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_manager_add.
 
-    mo_handler->ms_next-s_set-s_message_manager-t_message = val.
+*    mo_handler->ms_next-s_set-s_message_manager-t_message = val.
 
   ENDMETHOD.
 
   METHOD z2ui5_if_client~message_manager_clear.
 
-    mo_handler->ms_next-s_set-s_message_manager-check_clear = abap_true.
+*    mo_handler->ms_next-s_set-s_message_manager-check_clear = abap_true.
 
   ENDMETHOD.
 
