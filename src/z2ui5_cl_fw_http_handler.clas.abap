@@ -51,6 +51,10 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
         z2ui5_cl_cc_timer=>get_js( ) &&
         z2ui5_cl_cc_focus=>get_js( ) &&
         z2ui5_cl_cc_title=>get_js( ) &&
+        z2ui5_cl_cc_title=>get_js( ) &&
+        z2ui5_cl_cc_title=>get_js( ) &&
+        z2ui5_cl_cc_title=>get_js( ) &&
+        z2ui5_cl_cc_title=>get_js( ) &&
         z2ui5_cl_cc_scroll=>get_js( ) &&
         custom_js.
 *    DATA(lv_cc) = ``.
@@ -94,6 +98,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
         `<abc/>` && |\n|.
 
     r_result = r_result && `<script>` && |\n| &&
+                           `    sap.ui.core.BusyIndicator.show();` && |\n| &&
                            `    sap.ui.getCore().attachInit(function () {` && |\n| &&
                            `        "use strict";` && |\n| &&
                            |\n| &&
