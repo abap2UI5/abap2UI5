@@ -1871,6 +1871,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS _z2ui5
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view_cc.
 
     METHODS _cc
       RETURNING
@@ -7049,4 +7052,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
 
   ENDMETHOD.
+
+  METHOD _Z2UI5.
+
+    result = new #( me ).
+
+  ENDMETHOD.
+
 ENDCLASS.

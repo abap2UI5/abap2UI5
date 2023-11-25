@@ -18,10 +18,6 @@ CLASS z2ui5_cl_cc_timer DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
@@ -34,13 +30,15 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_TIMER IMPLEMENTATION.
+
 
   METHOD constructor.
 
     me->mo_view = view.
 
   ENDMETHOD.
+
 
   METHOD control.
 
@@ -54,11 +52,6 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
-
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -103,5 +96,4 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
     `});`.
 
   ENDMETHOD.
-
 ENDCLASS.
