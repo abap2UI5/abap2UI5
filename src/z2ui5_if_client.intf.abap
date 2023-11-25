@@ -96,6 +96,15 @@ INTERFACE z2ui5_if_client
 
   METHODS view_model_update.
 
+  METHODS title_set
+    IMPORTING
+      val TYPE clike.
+
+  METHODS timer_set
+    IMPORTING
+      interval_ms    TYPE clike OPTIONAL
+      event_finished TYPE clike.
+
   METHODS nest_view_display
     IMPORTING
       val            TYPE clike
@@ -227,8 +236,8 @@ INTERFACE z2ui5_if_client
       val TYPE data.
 
   METHODS factory_view
-  IMPORTING
-    check_popup type abap_bool default abap_false
+    IMPORTING
+      check_popup   TYPE abap_bool DEFAULT abap_false
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 

@@ -52,7 +52,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       event                  = mo_handler->ms_actual-event
       check_launchpad_active = mo_handler->ms_actual-check_launchpad_active
       t_event_arg            = mo_handler->ms_actual-t_event_arg
-*      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
+      t_scroll_pos           = mo_handler->ms_actual-t_scroll_pos
       t_message_manager      = mo_handler->ms_actual-t_message_manager
       s_draft                = CORRESPONDING #( mo_handler->ms_db )
       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
@@ -100,6 +100,20 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nest2_view_destroy.
 
     mo_handler->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~timer_set.
+
+    mo_handler->ms_next-s_set-s_timer-interval_ms    = interval_ms.
+    mo_handler->ms_next-s_set-s_timer-event_finished = event_finished.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~title_set.
+
+    mo_handler->ms_next-s_set-title = val.
 
   ENDMETHOD.
 
