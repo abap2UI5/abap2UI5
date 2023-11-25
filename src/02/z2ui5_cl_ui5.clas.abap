@@ -46,8 +46,8 @@ CLASS z2ui5_cl_ui5 DEFINITION
     METHODS _ns_suite
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_suite.
 
-    METHODS _ns_zcc
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
+    METHODS _ns_z2ui5
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_z2ui5.
 
     METHODS _ns_html
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_html.
@@ -272,7 +272,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
     result = NEW #( _node ).
   ENDMETHOD.
 
-  METHOD _ns_zcc.
+  METHOD _ns_z2ui5.
     result = NEW #( _node ).
   ENDMETHOD.
 
