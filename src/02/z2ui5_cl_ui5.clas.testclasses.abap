@@ -106,7 +106,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lo_m) = NEW z2ui5_cl_ui5( )->_ns_m( ) ##NEEDED.
     DATA(lo_ndc) = NEW z2ui5_cl_ui5( )->_ns_ndc( ) ##NEEDED.
     DATA(lo_suite) = NEW z2ui5_cl_ui5( )->_ns_suite( ) ##NEEDED.
-    DATA(lo_zcc) = NEW z2ui5_cl_ui5( )->_ns_zcc( ) ##NEEDED.
+    DATA(lo_zcc) = NEW z2ui5_cl_ui5( )->_ns_z2ui5( ) ##NEEDED.
 
   ENDMETHOD.
 

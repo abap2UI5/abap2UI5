@@ -75,7 +75,7 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
                                 ( n = `icon` v = icon )
                                 ( n = `key`  v = key )
                                 ( n = `textDirection`  v = textdirection )
-                                ( n = `enabled`        v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                ( n = `enabled`        v = _2bool( enabled ) )
                                 ( n = `additionalText` v = additionaltext ) ) ).
   ENDMETHOD.
 
@@ -85,7 +85,7 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
               ns     = `sap.ui.codeeditor`
               t_p = VALUE #( ( n = `value`   v = value )
                                 ( n = `type`    v = type )
-                                ( n = `editable`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( editable ) )
+                                ( n = `editable`   v = _2bool( editable ) )
                                 ( n = `height` v = height )
                                 ( n = `width`  v = width ) ) )->_ns_ui( ).
   ENDMETHOD.
