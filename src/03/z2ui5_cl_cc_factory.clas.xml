@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CC_FACTORY</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - view parser custom controls</DESCRIPT>
+    <DESCRIPT>cc - xml view factory</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
