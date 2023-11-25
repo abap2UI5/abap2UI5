@@ -69,43 +69,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_factory IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_FACTORY IMPLEMENTATION.
 
-  METHOD scroll.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
-  METHOD messaging.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
-  METHOD focus.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
-  METHOD info.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
-  METHOD timer.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
-  METHOD title.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
 
   METHOD bwip_js.
 
@@ -128,7 +93,7 @@ CLASS z2ui5_cl_cc_factory IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD gui_demo_output.
+  METHOD focus.
 
     result = NEW #( mo_view ).
 
@@ -136,6 +101,55 @@ CLASS z2ui5_cl_cc_factory IMPLEMENTATION.
 
 
   METHOD font_awesome.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD geolocation.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD gui_demo_output.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD info.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD messaging.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD scroll.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD timer.
+
+    result = NEW #( mo_view ).
+
+  ENDMETHOD.
+
+
+  METHOD title.
 
     result = NEW #( mo_view ).
 
@@ -154,11 +168,4 @@ CLASS z2ui5_cl_cc_factory IMPLEMENTATION.
     result = NEW #( mo_view ).
 
   ENDMETHOD.
-
-  METHOD geolocation.
-
-    result = NEW #( mo_view ).
-
-  ENDMETHOD.
-
 ENDCLASS.
