@@ -14,6 +14,7 @@ CLASS z2ui5_cl_cc_timer DEFINITION
         finished      TYPE clike OPTIONAL
         delayms       TYPE clike OPTIONAL
         checkrepeat   TYPE clike OPTIONAL
+        checkActive   TYPE clike OPTIONAL
           PREFERRED PARAMETER finished
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -47,6 +48,7 @@ CLASS Z2UI5_CL_CC_TIMER IMPLEMENTATION.
               ns     = `z2ui5`
               t_prop = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
+                                ( n = `checkActive`  v = checkActive )
                                 ( n = `checkRepeat`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkrepeat ) )
               ) ).
 
@@ -68,6 +70,10 @@ CLASS Z2UI5_CL_CC_TIMER IMPLEMENTATION.
     `                    type: "string",` && |\n|  &&
     `                    defaultValue: ""` && |\n|  &&
     `                },` && |\n|  &&
+    `                checkActive: {` && |\n|  &&
+    `                    type: "boolean",` && |\n|  &&
+    `                    defaultValue: true` && |\n|  &&
+    `                },` && |\n|  &&
     `                checkRepeat: {` && |\n|  &&
     `                    type: "boolean",` && |\n|  &&
     `                    defaultValue: false` && |\n|  &&
@@ -84,7 +90,9 @@ CLASS Z2UI5_CL_CC_TIMER IMPLEMENTATION.
     `       },` && |\n|  &&
     `       delayedCall( oControl){` && |\n|  &&
     `           ` && |\n|  &&
+    `           debugger; if ( oControl.getProperty("checkActive") == false ){ return; }` && |\n|  &&
     `            setTimeout((oControl) => {` && |\n|  &&
+    `               oControl.setProperty( "checkActive", false )` && |\n|  &&
     `                oControl.fireFinished();` && |\n|  &&
     `              if ( oControl.getProperty( "checkRepeat" ) ) { oControl.delayedCall( oControl ); }  ` && |\n|  &&
     `              }, parseInt( oControl.getProperty("delayMS") ), oControl );` && |\n|  &&

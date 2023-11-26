@@ -38,6 +38,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         finished      TYPE clike OPTIONAL
         delayms       TYPE clike OPTIONAL
         checkrepeat   TYPE clike OPTIONAL
+        checkActive   TYPE clike OPTIONAL
           PREFERRED PARAMETER finished
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -53,12 +54,32 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
 
   METHOD constructor.
 
     me->mo_view = view.
+
+  ENDMETHOD.
+
+
+  METHOD file_uploader.
+
+    result = mo_view.
+    mo_view->_generic( name   = `FileUploader`
+              ns     = `z2ui5`
+              t_prop = VALUE #( (  n = `placeholder`        v = placeholder )
+                                (  n = `upload`             v = upload )
+                                (  n = `path`               v = path )
+                                (  n = `value`              v = value )
+                                (  n = `iconOnly`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
+                                (  n = `buttonOnly`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
+                                (  n = `buttonText`         v = buttontext )
+                                (  n = `uploadButtonText`   v = uploadbuttontext )
+                                (  n = `fileType`           v = filetype )
+                                (  n = `checkDirectUpload`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
+
 
   ENDMETHOD.
 
@@ -83,6 +104,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               ns     = `z2ui5`
               t_prop = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
+                                ( n = `checkActive`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkActive ) )
                                 ( n = `checkRepeat`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkrepeat ) )
               ) ).
 
@@ -97,24 +119,4 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               t_prop = VALUE #( ( n = `title`  v = title ) ) ).
 
   ENDMETHOD.
-
-  METHOD file_uploader.
-
-    result = mo_view.
-    mo_view->_generic( name   = `FileUploader`
-              ns     = `z2ui5`
-              t_prop = VALUE #( (  n = `placeholder`        v = placeholder )
-                                (  n = `upload`             v = upload )
-                                (  n = `path`               v = path )
-                                (  n = `value`              v = value )
-                                (  n = `iconOnly`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
-                                (  n = `buttonOnly`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
-                                (  n = `buttonText`         v = buttontext )
-                                (  n = `uploadButtonText`   v = uploadbuttontext )
-                                (  n = `fileType`           v = filetype )
-                                (  n = `checkDirectUpload`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
-
-
-  ENDMETHOD.
-
 ENDCLASS.
