@@ -17,6 +17,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
         check_logging             TYPE abap_bool                        OPTIONAL
         custom_js                 TYPE string                           OPTIONAL
         custom_js_oneventfrontend TYPE string                           OPTIONAL
+        json_model_limit          TYPE string                           DEFAULT '100'
           PREFERRED PARAMETER t_config
       RETURNING
         VALUE(r_result)           TYPE string.
@@ -29,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -142,7 +143,9 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.XML,` && |\n| &&
                            `                            controller: sap.z2ui5.oControllerNest,` && |\n| &&
                            `                        }).then(oView => {` && |\n| &&
-                           `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                            var oview_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+                           `                            oview_model.setSizeLimit(` && json_model_limit && `);` && |\n| &&
+                           `                            oView.setModel(oview_model);` && |\n| &&
                            `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.ID);` && |\n| &&
                            `                            try { oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_DESTROY](); } catch { }` && |\n| &&
                            `                            oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.METHOD_INSERT](oView);` && |\n| &&
@@ -160,7 +163,9 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                            definition: sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.XML,` && |\n| &&
                            `                            controller: sap.z2ui5.oControllerNest2,` && |\n| &&
                            `                        }).then(oView => {` && |\n| &&
-                           `                            oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                            var oview_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+                           `                            oview_model.setSizeLimit(` && json_model_limit && `);` && |\n| &&
+                           `                            oView.setModel(oview_model);` && |\n| &&
                            `                            var oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.ID);` && |\n| &&
                            `                            try { oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.METHOD_DESTROY](); } catch { }` && |\n| &&
                            `                            oParent[sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.METHOD_INSERT](oView);` && |\n| &&
@@ -445,7 +450,9 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                        definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n| &&
                            `                        controller: sap.z2ui5.oController,` && |\n| &&
                            `                    }).then(oView => {` && |\n| &&
-                           `                       oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));` && |\n| &&
+                           `                        var oview_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+                           `                        oview_model.setSizeLimit(` && json_model_limit && `);` && |\n| &&
+                           `                        oView.setModel(oview_model);` && |\n| &&
                            `                        if (sap.z2ui5.oParent) {` && |\n| &&
                            `                            sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                            `                            sap.z2ui5.oParent.insertPage(oView);` && |\n| &&
@@ -457,9 +464,18 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                            `                    },` && |\n| &&
                            `                    );` && |\n| &&
                            `                } else {` && |\n| &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oView.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));  }` && |\n|  &&
-                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewNest2.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL));  }` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_UPDATE_MODEL == true) {` && |\n| &&
+                           `                      var main_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+                           `                      main_model.setSizeLimit(` && json_model_limit && `);` && |\n| &&
+                           `                      sap.z2ui5.oView.setModel(main_model); }` && |\n| &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST.CHECK_UPDATE_MODEL == true) {` && |\n| &&
+                           `                      var nest_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+                           `                      nest_model.setSizeLimit(` && json_model_limit && `);` && |\n| &&
+                           `                      sap.z2ui5.oViewNest.setModel(nest_model);  }` && |\n|  &&
+                           `                    if (sap.z2ui5.oResponse.PARAMS.S_VIEW_NEST2.CHECK_UPDATE_MODEL == true) {` && |\n| &&
+                           `                      var nest2_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+                           `                       nest2_model.setSizeLimit(` && json_model_limit && `);` && |\n| &&
+                           `                      sap.z2ui5.oViewNest2.setModel(nest2_model);  }` && |\n|  &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopup.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
                            `                    if (sap.z2ui5.oResponse.PARAMS.S_POPOVER.CHECK_UPDATE_MODEL == true) { sap.z2ui5.oViewPopover.setModel(new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL)); }` && |\n| &&
                            `                    sap.z2ui5.oController.onAfterRendering();` && |\n| &&
