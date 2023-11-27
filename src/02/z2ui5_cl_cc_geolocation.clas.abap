@@ -50,7 +50,7 @@ CLASS z2ui5_cl_cc_geolocation IMPLEMENTATION.
   METHOD control.
 
     result = mo_view.
-    mo_view->_generic( name   = `CCGeolocation`
+    mo_view->_generic( name   = `Geolocation`
               ns     = `z2ui5`
               t_prop = VALUE #(
                     ( n = `finished`  v = finished )
@@ -77,13 +77,13 @@ CLASS z2ui5_cl_cc_geolocation IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = ` jQuery.sap.declare("z2ui5.CCGeolocation");` && |\n| &&
+    r_js  = ` jQuery.sap.declare("z2ui5.Geolocation");` && |\n| &&
 `sap.ui.require([` && |\n|  &&
 `   "sap/ui/core/Control"` && |\n|  &&
 `], (Control) => {` && |\n|  &&
 `   "use strict";` && |\n|  &&
 |\n|  &&
-`   return Control.extend("z2ui5.CCGeolocation", {` && |\n|  &&
+`   return Control.extend("z2ui5.Geolocation", {` && |\n|  &&
 `       metadata : {` && |\n|  &&
 `           properties: {` && |\n|  &&
 `                longitude: {` && |\n|  &&

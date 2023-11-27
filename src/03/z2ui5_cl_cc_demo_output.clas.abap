@@ -8,11 +8,16 @@ CLASS z2ui5_cl_cc_demo_output DEFINITION
     METHODS constructor
       IMPORTING
         view TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS control
       IMPORTING
         val TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    class-methods get_style
+       RETURNING
+       VALUE(result) type string.
 
   PROTECTED SECTION.
       DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
@@ -23,15 +28,8 @@ ENDCLASS.
 
 CLASS z2ui5_cl_cc_demo_output IMPLEMENTATION.
 
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-  METHOD control.
-
-     result = mo_view->_cc_plain_xml( `<html:style type="text/css">body {` && |\n|  &&
+method get_style.
+result = `<html:style type="text/css">body {` && |\n|  &&
                               `     font-family: Arial;` && |\n|  &&
                               `     font-size: 90%;` && |\n|  &&
                               `}` && |\n|  &&
@@ -92,8 +90,17 @@ CLASS z2ui5_cl_cc_demo_output IMPLEMENTATION.
                               `tr.body {` && |\n|  &&
                               `    background-color:#EFEFEF;` && |\n|  &&
                               `}` && |\n|  &&
-                              `</html:style>`
-              )->html( val ).
+                              `</html:style>`.
+endmethod.
+  METHOD constructor.
+
+    me->mo_view = view.
+
+  ENDMETHOD.
+
+  METHOD control.
+
+     result = mo_view->_cc_plain_xml( get_style( ) )->html( val ).
 
   ENDMETHOD.
 

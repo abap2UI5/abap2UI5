@@ -93,7 +93,7 @@ CLASS Z2UI5_CL_CC_FOCUS IMPLEMENTATION.
              `              oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));` && |\n|  &&
              `              oElement.applyFocusInfo(oFocus);` && |\n|  &&
              |\n|  &&
-             `          }, 10, oControl);` && |\n|  &&
+             `          }, 100, oControl);` && |\n|  &&
              |\n|  &&
              `      }` && |\n|  &&
              `  });` && |\n|  &&

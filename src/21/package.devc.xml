@@ -3,7 +3,7 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <DEVC>
-    <CTEXT>abap2UI5 - custom controls fw (cc)</CTEXT>
+    <CTEXT>abap2UI5 - view renderer v1 (xml)</CTEXT>
    </DEVC>
   </asx:values>
  </asx:abap>
