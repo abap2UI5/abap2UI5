@@ -456,9 +456,11 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                            `                        definition: sap.z2ui5.oResponse.PARAMS.S_VIEW.XML,` && |\n| &&
                            `                        controller: sap.z2ui5.oController,` && |\n| &&
                            `                    }).then(oView => {` && |\n| &&
+                           `                        try{` && |\n| &&
                            `                        var oview_model = new sap.ui.model.json.JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                            `                        oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
-                           `                        oView.setModel(oview_model);` && |\n| &&
+                           `                      try { oView.setModel(oview_model); } catch (e) { oView.setModel(oview_model); }` && |\n| &&
+                                                   `                       } catch (e){ sap.m.MessageBox.error( 'Error while creating Main View - ' + e.message); }` && |\n| &&
                            `                        if (sap.z2ui5.oParent) {` && |\n| &&
                            `                            sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                            `                            sap.z2ui5.oParent.insertPage(oView);` && |\n| &&

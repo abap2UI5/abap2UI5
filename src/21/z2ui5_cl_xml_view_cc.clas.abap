@@ -5,6 +5,16 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
   PUBLIC SECTION.
 
+    METHODS camera_picture
+      IMPORTING
+        id            TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+        press         TYPE clike OPTIONAL
+        autoplay      TYPE clike OPTIONAL
+        OnPhoto       TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS bwip_js
       IMPORTING
         bcid          TYPE clike OPTIONAL
@@ -275,6 +285,21 @@ endmethod.
   METHOD demo_output.
 
    result = mo_view->_cc_plain_xml( z2ui5_cl_cc_demo_output=>get_style( ) )->html( val ).
+
+  ENDMETHOD.
+
+  METHOD camera_picture.
+
+    result = mo_view.
+    mo_view->_generic( name   = `CameraPicture`
+              ns     = `z2ui5`
+              t_prop = VALUE #(
+                ( n = `id`       v = id )
+                ( n = `value`    v = value )
+                ( n = `press`    v = press )
+                ( n = `OnPhoto`    v = OnPhoto )
+                ( n = `autoplay` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( autoplay ) )
+       ) ).
 
   ENDMETHOD.
 
