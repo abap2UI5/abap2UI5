@@ -599,7 +599,7 @@ METHOD get_js_cc_test.
 
     METHOD load_lib.
 
-      DATA(js) = ``.
+*      DATA(js) = ``.
       DATA(css) = ``.
 
       IF css_url IS INITIAL.
