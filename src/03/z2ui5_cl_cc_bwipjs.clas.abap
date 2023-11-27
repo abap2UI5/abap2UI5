@@ -24,6 +24,10 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_barcode.
 
+    CLASS-METHODS get_js
+      RETURNING
+        VALUE(r_js) TYPE string.
+
     METHODS load_cc
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -79,75 +83,7 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
 
   METHOD load_cc.
 
-    DATA(js) = `debugger;  jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
-                          |\n| &&
-                          `        sap.ui.require([` && |\n| &&
-                          `            "sap/ui/core/Control",` && |\n| &&
-                          `        ], function (Control) {` && |\n| &&
-                          `            "use strict";` && |\n| &&
-                          |\n| &&
-                          `            return Control.extend("z2ui5.bwipjs", {` && |\n| &&
-                          |\n| &&
-                          `                metadata: {` && |\n| &&
-                          `                    properties: {` && |\n| &&
-                          `                        bcid: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        text: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        scale: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        height: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        includetext: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        },` && |\n| &&
-                          `                        textalign: {` && |\n| &&
-                          `                            type: "string",` && |\n| &&
-                          `                            defaultValue: ""` && |\n| &&
-                          `                        }` && |\n| &&
-                          `                    },` && |\n| &&
-                          |\n| &&
-                          |\n| &&
-                          `                    aggregations: {` && |\n| &&
-                          `                    },` && |\n| &&
-                          `                    events: {` && |\n| &&
-                          `                        "upload": {` && |\n| &&
-                          `                            allowPreventDefault: true,` && |\n| &&
-                          `                            parameters: {}` && |\n| &&
-                          `                        }` && |\n| &&
-                          `                    },` && |\n| &&
-                          `                    renderer: null` && |\n| &&
-                          `                },` && |\n| &&
-                          |\n| &&
-                          `   onAfterRendering() {  ` &&
-                          ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
-                          `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n|  &&
-                          `            text:        this.getProperty("text"),    // Text to encode` && |\n|  &&
-                          `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
-                          `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
-                          `            includetext: true,            // Show human-readable text` && |\n|  &&
-                          `            textxalign:  'center',        // Always good to set this` && |\n|  &&
-                          `        });` && |\n|  &&
-                          `  },` && |\n| &&
-                          `                renderer: function (oRm, oControl) {` && |\n| &&
-` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
-                          `    // The return value is the canvas element` && |\n|  &&
-                          `                }` && |\n| &&
-                          `            });` && |\n| &&
-                          `        });`.
-
-
-*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
-
+    data(js) = get_js( ).
     result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
 
   ENDMETHOD.
@@ -162,6 +98,77 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
                                 ( n = `scale`  v = scale )
                                 ( n = `height` v = height )
               ) ).
+
+  ENDMETHOD.
+
+
+  METHOD get_js.
+
+    r_js  = `debugger;  jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
+                     |\n| &&
+                     `        sap.ui.require([` && |\n| &&
+                     `            "sap/ui/core/Control",` && |\n| &&
+                     `        ], function (Control) {` && |\n| &&
+                     `            "use strict";` && |\n| &&
+                     |\n| &&
+                     `            return Control.extend("z2ui5.bwipjs", {` && |\n| &&
+                     |\n| &&
+                     `                metadata: {` && |\n| &&
+                     `                    properties: {` && |\n| &&
+                     `                        bcid: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        text: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        scale: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        height: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        includetext: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        textalign: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        }` && |\n| &&
+                     `                    },` && |\n| &&
+                     |\n| &&
+                     |\n| &&
+                     `                    aggregations: {` && |\n| &&
+                     `                    },` && |\n| &&
+                     `                    events: {` && |\n| &&
+                     `                        "upload": {` && |\n| &&
+                     `                            allowPreventDefault: true,` && |\n| &&
+                     `                            parameters: {}` && |\n| &&
+                     `                        }` && |\n| &&
+                     `                    },` && |\n| &&
+                     `                    renderer: null` && |\n| &&
+                     `                },` && |\n| &&
+                     |\n| &&
+                     `   onAfterRendering() {  ` &&
+                     ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
+                     `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n|  &&
+                     `            text:        this.getProperty("text"),    // Text to encode` && |\n|  &&
+                     `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
+                     `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
+                     `            includetext: true,            // Show human-readable text` && |\n|  &&
+                     `            textxalign:  'center',        // Always good to set this` && |\n|  &&
+                     `        });` && |\n|  &&
+                     `  },` && |\n| &&
+                     `                renderer: function (oRm, oControl) {` && |\n| &&
+` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
+                     `    // The return value is the canvas element` && |\n|  &&
+                     `                }` && |\n| &&
+                     `            });` && |\n| &&
+                     `        });`.
 
   ENDMETHOD.
 

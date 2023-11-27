@@ -44,7 +44,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
+CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -67,7 +67,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `debugger; jQuery.sap.declare("z2ui5.Messaging");` && |\n| &&
+    result = `try { jQuery.sap.require("sap.ui.core.Messaging"); jQuery.sap.declare("z2ui5.Messaging");` && |\n| &&
     `sap.ui.require([` && |\n|  &&
     `   "sap/ui/core/Control",` && |\n|  &&
     `   "sap/ui/core/Messaging",` && |\n|  &&
@@ -147,7 +147,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
     `               }, 50 , oControl );` && |\n|  &&
     `       }` && |\n|  &&
     `   });` && |\n|  &&
-    `});`.
+    `}); } catch (e) { }`.
 
   ENDMETHOD.
 

@@ -51,6 +51,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         z2ui5_cl_cc_focus=>get_js( ) &&
         z2ui5_cl_cc_title=>get_js( ) &&
         z2ui5_cl_cc_scroll=>get_js( ) &&
+        z2ui5_cl_cc_info=>get_js( ) &&
         z2ui5_cl_cc_geolocation=>get_js( ) &&
         z2ui5_cl_cc_messaging=>get_js( ) &&
         custom_js.
