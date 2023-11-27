@@ -474,7 +474,6 @@ METHOD get_js_cc.
          result = mo_view->_generic( ns = `html` name = `script` t_prop = VALUE #( ( n = `src` v = js_url ) ) )->get_parent( ).
       ENDIF.
 
-      DATA(final) = js && |\n| && css ##NEEDED.
       result = mo_view->_generic( ns = `html` name = `style` )->_cc_plain_xml( css ).
 
     ENDMETHOD.
@@ -487,7 +486,6 @@ METHOD get_js_cc.
           i_highlight_config        = highlight_config
           i_highlight_driver_config = highlight_driver_config ).
 
-*      result = mo_view->_cc_plain_xml( `<html:script>` && drive_js && `</html:script>` ).
       result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( drive_js ).
 
     ENDMETHOD.
