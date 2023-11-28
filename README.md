@@ -57,6 +57,7 @@
 * Install S-RTTI to create apps with dynamically typed tables [(github/s-rtti)](https://github.com/sandraros/S-RTTI)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Analyse your Views & Models with this Codesandbox [(abap2UI5-debug-tools)](https://codesandbox.io/p/sandbox/abap2ui5-debug-tool-ppyfcs)
+* Preparing for the Advent of Code 2023 with abap2UI5 [(SCN - 27.11.2023)](https://blogs.sap.com/2023/11/27/preparing-for-advent-of-code-2023/)
 * And finally, don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
   
 #### Installation
