@@ -7,16 +7,19 @@ CLASS z2ui5_cl_cc_file_uploader DEFINITION
 
     METHODS control
       IMPORTING
-        !value             TYPE clike OPTIONAL
-        !path              TYPE clike OPTIONAL
-        !placeholder       TYPE clike OPTIONAL
-        !upload            TYPE clike OPTIONAL
-        !icononly          TYPE clike OPTIONAL
-        !buttononly        TYPE clike OPTIONAL
-        !buttontext        TYPE clike OPTIONAL
-        !uploadbuttontext  TYPE clike OPTIONAL
-        !checkdirectupload TYPE clike OPTIONAL
-        !filetype          TYPE clike OPTIONAL
+        !value               TYPE clike OPTIONAL
+        !path                TYPE clike OPTIONAL
+        !placeholder         TYPE clike OPTIONAL
+        !upload              TYPE clike OPTIONAL
+        !icononly            TYPE clike OPTIONAL
+        !buttononly          TYPE clike OPTIONAL
+        !buttontext          TYPE clike OPTIONAL
+        !uploadbuttontext    TYPE clike OPTIONAL
+        !checkdirectupload   TYPE clike OPTIONAL
+        !filetype            TYPE clike OPTIONAL
+        !visible             TYPE clike OPTIONAL
+        !style               TYPE clike OPTIONAL
+        !icon                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
@@ -40,7 +43,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -55,26 +58,22 @@ CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `FileUploader`
               ns     = `z2ui5`
-              t_prop = VALUE #( (  n = `placeholder`        v = placeholder )
-                                (  n = `upload`             v = upload )
-                                (  n = `path`               v = path )
-                                (  n = `value`              v = value )
-                                (  n = `iconOnly`           v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
-                                (  n = `buttonOnly`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
-                                (  n = `buttonText`         v = buttontext )
-                                (  n = `uploadButtonText`   v = uploadbuttontext )
-                                (  n = `fileType`           v = filetype )
-                                (  n = `checkDirectUpload`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
+              t_prop = VALUE #( (  n = `placeholder`         v = placeholder )
+                                (  n = `upload`              v = upload )
+                                (  n = `path`                v = path )
+                                (  n = `value`               v = value )
+                                (  n = `iconOnly`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
+                                (  n = `buttonOnly`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
+                                (  n = `visible`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                (  n = `buttonText`          v = buttontext )
+                                (  n = `uploadButtonText`    v = uploadbuttontext )
+                                (  n = `fileType`            v = filetype )
+                                (  n = `style`               v = style )
+                                (  n = `icon`                v = icon )
+                                (  n = `checkDirectUpload`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
 
   ENDMETHOD.
 
-
-  METHOD load_cc.
-
-    DATA(js) = get_js( ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
-
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -115,6 +114,10 @@ CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
                      `                            type: "string",` && |\n| &&
                      `                            defaultValue: ""` && |\n| &&
                      `                        },` && |\n| &&
+                     `                        style: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
                      `                        uploadButtonText: {` && |\n| &&
                      `                            type: "string",` && |\n| &&
                      `                            defaultValue: "Upload"` && |\n| &&
@@ -122,6 +125,10 @@ CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
                      `                        enabled: {` && |\n| &&
                      `                            type: "boolean",` && |\n| &&
                      `                            defaultValue: true` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        icon: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: "sap-icon://browse-folder"` && |\n| &&
                      `                        },` && |\n| &&
                      `                        iconOnly: {` && |\n| &&
                      `                            type: "boolean",` && |\n| &&
@@ -134,6 +141,10 @@ CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
                      `                        multiple: {` && |\n| &&
                      `                            type: "boolean",` && |\n| &&
                      `                            defaultValue: false` && |\n| &&
+                     `                        },` && |\n| &&
+                     `                        visible: {` && |\n| &&
+                     `                            type: "boolean",` && |\n| &&
+                     `                            defaultValue: true` && |\n| &&
                      `                        },` && |\n| &&
                      `                        checkDirectUpload: {` && |\n| &&
                      `                            type: "boolean",` && |\n| &&
@@ -179,11 +190,13 @@ CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
                      `                    }` && |\n| &&
                      |\n| &&
                      `                    oControl.oFileUploader = new FileUploader({` && |\n| &&
-                     `                        icon: "sap-icon://browse-folder",` && |\n| &&
+                     `                        icon: oControl.getProperty("icon"),` && |\n| &&
                      `                        iconOnly: oControl.getProperty("iconOnly"),` && |\n| &&
                      `                        buttonOnly: oControl.getProperty("buttonOnly"),` && |\n| &&
                      `                        buttonText: oControl.getProperty("buttonText"),` && |\n| &&
+                     `                        style: oControl.getProperty("style"),` && |\n| &&
                      `                        fileType: oControl.getProperty("fileType"),` && |\n| &&
+                     `                        visible: oControl.getProperty("visible"),` && |\n| &&
                      `                        uploadOnChange: true,` && |\n| &&
                      `                        value: oControl.getProperty("path"),` && |\n| &&
                      `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
@@ -233,4 +246,11 @@ CLASS z2ui5_cl_cc_file_uploader IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD load_cc.
+
+    DATA(js) = get_js( ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
+
+  ENDMETHOD.
 ENDCLASS.
