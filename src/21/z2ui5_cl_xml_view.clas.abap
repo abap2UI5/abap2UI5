@@ -201,12 +201,37 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS generic_tile
       IMPORTING
-        !class        TYPE clike OPTIONAL
-        !mode         TYPE clike OPTIONAL
-        !header       TYPE clike OPTIONAL
-        !press        TYPE clike OPTIONAL
-        !frametype    TYPE clike OPTIONAL
-        !subheader    TYPE clike OPTIONAL
+        !class                   TYPE clike OPTIONAL
+        !id                      TYPE clike OPTIONAL
+        !header                  TYPE clike OPTIONAL
+        !mode                    TYPE clike OPTIONAL
+        !additionaltooltip       TYPE clike OPTIONAL
+        !appshortcut             TYPE clike OPTIONAL
+        !backgroundcolor         TYPE clike OPTIONAL
+        !backgroundimage         TYPE clike OPTIONAL
+        !dropareaoffset          TYPE clike OPTIONAL
+        !press                   TYPE clike OPTIONAL
+        !frametype               TYPE clike OPTIONAL
+        !failedtext              TYPE clike OPTIONAL
+        !headerimage             TYPE clike OPTIONAL
+        !scope                   TYPE clike OPTIONAL
+        !sizebehavior            TYPE clike OPTIONAL
+        !state                   TYPE clike OPTIONAL
+        !systeminfo              TYPE clike OPTIONAL
+        !tilebadge               TYPE clike OPTIONAL
+        !tileicon                TYPE clike OPTIONAL
+        !url                     TYPE clike OPTIONAL
+        !valuecolor              TYPE clike OPTIONAL
+        !width                   TYPE clike OPTIONAL
+        !wrappingtype            TYPE clike OPTIONAL
+        !imagedescription        TYPE clike OPTIONAL
+        !navigationbuttontext    TYPE clike OPTIONAL
+        !visible                 TYPE clike OPTIONAL
+        !renderonthemechange     TYPE clike OPTIONAL
+        !enablenavigationbutton  TYPE clike OPTIONAL
+        !pressenabled            TYPE clike OPTIONAL
+        !iconloaded              TYPE clike OPTIONAL
+        !subheader               TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -215,18 +240,48 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !value        TYPE clike OPTIONAL
         !icon         TYPE clike OPTIONAL
         !withmargin   TYPE clike OPTIONAL
+        !adaptivefontsize   TYPE clike OPTIONAL
+        !animatetextchange   TYPE clike OPTIONAL
+        !formattervalue   TYPE clike OPTIONAL
+        !icondescription   TYPE clike OPTIONAL
+        !indicator   TYPE clike OPTIONAL
+        !nullifyvalue   TYPE clike OPTIONAL
+        !scale   TYPE clike OPTIONAL
+        !state   TYPE clike OPTIONAL
+        !truncatevalueto   TYPE clike OPTIONAL
+        !valuecolor   TYPE clike OPTIONAL
+        !visible   TYPE clike OPTIONAL
+        !width   TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS link_tile_content
+      IMPORTING
+        !linkhref  TYPE clike OPTIONAL
+        !linktext  TYPE clike OPTIONAL
+        !iconsrc   TYPE clike OPTIONAL
+        !linkpress TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS image_content
       IMPORTING
         !src          TYPE clike OPTIONAL
+        !description  TYPE clike OPTIONAL
+        !visible      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tile_content
       IMPORTING
         !unit         TYPE clike OPTIONAL
+        !footercolor  TYPE clike OPTIONAL
+        !frametype    TYPE clike OPTIONAL
+        !priority     TYPE clike OPTIONAL
+        !prioritytext TYPE clike OPTIONAL
+        !state        TYPE clike OPTIONAL
+        !disabled     TYPE clike OPTIONAL
+        !visible      TYPE clike OPTIONAL
         !footer       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -3172,6 +3227,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+  METHODS slide_tile
+    IMPORTING
+      !displaytime TYPE clike OPTIONAL
+      !height TYPE clike OPTIONAL
+      !visible TYPE clike OPTIONAL
+      !scope TYPE clike OPTIONAL
+      !sizebehavior TYPE clike OPTIONAL
+      !transitiontime TYPE clike OPTIONAL
+      !press TYPE clike OPTIONAL
+      !width TYPE clike OPTIONAL
+    RETURNING
+      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -4279,10 +4347,35 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
       ns     = ``
       t_prop = VALUE #(
                 ( n = `class`      v = class )
+                ( n = `id`     v = id )
                 ( n = `header`     v = header )
                 ( n = `mode`     v = mode )
+                ( n = `additionalTooltip`     v = additionalTooltip )
+                ( n = `appShortcut`     v = appShortcut )
+                ( n = `backgroundColor`     v = backgroundColor )
+                ( n = `backgroundImage`     v = backgroundImage )
+                ( n = `dropAreaOffset`     v = dropAreaOffset )
                 ( n = `press`      v = press )
                 ( n = `frameType`  v = frametype )
+                ( n = `failedText`  v = failedText )
+                ( n = `headerImage`  v = headerImage )
+                ( n = `scope`  v = scope )
+                ( n = `sizeBehavior`  v = sizeBehavior )
+                ( n = `state`  v = state )
+                ( n = `systemInfo`  v = systemInfo )
+                ( n = `tileBadge`  v = tileBadge )
+                ( n = `tileIcon`  v = tileIcon )
+                ( n = `url`  v = url )
+                ( n = `valueColor`  v = valueColor )
+                ( n = `width`  v = width )
+                ( n = `wrappingType`  v = wrappingType )
+                ( n = `imageDescription`  v = imageDescription )
+                ( n = `navigationButtonText`  v = navigationButtonText )
+                ( n = `visible`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                ( n = `renderOnThemeChange`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( renderOnThemeChange ) )
+                ( n = `enableNavigationButton`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableNavigationButton ) )
+                ( n = `pressEnabled`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( pressEnabled ) )
+                ( n = `iconLoaded`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( iconLoaded ) )
                 ( n = `subheader`  v = subheader ) ) ).
 
   ENDMETHOD.
@@ -4607,7 +4700,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD image_content.
 
     result = _generic( name   = `ImageContent`
-                       t_prop = VALUE #( ( n = `src` v = src ) ) ).
+                       t_prop = VALUE #( ( n = `src` v = src )
+                                         ( n = `description` v = description )
+                                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                       ) ).
 
 
   ENDMETHOD.
@@ -4859,6 +4955,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `wrapping`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
                                 ( n = `emphasized`      v = z2ui5_cl_fw_utility=>boolean_abap_2_json( emphasized ) )
                                 ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD link_tile_content.
+      result = _generic( name = `LinkTileContent`
+                     t_prop = VALUE #(
+                           ( n = `iconSrc`  v = iconsrc )
+                           ( n = `linkHref`  v = linkhref )
+                           ( n = `linkText`  v = linktext )
+                           ( n = `linkPress`  v = linkpress )
+                       ) ).
   ENDMETHOD.
 
 
@@ -5129,6 +5236,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `NumericContent`
                        t_prop = VALUE #( ( n = `value`      v = value )
                                          ( n = `icon`       v = icon )
+                                         ( n = `width`       v = width )
+                                         ( n = `valueColor`       v = valueColor )
+                                         ( n = `truncateValueTo`       v = truncateValueTo )
+                                         ( n = `state`       v = state )
+                                         ( n = `scale`       v = scale )
+                                         ( n = `indicator`       v = indicator )
+                                         ( n = `iconDescription`       v = iconDescription )
+                                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                         ( n = `nullifyValue` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( nullifyValue ) )
+                                         ( n = `formatterValue` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( formatterValue ) )
+                                         ( n = `animateTextChange` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( animateTextChange ) )
+                                         ( n = `adaptiveFontSize` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( adaptivefontsize ) )
                                          ( n = `withMargin` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( withmargin ) ) ) ).
 
   ENDMETHOD.
@@ -5947,6 +6066,21 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD slide_tile.
+
+    result = _generic( name   = `SlideTile`
+                       t_prop = VALUE #( ( n = `displayTime` v = displayTime )
+                                         ( n = `height` v = height )
+                                         ( n = `scope` v = scope )
+                                         ( n = `sizeBehavior` v = sizeBehavior )
+                                         ( n = `transitionTime` v = transitionTime )
+                                         ( n = `width` v = width )
+                                         ( n = `press` v = press )
+                                         ( n = `visible` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
+                                       ) ).
+  ENDMETHOD.
+
+
   METHOD smart_variant_management.
     result = _generic( name   = `SmartVariantManagement` ns = `svm`
                        t_prop = VALUE #( ( n = `id`      v = id )
@@ -6152,11 +6286,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD suggestion_items.
-    result = _generic( `suggestionItems` ).
-  ENDMETHOD.
-
-
   METHOD suggestion_item.
     result = me.
     _generic( name   = `SuggestionItem`
@@ -6165,6 +6294,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `key`           v = key )
                                 ( n = `text`          v = text )
                                 ( n = `textDirection` v = textdirection ) ) ).
+  ENDMETHOD.
+
+
+  METHOD suggestion_items.
+    result = _generic( `suggestionItems` ).
   ENDMETHOD.
 
 
@@ -6315,6 +6449,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = ``
                        t_prop = VALUE #(
                                 ( n = `unit`   v = unit )
+                                ( n = `footerColor`   v = footerColor )
+                                ( n = `frameType`   v = frameType )
+                                ( n = `priority`   v = priority )
+                                ( n = `priorityText`   v = priorityText )
+                                ( n = `state`   v = state )
+                                ( n = `disabled`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( disabled ) )
+                                ( n = `visible`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
                                 ( n = `footer` v = footer ) ) ).
 
   ENDMETHOD.
@@ -7053,10 +7194,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD _Z2UI5.
 
     result = new #( me ).
 
   ENDMETHOD.
-
 ENDCLASS.
