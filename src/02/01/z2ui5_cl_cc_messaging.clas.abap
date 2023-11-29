@@ -18,20 +18,6 @@ CLASS z2ui5_cl_cc_messaging DEFINITION
       END OF ty_s_item.
     TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY ##NEEDED.
 
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS control
-      IMPORTING
-        items         TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
@@ -45,25 +31,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
-
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `Messaging`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `items`  v = items )
-              ) ).
-
-  ENDMETHOD.
-
 
   METHOD get_js.
 
@@ -152,9 +119,4 @@ CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
-
-  ENDMETHOD.
 ENDCLASS.

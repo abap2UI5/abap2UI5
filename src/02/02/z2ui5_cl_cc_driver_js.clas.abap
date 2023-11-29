@@ -112,34 +112,6 @@
           on_close_click             TYPE string,
         END OF ty_config.
 
-
-      DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-      METHODS constructor
-        IMPORTING
-          !view TYPE REF TO z2ui5_cl_xml_view.
-
-      METHODS load_lib
-        IMPORTING
-          !js_url       TYPE clike OPTIONAL
-          !css_url      TYPE clike OPTIONAL
-          !local_css    TYPE abap_bool OPTIONAL
-          !local_js     TYPE abap_bool OPTIONAL
-        RETURNING
-          VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-      METHODS set_driver_configs
-        IMPORTING
-          !steps_config            TYPE ty_config OPTIONAL
-          !highlight_config        TYPE ty_config_steps OPTIONAL
-          !highlight_driver_config TYPE ty_config OPTIONAL
-        RETURNING
-          VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
-
       CLASS-METHODS get_css_local
         RETURNING
           VALUE(result) TYPE string.
@@ -177,13 +149,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
-
-
-    METHOD constructor.
-
-      me->mo_view = view.
-
-    ENDMETHOD.
 
 
     METHOD get_css_local.
@@ -589,49 +554,4 @@ METHOD get_js_cc_test.
 
     ENDMETHOD.
 
-
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js_cc( ) )->get_parent( ).
-
-  ENDMETHOD.
-
-
-    METHOD load_lib.
-
-*      DATA(js) = ``.
-      DATA(css) = ``.
-
-      IF css_url IS INITIAL.
-        IF local_css = abap_true.
-          css = css && `<html:style>` && get_css_local( ) && `</html:style>` && |\n|.
-          css = css && get_css_local( ) && |\n|.
-        ENDIF.
-      ELSE.
-        css = css &&  css_url &&  |\n|.
-      ENDIF.
-
-      IF js_url IS INITIAL.
-        IF local_js = abap_true.
-          result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js_local( ) )->get_parent( ).
-        ENDIF.
-      ELSE.
-         result = mo_view->_generic( ns = `html` name = `script` t_prop = VALUE #( ( n = `src` v = js_url ) ) )->get_parent( ).
-      ENDIF.
-
-      result = mo_view->_generic( ns = `html` name = `style` )->_cc_plain_xml( css ).
-
-    ENDMETHOD.
-
-
-    METHOD set_driver_configs.
-
-    data(drive_js) = get_js_config(
-          i_steps_config            = steps_config
-          i_highlight_config        = highlight_config
-          i_highlight_driver_config = highlight_driver_config ).
-
-      result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( drive_js ).
-
-    ENDMETHOD.
 ENDCLASS.

@@ -12,34 +12,17 @@ CLASS z2ui5_cl_cc_scrolling DEFINITION
       END OF ty_s_item.
     TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY ##NEEDED.
 
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
 CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
-
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
 
 
   METHOD get_js.
@@ -102,10 +85,4 @@ CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
              `});`.
   ENDMETHOD.
 
-
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
-
-  ENDMETHOD.
 ENDCLASS.

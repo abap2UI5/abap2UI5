@@ -5,23 +5,6 @@ CLASS z2ui5_cl_cc_focus DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view optional.
-
-    METHODS control
-      IMPORTING
-        focusid        TYPE clike OPTIONAL
-        selectionstart TYPE clike OPTIONAL
-        selectionend   TYPE clike OPTIONAL
-        setupdate      TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
@@ -35,28 +18,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_CC_FOCUS IMPLEMENTATION.
-
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `Focus`
-              ns     = `z2ui5`
-              t_prop = VALUE #(
-                ( n = `setUpdate`       v = setupdate )
-                ( n = `selectionStart`  v = selectionstart )
-                ( n = `selectionEnd`    v = selectionend )
-                ( n = `focusId`         v = focusid )
-       ) ).
-
-  ENDMETHOD.
 
 
   METHOD get_js.
@@ -102,9 +63,4 @@ CLASS Z2UI5_CL_CC_FOCUS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD load_cc.
-
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( get_js( ) )->get_parent( ).
-
-  ENDMETHOD.
 ENDCLASS.

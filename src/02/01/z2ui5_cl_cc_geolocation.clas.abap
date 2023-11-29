@@ -5,28 +5,6 @@ CLASS z2ui5_cl_cc_geolocation DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS control
-      IMPORTING
-        finished           TYPE clike OPTIONAL
-        longitude          TYPE any OPTIONAL
-        latitude           TYPE any OPTIONAL
-        altitude           TYPE any OPTIONAL
-        accuracy           TYPE any OPTIONAL
-        altitudeaccuracy   TYPE any OPTIONAL
-        speed              TYPE any OPTIONAL
-        heading            TYPE any OPTIONAL
-        enablehighaccuracy TYPE any OPTIONAL
-        timeout            TYPE any OPTIONAL
-      RETURNING
-        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
     CLASS-METHODS get_js
       RETURNING
         VALUE(r_js) TYPE string.
@@ -40,39 +18,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_cc_geolocation IMPLEMENTATION.
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `Geolocation`
-              ns     = `z2ui5`
-              t_prop = VALUE #(
-                    ( n = `finished`  v = finished )
-                    ( n = `longitude`  v = longitude )
-                    ( n = `latitude`  v = latitude )
-                    ( n = `altitude`  v = altitude )
-                    ( n = `accuracy`  v = accuracy )
-                    ( n = `altitudeAccuracy`  v = altitudeaccuracy )
-                    ( n = `speed`  v = speed )
-                    ( n = `heading`  v = heading )
-                    ( n = `enableHighAccuracy`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enablehighaccuracy ) )
-                    ( n = `timeout`  v = timeout )
-              ) ).
-
-  ENDMETHOD.
-
-  METHOD load_cc.
-
-    data(js) = get_js( ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
-
-  ENDMETHOD.
 
 
   METHOD get_js.

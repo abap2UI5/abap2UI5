@@ -16,10 +16,6 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
 
     CONSTANTS cv_src TYPE string VALUE `https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js`.
 
-    METHODS load_lib
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     class-METHODS get_t_barcode_types
       RETURNING
         VALUE(result) TYPE ty_t_barcode.
@@ -28,26 +24,8 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
       RETURNING
         VALUE(r_js) TYPE string.
 
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS control
-      IMPORTING
-        bcid          TYPE clike OPTIONAL
-        text          TYPE clike OPTIONAL
-        scale         TYPE clike OPTIONAL
-        height        TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -55,18 +33,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-  METHOD load_lib.
-
-    result = mo_view->_cc_plain_xml( `<html:script type="text/javascript" src="` && cv_src && `" />` ).
-
-  ENDMETHOD.
 
   METHOD get_t_barcode_types.
 
@@ -80,27 +46,6 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
     ).
 
   ENDMETHOD.
-
-  METHOD load_cc.
-
-    data(js) = get_js( ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
-
-  ENDMETHOD.
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `bwipjs`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `bcid`   v = bcid )
-                                ( n = `text`   v = text )
-                                ( n = `scale`  v = scale )
-                                ( n = `height` v = height )
-              ) ).
-
-  ENDMETHOD.
-
 
   METHOD get_js.
 

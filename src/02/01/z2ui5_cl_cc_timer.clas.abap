@@ -5,55 +5,17 @@ CLASS z2ui5_cl_cc_timer DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view optional.
-
-    METHODS control
-      IMPORTING
-        finished      TYPE clike OPTIONAL
-        delayms       TYPE clike OPTIONAL
-        checkrepeat   TYPE clike OPTIONAL
-        checkActive   TYPE clike OPTIONAL
-          PREFERRED PARAMETER finished
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
 CLASS Z2UI5_CL_CC_TIMER IMPLEMENTATION.
-
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `Timer`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `delayMS`  v = delayms )
-                                ( n = `finished`  v = finished )
-                                ( n = `checkActive`  v = checkActive )
-                                ( n = `checkRepeat`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkrepeat ) )
-              ) ).
-
-  ENDMETHOD.
-
 
   METHOD get_js.
 

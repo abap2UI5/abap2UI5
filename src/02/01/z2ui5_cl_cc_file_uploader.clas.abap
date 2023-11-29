@@ -5,29 +5,6 @@ class Z2UI5_CL_CC_FILE_UPLOADER definition
 
 public section.
 
-  methods CONTROL
-    importing
-      !VALUE type CLIKE optional
-      !PATH type CLIKE optional
-      !PLACEHOLDER type CLIKE optional
-      !UPLOAD type CLIKE optional
-      !ICONONLY type CLIKE optional
-      !BUTTONONLY type CLIKE optional
-      !BUTTONTEXT type CLIKE optional
-      !UPLOADBUTTONTEXT type CLIKE optional
-      !CHECKDIRECTUPLOAD type CLIKE optional
-      !FILETYPE type CLIKE optional
-      !VISIBLE type CLIKE optional
-      !STYLE type CLIKE optional
-      !ICON type CLIKE optional
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods CONSTRUCTOR
-    importing
-      !VIEW type ref to Z2UI5_CL_XML_VIEW .
-  methods LOAD_CC
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   class-methods GET_JS
     returning
       value(R_JS) type STRING .
@@ -40,35 +17,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
-
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-
-  METHOD control.
-
-    result = mo_view.
-    mo_view->_generic( name   = `FileUploader`
-              ns     = `z2ui5`
-              t_prop = VALUE #( (  n = `placeholder`         v = placeholder )
-                                (  n = `upload`              v = upload )
-                                (  n = `path`                v = path )
-                                (  n = `value`               v = value )
-                                (  n = `iconOnly`            v = z2ui5_cl_fw_utility=>boolean_abap_2_json( icononly ) )
-                                (  n = `buttonOnly`          v = z2ui5_cl_fw_utility=>boolean_abap_2_json( buttononly ) )
-                                (  n = `visible`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( visible ) )
-                                (  n = `buttonText`          v = buttontext )
-                                (  n = `uploadButtonText`    v = uploadbuttontext )
-                                (  n = `fileType`            v = filetype )
-                                (  n = `style`               v = style )
-                                (  n = `icon`                v = icon )
-                                (  n = `checkDirectUpload`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( checkdirectupload ) ) ) ).
-
-  ENDMETHOD.
 
 
   METHOD get_js.
@@ -242,11 +190,4 @@ CLASS Z2UI5_CL_CC_FILE_UPLOADER IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD load_cc.
-
-    DATA(js) = get_js( ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
-
-  ENDMETHOD.
 ENDCLASS.

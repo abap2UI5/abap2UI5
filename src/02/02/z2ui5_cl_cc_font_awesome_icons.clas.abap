@@ -1,45 +1,23 @@
-class Z2UI5_CL_CC_FONT_AWESOME_ICONS definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_cc_font_awesome_icons DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  data MO_VIEW type ref to Z2UI5_CL_XML_VIEW .
+    CLASS-METHODS get_js_icon
+      IMPORTING
+        !i_font_uri TYPE clike
+      RETURNING
+        VALUE(r_js) TYPE string .
 
-  methods LOAD_ICONS
-    importing
-      !FONT_URI type CLIKE
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods LOAD_ANIMATION_JS
-    importing
-      !FAW_JS_URL type CLIKE
-    returning
-      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
-  methods CONSTRUCTOR
-    importing
-      !VIEW type ref to Z2UI5_CL_XML_VIEW .
-  class-methods GET_JS_ICON
-    importing
-      !I_FONT_URI type CLIKE
-    returning
-      value(R_JS) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_FONT_AWESOME_ICONS IMPLEMENTATION.
-
-
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
+CLASS z2ui5_cl_cc_font_awesome_icons IMPLEMENTATION.
 
   METHOD get_js_icon.
 
@@ -123,18 +101,4 @@ CLASS Z2UI5_CL_CC_FONT_AWESOME_ICONS IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD load_animation_js.
-
-    result = mo_view->_generic( ns = `html` name = `script` t_prop = VALUE #( ( n = `src` v = faw_js_url ) ) )->get_parent( ).
-
-  ENDMETHOD.
-
-
-  METHOD load_icons.
-
-    DATA(js) = get_js_icon( font_uri ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js  )->get_parent( ).
-
-  ENDMETHOD.
 ENDCLASS.
