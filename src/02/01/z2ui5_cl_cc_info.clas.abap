@@ -38,13 +38,15 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_info IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_INFO IMPLEMENTATION.
+
 
   METHOD constructor.
 
     me->mo_view = view.
 
   ENDMETHOD.
+
 
 method control.
 
@@ -61,13 +63,6 @@ method control.
               ) ).
 
 ENDMETHOD.
-
-  METHOD load_cc.
-
-    data(js) = get_js( ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
-
-  ENDMETHOD.
 
 
   METHOD get_js.
@@ -131,4 +126,11 @@ ENDMETHOD.
 
   ENDMETHOD.
 
+
+  METHOD load_cc.
+
+    data(js) = get_js( ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js )->get_parent( ).
+
+  ENDMETHOD.
 ENDCLASS.

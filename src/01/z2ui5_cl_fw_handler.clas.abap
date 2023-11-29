@@ -7,9 +7,6 @@ CLASS z2ui5_cl_fw_handler DEFINITION
 
     TYPES:
       BEGIN OF ty_s_next2,
-        t_scroll   TYPE z2ui5_if_client=>ty_t_name_value_int,
-        title      TYPE string,
-        search     TYPE string,
         BEGIN OF s_view,
           xml                TYPE string,
           check_destroy      TYPE abap_bool,
@@ -44,16 +41,6 @@ CLASS z2ui5_cl_fw_handler DEFINITION
           check_destroy      TYPE abap_bool,
           check_update_model TYPE abap_bool,
         END OF s_popover,
-        BEGIN OF s_cursor,
-          id             TYPE string,
-          cursorpos      TYPE string,
-          selectionstart TYPE i,
-          selectionend   TYPE i,
-        END OF s_cursor,
-        BEGIN OF s_timer,
-          interval_ms    TYPE i,
-          event_finished TYPE string,
-        END OF s_timer,
         BEGIN OF s_msg_box,
           type TYPE string,
           text TYPE string,
@@ -61,10 +48,6 @@ CLASS z2ui5_cl_fw_handler DEFINITION
         BEGIN OF s_msg_toast,
           text TYPE string,
         END OF s_msg_toast,
-        BEGIN OF s_message_manager,
-          t_message   TYPE z2ui5_if_client=>ty_t_message_manager,
-          check_clear TYPE abap_bool,
-        END OF s_message_manager,
       END OF ty_s_next2.
 
     TYPES:
@@ -266,33 +249,6 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    TRY.
-        DATA(lo_message) = so_body->get_attribute( `OMESSAGEMANAGER` ).
-        z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
-            EXPORTING
-                ir_tab_from = lo_message->mr_actual
-            IMPORTING
-                t_result    = result->ms_actual-t_message_manager ).
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_scroll) = so_body->get_attribute( `OSCROLL` ).
-        z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
-            EXPORTING
-                ir_tab_from = lo_scroll->mr_actual
-            IMPORTING
-                t_result    = result->ms_actual-t_scroll_pos ).
-      CATCH cx_root.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_cursor) = so_body->get_attribute( `OCURSOR` ).
-        result->ms_actual-s_cursor-id = lo_cursor->get_attribute( `ID` )->get_val( ).
-
-      CATCH cx_root.
-    ENDTRY.
-
     IF ss_config-search CS `scenario=LAUNCHPAD`.
       result->ms_actual-check_launchpad_active = abap_true.
     ENDIF.
@@ -321,14 +277,6 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
     lo_resp->add_attribute( n = `ID`
                             v = ms_db-id ).
-
-    IF ms_next-s_set-search IS INITIAL.
-      lo_resp->add_attribute( n = `SEARCH`
-                              v = ms_actual-s_config-search ).
-    ELSE.
-      lo_resp->add_attribute( n = `SEARCH`
-                              v = ms_next-s_set-search ).
-    ENDIF.
 
     result = lo_resp->mo_root->stringify( ).
     z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
@@ -384,7 +332,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
     TRY.
         DATA(ls_draft) = z2ui5_cl_fw_db=>read( id = result->ms_db-id check_load_app = abap_false ).
-        result->ms_db-id_prev_app_stack = ls_draft-uuid_prev_app_stack.
+        result->ms_db-id_prev_app_stack = ls_draft-id_prev_app_stack.
       CATCH cx_root.
         result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
     ENDTRY.

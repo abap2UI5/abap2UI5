@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_CC_FILE_UPLOADER</CLSNAME>
+    <CLSNAME>Z2UI5_CL_CC_HISTORY</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ui5 control - file uploader</DESCRIPT>
+    <DESCRIPT>cc - history.replaceState</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

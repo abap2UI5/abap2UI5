@@ -1,34 +1,31 @@
-CLASS z2ui5_cl_cc_spreadsheet DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_SPREADSHEET definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    METHODS load_cc
-      IMPORTING
-        !columnconfig TYPE clike
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS control
-      IMPORTING
-         tableid      TYPE clike
-         type         TYPE clike OPTIONAL
-         text         TYPE clike OPTIONAL
-         icon         TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
-    CLASS-METHODS get_js
-      IMPORTING
-        i_columnconfig TYPE clike
-      RETURNING
-        VALUE(r_js)    TYPE string.
-
+  methods LOAD_CC
+    importing
+      !COLUMNCONFIG type CLIKE
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods CONSTRUCTOR
+    importing
+      !VIEW type ref to Z2UI5_CL_XML_VIEW .
+  methods CONTROL
+    importing
+      !TABLEID type CLIKE
+      !TYPE type CLIKE optional
+      !TEXT type CLIKE optional
+      !ICON type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  class-methods GET_JS
+    importing
+      !I_COLUMNCONFIG type CLIKE
+    returning
+      value(R_JS) type STRING .
   PROTECTED SECTION.
       DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
@@ -38,6 +35,7 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
+
 
   METHOD CONSTRUCTOR.
 
@@ -59,17 +57,6 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD load_cc.
-
-    DATA js TYPE string.
-
-
-    js = get_js( columnconfig ).
-
-*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
-    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -151,4 +138,15 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD load_cc.
+
+    DATA js TYPE string.
+
+
+    js = get_js( columnconfig ).
+
+*    result = mo_view->_cc_plain_xml( `<html:script>` && js && `</html:script>` ).
+    result = mo_view->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
+  ENDMETHOD.
 ENDCLASS.

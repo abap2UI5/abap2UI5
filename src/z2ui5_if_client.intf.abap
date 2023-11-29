@@ -58,33 +58,14 @@ INTERFACE z2ui5_if_client
     END OF ty_s_draft.
 
   TYPES:
-    BEGIN OF ty_s_cursor,
-      id             TYPE string,
-      cursorpos      TYPE i,
-      selectionstart TYPE i,
-      selectionend   TYPE i,
-    END OF ty_s_cursor.
-
-  TYPES:
-    BEGIN OF ty_s_message_manager,
-      type           TYPE string,
-      message        TYPE string,
-      additionaltext TYPE string,
-      atargets       TYPE string,
-    END OF ty_s_message_manager,
-    ty_t_message_manager TYPE TABLE OF ty_s_message_manager WITH EMPTY KEY.
-
-  TYPES:
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
       t_scroll_pos           TYPE ty_t_name_value_int,
-      t_message_manager      TYPE ty_t_message_manager,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
       viewname               TYPE string,
       s_draft                TYPE ty_s_draft,
-      s_cursor               TYPE ty_s_cursor,
       s_config               TYPE ty_s_config,
     END OF ty_s_get.
 
@@ -95,15 +76,6 @@ INTERFACE z2ui5_if_client
       val TYPE clike.
 
   METHODS view_model_update.
-
-  METHODS title_set
-    IMPORTING
-      val TYPE clike.
-
-  METHODS timer_set
-    IMPORTING
-      interval_ms    TYPE clike OPTIONAL
-      event_finished TYPE clike.
 
   METHODS nest_view_display
     IMPORTING
@@ -125,26 +97,9 @@ INTERFACE z2ui5_if_client
   METHODS nest2_view_destroy.
   METHODS nest2_view_model_update.
 
-  METHODS cursor_set
-    IMPORTING
-      id             TYPE clike
-      cursorpos      TYPE i
-      selectionstart TYPE i
-      selectionend   TYPE i.
-
-  METHODS scroll_position_set
-    IMPORTING
-      val TYPE ty_t_name_value_int.
-
   METHODS popup_display
     IMPORTING
       val TYPE clike.
-
-  METHODS message_manager_add
-    IMPORTING
-      val TYPE ty_t_message_manager.
-
-  METHODS message_manager_clear.
 
   METHODS popup_model_update.
 
@@ -181,10 +136,6 @@ INTERFACE z2ui5_if_client
     IMPORTING
       text TYPE clike
       type TYPE clike DEFAULT 'information'.
-
-  METHODS url_param_set
-    IMPORTING
-      val TYPE clike.
 
   METHODS message_toast_display
     IMPORTING

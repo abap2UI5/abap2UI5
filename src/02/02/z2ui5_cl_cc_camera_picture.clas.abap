@@ -1,15 +1,13 @@
-CLASS z2ui5_cl_cc_camera_picture DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_CAMERA_PICTURE definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(r_js) TYPE string.
-
-
+  class-methods GET_JS
+    returning
+      value(R_JS) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -17,7 +15,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_camera_picture IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_CAMERA_PICTURE IMPLEMENTATION.
 
 
   METHOD get_js.
@@ -128,5 +126,4 @@ CLASS z2ui5_cl_cc_camera_picture IMPLEMENTATION.
             `});`.
 
   ENDMETHOD.
-
 ENDCLASS.

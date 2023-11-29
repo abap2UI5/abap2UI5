@@ -1,24 +1,21 @@
-CLASS z2ui5_cl_cc_demo_output DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_DEMO_OUTPUT definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS control
-      IMPORTING
-        val TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    class-methods get_style
-       RETURNING
-       VALUE(result) type string.
-
+  methods CONSTRUCTOR
+    importing
+      !VIEW type ref to Z2UI5_CL_XML_VIEW .
+  methods CONTROL
+    importing
+      !VAL type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  class-methods GET_STYLE
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
       DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
@@ -26,7 +23,22 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_demo_output IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_DEMO_OUTPUT IMPLEMENTATION.
+
+
+  METHOD constructor.
+
+    me->mo_view = view.
+
+  ENDMETHOD.
+
+
+  METHOD control.
+
+     result = mo_view->_cc_plain_xml( get_style( ) )->html( val ).
+
+  ENDMETHOD.
+
 
 method get_style.
 result = `<html:style type="text/css">body {` && |\n|  &&
@@ -92,16 +104,4 @@ result = `<html:style type="text/css">body {` && |\n|  &&
                               `}` && |\n|  &&
                               `</html:style>`.
 endmethod.
-  METHOD constructor.
-
-    me->mo_view = view.
-
-  ENDMETHOD.
-
-  METHOD control.
-
-     result = mo_view->_cc_plain_xml( get_style( ) )->html( val ).
-
-  ENDMETHOD.
-
 ENDCLASS.

@@ -1,40 +1,36 @@
-CLASS z2ui5_cl_cc_file_uploader DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_FILE_UPLOADER definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    METHODS control
-      IMPORTING
-        !value               TYPE clike OPTIONAL
-        !path                TYPE clike OPTIONAL
-        !placeholder         TYPE clike OPTIONAL
-        !upload              TYPE clike OPTIONAL
-        !icononly            TYPE clike OPTIONAL
-        !buttononly          TYPE clike OPTIONAL
-        !buttontext          TYPE clike OPTIONAL
-        !uploadbuttontext    TYPE clike OPTIONAL
-        !checkdirectupload   TYPE clike OPTIONAL
-        !filetype            TYPE clike OPTIONAL
-        !visible             TYPE clike OPTIONAL
-        !style               TYPE clike OPTIONAL
-        !icon                TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS constructor
-      IMPORTING
-        view TYPE REF TO z2ui5_cl_xml_view.
-
-    METHODS load_cc
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(r_js) TYPE string.
-
+  methods CONTROL
+    importing
+      !VALUE type CLIKE optional
+      !PATH type CLIKE optional
+      !PLACEHOLDER type CLIKE optional
+      !UPLOAD type CLIKE optional
+      !ICONONLY type CLIKE optional
+      !BUTTONONLY type CLIKE optional
+      !BUTTONTEXT type CLIKE optional
+      !UPLOADBUTTONTEXT type CLIKE optional
+      !CHECKDIRECTUPLOAD type CLIKE optional
+      !FILETYPE type CLIKE optional
+      !VISIBLE type CLIKE optional
+      !STYLE type CLIKE optional
+      !ICON type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods CONSTRUCTOR
+    importing
+      !VIEW type ref to Z2UI5_CL_XML_VIEW .
+  methods LOAD_CC
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  class-methods GET_JS
+    returning
+      value(R_JS) type STRING .
   PROTECTED SECTION.
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
