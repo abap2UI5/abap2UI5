@@ -20,7 +20,7 @@ CLASS z2ui5_cl_cc_camera_picture IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = ` debugger; jQuery.sap.declare("z2ui5.CameraPicture"); sap.ui.require([` && |\n|  &&
+    r_js  = `jQuery.sap.declare("z2ui5.CameraPicture"); sap.ui.require([` && |\n|  &&
             `    "sap/ui/core/Control"` && |\n|  &&
             `], function (Control) {` && |\n|  &&
             `    "use strict";` && |\n|  &&

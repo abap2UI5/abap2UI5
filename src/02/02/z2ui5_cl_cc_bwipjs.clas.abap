@@ -49,7 +49,7 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = `debugger;  jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
+    r_js  = `jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
                      |\n| &&
                      `        sap.ui.require([` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&

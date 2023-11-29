@@ -9,6 +9,7 @@ public section.
     returning
       value(R_JS) type STRING .
   PROTECTED SECTION.
+    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
 
 ENDCLASS.

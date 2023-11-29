@@ -120,14 +120,6 @@
         RETURNING
           VALUE(result) TYPE string.
 
-      CLASS-METHODS get_js_cc_test2
-        RETURNING
-          VALUE(result) TYPE string.
-
-     CLASS-METHODS get_js_cc_test
-        RETURNING
-          VALUE(result) TYPE string.
-
     CLASS-METHODS get_js_cc
         RETURNING
           VALUE(result) TYPE string.
@@ -197,82 +189,6 @@ METHOD get_js_cc.
                            `                        } }};` && |\n| &&
       `       };`.
 
-
-    ENDMETHOD.
-
-
-METHOD get_js_cc_test.
-
-      result = `debugger; jQuery.sap.declare("z2ui5.DriverJS"); sap.ui.require([ ],` && |\n|  &&
-               `    function() {` && |\n|  &&
-               `        "use strict";` && |\n|  &&
-               |\n|  &&
-               `        var DriverJS = {};` && |\n|  &&
-               |\n|  &&
-               `        DriverJS.highlight = function() {` && |\n|  &&
-               |\n|  &&
-               `                if( driver !== undefined ) { if ( highlight_driver_config !== undefined ) { if (highlight_config !== undefined ) {` && |\n|  &&
-               `                  driverObj = driver(highlight_driver_config);` && |\n|  &&
-               `                  driverObj.highlight(highlight_config);` && |\n|  &&
-               `                } }};` && |\n|  &&
-               `        }` && |\n|  &&
-               |\n|  &&
-               `        return DriverJS;` && |\n|  &&
-               `    }, /* bExport= */ true);`.
-
-    ENDMETHOD.
-
-
-    METHOD get_js_cc_test2.
-
-      result = `debugger; jQuery.sap.declare("z2ui5.DriverJS");` && |\n| &&
-      `sap.ui.require([` && |\n|  &&
-      `   "sap/ui/core/Control"` && |\n|  &&
-      `], (Control) => {` && |\n|  &&
-      `   "use strict";` && |\n|  &&
-      |\n|  &&
-      `   return Control.extend("z2ui5.DriverJS", {` && |\n|  &&
-      `       metadata : {` && |\n|  &&
-      `           properties: {` && |\n|  &&
-      `                title: {` && |\n|  &&
-      `                    type: "string",` && |\n|  &&
-      `                    defaultValue: ""` && |\n|  &&
-      `                },` && |\n|  &&
-      `            }` && |\n|  &&
-      `       },` && |\n|  &&
-      |\n|  &&
-      `       init () {` && |\n|  &&
-      |\n|  &&
-      `       },` && |\n|  &&
-      |\n|  &&
-      `    drive() {` && |\n|  &&
-      `   if( driver !== undefined ) { if( config !== undefined ) {` && |\n| &&
-      `           driverObj = driver(config);` && |\n| &&
-      `           driverObj.drive();` && |\n| &&
-      `       } };` && |\n| &&
-      `       },` && |\n|  &&
-      `    highlight() {` && |\n|  &&
-                  `                        if( driver !== undefined ) { if ( highlight_driver_config !== undefined ) { if (highlight_config !== undefined ) {` && |\n| &&
-                           `                          driverObj = driver(highlight_driver_config);` && |\n| &&
-                           `                          driverObj.highlight(highlight_config);` && |\n| &&
-                           `                        } }};` && |\n| &&
-      `       },` && |\n|  &&
-      `       onAfterRendering() {` && |\n|  &&
-      |\n|  &&
-      `       },` && |\n|  &&
-      `       renderer(oRm, oControl) {` && |\n|  &&
-     `          oButton   = new Button({` && |\n|  &&
-     `                text: "highlight",` && |\n|  &&
-     `                 press: function (oEvent) {` && |\n|  &&
-     `                 oControl.highlight({` && |\n|  &&
-     `                  someData : "some data I want to pass along with the event object"` && |\n|  &&
-     `                  });` && |\n|  &&
-     `              }` && |\n|  &&
-     `           }); ` &&
-      `   oRm.renderControl(oButton);  ` && |\n|  &&
-      `        }` && |\n|  &&
-      `   });` && |\n|  &&
-      `});`.
 
     ENDMETHOD.
 

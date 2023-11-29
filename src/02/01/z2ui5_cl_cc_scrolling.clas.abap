@@ -27,7 +27,7 @@ CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `debugger; jQuery.sap.declare("z2ui5.Scrolling");` && |\n|  &&
+    result = `jQuery.sap.declare("z2ui5.Scrolling");` && |\n|  &&
              `sap.ui.require([` && |\n|  &&
              `  "sap/ui/core/Control",` && |\n|  &&
              `], (Control) => {` && |\n|  &&

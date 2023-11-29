@@ -183,9 +183,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         `                                }` && |\n|  &&
         `                                oFragment.openBy(oControl);` && |\n|  &&
         `                                sap.z2ui5.oViewPopover = oFragment;` && |\n|  &&
-        `                            }` && |\n|  &&
-        `                            );` && |\n|  &&
-        `                        }` && |\n|  &&
+        `                        } ); }` && |\n|  &&
         `                        sap.ui.core.BusyIndicator.hide();` && |\n|  &&
         `                        if (sap.z2ui5.isBusy) {` && |\n|  &&
         `                            sap.z2ui5.isBusy = false;` && |\n|  &&
@@ -239,7 +237,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         `                        sap.z2ui5.oView.destroy();` && |\n|  &&
         `                    }` && |\n|  &&
         `                    ,` && |\n|  &&
-        |\n|  &&
         `                    onEventFrontend: (...args)=>{` && |\n|  &&  custom_js_oneventfrontend &&
         `                        switch (args[0].EVENT) {` && |\n|  &&
         `                        case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n|  &&
@@ -248,25 +245,19 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         `                            break;` && |\n|  &&
         `                        case 'CROSS_APP_NAV_TO_EXT':` && |\n|  &&
         `                            var oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
-        |\n|  &&
         `                            const hash = (oCrossAppNavigator.hrefForExternal({` && |\n|  &&
         `                                target: args[1],` && |\n|  &&
         `                                params: args[2]` && |\n|  &&
         `                            })) || "";` && |\n|  &&
-        |\n|  &&
         `                            if (args[3] === 'EXT') {` && |\n|  &&
-        |\n|  &&
         `                                var url = window.location.href.split('#')[0] + hash;` && |\n|  &&
         `                                sap.m.URLHelper.redirect(url, true);` && |\n|  &&
-        |\n|  &&
         `                            } else {` && |\n|  &&
-        |\n|  &&
         `                                oCrossAppNavigator.toExternal({` && |\n|  &&
         `                                    target: {` && |\n|  &&
         `                                        shellHash: hash` && |\n|  &&
         `                                    }` && |\n|  &&
         `                                });` && |\n|  &&
-        |\n|  &&
         `                            }` && |\n|  &&
         `                            break;` && |\n|  &&
         `                        case 'LOCATION_RELOAD':` && |\n|  &&
@@ -296,24 +287,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         `                            var navConTo = sap.z2ui5.oViewNest.byId(args[2]);` && |\n|  &&
         `                            navCon.to(navConTo);` && |\n|  &&
         `                            break;` && |\n|  &&
-        `                        case 'DRIVERJS_DRIVE':` && |\n|  &&
-        `                            if (driver !== undefined) {` && |\n|  &&
-        `                                if (config !== undefined) {` && |\n|  &&
-        `                                    driverObj = driver(config);` && |\n|  &&
-        `                                    driverObj.drive();` && |\n|  &&
-        `                                }` && |\n|  &&
-        `                            }` && |\n|  &&
-        `                            ;break;` && |\n|  &&
-        `                        case 'DRIVERJS_HIGHLIGHT':` && |\n|  &&
-        `                            if (driver !== undefined) {` && |\n|  &&
-        `                                if (highlight_driver_config !== undefined) {` && |\n|  &&
-        `                                    if (highlight_config !== undefined) {` && |\n|  &&
-        `                                        driverObj = driver(highlight_driver_config);` && |\n|  &&
-        `                                        driverObj.highlight(highlight_config);` && |\n|  &&
-        `                                    }` && |\n|  &&
-        `                                }` && |\n|  &&
-        `                            }` && |\n|  &&
-        `                            ;break;` && |\n|  &&
         `                        }` && |\n|  &&
         `                    }` && |\n|  &&
         `                    ,` && |\n|  &&

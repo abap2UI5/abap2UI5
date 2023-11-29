@@ -21,7 +21,7 @@ CLASS z2ui5_cl_cc_font_awesome_icons IMPLEMENTATION.
 
   METHOD get_js_icon.
 
-    r_js  = `debugger;` && |\n| &&
+    r_js  = `` && |\n| &&
 *               `const metadataURI = "` && metadata_uri && `";` && |\n| &&
 *               `const oFontMetadata = ` && lcl_metadata=>get_fonts_metadata( ) && |\n| &&
 *               `const oFontBrandsMetadata = ` && lcl_metadata=>get_brands_fonts_metadata( ) && |\n| &&

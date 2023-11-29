@@ -49,6 +49,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !timeout            TYPE any OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS info_frontend
       IMPORTING
         !finished          TYPE clike OPTIONAL
@@ -61,6 +62,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
           PREFERRED PARAMETER finished
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS spreadsheet_export
       IMPORTING
         !tableid      TYPE clike
@@ -69,6 +71,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !icon         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS file_uploader
       IMPORTING
         !value             TYPE clike OPTIONAL
@@ -83,11 +86,13 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !filetype          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS messaging
       IMPORTING
         !items        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS title
       IMPORTING
         !title        TYPE clike OPTIONAL

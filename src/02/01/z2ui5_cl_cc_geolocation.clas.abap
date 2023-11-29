@@ -10,6 +10,7 @@ CLASS z2ui5_cl_cc_geolocation DEFINITION
         VALUE(r_js) TYPE string.
 
   PROTECTED SECTION.
+    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
 
   PRIVATE SECTION.
 ENDCLASS.
