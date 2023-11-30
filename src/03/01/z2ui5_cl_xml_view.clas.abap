@@ -15,7 +15,8 @@ public section.
   class-methods FACTORY_POPUP
     importing
       !T_NS type Z2UI5_IF_CLIENT=>TY_T_NAME_VALUE optional
-      !CLIENT type ref to Z2UI5_IF_CLIENT
+      !CLIENT type ref to Z2UI5_IF_CLIENT optional
+      PREFERRED PARAMETER client
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods CONSTRUCTOR .
