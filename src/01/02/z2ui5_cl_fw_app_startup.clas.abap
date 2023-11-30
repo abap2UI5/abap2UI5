@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_app DEFINITION
+CLASS z2ui5_cl_fw_app_startup DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED .
@@ -6,7 +6,6 @@ CLASS z2ui5_cl_fw_app DEFINITION
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app .
-    INTERFACES if_serializable_object .
 
     DATA:
       BEGIN OF ms_home,
@@ -21,19 +20,13 @@ CLASS z2ui5_cl_fw_app DEFINITION
     DATA client TYPE REF TO z2ui5_if_client .
     DATA mv_check_initialized TYPE abap_bool .
     DATA mv_check_demo TYPE abap_bool .
-    DATA mx_error TYPE REF TO cx_root .
 
     CLASS-METHODS factory_start
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app .
-    CLASS-METHODS factory_error
-      IMPORTING
-        !error        TYPE REF TO cx_root
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app .
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app_startup .
+
     METHODS z2ui5_on_init .
     METHODS z2ui5_on_event .
-    METHODS view_display_error .
     METHODS view_display_start .
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -41,15 +34,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
-
-
-  METHOD factory_error.
-
-    result = NEW #( ).
-    result->mx_error = error.
-
-  ENDMETHOD.
+CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
 
   METHOD factory_start.
@@ -58,42 +43,9 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD view_display_error.
-
-    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname
-                               sub = ` ` ).
-    DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
-
-    DATA(lv_text) = ``.
-    DATA(lx_error) = mx_error.
-    WHILE lx_error IS BOUND.
-      lv_text = lv_text && `<p>` && lx_error->get_text( ) && `</p>`.
-      lx_error = lx_error->previous.
-    ENDWHILE.
-
-    DATA(view) = z2ui5_cl_ui5=>_factory( )->_ns_m( )->shell( )->illustratedmessage(
-        enableformattedtext = abap_true
-        illustrationtype    = `sapIllus-ErrorScreen`
-        title               = `500 Internal Server Error`
-        description         = lv_text
-      )->additionalcontent(
-        )->button(
-            text  = `Home`
-            type  = `Emphasized`
-            press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
-        )->button(
-            text  = `Restart`
-            press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
-
-    client->view_display( view->_stringify( ) ).
-
-  ENDMETHOD.
-
-
   METHOD view_display_start.
 
-    DATA(lv_url) = z2ui5_cl_fw_utility=>app_get_url(
+    DATA(lv_url) = z2ui5_cl_util_func=>app_get_url(
                      client    = client
                      classname = ms_home-classname
                    ).
@@ -136,7 +88,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
 
       content->input( placeholder = `fill in the class name and press 'check'`
-                      editable    = z2ui5_cl_fw_utility=>boolean_abap_2_json( ms_home-class_editable )
+                      editable    = z2ui5_cl_util_func=>boolean_abap_2_json( ms_home-class_editable )
                       value       = client->_bind_edit( ms_home-classname )
                       submit      = client->_event( ms_home-btn_event_id ) ).
 
@@ -151,7 +103,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
         )->link( text    = `Link to the Application`
                  target  = `_blank`
                  href    = lv_url
-                 enabled = z2ui5_cl_fw_utility=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
+                 enabled = z2ui5_cl_util_func=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
     DATA(form) = grid->simpleform( title    = `Samples`
                                     editable = abap_true
@@ -191,11 +143,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
     z2ui5_on_event( ).
 
-    IF mx_error IS BOUND.
-      view_display_error( ).
-    ELSE.
-      view_display_start( ).
-    ENDIF.
+    view_display_start( ).
 
   ENDMETHOD.
 
@@ -213,7 +161,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
       WHEN `BUTTON_CHECK`.
         TRY.
             DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = z2ui5_cl_fw_utility=>c_trim_upper( ms_home-classname ).
+            ms_home-classname = z2ui5_cl_util_func=>c_trim_upper( ms_home-classname ).
             CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
             client->message_toast_display( `App is ready to start!` ).
@@ -248,13 +196,11 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
   METHOD z2ui5_on_init.
 
-    IF mx_error IS NOT BOUND.
-      ms_home-btn_text       = `check`.
-      ms_home-btn_event_id   = `BUTTON_CHECK`.
-      ms_home-class_editable = abap_true.
-      ms_home-btn_icon       = `sap-icon://validate`.
-      ms_home-classname      = `Z2UI5_CL_FW_APP_HELLO_WORLD`.
-    ENDIF.
+    ms_home-btn_text       = `check`.
+    ms_home-btn_event_id   = `BUTTON_CHECK`.
+    ms_home-class_editable = abap_true.
+    ms_home-btn_icon       = `sap-icon://validate`.
+    ms_home-classname      = `Z2UI5_CL_FW_APP_HELLO_WORLD`.
 
     mv_check_demo = abap_true.
 

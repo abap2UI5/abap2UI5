@@ -3,13 +3,15 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_FW_UTILITY_XML</CLSNAME>
+    <CLSNAME>Z2UI5_CX_UTIL_ERROR</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - utility xml</DESCRIPT>
+    <DESCRIPT>abap2UI5 - utility error</DESCRIPT>
+    <CATEGORY>40</CATEGORY>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
+    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

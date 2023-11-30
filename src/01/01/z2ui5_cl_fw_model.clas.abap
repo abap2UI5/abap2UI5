@@ -54,7 +54,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
           UNASSIGN <backend>.
           ASSIGN (lv_name_back) TO <backend>.
           IF sy-subrc <> 0.
-            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
                 val = `NO_BACKEND_VALUE_FOUND_WITH_NAME__` && lv_name_back.
           ENDIF.
@@ -64,7 +64,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
           UNASSIGN <frontend>.
           ASSIGN (lv_name_front) TO <frontend>.
           IF sy-subrc <> 0.
-            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
                 val = `NO_FRONTEND_VALUE_FOUND_WITH_NAME__` && lv_name_front.
           ENDIF.
@@ -72,7 +72,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
           CASE lr_attri->type_kind.
 
             WHEN `h`.
-              z2ui5_cl_fw_utility=>trans_ref_tab_2_tab(
+              z2ui5_cl_util_func=>trans_ref_tab_2_tab(
                 EXPORTING
                     ir_tab_from = <frontend>
                 IMPORTING
@@ -83,7 +83,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
               ASSIGN <frontend>->* TO <frontend>.
               CASE lr_attri->type_kind.
                 WHEN 'D' OR 'T'.
-                  z2ui5_cl_fw_utility=>trans_json_2_any(
+                  z2ui5_cl_util_func=>trans_json_2_any(
                     EXPORTING
                         val = `"` && <frontend> && `"`
                     CHANGING
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
   METHOD main_set_frontend.
 
-    DATA(lr_view_model) = z2ui5_cl_fw_utility_json=>factory( ).
+    DATA(lr_view_model) = z2ui5_cl_util_tree_json=>factory( ).
     DATA(lo_update) = lr_view_model->add_attribute_object( z2ui5_cl_fw_binding=>cv_model_edit_name ).
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
@@ -123,7 +123,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
       FIELD-SYMBOLS <attribute> TYPE any.
       ASSIGN (lv_name_back) TO <attribute>.
       IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
             val = `Error while creating the response, seems that some app data is not available anymore. <p>BINDING_ERROR - No attribute found with name: ` && lr_attri->name && `</p>`.
       ENDIF.
@@ -132,7 +132,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
         WHEN `h`.
           lo_actual->add_attribute( n           = lr_attri->name_front
-                                    v           = z2ui5_cl_fw_utility=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name )
+                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name )
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
@@ -148,7 +148,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
             WHEN OTHERS.
 
               lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = z2ui5_cl_fw_utility=>trans_json_any_2( <attribute> )
+                                        v           = z2ui5_cl_util_func=>trans_json_any_2( <attribute> )
                                         apos_active = abap_false ).
           ENDCASE.
       ENDCASE.

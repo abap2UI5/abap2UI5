@@ -1,4 +1,4 @@
-class Z2UI5_CX_FW_ERROR definition
+class Z2UI5_CX_UTIL_ERROR definition
   public
   inheriting from CX_NO_CHECK
   final
@@ -27,7 +27,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CX_FW_ERROR IMPLEMENTATION.
+CLASS Z2UI5_CX_UTIL_ERROR IMPLEMENTATION.
 
 
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
@@ -40,7 +40,7 @@ CLASS Z2UI5_CX_FW_ERROR IMPLEMENTATION.
       CATCH cx_root.
         ms_error-text = val.
     ENDTRY.
-    ms_error-uuid = z2ui5_cl_fw_utility=>func_get_uuid_32( ).
+    ms_error-uuid = z2ui5_cl_util_func=>func_get_uuid_32( ).
 
   ENDMETHOD.
 

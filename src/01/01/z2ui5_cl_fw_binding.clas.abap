@@ -147,7 +147,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     IF bind->bind_type <> mv_type AND bind->bind_type IS NOT INITIAL.
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
     ENDIF.
@@ -159,7 +159,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.
-      bind->name_front = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+      bind->name_front = z2ui5_cl_util_func=>func_get_uuid_22( ).
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
 
@@ -170,10 +170,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = z2ui5_cl_fw_utility=>func_get_uuid_22( ).
+    DATA(lv_id) = z2ui5_cl_util_func=>func_get_uuid_22( ).
 
     INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_fw_utility=>trans_json_any_2( mr_data )
+                    data_stringify = z2ui5_cl_util_func=>trans_json_any_2( mr_data )
                     bind_type      = cs_bind_type-one_time )
            INTO TABLE mt_attri.
     result = |/{ lv_id }|.
@@ -255,8 +255,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mv_pretty_name = pretty_name.
 
 
-    IF z2ui5_cl_fw_utility=>rtti_check_type_kind_dref( data ).
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+    IF z2ui5_cl_util_func=>rtti_check_type_kind_dref( data ).
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `BINDING_WITH_REFERENCES_NOT_ALLOWED`.
     ENDIF.
@@ -298,7 +298,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lt_attri2) = z2ui5_cl_fw_utility=>rtti_get_t_attri_by_object( <obj> ).
+    DATA(lt_attri2) = z2ui5_cl_util_func=>rtti_get_t_attri_by_object( <obj> ).
 
     LOOP AT lt_attri2 INTO DATA(ls_attri2)
         WHERE visibility = cl_abap_classdescr=>public
@@ -319,10 +319,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA(lv_name) = `MO_APP->` && val.
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN (lv_name) TO <attribute>.
-    z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+    z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
-    DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <attribute> ).
-    DATA(lv_attri) = z2ui5_cl_fw_utility=>c_replace_assign_struc( val ).
+    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <attribute> ).
+    DATA(lv_attri) = z2ui5_cl_util_func=>c_replace_assign_struc( val ).
     LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
 
       DATA(lv_element) = lv_attri && lr_comp->name.
@@ -381,7 +381,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 

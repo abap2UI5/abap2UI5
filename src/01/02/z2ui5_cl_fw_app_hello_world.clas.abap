@@ -1,20 +1,22 @@
-CLASS z2ui5_cl_fw_app_hello_world DEFINITION PUBLIC.
+class Z2UI5_CL_FW_APP_HELLO_WORLD definition
+  public
+  create public .
 
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
+public section.
 
-    DATA product           TYPE string.
-    DATA quantity          TYPE string.
-    DATA check_initialized TYPE abap_bool.
+  interfaces IF_SERIALIZABLE_OBJECT .
+  interfaces Z2UI5_IF_APP .
 
-
+  data PRODUCT type STRING .
+  data QUANTITY type STRING .
+  data CHECK_INITIALIZED type ABAP_BOOL .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_app_hello_world IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_APP_HELLO_WORLD IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.

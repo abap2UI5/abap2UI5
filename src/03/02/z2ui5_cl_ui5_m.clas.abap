@@ -265,9 +265,9 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
   METHOD panel.
 
     result = _add( n = `Panel` ns = `sap.m`
-                   t_p = VALUE #( ( n = `expandable` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expandable ) )
-                                         ( n = `expanded`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( expanded ) )
-                                         ( n = `stickyHeader`   v = z2ui5_cl_fw_utility=>boolean_abap_2_json( stickyheader ) )
+                   t_p = VALUE #( ( n = `expandable` v = z2ui5_cl_util_func=>boolean_abap_2_json( expandable ) )
+                                         ( n = `expanded`   v = z2ui5_cl_util_func=>boolean_abap_2_json( expanded ) )
+                                         ( n = `stickyHeader`   v = z2ui5_cl_util_func=>boolean_abap_2_json( stickyheader ) )
                                          ( n = `height`   v = height )
                                          ( n = `headerText` v = headertext ) ) )->_ns_m( ).
 
@@ -284,7 +284,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                     n  = `IllustratedMessage`
                        t_p = VALUE #( ( n = `enableVerticalResponsiveness` v = enableverticalresponsiveness )
                        ( n = `illustrationType`             v = illustrationtype )
-                       ( n = `enableFormattedText`             v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enableformattedtext ) )
+                       ( n = `enableFormattedText`             v = z2ui5_cl_util_func=>boolean_abap_2_json( enableformattedtext ) )
                        ( n = `illustrationSize`             v = illustrationsize )
                        ( n = `description`             v = description )
                        ( n = `title`             v = title )
@@ -306,7 +306,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
           ns  = `sap.m`
           t_p = VALUE #( ( n = `press`   v = press )
                          ( n = `text`    v = text )
-                         ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
                          ( n = `icon`    v = icon )
                          ( n = `type`    v = type )
                          ( n = `tooltip` v = tooltip ) ) ).
@@ -318,7 +318,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                    t_p = VALUE #( ( n = `buttonMode` v = buttonmode )
                                   ( n = `defaultAction` v = defaultaction )
                                   ( n = `text`    v = text )
-                                  ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                                  ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
                                   ( n = `icon`    v = icon )
                                   ( n = `type`    v = type )
                                   ( n = `tooltip` v = tooltip ) ) )->_ns_m( ).
@@ -330,7 +330,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
           ns  = `sap.m`
           t_p = VALUE #( ( n = `press`   v = press )
                          ( n = `text`    v = text )
-                         ( n = `enabled` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( enabled ) )
+                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
                          ( n = `icon`    v = icon )
                          ( n = `type`    v = type )
                          ( n = `tooltip` v = tooltip ) ) ).
@@ -357,13 +357,13 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                                   ( n = `width`  v = width )
                                   ( n = `height`  v = height )
                                   ( n = `alignItems`  v = alignitems )
-                                  ( n = `fitContainer`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( fitcontainer ) )
+                                  ( n = `fitContainer`  v = z2ui5_cl_util_func=>boolean_abap_2_json( fitcontainer ) )
                                   ( n = `justifyContent`  v = justifycontent )
                                   ( n = `wrap`  v = wrap )
                                   ( n = `direction`  v = direction )
                                   ( n = `alignContent`  v = aligncontent )
                                   ( n = `backgroundDesign`  v = backgrounddesign )
-                                  ( n = `displayInline`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( displayinline ) )
+                                  ( n = `displayInline`  v = z2ui5_cl_util_func=>boolean_abap_2_json( displayinline ) )
                                   ( n = `visible`  v = visible ) ) )->_ns_m( ).
   ENDMETHOD.
 
@@ -373,7 +373,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
           ns  = `sap.m`
               t_p = VALUE #( ( n = `text`     v = text )
                                 ( n = `type`     v = type )
-                                ( n = `showIcon` v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showicon ) )
+                                ( n = `showIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showicon ) )
                                 ( n = `class`    v = class ) ) ).
   ENDMETHOD.
 
@@ -389,7 +389,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                          ( n = `textDirection`  v = textdirection )
                          ( n = `width`  v = width )
                          ( n = `id`  v = id )
-                         ( n = `wrapping`  v = z2ui5_cl_fw_utility=>boolean_abap_2_json( wrapping ) )
+                         ( n = `wrapping`  v = z2ui5_cl_util_func=>boolean_abap_2_json( wrapping ) )
                          ( n = `wrappingType`  v = wrappingtype )
                          ( n = `class` v = class ) ) ).
   ENDMETHOD.
