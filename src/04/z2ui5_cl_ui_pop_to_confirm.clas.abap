@@ -42,13 +42,14 @@ CLASS Z2UI5_CL_UI_POP_TO_CONFIRM IMPLEMENTATION.
 
   METHOD check_result.
 
+    result = check_result_confirmed.
+
   ENDMETHOD.
 
 
   METHOD factory.
 
-    CREATE OBJECT r_result.
-
+    r_result = new #( ).
     r_result->title = i_title.
     r_result->icon = i_icon.
     r_result->question_text = i_question_text.
