@@ -30,7 +30,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_xml_view.
 
-    z2ui5_cl_fw_integration_test=>sv_state = ``.
+    z2ui5_cl_test_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
         `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -61,7 +61,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_id.
 
-    z2ui5_cl_fw_integration_test=>sv_state = ``.
+    z2ui5_cl_test_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -81,9 +81,9 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_bind_one_way.
 
-    DATA(lo_test) = NEW z2ui5_cl_fw_integration_test( ) ##NEEDED.
+    DATA(lo_test) = NEW z2ui5_cl_test_integration_test( ) ##NEEDED.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_ONE_WAY`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_ONE_WAY`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -104,7 +104,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_bind_two_way.
 
-    z2ui5_cl_fw_integration_test=>sv_state = ``.
+    z2ui5_cl_test_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -124,7 +124,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_message_box.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_MESSAGE_BOX`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_MESSAGE_BOX`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -153,7 +153,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_message_toast.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_MESSAGE_TOAST`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_MESSAGE_TOAST`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -176,7 +176,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_xml_popup.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_POPUP`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_POPUP`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -217,7 +217,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_scroll_cursor.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_SCROLL_CURSOR`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_SCROLL_CURSOR`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -229,7 +229,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_startup_path.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_NAVIGATE`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_NAVIGATE`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
       `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -241,7 +241,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_navigate.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `TEST_NAVIGATE`.
+    z2ui5_cl_test_integration_test=>sv_state = `TEST_NAVIGATE`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(
        `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
@@ -295,7 +295,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_app_event.
 
-    z2ui5_cl_fw_integration_test=>sv_state = ``.
+    z2ui5_cl_test_integration_test=>sv_state = ``.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.
@@ -338,7 +338,7 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_app_dump.
 
-    z2ui5_cl_fw_integration_test=>sv_state = `ERROR`.
+    z2ui5_cl_test_integration_test=>sv_state = `ERROR`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post( `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_fw_integration_test"}}` ).
 
     DATA lo_data TYPE REF TO data.

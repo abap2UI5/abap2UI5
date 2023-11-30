@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_integration_test DEFINITION
+CLASS z2ui5_cl_test_integration_test DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -17,7 +17,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_INTEGRATION_TEST IMPLEMENTATION.
+CLASS Z2UI5_CL_TEST_INTEGRATION_TEST IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
@@ -139,7 +139,7 @@ CLASS Z2UI5_CL_FW_INTEGRATION_TEST IMPLEMENTATION.
 *    ENDIF.
 
     IF sv_state = 'TEST_NAVIGATE'.
-      DATA(lo_app) = NEW z2ui5_cl_fw_integration_test( ).
+      DATA(lo_app) = NEW z2ui5_cl_test_integration_test( ).
       sv_state = 'LEAVE_APP'.
       client->nav_app_call( lo_app ).
       RETURN.
