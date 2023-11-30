@@ -17,9 +17,9 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
 
     CONSTANTS sv_status TYPE string VALUE `test` ##NEEDED.
 
-    CLASS-DATA sv_var TYPE string ##NEEDED.
-    CLASS-DATA ss_tab TYPE ty_row ##NEEDED.
-    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY ##NEEDED.
+    CLASS-DATA sv_var TYPE string.
+    CLASS-DATA ss_tab TYPE ty_row.
+    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
     DATA mv_val TYPE string ##NEEDED.
     DATA ms_tab TYPE ty_row ##NEEDED.
