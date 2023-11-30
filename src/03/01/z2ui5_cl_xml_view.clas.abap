@@ -1143,10 +1143,12 @@ public section.
       !FILTERSECONDARYVALUES type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   methods MULTI_COMBOBOX
     importing
       !SELECTIONCHANGE type CLIKE optional
       !SELECTEDKEYS type CLIKE optional
+      !selectedItems type CLIKE optional
       !ITEMS type CLIKE optional
       !SELECTIONFINISH type CLIKE optional
       !WIDTH type CLIKE optional
@@ -1514,6 +1516,7 @@ public section.
       !WIDTH type CLIKE optional
       !SHOWSORTMENUENTRY type CLIKE optional
       !SORTPROPERTY type CLIKE optional
+      !autoresizable type CLIKE optional
       !FILTERPROPERTY type CLIKE optional
       !SHOWFILTERMENUENTRY type CLIKE optional
     preferred parameter WIDTH
@@ -4925,6 +4928,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `MultiComboBox`
                        t_prop = VALUE #( (  n = `selectionChange`     v = selectionchange )
                                          (  n = `selectedKeys`        v = selectedkeys )
+                                         (  n = `selectedItems`        v = selectedItems )
                                          (  n = `items`               v = items )
                                          (  n = `selectionFinish`     v = selectionfinish )
                                          (  n = `width`               v = width )
@@ -6470,6 +6474,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           ( n = `showSortMenuEntry`    v = showsortmenuentry )
                           ( n = `sortProperty`         v = sortproperty )
                           ( n = `showFilterMenuEntry`  v = showfiltermenuentry )
+                          ( n = `autoresizable`  v =  z2ui5_cl_util_func=>boolean_abap_2_json( autoresizable ) )
                           ( n = `filterProperty`       v = filterproperty ) ) ).
   ENDMETHOD.
 
