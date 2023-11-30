@@ -10,8 +10,6 @@ CLASS z2ui5_cl_cc_focus DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
-
   PRIVATE SECTION.
 ENDCLASS.
 

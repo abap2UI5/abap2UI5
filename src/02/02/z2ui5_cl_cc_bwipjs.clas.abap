@@ -14,7 +14,7 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
       END OF ty_s_barcode.
     TYPES ty_t_barcode TYPE STANDARD TABLE OF ty_s_barcode WITH EMPTY KEY.
 
-    CONSTANTS cv_src TYPE string VALUE `https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js`.
+    CONSTANTS cv_src TYPE string VALUE `https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js` ##NEEDED.
 
     class-METHODS get_t_barcode_types
       RETURNING
@@ -24,28 +24,14 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
       RETURNING
         VALUE(r_js) TYPE string.
 
-
   PROTECTED SECTION.
   PRIVATE SECTION.
-
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
 
-  METHOD get_t_barcode_types.
-
-    result = VALUE #(
-      ( sym = 'ean5'    desc = 'EAN-5'     text = '90200'                   opts = 'includetext guardwhitespace' )
-      ( sym = 'ean2'    desc = 'EAN-2'     text = '05'                      opts = 'includetext guardwhitespace' )
-      ( sym = 'ean13'   desc = 'EAN-13'    text = '9520123456788'           opts = 'includetext guardwhitespace' )
-      ( sym = 'upca'    desc = 'UPC-A'     text = '012345000058'            opts = 'includetext' )
-      ( sym = 'isbn'    desc = 'ISBN'      text = '978-1-56581-231-4 90000' opts = 'includetext guardwhitespace' )
-      ( sym = 'qrcode'  desc = 'QR Code'   text = 'http://goo.gl/0bis'      opts = 'eclevel=M' )
-    ).
-
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -117,4 +103,17 @@ CLASS z2ui5_cl_cc_bwipjs IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD get_t_barcode_types.
+
+    result = VALUE #(
+      ( sym = 'ean5'    desc = 'EAN-5'     text = '90200'                   opts = 'includetext guardwhitespace' )
+      ( sym = 'ean2'    desc = 'EAN-2'     text = '05'                      opts = 'includetext guardwhitespace' )
+      ( sym = 'ean13'   desc = 'EAN-13'    text = '9520123456788'           opts = 'includetext guardwhitespace' )
+      ( sym = 'upca'    desc = 'UPC-A'     text = '012345000058'            opts = 'includetext' )
+      ( sym = 'isbn'    desc = 'ISBN'      text = '978-1-56581-231-4 90000' opts = 'includetext guardwhitespace' )
+      ( sym = 'qrcode'  desc = 'QR Code'   text = 'http://goo.gl/0bis'      opts = 'eclevel=M' )
+    ).
+
+  ENDMETHOD.
 ENDCLASS.
