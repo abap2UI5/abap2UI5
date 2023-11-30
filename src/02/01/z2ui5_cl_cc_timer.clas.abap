@@ -52,7 +52,7 @@ CLASS Z2UI5_CL_CC_TIMER IMPLEMENTATION.
     `       },` && |\n|  &&
     `       delayedCall( oControl){` && |\n|  &&
     `           ` && |\n|  &&
-    `           debugger; if ( oControl.getProperty("checkActive") == false ){ return; }` && |\n|  &&
+    `          if ( oControl.getProperty("checkActive") == false ){ return; }` && |\n|  &&
     `            setTimeout((oControl) => {` && |\n|  &&
     `               oControl.setProperty( "checkActive", false )` && |\n|  &&
     `                oControl.fireFinished();` && |\n|  &&

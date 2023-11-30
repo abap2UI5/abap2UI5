@@ -59,7 +59,6 @@ CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
     `       },` && |\n|  &&
     |\n|  &&
     `       Messaging2Model( ){` && |\n|  &&
-    `           debugger;` && |\n|  &&
     `           var oData = Messaging.getMessageModel().getData();` && |\n|  &&
     `           var Model = [];` && |\n|  &&
     `           oData.forEach(element => {` && |\n|  &&
