@@ -72,7 +72,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
       lx_error = lx_error->previous.
     ENDWHILE.
 
-    DATA(view) = client->factory_view( )->_ns_m( )->shell( )->illustratedmessage(
+    DATA(view) = z2ui5_cl_ui5=>_factory( )->_ns_m( )->shell( )->illustratedmessage(
         enableformattedtext = abap_true
         illustrationtype    = `sapIllus-ErrorScreen`
         title               = `500 Internal Server Error`
@@ -99,7 +99,7 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
                    ).
 
 
-    DATA(page) = client->factory_view( )->_ns_m( )->shell(
+    DATA(page) = z2ui5_cl_ui5=>_factory(  )->_ns_m( )->shell(
       )->page( shownavbutton = abap_false ).
 
     page->headercontent(
