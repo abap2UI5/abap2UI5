@@ -285,7 +285,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_test) = NEW z2ui5_cl_util_func( ).
     DATA(lv_name) = z2ui5_cl_util_func=>rtti_get_classname_by_ref( lo_test ).
-    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_FW_UTILITY` act = lv_name ).
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UTIL_FUNC` act = lv_name ).
 
     DATA(lo_test2) = NEW ltcl_test_app( ).
     DATA(lv_name2) = z2ui5_cl_util_func=>rtti_get_classname_by_ref( lo_test2 ).
