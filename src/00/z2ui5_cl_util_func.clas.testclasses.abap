@@ -17,9 +17,9 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
 
     CONSTANTS sv_status TYPE string VALUE `test` ##NEEDED.
 
-    CLASS-DATA sv_var TYPE string.
-    CLASS-DATA ss_tab TYPE ty_row.
-    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    CLASS-DATA sv_var TYPE string ##NEEDED.
+    CLASS-DATA ss_tab TYPE ty_row ##NEEDED.
+    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY ##NEEDED.
 
     DATA mv_val TYPE string ##NEEDED.
     DATA ms_tab TYPE ty_row ##NEEDED.
@@ -178,7 +178,7 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
   METHOD test_string_replace.
 
-    DATA(lv_search) = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 ).
+    DATA(lv_search) = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 ) ##NEEDED.
 
     cl_abap_unit_assert=>assert_equals(
      act = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 )
@@ -189,7 +189,9 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
   METHOD test_raise_error.
 
     TRY.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+        IF 1 = 1.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error.
+        ENDIF.
         cl_abap_unit_assert=>fail( ).
 
       CATCH z2ui5_cx_util_error INTO DATA(lx).
@@ -491,7 +493,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       END OF ty_row.
     TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
 
-    DATA(lt_tab2) = VALUE ty_t_tab( ).
+    DATA(lt_tab2) = VALUE ty_t_tab( ) ##NEEDED.
 
     DATA(ls_row) = VALUE ty_row( ).
     ls_row-title = `test`.
@@ -589,7 +591,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     TRY.
         z2ui5_cl_util_func=>x_check_raise( when = xsdbool( 1 = 2 ) ).
 
-      CATCH z2ui5_cx_util_error INTO DATA(lx).
+      CATCH z2ui5_cx_util_error.
         cl_abap_unit_assert=>fail(  ).
     ENDTRY.
   ENDMETHOD.
