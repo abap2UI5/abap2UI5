@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
 
   METHOD http_get.
@@ -45,17 +45,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
           (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
     ENDIF.
 
-    data(lv_add_js) =
-        z2ui5_cl_cc_timer=>get_js( ) &&
-        z2ui5_cl_cc_focus=>get_js( ) &&
-        z2ui5_cl_cc_title=>get_js( ) &&
-        z2ui5_cl_cc_history=>get_js( ) &&
-        z2ui5_cl_cc_scrolling=>get_js( ) &&
-        z2ui5_cl_cc_info=>get_js( ) &&
-        z2ui5_cl_cc_geolocation=>get_js( ) &&
-        z2ui5_cl_cc_file_uploader=>get_js( ) &&
-        z2ui5_cl_cc_messaging=>get_js( ) &&
-        custom_js.
+    DATA(lv_add_js) = z2ui5_cl_cc__factory_fw=>get_js_startup( ) && custom_js.
 
     IF content_security_policy IS NOT SUPPLIED.
       DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
@@ -543,7 +533,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
         `                sap.z2ui5.Helper.DateAbapDateToDateObject = (d=>new Date(d.slice(0, 4),(d[4] + d[5]) - 1,d[6] + d[7]));` && |\n|  &&
         `                sap.z2ui5.Helper.DateAbapDateTimeToDateObject = ((d,t='000000')=>new Date(d.slice(0, 4),(d[4] + d[5]) - 1,d[6] + d[7],t.slice(0, 2),t.slice(2, 4),t.slice(4, 6)));` && |\n|  &&
         `                sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
-        `                sap.z2ui5.checkLogActive = ` && z2ui5_cl_fw_utility=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
+        `                sap.z2ui5.checkLogActive = ` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
                            lv_add_js && |\n| &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&

@@ -14,7 +14,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   METHOD test_json_attri.
 
-    DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
+    DATA(lo_tree) = NEW z2ui5_cl_util_tree_json( ).
     lo_tree->add_attribute( n = `AAA`
                             v = `BBB` ).
 
@@ -27,7 +27,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   METHOD test_json_object.
 
-    DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
+    DATA(lo_tree) = NEW z2ui5_cl_util_tree_json( ).
     lo_tree->add_attribute_object( `CCC` )->add_attribute( n = `AAA`
                                                            v = `BBB` ).
 
@@ -40,7 +40,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
   METHOD test_json_struc.
 
-    DATA(lo_tree) = NEW z2ui5_cl_fw_utility_json( ).
+    DATA(lo_tree) = NEW z2ui5_cl_util_tree_json( ).
 
     TYPES:
       BEGIN OF ty_s_test,
@@ -62,7 +62,7 @@ CLASS ltcl_unit_01_json IMPLEMENTATION.
 
 
 
-    DATA(lo_json) = z2ui5_cl_fw_utility_json=>factory( `{"CCC":{"COMP1":"AAA","COMP2":"BBB"}}` ).
+    DATA(lo_json) = z2ui5_cl_util_tree_json=>factory( `{"CCC":{"COMP1":"AAA","COMP2":"BBB"}}` ).
 
     DATA(lo_attri) = lo_json->get_attribute( `CCC` )->get_attribute( `COMP2` ).
 

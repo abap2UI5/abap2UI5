@@ -56,13 +56,13 @@ CLASS z2ui5_cl_ui5 DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
 
     METHODS constructor
-      IMPORTING node TYPE REF TO z2ui5_cl_fw_utility_xml OPTIONAL.
+      IMPORTING node TYPE REF TO z2ui5_cl_util_tree_xml OPTIONAL.
 
     METHODS _stringify
       RETURNING VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA _node TYPE REF TO z2ui5_cl_fw_utility_xml.
+    DATA _node TYPE REF TO z2ui5_cl_util_tree_xml.
 
     CLASS-METHODS _2xml
       IMPORTING obj           TYPE REF TO z2ui5_cl_ui5
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _2bool.
-    result = z2ui5_cl_fw_utility=>boolean_abap_2_json( val ).
+    result = z2ui5_cl_util_func=>boolean_abap_2_json( val ).
   ENDMETHOD.
 
   METHOD _2xml.
@@ -144,7 +144,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
             DATA(lv_text) = COND #( WHEN lv_ns_tmp IS INITIAL THEN `XML_VIEW_NOT_VALID_NAMESPACE_EMPTY`
                 ELSE `XML_VIEW_NOT_VALID_NAMESPACE_NOT_FOUND failure: ` && lv_ns_tmp ).
 
-            RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
                 val = lv_text.
         ENDTRY.
@@ -192,7 +192,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    DATA(lo_node) = NEW z2ui5_cl_fw_utility_xml( ).
+    DATA(lo_node) = NEW z2ui5_cl_util_tree_xml( ).
     DATA(result2) = NEW z2ui5_cl_ui5( lo_node ).
     result2->_node->mv_name = n.
     result2->_node->mv_ns   = ns.
@@ -241,7 +241,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
   METHOD _go_up.
     IF _node = _node->mo_root.
-      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `XML_VIEW_PARSER_ERROR - go_up on root element not possible`.
     ENDIF.

@@ -58,7 +58,7 @@ CLASS z2ui5_cl_fw_handler DEFINITION
       END OF ty_s_next.
 
     CLASS-DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
-    CLASS-DATA so_body   TYPE REF TO z2ui5_cl_fw_utility_json.
+    CLASS-DATA so_body   TYPE REF TO z2ui5_cl_util_tree_json.
 
     DATA ms_db     TYPE z2ui5_cl_fw_db=>ty_s_db.
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -121,7 +121,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
   METHOD app_set_next.
 
-    app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_fw_utility=>func_get_uuid_32( ) ELSE app->id ).
+    app->id = COND #( WHEN app->id IS INITIAL THEN z2ui5_cl_util_func=>func_get_uuid_32( ) ELSE app->id ).
 
     r_result = NEW #( ).
     r_result->ms_db-app         = app.
@@ -143,7 +143,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
   METHOD request_begin.
 
-    so_body = z2ui5_cl_fw_utility_json=>factory( body ).
+    so_body = z2ui5_cl_util_tree_json=>factory( body ).
 
     TRY.
         DATA(location)     = so_body->get_attribute( `OLOCATION` ).
@@ -179,7 +179,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
             DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
             ASSIGN ls_params->* TO <struc>.
 
-            DATA(lt_comp) = z2ui5_cl_fw_utility=>rtti_get_t_comp_by_struc( <struc> ).
+            DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <struc> ).
 
             LOOP AT lt_comp INTO DATA(ls_comp).
 
@@ -220,15 +220,15 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
         FIELD-SYMBOLS <any> TYPE any.
         ASSIGN (`SO_BODY->MR_ACTUAL`) TO <any>.
-        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
         ASSIGN (`<ANY>->ARGUMENTS`) TO <any>.
-        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
         ASSIGN (`<ANY>->*`) TO <any>.
-        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
         FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
         ASSIGN <any> TO <arg>.
-        z2ui5_cl_fw_utility=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
         FIELD-SYMBOLS <arg_row> TYPE any.
         LOOP AT <arg> ASSIGNING <arg_row>.
@@ -258,7 +258,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
   METHOD request_end.
 
-    DATA(lo_resp) = z2ui5_cl_fw_utility_json=>factory( ).
+    DATA(lo_resp) = z2ui5_cl_util_tree_json=>factory( ).
 
     DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
         viewname = ms_actual-viewname
@@ -272,7 +272,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
                             apos_active = abap_false ).
 
     lo_resp->add_attribute( n           = `PARAMS`
-                            v           = z2ui5_cl_fw_utility=>trans_json_any_2( ms_next-s_set )
+                            v           = z2ui5_cl_util_func=>trans_json_any_2( ms_next-s_set )
                             apos_active = abap_false ).
 
     lo_resp->add_attribute( n = `ID`
@@ -303,7 +303,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_db         = z2ui5_cl_fw_db=>load_app( id_prev ).
-    result->ms_db-id      = z2ui5_cl_fw_utility=>func_get_uuid_32( ).
+    result->ms_db-id      = z2ui5_cl_util_func=>func_get_uuid_32( ).
     result->ms_db-id_prev = id_prev.
 
     TRY.
@@ -359,7 +359,7 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
     ENDTRY.
 
     IF lv_classname IS INITIAL.
-      lv_classname = z2ui5_cl_fw_utility=>url_param_get( val = `app_start` url = ss_config-search ).
+      lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start` url = ss_config-search ).
     ENDIF.
 
     IF lv_classname IS INITIAL.
@@ -369,9 +369,9 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
 
     TRY.
         result = NEW #( ).
-        result->ms_db-id = z2ui5_cl_fw_utility=>func_get_uuid_32( ).
+        result->ms_db-id = z2ui5_cl_util_func=>func_get_uuid_32( ).
 
-        lv_classname = z2ui5_cl_fw_utility=>c_trim_upper( lv_classname ).
+        lv_classname = z2ui5_cl_util_func=>c_trim_upper( lv_classname ).
         CREATE OBJECT result->ms_db-app TYPE (lv_classname).
         result->ms_db-app->id = result->ms_db-id.
 
@@ -385,19 +385,19 @@ CLASS Z2UI5_CL_FW_HANDLER IMPLEMENTATION.
   METHOD set_app_system.
 
     result = NEW #( ).
-    result->ms_db-id = z2ui5_cl_fw_utility=>func_get_uuid_32( ).
+    result->ms_db-id = z2ui5_cl_util_func=>func_get_uuid_32( ).
 
     IF ix IS NOT BOUND AND error_text IS NOT INITIAL.
-      ix = NEW z2ui5_cx_fw_error( val = error_text ).
+      ix = NEW z2ui5_cx_util_error( val = error_text ).
     ENDIF.
 
     IF ix IS BOUND.
-      result->ms_next-o_app_call = z2ui5_cl_fw_app=>factory_error( ix ).
+      result->ms_next-o_app_call = z2ui5_cl_fw_app_error=>factory_error( ix ).
       result = result->set_app_call( abap_true ).
       RETURN.
     ENDIF.
 
-    result->ms_db-app = z2ui5_cl_fw_app=>factory_start( ).
+    result->ms_db-app = z2ui5_cl_fw_app_startup=>factory_start( ).
     result->ms_db-app->id = result->ms_db-id.
 
   ENDMETHOD.

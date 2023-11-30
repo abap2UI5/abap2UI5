@@ -47,7 +47,7 @@ CLASS z2ui5_cl_ui5_suite IMPLEMENTATION.
     result = _add( n   = `InteractiveDonutChart`
                    ns  = `sap.suite.ui.microchart`
                    t_p = VALUE #( ( n = `selectionChanged`  v = selectionchanged )
-                                  ( n = `showError`         v = z2ui5_cl_fw_utility=>boolean_abap_2_json( showerror ) )
+                                  ( n = `showError`         v = z2ui5_cl_util_func=>boolean_abap_2_json( showerror ) )
                                   ( n = `errorMessageTitle` v = errormessagetitle )
                                   ( n = `errorMessage`      v = errormessage )
                                   ( n = `displayedSegments` v = displayedsegments )
