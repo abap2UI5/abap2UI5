@@ -20,6 +20,7 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
     CLASS-DATA sv_var TYPE string.
     CLASS-DATA ss_tab TYPE ty_row.
     CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    CLASS-METHODS class_constructor.
 
     DATA mv_val TYPE string ##NEEDED.
     DATA ms_tab TYPE ty_row ##NEEDED.
@@ -30,6 +31,14 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
 ENDCLASS.
 
 CLASS ltcl_test_app IMPLEMENTATION.
+
+  METHOD class_constructor.
+
+    sv_var = 1.
+    ss_tab = VALUE #( ).
+    st_tab = VALUE #( ).
+
+  ENDMETHOD.
 ENDCLASS.
 
 CLASS ltcl_unit_test_abap_api DEFINITION FINAL FOR TESTING
