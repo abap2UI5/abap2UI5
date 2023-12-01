@@ -32,7 +32,6 @@ CLASS z2ui5_cl_ui_pop_messages DEFINITION
       IMPORTING
         i_messages            TYPE ty_t_msg
         i_title               TYPE string DEFAULT `abap2UI5 - Message Popup`
-        i_button_text_confirm TYPE string DEFAULT `OK`
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_ui_pop_messages.
 

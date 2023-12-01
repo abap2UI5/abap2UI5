@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_UI_POP_MESSAGES</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ui - popup to confirm</DESCRIPT>
+    <DESCRIPT>ui - popup messages</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
