@@ -67,12 +67,13 @@ public section.
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods HTML
     importing
-      !CONTENT type CLIKE optional
+      !content type CLIKE optional
       !afterrendering type CLIKE optional
       !preferdom type CLIKE optional
       !sanitizecontent type CLIKE optional
       !visible type CLIKE optional
       !id type CLIKE optional
+      PREFERRED PARAMETER content
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods ILLUSTRATED_MESSAGE
