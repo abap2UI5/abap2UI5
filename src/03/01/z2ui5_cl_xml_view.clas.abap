@@ -1428,6 +1428,7 @@ public section.
       !id type CLIKE optional
       !class type CLIKE optional
       !controls type CLIKE optional
+    PREFERRED PARAMETER htmlText
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods _GENERIC
