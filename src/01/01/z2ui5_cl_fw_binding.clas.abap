@@ -323,9 +323,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD get_t_attri_by_include.
 
-    DATA: sdescr TYPE REF TO cl_abap_structdescr.
-
-    sdescr ?= cl_abap_typedescr=>describe_by_name( type->absolute_name ).
+    data(sdescr) = cast cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
 
     LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
 
