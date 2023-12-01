@@ -4100,6 +4100,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
+                             ( n = `active`  v = z2ui5_cl_util_func=>boolean_abap_2_json( active ) )
                              ( n = `allCount`  v = allCount )
                              ( n = `backgroundDesign`         v = backgroundDesign )
                              ( n = `dataType`  v = dataType )
@@ -4115,6 +4116,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                              ( n = `includeItemInSelection` v = z2ui5_cl_util_func=>boolean_abap_2_json( includeItemInSelection ) )
                              ( n = `inset` v = z2ui5_cl_util_func=>boolean_abap_2_json( inset ) )
                              ( n = `key` v = key )
+                             ( n = `swipedirection` v = swipedirection )
+                             ( n = `headerText` v = headerText )
                              ( n = `keyboardMode` v = keyboardMode )
                              ( n = `mode` v = mode )
                              ( n = `modeAnimationOn` v = z2ui5_cl_util_func=>boolean_abap_2_json( modeAnimationOn ) )
