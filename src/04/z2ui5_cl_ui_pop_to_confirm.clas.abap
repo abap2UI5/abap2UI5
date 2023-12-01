@@ -96,9 +96,11 @@ CLASS Z2UI5_CL_UI_POP_TO_CONFIRM IMPLEMENTATION.
     CASE client->get( )-event.
       WHEN `BUTTON_CONFIRM`.
         check_result_confirmed = abap_true.
+        client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
       WHEN `BUTTON_CANCEL`.
         check_result_confirmed = abap_false.
+        client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
     ENDCASE.
 

@@ -95,7 +95,7 @@ CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
                      `        });` && |\n|  &&
                      `  },` && |\n| &&
                      `                renderer: function (oRm, oControl) {` && |\n| &&
-` debugger;  oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
+                     `                    oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
                      `    // The return value is the canvas element` && |\n|  &&
                      `                }` && |\n| &&
                      `            });` && |\n| &&
