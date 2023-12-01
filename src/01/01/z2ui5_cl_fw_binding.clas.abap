@@ -81,6 +81,13 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_attri.
 
+    METHODS get_t_attri_by_include
+      IMPORTING
+        type          TYPE REF TO cl_abap_datadescr
+        attri         TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_t_attri.
+
     METHODS get_t_attri_by_oref
       IMPORTING
         val           TYPE clike OPTIONAL
@@ -314,6 +321,26 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_t_attri_by_include.
+
+    DATA: sdescr TYPE REF TO cl_abap_structdescr.
+
+    sdescr ?= cl_abap_typedescr=>describe_by_name( type->absolute_name ).
+
+    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
+
+      DATA(lv_element) = attri && lr_comp->name.
+
+      DATA(ls_attri) = VALUE ty_s_attri(
+        name      = lv_element
+        type_kind = lr_comp->type_kind ).
+      INSERT ls_attri INTO TABLE result.
+
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
   METHOD get_t_attri_by_struc.
 
     DATA(lv_name) = `MO_APP->` && val.
@@ -322,6 +349,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
     DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <attribute> ).
+
     DATA(lv_attri) = z2ui5_cl_util_func=>c_replace_assign_struc( val ).
     LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
 
@@ -331,7 +359,12 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2
       OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
 
-        DATA(lt_attri) = get_t_attri_by_struc( lv_element ).
+        IF lr_comp->name IS INITIAL.
+          DATA(lt_attri) = me->get_t_attri_by_include( type = lr_comp->type attri = lv_attri ).
+        ELSE.
+          lt_attri = get_t_attri_by_struc( lv_element ).
+        ENDIF.
+
         INSERT LINES OF lt_attri INTO TABLE result.
 
       ELSE.

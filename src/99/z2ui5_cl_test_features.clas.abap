@@ -6,7 +6,6 @@ CLASS z2ui5_cl_test_features DEFINITION PUBLIC.
 
     DATA mv_input TYPE string.
     DATA mv_input2 TYPE string.
-    DATA mv_backend_event TYPE string.
     DATA mv_check_popup_active TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
   PROTECTED SECTION.
@@ -28,11 +27,8 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
     DATA(view) = z2ui5_cl_xml_view=>factory( ).
     view->shell(
         )->page( title = 'abap2UI5 - flow logic - APP 01' navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true ) shownavbutton = abap_true
-
        )->grid( 'L6 M12 S12' )->content( 'layout'
-
        )->simple_form( 'Controller' )->content( 'form'
-
          )->label( 'Test'
          )->button( text = 'z2ui5_cl_ui_pop_to_confirm' press = client->_event( 'z2ui5_cl_ui_pop_to_confirm' )
          )->label( 'Test'

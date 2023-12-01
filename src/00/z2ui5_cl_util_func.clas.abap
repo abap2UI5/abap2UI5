@@ -161,10 +161,10 @@ CLASS z2ui5_cl_util_func DEFINITION
       IMPORTING
         !val          TYPE any
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
-
 ENDCLASS.
 
 
