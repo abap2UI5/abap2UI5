@@ -799,6 +799,12 @@ public section.
       !HEADERTEXT type CLIKE optional
       !STICKYHEADER type CLIKE optional
       !HEIGHT type CLIKE optional
+      !class type CLIKE optional
+      !id type CLIKE optional
+      !width type CLIKE optional
+      !backgroundDesign type CLIKE optional
+      !expandAnimation type CLIKE optional
+      !visible type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods VBOX
@@ -910,6 +916,20 @@ public section.
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods OVERFLOW_TOOLBAR
+    IMPORTING
+      press type CLIKE optional
+      text  type CLIKE optional
+      active type CLIKE optional
+      visible type CLIKE optional
+      asyncMode type CLIKE optional
+      enabled type CLIKE optional
+      design type CLIKE optional
+      type type CLIKE optional
+      style type CLIKE optional
+      width type CLIKE optional
+      height type CLIKE optional
+      class type CLIKE optional
+      id type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods OVERFLOW_TOOLBAR_TOGGLE_BUTTON
@@ -994,6 +1014,7 @@ public section.
       !PRESS type CLIKE optional
       !LOAD type CLIKE optional
       !ERROR type CLIKE optional
+      !id type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods DATE_PICKER
@@ -1093,6 +1114,7 @@ public section.
       !EMPHASIZED type CLIKE optional
       !ARIAHASPOPUP type CLIKE optional
       !ACCESSIBLEROLE type CLIKE optional
+      !class type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods LIST
@@ -1317,6 +1339,8 @@ public section.
       !ACTIVE type CLIKE optional
       !UNIT type CLIKE optional
       !VISIBLE type CLIKE optional
+      !class type CLIKE optional
+      !id type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods SWITCH
@@ -1818,6 +1842,7 @@ public section.
       !PRESS type CLIKE optional
       !VISIBLE type CLIKE optional
       !id type CLIKE optional
+      !class type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TREE
@@ -1862,6 +1887,7 @@ public section.
       !APPLYCONTENTPADDING type CLIKE optional
       !ITEMS type CLIKE optional
       !CONTENT type CLIKE optional
+      !id type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods ICON_TAB_FILTER
@@ -2035,6 +2061,10 @@ public section.
       !INITIALPAGE type CLIKE optional
       !ID type CLIKE optional
       !DEFAULTTRANSITIONNAME type CLIKE optional
+      !autoFocus type CLIKE optional
+      !height type CLIKE optional
+      !width type CLIKE optional
+      !visible type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods PAGES
@@ -2406,6 +2436,10 @@ public section.
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods LIGHT_BOX
+    IMPORTING
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !visible type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods LIGHT_BOX_ITEM
@@ -3190,6 +3224,15 @@ public section.
       !visible type CLIKE optional
       !press type CLIKE optional
       !detailPress type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods draft_indicator
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !mindisplaytime type CLIKE optional
+      !state type CLIKE optional
+      !visible type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
@@ -3977,6 +4020,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD draft_indicator.
+    result = _generic( name = `DraftIndicator`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `minDisplayTime`  v = minDisplayTime )
+                             ( n = `state`  v = state )
+                             ( n = `visible` v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
   METHOD dynamic_page.
     result = _generic( name   = `DynamicPage`
                        ns     = `f`
@@ -4732,6 +4787,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                        ( n = `tabDensityMode`    v = tabdensitymode )
                                        ( n = `tabsOverflowMode`    v = tabsoverflowmode )
                                        ( n = `items`    v = items )
+                                       ( n = `id`    v = id )
                                        ( n = `content`    v = content )
                                        ( n = `upperCase`    v = z2ui5_cl_util_func=>boolean_abap_2_json( uppercase ) )
                                        ( n = `selectedKey` v = selectedkey ) ) ).
@@ -4805,6 +4861,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = me.
     _generic( name   = `Image`
               t_prop = VALUE #(
+                ( n = `id` v = id )
                 ( n = `src` v = src )
                 ( n = `class` v = class )
                 ( n = `height` v = height )
@@ -5024,7 +5081,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD light_box.
-    result = _generic( `LightBox` ).
+    result =  _generic( name   = `LightBox`
+                    t_prop = VALUE #( ( n = `id`         v = id )
+                                      ( n = `class`    v = class )
+                                      ( n = `visible`    v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
 
@@ -5074,6 +5134,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `href`    v = href )
                                 ( n = `press`   v = press )
                                 ( n = `id`      v = id )
+                                ( n = `class`      v = class )
                                 ( n = `accessibleRole`      v = accessiblerole )
                                 ( n = `ariaHasPopup`      v = ariahaspopup )
                                 ( n = `emptyIndicatorMode`      v = emptyindicatormode )
@@ -5349,9 +5410,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
     result = _generic( name   = `NavContainer`
                        t_prop = VALUE #(
-                        (  n = `initialPage`  v = initialpage  )
-                        (  n = `id`           v = id  )
-                        (  n = `defaultTransitionName`   v = defaulttransitionname  )
+                        ( n = `initialPage`  v = initialpage  )
+                        ( n = `id`           v = id  )
+                        ( n = `height`           v = height  )
+                        ( n = `width`           v = width  )
+                        ( n = `autoFocus` v = z2ui5_cl_util_func=>boolean_abap_2_json( autoFocus ) )
+                        ( n = `visible` v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                        ( n = `defaultTransitionName`   v = defaulttransitionname  )
                         )  ).
 
   ENDMETHOD.
@@ -5531,6 +5596,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
               t_prop = VALUE #( ( n = `emphasized`         v = z2ui5_cl_util_func=>boolean_abap_2_json( emphasized ) )
                                 ( n = `number`             v = number )
                                 ( n = `state`              v = state )
+                                ( n = `id`          v = textalign )
+                                ( n = `class`          v = textalign )
                                 ( n = `textAlign`          v = textalign )
                                 ( n = `textDirection`      v = textdirection )
                                 ( n = `emptyIndicatorMode` v = emptyindicatormode )
@@ -5590,6 +5657,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `stateAnnouncementText` v = stateannouncementtext )
                                          ( n = `text`                  v = text )
                                          ( n = `id`                  v = id )
+                                         ( n = `class`                  v = class )
                                          ( n = `textDirection`         v = textdirection )
                                          ( n = `title`                 v = title )
                                          ( n = `visible`               v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
@@ -5598,7 +5666,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD overflow_toolbar.
-    result = _generic( `OverflowToolbar` ).
+    result = _generic( name   = `OverflowToolbar`
+                       t_prop = VALUE #( ( n = `press`   v = press )
+                                         ( n = `text`    v = text )
+                                         ( n = `active` v = z2ui5_cl_util_func=>boolean_abap_2_json( active ) )
+                                         ( n = `visible` v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                                         ( n = `asyncMode` v = z2ui5_cl_util_func=>boolean_abap_2_json( asyncMode ) )
+                                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
+                                         ( n = `design`    v = design )
+                                         ( n = `type`    v = type )
+                                         ( n = `style`    v = style )
+                                         ( n = `id`    v = id )
+                                         ( n = `class`    v = class )
+                                         ( n = `width`    v = width )
+                                         ( n = `height` v = height ) ) ).
   ENDMETHOD.
 
 
@@ -5681,7 +5762,13 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `expandable` v = z2ui5_cl_util_func=>boolean_abap_2_json( expandable ) )
                                          ( n = `expanded`   v = z2ui5_cl_util_func=>boolean_abap_2_json( expanded ) )
                                          ( n = `stickyHeader`   v = z2ui5_cl_util_func=>boolean_abap_2_json( stickyheader ) )
+                                         ( n = `expandAnimation`   v = z2ui5_cl_util_func=>boolean_abap_2_json( expandAnimation ) )
+                                         ( n = `visible`   v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                                          ( n = `height`   v = height )
+                                         ( n = `backgroundDesign`   v = backgroundDesign )
+                                         ( n = `width`   v = width )
+                                         ( n = `id`   v = id )
+                                         ( n = `class`   v = class )
                                          ( n = `headerText` v = headertext ) ) ).
 
   ENDMETHOD.
