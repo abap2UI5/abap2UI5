@@ -6,9 +6,6 @@ CLASS z2ui5_cl_fw_app_error DEFINITION
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_app.
-
-    DATA mv_check_initialized TYPE abap_bool .
-    DATA mv_check_demo TYPE abap_bool .
     DATA mx_error TYPE REF TO cx_root .
 
     CLASS-METHODS factory
