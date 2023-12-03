@@ -12,7 +12,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD first_test.
 
-    DATA(lo_app) = Z2UI5_CL_FW_APP_STARTUP=>factory_start( ) ##NEEDED.
+    DATA(lo_app) = Z2UI5_CL_FW_APP_STARTUP=>factory( ) ##NEEDED.
 
   ENDMETHOD.
 

@@ -21,7 +21,7 @@ CLASS z2ui5_cl_fw_app_startup DEFINITION
     DATA mv_check_initialized TYPE abap_bool .
     DATA mv_check_demo TYPE abap_bool .
 
-    CLASS-METHODS factory_start
+    CLASS-METHODS factory
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app_startup .
 
@@ -37,7 +37,7 @@ ENDCLASS.
 CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
 
-  METHOD factory_start.
+  METHOD factory.
 
     result = NEW #( ).
 
@@ -47,9 +47,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
     DATA(lv_url) = z2ui5_cl_util_func=>app_get_url(
                      client    = client
-                     classname = ms_home-classname
-                   ).
-
+                     classname = ms_home-classname ).
 
     DATA(page) = z2ui5_cl_ui5=>_factory(  )->_ns_m( )->shell(
       )->page( shownavbutton = abap_false ).
@@ -142,7 +140,6 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     ENDIF.
 
     z2ui5_on_event( ).
-
     view_display_start( ).
 
   ENDMETHOD.
@@ -201,8 +198,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
     ms_home-classname      = `Z2UI5_CL_FW_APP_HELLO_WORLD`.
-
-    mv_check_demo = abap_true.
+    mv_check_demo          = abap_true.
 
   ENDMETHOD.
 ENDCLASS.
