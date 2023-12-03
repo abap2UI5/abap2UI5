@@ -1,47 +1,41 @@
-class Z2UI5_CL_FW_APP_ERROR definition
-  public
-  final
-  create protected .
+CLASS z2ui5_cl_fw_app_error DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PROTECTED.
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces Z2UI5_IF_APP .
-  interfaces IF_SERIALIZABLE_OBJECT .
+    INTERFACES z2ui5_if_app.
 
-  data CLIENT type ref to Z2UI5_IF_CLIENT .
-  data MV_CHECK_INITIALIZED type ABAP_BOOL .
-  data MV_CHECK_DEMO type ABAP_BOOL .
-  data MX_ERROR type ref to CX_ROOT .
+    DATA mv_check_initialized TYPE abap_bool .
+    DATA mv_check_demo TYPE abap_bool .
+    DATA mx_error TYPE REF TO cx_root .
 
-  class-methods FACTORY_ERROR
-    importing
-      !ERROR type ref to CX_ROOT
-    returning
-      value(RESULT) type ref to Z2UI5_CL_FW_APP_ERROR .
-  methods Z2UI5_ON_INIT .
-  methods Z2UI5_ON_EVENT .
-  methods VIEW_DISPLAY_ERROR .
+    CLASS-METHODS factory
+      IMPORTING
+        !error        TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app_error.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_APP_ERROR IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app_error IMPLEMENTATION.
 
 
-  METHOD factory_error.
+  METHOD factory.
 
     result = NEW #( ).
     result->mx_error = error.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_app~main.
 
-  METHOD view_display_error.
-
-    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname
-                               sub = ` ` ).
+    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
     DATA(lv_text) = ``.
@@ -69,48 +63,4 @@ CLASS Z2UI5_CL_FW_APP_ERROR IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD z2ui5_if_app~main.
-
-    me->client = client.
-
-    IF mv_check_initialized = abap_false.
-      mv_check_initialized = abap_true.
-      z2ui5_on_init( ).
-    ENDIF.
-
-    z2ui5_on_event( ).
-
-    IF mx_error IS BOUND.
-      view_display_error( ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_event.
-
-    CASE client->get( )-event.
-
-      WHEN `DEMOS`.
-
-        DATA li_app TYPE REF TO z2ui5_if_app.
-        TRY.
-            CREATE OBJECT li_app TYPE (`Z2UI5_CL_DEMO_APP_000`).
-            mv_check_demo = abap_true.
-            client->nav_app_call( li_app ).
-          CATCH cx_root.
-            mv_check_demo = abap_false.
-        ENDTRY.
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_init.
-
-    mv_check_demo = abap_true.
-
-  ENDMETHOD.
 ENDCLASS.
