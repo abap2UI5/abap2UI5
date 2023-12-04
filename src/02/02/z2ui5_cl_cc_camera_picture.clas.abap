@@ -15,7 +15,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_camera_picture IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_CAMERA_PICTURE IMPLEMENTATION.
 
 
   METHOD get_js.
@@ -100,11 +100,10 @@ CLASS z2ui5_cl_cc_camera_picture IMPLEMENTATION.
             `                var video = document.querySelector('#zvideo');` && |\n|  &&
             `                if (navigator.mediaDevices.getUserMedia) {` && |\n|  &&
             `                   navigator.mediaDevices.getUserMedia({video: { facingMode: { exact: "environment" } } })` && |\n|  &&
-            `                 //   navigator.mediaDevices.enumerateDevices({ video: true })` && |\n|  &&
             `                        .then(function (stream) {` && |\n|  &&
-            `                            debugger; video.srcObject = stream;` && |\n|  &&
+            `                            video.srcObject = stream;` && |\n|  &&
             `                        })` && |\n|  &&
-            `                        .catch(function (err0r) {` && |\n|  &&
+            `                        .catch(function (error) {` && |\n|  &&
             `                            console.log("Something went wrong!");` && |\n|  &&
             `                        });` && |\n|  &&
             `                }` && |\n|  &&
