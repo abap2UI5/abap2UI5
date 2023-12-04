@@ -547,7 +547,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
     TRY.
         DATA(lo_handler) = z2ui5_cl_fw_handler=>request_begin( body ).
       CATCH cx_root INTO DATA(x).
-        lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
+        lo_handler = z2ui5_cl_fw_handler=>app_system_factory( x ).
     ENDTRY.
 
     DO.
@@ -558,19 +558,19 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
           ROLLBACK WORK.
 
           IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_leave( ).
+            lo_handler = lo_handler->app_leave_factory( ).
             CONTINUE.
           ENDIF.
 
           IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
-            lo_handler = lo_handler->set_app_call( ).
+            lo_handler = lo_handler->app_call_factory( ).
             CONTINUE.
           ENDIF.
 
           result = lo_handler->request_end( ).
 
         CATCH cx_root INTO x.
-          lo_handler = z2ui5_cl_fw_handler=>set_app_system( x ).
+          lo_handler = z2ui5_cl_fw_handler=>app_system_factory( x ).
           CONTINUE.
       ENDTRY.
 

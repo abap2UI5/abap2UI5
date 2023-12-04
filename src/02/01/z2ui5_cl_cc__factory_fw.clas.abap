@@ -23,7 +23,7 @@ CLASS z2ui5_cl_cc__factory_fw IMPLEMENTATION.
         z2ui5_cl_cc_title=>get_js( ) &&
         z2ui5_cl_cc_history=>get_js( ) &&
         z2ui5_cl_cc_scrolling=>get_js( ) &&
-        z2ui5_cl_cc_info=>get_js( ) &&
+        z2ui5_cl_cc_info_frontend=>get_js( ) &&
         z2ui5_cl_cc_geolocation=>get_js( ) &&
         z2ui5_cl_cc_file_uploader=>get_js( ) &&
         z2ui5_cl_cc_messaging=>get_js( ).
