@@ -286,9 +286,22 @@ CLASS ltcl_integration_test IMPLEMENTATION.
     UNASSIGN <val>.
     lv_assign = `OVIEWMODEL->EDIT->QUANTITY->*`.
     ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> <> `600`.
-      cl_abap_unit_assert=>fail( msg = 'data binding - frontend updated value wrong after roundtrip' quit = 5 ).
-    ENDIF.
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  =  <val>                            " Data object with current value
+        exp                  =  `600`                        " Data object with expected type
+*        ignore_hash_sequence = abap_false                   " Ignore sequence in hash tables
+*        tol                  =                              " Tolerance Range (for directly passed floating numbers)
+*        msg                  =                              " Description
+*        level                = if_aunit_constants=>critical " Severity (TOLERABLE, CRITICAL, FATAL)
+*        quit                 = if_aunit_constants=>method   " Alter control flow/ quit test (NO, >METHOD<, CLASS)
+*      RECEIVING
+*        assertion_failed     =                              " Condition was not met (and QUIT = NO)
+    ).
+
+*    IF <val> <> `600`.
+*      cl_abap_unit_assert=>fail( msg = 'data binding - frontend updated value wrong after roundtrip' quit = 5 ).
+*    ENDIF.
 
 
   ENDMETHOD.
