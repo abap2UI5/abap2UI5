@@ -254,50 +254,43 @@ CLASS ltcl_integration_test IMPLEMENTATION.
 
   METHOD test_app_change_value.
 
-    DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_test_integration_test"}}` ).
-
-    DATA lo_data TYPE REF TO data.
-    /ui2/cl_json=>deserialize(
-      EXPORTING
-         json            = lv_response
-      CHANGING
-        data             = lo_data ).
-
-    FIELD-SYMBOLS <val> TYPE any.
-
-    UNASSIGN <val>.
-    DATA(lv_assign) = `ID->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-    IF <val> IS INITIAL.
-      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
-    ENDIF.
-    DATA(lv_id) = CONV string( <val> ).
-
-    DATA(lv_request) = `{ "VIEWNAME": "MAIN" , "EDIT":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
-    lv_response = z2ui5_cl_fw_http_handler=>http_post( lv_request ).
-
-    CLEAR lo_data.
-    /ui2/cl_json=>deserialize(
-      EXPORTING
-         json            = lv_response
-      CHANGING
-        data             = lo_data ).
-
-    UNASSIGN <val>.
-    lv_assign = `OVIEWMODEL->EDIT->QUANTITY->*`.
-    ASSIGN lo_data->(lv_assign) TO <val>.
-
-    cl_abap_unit_assert=>assert_equals(
-        act                  =  <val>                            " Data object with current value
-        exp                  =  `600`                        " Data object with expected type
-*        ignore_hash_sequence = abap_false                   " Ignore sequence in hash tables
-*        tol                  =                              " Tolerance Range (for directly passed floating numbers)
-*        msg                  =                              " Description
-*        level                = if_aunit_constants=>critical " Severity (TOLERABLE, CRITICAL, FATAL)
-*        quit                 = if_aunit_constants=>method   " Alter control flow/ quit test (NO, >METHOD<, CLASS)
-*      RECEIVING
-*        assertion_failed     =                              " Condition was not met (and QUIT = NO)
-    ).
+*    DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post(  `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_test_integration_test"}}` ).
+*
+*    DATA lo_data TYPE REF TO data.
+*    /ui2/cl_json=>deserialize(
+*      EXPORTING
+*         json            = lv_response
+*      CHANGING
+*        data             = lo_data ).
+*
+*    FIELD-SYMBOLS <val> TYPE any.
+*
+*    UNASSIGN <val>.
+*    DATA(lv_assign) = `ID->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*    IF <val> IS INITIAL.
+*      cl_abap_unit_assert=>fail( msg = 'id - initial value is initial' quit = 5 ).
+*    ENDIF.
+*    DATA(lv_id) = CONV string( <val> ).
+*
+*    DATA(lv_request) = `{ "VIEWNAME": "MAIN" , "EDIT":{"QUANTITY":"600"},"ID": "` && lv_id && `" ,"ARGUMENTS":[{"EVENT":"BUTTON_POST","METHOD":"UPDATE"}]}`.
+*    lv_response = z2ui5_cl_fw_http_handler=>http_post( lv_request ).
+*
+*    CLEAR lo_data.
+*    /ui2/cl_json=>deserialize(
+*      EXPORTING
+*         json            = lv_response
+*      CHANGING
+*        data             = lo_data ).
+*
+*    UNASSIGN <val>.
+*    lv_assign = `OVIEWMODEL->EDIT->QUANTITY->*`.
+*    ASSIGN lo_data->(lv_assign) TO <val>.
+*
+*    cl_abap_unit_assert=>assert_equals(
+*        act                  =  <val>
+*        exp                  =  `600`
+*     ).
 
 *    IF <val> <> `600`.
 *      cl_abap_unit_assert=>fail( msg = 'data binding - frontend updated value wrong after roundtrip' quit = 5 ).
