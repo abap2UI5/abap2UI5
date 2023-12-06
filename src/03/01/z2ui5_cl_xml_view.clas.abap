@@ -3235,6 +3235,24 @@ public section.
       !visible type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods html_map
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !name type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW.
+  methods html_area
+    importing
+      !id type CLIKE optional
+      !shape type CLIKE optional
+      !coords type CLIKE optional
+      !alt type CLIKE optional
+      !target type CLIKE optional
+      !href type CLIKE optional
+      !onclick type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -4739,6 +4757,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           ( n = 'visible' v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                           ) ).
 
+  ENDMETHOD.
+
+
+    METHOD html_area.
+    result = _generic( name = `area` ns = 'html'
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `shape`  v = shape )
+                             ( n = `coords`  v = coords )
+                             ( n = `alt`     v = alt )
+                             ( n = `target` v = target )
+                             ( n = `href`  v = href )
+                             ( n = `onclick`  v = onclick )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD html_map.
+    result = _generic( name = `map` ns = 'html'
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `name`  v = name )
+                         ) ).
   ENDMETHOD.
 
 
