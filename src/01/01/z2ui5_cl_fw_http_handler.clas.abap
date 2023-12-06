@@ -88,6 +88,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
         `                sap.ui.controller("z2ui5_controller", {` && |\n|  &&
         `                    onAfterRendering: function() {` && |\n|  &&
         |\n|  &&
+        `                     if ( sap.z2ui5.oResponse.PARAMS == undefined ){ return; }` && |\n|  &&
         `                        if (sap.z2ui5.oResponse.PARAMS.S_POPUP.CHECK_DESTROY == true) {` && |\n|  &&
         `                            sap.z2ui5.oController.PopupDestroy();` && |\n|  &&
         `                        }` && |\n|  &&
