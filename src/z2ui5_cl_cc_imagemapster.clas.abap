@@ -44,8 +44,8 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS set_js_config
-      IMPORTING
-        !is_config                 TYPE ty_imagemapster_config OPTIONAL
+*      IMPORTING
+*        !is_config                 TYPE ty_imagemapster_config OPTIONAL
       RETURNING
         VALUE(imagemapster_config) TYPE string .
   PROTECTED SECTION.
