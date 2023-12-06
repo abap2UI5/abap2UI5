@@ -255,11 +255,11 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
   METHOD set_js_config.
 
 
-    DATA(json_config) =  /ui2/cl_json=>serialize(
-                        data             = is_config
-                        compress         = abap_true
-                        pretty_name      = 'X' "camel_case
-                      ).
+*    DATA(json_config) =  /ui2/cl_json=>serialize(
+*                        data             = is_config
+*                        compress         = abap_true
+*                        pretty_name      = 'X'
+*                      ).
 
 
     imagemapster_config = `` &&
