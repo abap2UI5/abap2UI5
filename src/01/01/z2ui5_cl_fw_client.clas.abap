@@ -7,11 +7,11 @@ CLASS z2ui5_cl_fw_client DEFINITION
 
     INTERFACES z2ui5_if_client.
 
-    DATA mo_handler TYPE REF TO z2ui5_cl_fw_handler.
+    DATA mo_handler TYPE REF TO z2ui5_cl_fw_controller.
 
     METHODS constructor
       IMPORTING
-        handler TYPE REF TO z2ui5_cl_fw_handler.
+        handler TYPE REF TO z2ui5_cl_fw_controller.
 
   PROTECTED SECTION.
 
@@ -43,7 +43,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       t_event_arg            = mo_handler->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_handler->ms_db )
       check_on_navigated     = mo_handler->ms_actual-check_on_navigated
-      s_config               = z2ui5_cl_fw_handler=>ss_config ).
+      s_config               = z2ui5_cl_fw_controller=>ss_config ).
 
   ENDMETHOD.
 

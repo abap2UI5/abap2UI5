@@ -23,7 +23,7 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
     CLASS-METHODS get_js_lib_local
       RETURNING VALUE(result) TYPE string.
 
-    CLASS-METHODS get_js_cc
+    CLASS-METHODS get_js
       RETURNING
         VALUE(r_js) TYPE string.
 
@@ -36,7 +36,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
 
 
-  METHOD get_js_cc.
+  METHOD get_js.
 
     r_js  = `jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
                      |\n| &&
