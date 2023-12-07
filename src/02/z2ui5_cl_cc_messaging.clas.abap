@@ -16,8 +16,7 @@ public section.
         descriptionurl TYPE string,
         persistent     TYPE string,
       END OF ty_s_item .
-  types:
-    ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY  ##NEEDED.
+  types ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY  ##NEEDED.
 
   class-methods GET_JS
     returning
