@@ -1,12 +1,12 @@
-CLASS z2ui5_cl_cc_messaging DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_MESSAGING definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    TYPES:
-      BEGIN OF ty_s_item,
+  types:
+    BEGIN OF ty_s_item,
         message        TYPE string,
         description    TYPE string,
         type           TYPE string,
@@ -15,20 +15,21 @@ CLASS z2ui5_cl_cc_messaging DEFINITION
         date           TYPE string,
         descriptionurl TYPE string,
         persistent     TYPE string,
-      END OF ty_s_item.
-    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY ##NEEDED.
+      END OF ty_s_item .
+  types:
+    ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY  ##NEEDED.
 
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(result) TYPE string.
-
+  class-methods GET_JS
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
+
 
   METHOD get_js.
 
@@ -114,6 +115,4 @@ CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
     `}); } catch (e) { }`.
 
   ENDMETHOD.
-
-
 ENDCLASS.
