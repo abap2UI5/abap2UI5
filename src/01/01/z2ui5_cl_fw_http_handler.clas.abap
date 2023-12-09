@@ -16,7 +16,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
         content_security_policy   TYPE clike                            OPTIONAL
         check_logging             TYPE abap_bool                        OPTIONAL
         custom_js                 TYPE string                           OPTIONAL
-        custom_js_oneventfrontend TYPE string                           OPTIONAL
+*        custom_js_oneventfrontend TYPE string                           OPTIONAL
         json_model_limit          TYPE string                           DEFAULT '100'
           PREFERRED PARAMETER t_config
       RETURNING
