@@ -4,110 +4,135 @@ CLASS z2ui5_cl_util_func DEFINITION
 
   PUBLIC SECTION.
 
+    CLASS-METHODS js_load_ext_lib
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS app_get_url_source_code
       IMPORTING
         !client       TYPE REF TO z2ui5_if_client
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS app_get_url
       IMPORTING
         !client          TYPE REF TO z2ui5_if_client
         VALUE(classname) TYPE string OPTIONAL
       RETURNING
-        VALUE(result)    TYPE string .
+        VALUE(result)    TYPE string.
+
     CLASS-METHODS url_param_get
       IMPORTING
         !val          TYPE string
         !url          TYPE string
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS url_param_create_url
       IMPORTING
         !t_params     TYPE z2ui5_if_client=>ty_t_name_value
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS url_param_set
       IMPORTING
         !url          TYPE string
         !name         TYPE string
         !value        TYPE string
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS rtti_get_classname_by_ref
       IMPORTING
         !in           TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS x_check_raise
       IMPORTING
         !v    TYPE clike DEFAULT `CX_SY_SUBRC`
-        !when TYPE abap_bool .
+        !when TYPE abap_bool.
+
     CLASS-METHODS x_raise
       IMPORTING
         !v TYPE clike DEFAULT `CX_SY_SUBRC`
-          PREFERRED PARAMETER v .
+          PREFERRED PARAMETER v.
+
     CLASS-METHODS func_get_uuid_32
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS func_get_uuid_22
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS func_get_user_tech
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS trans_json_any_2
       IMPORTING
         !any          TYPE any
         !pretty_name  TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS trans_xml_2_any
       IMPORTING
         !xml TYPE clike
       EXPORTING
-        !any TYPE any .
+        !any TYPE any.
+
     CLASS-METHODS trans_xml_any_2
       IMPORTING
         !any          TYPE any
       RETURNING
         VALUE(result) TYPE string
       RAISING
-        cx_xslt_serialization_error .
+        cx_xslt_serialization_error.
+
     CLASS-METHODS boolean_check
       IMPORTING
         !val          TYPE any
       RETURNING
-        VALUE(result) TYPE abap_bool .
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS boolean_abap_2_json
       IMPORTING
         !val          TYPE any
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS c_replace_assign_struc
       IMPORTING
         !iv_attri       TYPE clike
       RETURNING
-        VALUE(rv_attri) TYPE string .
+        VALUE(rv_attri) TYPE string.
+
     CLASS-METHODS trans_json_2_any
       IMPORTING
         !val  TYPE any
       CHANGING
-        !data TYPE any .
+        !data TYPE any.
+
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING
         !ir_tab_from TYPE REF TO data
       EXPORTING
-        !t_result    TYPE STANDARD TABLE .
+        !t_result    TYPE STANDARD TABLE.
+
     CLASS-METHODS c_trim_upper
       IMPORTING
         !val          TYPE clike
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS rtti_xml_get_by_data
       IMPORTING
         !data         TYPE any
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS rtti_xml_set_to_data
       IMPORTING
         !rtti_data TYPE clike
@@ -328,6 +353,49 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       CATCH cx_root.
         ASSERT 1 = 0.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD js_load_ext_lib.
+
+    result = `      async loadScriptExt(url) {` && |\n|  &&
+             `          this.BusyDialog = new sap.m.BusyDialog({ title: "External Library", text: "... now loading the data from a far away server" });` && |\n|  &&
+             `          this.BusyDialog.open();` && |\n|  &&
+             |\n|  &&
+             `          const loadScript = (FILE_URL, async = true, type = "text/javascript") => {` && |\n|  &&
+             `              return new Promise((resolve, reject) => {` && |\n|  &&
+             `                  try {` && |\n|  &&
+             `                      const scriptEle = document.createElement("script");` && |\n|  &&
+             `                      scriptEle.type = type;` && |\n|  &&
+             `                      scriptEle.async = async;` && |\n|  &&
+             `                      scriptEle.src = FILE_URL;` && |\n|  &&
+             `                      scriptEle.addEventListener("load", (ev) => {` && |\n|  &&
+             `                          resolve({ status: true });` && |\n|  &&
+             `                      });` && |\n|  &&
+             `                      scriptEle.addEventListener("error", (ev) => {` && |\n|  &&
+             `                          reject({` && |\n|  &&
+             `                              status: false,` && |\n|  &&
+             `                              message: ``Failed to load the script ${FILE_URL}``` && |\n|  &&
+             `                          });` && |\n|  &&
+             `                      });` && |\n|  &&
+             `                      document.body.appendChild(scriptEle);` && |\n|  &&
+             `                  } catch (error) {` && |\n|  &&
+             `                      reject(error);` && |\n|  &&
+             `                  }` && |\n|  &&
+             `              });` && |\n|  &&
+             `          };` && |\n|  &&
+             |\n|  &&
+             `          await loadScript(url)` && |\n|  &&
+             `              .then(data => {` && |\n|  &&
+             `                  this.result = 'A';` && |\n|  &&
+             `              }).catch(err => {` && |\n|  &&
+             `                  this.result = 'E';` && |\n|  &&
+             `              });` && |\n|  &&
+             `          this.BusyDialog.close();` && |\n|  &&
+             `          return this.result;` && |\n|  &&
+             |\n|  &&
+             `      },`.
 
   ENDMETHOD.
 
