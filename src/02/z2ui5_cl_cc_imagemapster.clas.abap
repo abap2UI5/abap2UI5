@@ -5,47 +5,48 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
 
   PUBLIC SECTION.
 
-*    TYPES:
-*      BEGIN OF ty_imagemapster_config,
-*        map_key                 TYPE string,
-*        map_value               TYPE string,
-*        click_navigate          TYPE abap_bool,
-*        list_key                TYPE string,
-*        list_selected_attribute TYPE string,
-*        list_selected_class     TYPE string,
-**        areas TYPE
-*        single_select           TYPE string,
-*        wrap_class              TYPE string,
-*        wrap_css                TYPE string,
-*        mouseout_delay          TYPE i,
-*        sort_list               TYPE abap_bool,
-*        config_timeout          TYPE i,
-*        scale_map               TYPE abap_bool,
-*        bound_list              TYPE string,
-*        fade                    TYPE abap_bool,
-*        highliight              TYPE abap_bool,
-*        static_state            TYPE abap_bool,
-*        selected                TYPE abap_bool,
-*        is_selectable           TYPE abap_bool,
-*        is_deselectable         TYPE abap_bool,
-*        alt_image               TYPE string,
-*        alt_image_opacity       TYPE i,
-*        fill                    TYPE abap_bool,
-*        fill_color              TYPE string,
-*        fill_color_mask         TYPE string,
-*        fill_opacity            TYPE i,
-*        stroke                  TYPE abap_bool,
-*        stroke_color            TYPE string,
-*        stroke_opacity          TYPE i,
-*        stroke_width            TYPE i,
-*      END OF ty_imagemapster_config.
+    TYPES:
+      BEGIN OF ty_c,
+        map_key                 TYPE string,
+        map_value               TYPE string,
+        click_navigate          TYPE abap_bool,
+        list_key                TYPE string,
+        list_selected_attribute TYPE string,
+        list_selected_class     TYPE string,
+*        areas TYPE TABLE OF ty_c,
+        single_select           TYPE abap_bool,
+        wrap_class              TYPE string,
+        wrap_css                TYPE string,
+        mouseout_delay          TYPE i,
+        sort_list               TYPE abap_bool,
+        config_timeout          TYPE i,
+        scale_map               TYPE abap_bool,
+        bound_list              TYPE string,
+        fade                    TYPE abap_bool,
+        fade_duration           TYPE i,
+        highliight              TYPE abap_bool,
+        static_state            TYPE abap_bool,
+        selected                TYPE abap_bool,
+        is_selectable           TYPE abap_bool,
+        is_deselectable         TYPE abap_bool,
+        alt_image               TYPE string,
+        alt_image_opacity(3)    TYPE p DECIMALS 2,
+        fill                    TYPE abap_bool,
+        fill_color              TYPE string,
+        fill_color_mask         TYPE string,
+        fill_opacity(3)         TYPE p DECIMALS 2,
+        stroke                  TYPE abap_bool,
+        stroke_color            TYPE string,
+        stroke_opacity(3)       TYPE p DECIMALS 2,
+        stroke_width(3)         TYPE p DECIMALS 2,
+      END OF ty_c.
 
     CLASS-METHODS get_js_local
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS set_js_config
-*      IMPORTING
-*        !is_config                 TYPE ty_imagemapster_config OPTIONAL
+      IMPORTING
+        !is_config TYPE ty_c OPTIONAL
       RETURNING
         VALUE(imagemapster_config) TYPE string .
   PROTECTED SECTION.
@@ -254,26 +255,29 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
   METHOD set_js_config.
 
-
-*    DATA(json_config) =  /ui2/cl_json=>serialize(
-*                        data             = is_config
-*                        compress         = abap_true
-*                        pretty_name      = 'X'
-*                      ).
-
+  IF is_config IS NOT INITIAL.
+    DATA(json_config) = ``.
+    json_config =  /ui2/cl_json=>serialize(
+                        data             = is_config
+                        compress         = abap_true
+                        pretty_name      = 'X'
+                      ).
+  ENDIF.
 
     imagemapster_config = `` &&
 ` var resizeTime = 100;` &&
 ` var resizeDelay = 100;    ` &&
 `` &&
-`$("img[usemap]").mapster({` &&
-`        strokeColor: "ff0000",` &&
-`        fillColor: "fcffa4 ",` &&
-`        fillOpacity: 0.8,` &&
-`        stroke: true,` &&
-`        strokeOpacity: 0.8,` &&
-`        strokeWidth: 3,` &&
-`        singleSelect: true` &&
+`$("img[usemap]").mapster(` &&
+      json_config &&
+*`     {` &&
+*`        "strokeColor": "ff0000",` &&
+*`        "fillColor": "fcffa4",` &&
+*`        fillOpacity: 0.8,` &&
+*`        stroke: true,` &&
+*`        strokeOpacity: 0.8,` &&
+*`        strokeWidth: 3,` &&
+*`        singleSelect: true` &&
 *`        areas: [` &&
 *`            {` &&
 *`                key: "tbl",` &&
@@ -283,7 +287,8 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 *`            }` &&
 *`        ],` &&
 *`        mapKey: "state"` &&
-`    });` &&
+*`    }
+`   );` &&
 `` &&
 `    function resize(maxWidth, maxHeight) {` &&
 `        var image = $("img"),` &&
@@ -321,5 +326,6 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 `    }` &&
 `` &&
 `    $(window).bind("resize", onWindowResize);`.
+
   ENDMETHOD.
 ENDCLASS.
