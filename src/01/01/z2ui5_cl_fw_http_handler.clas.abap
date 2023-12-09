@@ -557,7 +557,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               |\n|  &&
               `    // Ensure sap.z2ui5 namespace exists and initialize properties` && |\n|  &&
               `    sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
-              `    sap.z2ui5.pathname = sap.z2ui5.pathname || '/sap/test';` && |\n|  &&
+              `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname; // '/sap/test';` && |\n|  &&
               `    sap.z2ui5.checkNestAfter = false;` && |\n|  &&
               |\n|  &&
               `    // Require necessary SAP UI5 modules` && |\n|  &&
