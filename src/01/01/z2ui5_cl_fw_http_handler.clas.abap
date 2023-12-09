@@ -83,7 +83,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
         `<abc/>` && |\n|.
 
     r_result = r_result && `<script>` && |\n|  &&
-                          get_js( ) &&
+                          get_js( ) && |\n| &&
         `                sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
         `                sap.z2ui5.checkLogActive = ` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
                            lv_add_js && |\n| &&
