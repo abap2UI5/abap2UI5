@@ -16,7 +16,6 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
         content_security_policy   TYPE clike                            OPTIONAL
         check_logging             TYPE abap_bool                        OPTIONAL
         custom_js                 TYPE string                           OPTIONAL
-*        custom_js_oneventfrontend TYPE string                           OPTIONAL
         json_model_limit          TYPE string                           DEFAULT '100'
           PREFERRED PARAMETER t_config
       RETURNING
@@ -84,9 +83,11 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
     r_result = r_result && `<script>` && |\n|  &&
                           get_js( ) && |\n| &&
+                         lv_add_js && |\n| &&
         `                sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
-        `                sap.z2ui5.checkLogActive = ` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && `;` && |\n| &&
-                           lv_add_js && |\n| &&
+        `        setTimeout( () => { sap.z2ui5.DevTools = new z2ui5.DevTools();` && |\n|  &&
+        `            sap.z2ui5.DevTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && ` );` && |\n|  &&
+        `        } , 500 ); ` && |\n|  &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
                            `<abc/></body></html>`.
@@ -134,7 +135,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
   METHOD get_js.
 
     result =  `sap.ui.core.BusyIndicator.show();` && |\n|  &&
-              `sap.ui.getCore().attachInit( () => {` && |\n|  &&
+              `sap.ui.getCore().attachInit(() => {` && |\n|  &&
               `    "use strict";` && |\n|  &&
               |\n|  &&
               `    sap.ui.controller("z2ui5_controller", {` && |\n|  &&
@@ -157,17 +158,21 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `                await this.displayFragment(S_POPUP.XML, 'oViewPopup');` && |\n|  &&
               `            }` && |\n|  &&
               |\n|  &&
-              `            if (!sap.z2ui5.checkNestAfter ) { if ( S_VIEW_NEST.XML) {` && |\n|  &&
-              `                sap.z2ui5.oController.NestViewDestroy();` && |\n|  &&
-              `                await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');` && |\n|  &&
-              `                sap.z2ui5.checkNestAfter = true;` && |\n|  &&
-              `            }}` && |\n|  &&
+              `            if (!sap.z2ui5.checkNestAfter) {` && |\n|  &&
+              `                if (S_VIEW_NEST.XML) {` && |\n|  &&
+              `                    sap.z2ui5.oController.NestViewDestroy();` && |\n|  &&
+              `                    await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');` && |\n|  &&
+              `                    sap.z2ui5.checkNestAfter = true;` && |\n|  &&
+              `                }` && |\n|  &&
+              `            }` && |\n|  &&
               |\n|  &&
-              `            if (!sap.z2ui5.checkNestAfter2) { if ( S_VIEW_NEST2.XML) {` && |\n|  &&
-              `                sap.z2ui5.oController.NestViewDestroy2();` && |\n|  &&
-              `                await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n|  &&
-              `                sap.z2ui5.checkNestAfter2 = true;` && |\n|  &&
-              `            }}` && |\n|  &&
+              `            if (!sap.z2ui5.checkNestAfter2) {` && |\n|  &&
+              `                if (S_VIEW_NEST2.XML) {` && |\n|  &&
+              `                    sap.z2ui5.oController.NestViewDestroy2();` && |\n|  &&
+              `                    await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n|  &&
+              `                    sap.z2ui5.checkNestAfter2 = true;` && |\n|  &&
+              `                }` && |\n|  &&
+              `            }` && |\n|  &&
               |\n|  &&
               `            if (S_POPOVER.XML) {` && |\n|  &&
               `                await this.displayFragment(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n|  &&
@@ -252,7 +257,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `            sap.z2ui5.oViewPopup.destroy();` && |\n|  &&
               `        }` && |\n|  &&
               `        ,` && |\n|  &&
-              `        PopoverDestroy: () => {` && |\n|  &&
+              `        PopoverDestroy() {` && |\n|  &&
               `            if (!sap.z2ui5.oViewPopover) {` && |\n|  &&
               `                return;` && |\n|  &&
               `            }` && |\n|  &&
@@ -290,8 +295,9 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `            sap.z2ui5.onBeforeEventFrontend.forEach(item => {` && |\n|  &&
               `                if (item !== undefined) {` && |\n|  &&
               `                    item(args);` && |\n|  &&
-              `             } } )` && |\n|  &&
-              `            ` && |\n|  &&
+              `                }` && |\n|  &&
+              `            })` && |\n|  &&
+              |\n|  &&
               `            switch (args[0].EVENT) {` && |\n|  &&
               `                case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n|  &&
               `                    let oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
@@ -405,10 +411,6 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
               `            sap.z2ui5.oBody.ARGUMENTS = args;` && |\n|  &&
               |\n|  &&
-              `            if (sap.z2ui5.checkLogActive) {` && |\n|  &&
-              `                console.log('Request Object:');` && |\n|  &&
-              `                console.log(sap.z2ui5.oBody);` && |\n|  &&
-              `            }` && |\n|  &&
               `            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
               `            sap.z2ui5.oResponse = {};` && |\n|  &&
               `            sap.z2ui5.oController.Roundtrip();` && |\n|  &&
@@ -426,22 +428,20 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `        responseSuccess(response) {` && |\n|  &&
               `            sap.z2ui5.oResponse = response;` && |\n|  &&
               |\n|  &&
-              `            // Log response if logging is active` && |\n|  &&
-              `            if (sap.z2ui5.checkLogActive) {` && |\n|  &&
-              `                sap.z2ui5.oController.logResponse();` && |\n|  &&
-              `            }` && |\n|  &&
+              `            sap.z2ui5.onAfterRoundtrip.forEach(item => {` && |\n|  &&
+              `                if (item !== undefined) {` && |\n|  &&
+              `                    item();` && |\n|  &&
+              `                }` && |\n|  &&
+              `            });` && |\n|  &&
               |\n|  &&
-              `            // Handle view destroy` && |\n|  &&
               `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY) {` && |\n|  &&
               `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
               `            }` && |\n|  &&
               |\n|  &&
-              `            // Create new view if XML is provided` && |\n|  &&
               `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
               `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
               `                sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
               `            } else {` && |\n|  &&
-              `                // Update models if needed` && |\n|  &&
               `                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);` && |\n|  &&
               `                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);` && |\n|  &&
               `                this.updateModelIfRequired('S_VIEW_NEST2', sap.z2ui5.oViewNest2);` && |\n|  &&
@@ -451,7 +451,6 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `                sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
               `            }` && |\n|  &&
               |\n|  &&
-              `            // Show message toasts and message boxes` && |\n|  &&
               `            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
               `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
               `        },` && |\n|  &&
@@ -464,28 +463,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `                }` && |\n|  &&
               `            }` && |\n|  &&
               `        },` && |\n|  &&
-              `        logResponse() {` && |\n|  &&
               |\n|  &&
-              `            console.log('Response Object:', sap.z2ui5.oResponse);` && |\n|  &&
-              |\n|  &&
-              `            // Destructure for easier access` && |\n|  &&
-              `            const { S_VIEW, S_POPUP, S_POPOVER, S_VIEW_NEST, S_VIEW_NEST2 } = sap.z2ui5.oResponse.PARAMS;` && |\n|  &&
-              |\n|  &&
-              `            // Helper function to log XML` && |\n|  &&
-              `            const logXML = (label, xml) => {` && |\n|  &&
-              `                if (xml !== '') {` && |\n|  &&
-              `                    console.log(``${label}:``, xml);` && |\n|  &&
-              `                }` && |\n|  &&
-              `            };` && |\n|  &&
-              |\n|  &&
-              `            // Log different XML responses` && |\n|  &&
-              `            logXML('UI5-XML-View', S_VIEW.XML);` && |\n|  &&
-              `            logXML('UI5-XML-Popup', S_POPUP.XML);` && |\n|  &&
-              `            logXML('UI5-XML-Popover', S_POPOVER.XML);` && |\n|  &&
-              `            logXML('UI5-XML-Nest', S_VIEW_NEST.XML);` && |\n|  &&
-              `            logXML('UI5-XML-Nest2', S_VIEW_NEST2.XML);` && |\n|  &&
-              |\n|  &&
-              `        },` && |\n|  &&
               `        async createView(xml, viewModel) {` && |\n|  &&
               `            try {` && |\n|  &&
               `                const oView = await sap.ui.core.mvc.XMLView.create({` && |\n|  &&
@@ -555,18 +533,15 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `        ,` && |\n|  &&
               `    });` && |\n|  &&
               |\n|  &&
-              `    // Ensure sap.z2ui5 namespace exists and initialize properties` && |\n|  &&
               `    sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
-              `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname; // '/sap/test';` && |\n|  &&
+              `    sap.z2ui5.pathname = sap.z2ui5.pathname || '/sap/test';` && |\n|  &&
               `    sap.z2ui5.checkNestAfter = false;` && |\n|  &&
               |\n|  &&
-              `    // Require necessary SAP UI5 modules` && |\n|  &&
               `    jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&
               `    jQuery.sap.require("sap.m.MessageToast");` && |\n|  &&
               `    jQuery.sap.require("sap.m.MessageBox");` && |\n|  &&
               `    jQuery.sap.require("sap.ui.model.json.JSONModel");` && |\n|  &&
               |\n|  &&
-              `    // Create views and controllers` && |\n|  &&
               `    const xml = atob('PA==') + 'mvc:View controllerName="z2ui5_controller" xmlns:mvc="sap.ui.core.mvc" /' + atob('Pg==');` && |\n|  &&
               `    const createViewAndController = (xmlContent) => {` && |\n|  &&
               `        const view = sap.ui.xmlview({ viewContent: xmlContent });` && |\n|  &&
@@ -581,7 +556,6 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `    sap.z2ui5.oControllerNest = oControllerNest;` && |\n|  &&
               `    sap.z2ui5.oControllerNest2 = oControllerNest2;` && |\n|  &&
               |\n|  &&
-              `    // Helper functions` && |\n|  &&
               `    jQuery.sap.declare("sap.z2ui5.Helper");` && |\n|  &&
               `    sap.z2ui5.Helper = {` && |\n|  &&
               `        DateCreateObject: (s) => new Date(s),` && |\n|  &&
@@ -590,12 +564,13 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `        DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6))` && |\n|  &&
               `    };` && |\n|  &&
               |\n|  &&
-              `    // Initialize other properties` && |\n|  &&
               `    sap.z2ui5.oBody = { APP_START: sap.z2ui5.APP_START };` && |\n|  &&
               `    sap.z2ui5.oController.Roundtrip();` && |\n|  &&
-              `    ` && |\n|  &&
+              |\n|  &&
               `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
-              `    sap.z2ui5.onBeforeEventFrontend = [];`.
+              `    sap.z2ui5.onAfterRoundtrip = [];` && |\n|  &&
+              `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n|
+              .
 
 
   ENDMETHOD.
