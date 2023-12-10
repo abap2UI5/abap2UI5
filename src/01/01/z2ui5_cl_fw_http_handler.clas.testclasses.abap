@@ -41,7 +41,7 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
       cl_abap_unit_assert=>fail( 'path static' ).
     ENDIF.
 
-    IF not lv_index_html CS `sap.z2ui5.pathname ||  window.location.pathname;`.
+    IF lv_index_html NS `sap.z2ui5.pathname ||  window.location.pathname;`.
       cl_abap_unit_assert=>fail( 'path static' ).
     ENDIF.
 
