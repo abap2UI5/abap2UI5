@@ -534,7 +534,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
               `    });` && |\n|  &&
               |\n|  &&
               `    sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
-              `    sap.z2ui5.pathname = sap.z2ui5.pathname || '/sap/test';` && |\n|  &&
+              `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n|  &&
               `    sap.z2ui5.checkNestAfter = false;` && |\n|  &&
               |\n|  &&
               `    jQuery.sap.require("sap.ui.core.Fragment");` && |\n|  &&

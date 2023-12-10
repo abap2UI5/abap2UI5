@@ -8,7 +8,7 @@ CLASS ltcl_unit_02_app_start DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
     METHODS test_index_html   FOR TESTING RAISING cx_static_check.
     METHODS test_launchpad_compatibility   FOR TESTING RAISING cx_static_check.
-
+    METHODS test_path   FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
@@ -32,5 +32,20 @@ CLASS ltcl_unit_02_app_start IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
+
+  METHOD test_path.
+
+    DATA(lv_index_html) = z2ui5_cl_fw_http_handler=>http_get( ).
+    IF lv_index_html CS `sap.z2ui5.pathname || '/sap/test';`.
+      cl_abap_unit_assert=>fail( 'path static' ).
+    ENDIF.
+
+    IF not lv_index_html CS `sap.z2ui5.pathname ||  window.location.pathname;`.
+      cl_abap_unit_assert=>fail( 'path static' ).
+    ENDIF.
+
+  ENDMETHOD.
+
 
 ENDCLASS.
