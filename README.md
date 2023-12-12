@@ -13,7 +13,7 @@
 *...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
-* **100% ABAP:** Developing in pure ABAP (no JavaScript, DDL, EML or Customizing)
+* **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
 * **User-Friendly:** Implement just a single interface for a standalone UI5 application
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
