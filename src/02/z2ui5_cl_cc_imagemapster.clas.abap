@@ -58,6 +58,12 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
     CLASS-METHODS load_editor_css
       RETURNING
         VALUE(result) TYPE string .
+    CLASS-METHODS load_editor
+      IMPORTING
+        base64_image TYPE string
+        filename TYPE string
+      RETURNING
+        VALUE(result) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -262,9 +268,15 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
   ENDMETHOD.
 
 
+METHOD load_editor.
+   result = `` && |\n|  &&
+   `loadJsEditor(base64_image, filename);`.
+ENDMETHOD.
+
+
 METHOD load_editor_css.
   result = `` && |\n| &&
-` html, body, div, span, applet, object, h1, h2, h3, h4, h5, h6, p, a, em, img, strong, ol, ul, li, dl, dd, dt, form, label, input, article, aside, canvas, details, embed, figure, figcaption, footer, header, menu, nav, section, time, mark  {` && |\n| &&
+`html, body, div, span, applet, object, h1, h2, h3, h4, h5, h6, p, a, em, img, strong, ol, ul, li, dl, dd, dt, form, label, input, article, aside, canvas, details, embed, figure, figcaption, footer, header, menu, nav, section, time, mark {` && |\n| &&
 `    margin: 0;` && |\n| &&
 `    padding: 0;` && |\n| &&
 `    border: 0;` && |\n| &&
@@ -969,7 +981,7 @@ ENDMETHOD.
 
 METHOD load_editor_js.
 result = `` && |\n| &&
-*`loadJsEditor = function() {` && |\n| &&
+`loadJsEditor = function(base64_image, filename) {` && |\n| &&
 ` var summerHtmlImageMapCreator = (function() {` && |\n| &&
 `    &#39;use strict&#39;;` && |\n| &&
 `    ` && |\n| &&
@@ -3039,8 +3051,9 @@ result = `` && |\n| &&
 `            utils.hide(loading_indicator);` && |\n| &&
 `            drag_n_drop.init();` && |\n| &&
 `            url_input.init();` && |\n| &&
-`            var b64_image = &#39;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAIAAABvFaqvAAAAJklEQVR4nGLZckmdgRqAiSqmjBo0atCoQaMGjRo0ahBFABAAAP//NX8B4Ph1yyYAAAAASUVORK5CYII=&#39;;` && |\n| &&
-`            app.loadImage(b64_image).setFilename(&#39;234ffff&#39;);` && |\n| &&
+*`            var b64_image = &#39;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAIAAABvFaqvAAAAJklEQVR4nGLZckmdgRqAiSqmjBo0atCoQaMGjRo0ahBFABAAAP//NX8B4Ph1yyYAAAAASUVORK5CYII=&#39;;` && |\n| &&
+`            var b64_image = base64_image` && |\n| &&
+`            app.loadImage(b64_image).setFilename(fileName);` && |\n| &&
 `        }` && |\n| &&
 `        init();` && |\n| &&
 `        ` && |\n| &&
@@ -3258,8 +3271,8 @@ result = `` && |\n| &&
 `        show_help.addEventListener(&#39;click&#39;, onShowHelpButtonClick, false);` && |\n| &&
 `    })();` && |\n| &&
 `` && |\n| &&
-` })();`. " && |\n| &&
-*`}`.
+` })();` && |\n| &&
+`}`.
 ENDMETHOD.
 
 
