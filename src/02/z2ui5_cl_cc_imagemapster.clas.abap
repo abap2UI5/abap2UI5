@@ -44,26 +44,32 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
     CLASS-METHODS get_js_local
       RETURNING
         VALUE(result) TYPE string .
+
     CLASS-METHODS set_js_config
       IMPORTING
         !is_config TYPE ty_c OPTIONAL
       RETURNING
         VALUE(imagemapster_config) TYPE string .
+
     CLASS-METHODS load_editor_html
       RETURNING
         VALUE(result) TYPE string .
+
     CLASS-METHODS load_editor_js
       RETURNING
         VALUE(result) TYPE string .
+
     CLASS-METHODS load_editor_css
       RETURNING
         VALUE(result) TYPE string .
+
     CLASS-METHODS load_editor
       IMPORTING
-        base64_image TYPE string
+        base64_data_uri TYPE string
         filename TYPE string
       RETURNING
         VALUE(result) TYPE string .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -270,7 +276,7 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
 METHOD load_editor.
    result = `` && |\n|  &&
-   `loadJsEditor(base64_image, filename);`.
+   `loadJsEditor("` && base64_data_uri && `","` && filename && `");`.
 ENDMETHOD.
 
 
@@ -3051,9 +3057,8 @@ result = `` && |\n| &&
 `            utils.hide(loading_indicator);` && |\n| &&
 `            drag_n_drop.init();` && |\n| &&
 `            url_input.init();` && |\n| &&
-*`            var b64_image = &#39;data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABgAAAAYCAIAAABvFaqvAAAAJklEQVR4nGLZckmdgRqAiSqmjBo0atCoQaMGjRo0ahBFABAAAP//NX8B4Ph1yyYAAAAASUVORK5CYII=&#39;;` && |\n| &&
 `            var b64_image = base64_image` && |\n| &&
-`            app.loadImage(b64_image).setFilename(fileName);` && |\n| &&
+`            app.loadImage(b64_image).setFilename(filename);` && |\n| &&
 `        }` && |\n| &&
 `        init();` && |\n| &&
 `        ` && |\n| &&
