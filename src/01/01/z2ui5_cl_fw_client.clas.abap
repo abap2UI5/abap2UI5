@@ -20,6 +20,14 @@ CLASS z2ui5_cl_fw_client DEFINITION
         val           TYPE string_table
       RETURNING
         VALUE(result) TYPE string.
+    METHODS bind_tab_cell
+      IMPORTING
+        iv_name         TYPE string
+        i_tab_index     TYPE i
+        i_tab           TYPE STANDARD TABLE
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
 
 ENDCLASS.
 
@@ -189,6 +197,18 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
+    IF tab IS NOT INITIAL.
+
+      DATA(lv_name) = z2ui5_if_client~_bind( val = tab path = abap_true ).
+      result = bind_tab_cell(
+            iv_name     = lv_name
+            i_tab_index = tab_index
+            i_tab       = tab
+            i_val       = val ).
+
+      RETURN.
+    ENDIF.
+
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
@@ -245,6 +265,19 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_edit.
 
+    IF tab IS NOT INITIAL.
+
+      DATA(lv_name) = z2ui5_if_client~_bind_edit( val = tab path = abap_true ).
+      result = bind_tab_cell(
+            iv_name     = lv_name
+            i_tab_index = tab_index
+            i_tab       = tab
+            i_val       = val ).
+
+      RETURN.
+    ENDIF.
+
+
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
@@ -299,6 +332,34 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     ENDIF.
 
     result = result && `)`.
+
+  ENDMETHOD.
+
+
+  METHOD bind_tab_cell.
+
+    FIELD-SYMBOLS <ele> TYPE any.
+    FIELD-SYMBOLS <row> TYPE any.
+
+    ASSIGN i_tab[ i_tab_index ] TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <row> ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      DATA(lr_ref_in) = REF #( <ele> ).
+
+      DATA(lr_ref) = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+          RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 
   ENDMETHOD.
 
