@@ -371,18 +371,18 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         OR lr_comp->type->absolute_name = '\TYPE=ABAP_BOOL'.
 
           DATA(ls_attri) = VALUE ty_s_attri(
-        name      = lv_element
-        type      = 'ABAP_BOOL'
-        type_kind = lr_comp->type->type_kind  ).
-          INSERT ls_attri INTO TABLE result.
+                name      = lv_element
+                type      = 'ABAP_BOOL'
+                type_kind = lr_comp->type->type_kind  ).
+
         ELSE.
 
-
           ls_attri = VALUE ty_s_attri(
-              name      = lv_element
-              type_kind = lr_comp->type->type_kind ).
-          INSERT ls_attri INTO TABLE result.
+            name      = lv_element
+            type_kind = lr_comp->type->type_kind ).
+
         ENDIF.
+        INSERT ls_attri INTO TABLE result.
       ENDIF.
     ENDLOOP.
 
