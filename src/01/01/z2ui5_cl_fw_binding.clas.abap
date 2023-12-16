@@ -323,7 +323,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   METHOD get_t_attri_by_include.
 
-    data(sdescr) = cast cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
+    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
 
     LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
 
@@ -366,11 +366,23 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         INSERT LINES OF lt_attri INTO TABLE result.
 
       ELSE.
-        DATA(ls_attri) = VALUE ty_s_attri(
-            name      = lv_element
-            type_kind = lr_comp->type->type_kind ).
-        INSERT ls_attri INTO TABLE result.
 
+        IF lr_comp->type->absolute_name = '\TYPE=XSDBOOLEAN'
+        OR lr_comp->type->absolute_name = '\TYPE=ABAP_BOOL'.
+
+          DATA(ls_attri) = VALUE ty_s_attri(
+        name      = lv_element
+        type      = 'ABAP_BOOL'
+        type_kind = lr_comp->type->type_kind  ).
+          INSERT ls_attri INTO TABLE result.
+        ELSE.
+
+
+          ls_attri = VALUE ty_s_attri(
+              name      = lv_element
+              type_kind = lr_comp->type->type_kind ).
+          INSERT ls_attri INTO TABLE result.
+        ENDIF.
       ENDIF.
     ENDLOOP.
 

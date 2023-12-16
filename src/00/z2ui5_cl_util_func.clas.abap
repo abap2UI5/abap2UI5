@@ -445,7 +445,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( val ).
     DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
-    result   = lo_struct->get_components( ).
+    result = lo_struct->get_components( ).
 
   ENDMETHOD.
 
