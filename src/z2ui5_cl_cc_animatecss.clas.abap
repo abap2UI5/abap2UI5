@@ -3218,7 +3218,8 @@ result = ``&&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = ``&&
 `  to {` && |\n| &&
 `    -webkit-transform: rotate3d(0, 0, 1, 45deg);` && |\n| &&
 `    transform: rotate3d(0, 0, 1, 45deg);` && |\n| &&
