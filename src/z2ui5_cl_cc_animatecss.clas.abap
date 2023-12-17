@@ -1026,7 +1026,9 @@ CLASS Z2UI5_CL_CC_ANIMATECSS IMPLEMENTATION.
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
 `}` && |\n| &&
-`@keyframes backInUp {` && |\n| &&
+`@keyframes backInUp {` && |\n|.
+
+result = result && `` &&
 `  0% {` && |\n| &&
 `    -webkit-transform: translateY(1200px) scale(0.7);` && |\n| &&
 `    transform: translateY(1200px) scale(0.7);` && |\n| &&
