@@ -141,9 +141,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ASSIGN (lv_name) TO <attri>.
     IF sy-subrc <> 0.
       RETURN.
-*      RAISE EXCEPTION TYPE z2ui5_cx_fw_error
-*        EXPORTING
-*          val = `BINDING_ERROR_ATTRIBUTE_NOT_FOUND_WITH_NAME__` && bind->name.
     ENDIF.
 
     DATA lr_ref TYPE REF TO data.

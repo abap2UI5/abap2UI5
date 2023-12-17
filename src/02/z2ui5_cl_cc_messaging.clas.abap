@@ -105,7 +105,6 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `                Messaging.registerObject(sap.z2ui5.oView, true);` && |\n|  &&
     `           oControl.isInitialized = true;` && |\n|  &&
         `           setTimeout( (oControl) => { ` && |\n|  &&
-*    `               Messaging.registerObject(sap.z2ui5.oView, true);` && |\n|  &&
     `                   ` && |\n|  &&
     `   ` && |\n|  &&
     `               }, 50 , oControl );` && |\n|  &&
