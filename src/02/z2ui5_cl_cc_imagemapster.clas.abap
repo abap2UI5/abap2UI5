@@ -44,11 +44,32 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
     CLASS-METHODS get_js_local
       RETURNING
         VALUE(result) TYPE string .
+
     CLASS-METHODS set_js_config
       IMPORTING
         !is_config TYPE ty_c OPTIONAL
       RETURNING
         VALUE(imagemapster_config) TYPE string .
+
+    CLASS-METHODS load_editor_html
+      RETURNING
+        VALUE(result) TYPE string .
+
+    CLASS-METHODS load_editor_js
+      RETURNING
+        VALUE(result) TYPE string .
+
+    CLASS-METHODS load_editor_css
+      RETURNING
+        VALUE(result) TYPE string .
+
+    CLASS-METHODS load_editor
+      IMPORTING
+        base64_data_uri TYPE string
+        filename TYPE string
+      RETURNING
+        VALUE(result) TYPE string .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -251,6 +272,3019 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 `ck&quot;,&quot;click&quot;,i,null,a),h(t,&quot;generic-mouseout&quot;,&quot;mouseout&quot;,e,null,a),h(t,&quot;generic-click&quot;,&quot;click&quot;,e,null,a),o.activeToolTip=i=p(i,e,o.image,r.container,r))))):o.clearToolTip()},function(){c.isPlainOb` &&
 `ject(s)&amp;&amp;!r&amp;&amp;(r=s),this.showToolTip(d(r),f(r))},{name:&quot;tooltip&quot;,args:arguments,key:s}).go()}}(jQuery)});`.
   ENDMETHOD.
+
+
+METHOD load_editor.
+   result = `` && |\n|  &&
+   `loadJsEditor("` && base64_data_uri && `","` && filename && `");`.
+ENDMETHOD.
+
+
+METHOD load_editor_css.
+  result = `` && |\n| &&
+`html, body, div, span, applet, object, h1, h2, h3, h4, h5, h6, p, a, em, img, strong, ol, ul, li, dl, dd, dt, form, label, input, article, aside, canvas, details, embed, figure, figcaption, footer, header, menu, nav, section, time, mark {` && |\n| &&
+`    margin: 0;` && |\n| &&
+`    padding: 0;` && |\n| &&
+`    border: 0;` && |\n| &&
+`    outline: 0;` && |\n| &&
+`    font-style: inherit;` && |\n| &&
+`    font-size: 100%;` && |\n| &&
+`    font-family: inherit;` && |\n| &&
+`    vertical-align: baseline;` && |\n| &&
+`    background: transparent;` && |\n| &&
+`}` && |\n| &&
+`:focus {` && |\n| &&
+`    outline: 0;` && |\n| &&
+`}` && |\n| &&
+`ul, ol {` && |\n| &&
+`    list-style: none;` && |\n| &&
+`}` && |\n| &&
+`html {` && |\n| &&
+`    height: 100%;` && |\n| &&
+`}` && |\n| &&
+`body {` && |\n| &&
+`    padding: 0;` && |\n| &&
+`    margin: 0;` && |\n| &&
+`    font-family: Arial, Tahoma, sans-serif;` && |\n| &&
+`    font-size: 14px;` && |\n| &&
+`    color: #000;` && |\n| &&
+`    height: 100%;` && |\n| &&
+`    min-height: 100%;` && |\n| &&
+`    background: #FFF url(data:image/gif;base64,R0lGODlhCgAKAIABANzc3P///yH+EUNyZWF0ZWQgd2l0aCBHSU1QACwAAAAACgAKAAACEYQdmYcaDNxjEspKndVZbc8UADs=);` && |\n| &&
+`    line-height: 1;` && |\n| &&
+`    overflow-y: scroll;` && |\n| &&
+`}` && |\n| &&
+`img {` && |\n| &&
+`    border: 0;` && |\n| &&
+`}` && |\n| &&
+`a:link, a:visited {` && |\n| &&
+`    outline: none;` && |\n| &&
+`    text-decoration: none;` && |\n| &&
+`    color: #000;` && |\n| &&
+`}` && |\n| &&
+`.clear {` && |\n| &&
+`    clear: both;` && |\n| &&
+`}` && |\n| &&
+`.clearfix:after {` && |\n| &&
+`    content: ".";` && |\n| &&
+`    display: block;` && |\n| &&
+`    clear: both;` && |\n| &&
+`    visibility: hidden;` && |\n| &&
+`    line-height: 0;` && |\n| &&
+`    height: 0;` && |\n| &&
+`}` && |\n| &&
+`#noscript {` && |\n| &&
+`    text-align: center;` && |\n| &&
+`    display: block;` && |\n| &&
+`    font-size: 20px;` && |\n| &&
+`    padding: 5px 0;` && |\n| &&
+`    background: #F00;` && |\n| &&
+`}` && |\n| &&
+`#header {` && |\n| &&
+`    background: #000;` && |\n| &&
+`    padding: 5px 0;` && |\n| &&
+`    position: fixed;` && |\n| &&
+`    z-index: 1001;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.2) 0 0 2px 2px;` && |\n| &&
+`}` && |\n| &&
+`#logo {` && |\n| &&
+`    margin-right: 10px;` && |\n| &&
+`    margin-left: 10px;` && |\n| &&
+`    margin-top: -4px;` && |\n| &&
+`    margin-bottom: -4px;` && |\n| &&
+`    display: inline-block;` && |\n| &&
+`    vertical-align: top;` && |\n| &&
+`}` && |\n| &&
+`#logo a:link, #logo a:visited {` && |\n| &&
+`    color: #32c832;` && |\n| &&
+`}` && |\n| &&
+`#logo a:hover {` && |\n| &&
+`    color: #FFF;` && |\n| &&
+`}` && |\n| &&
+`#logo img {` && |\n| &&
+`    display: block;` && |\n| &&
+`}` && |\n| &&
+`#nav, #nav ul {` && |\n| &&
+`    display: inline;` && |\n| &&
+`    vertical-align: middle;` && |\n| &&
+`}` && |\n| &&
+`#nav li {` && |\n| &&
+`    margin-right: 5px;` && |\n| &&
+`    display: inline;` && |\n| &&
+`}` && |\n| &&
+`#nav a:link, #nav a:visited {` && |\n| &&
+`    border: 1px solid #FFF;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`    font-size: 10px;` && |\n| &&
+`    padding: 5px 10px;` && |\n| &&
+`    display: inline-block;` && |\n| &&
+`    color: #FFF;` && |\n| &&
+`}` && |\n| &&
+`#nav a:hover, #nav a:active {` && |\n| &&
+`    border: 1px solid #32c832;` && |\n| &&
+`    color: #32c832;` && |\n| &&
+`}` && |\n| &&
+`#nav a:active, #nav .selected a {` && |\n| &&
+`    background: #FFF;` && |\n| &&
+`    color: #000;` && |\n| &&
+`    box-shadow: 0 0 1px #222 inset;` && |\n| &&
+`    border: 1px solid #FFF;` && |\n| &&
+`}` && |\n| &&
+`#coords {` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 10px;` && |\n| &&
+`    right: 15px;` && |\n| &&
+`    color: #FFF;` && |\n| &&
+`    font-size: 11px;` && |\n| &&
+`}` && |\n| &&
+`#debug {` && |\n| &&
+`    color: #EEE;` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 10px;` && |\n| &&
+`    right: 100px;` && |\n| &&
+`    z-index: 1001;` && |\n| &&
+`    font-size: 11px;` && |\n| &&
+`}` && |\n| &&
+`#wrapper {` && |\n| &&
+`    position: relative;` && |\n| &&
+`}` && |\n| &&
+`#image_wrapper {` && |\n| &&
+`    padding: 45px 0 10px;` && |\n| &&
+`}` && |\n| &&
+`#image {` && |\n| &&
+`    position: relative;` && |\n| &&
+`    overflow: hidden;` && |\n| &&
+`    display: block;` && |\n| &&
+`    margin: 0 auto;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.2) 0 0 2px 2px;` && |\n| &&
+`    display: none;` && |\n| &&
+`}` && |\n| &&
+`.draw#image {` && |\n| &&
+`    cursor: crosshair;` && |\n| &&
+`}` && |\n| &&
+`#image map {` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 0;` && |\n| &&
+`    left: 0;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    height: 100%;` && |\n| &&
+`    display: block;` && |\n| &&
+`}` && |\n| &&
+`#img {` && |\n| &&
+`    position: relative;` && |\n| &&
+`    z-index: 1;` && |\n| &&
+`}` && |\n| &&
+`#code {` && |\n| &&
+`    background: rgba(0,0,0,0.9);` && |\n| &&
+`    color: #FFF;` && |\n| &&
+`    font-family: monospace;` && |\n| &&
+`    font-size: 11px;` && |\n| &&
+`    line-height: 1.3;` && |\n| &&
+`    width: 600px;` && |\n| &&
+`    position: fixed;` && |\n| &&
+`    left: 3%;` && |\n| &&
+`    width: 94%;` && |\n| &&
+`    bottom: 10px;` && |\n| &&
+`    z-index: 1000;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.2) 0 0 2px 2px;` && |\n| &&
+`    display: none;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`}` && |\n| &&
+`#code_content {` && |\n| &&
+`    padding: 10px;` && |\n| &&
+`}` && |\n| &&
+`.close_button {` && |\n| &&
+`    width: 10px;` && |\n| &&
+`    height: 10px;` && |\n| &&
+`    display: block;` && |\n| &&
+`    background: #FFF url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAACbgAAAm4Bt/774AAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABKSURBVAiZfc2xCYBAFATR90WwiSvUzDOyCcuzCaM1UMHIg` &&
+`c1mmcKOI0mHqupoIw4sVTW5mbFKAhvybEti8EN/zc+zj2hYP/ET7QIK9BpShkyrPwAAAABJRU5ErkJggg==) 50% 50% no-repeat;` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 10px;` && |\n| &&
+`    right: 10px;` && |\n| &&
+`    box-shadow: 0 0 1px #222 inset;` && |\n| &&
+`    border-radius: 1px;` && |\n| &&
+`    cursor: pointer;` && |\n| &&
+`}` && |\n| &&
+`#about {` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 10px;` && |\n| &&
+`    left: 0;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    font-family: 'News Cycle';` && |\n| &&
+`    font-size: 24px;` && |\n| &&
+`    background: transparent;` && |\n| &&
+`    padding: 2px 10px 5px;` && |\n| &&
+`    -o-box-sizing: border-box;` && |\n| &&
+`    -moz-box-sizing: border-box;` && |\n| &&
+`    -webkit-box-sizing: border-box;` && |\n| &&
+`    box-sizing: border-box;` && |\n| &&
+`    color: #000;` && |\n| &&
+`}` && |\n| &&
+`#get_image_wrapper {` && |\n| &&
+`    padding: 35px 0;` && |\n| &&
+`    position: relative;` && |\n| &&
+`    z-index: 1002;` && |\n| &&
+`    display: none;` && |\n| &&
+`}` && |\n| &&
+`#get_image {` && |\n| &&
+`    width: 200px;` && |\n| &&
+`    margin: 0 auto;` && |\n| &&
+`    font-size: 16px;` && |\n| &&
+`    text-align: center;` && |\n| &&
+`    background: #FFF;` && |\n| &&
+`    padding: 20px 30px;` && |\n| &&
+`    border-radius: 5px;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.2) 0 0 2px 2px;` && |\n| &&
+`    position: relative;` && |\n| &&
+`}` && |\n| &&
+`#get_image .close_button {` && |\n| &&
+`    background: #000 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAACbgAAAm4Bt/774AAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABKSURBVAiZdc2xDYAwAAPBA0ViiQxKR6hgCMZjCSpTEAkavnxL7yH` &&
+`JgRPNQ0MtXS6Y+jBjlUSSLS9bEqMfSm/O2D+pq6Bi/ZxfqDfkbiIp0Zzd1AAAAABJRU5ErkJggg==) 50% 50% no-repeat;` && |\n| &&
+`    box-shadow: 0 0 1px #EEE inset;` && |\n| &&
+`    border-radius: 2px;` && |\n| &&
+`}` && |\n| &&
+`#logo_get_image {` && |\n| &&
+`    margin-bottom: 20px;` && |\n| &&
+`}` && |\n| &&
+`#loading {` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 0;` && |\n| &&
+`    left: 0;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    height: 100%;` && |\n| &&
+`    text-align: center;` && |\n| &&
+`    font-size: 20px;` && |\n| &&
+`    background: rgba(255,255,255,0.95) url(data:image/gif;base64,R0lGODlhIwAjAPUAAP///zLIMuL24tn02fH68czwzPL78vr9+tLy0tz13Of458/xz/f899fz1+z57N/138Xvxer46pfil7LqsjvKO33bfZ3knZPhk4rfijLIMoDcgGPVY7jruKrnqm3XbVXRVbzsvL3svaXmpXDYcHfad6jnqEj` &&
+`NSAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAACH/C05FVFNDQVBFMi4wAwEAAAAh/hpDcmVhdGVkIHdpdGggYWpheGxvYWQuaW5mbwAh+QQJCgAAACwAAAAAIwAjAAAG/0CAcEgsGo/IpFExcCifSgGkUDBAr8QDlZrAegnbAsJr` &&
+`NDwUByJ4OyYqIBCr0lCYIhhD+nZALEguFyJpSQlhBYMACFQQEUMIgBKRD0oKhl1ChVR4AAQXkZ8ETwuGcg5UbQATnpEXEFAMhg1CWgUCQg+rgBNYDA1bEKGJBU4HFqwSh2QKowULmAVCBZAgTmSzD3WNB40GfxMKWAcGBJtDvZdCAhOTQ9sNCwPBQwJbCwgCBIhJEQgdGB4bAnpIBoCeISoLElQzAkEDwA0fAkrcUELIg` &&
+`IO/IIArcgADxIkgMQhZY2hBgwfyOD7g8A/kBxLQhBgYgMDkAwf6cgIbEiGEBZcNIzSISKnEwTs3FChw0AeAqRIGFzU2RZCmQoYMG5xZY4ANoZA3ThJcvYphIRRTYaoNgGALwIWxGShofeJgyhZZTU/JhHuVXRJaYTahLbCpA98P5Y4YXNQWQKZhsyjwjYlkcQG8QhRxmTdZyQHNfgHo0TskwYerGqCIS8wpzFyZVJxiGS` &&
+`3G2hVmbG1DWUNVNxQmRH0LLxIEACH5BAkKAAAALAAAAAAjACMAAAb/QIBwSCwaj8ikUTFwKJ9KAaRQMECvxAOVmsB6CdsCwms0PBQHIng7JjIEgrTSUJgiGEP6dkBU1MVPCWEFcgAIVBARQxFTWwRKfmFdQoJUeABag4VIC4NWAA5UbQADYRACUAyDDUKZD0JriHxXDA1bEI+GBU4AnVsKZAAKvguUBUIKjQ+XwQcPdYo` &&
+`H0VQDzE8HBgTWALWTQgYDuXkCZ9sCWwsIAgSbSARSExYS8xavQueDVAsJvEYN8RcCzhsoAYKQUvkQQQBmZELACwQHXpgAK+GCBg/EGYmwAKDAgCK8gUNw8YGDTe0QfAJgoEGIDhY6hNiWxEGDNngIbBhBKJibnlILAQgw4cTChw0YvHlh8EyfkAsZOoDaQHWDiJVQQoXJ9SEDCSETjm74QGLWEweNqLASliGDCTwHPFSl` &&
+`yjBJpjCXJrTNMAuC2LEa2hXBhwiVkBF7pWIiMXeD2SOEC6xlaWKvh0WNHxs5cKiAPSEF9rotpEADVQtQsG0LIZqCtVqayYTea0KwTyIGKOzVcPsJiLZEeys5cMEDB+HIkQQBACH5BAkKAAAALAAAAAAjACMAAAb/QIBwSCwaj8ikUTFwKJ9KAaRQMECvxAOVmsB6CdsCwms0PBQHIng7JjIEgrTSUJgiGEP6dkBU1MVPC` &&
+`WEFcgAIVBARQxFTWwRKfmFdQoJUeABag4VIC4NWAA5UbQADYRACUAyDDUKZD0JriHxXDA1bEI+GBU4AnVsKZAARvguUBUIKjQ+XwQcPdYoH0VQDn1AHBgTMQrWTQgYDuUPYBAabAAJbCwgCBOdHBwQKDb4FC+Lpg1QLCbxGDqX0bUFFSiAiCMCMlGokcFasMAsaCLBmhEGEAfXYiAOHIOIDB4UYJBwSZ5yDB/QaPHgHb8` &&
+`IHClbSGLBgwVswIQs2ZMiAARQJoyshLlyYMNLLABI7M1DA4zIEAAMSJFyQAGHbkw5Jd04QouGDBSEFpkq1oAiKiKwZPsDasIFEmgMWxE4VhyQB2gxtILDdQLCBWKkdnmhAq2GIhL1OhYj4K6GoEQxZTVxiMILtBwlDCMSN2lhJBAo7K4gbsLdtIQIdoiZW4gACKyI5947YdECBYzKk97q9qYSy5RK8nxRgS4JucCMHOlw` &&
+`4drz5kSAAIfkECQoAAAAsAAAAACMAIwAABv9AgHBILBqPyKRRMXAon0oBpFAwQK/EA5WawHoJ2wLCazQ8FAcieDsmMgSCtNJQmCIYQ/p2QFTUxU8JYQVyAAhUEBFDEVNbBEp+YV1CglR4AFqDhUgLg1YADlRtAANhEAJQDIMNQpkPQmuIfFcMDVsQj4YFTgCdWwpkABG+C5QFQgqND5fBBwJ1igfRVAOfUFIhCdaYA5NC` &&
+`BgO5QwcGBAabBxoZ6xQmGCGoTwcECg2+BQviGOv8/BQeJbYNcVBqUJh4HvopXIfhSMFGBmdxWLjOBAkOm9wwucdGHIQNJih8IDEhwaUDvPJkcfDAXoMHGQEwOJARQoUReNJoQSAuGCWdDBs+dABgQESaB1O0+VQgYYNTD2kWYGCViUocLyGcOv1wDECHCyGQQVwgEEmID1o3aBDCQMIFo0I4EnqiIK3TeAkuSJDAywFEQ` &&
+`EpEpP0gYggIvRdYCTkUpiyREmiDapBzQARiDuM8KSFAwqkFa0z3Sig8pJZVKAYQxBvyQLQEC2UcYwm9l7TPJAcsIIZw+0nrt8x6I4HAwZvw40WCAAAh+QQJCgAAACwAAAAAIwAjAAAG/0CAcEgsGo/IpFExcCifSgGkUDBAr8QDlZrAegnbAsJrhGgsESJ4OyYyBILDs5CpUwZDQxg/VBSmbUkkdYROQghUEGlCEVNbBE` &&
+`oWhHUeQwlbDEJaYQVySQQUkxkQjFSBA2EQAlAIoh+aVA9Ca4l8UA0mkxOHBYYLYQpkBpJ2mZdCCo4PmWRCAoMZEgAHaZsDVlcRDQsKzEILHyNEBgOQWQYEBp6aIhvuHiQiCIYA2EYHBArbWwvmAB0f3Al8dyGENyIOUHEKswoAhoEDP0jcZUSho4V8CkAM6OFMJyQMmPzihMBfAwwkRpyB0C1PEXvTHDzY1uDBuiEHbgpJ` &&
+`UMLCOpAtJZsViTDhAoYC0xDIeTAlAUwsDkBIuCDBJ4BkTjZRieOlwVQJU7sAGKAK2cUFT5EguEB1agdYYoaM3KLTCAGweC8YcoBJiIOLcZVAaDuV1M4t9BCFSUtkMNgLHdYpLiB2GifGQxiIABtinR42bhpshfKG3qwwC4wYwHzlsymhUEaWha1kjVLaT5j4w827SBAAIfkECQoAAAAsAAAAACMAIwAABv9AgHBILBqPyG` &&
+`TxgBlNlFBlJUMtRK9EAYWa8WC/IW7GdPgWGxYOgRjmUspDhkAATw42n81IMCyIN3UKBRAFCFASG4kfHmsABiZcFkMRhAWWjUggeYkbGEMeXA1CB5alBXVHBiOceA9CHVQUDEIDphB8UAmsGxq0VL0ABLYDWA8VnB9WjxlPAAumCmYHEx6JI2Wga5SWD7NmQhEWeBwACSIApAUDBlgEAg8OqA8aF0QGA5ijBgQGqAAhFiRI` &&
+`sCACwgN2QrwZOeBuwDNLCzBBuCBQ4IWLaRr4E+LAoamPuCZUHCnhIgYrRmoN+liKWLmSFTF2COEKCQMFHj8iwKRgggieCzPx1fGHcJSDBw0WNHiwEQmBpERI7fxWhEEtCNEOICjzgFCCol8YPCi1QIgCCA7QmaLzxcHHtAAG3DJbqcACsEkc1C0gSm2hIQ9LNY3K0ptbS4b3GlIiwBaucqXgAkDwEW+RxqX6CqFsKcGQdK` &&
+`UsR+VcU4gBU4sTNrD0OMkBAwqFCCNrxIBoLKdLpaaa5OFc3kpmbwUOBWc+4siJBAEAIfkECQoAAAAsAAAAACMAIwAABv9AgHBILBqPyGTx0LlAlFCl6LPZDKJYYsRT3Vyy4EV3QzqAi4LQgkEUd0fm4QKDUUAVksvF4hg2xhhEEhmEJgZKIBcSeRZsAAwkVR8cQyKElyBKC4qLF5RCF1QbD0IDl5ekSQcWnHl2ACFVJI4b` &&
+`pxkaURF5nR1CChsfIkIcthtxUBFNihcJj5EFjxSnGI5YBwuse2YXG4cXlyMNZ0MGIRIY4gohAAKEH0/WBgTVQg4dmUMQGxPHAAfyBvqxK0BwAQIBBI4JHPJPQYMFBAssIDBEQMSLEhP0OeJgAEaMAkp9jAgBwqsiHgtAGFngCgACIxc0eEARCQMFAyBiRFATgIGeAQhkPnDQT+Ahhg4ePJy5EImDh0QOFOA5rggDjyb9IT` &&
+`DzYGWCo2cYPIi4wBeEPlIjCmjqFOPGARBCAlCwsiBYJQ7qEhTnjyACORjZMvzoyEHEwnqnQrFIUi6ABBE3AkCA8a4RxnuJUCbYTEjaiJaXbE4lxMDFv0MYNCDoWJUBei8vli1iIDQY0xFRV9VEMO5uKDCnCv7ta0BP4siLBAEAIfkECQoAAAAsAAAAACMAIwAABv9AgHBILBqPyKQRwkkon8rQRSJRQK9Eg2V64WC/DypV9` &&
+`DUaHooDMSwWqYcJkcjxNBQgBQRjqBBfJkQTGxsfJHtJCQWKim8HIlwLQxwfg4ORSQqLik5CHFMSEUIKlZWhSguaBQZCDRcXbkIYpB8lUAypDUIErhBCCJSDHxhvTwwNixAEAI4XTgcjpBPEVwqoeUIgF2oTwBICZUMHD3ehBLkRgxgDWAcGBIdDxpysGAXEBwIQIQV0RAKLCxAIIDANST5ZFDIopBDizb9UihYk6GekwwaF` &&
+`GDNmwCBkAERkEKwUOXBRo0YPuj4uaPBA2ZEDBSSU1GgCxBADAxCsfOBgWsGXVULwdajwgcKHCqagOGhwKWgeoOEOFEzCwGPIZQjUPMCTAN4XBuMiioJAB+aib18cpOo3AAJaBXgiQlXiIK6iXMsUIRhibdHUkRAPqVUk2O41JQ8VuYWziCKCVHONJC6A19eieWYXRR75uMCDLJr2xjtWAK2Sdl4BENDU9ObmL3YWiQb3xNpi` &&
+`2k9W5/mLu4iCAS57C0cSBAA7AAAAAAAAAAAA) 50% 50% no-repeat;` && |\n| &&
+`    z-index: 3;` && |\n| &&
+`    border-radius: 5px;` && |\n| &&
+`    line-height: 3;` && |\n| &&
+`}` && |\n| &&
+`#get_image b {` && |\n| &&
+`    display: block;` && |\n| &&
+`    font-size: 25px;` && |\n| &&
+`    margin: 10px 0;` && |\n| &&
+`}` && |\n| &&
+`#get_image label {` && |\n| &&
+`    display: block;` && |\n| &&
+`    margin-bottom: 5px;` && |\n| &&
+`}` && |\n| &&
+`#button {` && |\n| &&
+`    margin-top: 20px;` && |\n| &&
+`    font-size: 21px;` && |\n| &&
+`}` && |\n| &&
+`#dropzone {` && |\n| &&
+`    border: 2px dashed #999;` && |\n| &&
+`    width: 200px;` && |\n| &&
+`    height: 200px;` && |\n| &&
+`    background: #FAFAFA url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACkAAAAiCAYAAADCp/A1AAAABmJLR0QAAAAAAAD5Q7t/AAAACXBIWXMAAApjAAAKYwGDMomsAAAAB3RJTUUH3AkYCxg3B2a5QgAAAKtJREFUWMPt17sNgDAMRdE8tsj+w2UM6CiQEv9jIvm1COl0uUZbbIxxt03rvWP27Wo` &&
+`HrJCFLGQhC1nIQr7DzohQI3fXjqaOkJFl0nxDVj9K+hKZocsNYGQXOafQ8YfTgTohcMKNA+rnHdAVkIWMhlJANjIKygGKkN5QLlCM9IJKgCqkFSoFqpFaqAZoQkqhWqAZyYVagC5ICmoFuiFnUA+gK/IL9QKGLOJlegBB2VeWydvIHgAAAABJRU5ErkJggg==) 50% 50% no-repeat;` && |\n| &&
+`    overflow: hidden;` && |\n| &&
+`    text-align: center;` && |\n| &&
+`    line-height: 200px;` && |\n| &&
+`    position: relative;` && |\n| &&
+`}` && |\n| &&
+`.error#dropzone {` && |\n| &&
+`    border: 2px dashed #F00;` && |\n| &&
+`}` && |\n| &&
+`.clear_button {` && |\n| &&
+`    display: block;` && |\n| &&
+`    height: 16px;` && |\n| &&
+`    width: 16px;` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 6px;` && |\n| &&
+`    right: 6px;` && |\n| &&
+`    line-height: 1 !important;` && |\n| &&
+`    overflow: hidden;` && |\n| &&
+`    cursor: pointer;` && |\n| &&
+`    text-indent: -9999px;` && |\n| &&
+`    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAAD1QAAA9UBZ3cOpgAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAAG4SURBVDiNrZOxattQFIa/c5UMtsBbIbMRQZ7iyFC/QjEesqoPY` &&
+`PAUsnQoaAp472RI92jJEGjaNwjFpY68RWQIXQoudocKVEPj29shuo6Fm9JCv/Gi7+ic/54rxhjWaX5o7jo/nedAC6EFgGEMjLXSp5Onk5v178UWEESCUXAIDIAKv2cBvLxqX70y3ItijEEQ2R/tXwjSeUQsYTDvknbSNRijAIJRcChIp+E2iOoRXtXbkLyqR1SPaLgNBOkU3SJ7o71dxzgToBLVIw6eHJAtM/ppnzRPAfBdn` &&
+`6E/pLZV43x2zvHtMcBCi26qIrAKQDyNyZYZta0aQ3+I7/olOVtmxNPYNlVxcEIJ3gdvELr2dF3IdQ6A67gbXRVhXKjVVRWkeUo/7ZPrHNdxcR2XXOebMoDQUn+T+p9QxZKssCPYP9tObCYlDGMFDwW8qlcKrHfdo3fdKwVbumLFR6WVPuV+wwh3wpVsZ7aZ2CLhTmj1hUbHzvT19OvJ55MceDb7MUOJYvBpwM33h5Wf3825` &&
+`/HbJttrm7MsZ87s5wIuknbz9P6tsMCZpJ13gyI7zCAvgyMqw9hot//qcfwEDGehh48P3mQAAAABJRU5ErkJggg==);` && |\n| &&
+`    z-index: 2;` && |\n| &&
+`}` && |\n| &&
+`#dropzone img {` && |\n| &&
+`    max-width: 100%;` && |\n| &&
+`    max-height: 100%;` && |\n| &&
+`    vertical-align: middle;` && |\n| &&
+`}` && |\n| &&
+`#url_wrapper {` && |\n| &&
+`    position: relative;` && |\n| &&
+`    display: block;` && |\n| &&
+`}` && |\n| &&
+`#url {` && |\n| &&
+`    border: 2px solid #999;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`    background: #FFF;` && |\n| &&
+`    padding: 2px 25px 2px 5px;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    box-shadow: 1px 1px 3px rgba(0,0,0,0.2) inset;` && |\n| &&
+`    -webkit-box-sizing: border-box;` && |\n| &&
+`    -moz-box-sizing: border-box;` && |\n| &&
+`    box-sizing: border-box;` && |\n| &&
+`}` && |\n| &&
+`.error#url {` && |\n| &&
+`    border: 2px solid #F00;` && |\n| &&
+`}` && |\n| &&
+`#edit_details {` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 100px;` && |\n| &&
+`    left: 100px;` && |\n| &&
+`    background: rgba(0,0,0,0.9);` && |\n| &&
+`    border-radius: 5px;` && |\n| &&
+`    padding: 10px;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.2) 0 0 2px 1px;` && |\n| &&
+`    display: none;` && |\n| &&
+`    z-index: 1000;` && |\n| &&
+`    color: #FFF;` && |\n| &&
+`    font-size: 0px;` && |\n| &&
+`}` && |\n| &&
+`#edit_details h5 {` && |\n| &&
+`    margin-bottom: 10px;` && |\n| &&
+`    font-size: 14px;` && |\n| &&
+`    cursor: move;` && |\n| &&
+`}` && |\n| &&
+`.changed#edit_details h5, p.changed label {` && |\n| &&
+`    color: #32c832;` && |\n| &&
+`}` && |\n| &&
+`#edit_details p {` && |\n| &&
+`    margin-bottom: 10px;` && |\n| &&
+`}` && |\n| &&
+`#edit_details label {` && |\n| &&
+`    font-size: 11px;` && |\n| &&
+`    display: block;` && |\n| &&
+`    margin-bottom: 2px;` && |\n| &&
+`}` && |\n| &&
+`#edit_details input[type=text] {` && |\n| &&
+`    background: #FFF;` && |\n| &&
+`    font-size: 12px;` && |\n| &&
+`    font-family: sans-serif;` && |\n| &&
+`    padding: 2px 5px;` && |\n| &&
+`    width: 120px;` && |\n| &&
+`    border-radius: 5px;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.5) 0 1px 2px inset;` && |\n| &&
+`}` && |\n| &&
+`.changed#edit_details button {` && |\n| &&
+`    box-shadow: rgba(50,200,50,1) 0 0 1px 2px;` && |\n| &&
+`}` && |\n| &&
+`#help {` && |\n| &&
+`    display: none;` && |\n| &&
+`    width: 400px;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`    background: #FFF;` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 35px;` && |\n| &&
+`    left: 50%;` && |\n| &&
+`    margin-left: -200px;` && |\n| &&
+`    z-index: 1003;` && |\n| &&
+`    box-shadow: rgba(0,0,0,0.2) 0 0 2px 2px;` && |\n| &&
+`}` && |\n| &&
+`#help .txt {` && |\n| &&
+`    padding: 20px 20px 5px;` && |\n| &&
+`    line-height: 1.4;` && |\n| &&
+`}` && |\n| &&
+`.txt p {` && |\n| &&
+`    margin-bottom: 3px;` && |\n| &&
+`}` && |\n| &&
+`#help section {` && |\n| &&
+`    margin-bottom: 20px;` && |\n| &&
+`}` && |\n| &&
+`#help .close_button {` && |\n| &&
+`    background: #000 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAACbgAAAm4Bt/774AAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABKSURBVAiZdc2xDYAwAAPBA0ViiQxKR6hgCMZjCSpTEAkavnxL` &&
+`7yHJgRPNQ0MtXS6Y+jBjlUSSLS9bEqMfSm/O2D+pq6Bi/ZxfqDfkbiIp0Zzd1AAAAABJRU5ErkJggg==) 50% 50% no-repeat;` && |\n| &&
+`    box-shadow: 0 0 1px #EEE inset;` && |\n| &&
+`    border-radius: 2px;` && |\n| &&
+`}` && |\n| &&
+`#help h2 {` && |\n| &&
+`    margin-bottom: 5px;` && |\n| &&
+`}` && |\n| &&
+`#help footer {` && |\n| &&
+`    color: #999;` && |\n| &&
+`    font-size: 10px;` && |\n| &&
+`    padding: 0 20px 20px;` && |\n| &&
+`    line-height: 1.3;` && |\n| &&
+`}` && |\n| &&
+`#help footer a {` && |\n| &&
+`    color: #777;` && |\n| &&
+`    text-decoration: underline;` && |\n| &&
+`}` && |\n| &&
+`.key {` && |\n| &&
+`    background: #F5F5F5;` && |\n| &&
+`    color: #555;` && |\n| &&
+`    text-shadow: 0 0 1px #EEE;` && |\n| &&
+`    padding: 1px 5px;` && |\n| &&
+`    border: 1px solid #CCC;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`    display: inline-block;` && |\n| &&
+`    min-width: 16px;` && |\n| &&
+`    text-align: center;` && |\n| &&
+`    font-size: 11px;` && |\n| &&
+`    box-shadow: 1px 1px 0 rgba(255,255,255,1) inset, -1px -1px 0 rgba(0,0,0,0.08) inset;` && |\n| &&
+`    overflow: hidden;` && |\n| &&
+`    cursor: default;` && |\n| &&
+`    vertical-align: middle;` && |\n| &&
+`}` && |\n| &&
+`.key:active {` && |\n| &&
+`    padding: 2px 5px 0;` && |\n| &&
+`    box-shadow: 1px 1px 0 rgba(0,0,0,0.08) inset, -1px -1px 0 rgba(255,255,255,1) inset;` && |\n| &&
+`}` && |\n| &&
+`#overlay {` && |\n| &&
+`    position: fixed;` && |\n| &&
+`    top: 0;` && |\n| &&
+`    left: 0;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    height: 100%;` && |\n| &&
+`    z-index: 1002;` && |\n| &&
+`    background: #000;` && |\n| &&
+`    opacity: 0.5;` && |\n| &&
+`    display: none;` && |\n| &&
+`}` && |\n| &&
+`#from_html_wrapper {` && |\n| &&
+`    display: none;` && |\n| &&
+`    width: 500px;` && |\n| &&
+`    border-radius: 5px;` && |\n| &&
+`    background: rgba(0,0,0,0.9);` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 35px;` && |\n| &&
+`    left: 50%;` && |\n| &&
+`    margin-left: -250px;` && |\n| &&
+`    z-index: 1002;` && |\n| &&
+`    color: #FFF;` && |\n| &&
+`}` && |\n| &&
+`#from_html_wrapper .close_button {` && |\n| &&
+`    background: #000 url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAYAAAAGCAYAAADgzO9IAAAABHNCSVQICAgIfAhkiAAAAAlwSFlzAAACbgAAAm4Bt/774AAAABl0RVh0U29mdHdhcmUAd3d3Lmlua3NjYXBlLm9yZ5vuPBoAAABKSURBVAiZdc2xDYAwAAPBA0ViiQxKR6hgCMZjCSpTEAkavnxL7yHJgR` &&
+`PNQ0MtXS6Y+jBjlUSSLS9bEqMfSm/O2D+pq6Bi/ZxfqDfkbiIp0Zzd1AAAAABJRU5ErkJggg==) 50% 50% no-repeat;` && |\n| &&
+`    box-shadow: 0 0 1px #EEE inset;` && |\n| &&
+`    border-radius: 2px;` && |\n| &&
+`}` && |\n| &&
+`#from_html_form {` && |\n| &&
+`    padding: 20px;` && |\n| &&
+`}` && |\n| &&
+`#from_html_form h5 {` && |\n| &&
+`    margin-bottom: 15px;` && |\n| &&
+`}` && |\n| &&
+`#from_html_form label {` && |\n| &&
+`    display: block;` && |\n| &&
+`    font-size: 12px;` && |\n| &&
+`}` && |\n| &&
+`#from_html_form textarea {` && |\n| &&
+`    border: 0px;` && |\n| &&
+`    border-radius: 3px;` && |\n| &&
+`    background: #FFF;` && |\n| &&
+`    padding: 2px 5px;` && |\n| &&
+`    margin-bottom: 5px;` && |\n| &&
+`    width: 100%;` && |\n| &&
+`    height: 100px;` && |\n| &&
+`    box-shadow: 1px 1px 3px rgba(0,0,0,0.2) inset;` && |\n| &&
+`    -webkit-box-sizing: border-box;` && |\n| &&
+`    -moz-box-sizing: border-box;` && |\n| &&
+`    box-sizing: border-box;    ` && |\n| &&
+`    font-family: monospace;` && |\n| &&
+`    font-size: 11px;` && |\n| &&
+`    line-height: 1.3;` && |\n| &&
+`}` && |\n| &&
+`` && |\n| &&
+`/* CSS for SVG-elements */` && |\n| &&
+`` && |\n| &&
+`#svg {` && |\n| &&
+`    position: absolute;` && |\n| &&
+`    top: 0;` && |\n| &&
+`    left: 0;` && |\n| &&
+`    z-index: 2;` && |\n| &&
+`    display: inline-block;` && |\n| &&
+`}` && |\n| &&
+`#svg rect {` && |\n| &&
+`    stroke-width: 3px;` && |\n| &&
+`    stroke: #F00;` && |\n| &&
+`    fill: rgba(255,255,255,0.3);` && |\n| &&
+`}` && |\n| &&
+`#svg rect.with_href {` && |\n| &&
+`    fill: rgba(0,0,0,0.3);` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg rect:hover {` && |\n| &&
+`    fill: rgba(50,200,50,0.3);` && |\n| &&
+`}` && |\n| &&
+`#svg rect.active {` && |\n| &&
+`    fill: rgba(0,0,0,0.5);` && |\n| &&
+`}` && |\n| &&
+`#svg circle {` && |\n| &&
+`    stroke-width: 3px;` && |\n| &&
+`    stroke: #0F0;` && |\n| &&
+`    fill: rgba(255,255,255,0.3);` && |\n| &&
+`}` && |\n| &&
+`#svg circle.with_href {` && |\n| &&
+`    fill: rgba(0,0,0,0.3);` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg circle:hover {` && |\n| &&
+`    fill: rgba(50,200,50,0.3);` && |\n| &&
+`}` && |\n| &&
+`#svg polyline, #svg polygon {` && |\n| &&
+`    stroke-width: 3px;` && |\n| &&
+`    stroke: #00F;` && |\n| &&
+`    fill: rgba(255,255,255,0.3);` && |\n| &&
+`}` && |\n| &&
+`#svg polygon.with_href {` && |\n| &&
+`    fill: rgba(0,0,0,0.3);` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg polygon:hover {` && |\n| &&
+`    fill: rgba(50,200,50,0.3);` && |\n| &&
+`}` && |\n| &&
+`#svg .selected {` && |\n| &&
+`    fill: rgba(50,200,50,0.5) !important;` && |\n| &&
+`}` && |\n| &&
+`#svg rect.helper {` && |\n| &&
+`    fill: #FFF;` && |\n| &&
+`    stroke: #000;` && |\n| &&
+`    stroke-width: 2px;` && |\n| &&
+`}` && |\n| &&
+`#svg rect.helper:hover {` && |\n| &&
+`    fill: #F00; ` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg rect, .edit > #svg circle, .edit > #svg polygon {` && |\n| &&
+`    cursor: move;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .pointer {` && |\n| &&
+`    cursor: pointer;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .e-resize {` && |\n| &&
+`    cursor: e-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .ne-resize {` && |\n| &&
+`    cursor: ne-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .nw-resize {` && |\n| &&
+`    cursor: nw-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .n-resize {` && |\n| &&
+`    cursor: n-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .se-resize {` && |\n| &&
+`    cursor: se-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .sw-resize {` && |\n| &&
+`    cursor: sw-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .s-resize {` && |\n| &&
+`    cursor: s-resize;` && |\n| &&
+`}` && |\n| &&
+`.edit > #svg .w-resize {` && |\n| &&
+`    cursor: w-resize;` && |\n| &&
+`}`.
+ENDMETHOD.
+
+
+METHOD load_editor_html.
+result = `` && |\n| &&
+`<div id="wrapper">` && |\n| &&
+`    <header id="header">` && |\n| &&
+`        <h1 id="logo">` && |\n| &&
+`` && |\n| &&
+`        </h1>` && |\n| &&
+`        <nav id="nav" class="clearfix">` && |\n| &&
+`            <ul>` && |\n| &&
+`                <li id="save"><a href="#">save</a></li>` && |\n| &&
+`                <li id="load"><a href="#">load</a></li>` && |\n| &&
+`                <li id="from_html"><a href="#">from html</a></li>` && |\n| &&
+`                <li id="rectangle"><a href="#">rectangle</a></li>` && |\n| &&
+`                <li id="circle"><a href="#">circle</a></li>` && |\n| &&
+`                <li id="polygon"><a href="#">polygon</a></li>` && |\n| &&
+`                <li id="edit"><a href="#">edit</a></li>` && |\n| &&
+`                <li id="to_html"><a href="#">to html</a></li>` && |\n| &&
+`                <li id="preview"><a href="#">preview</a></li>` && |\n| &&
+`                <li id="clear"><a href="#">clear</a></li>` && |\n| &&
+`                <li id="new_image"><a href="#">new image</a></li>` && |\n| &&
+`                <li id="show_help"><a href="#">?</a></li>` && |\n| &&
+`            </ul>` && |\n| &&
+`        </nav>` && |\n| &&
+`        <div id="coords"></div>` && |\n| &&
+`        <div id="debug"></div>` && |\n| &&
+`    </header>` && |\n| &&
+`    <div id="image_wrapper">` && |\n| &&
+`        <div id="image">` && |\n| &&
+`            <img src="" alt="#" id="img" />` && |\n| &&
+`            <svg xmlns="http://www.w3.org/2000/svg" version="1.2" baseProfile="tiny" id="svg"></svg>` && |\n| &&
+`        </div>` && |\n| &&
+`    </div>` && |\n| &&
+`</div>` && |\n| &&
+`` && |\n| &&
+`<!-- For html image map code -->` && |\n| &&
+`<div id="code">` && |\n| &&
+`    <span class="close_button" title="close"></span>` && |\n| &&
+`    <div id="code_content"></div>` && |\n| &&
+`</div>` && |\n| &&
+`` && |\n| &&
+`<!-- Edit details block -->` && |\n| &&
+`<form id="edit_details">` && |\n| &&
+`    <h5>Attributes</h5>` && |\n| &&
+`    <span class="close_button" title="close"></span>` && |\n| &&
+`    <p>` && |\n| &&
+`        <label for="href_attr">href</label>` && |\n| &&
+`        <input type="text" id="href_attr" />` && |\n| &&
+`    </p>` && |\n| &&
+`    <p>` && |\n| &&
+`        <label for="alt_attr">alt</label>` && |\n| &&
+`        <input type="text" id="alt_attr" />` && |\n| &&
+`    </p>` && |\n| &&
+`    <p>` && |\n| &&
+`        <label for="title_attr">title</label>` && |\n| &&
+`        <input type="text" id="title_attr" />` && |\n| &&
+`    </p>` && |\n| &&
+`    <button id="save_details">Save</button>` && |\n| &&
+`</form>` && |\n| &&
+`` && |\n| &&
+`<!-- From html block -->` && |\n| &&
+`<div id="from_html_wrapper">` && |\n| &&
+`    <form id="from_html_form">` && |\n| &&
+`        <h5>Loading areas</h5>` && |\n| &&
+`        <span class="close_button" title="close"></span>` && |\n| &&
+`        <p>` && |\n| &&
+`            <label for="code_input">Enter your html code:</label>` && |\n| &&
+`            <textarea id="code_input"></textarea>` && |\n| &&
+`        </p>` && |\n| &&
+`        <button id="load_code_button">Load</button>` && |\n| &&
+`    </form>` && |\n| &&
+`</div>` && |\n| &&
+`  ` && |\n| &&
+`<!-- Get image form -->` && |\n| &&
+`<div id="get_image_wrapper">` && |\n| &&
+`    <div id="get_image">` && |\n| &&
+`        <span title="close" class="close_button"></span>` && |\n| &&
+`        <div id="loading">Loading</div>` && |\n| &&
+`        <div id="file_reader_support">` && |\n| &&
+`            <label>Drag an image</label>` && |\n| &&
+`            <div id="dropzone">` && |\n| &&
+`                <span class="clear_button" title="clear">x</span> ` && |\n| &&
+`                <img src="" alt="preview" id="sm_img" />` && |\n| &&
+`            </div>` && |\n| &&
+`            <b>or</b>` && |\n| &&
+`        </div>` && |\n| &&
+`        <label for="url">type a url</label>` && |\n| &&
+`        <span id="url_wrapper">` && |\n| &&
+`            <span class="clear_button" title="clear">x</span>` && |\n| &&
+`            <input type="text" id="url" />` && |\n| &&
+`        </span>` && |\n| &&
+`        <button id="button">OK</button>` && |\n| &&
+`    </div>` && |\n| &&
+`</div>` && |\n| &&
+`` && |\n| &&
+`<!-- Help block -->` && |\n| &&
+`<div id="overlay"></div>` && |\n| &&
+`<div id="help">` && |\n| &&
+`    <span class="close_button" title="close"></span>` && |\n| &&
+`    <div class="txt">` && |\n| &&
+`        <section>` && |\n| &&
+`            <h2>Main</h2>` && |\n| &&
+`            <p><span class="key">F5</span> &mdash; reload the page and display the form for loading image again</p>` && |\n| &&
+`            <p><span class="key">S</span> &mdash; save map params in localStorage</p>` && |\n| &&
+`        </section>` && |\n| &&
+`        <section>` && |\n| &&
+`            <h2>Drawing mode (rectangle / circle / polygon)</h2>` && |\n| &&
+`            <p><span class="key">ENTER</span> &mdash; stop polygon drawing (or click on first helper)</p>` && |\n| &&
+`            <p><span class="key">ESC</span> &mdash; cancel drawing of a new area</p>` && |\n| &&
+`            <p><span class="key">SHIFT</span> &mdash; square drawing in case of a rectangle and right angle drawing in case of a polygon</p>` && |\n| &&
+`        </section>` && |\n| &&
+`        <section>` && |\n| &&
+`            <h2>Editing mode</h2>` && |\n| &&
+`            <p><span class="key">DELETE</span> &mdash; remove a selected area</p>` && |\n| &&
+`            <p><span class="key">ESC</span> &mdash; cancel editing of a selected area</p>` && |\n| &&
+`            <p><span class="key">SHIFT</span> &mdash; edit and save proportions for rectangle</p>` && |\n| &&
+`            <p><span class="key">I</span> &mdash; edit attributes of a selected area (or dblclick on an area)</p>` && |\n| &&
+`            <p><span class="key">CTRL</span> + <span class="key">C</span> &mdash; a copy of the selected area</p>` && |\n| &&
+`            <p><span class="key">&uarr;</span> &mdash; move a selected area up</p>` && |\n| &&
+`            <p><span class="key">&darr;</span> &mdash; move a selected area down</p>` && |\n| &&
+`            <p><span class="key">&larr;</span> &mdash; move a selected area to the left</p>` && |\n| &&
+`            <p><span class="key">&rarr;</span> &mdash; move a selected area to the right</p>` && |\n| &&
+`        </section>` && |\n| &&
+`    </div>` && |\n| &&
+`</div>`.
+
+ENDMETHOD.
+
+
+METHOD load_editor_js.
+result = `` && |\n| &&
+`loadJsEditor = function(base64_image, filename) {` && |\n| &&
+` var summerHtmlImageMapCreator = (function() {` && |\n| &&
+`    &#39;use strict&#39;;` && |\n| &&
+`    ` && |\n| &&
+`    var utils = {` && |\n| &&
+`        getOffset : function(node) {` && |\n| &&
+`            var boxCoords = node.getBoundingClientRect();` && |\n| &&
+`        ` && |\n| &&
+`            return {` && |\n| &&
+`                x : Math.round(boxCoords.left + window.pageXOffset),` && |\n| &&
+`                y : Math.round(boxCoords.top + window.pageYOffset)` && |\n| &&
+`            };` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        getRightCoords : function(x, y) {` && |\n| &&
+`            return {` && |\n| &&
+`                x : x - app.getOffset(&#39;x&#39;),` && |\n| &&
+`                y : y - app.getOffset(&#39;y&#39;)` && |\n| &&
+`            };` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * TODO: will use same method of app.js` && |\n| &&
+`         * @deprecated` && |\n| &&
+`         */` && |\n| &&
+`        id : function (str) {` && |\n| &&
+`            return document.getElementById(str);` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * TODO: will use same method of app.js` && |\n| &&
+`         * @deprecated` && |\n| &&
+`         */` && |\n| &&
+`        hide : function(node) {` && |\n| &&
+`            node.style.display = &#39;none&#39;;` && |\n| &&
+`            ` && |\n| &&
+`            return this;` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * TODO: will use same method of app.js` && |\n| &&
+`         * @deprecated` && |\n| &&
+`         */` && |\n| &&
+`        show : function(node) {` && |\n| &&
+`            node.style.display = &#39;block&#39;;` && |\n| &&
+`            ` && |\n| &&
+`            return this;` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * Escape &lt; and &gt; (for code output)` && |\n| &&
+`         *` && |\n| &&
+`         * @param str {string} - a string with &lt; and &gt;` && |\n| &&
+`         * @returns {string} - a string with escaped &lt; and &gt;` && |\n| &&
+`         */` && |\n| &&
+`        encode : function(str) {` && |\n| &&
+`            return str.replace(/&lt;/g, &#39;&amp;lt;&#39;).replace(/&gt;/g, &#39;&amp;gt;&#39;);` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * TODO: will use same method of app.js` && |\n| &&
+`         * @deprecated` && |\n| &&
+`         */` && |\n| &&
+`        foreach : function(arr, func) {` && |\n| &&
+`            for(var i = 0, count = arr.length; i &lt; count; i++) {` && |\n| &&
+`                func(arr[i], i);` && |\n| &&
+`            }` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * TODO: will use same method of app.js` && |\n| &&
+`         * @deprecated` && |\n| &&
+`         */` && |\n| &&
+`        foreachReverse : function(arr, func) {` && |\n| &&
+`            for(var i = arr.length - 1; i &gt;= 0; i--) {` && |\n| &&
+`                func(arr[i], i);` && |\n| &&
+`            }` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        debug : (function() {` && |\n| &&
+`            var output = document.getElementById(&#39;debug&#39;);` && |\n| &&
+`            ` && |\n| &&
+`            return function() {` && |\n| &&
+`                output.innerHTML = [].join.call(arguments, &#39; &#39;);` && |\n| &&
+`            };` && |\n| &&
+`        })(),` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * TODO: will use same method of app.js` && |\n| &&
+`         * @deprecated` && |\n| &&
+`         */` && |\n| &&
+`        stopEvent : function(e) {` && |\n| &&
+`            e.stopPropagation();` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`            ` && |\n| &&
+`            return this;` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        extend : function(obj, options) {` && |\n| &&
+`            var target = {};` && |\n| &&
+`` && |\n| &&
+`            for (var name in obj) {` && |\n| &&
+`                if(obj.hasOwnProperty(name)) {` && |\n| &&
+`                    target[name] = options[name] ? options[name] : obj[name];` && |\n| &&
+`                }` && |\n| &&
+`            }` && |\n| &&
+`` && |\n| &&
+`            return target;` && |\n| &&
+`        },` && |\n| &&
+`        ` && |\n| &&
+`        inherits : (function() {` && |\n| &&
+`            var F = function() {};` && |\n| &&
+`            ` && |\n| &&
+`            return function(Child, Parent) {` && |\n| &&
+`                F.prototype = Parent.prototype;` && |\n| &&
+`                Child.prototype = new F();` && |\n| &&
+`                Child.prototype.constructor = Child;` && |\n| &&
+`            };` && |\n| &&
+`        })()` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`` && |\n| &&
+`    var app = (function() {` && |\n| &&
+`        var domElements = {` && |\n| &&
+`                wrapper : utils.id(&#39;wrapper&#39;),` && |\n| &&
+`                svg : utils.id(&#39;svg&#39;),` && |\n| &&
+`                img : utils.id(&#39;img&#39;),` && |\n| &&
+`                container : utils.id(&#39;image&#39;),` && |\n| &&
+`                map : null` && |\n| &&
+`            },` && |\n| &&
+`            state = {` && |\n| &&
+`                offset : {` && |\n| &&
+`                    x : 0,` && |\n| &&
+`                    y : 0` && |\n| &&
+`                },` && |\n| &&
+`                appMode : null, // drawing || editing || preview` && |\n| &&
+`                currentType : null,` && |\n| &&
+`                editType : null,` && |\n| &&
+`                newArea : null,` && |\n| &&
+`                selectedArea : null,` && |\n| &&
+`                areas : [],` && |\n| &&
+`                events : [],` && |\n| &&
+`                isDraw : false,` && |\n| &&
+`                image : {` && |\n| &&
+`                    src : null,` && |\n| &&
+`                    filename : null,` && |\n| &&
+`                    width: 0,` && |\n| &&
+`                    height: 0` && |\n| &&
+`                }` && |\n| &&
+`            },` && |\n| &&
+`            KEYS = {` && |\n| &&
+`                F1     : 112,` && |\n| &&
+`                ESC    : 27,` && |\n| &&
+`                TOP    : 38,` && |\n| &&
+`                BOTTOM : 40,` && |\n| &&
+`                LEFT   : 37,` && |\n| &&
+`                RIGHT  : 39,` && |\n| &&
+`                DELETE : 46,` && |\n| &&
+`                I      : 73,` && |\n| &&
+`                S      : 83,` && |\n| &&
+`                C      : 67` && |\n| &&
+`            };` && |\n| &&
+`` && |\n| &&
+`        function recalcOffsetValues() {` && |\n| &&
+`            state.offset = utils.getOffset(domElements.container);` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        /* Get offset value */` && |\n| &&
+`        window.addEventListener(&#39;resize&#39;, recalcOffsetValues, false);` && |\n| &&
+`` && |\n| &&
+`        /* Disable selection */` && |\n| &&
+`        domElements.container.addEventListener(&#39;mousedown&#39;, function(e) { e.preventDefault(); }, false);` && |\n| &&
+`` && |\n| &&
+`        /* Disable image dragging */` && |\n| &&
+`        domElements.img.addEventListener(&#39;dragstart&#39;, function(e){` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }, false);` && |\n| &&
+`` && |\n| &&
+`        /* Display cursor coordinates info */` && |\n| &&
+`        var cursor_position_info = (function() {` && |\n| &&
+`            var coords_info = utils.id(&#39;coords&#39;);` && |\n| &&
+`            ` && |\n| &&
+`            return {` && |\n| &&
+`                set : function(coords) {` && |\n| &&
+`                    coords_info.innerHTML = &#39;x: &#39; + coords.x + &#39;, &#39; + &#39;y: &#39; + coords.y;` && |\n| &&
+`                },` && |\n| &&
+`                empty : function() {` && |\n| &&
+`                    coords_info.innerHTML = &#39;&#39;;` && |\n| &&
+`                }` && |\n| &&
+`            };` && |\n| &&
+`        })();` && |\n| &&
+`        ` && |\n| &&
+`        domElements.container.addEventListener(&#39;mousemove&#39;, function(e){` && |\n| &&
+`            cursor_position_info.set(utils.getRightCoords(e.pageX, e.pageY));` && |\n| &&
+`        }, false);` && |\n| &&
+`` && |\n| &&
+`        domElements.container.addEventListener(&#39;mouseleave&#39;, function(){` && |\n| &&
+`            cursor_position_info.empty();` && |\n| &&
+`        }, false);` && |\n| &&
+`` && |\n| &&
+`        /* Add mousedown event for svg */` && |\n| &&
+`        function onSvgMousedown(e) {` && |\n| &&
+`            if (state.appMode === &#39;editing&#39;) {` && |\n| &&
+`                if (e.target.parentNode.tagName === &#39;g&#39;) {` && |\n| &&
+`                    info.unload();` && |\n| &&
+`                    state.selectedArea = e.target.parentNode.obj;` && |\n| &&
+`                    ` && |\n| &&
+`                    app.deselectAll();` && |\n| &&
+`                    state.selectedArea.select();` && |\n| &&
+`                    state.selectedArea.editingStartPoint = {` && |\n| &&
+`                        x : e.pageX,` && |\n| &&
+`                        y : e.pageY` && |\n| &&
+`                    };` && |\n| &&
+`    ` && |\n| &&
+`                    if (e.target.classList.contains(&#39;helper&#39;)) {` && |\n| &&
+`                        var helper = e.target;` && |\n| &&
+`                        state.editType = helper.action;` && |\n| &&
+`    ` && |\n| &&
+`                        if (helper.n &gt;= 0) { // if typeof selected_area == polygon` && |\n| &&
+`                            state.selectedArea.selected_point = helper.n;` && |\n| &&
+`                        }` && |\n| &&
+`                        ` && |\n| &&
+`                        app.addEvent(app.domElements.container,` && |\n| &&
+`                                     &#39;mousemove&#39;,` && |\n| &&
+`                                     state.selectedArea.onProcessEditing.bind(state.selectedArea))` && |\n| &&
+`                           .addEvent(app.domElements.container,` && |\n| &&
+`                                     &#39;mouseup&#39;,` && |\n| &&
+`                                     state.selectedArea.onStopEditing.bind(state.selectedArea));` && |\n| &&
+`                    } else if (e.target.tagName === &#39;rect&#39; || e.target.tagName === &#39;circle&#39; || e.target.tagName === &#39;polygon&#39;) {` && |\n| &&
+`                        state.editType = &#39;move&#39;;` && |\n| &&
+`                        ` && |\n| &&
+`                        app.addEvent(app.domElements.container,` && |\n| &&
+`                                     &#39;mousemove&#39;,` && |\n| &&
+`                                     state.selectedArea.onProcessEditing.bind(state.selectedArea))` && |\n| &&
+`                           .addEvent(app.domElements.container,` && |\n| &&
+`                                     &#39;mouseup&#39;,` && |\n| &&
+`                                     state.selectedArea.onStopEditing.bind(state.selectedArea));` && |\n| &&
+`                    }` && |\n| &&
+`                } else {` && |\n| &&
+`                    app.deselectAll();` && |\n| &&
+`                    info.unload();` && |\n| &&
+`                }` && |\n| &&
+`            }` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n|.
+result = result && `        domElements.container.addEventListener(&#39;mousedown&#39;, onSvgMousedown, false);` && |\n| &&
+`        ` && |\n| &&
+`        /* Add click event for svg */` && |\n| &&
+`        function onSvgClick(e) {` && |\n| &&
+`            if (state.appMode === &#39;drawing&#39; &amp;&amp; !state.isDraw &amp;&amp; state.currentType) {` && |\n| &&
+`                code.hide();` && |\n| &&
+`                app.setIsDraw(true);` && |\n| &&
+`                ` && |\n| &&
+`                state.newArea = Area.CONSTRUCTORS[state.currentType].createAndStartDrawing(` && |\n| &&
+`                    utils.getRightCoords(e.pageX, e.pageY)` && |\n| &&
+`                );` && |\n| &&
+`            }` && |\n| &&
+`        }` && |\n| &&
+`    ` && |\n| &&
+`        domElements.container.addEventListener(&#39;click&#39;, onSvgClick, false);` && |\n| &&
+`        ` && |\n| &&
+`        /* Add dblclick event for svg */` && |\n| &&
+`        function onAreaDblClick(e) {` && |\n| &&
+`            if (state.appMode === &#39;editing&#39;) {` && |\n| &&
+`                if (e.target.tagName === &#39;rect&#39; || e.target.tagName === &#39;circle&#39; || e.target.tagName === &#39;polygon&#39;) {` && |\n| &&
+`                    state.selectedArea = e.target.parentNode.obj;` && |\n| &&
+`                    info.load(state.selectedArea, e.pageX, e.pageY);` && |\n| &&
+`                }` && |\n| &&
+`            }` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        domElements.container.addEventListener(&#39;dblclick&#39;, onAreaDblClick, false);` && |\n| &&
+`        ` && |\n| &&
+`         ` && |\n| &&
+`        /* Add keydown event for document */` && |\n| &&
+`        function onDocumentKeyDown(e) {` && |\n| &&
+`            var ctrlDown = e.ctrlKey || e.metaKey; // PC || Mac` && |\n| &&
+`            ` && |\n| &&
+`            switch (e.keyCode) {` && |\n| &&
+`                case KEYS.F1:` && |\n| &&
+`                    help.show();` && |\n| &&
+`                    e.preventDefault();` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.ESC:` && |\n| &&
+`                    help.hide();` && |\n| &&
+`                    if (state.isDraw) {` && |\n| &&
+`                        state.isDraw = false;` && |\n| &&
+`                        state.newArea.remove();` && |\n| &&
+`                        state.areas.pop();` && |\n| &&
+`                        app.removeAllEvents();` && |\n| &&
+`                    } else if (state.appMode === &#39;editing&#39;) {` && |\n| &&
+`                        state.selectedArea.redraw();` && |\n| &&
+`                        app.removeAllEvents();` && |\n| &&
+`                    }` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.TOP:` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea) {` && |\n| &&
+`                        state.selectedArea.move(0, -1);` && |\n| &&
+`                        e.preventDefault();` && |\n| &&
+`                    }` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.BOTTOM:` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea) {` && |\n| &&
+`                        state.selectedArea.move(0, 1);` && |\n| &&
+`                        e.preventDefault();` && |\n| &&
+`                    }` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.LEFT: ` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea) {` && |\n| &&
+`                        state.selectedArea.move(-1, 0);` && |\n| &&
+`                        e.preventDefault();` && |\n| &&
+`                    }` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.RIGHT:` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea) {` && |\n| &&
+`                        state.selectedArea.move(1, 0);` && |\n| &&
+`                        e.preventDefault();` && |\n| &&
+`                    }` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.DELETE:` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea) {` && |\n| &&
+`                        app.removeObject(state.selectedArea);` && |\n| &&
+`                        state.selectedArea = null;` && |\n| &&
+`                        info.unload();` && |\n| &&
+`                    }` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.I:` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea) {` && |\n| &&
+`                        var coordsForAttributesForm = state.selectedArea.getCoordsForDisplayingInfo();` && |\n| &&
+`                            ` && |\n| &&
+`                        info.load(` && |\n| &&
+`                            state.selectedArea, ` && |\n| &&
+`                            coordsForAttributesForm.x + app.getOffset(&#39;x&#39;), ` && |\n| &&
+`                            coordsForAttributesForm.y + app.getOffset(&#39;y&#39;)` && |\n| &&
+`                        );` && |\n| &&
+`                    }` && |\n| &&
+`                    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.S:` && |\n| &&
+`                    if (ctrlDown) {` && |\n| &&
+`                        app.saveInLocalStorage();` && |\n| &&
+`                    }` && |\n| &&
+`    ` && |\n| &&
+`                    break;` && |\n| &&
+`                ` && |\n| &&
+`                case KEYS.C:` && |\n| &&
+`                    if (state.appMode === &#39;editing&#39; &amp;&amp; state.selectedArea &amp;&amp; ctrlDown) {` && |\n| &&
+`                        state.selectedArea = Area.copy(state.selectedArea);` && |\n| &&
+`                    }` && |\n| &&
+`                ` && |\n| &&
+`                    break;` && |\n| &&
+`            }` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        document.addEventListener(&#39;keydown&#39;, onDocumentKeyDown, false);` && |\n| &&
+`        ` && |\n| &&
+`        // Will moved from the main module` && |\n| &&
+`        var areasIO = {` && |\n| &&
+`            toJSON : function() {` && |\n| &&
+`                var obj = {` && |\n| &&
+`                    areas : [],` && |\n| &&
+`                    img : state.image.src` && |\n| &&
+`                };` && |\n| &&
+`    ` && |\n| &&
+`                utils.foreach(state.areas, function(x) {` && |\n| &&
+`                    obj.areas.push(x.toJSON());` && |\n| &&
+`                });` && |\n| &&
+`                ` && |\n| &&
+`                return JSON.stringify(obj);` && |\n| &&
+`            },` && |\n| &&
+`            fromJSON : function(str) {` && |\n| &&
+`                var obj = JSON.parse(str);` && |\n| &&
+`                ` && |\n| &&
+`                app.loadImage(obj.img);` && |\n| &&
+`                ` && |\n| &&
+`                utils.foreach(obj.areas, function(areaParams) {` && |\n| &&
+`                    Area.fromJSON(areaParams);` && |\n| &&
+`                });    ` && |\n| &&
+`            }` && |\n| &&
+`        };` && |\n| &&
+`        ` && |\n| &&
+`        var localStorageWrapper = (function() {` && |\n| &&
+`            var KEY_NAME = &#39;AmihaiAtias&#39;;` && |\n| &&
+`            ` && |\n| &&
+`            return {` && |\n| &&
+`                save : function() {` && |\n| &&
+`                    var result = areasIO.toJSON();` && |\n| &&
+`                    window.localStorage.setItem(KEY_NAME, result);` && |\n| &&
+`                    console.info(&#39;Editor &#39; + result + &#39; saved&#39;);` && |\n| &&
+`                ` && |\n| &&
+`                    alert(&#39;Saved&#39;);` && |\n| &&
+`                },` && |\n| &&
+`                restore : function() {` && |\n| &&
+`                    areasIO.fromJSON(window.localStorage.getItem(KEY_NAME));` && |\n| &&
+`                }` && |\n| &&
+`            };` && |\n| &&
+`        })();` && |\n| &&
+`        ` && |\n| &&
+`        return {` && |\n| &&
+`            domElements : domElements,` && |\n| &&
+`            saveInLocalStorage : localStorageWrapper.save,` && |\n| &&
+`            loadFromLocalStorage : localStorageWrapper.restore,` && |\n| &&
+`            hide : function() {` && |\n| &&
+`                utils.hide(domElements.container);` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            show : function() {` && |\n| &&
+`                utils.show(domElements.container);` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            recalcOffsetValues: function() {` && |\n| &&
+`                recalcOffsetValues();` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            setDimensions : function(width, height) {` && |\n| &&
+`                domElements.svg.setAttribute(&#39;width&#39;, width);` && |\n| &&
+`                domElements.svg.setAttribute(&#39;height&#39;, height);` && |\n| &&
+`                domElements.container.style.width = width + &#39;px&#39;;` && |\n| &&
+`                domElements.container.style.height = height + &#39;px&#39;;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            loadImage : function(url) {` && |\n| &&
+`                //get_image.showLoadIndicator();` && |\n| &&
+`                domElements.img.src = url;` && |\n| &&
+`                state.image.src = url;` && |\n| &&
+`                ` && |\n| &&
+`                domElements.img.onload = function() {` && |\n| &&
+`                    //get_image.hideLoadIndicator().hide();` && |\n| &&
+`                    app.show()` && |\n| &&
+`                       .setDimensions(domElements.img.width, domElements.img.height)` && |\n| &&
+`                       .recalcOffsetValues();` && |\n| &&
+`                };` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            preview : (function() {` && |\n| &&
+`                domElements.img.setAttribute(&#39;usemap&#39;, &#39;#map&#39;);` && |\n| &&
+`                domElements.map = document.createElement(&#39;map&#39;);` && |\n| &&
+`                domElements.map.setAttribute(&#39;name&#39;, &#39;map&#39;);` && |\n| &&
+`                domElements.container.appendChild(domElements.map);` && |\n| &&
+`                ` && |\n| &&
+`                return function() {` && |\n| &&
+`                    info.unload();` && |\n| &&
+`                    app.setShape(null);` && |\n| &&
+`                    utils.hide(domElements.svg);` && |\n| &&
+`                    domElements.map.innerHTML = app.getHTMLCode();` && |\n| &&
+`                    code.print();` && |\n| &&
+`                    return this;` && |\n| &&
+`                };` && |\n| &&
+`            })(),` && |\n| &&
+`            hidePreview : function() {` && |\n| &&
+`                utils.show(domElements.svg);` && |\n| &&
+`                domElements.map.innerHTML = &#39;&#39;;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            addNodeToSvg : function(node) {` && |\n| &&
+`                domElements.svg.appendChild(node);` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            removeNodeFromSvg : function(node) {` && |\n| &&
+`                domElements.svg.removeChild(node);` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getOffset : function(arg) {` && |\n| &&
+`                switch(arg) {` && |\n| &&
+`                    case &#39;x&#39;:` && |\n| &&
+`                    case &#39;y&#39;:` && |\n| &&
+`                        return state.offset[arg];` && |\n| &&
+`                }` && |\n| &&
+`            },` && |\n| &&
+`            clear : function(){` && |\n| &&
+`                //remove all areas` && |\n| &&
+`                state.areas.length = 0;` && |\n| &&
+`                while(domElements.svg.childNodes[0]) {` && |\n| &&
+`                    domElements.svg.removeChild(domElements.svg.childNodes[0]);` && |\n| &&
+`                }` && |\n| &&
+`                code.hide();` && |\n| &&
+`                info.unload();` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            removeObject : function(obj) {` && |\n| &&
+`                utils.foreach(state.areas, function(x, i) {` && |\n| &&
+`                    if(x === obj) {` && |\n| &&
+`                        state.areas.splice(i, 1);` && |\n| &&
+`                    }` && |\n| &&
+`                });` && |\n| &&
+`                obj.remove();` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            deselectAll : function() {` && |\n| &&
+`                utils.foreach(state.areas, function(x) {` && |\n| &&
+`                    x.deselect();` && |\n| &&
+`                });` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getIsDraw : function() {` && |\n| &&
+`                return state.isDraw;` && |\n| &&
+`            },` && |\n| &&
+`            setIsDraw : function(arg) {` && |\n| &&
+`                state.isDraw = arg;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            setMode : function(arg) {` && |\n| &&
+`                state.appMode = arg;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getMode : function() {` && |\n| &&
+`                return state.appMode;` && |\n| &&
+`            },` && |\n| &&
+`            setShape : function(arg) {` && |\n| &&
+`                state.currentType = arg;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getShape : function() {` && |\n| &&
+`                return state.currentType;` && |\n| &&
+`            },` && |\n| &&
+`            addObject : function(object) {` && |\n| &&
+`                state.areas.push(object);` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getNewArea : function() {` && |\n| &&
+`                return state.newArea;` && |\n| &&
+`            },` && |\n| &&
+`            resetNewArea : function() {` && |\n| &&
+`                state.newArea = null;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getSelectedArea : function() {` && |\n| &&
+`                return state.selectedArea;` && |\n| &&
+`            },` && |\n| &&
+`            setSelectedArea : function(obj) {` && |\n| &&
+`                state.selectedArea = obj;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getEditType : function() {` && |\n| &&
+`                return state.editType;` && |\n| &&
+`            },` && |\n| &&
+`            setFilename : function(str) {` && |\n| &&
+`                state.image.filename = str;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            setEditClass : function() {` && |\n| &&
+`                domElements.container.classList.remove(&#39;draw&#39;);` && |\n| &&
+`                domElements.container.classList.add(&#39;edit&#39;);` && |\n| &&
+`` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            setDrawClass : function() {` && |\n| &&
+`                domElements.container.classList.remove(&#39;edit&#39;);` && |\n| &&
+`                domElements.container.classList.add(&#39;draw&#39;);` && |\n| &&
+`` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            setDefaultClass : function() {` && |\n| &&
+`                domElements.container.classList.remove(&#39;edit&#39;);` && |\n| &&
+`                domElements.container.classList.remove(&#39;draw&#39;);` && |\n| &&
+`` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            addEvent : function(target, eventType, func) {` && |\n| &&
+`                state.events.push(new AppEvent(target, eventType, func));` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            removeAllEvents : function() {` && |\n| &&
+`                utils.foreach(state.events, function(x) {` && |\n| &&
+`                    x.remove();` && |\n| &&
+`                });` && |\n| &&
+`                state.events.length = 0;` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            getHTMLCode : function(arg) {` && |\n| &&
+`                var html_code = &#39;&#39;;` && |\n| &&
+`                if (arg) {` && |\n| &&
+`                    if (!state.areas.length) {` && |\n| &&
+`                        return &#39;0 objects&#39;;` && |\n| &&
+`                    }` && |\n| &&
+`                    html_code += utils.encode(&#39;&lt;img src=&quot;&#39; + state.image.filename + &#39;&quot; alt=&quot;&quot; usemap=&quot;#map&quot; /&gt;&#39;) +` && |\n| &&
+`                        &#39;&lt;br /&gt;&#39; + utils.encode(&#39;&lt;map name=&quot;map&quot;&gt;&#39;) + &#39;&lt;br /&gt;&#39;;` && |\n| &&
+`                    utils.foreachReverse(state.areas, function(x) {` && |\n| &&
+`                        html_code += &#39;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&#39; + utils.encode(x.toHTMLMapElementString()) + &#39;&lt;br /&gt;&#39;;` && |\n| &&
+`                    });` && |\n| &&
+`                    html_code += utils.encode(&#39;&lt;/map&gt;&#39;);` && |\n| &&
+`                } else {` && |\n| &&
+`                    utils.foreachReverse(state.areas, function(x) {` && |\n| &&
+`                        html_code += x.toHTMLMapElementString();` && |\n| &&
+`                    });` && |\n| &&
+`                }` && |\n| &&
+`                return html_code;` && |\n| &&
+`            }` && |\n| &&
+`        };` && |\n| &&
+`    })();` && |\n| &&
+`    ` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * The constructor for dom events (for simple deleting of event)` && |\n| &&
+`     * ` && |\n| &&
+`     * @constructor` && |\n| &&
+`     * @param {DOMElement} target - DOM-element` && |\n| &&
+`     * @param {String} eventType - e.g. &#39;click&#39; or &#39;mousemove&#39;` && |\n| &&
+`     * @param {Function} func - handler for this event` && |\n| &&
+`     */` && |\n| &&
+`    function AppEvent(target, eventType, func) {` && |\n| &&
+`        this.target = target;` && |\n| &&
+`        this.eventType = eventType;` && |\n| &&
+`        this.func = func;` && |\n| &&
+`        ` && |\n| &&
+`        target.addEventListener(eventType, func, false);` && |\n| &&
+`    }` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * Remove this event listener from target` && |\n| &&
+`     */` && |\n| &&
+`    AppEvent.prototype.remove = function() {` && |\n| &&
+`        this.target.removeEventListener(this.eventType, this.func, false);` && |\n| &&
+`    };` && |\n| &&
+`` && |\n|.
+result = result &&
+`    function Helper(node, x, y, action) {` && |\n| &&
+`        this._el = document.createElementNS(Area.SVG_NS, &#39;rect&#39;);` && |\n| &&
+`        ` && |\n| &&
+`        this._el.classList.add(Helper.CLASS_NAME);` && |\n| &&
+`        this._el.setAttribute(&#39;height&#39;, Helper.SIZE);` && |\n| &&
+`        this._el.setAttribute(&#39;width&#39;, Helper.SIZE);` && |\n| &&
+`        this._el.setAttribute(&#39;x&#39;, x + Helper.OFFSET);` && |\n| &&
+`        this._el.setAttribute(&#39;y&#39;, y + Helper.OFFSET);` && |\n| &&
+`        ` && |\n| &&
+`        node.appendChild(this._el);` && |\n| &&
+`        ` && |\n| &&
+`        this._el.action = action; // TODO: move &#39;action&#39; from dom el to data-attr` && |\n| &&
+`        this._el.classList.add(Helper.ACTIONS_TO_CURSORS[action]);` && |\n| &&
+`    }` && |\n| &&
+`    ` && |\n| &&
+`    Helper.SIZE = 5;` && |\n| &&
+`    Helper.OFFSET = -Math.ceil(Helper.SIZE / 2);` && |\n| &&
+`    Helper.CLASS_NAME = &#39;helper&#39;;` && |\n| &&
+`    Helper.ACTIONS_TO_CURSORS = {` && |\n| &&
+`        &#39;move&#39;            : &#39;move&#39;,` && |\n| &&
+`        &#39;editLeft&#39;        : &#39;e-resize&#39;,` && |\n| &&
+`        &#39;editRight&#39;       : &#39;w-resize&#39;,` && |\n| &&
+`        &#39;editTop&#39;         : &#39;n-resize&#39;,` && |\n| &&
+`        &#39;editBottom&#39;      : &#39;s-resize&#39;,` && |\n| &&
+`        &#39;editTopLeft&#39;     : &#39;nw-resize&#39;,` && |\n| &&
+`        &#39;editTopRight&#39;    : &#39;ne-resize&#39;,` && |\n| &&
+`        &#39;editBottomLeft&#39;  : &#39;sw-resize&#39;,` && |\n| &&
+`        &#39;editBottomRight&#39; : &#39;se-resize&#39;,` && |\n| &&
+`        &#39;movePoint&#39;       : &#39;pointer&#39;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Helper.prototype.setCoords = function(x, y) {` && |\n| &&
+`        this._el.setAttribute(&#39;x&#39;, x + Helper.OFFSET);` && |\n| &&
+`        this._el.setAttribute(&#39;y&#39;, y + Helper.OFFSET);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Helper.prototype.setId = function(id) {` && |\n| &&
+`        // TODO: move n-field from DOM-element to data-attribute` && |\n| &&
+`        this._el.n = id;` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    function Area(type, coords, attributes) {` && |\n| &&
+`        if (this.constructor === Area) {` && |\n| &&
+`            throw new Error(&#39;This is abstract class&#39;);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        this._type = type;` && |\n| &&
+`        ` && |\n| &&
+`        this._attributes = {` && |\n| &&
+`            href : &#39;&#39;,` && |\n| &&
+`            alt : &#39;&#39;,` && |\n| &&
+`            title : &#39;&#39;    ` && |\n| &&
+`        };` && |\n| &&
+`` && |\n| &&
+`        if (attributes) {` && |\n| &&
+`            this.setInfoAttributes(attributes);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        this._coords = coords;` && |\n| &&
+`        ` && |\n| &&
+`        // the g-element, it contains this area and helpers elements` && |\n| &&
+`        this._groupEl = document.createElementNS(Area.SVG_NS, &#39;g&#39;);` && |\n| &&
+`        app.addNodeToSvg(this._groupEl);` && |\n| &&
+`        ` && |\n| &&
+`        // TODO: remove this field from DOM-element` && |\n| &&
+`        // Link to parent object` && |\n| &&
+`        this._groupEl.obj = this;` && |\n| &&
+`        ` && |\n| &&
+`        // svg-dom-element of area` && |\n| &&
+`        this._el = null; ` && |\n| &&
+`        ` && |\n| &&
+`        // Object with all helpers of area` && |\n| &&
+`        this._helpers = {};` && |\n| &&
+`        ` && |\n| &&
+`        // Add this new area to list of all areas ` && |\n| &&
+`        app.addObject(this);` && |\n| &&
+`    }` && |\n| &&
+`    Area.SVG_NS = &#39;http://www.w3.org/2000/svg&#39;; // TODO: move to main editor constructor` && |\n| &&
+`    Area.CLASS_NAMES = {` && |\n| &&
+`        SELECTED : &#39;selected&#39;,` && |\n| &&
+`        WITH_HREF : &#39;with_href&#39;` && |\n| &&
+`    };` && |\n| &&
+`    Area.CONSTRUCTORS = {` && |\n| &&
+`        rectangle : Rectangle,` && |\n| &&
+`        circle : Circle,` && |\n| &&
+`        polygon : Polygon` && |\n| &&
+`    };` && |\n| &&
+`    Area.REGEXP = {` && |\n| &&
+`        AREA : /&lt;area(?=.*? shape=&quot;(rect|circle|poly)&quot;)(?=.*? coords=&quot;([\d ,]+?)&quot;)[\s\S]*?&gt;/gmi,` && |\n| &&
+`        HREF : / href=&quot;([\S\s]+?)&quot;/,` && |\n| &&
+`        ALT : / alt=&quot;([\S\s]+?)&quot;/,` && |\n| &&
+`        TITLE : / title=&quot;([\S\s]+?)&quot;/,` && |\n| &&
+`        DELIMETER : / ?, ?/` && |\n| &&
+`    };` && |\n| &&
+`    Area.HTML_NAMES_TO_AREA_NAMES = {` && |\n| &&
+`        rect : &#39;rectangle&#39;,` && |\n| &&
+`        circle : &#39;circle&#39;,` && |\n| &&
+`        poly : &#39;polygon&#39;` && |\n| &&
+`    };` && |\n| &&
+`    Area.ATTRIBUTES_NAMES = [&#39;HREF&#39;, &#39;ALT&#39;, &#39;TITLE&#39;];` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * This method should be implemented for child-classes ` && |\n| &&
+`     * ` && |\n| &&
+`     * @throws {AbstractMethodCall}` && |\n| &&
+`     */` && |\n| &&
+`    Area.prototype.ABSTRACT_METHOD = function() {` && |\n| &&
+`        throw new Error(&#39;This is abstract method&#39;);` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * All these methods are abstract ` && |\n| &&
+`     * ` && |\n| &&
+`     * @throws {AbstractMethodCall}` && |\n| &&
+`     */` && |\n| &&
+`    Area.prototype.setSVGCoords =` && |\n| &&
+`    Area.prototype.setCoords = ` && |\n| &&
+`    Area.prototype.dynamicDraw = ` && |\n| &&
+`    Area.prototype.onProcessDrawing = ` && |\n| &&
+`    Area.prototype.onStopDrawing = ` && |\n| &&
+`    Area.prototype.edit = ` && |\n| &&
+`    Area.prototype.dynamicEdit = ` && |\n| &&
+`    Area.prototype.onProcessEditing = ` && |\n| &&
+`    Area.prototype.onStopEditing = ` && |\n| &&
+`    Area.prototype.toString = ` && |\n| &&
+`    Area.prototype.toHTMLMapElementString =` && |\n| &&
+`    Area.prototype.getCoordsForDisplayingInfo = ` && |\n| &&
+`    Area.prototype.ABSTRACT_METHOD;` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.redraw = function(coords) {` && |\n| &&
+`        this.setSVGCoords(coords ? coords : this._coords);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * Remove this area from DOM-tree` && |\n| &&
+`     */` && |\n| &&
+`    Area.prototype.remove = function() {` && |\n| &&
+`        app.removeNodeFromSvg(this._groupEl);` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    /**` && |\n| &&
+`     * Move this area by dx, dy ` && |\n| &&
+`     * ` && |\n| &&
+`     * @returns {Area} - this area` && |\n| &&
+`     */` && |\n| &&
+`    Area.prototype.move = function(dx, dy) {` && |\n| &&
+`        this.setCoords(this.edit(&#39;move&#39;, dx, dy)).redraw();` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.select = function() {` && |\n| &&
+`        this._el.classList.add(Area.CLASS_NAMES.SELECTED);` && |\n| &&
+`        console.info(this.toString() + &#39; is selected now&#39;);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.deselect = function() {` && |\n| &&
+`        this._el.classList.remove(Area.CLASS_NAMES.SELECTED);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.setStyleOfElementWithHref = function() {` && |\n| &&
+`        this._el.classList.add(Area.CLASS_NAMES.WITH_HREF);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.unsetStyleOfElementWithHref = function() {` && |\n| &&
+`        this._el.classList.remove(Area.CLASS_NAMES.WITH_HREF);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.setInfoAttributes = function(attributes) {` && |\n| &&
+`        this._attributes.href = attributes.href;` && |\n| &&
+`        this._attributes.alt = attributes.alt;` && |\n| &&
+`        this._attributes.title = attributes.title;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Area.prototype.toJSON = function() {` && |\n| &&
+`        return {` && |\n| &&
+`            type : this._type,` && |\n| &&
+`            coords : this._coords,` && |\n| &&
+`            attributes : this._attributes` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * Returns new area object created with params from json-object` && |\n| &&
+`     * ` && |\n| &&
+`     * @static` && |\n| &&
+`     * @param params {Object} - params of area, incl. type, coords and attributes` && |\n| &&
+`     * @returns {Rectangle|Circle|Polygon}` && |\n| &&
+`     */` && |\n| &&
+`    Area.fromJSON = function(params) {` && |\n| &&
+`        var AreaConstructor = Area.CONSTRUCTORS[params.type];` && |\n| &&
+`        ` && |\n| &&
+`        if (!AreaConstructor) {` && |\n| &&
+`            throw new Error(&#39;This area type is not valid&#39;);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        if (!AreaConstructor.testCoords(params.coords)) {` && |\n| &&
+`            throw new Error(&#39;This coords is not valid for &#39; + params.type);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        app.setIsDraw(true);` && |\n| &&
+`        ` && |\n| &&
+`        var area = new AreaConstructor(params.coords, params.attributes);` && |\n| &&
+`        ` && |\n| &&
+`        app.setIsDraw(false)` && |\n| &&
+`           .resetNewArea();` && |\n| &&
+`        ` && |\n| &&
+`        return area;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Area.createAreasFromHTMLOfMap = function(htmlStr) {` && |\n| &&
+`        if (!htmlStr) {` && |\n| &&
+`            return false;` && |\n| &&
+`        } ` && |\n| &&
+`` && |\n| &&
+`        while (true) {` && |\n| &&
+`            var findedResult = Area.REGEXP.AREA.exec(htmlStr); // &lt;area shape=&quot;$1&quot; coords=&quot;$2&quot; ... /&gt;` && |\n| &&
+`            if (!findedResult) {` && |\n| &&
+`                break;` && |\n| &&
+`            }    ` && |\n| &&
+`` && |\n| &&
+`            var htmlAreaFinded = findedResult[0], // &lt;area shape=&quot;...&quot; coords=&quot;...&quot; ... /&gt;` && |\n| &&
+`                type = findedResult[1], // $1` && |\n| &&
+`                coords = findedResult[2].split(Area.REGEXP.DELIMETER), // $2` && |\n| &&
+`                attributes = {}; ` && |\n| &&
+`            ` && |\n| &&
+`            Area.ATTRIBUTES_NAMES.forEach(function(item, i) {` && |\n| &&
+`                var result = Area.REGEXP[item].exec(htmlAreaFinded);` && |\n| &&
+`` && |\n| &&
+`                if (result) {` && |\n| &&
+`                    attributes[name] = result[1];` && |\n| &&
+`                }    ` && |\n| &&
+`            });` && |\n| &&
+`            ` && |\n| &&
+`            coords = coords.map(function(item) {` && |\n| &&
+`                return Number(item);` && |\n| &&
+`            });` && |\n| &&
+`` && |\n| &&
+`            type = Area.HTML_NAMES_TO_AREA_NAMES[type];` && |\n| &&
+`` && |\n| &&
+`            Area.fromJSON({` && |\n| &&
+`                type : type,` && |\n| &&
+`                coords : Area.CONSTRUCTORS[type].getCoordsFromHTMLArray(coords),` && |\n| &&
+`                attributes : attributes` && |\n| &&
+`            });` && |\n| &&
+`` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        return Boolean(htmlAreaFinded);` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    /**` && |\n| &&
+`     * Returns copy of original area, selected and moved by (10,10) from it` && |\n| &&
+`     * ` && |\n| &&
+`     * @param originalArea {Area}` && |\n| &&
+`     * @returns {Area} - a copy of original area` && |\n| &&
+`     */` && |\n| &&
+`    Area.copy = function(originalArea) {` && |\n| &&
+`        return Area.fromJSON(originalArea.toJSON()).move(10, 10).select();` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`` && |\n| &&
+`    function Rectangle(coords, attributes) {` && |\n| &&
+`        Area.call(this, &#39;rectangle&#39;, coords, attributes);` && |\n| &&
+`        ` && |\n| &&
+`        this._coords = {` && |\n| &&
+`            x : coords.x || 0, ` && |\n| &&
+`            y : coords.y || 0,` && |\n| &&
+`            width : coords.width || 0, ` && |\n| &&
+`            height : coords.height || 0` && |\n| &&
+`        };` && |\n| &&
+`    ` && |\n| &&
+`        this._el = document.createElementNS(Area.SVG_NS, &#39;rect&#39;);` && |\n| &&
+`        this._groupEl.appendChild(this._el);` && |\n| &&
+`        ` && |\n| &&
+`        var x = coords.x - this._coords.width / 2,` && |\n| &&
+`            y = coords.y - this._coords.height / 2;` && |\n| &&
+`        ` && |\n| &&
+`        this._helpers = {` && |\n| &&
+`            center : new Helper(this._groupEl, x, y, &#39;move&#39;),` && |\n| &&
+`            top : new Helper(this._groupEl, x, y, &#39;editTop&#39;),` && |\n| &&
+`            bottom : new Helper(this._groupEl, x, y, &#39;editBottom&#39;),` && |\n| &&
+`            left : new Helper(this._groupEl, x, y, &#39;editLeft&#39;),` && |\n| &&
+`            right : new Helper(this._groupEl, x, y, &#39;editRight&#39;),` && |\n| &&
+`            topLeft : new Helper(this._groupEl, x, y, &#39;editTopLeft&#39;),` && |\n| &&
+`            topRight : new Helper(this._groupEl, x, y, &#39;editTopRight&#39;),` && |\n| &&
+`            bottomLeft : new Helper(this._groupEl, x, y, &#39;editBottomLeft&#39;),` && |\n| &&
+`            bottomRight : new Helper(this._groupEl, x, y, &#39;editBottomRight&#39;)` && |\n| &&
+`        };` && |\n| &&
+`        ` && |\n| &&
+`        this.redraw();` && |\n| &&
+`    }` && |\n| &&
+`    utils.inherits(Rectangle, Area);` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.setSVGCoords = function(coords) {` && |\n| &&
+`        this._el.setAttribute(&#39;x&#39;, coords.x);` && |\n| &&
+`        this._el.setAttribute(&#39;y&#39;, coords.y);` && |\n| &&
+`        this._el.setAttribute(&#39;width&#39;, coords.width);` && |\n| &&
+`        this._el.setAttribute(&#39;height&#39;, coords.height);` && |\n| &&
+`        ` && |\n| &&
+`        var top = coords.y,` && |\n| &&
+`            center_y = coords.y + coords.height / 2,` && |\n| &&
+`            bottom = coords.y + coords.height,` && |\n| &&
+`            left = coords.x,` && |\n| &&
+`            center_x = coords.x + coords.width / 2,` && |\n| &&
+`            right = coords.x + coords.width;` && |\n| &&
+`    ` && |\n| &&
+`        this._helpers.center.setCoords(center_x, center_y);` && |\n| &&
+`        this._helpers.top.setCoords(center_x, top);` && |\n| &&
+`        this._helpers.bottom.setCoords(center_x, bottom);` && |\n| &&
+`        this._helpers.left.setCoords(left, center_y);` && |\n| &&
+`        this._helpers.right.setCoords(right, center_y);` && |\n| &&
+`        this._helpers.topLeft.setCoords(left, top);` && |\n| &&
+`        this._helpers.topRight.setCoords(right, top);` && |\n| &&
+`        this._helpers.bottomLeft.setCoords(left, bottom);` && |\n| &&
+`        this._helpers.bottomRight.setCoords(right, bottom);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.setCoords = function(coords) {` && |\n| &&
+`        this._coords.x = coords.x;` && |\n| &&
+`        this._coords.y = coords.y;` && |\n| &&
+`        this._coords.width = coords.width;` && |\n| &&
+`        this._coords.height = coords.height;` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.dynamicDraw = function(x, y, isSquare) {` && |\n| &&
+`        var newCoords = {` && |\n| &&
+`            x : this._coords.x,` && |\n| &&
+`            y : this._coords.y,` && |\n| &&
+`            width : x - this._coords.x,` && |\n| &&
+`            height: y - this._coords.y` && |\n| &&
+`        };` && |\n| &&
+`        ` && |\n| &&
+`        if (isSquare) {` && |\n| &&
+`            newCoords = Rectangle.getSquareCoords(newCoords);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        newCoords = Rectangle.getNormalizedCoords(newCoords);` && |\n| &&
+`        ` && |\n| &&
+`        this.redraw(newCoords);` && |\n| &&
+`        ` && |\n| &&
+`        return newCoords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.onProcessDrawing = function(e) {` && |\n| &&
+`        var coords = utils.getRightCoords(e.pageX, e.pageY);` && |\n| &&
+`            ` && |\n| &&
+`        this.dynamicDraw(coords.x, coords.y, e.shiftKey);` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.onStopDrawing = function(e) {` && |\n| &&
+`        var coords = utils.getRightCoords(e.pageX, e.pageY);` && |\n| &&
+`        ` && |\n| &&
+`        this.setCoords(this.dynamicDraw(coords.x, coords.y, e.shiftKey)).deselect();` && |\n| &&
+`        ` && |\n| &&
+`        app.removeAllEvents()` && |\n| &&
+`           .setIsDraw(false)` && |\n| &&
+`           .resetNewArea();` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.edit = function(editingType, dx, dy) {` && |\n| &&
+`        var tempParams = Object.create(this._coords);` && |\n| &&
+`        ` && |\n| &&
+`        switch (editingType) {` && |\n| &&
+`            case &#39;move&#39;:` && |\n| &&
+`                tempParams.x += dx;` && |\n| &&
+`                tempParams.y += dy;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editLeft&#39;:` && |\n| &&
+`                tempParams.x += dx; ` && |\n| &&
+`                tempParams.width -= dx;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editRight&#39;:` && |\n| &&
+`                tempParams.width += dx;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editTop&#39;:` && |\n| &&
+`                tempParams.y += dy;` && |\n| &&
+`                tempParams.height -= dy;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editBottom&#39;:` && |\n| &&
+`                tempParams.height += dy;` && |\n| &&
+`                break;` && |\n| &&
+`               ` && |\n| &&
+`            case &#39;editTopLeft&#39;:` && |\n| &&
+`                tempParams.x += dx;` && |\n| &&
+`                tempParams.y += dy;` && |\n| &&
+`                tempParams.width -= dx;` && |\n| &&
+`                tempParams.height -= dy;` && |\n| &&
+`                break;` && |\n| &&
+`                ` && |\n| &&
+`            case &#39;editTopRight&#39;:` && |\n| &&
+`                tempParams.y += dy;` && |\n| &&
+`                tempParams.width += dx;` && |\n| &&
+`                tempParams.height -= dy;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editBottomLeft&#39;:` && |\n| &&
+`                tempParams.x += dx;` && |\n| &&
+`                tempParams.width -= dx;` && |\n| &&
+`                tempParams.height += dy;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editBottomRight&#39;:` && |\n| &&
+`                tempParams.width += dx;` && |\n| &&
+`                tempParams.height += dy;` && |\n| &&
+`                break;` && |\n| &&
+`        }` && |\n| &&
+`` && |\n|.
+result = result &&
+`        return tempParams;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.dynamicEdit = function(coords, saveProportions) {` && |\n| &&
+`        coords = Rectangle.getNormalizedCoords(coords);` && |\n| &&
+`        ` && |\n| &&
+`        if (saveProportions) {` && |\n| &&
+`            coords = Rectangle.getSavedProportionsCoords(coords);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        this.redraw(coords);` && |\n| &&
+`        ` && |\n| &&
+`        return coords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.onProcessEditing = function(e) {` && |\n| &&
+`        return this.dynamicEdit(` && |\n| &&
+`            this.edit(` && |\n| &&
+`                app.getEditType(),` && |\n| &&
+`                e.pageX - this.editingStartPoint.x,` && |\n| &&
+`                e.pageY - this.editingStartPoint.y` && |\n| &&
+`            ),` && |\n| &&
+`            e.shiftKey` && |\n| &&
+`        );` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.onStopEditing = function(e) {` && |\n| &&
+`        this.setCoords(this.onProcessEditing(e));` && |\n| &&
+`        app.removeAllEvents();` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Rectangle.prototype.toString = function() {` && |\n| &&
+`        return &#39;Rectangle {x: &#39;+ this._coords.x + ` && |\n| &&
+`               &#39;, y: &#39; + this._coords.y + ` && |\n| &&
+`               &#39;, width: &#39; + this._coords.width + ` && |\n| &&
+`               &#39;, height: &#39; + this._coords.height + &#39;}&#39;;` && |\n| &&
+`    }` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.prototype.toHTMLMapElementString = function() {` && |\n| &&
+`        var x2 = this._coords.x + this._coords.width,` && |\n| &&
+`            y2 = this._coords.y + this._coords.height;` && |\n| &&
+`            ` && |\n| &&
+`        return &#39;&lt;area shape=&quot;rect&quot; coords=&quot;&#39; // TODO: use template engine` && |\n| &&
+`            + this._coords.x + &#39;, &#39;` && |\n| &&
+`            + this._coords.y + &#39;, &#39;` && |\n| &&
+`            + x2 + &#39;, &#39;` && |\n| &&
+`            + y2` && |\n| &&
+`            + &#39;&quot;&#39;` && |\n| &&
+`            + (this._attributes.href ? &#39; href=&quot;&#39; + this._attributes.href + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + (this._attributes.alt ? &#39; alt=&quot;&#39; + this._attributes.alt + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + (this._attributes.title ? &#39; title=&quot;&#39; + this._attributes.title + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + &#39; /&gt;&#39;;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Rectangle.prototype.getCoordsForDisplayingInfo = function() {` && |\n| &&
+`        return {` && |\n| &&
+`            x : this._coords.x,` && |\n| &&
+`            y : this._coords.y` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.testCoords = function(coords) {` && |\n| &&
+`        return coords.x &amp;&amp; coords.y &amp;&amp; coords.width &amp;&amp; coords.height;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.testHTMLCoords = function(coords) {` && |\n| &&
+`        return coords.length === 4;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Rectangle.getCoordsFromHTMLArray = function(htmlCoordsArray) {` && |\n| &&
+`        if (!Rectangle.testHTMLCoords(htmlCoordsArray)) {    ` && |\n| &&
+`            throw new Error(&#39;This html-coordinates is not valid for rectangle&#39;);` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        return {` && |\n| &&
+`            x : htmlCoordsArray[0],` && |\n| &&
+`            y : htmlCoordsArray[1],` && |\n| &&
+`            width : htmlCoordsArray[2] - htmlCoordsArray[0],` && |\n| &&
+`            height : htmlCoordsArray[3] - htmlCoordsArray[1]` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Rectangle.getNormalizedCoords = function(coords) {` && |\n| &&
+`        if (coords.width &lt; 0) {` && |\n| &&
+`            coords.x += coords.width;` && |\n| &&
+`            coords.width = Math.abs(coords.width);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        if (coords.height &lt; 0) {` && |\n| &&
+`            coords.y += coords.height;` && |\n| &&
+`            coords.height = Math.abs(coords.height);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        return coords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.getSquareCoords = function(coords) {` && |\n| &&
+`        var width = Math.abs(coords.width),` && |\n| &&
+`            height = Math.abs(coords.height);` && |\n| &&
+`        ` && |\n| &&
+`        if (width &gt; height) {` && |\n| &&
+`            coords.width = coords.width &gt; 0 ? height : -height;` && |\n| &&
+`        } else {` && |\n| &&
+`            coords.height = coords.height &gt; 0 ? width : -width;` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        return coords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.getSavedProportionsCoords = function(coords, originalCoords) {` && |\n| &&
+`        var originalProportions = coords.width / coords.height,` && |\n| &&
+`            currentProportions = originalCoords.width / originalCoords.height;` && |\n| &&
+`        ` && |\n| &&
+`        if (currentProportions &gt; originalProportions) {` && |\n| &&
+`            coords.width = Math.round(coords.height * originalProportions);` && |\n| &&
+`        } else {` && |\n| &&
+`            coords.height = Math.round(coords.width / originalProportions);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        return coords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Rectangle.createAndStartDrawing = function(firstPointCoords) {` && |\n| &&
+`        var newArea = new Rectangle({` && |\n| &&
+`            x : firstPointCoords.x,` && |\n| &&
+`            y : firstPointCoords.y,` && |\n| &&
+`            width: 0,` && |\n| &&
+`            height: 0` && |\n| &&
+`        });` && |\n| &&
+`        ` && |\n| &&
+`        app.addEvent(app.domElements.container, &#39;mousemove&#39;, newArea.onProcessDrawing.bind(newArea))` && |\n| &&
+`           .addEvent(app.domElements.container, &#39;click&#39;, newArea.onStopDrawing.bind(newArea));` && |\n| &&
+`           ` && |\n| &&
+`        return newArea;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`` && |\n| &&
+`    function Circle(coords, attributes) {` && |\n| &&
+`        Area.call(this, &#39;circle&#39;, coords, attributes);` && |\n| &&
+`        ` && |\n| &&
+`        this._coords = {` && |\n| &&
+`            cx : coords.cx || 0,` && |\n| &&
+`            cy : coords.cy || 0,` && |\n| &&
+`            radius : coords.radius || 0 ` && |\n| &&
+`        };` && |\n| &&
+`        ` && |\n| &&
+`        this._el = document.createElementNS(Area.SVG_NS, &#39;circle&#39;);` && |\n| &&
+`        this._groupEl.appendChild(this._el);` && |\n| &&
+`    ` && |\n| &&
+`        this.helpers = {` && |\n| &&
+`            center : new Helper(this._groupEl, coords.cx, coords.cy, &#39;move&#39;),` && |\n| &&
+`            top : new Helper(this._groupEl, coords.cx, coords.cy, &#39;editTop&#39;),` && |\n| &&
+`            bottom : new Helper(this._groupEl, coords.cx, coords.cy, &#39;editBottom&#39;),` && |\n| &&
+`            left : new Helper(this._groupEl, coords.cx, coords.cy, &#39;editLeft&#39;),` && |\n| &&
+`            right : new Helper(this._groupEl, coords.cx, coords.cy, &#39;editRight&#39;)` && |\n| &&
+`        };` && |\n| &&
+`    ` && |\n| &&
+`        this.redraw();` && |\n| &&
+`    }` && |\n| &&
+`    utils.inherits(Circle, Area);` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.setSVGCoords = function(coords) {` && |\n| &&
+`        this._el.setAttribute(&#39;cx&#39;, coords.cx);` && |\n| &&
+`        this._el.setAttribute(&#39;cy&#39;, coords.cy);` && |\n| &&
+`        this._el.setAttribute(&#39;r&#39;, coords.radius);` && |\n| &&
+`    ` && |\n| &&
+`        this.helpers.center.setCoords(coords.cx, coords.cy);` && |\n| &&
+`        this.helpers.top.setCoords(coords.cx, coords.cy - coords.radius);` && |\n| &&
+`        this.helpers.right.setCoords(coords.cx + coords.radius, coords.cy);` && |\n| &&
+`        this.helpers.bottom.setCoords(coords.cx, coords.cy + coords.radius);` && |\n| &&
+`        this.helpers.left.setCoords(coords.cx - coords.radius, coords.cy);` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.setCoords = function(coords) {` && |\n| &&
+`        this._coords.cx = coords.cx;` && |\n| &&
+`        this._coords.cy = coords.cy;` && |\n| &&
+`        this._coords.radius = coords.radius;` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.dynamicDraw = function(x, y) {` && |\n| &&
+`        var radius = Math.round(` && |\n| &&
+`                Math.sqrt(` && |\n| &&
+`                    Math.pow(this._coords.cx - x, 2) +` && |\n| &&
+`                    Math.pow(this._coords.cy - y, 2)` && |\n| &&
+`                )` && |\n| &&
+`            ),` && |\n| &&
+`            newCoords = {` && |\n| &&
+`                cx : this._coords.cx,` && |\n| &&
+`                cy : this._coords.cy,` && |\n| &&
+`                radius : radius` && |\n| &&
+`            };` && |\n| &&
+`` && |\n| &&
+`        this.redraw(newCoords);` && |\n| &&
+`        ` && |\n| &&
+`        return newCoords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.onProcessDrawing = function(e) {` && |\n| &&
+`        var coords = utils.getRightCoords(e.pageX, e.pageY);` && |\n| &&
+`        ` && |\n| &&
+`        this.dynamicDraw(coords.x, coords.y);` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.onStopDrawing = function(e) {` && |\n| &&
+`        var coords = utils.getRightCoords(e.pageX, e.pageY);` && |\n| &&
+`        ` && |\n| &&
+`        this.setCoords(this.dynamicDraw(coords.x, coords.y)).deselect();` && |\n| &&
+`    ` && |\n| &&
+`        app.removeAllEvents()` && |\n| &&
+`           .setIsDraw(false)` && |\n| &&
+`           .resetNewArea();` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.edit = function(editingType, dx, dy) {` && |\n| &&
+`        var tempParams = Object.create(this._coords);` && |\n| &&
+`        ` && |\n| &&
+`        switch (editingType) {` && |\n| &&
+`            case &#39;move&#39;:` && |\n| &&
+`                tempParams.cx += dx;` && |\n| &&
+`                tempParams.cy += dy;` && |\n| &&
+`                break;` && |\n| &&
+`                ` && |\n| &&
+`            case &#39;editTop&#39;:` && |\n| &&
+`                tempParams.radius -= dy;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editBottom&#39;:` && |\n| &&
+`                tempParams.radius += dy;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editLeft&#39;:` && |\n| &&
+`                tempParams.radius -= dx;` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;editRight&#39;:` && |\n| &&
+`                tempParams.radius += dx;` && |\n| &&
+`                break;` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        return tempParams;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.dynamicEdit = function(tempCoords) {` && |\n| &&
+`        if (tempCoords.radius &lt; 0) {` && |\n| &&
+`            tempCoords.radius = Math.abs(tempCoords.radius);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        this.setSVGCoords(tempCoords);` && |\n| &&
+`        ` && |\n| &&
+`        return tempCoords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.onProcessEditing = function(e) {` && |\n| &&
+`        var editType = app.getEditType();` && |\n| &&
+`        ` && |\n| &&
+`        return this.dynamicEdit(` && |\n| &&
+`            this.edit(editType, e.pageX - this.editingStartPoint.x, e.pageY - this.editingStartPoint.y)` && |\n| &&
+`        );` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.onStopEditing = function(e) {` && |\n| &&
+`        var editType = app.getEditType();` && |\n| &&
+`        ` && |\n| &&
+`        this.setCoords(this.onProcessEditing(e));` && |\n| &&
+`        ` && |\n| &&
+`        app.removeAllEvents();` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * Returns string-representation of circle` && |\n| &&
+`     * ` && |\n| &&
+`     * @returns {string}` && |\n| &&
+`     */` && |\n| &&
+`    Circle.prototype.toString = function() {` && |\n| &&
+`        return &#39;Circle {cx: &#39;+ this._coords.cx +` && |\n| &&
+`                &#39;, cy: &#39; + this._coords.cy +` && |\n| &&
+`                &#39;, radius: &#39; + this._coords.radius + &#39;}&#39;;` && |\n| &&
+`    }` && |\n| &&
+`    ` && |\n| &&
+`    Circle.prototype.toHTMLMapElementString = function() {` && |\n| &&
+`        return &#39;&lt;area shape=&quot;circle&quot; coords=&quot;&#39;` && |\n| &&
+`            + this._coords.cx + &#39;, &#39;` && |\n| &&
+`            + this._coords.cy + &#39;, &#39;` && |\n| &&
+`            + this._coords.radius` && |\n| &&
+`            + &#39;&quot;&#39;` && |\n| &&
+`            + (this._attributes.href ? &#39; href=&quot;&#39; + this._attributes.href + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + (this._attributes.alt ? &#39; alt=&quot;&#39; + this._attributes.alt + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + (this._attributes.title ? &#39; title=&quot;&#39; + this._attributes.title + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + &#39; /&gt;&#39;;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    /**` && |\n| &&
+`     * Returns coords for area attributes form` && |\n| &&
+`     * ` && |\n| &&
+`     * @returns {Object} - coordinates of point` && |\n| &&
+`     */` && |\n| &&
+`    Circle.prototype.getCoordsForDisplayingInfo = function() {` && |\n| &&
+`        return {` && |\n| &&
+`            x : this._coords.cx,` && |\n| &&
+`            y : this._coords.cy` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.testCoords = function(coords) {` && |\n| &&
+`        return coords.cx &amp;&amp; coords.cy &amp;&amp; coords.radius;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Circle.testHTMLCoords = function(coords) {` && |\n| &&
+`        return coords.length === 3;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Circle.getCoordsFromHTMLArray = function(htmlCoordsArray) {` && |\n| &&
+`        if (!Circle.testHTMLCoords(htmlCoordsArray)) {    ` && |\n| &&
+`            throw new Error(&#39;This html-coordinates is not valid for circle&#39;);` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        return {` && |\n| &&
+`            cx : htmlCoordsArray[0],` && |\n| &&
+`            cy : htmlCoordsArray[1],` && |\n| &&
+`            radius : htmlCoordsArray[2]` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Circle.createAndStartDrawing = function(firstPointCoords) {` && |\n| &&
+`        var newArea = new Circle({` && |\n| &&
+`            cx : firstPointCoords.x,` && |\n| &&
+`            cy : firstPointCoords.y,` && |\n| &&
+`            radius : 0` && |\n| &&
+`        });` && |\n| &&
+`        ` && |\n| &&
+`        app.addEvent(app.domElements.container, &#39;mousemove&#39;, newArea.onProcessDrawing.bind(newArea))` && |\n| &&
+`           .addEvent(app.domElements.container, &#39;click&#39;, newArea.onStopDrawing.bind(newArea));` && |\n| &&
+`           ` && |\n| &&
+`        return newArea;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    function Polygon(coords, attributes) {` && |\n| &&
+`        Area.call(this, &#39;polygon&#39;, coords, attributes);` && |\n| &&
+`        ` && |\n| &&
+`        /**` && |\n| &&
+`         * @namespace` && |\n| &&
+`         * @property {Array} points - Array with coordinates of polygon points` && |\n| &&
+`         */` && |\n| &&
+`        this._coords = {` && |\n| &&
+`            points : coords.points || [{x: 0, y: 0}],` && |\n| &&
+`            isOpened : coords.isOpened || false` && |\n| &&
+`        };` && |\n| &&
+`        ` && |\n| &&
+`        this._el = document.createElementNS(` && |\n| &&
+`            Area.SVG_NS, ` && |\n| &&
+`            this._coords.isOpened ? &#39;polyline&#39; : &#39;polygon&#39;` && |\n| &&
+`        );` && |\n| &&
+`        this._groupEl.appendChild(this._el);` && |\n| &&
+`` && |\n| &&
+`        this._helpers = { ` && |\n| &&
+`            points : []` && |\n| &&
+`        };` && |\n| &&
+`` && |\n| &&
+`        for (var i = 0, c = this._coords.points.length; i &lt; c; i++) {` && |\n| &&
+`            this._helpers.points.push(` && |\n| &&
+`                (new Helper(` && |\n| &&
+`                    this._groupEl, ` && |\n| &&
+`                    this._coords.points[i].x, ` && |\n| &&
+`                    this._coords.points[i].y, ` && |\n| &&
+`                    &#39;movePoint&#39;)` && |\n| &&
+`                ).setId(i)` && |\n| &&
+`            );` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        this._selectedPoint = -1;` && |\n| &&
+`        ` && |\n| &&
+`        this.redraw();` && |\n| &&
+`    }` && |\n| &&
+`    utils.inherits(Polygon, Area);` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.close = function() {` && |\n| &&
+`        var polyline = this._el;` && |\n| &&
+`        this._el = document.createElementNS(Area.SVG_NS, &#39;polygon&#39;);` && |\n| &&
+`        this._groupEl.replaceChild(this._el, polyline);` && |\n| &&
+`` && |\n| &&
+`        this._coords.isOpened = false;` && |\n| &&
+`        this.redraw().deselect();` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n|.
+
+result = result &&
+`    Polygon.prototype.setSVGCoords = function(coords) {` && |\n| &&
+`        var polygonPointsAttrValue = coords.points.reduce(function(previousValue, currentItem) {` && |\n| &&
+`            return previousValue + currentItem.x + &#39; &#39; + currentItem.y + &#39; &#39;;` && |\n| &&
+`        }, &#39;&#39;);` && |\n| &&
+`        ` && |\n| &&
+`        this._el.setAttribute(&#39;points&#39;, polygonPointsAttrValue);` && |\n| &&
+`        utils.foreach(this._helpers.points, function(helper, i) {` && |\n| &&
+`            helper.setCoords(coords.points[i].x, coords.points[i].y);` && |\n| &&
+`        });` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.setCoords = function(coords) {` && |\n| &&
+`        this._coords.points = coords.points;` && |\n| &&
+`    ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.addPoint = function(x, y) {` && |\n| &&
+`        if (!this._coords.isOpened) {` && |\n| &&
+`            throw new Error(&#39;This polygon is closed!&#39;);` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        var helper = new Helper(this._groupEl, x, y, &#39;movePoint&#39;);` && |\n| &&
+`        helper.setId(this._helpers.points.length);` && |\n| &&
+`` && |\n| &&
+`        this._helpers.points.push(helper);` && |\n| &&
+`        this._coords.points.push({` && |\n| &&
+`            x : x, ` && |\n| &&
+`            y : y` && |\n| &&
+`        });` && |\n| &&
+`        this.redraw();` && |\n| &&
+`        ` && |\n| &&
+`        return this;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.dynamicDraw = function(x, y, isRightAngle) {` && |\n| &&
+`        var temp_coords = {` && |\n| &&
+`            points: [].concat(this._coords.points)` && |\n| &&
+`        };` && |\n| &&
+`    ` && |\n| &&
+`        if (isRightAngle) {` && |\n| &&
+`            var rightPointCoords = Polygon.getRightAngleLineLastPointCoords(` && |\n| &&
+`                this._coords, {x: x, y: y}` && |\n| &&
+`            );` && |\n| &&
+`            x = rightPointCoords.x;` && |\n| &&
+`            y = rightPointCoords.y;` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        temp_coords.points.push({x : x, y : y});` && |\n| &&
+`    ` && |\n| &&
+`        this.redraw(temp_coords);` && |\n| &&
+`        ` && |\n| &&
+`        return temp_coords;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.onProcessDrawing = function(e) {` && |\n| &&
+`        var coords = utils.getRightCoords(e.pageX, e.pageY);` && |\n| &&
+`            ` && |\n| &&
+`        this.dynamicDraw(coords.x, coords.y, e.shiftKey);` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.onAddPointDrawing = function(e) {` && |\n| &&
+`        var newPointCoords = utils.getRightCoords(e.pageX, e.pageY);` && |\n| &&
+`` && |\n| &&
+`        if (e.shiftKey) {` && |\n| &&
+`            newPointCoords = Polygon.getRightAngleLineLastPointCoords(this._coords, newPointCoords);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        this.addPoint(newPointCoords.x, newPointCoords.y);` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.onStopDrawing = function(e) {` && |\n| &&
+`        if (e.type == &#39;click&#39; || (e.type == &#39;keydown&#39; &amp;&amp; e.keyCode == 13)) {` && |\n| &&
+`            if (Polygon.testCoords(this._coords)) {` && |\n| &&
+`                this.close();` && |\n| &&
+`                ` && |\n| &&
+`                app.removeAllEvents()` && |\n| &&
+`                   .setIsDraw(false)` && |\n| &&
+`                   .resetNewArea();` && |\n| &&
+`            }` && |\n| &&
+`        }` && |\n| &&
+`        e.stopPropagation();` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Polygon.prototype.edit = function(editingType, dx, dy) {` && |\n| &&
+`        var tempParams = Object.create(this._coords);` && |\n| &&
+`        ` && |\n| &&
+`        switch (editingType) {` && |\n| &&
+`            case &#39;move&#39;:` && |\n| &&
+`                for (var i = 0, c = tempParams.points.length; i &lt; c; i++) {` && |\n| &&
+`                    tempParams.points[i].x += dx;` && |\n| &&
+`                    tempParams.points[i].y += dy;` && |\n| &&
+`                }` && |\n| &&
+`                break;` && |\n| &&
+`            ` && |\n| &&
+`            case &#39;movePoint&#39;:` && |\n| &&
+`                tempParams.points[this.selected_point].x += dx;` && |\n| &&
+`                tempParams.points[this.selected_point].y += dy;` && |\n| &&
+`                break;` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        return tempParams;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.onProcessEditing = function(e) {` && |\n| &&
+`        var editType = app.getEditType();` && |\n| &&
+`        ` && |\n| &&
+`        this.redraw(` && |\n| &&
+`            this.edit(` && |\n| &&
+`                editType, ` && |\n| &&
+`                e.pageX - this.editingStartPoint.x, ` && |\n| &&
+`                e.pageY - this.editingStartPoint.y` && |\n| &&
+`            )` && |\n| &&
+`        );` && |\n| &&
+`` && |\n| &&
+`        this.editingStartPoint.x = e.pageX;` && |\n| &&
+`        this.editingStartPoint.y = e.pageY;` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.onStopEditing = function(e) {` && |\n| &&
+`        var editType = app.getEditType();` && |\n| &&
+`    ` && |\n| &&
+`        this.setCoords(` && |\n| &&
+`            this.edit(` && |\n| &&
+`                editType, ` && |\n| &&
+`                e.pageX - this.editingStartPoint.x, ` && |\n| &&
+`                e.pageY - this.editingStartPoint.y` && |\n| &&
+`            )` && |\n| &&
+`        ).redraw();` && |\n| &&
+`    ` && |\n| &&
+`        app.removeAllEvents();` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    /**` && |\n| &&
+`     * Returns string-representation of polygon` && |\n| &&
+`     * ` && |\n| &&
+`     * @returns {string}` && |\n| &&
+`     */` && |\n| &&
+`    Polygon.prototype.toString = function() {` && |\n| &&
+`        return &#39;Polygon {points: [&#39;+ ` && |\n| &&
+`               this._coords.points.map(function(item) {` && |\n| &&
+`                   return &#39;[&#39; + item.x + &#39;, &#39; + item.y + &#39;]&#39;` && |\n| &&
+`               }).join(&#39;, &#39;) + &#39;]}&#39;;` && |\n| &&
+`    }` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.prototype.toHTMLMapElementString = function() {` && |\n| &&
+`        var str = this._coords.points.map(function(item) {` && |\n| &&
+`            return item.x + &#39;, &#39; + item.y;` && |\n| &&
+`        }).join(&#39;, &#39;);` && |\n| &&
+`        ` && |\n| &&
+`        return &#39;&lt;area shape=&quot;poly&quot; coords=&quot;&#39;` && |\n| &&
+`            + str` && |\n| &&
+`            + &#39;&quot;&#39;` && |\n| &&
+`            + (this._attributes.href ? &#39; href=&quot;&#39; + this._attributes.href + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + (this._attributes.alt ? &#39; alt=&quot;&#39; + this._attributes.alt + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + (this._attributes.title ? &#39; title=&quot;&#39; + this._attributes.title + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
+`            + &#39; /&gt;&#39;;` && |\n| &&
+`    };` && |\n|.
+result =  `` && |\n| &&
+`    Polygon.prototype.getCoordsForDisplayingInfo = function() {` && |\n| &&
+`        return {` && |\n| &&
+`            x : this._coords.points[0].x,` && |\n| &&
+`            y : this._coords.points[0].y` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.testCoords = function(coords) {` && |\n| &&
+`        return coords.points.length &gt;= 3;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Polygon.testHTMLCoords = function(coords) {` && |\n| &&
+`        return coords.length &gt;= 6 &amp;&amp; coords.length % 2 === 0;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Polygon.getCoordsFromHTMLArray = function(htmlCoordsArray) {` && |\n| &&
+`        if (!Polygon.testHTMLCoords(htmlCoordsArray)) {    ` && |\n| &&
+`            throw new Error(&#39;This html-coordinates is not valid for polygon&#39;);` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        var points = [];` && |\n| &&
+`        for (var i = 0, c = htmlCoordsArray.length/2; i &lt; c; i++) {` && |\n| &&
+`            points.push({` && |\n| &&
+`                x : htmlCoordsArray[2*i],` && |\n| &&
+`                y : htmlCoordsArray[2*i + 1]` && |\n| &&
+`            });` && |\n| &&
+`        }` && |\n| &&
+`` && |\n| &&
+`        return {` && |\n| &&
+`            points : points` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    Polygon.getRightAngleLineLastPointCoords = function(originalCoords, newPointCoords) {` && |\n| &&
+`        var TANGENS = {` && |\n| &&
+`                DEG_22 : 0.414,` && |\n| &&
+`                DEG_67 : 2.414` && |\n| &&
+`            },` && |\n| &&
+`            lastPointIndex = originalCoords.points.length - 1,` && |\n| &&
+`            lastPoint = originalCoords.points[lastPointIndex],` && |\n| &&
+`            dx = newPointCoords.x - lastPoint.x,` && |\n| &&
+`            dy = -(newPointCoords.y - lastPoint.y),` && |\n| &&
+`            tan = dy / dx,` && |\n| &&
+`            x = newPointCoords.x,` && |\n| &&
+`            y = newPointCoords.y;` && |\n| &&
+`            ` && |\n| &&
+`        if (dx &gt; 0 &amp;&amp; dy &gt; 0) {` && |\n| &&
+`            if (tan &gt; TANGENS.DEG_67) {` && |\n| &&
+`                x = lastPoint.x;` && |\n| &&
+`            } else if (tan &lt; TANGENS.DEG_22) {` && |\n| &&
+`                y = lastPoint.y;` && |\n| &&
+`            } else {` && |\n| &&
+`                Math.abs(dx) &gt; Math.abs(dy) ? ` && |\n| &&
+`                    (x = lastPoint.x + dy) : (y = lastPoint.y - dx);` && |\n| &&
+`            }` && |\n| &&
+`        } else if (dx &lt; 0 &amp;&amp; dy &gt; 0) {` && |\n| &&
+`            if (tan &lt; -TANGENS.DEG_67) {` && |\n| &&
+`                x = lastPoint.x;` && |\n| &&
+`            } else if (tan &gt; -TANGENS.DEG_22) {` && |\n| &&
+`                y = lastPoint.y;` && |\n| &&
+`            } else {` && |\n| &&
+`                Math.abs(dx) &gt; Math.abs(dy) ?` && |\n| &&
+`                    (x = lastPoint.x - dy) : (y = lastPoint.y + dx);` && |\n| &&
+`            }` && |\n| &&
+`        } else if (dx &lt; 0 &amp;&amp; dy &lt; 0) {` && |\n| &&
+`            if (tan &gt; TANGENS.DEG_67) {` && |\n| &&
+`                x = lastPoint.x;` && |\n| &&
+`            } else if (tan &lt; TANGENS.DEG_22) {` && |\n| &&
+`                y = lastPoint.y;` && |\n| &&
+`            } else {` && |\n| &&
+`                Math.abs(dx) &gt; Math.abs(dy) ? ` && |\n| &&
+`                    (x = lastPoint.x + dy) : (y = lastPoint.y - dx);` && |\n| &&
+`            }` && |\n| &&
+`        } else if (dx &gt; 0 &amp;&amp; dy &lt; 0) {` && |\n| &&
+`            if (tan &lt; -TANGENS.DEG_67) {` && |\n| &&
+`                x = lastPoint.x;` && |\n| &&
+`            } else if (tan &gt; -TANGENS.DEG_22) {` && |\n| &&
+`                y = lastPoint.y;` && |\n| &&
+`            } else {` && |\n| &&
+`                Math.abs(dx) &gt; Math.abs(dy) ? ` && |\n| &&
+`                    (x = lastPoint.x - dy) : (y = lastPoint.y + dx);` && |\n| &&
+`            }` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        return {` && |\n| &&
+`            x : x,` && |\n| &&
+`            y : y` && |\n| &&
+`        };` && |\n| &&
+`    };` && |\n| &&
+`    ` && |\n| &&
+`    Polygon.createAndStartDrawing = function(firstPointCoords) {` && |\n| &&
+`        var newArea = new Polygon({` && |\n| &&
+`            points : [firstPointCoords],` && |\n| &&
+`            isOpened : true` && |\n| &&
+`        });` && |\n| &&
+`        ` && |\n| &&
+`        app.addEvent(app.domElements.container, &#39;mousemove&#39;, newArea.onProcessDrawing.bind(newArea))` && |\n| &&
+`           .addEvent(app.domElements.container, &#39;click&#39;, newArea.onAddPointDrawing.bind(newArea))` && |\n| &&
+`           .addEvent(document, &#39;keydown&#39;, newArea.onStopDrawing.bind(newArea))` && |\n| &&
+`           .addEvent(newArea._helpers.points[0]._el, &#39;click&#39;, newArea.onStopDrawing.bind(newArea));` && |\n| &&
+`           ` && |\n| &&
+`        return newArea;` && |\n| &&
+`    };` && |\n| &&
+`` && |\n| &&
+`    /* TODO: this modules will use app.js */` && |\n| &&
+`    /* Help block */` && |\n| &&
+`    var help = (function() {` && |\n| &&
+`        var block = utils.id(&#39;help&#39;),` && |\n| &&
+`            overlay = utils.id(&#39;overlay&#39;),` && |\n| &&
+`            close_button = block.querySelector(&#39;.close_button&#39;);` && |\n| &&
+`            ` && |\n| &&
+`        function hide() {` && |\n| &&
+`            utils.hide(block);` && |\n| &&
+`            utils.hide(overlay);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function show() {` && |\n| &&
+`            utils.show(block);` && |\n| &&
+`            utils.show(overlay);` && |\n| &&
+`        }` && |\n| &&
+`            ` && |\n| &&
+`        overlay.addEventListener(&#39;click&#39;, hide, false);` && |\n| &&
+`            ` && |\n| &&
+`        close_button.addEventListener(&#39;click&#39;, hide, false);` && |\n| &&
+`            ` && |\n| &&
+`        return {` && |\n| &&
+`            show : show,` && |\n| &&
+`            hide : hide` && |\n| &&
+`        };` && |\n| &&
+`    })();` && |\n| &&
+`` && |\n| &&
+`    /* For html code of created map */` && |\n| &&
+`    var code = (function(){` && |\n| &&
+`        var block = utils.id(&#39;code&#39;),` && |\n| &&
+`            content = utils.id(&#39;code_content&#39;),` && |\n| &&
+`            close_button = block.querySelector(&#39;.close_button&#39;);` && |\n| &&
+`            ` && |\n| &&
+`        close_button.addEventListener(&#39;click&#39;, function(e) {` && |\n| &&
+`            utils.hide(block);` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }, false);` && |\n| &&
+`            ` && |\n| &&
+`        return {` && |\n| &&
+`            print: function() {` && |\n| &&
+`                content.innerHTML = app.getHTMLCode(true);` && |\n| &&
+`                utils.show(block);` && |\n| &&
+`            },` && |\n| &&
+`            hide: function() {` && |\n| &&
+`                utils.hide(block);` && |\n| &&
+`            }` && |\n| &&
+`        };` && |\n| &&
+`    })();` && |\n| &&
+`    ` && |\n| &&
+`` && |\n| &&
+`    /* Edit selected area info */` && |\n| &&
+`    var info = (function() {` && |\n| &&
+`        var form = utils.id(&#39;edit_details&#39;),` && |\n| &&
+`            header = form.querySelector(&#39;h5&#39;),` && |\n| &&
+`            href_attr = utils.id(&#39;href_attr&#39;),` && |\n| &&
+`            alt_attr = utils.id(&#39;alt_attr&#39;),` && |\n| &&
+`            title_attr = utils.id(&#39;title_attr&#39;),` && |\n| &&
+`            save_button = utils.id(&#39;save_details&#39;),` && |\n| &&
+`            close_button = form.querySelector(&#39;.close_button&#39;),` && |\n| &&
+`            sections = form.querySelectorAll(&#39;p&#39;),` && |\n| &&
+`            obj,` && |\n| &&
+`            x,` && |\n| &&
+`            y,` && |\n| &&
+`            temp_x,` && |\n| &&
+`            temp_y;` && |\n| &&
+`        ` && |\n| &&
+`        function changedReset() {` && |\n| &&
+`            form.classList.remove(&#39;changed&#39;);` && |\n| &&
+`            utils.foreach(sections, function(x) {` && |\n| &&
+`                x.classList.remove(&#39;changed&#39;);` && |\n| &&
+`            });` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function save(e) {` && |\n| &&
+`            obj.setInfoAttributes({` && |\n| &&
+`                href : href_attr.value,` && |\n| &&
+`                alt : alt_attr.value,` && |\n| &&
+`                title : title_attr.value,` && |\n| &&
+`            });` && |\n| &&
+`            ` && |\n| &&
+`            obj[obj.href ? &#39;setStyleOfElementWithHref&#39; : &#39;unsetStyleOfElementWithHref&#39;]();` && |\n| &&
+`            ` && |\n| &&
+`            changedReset();` && |\n| &&
+`            unload();` && |\n| &&
+`                ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function unload() {` && |\n| &&
+`            obj = null;` && |\n| &&
+`            changedReset();` && |\n| &&
+`            utils.hide(form);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function setCoords(x, y) {` && |\n| &&
+`            form.style.left = (x + 5) + &#39;px&#39;;` && |\n| &&
+`            form.style.top = (y + 5) + &#39;px&#39;;` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function moveEditBlock(e) {` && |\n| &&
+`            setCoords(x + e.pageX - temp_x, y + e.pageY - temp_y);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function stopMoveEditBlock(e) {` && |\n| &&
+`            x = x + e.pageX - temp_x;` && |\n| &&
+`            y = y + e.pageY - temp_y;` && |\n| &&
+`            setCoords(x, y);` && |\n| &&
+`            ` && |\n| &&
+`            app.removeAllEvents();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function change() {` && |\n| &&
+`            form.classList.add(&#39;changed&#39;);` && |\n| &&
+`            this.parentNode.classList.add(&#39;changed&#39;);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        save_button.addEventListener(&#39;click&#39;, save, false);` && |\n| &&
+`        ` && |\n| &&
+`        href_attr.addEventListener(&#39;keydown&#39;, function(e) { e.stopPropagation(); }, false);` && |\n| &&
+`        alt_attr.addEventListener(&#39;keydown&#39;, function(e) { e.stopPropagation(); }, false);` && |\n| &&
+`        title_attr.addEventListener(&#39;keydown&#39;, function(e) { e.stopPropagation(); }, false);` && |\n| &&
+`        ` && |\n| &&
+`        href_attr.addEventListener(&#39;change&#39;, change, false);` && |\n| &&
+`        alt_attr.addEventListener(&#39;change&#39;, change, false);` && |\n| &&
+`        title_attr.addEventListener(&#39;change&#39;, change, false);` && |\n| &&
+`        ` && |\n| &&
+`        close_button.addEventListener(&#39;click&#39;, unload, false);` && |\n| &&
+`        ` && |\n| &&
+`        header.addEventListener(&#39;mousedown&#39;, function(e) {` && |\n| &&
+`            temp_x = e.pageX,` && |\n| &&
+`            temp_y = e.pageY;` && |\n| &&
+`            ` && |\n| &&
+`            app.addEvent(document, &#39;mousemove&#39;, moveEditBlock);` && |\n| &&
+`            app.addEvent(header, &#39;mouseup&#39;, stopMoveEditBlock);` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }, false);` && |\n| &&
+`        ` && |\n| &&
+`        return {` && |\n| &&
+`            load : function(object, new_x, new_y) {` && |\n| &&
+`                obj = object;` && |\n| &&
+`                href_attr.value = object.href ? object.href : &#39;&#39;;` && |\n| &&
+`                alt_attr.value = object.alt ? object.alt : &#39;&#39;;` && |\n| &&
+`                title_attr.value = object.title ? object.title : &#39;&#39;;` && |\n| &&
+`                utils.show(form);` && |\n| &&
+`                if (new_x &amp;&amp; new_y) {` && |\n| &&
+`                    x = new_x;` && |\n| &&
+`                    y = new_y;` && |\n| &&
+`                    setCoords(x, y);` && |\n| &&
+`                }` && |\n| &&
+`            },` && |\n| &&
+`            unload : unload` && |\n| &&
+`        };` && |\n| &&
+`    })();` && |\n| &&
+`` && |\n| &&
+`` && |\n| &&
+`    /* Load areas from html code */` && |\n| &&
+`    var from_html_form = (function() {` && |\n| &&
+`        var form = utils.id(&#39;from_html_wrapper&#39;),` && |\n| &&
+`            code_input = utils.id(&#39;code_input&#39;),` && |\n| &&
+`            load_button = utils.id(&#39;load_code_button&#39;),` && |\n| &&
+`            close_button = form.querySelector(&#39;.close_button&#39;);` && |\n| &&
+`        ` && |\n| &&
+`        function load(e) {` && |\n| &&
+`            if (Area.createAreasFromHTMLOfMap(code_input.value)) {` && |\n| &&
+`                hide();` && |\n| &&
+`            }` && |\n| &&
+`                ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function hide() {` && |\n| &&
+`            utils.hide(form);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        load_button.addEventListener(&#39;click&#39;, load, false);` && |\n| &&
+`        ` && |\n| &&
+`        close_button.addEventListener(&#39;click&#39;, hide, false);` && |\n| &&
+`        ` && |\n| &&
+`        return {` && |\n| &&
+`            show : function() {` && |\n| &&
+`                code_input.value = &#39;&#39;;` && |\n| &&
+`                utils.show(form);` && |\n| &&
+`            },` && |\n| &&
+`            hide : hide` && |\n| &&
+`        };` && |\n| &&
+`    })();` && |\n| &&
+`` && |\n| &&
+`` && |\n| &&
+`    /* Get image form */` && |\n| &&
+`    var get_image = (function() {` && |\n| &&
+`        var block = utils.id(&#39;get_image_wrapper&#39;),` && |\n| &&
+`            close_button = block.querySelector(&#39;.close_button&#39;),` && |\n| &&
+`            loading_indicator = utils.id(&#39;loading&#39;),` && |\n| &&
+`            button = utils.id(&#39;button&#39;),` && |\n| &&
+`            filename = null,` && |\n| &&
+`            last_changed = null;` && |\n| &&
+`            ` && |\n| &&
+`        // Drag&#39;n&#39;drop - the first way to loading an image` && |\n| &&
+`        var drag_n_drop = (function() {` && |\n| &&
+`            var dropzone = utils.id(&#39;dropzone&#39;),` && |\n| &&
+`                dropzone_clear_button = dropzone.querySelector(&#39;.clear_button&#39;),` && |\n| &&
+`                sm_img = utils.id(&#39;sm_img&#39;);` && |\n| &&
+`            ` && |\n| &&
+`            function testFile(type) {` && |\n| &&
+`                switch (type) {` && |\n| &&
+`                    case &#39;image/jpeg&#39;:` && |\n| &&
+`                    case &#39;image/jpg&#39;:` && |\n| &&
+`                    case &#39;image/bmp&#39;:` && |\n| &&
+`                    case &#39;image/gif&#39;:` && |\n| &&
+`                    case &#39;image/png&#39;:` && |\n| &&
+`                        return true;` && |\n| &&
+`                }` && |\n| &&
+`                return false;` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            dropzone.addEventListener(&#39;dragover&#39;, function(e){` && |\n| &&
+`                utils.stopEvent(e);` && |\n| &&
+`            }, false);` && |\n| &&
+`            ` && |\n| &&
+`            dropzone.addEventListener(&#39;dragleave&#39;, function(e){` && |\n| &&
+`                utils.stopEvent(e);` && |\n| &&
+`            }, false);` && |\n| &&
+`    ` && |\n| &&
+`            dropzone.addEventListener(&#39;drop&#39;, function(e){` && |\n| &&
+`                utils.stopEvent(e);` && |\n| &&
+`    ` && |\n| &&
+`                var reader = new FileReader(),` && |\n| &&
+`                    file = e.dataTransfer.files[0];` && |\n| &&
+`                ` && |\n| &&
+`                if (testFile(file.type)) {` && |\n| &&
+`                    dropzone.classList.remove(&#39;error&#39;);` && |\n| &&
+`                    ` && |\n| &&
+`                    reader.readAsDataURL(file);` && |\n| &&
+`                    ` && |\n| &&
+`                    reader.onload = function(e) {` && |\n| &&
+`                        sm_img.src = e.target.result;` && |\n| &&
+`                        sm_img.style.display = &#39;inline-block&#39;;` && |\n| &&
+`                        filename = file.name;` && |\n| &&
+`                        utils.show(dropzone_clear_button);` && |\n| &&
+`                        last_changed = drag_n_drop;` && |\n| &&
+`                    };` && |\n| &&
+`                } else {` && |\n| &&
+`                    clearDropzone();` && |\n| &&
+`                    dropzone.classList.add(&#39;error&#39;);` && |\n| &&
+`                }` && |\n| &&
+`    ` && |\n| &&
+`            }, false);` && |\n| &&
+`    ` && |\n| &&
+`            function clearDropzone() {` && |\n| &&
+`                sm_img.src = &#39;&#39;;` && |\n| &&
+`                ` && |\n| &&
+`                utils.hide(sm_img)` && |\n| &&
+`                     .hide(dropzone_clear_button);` && |\n| &&
+`                     ` && |\n| &&
+`                dropzone.classList.remove(&#39;error&#39;);` && |\n| &&
+`                     ` && |\n| &&
+`                last_changed = url_input;` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            dropzone_clear_button.addEventListener(&#39;click&#39;, clearDropzone, false);` && |\n| &&
+`    ` && |\n| &&
+`            return {` && |\n| &&
+`                clear : clearDropzone,` && |\n| &&
+`                init : function() {` && |\n| &&
+`                    dropzone.draggable = true;` && |\n| &&
+`                    this.clear();` && |\n| &&
+`                    utils.hide(sm_img)` && |\n| &&
+`                         .hide(dropzone_clear_button);` && |\n| &&
+`                },` && |\n| &&
+`                test : function() {` && |\n| &&
+`                    return Boolean(sm_img.src);` && |\n| &&
+`                },` && |\n| &&
+`                getImage : function() {` && |\n| &&
+`                    return sm_img.src;` && |\n| &&
+`                }` && |\n| &&
+`            };` && |\n| &&
+`        })();` && |\n| &&
+`        ` && |\n| &&
+`        /* Set a url - the second way to loading an image */` && |\n| &&
+`        var url_input = (function() {` && |\n| &&
+`            var url = utils.id(&#39;url&#39;),` && |\n| &&
+`                url_clear_button = url.parentNode.querySelector(&#39;.clear_button&#39;);` && |\n| &&
+`            ` && |\n| &&
+`            function testUrl(str) {` && |\n| &&
+`                var url_str = str.trim(),` && |\n| &&
+`                    temp_array = url_str.split(&#39;.&#39;),` && |\n| &&
+`                    ext;` && |\n| &&
+`    ` && |\n| &&
+`                if(temp_array.length &gt; 1) {` && |\n| &&
+`                    ext = temp_array[temp_array.length-1].toLowerCase();` && |\n| &&
+`                    switch (ext) {` && |\n| &&
+`                        case &#39;jpg&#39;:` && |\n| &&
+`                        case &#39;jpeg&#39;:` && |\n| &&
+`                        case &#39;bmp&#39;:` && |\n| &&
+`                        case &#39;gif&#39;:` && |\n| &&
+`                        case &#39;png&#39;:` && |\n| &&
+`                            return true;` && |\n| &&
+`                    }` && |\n| &&
+`                }` && |\n| &&
+`                ` && |\n| &&
+`                return false;` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            function onUrlChange() {` && |\n| &&
+`                setTimeout(function(){` && |\n| &&
+`                    if(url.value.length) {` && |\n| &&
+`                        utils.show(url_clear_button);` && |\n| &&
+`                        last_changed = url_input;` && |\n| &&
+`                    } else {` && |\n| &&
+`                        utils.hide(url_clear_button);` && |\n| &&
+`                        last_changed = drag_n_drop;` && |\n| &&
+`                    }` && |\n| &&
+`                }, 0);` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            url.addEventListener(&#39;keypress&#39;, onUrlChange, false);` && |\n| &&
+`            url.addEventListener(&#39;change&#39;, onUrlChange, false);` && |\n| &&
+`            url.addEventListener(&#39;paste&#39;, onUrlChange, false);` && |\n| &&
+`            ` && |\n| &&
+`            function clearUrl() {` && |\n| &&
+`                url.value = &#39;&#39;;` && |\n| &&
+`                utils.hide(url_clear_button);` && |\n| &&
+`                url.classList.remove(&#39;error&#39;);` && |\n| &&
+`                last_changed = url_input;` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            url_clear_button.addEventListener(&#39;click&#39;, clearUrl, false);` && |\n| &&
+`    ` && |\n| &&
+`            return {` && |\n| &&
+`                clear : clearUrl,` && |\n| &&
+`                init : function() {` && |\n| &&
+`                    this.clear();` && |\n| &&
+`                    utils.hide(url_clear_button);` && |\n| &&
+`                },` && |\n| &&
+`                test : function() {` && |\n| &&
+`                    if(testUrl(url.value)) {` && |\n| &&
+`                        url.classList.remove(&#39;error&#39;);` && |\n| &&
+`                        return true;` && |\n| &&
+`                    } else {` && |\n| &&
+`                        url.classList.add(&#39;error&#39;);` && |\n| &&
+`                    }` && |\n| &&
+`                    return false;` && |\n| &&
+`                },` && |\n| &&
+`                getImage : function() {` && |\n| &&
+`                    var tmp_arr = url.value.split(&#39;/&#39;);` && |\n| &&
+`                        filename = tmp_arr[tmp_arr.length - 1];` && |\n| &&
+`                        ` && |\n| &&
+`                    return url.value.trim();` && |\n| &&
+`                }` && |\n| &&
+`            };` && |\n|.
+
+result = result &&
+`        })();` && |\n| &&
+`        ` && |\n| &&
+`        ` && |\n| &&
+`        /* Block init */` && |\n| &&
+`        function init() {` && |\n| &&
+`            utils.hide(loading_indicator);` && |\n| &&
+`            drag_n_drop.init();` && |\n| &&
+`            url_input.init();` && |\n| &&
+`            var b64_image = base64_image` && |\n| &&
+`            app.loadImage(b64_image).setFilename(filename);` && |\n| &&
+`        }` && |\n| &&
+`        init();` && |\n| &&
+`        ` && |\n| &&
+`        /* Block clear */` && |\n| &&
+`        function clear() {` && |\n| &&
+`            drag_n_drop.clear();` && |\n| &&
+`            url_input.clear();` && |\n| &&
+`            last_changed = null;` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        /* Selected image loading */` && |\n| &&
+`        function onButtonClick(e) {` && |\n| &&
+`            if (last_changed === url_input &amp;&amp; url_input.test()) {` && |\n| &&
+`                app.loadImage(url_input.getImage()).setFilename(filename);` && |\n| &&
+`            } else if (last_changed === drag_n_drop &amp;&amp; drag_n_drop.test()) {` && |\n| &&
+`                app.loadImage(drag_n_drop.getImage()).setFilename(filename);` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        button.addEventListener(&#39;click&#39;, onButtonClick, false);` && |\n| &&
+`        ` && |\n| &&
+`        close_button.addEventListener(&#39;click&#39;, hide, false);` && |\n| &&
+`        ` && |\n| &&
+`        function show() {` && |\n| &&
+`            clear();` && |\n| &&
+`            utils.show(block);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function hide() {` && |\n| &&
+`            utils.hide(block);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        /* Returned object */` && |\n| &&
+`        return {` && |\n| &&
+`            show : function() {` && |\n| &&
+`                app.hide();` && |\n| &&
+`                show();` && |\n| &&
+`                ` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            hide : function() {` && |\n| &&
+`                app.show();` && |\n| &&
+`                hide();` && |\n| &&
+`                ` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            showLoadIndicator : function() {` && |\n| &&
+`                utils.show(loading_indicator);` && |\n| &&
+`                ` && |\n| &&
+`                return this;` && |\n| &&
+`            },` && |\n| &&
+`            hideLoadIndicator : function() {` && |\n| &&
+`                utils.hide(loading_indicator);` && |\n| &&
+`                ` && |\n| &&
+`                return this;` && |\n| &&
+`            }` && |\n| &&
+`        };` && |\n| &&
+`    })();` && |\n| &&
+`    // get_image.show();` && |\n| &&
+`    ` && |\n| &&
+`` && |\n| &&
+`    /* Buttons and actions */` && |\n| &&
+`    var buttons = (function() {` && |\n| &&
+`        var all = utils.id(&#39;nav&#39;).getElementsByTagName(&#39;li&#39;),` && |\n| &&
+`            save = utils.id(&#39;save&#39;),` && |\n| &&
+`            load = utils.id(&#39;load&#39;),` && |\n| &&
+`            rectangle = utils.id(&#39;rectangle&#39;),` && |\n| &&
+`            circle = utils.id(&#39;circle&#39;),` && |\n| &&
+`            polygon = utils.id(&#39;polygon&#39;),` && |\n| &&
+`            edit = utils.id(&#39;edit&#39;),` && |\n| &&
+`            clear = utils.id(&#39;clear&#39;),` && |\n| &&
+`            from_html = utils.id(&#39;from_html&#39;),` && |\n| &&
+`            to_html = utils.id(&#39;to_html&#39;),` && |\n| &&
+`            preview = utils.id(&#39;preview&#39;),` && |\n| &&
+`            new_image = utils.id(&#39;new_image&#39;),` && |\n| &&
+`            show_help = utils.id(&#39;show_help&#39;);` && |\n| &&
+`        ` && |\n| &&
+`        function deselectAll() {` && |\n| &&
+`            utils.foreach(all, function(x) {` && |\n| &&
+`                x.classList.remove(Area.CLASS_NAMES.SELECTED);` && |\n| &&
+`            });` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function selectOne(button) {` && |\n| &&
+`            deselectAll();` && |\n| &&
+`            button.classList.add(Area.CLASS_NAMES.SELECTED);` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onSaveButtonClick(e) {` && |\n| &&
+`            // Save in localStorage` && |\n| &&
+`            app.saveInLocalStorage();` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onLoadButtonClick(e) {` && |\n| &&
+`            // Load from localStorage` && |\n| &&
+`            app.clear()` && |\n| &&
+`               .loadFromLocalStorage();` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onShapeButtonClick(e) {` && |\n| &&
+`            // shape = rect || circle || polygon` && |\n| &&
+`            app.setMode(&#39;drawing&#39;)` && |\n| &&
+`               .setDrawClass()` && |\n| &&
+`               .setShape(this.id)` && |\n| &&
+`               .deselectAll()` && |\n| &&
+`               .hidePreview();` && |\n| &&
+`            info.unload();` && |\n| &&
+`            selectOne(this);` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onClearButtonClick(e) {` && |\n| &&
+`            // Clear all` && |\n| &&
+`            if (confirm(&#39;Clear all?&#39;)) {` && |\n| &&
+`                app.setMode(null)` && |\n| &&
+`                    .setDefaultClass()` && |\n| &&
+`                    .setShape(null)` && |\n| &&
+`                    .clear()` && |\n| &&
+`                    .hidePreview();` && |\n| &&
+`                deselectAll();` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onFromHtmlButtonClick(e) {` && |\n| &&
+`            // Load areas from html` && |\n| &&
+`            from_html_form.show();` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onToHtmlButtonClick(e) {` && |\n| &&
+`            // Generate html code only` && |\n| &&
+`            info.unload();` && |\n| &&
+`            code.print();` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onPreviewButtonClick(e) {` && |\n| &&
+`            if (app.getMode() === &#39;preview&#39;) {` && |\n| &&
+`                app.setMode(null)` && |\n| &&
+`                   .hidePreview();` && |\n| &&
+`                deselectAll();` && |\n| &&
+`            } else {` && |\n| &&
+`                app.deselectAll()` && |\n| &&
+`                   .setMode(&#39;preview&#39;)` && |\n| &&
+`                   .setDefaultClass()` && |\n| &&
+`                   .preview();` && |\n| &&
+`                selectOne(this);` && |\n| &&
+`            }` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onEditButtonClick(e) {` && |\n| &&
+`            if (app.getMode() === &#39;editing&#39;) {` && |\n| &&
+`                app.setMode(null)` && |\n| &&
+`                   .setDefaultClass()` && |\n| &&
+`                   .deselectAll();` && |\n| &&
+`                deselectAll();` && |\n| &&
+`                utils.show(domElements.svg);` && |\n| &&
+`            } else {` && |\n| &&
+`                app.setShape(null)` && |\n| &&
+`                   .setMode(&#39;editing&#39;)` && |\n| &&
+`                   .setEditClass();` && |\n| &&
+`                selectOne(this);` && |\n| &&
+`            }` && |\n| &&
+`            app.hidePreview();` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onNewImageButtonClick(e) {` && |\n| &&
+`            // New image - clear all and back to loading image screen` && |\n| &&
+`            if(confirm(&#39;Discard all changes?&#39;)) {` && |\n| &&
+`                app.setMode(null)` && |\n| &&
+`                   .setDefaultClass()` && |\n| &&
+`                   .setShape(null)` && |\n| &&
+`                   .setIsDraw(false)` && |\n| &&
+`                   .clear()` && |\n| &&
+`                   .hide()` && |\n| &&
+`                   .hidePreview();` && |\n| &&
+`                deselectAll();` && |\n| &&
+`                get_image.show();` && |\n| &&
+`            } ` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        function onShowHelpButtonClick(e) {` && |\n| &&
+`            help.show();` && |\n| &&
+`            ` && |\n| &&
+`            e.preventDefault();` && |\n| &&
+`        }` && |\n| &&
+`        ` && |\n| &&
+`        save.addEventListener(&#39;click&#39;, onSaveButtonClick, false);` && |\n| &&
+`        load.addEventListener(&#39;click&#39;, onLoadButtonClick, false);` && |\n| &&
+`        rectangle.addEventListener(&#39;click&#39;, onShapeButtonClick, false);` && |\n| &&
+`        circle.addEventListener(&#39;click&#39;, onShapeButtonClick, false);` && |\n| &&
+`        polygon.addEventListener(&#39;click&#39;, onShapeButtonClick, false);` && |\n| &&
+`        clear.addEventListener(&#39;click&#39;, onClearButtonClick, false);` && |\n| &&
+`        from_html.addEventListener(&#39;click&#39;, onFromHtmlButtonClick, false);` && |\n| &&
+`        to_html.addEventListener(&#39;click&#39;, onToHtmlButtonClick, false);` && |\n| &&
+`        preview.addEventListener(&#39;click&#39;, onPreviewButtonClick, false);` && |\n| &&
+`        edit.addEventListener(&#39;click&#39;, onEditButtonClick, false);` && |\n| &&
+`        new_image.addEventListener(&#39;click&#39;, onNewImageButtonClick, false);` && |\n| &&
+`        show_help.addEventListener(&#39;click&#39;, onShowHelpButtonClick, false);` && |\n| &&
+`    })();` && |\n| &&
+`` && |\n| &&
+` })();` && |\n| &&
+`}`.
+ENDMETHOD.
 
 
   METHOD set_js_config.
