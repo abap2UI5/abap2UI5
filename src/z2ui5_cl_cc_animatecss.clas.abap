@@ -3526,7 +3526,7 @@ result = result && ` ` &&
 `    opacity: 0;` && |\n| &&
 `    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
 `    transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`  }` && |\n| .
+`  }` && |\n|.
 result = result && ` ` &&
 `` && |\n| &&
 `  50% {` && |\n| &&
