@@ -497,8 +497,7 @@ CLASS Z2UI5_CL_CC_ANIMATECSS IMPLEMENTATION.
 `    transform: translateX(-6px) rotateY(-9deg);` && |\n| &&
 `  }` && |\n| &&
 `` && |\n| &&
-`  18.5% {` && |\n|.
-result = result && ` ` &&
+`  18.5% {` && |\n| &&
 `    -webkit-transform: translateX(5px) rotateY(7deg);` && |\n| &&
 `    transform: translateX(5px) rotateY(7deg);` && |\n| &&
 `  }` && |\n| &&
@@ -549,7 +548,8 @@ result = result && ` ` &&
 `    -webkit-transform: rotate3d(0, 0, 1, 0deg);` && |\n| &&
 `    transform: rotate3d(0, 0, 1, 0deg);` && |\n| &&
 `  }` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `@keyframes swing {` && |\n| &&
 `  20% {` && |\n| &&
 `    -webkit-transform: rotate3d(0, 0, 1, 15deg);` && |\n| &&
@@ -681,8 +681,7 @@ result = result && ` ` &&
 `    -webkit-transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
 `    transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
 `  }` && |\n| &&
-`` && |\n|.
-result = result && ` ` &&
+`` && |\n| &&
 `  to {` && |\n| &&
 `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
 `    transform: translate3d(0, 0, 0);` && |\n| &&
@@ -985,7 +984,8 @@ result = result && ` ` &&
 `    transform: scale(1);` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `@keyframes backInRight {` && |\n| &&
 `  0% {` && |\n| &&
 `    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
@@ -997,8 +997,7 @@ result = result && ` ` &&
 `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
 `    transform: translateX(0px) scale(0.7);` && |\n| &&
 `    opacity: 0.7;` && |\n| &&
-`  }` && |\n|.
-result = result && ` ` &&
+`  }` && |\n| &&
 `` && |\n| &&
 `  100% {` && |\n| &&
 `    -webkit-transform: scale(1);` && |\n| &&
@@ -1029,9 +1028,7 @@ result = result && ` ` &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
 `}` && |\n| &&
-`@keyframes backInUp {` && |\n|.
-
-result = result && `` &&
+`@keyframes backInUp {` && |\n| &&
 `  0% {` && |\n| &&
 `    -webkit-transform: translateY(1200px) scale(0.7);` && |\n| &&
 `    transform: translateY(1200px) scale(0.7);` && |\n| &&
@@ -1145,8 +1142,7 @@ result = result && `` &&
 `    transform: scale(1);` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`` && |\n|.
-result = `` &&
+`` && |\n| &&
 `  20% {` && |\n| &&
 `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
 `    transform: translateX(0px) scale(0.7);` && |\n| &&
@@ -1499,8 +1495,7 @@ result = `` &&
 `    transform: translate3d(-25px, 0, 0) scaleX(1);` && |\n| &&
 `  }` && |\n| &&
 `` && |\n| &&
-`  75% {` && |\n|.
-result = result && ` ` &&
+`  75% {` && |\n| &&
 `    -webkit-transform: translate3d(10px, 0, 0) scaleX(0.98);` && |\n| &&
 `    transform: translate3d(10px, 0, 0) scaleX(0.98);` && |\n| &&
 `  }` && |\n| &&
@@ -1514,7 +1509,8 @@ result = result && ` ` &&
 `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
 `    transform: translate3d(0, 0, 0);` && |\n| &&
 `  }` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `@keyframes bounceInRight {` && |\n| &&
 `  from,` && |\n| &&
 `  60%,` && |\n| &&
@@ -1647,8 +1643,7 @@ result = result && ` ` &&
 `    -webkit-transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
 `    transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
 `  }` && |\n| &&
-`` && |\n|.
-result = result && ` ` &&
+`` && |\n| &&
 `  to {` && |\n| &&
 `    opacity: 0;` && |\n| &&
 `    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
@@ -1981,9 +1976,7 @@ result = result && ` ` &&
 `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
 `    transform: translate3d(0, 0, 0);` && |\n| &&
 `  }` && |\n| &&
-*`}` && |\n| &&
-`}`.
-result = result &&
+`}` && |\n| &&
 `@keyframes fadeInRight {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 0;` && |\n| &&
@@ -2000,8 +1993,7 @@ result = result &&
 `.animate__fadeInRight {` && |\n| &&
 `  -webkit-animation-name: fadeInRight;` && |\n| &&
 `  animation-name: fadeInRight;` && |\n| &&
-`}` && |\n|.
-result = result && ` ` &&
+`}` && |\n| &&
 `@-webkit-keyframes fadeInRightBig {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 0;` && |\n| &&
@@ -2014,7 +2006,8 @@ result = result && ` ` &&
 `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
 `    transform: translate3d(0, 0, 0);` && |\n| &&
 `  }` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `@keyframes fadeInRightBig {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 0;` && |\n| &&
@@ -2203,7 +2196,8 @@ result = result && ` ` &&
 `.animate__fadeInBottomRight {` && |\n| &&
 `  -webkit-animation-name: fadeInBottomRight;` && |\n| &&
 `  animation-name: fadeInBottomRight;` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `/* Fading exits */` && |\n| &&
 `@-webkit-keyframes fadeOut {` && |\n| &&
 `  from {` && |\n| &&
@@ -2268,8 +2262,7 @@ result = result && ` ` &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`` && |\n|.
-result = result && `` &&
+`` && |\n| &&
 `  to {` && |\n| &&
 `    opacity: 0;` && |\n| &&
 `    -webkit-transform: translate3d(0, 2000px, 0);` && |\n| &&
@@ -2504,7 +2497,7 @@ result = result && `` &&
 `    transform: translate3d(100%, 100%, 0);` && |\n| &&
 `  }` && |\n| &&
 `}` && |\n|.
-result = result && ` ` &&
+result = result &&
 `@keyframes fadeOutBottomRight {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
@@ -2842,8 +2835,7 @@ result = result && ` ` &&
 `    -webkit-transform: perspective(400px) rotate3d(0, 1, 0, 90deg);` && |\n| &&
 `    transform: perspective(400px) rotate3d(0, 1, 0, 90deg);` && |\n| &&
 `    opacity: 0;` && |\n| &&
-`  }` && |\n|.
-result = result && ` ` &&
+`  }` && |\n| &&
 `}` && |\n| &&
 `@keyframes flipOutY {` && |\n| &&
 `  from {` && |\n| &&
@@ -3005,7 +2997,8 @@ result = result && ` ` &&
 `  animation-name: lightSpeedOutRight;` && |\n| &&
 `  -webkit-animation-timing-function: ease-in;` && |\n| &&
 `  animation-timing-function: ease-in;` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `@-webkit-keyframes lightSpeedOutLeft {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
@@ -3016,8 +3009,7 @@ result = result && ` ` &&
 `    transform: translate3d(-100%, 0, 0) skewX(-30deg);` && |\n| &&
 `    opacity: 0;` && |\n| &&
 `  }` && |\n| &&
-`}` && |\n|.
-result = result && ` ` &&
+`}` && |\n| &&
 `@keyframes lightSpeedOutLeft {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
@@ -3229,8 +3221,7 @@ result = result && ` ` &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`` && |\n|.
-result = result &&  `` &&
+`` && |\n| &&
 `  to {` && |\n| &&
 `    -webkit-transform: rotate3d(0, 0, 1, 45deg);` && |\n| &&
 `    transform: rotate3d(0, 0, 1, 45deg);` && |\n| &&
@@ -3504,7 +3495,7 @@ result = result &&  `` &&
 `    transform: translate3d(100%, 0, 0) rotate3d(0, 0, 1, 120deg);` && |\n| &&
 `  }` && |\n| &&
 `}` && |\n|.
-result = result && ` ` &&
+result = result &&
 `@keyframes rollOut {` && |\n| &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
@@ -3526,8 +3517,7 @@ result = result && ` ` &&
 `    opacity: 0;` && |\n| &&
 `    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
 `    transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`  }` && |\n|.
-result = result && ` ` &&
+`  }` && |\n| &&
 `` && |\n| &&
 `  50% {` && |\n| &&
 `    opacity: 1;` && |\n| &&
@@ -4004,10 +3994,10 @@ result = result && ` ` &&
 `    -webkit-transform: translate3d(0, 100%, 0);` && |\n| &&
 `    transform: translate3d(0, 100%, 0);` && |\n| &&
 `  }` && |\n| &&
-`}` && |\n| &&
+`}` && |\n|.
+result = result &&
 `@keyframes slideOutDown {` && |\n| &&
-`  from {` && |\n|.
-result = result && ` ` &&
+`  from {` && |\n| &&
 `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
 `    transform: translate3d(0, 0, 0);` && |\n| &&
 `  }` && |\n| &&
