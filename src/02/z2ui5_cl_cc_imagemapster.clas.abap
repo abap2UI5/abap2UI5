@@ -2044,7 +2044,8 @@ result = `` && |\n| &&
 `                tempParams.height += dy;` && |\n| &&
 `                break;` && |\n| &&
 `        }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = result && 
 `        return tempParams;` && |\n| &&
 `    };` && |\n| &&
 `    ` && |\n| &&
