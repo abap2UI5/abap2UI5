@@ -680,7 +680,8 @@ CLASS Z2UI5_CL_CC_ANIMATECSS IMPLEMENTATION.
 `    -webkit-transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
 `    transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
 `  }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = result && ` ` &&
 `  to {` && |\n| &&
 `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
 `    transform: translate3d(0, 0, 0);` && |\n| &&
@@ -1643,7 +1644,8 @@ result = `` &&
 `    -webkit-transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
 `    transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
 `  }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = result && ` ` &&
 `  to {` && |\n| &&
 `    opacity: 0;` && |\n| &&
 `    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
@@ -2835,7 +2837,8 @@ result = result && `` &&
 `    -webkit-transform: perspective(400px) rotate3d(0, 1, 0, 90deg);` && |\n| &&
 `    transform: perspective(400px) rotate3d(0, 1, 0, 90deg);` && |\n| &&
 `    opacity: 0;` && |\n| &&
-`  }` && |\n| &&
+`  }` && |\n|.
+result = result && ` ` &&
 `}` && |\n| &&
 `@keyframes flipOutY {` && |\n| &&
 `  from {` && |\n| &&
