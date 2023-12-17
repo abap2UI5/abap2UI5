@@ -1140,7 +1140,8 @@ CLASS Z2UI5_CL_CC_ANIMATECSS IMPLEMENTATION.
 `    transform: scale(1);` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = `` &&
 `  20% {` && |\n| &&
 `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
 `    transform: translateX(0px) scale(0.7);` && |\n| &&
