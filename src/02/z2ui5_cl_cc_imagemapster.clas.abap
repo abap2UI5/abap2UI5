@@ -1231,8 +1231,8 @@ result = `` && |\n| &&
 `                }` && |\n| &&
 `            }` && |\n| &&
 `        }` && |\n| &&
-`        ` && |\n| &&
-`        domElements.container.addEventListener(&#39;mousedown&#39;, onSvgMousedown, false);` && |\n| &&
+`        ` && |\n|.
+result = result && `        domElements.container.addEventListener(&#39;mousedown&#39;, onSvgMousedown, false);` && |\n| &&
 `        ` && |\n| &&
 `        /* Add click event for svg */` && |\n| &&
 `        function onSvgClick(e) {` && |\n| &&
