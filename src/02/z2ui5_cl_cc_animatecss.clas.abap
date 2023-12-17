@@ -16,7 +16,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_ANIMATECSS IMPLEMENTATION.
+CLASS z2ui5_cl_cc_animatecss IMPLEMENTATION.
 
 
   METHOD load_css.
@@ -681,1591 +681,469 @@ CLASS Z2UI5_CL_CC_ANIMATECSS IMPLEMENTATION.
 `    transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
 `  }` && |\n| &&
 `` && |\n|.
-result = result && ` ` &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes wobble {` && |\n| &&
-`  from {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  15% {` && |\n| &&
-`    -webkit-transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg);` && |\n| &&
-`    transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  30% {` && |\n| &&
-`    -webkit-transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg);` && |\n| &&
-`    transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  45% {` && |\n| &&
-`    -webkit-transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg);` && |\n| &&
-`    transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    -webkit-transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg);` && |\n| &&
-`    transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
-`    transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__wobble {` && |\n| &&
-`  -webkit-animation-name: wobble;` && |\n| &&
-`  animation-name: wobble;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes jello {` && |\n| &&
-`  from,` && |\n| &&
-`  11.1%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  22.2% {` && |\n| &&
-`    -webkit-transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
-`    transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  33.3% {` && |\n| &&
-`    -webkit-transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
-`    transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  44.4% {` && |\n| &&
-`    -webkit-transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
-`    transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  55.5% {` && |\n| &&
-`    -webkit-transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
-`    transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  66.6% {` && |\n| &&
-`    -webkit-transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
-`    transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  77.7% {` && |\n| &&
-`    -webkit-transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
-`    transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  88.8% {` && |\n| &&
-`    -webkit-transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
-`    transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes jello {` && |\n| &&
-`  from,` && |\n| &&
-`  11.1%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  22.2% {` && |\n| &&
-`    -webkit-transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
-`    transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  33.3% {` && |\n| &&
-`    -webkit-transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
-`    transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  44.4% {` && |\n| &&
-`    -webkit-transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
-`    transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  55.5% {` && |\n| &&
-`    -webkit-transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
-`    transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  66.6% {` && |\n| &&
-`    -webkit-transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
-`    transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  77.7% {` && |\n| &&
-`    -webkit-transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
-`    transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  88.8% {` && |\n| &&
-`    -webkit-transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
-`    transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__jello {` && |\n| &&
-`  -webkit-animation-name: jello;` && |\n| &&
-`  animation-name: jello;` && |\n| &&
-`  -webkit-transform-origin: center;` && |\n| &&
-`  transform-origin: center;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes heartBeat {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  14% {` && |\n| &&
-`    -webkit-transform: scale(1.3);` && |\n| &&
-`    transform: scale(1.3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  28% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  42% {` && |\n| &&
-`    -webkit-transform: scale(1.3);` && |\n| &&
-`    transform: scale(1.3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  70% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes heartBeat {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  14% {` && |\n| &&
-`    -webkit-transform: scale(1.3);` && |\n| &&
-`    transform: scale(1.3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  28% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  42% {` && |\n| &&
-`    -webkit-transform: scale(1.3);` && |\n| &&
-`    transform: scale(1.3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  70% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__heartBeat {` && |\n| &&
-`  -webkit-animation-name: heartBeat;` && |\n| &&
-`  animation-name: heartBeat;` && |\n| &&
-`  -webkit-animation-duration: calc(1s * 1.3);` && |\n| &&
-`  animation-duration: calc(1s * 1.3);` && |\n| &&
-`  -webkit-animation-duration: calc(var(--animate-duration) * 1.3);` && |\n| &&
-`  animation-duration: calc(var(--animate-duration) * 1.3);` && |\n| &&
-`  -webkit-animation-timing-function: ease-in-out;` && |\n| &&
-`  animation-timing-function: ease-in-out;` && |\n| &&
-`}` && |\n| &&
-`/* Back entrances */` && |\n| &&
-`@-webkit-keyframes backInDown {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateY(-1200px) scale(0.7);` && |\n| &&
-`    transform: translateY(-1200px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backInDown {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateY(-1200px) scale(0.7);` && |\n| &&
-`    transform: translateY(-1200px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backInDown {` && |\n| &&
-`  -webkit-animation-name: backInDown;` && |\n| &&
-`  animation-name: backInDown;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes backInLeft {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backInLeft {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backInLeft {` && |\n| &&
-`  -webkit-animation-name: backInLeft;` && |\n| &&
-`  animation-name: backInLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes backInRight {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backInRight {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backInRight {` && |\n| &&
-`  -webkit-animation-name: backInRight;` && |\n| &&
-`  animation-name: backInRight;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes backInUp {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateY(1200px) scale(0.7);` && |\n| &&
-`    transform: translateY(1200px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backInUp {` && |\n|.
+    result = result && ` ` &&
+    `  to {` && |\n| &&
+    `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
+    `    transform: translate3d(0, 0, 0);` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes wobble {` && |\n| &&
+    `  from {` && |\n| &&
+    `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
+    `    transform: translate3d(0, 0, 0);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  15% {` && |\n| &&
+    `    -webkit-transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg);` && |\n| &&
+    `    transform: translate3d(-25%, 0, 0) rotate3d(0, 0, 1, -5deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  30% {` && |\n| &&
+    `    -webkit-transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg);` && |\n| &&
+    `    transform: translate3d(20%, 0, 0) rotate3d(0, 0, 1, 3deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  45% {` && |\n| &&
+    `    -webkit-transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg);` && |\n| &&
+    `    transform: translate3d(-15%, 0, 0) rotate3d(0, 0, 1, -3deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  60% {` && |\n| &&
+    `    -webkit-transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg);` && |\n| &&
+    `    transform: translate3d(10%, 0, 0) rotate3d(0, 0, 1, 2deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  75% {` && |\n| &&
+    `    -webkit-transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
+    `    transform: translate3d(-5%, 0, 0) rotate3d(0, 0, 1, -1deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  to {` && |\n| &&
+    `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
+    `    transform: translate3d(0, 0, 0);` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__wobble {` && |\n| &&
+    `  -webkit-animation-name: wobble;` && |\n| &&
+    `  animation-name: wobble;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes jello {` && |\n| &&
+    `  from,` && |\n| &&
+    `  11.1%,` && |\n| &&
+    `  to {` && |\n| &&
+    `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
+    `    transform: translate3d(0, 0, 0);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  22.2% {` && |\n| &&
+    `    -webkit-transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
+    `    transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  33.3% {` && |\n| &&
+    `    -webkit-transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
+    `    transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  44.4% {` && |\n| &&
+    `    -webkit-transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
+    `    transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  55.5% {` && |\n| &&
+    `    -webkit-transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
+    `    transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  66.6% {` && |\n| &&
+    `    -webkit-transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
+    `    transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  77.7% {` && |\n| &&
+    `    -webkit-transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
+    `    transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  88.8% {` && |\n| &&
+    `    -webkit-transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
+    `    transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes jello {` && |\n| &&
+    `  from,` && |\n| &&
+    `  11.1%,` && |\n| &&
+    `  to {` && |\n| &&
+    `    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
+    `    transform: translate3d(0, 0, 0);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  22.2% {` && |\n| &&
+    `    -webkit-transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
+    `    transform: skewX(-12.5deg) skewY(-12.5deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  33.3% {` && |\n| &&
+    `    -webkit-transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
+    `    transform: skewX(6.25deg) skewY(6.25deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  44.4% {` && |\n| &&
+    `    -webkit-transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
+    `    transform: skewX(-3.125deg) skewY(-3.125deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  55.5% {` && |\n| &&
+    `    -webkit-transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
+    `    transform: skewX(1.5625deg) skewY(1.5625deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  66.6% {` && |\n| &&
+    `    -webkit-transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
+    `    transform: skewX(-0.78125deg) skewY(-0.78125deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  77.7% {` && |\n| &&
+    `    -webkit-transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
+    `    transform: skewX(0.390625deg) skewY(0.390625deg);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  88.8% {` && |\n| &&
+    `    -webkit-transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
+    `    transform: skewX(-0.1953125deg) skewY(-0.1953125deg);` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__jello {` && |\n| &&
+    `  -webkit-animation-name: jello;` && |\n| &&
+    `  animation-name: jello;` && |\n| &&
+    `  -webkit-transform-origin: center;` && |\n| &&
+    `  transform-origin: center;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes heartBeat {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  14% {` && |\n| &&
+    `    -webkit-transform: scale(1.3);` && |\n| &&
+    `    transform: scale(1.3);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  28% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  42% {` && |\n| &&
+    `    -webkit-transform: scale(1.3);` && |\n| &&
+    `    transform: scale(1.3);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  70% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes heartBeat {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  14% {` && |\n| &&
+    `    -webkit-transform: scale(1.3);` && |\n| &&
+    `    transform: scale(1.3);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  28% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  42% {` && |\n| &&
+    `    -webkit-transform: scale(1.3);` && |\n| &&
+    `    transform: scale(1.3);` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  70% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__heartBeat {` && |\n| &&
+    `  -webkit-animation-name: heartBeat;` && |\n| &&
+    `  animation-name: heartBeat;` && |\n| &&
+    `  -webkit-animation-duration: calc(1s * 1.3);` && |\n| &&
+    `  animation-duration: calc(1s * 1.3);` && |\n| &&
+    `  -webkit-animation-duration: calc(var(--animate-duration) * 1.3);` && |\n| &&
+    `  animation-duration: calc(var(--animate-duration) * 1.3);` && |\n| &&
+    `  -webkit-animation-timing-function: ease-in-out;` && |\n| &&
+    `  animation-timing-function: ease-in-out;` && |\n| &&
+    `}` && |\n| &&
+    `/* Back entrances */` && |\n| &&
+    `@-webkit-keyframes backInDown {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateY(-1200px) scale(0.7);` && |\n| &&
+    `    transform: translateY(-1200px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes backInDown {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateY(-1200px) scale(0.7);` && |\n| &&
+    `    transform: translateY(-1200px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__backInDown {` && |\n| &&
+    `  -webkit-animation-name: backInDown;` && |\n| &&
+    `  animation-name: backInDown;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes backInLeft {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes backInLeft {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__backInLeft {` && |\n| &&
+    `  -webkit-animation-name: backInLeft;` && |\n| &&
+    `  animation-name: backInLeft;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes backInRight {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
+    `    transform: translateX(2000px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes backInRight {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
+    `    transform: translateX(2000px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__backInRight {` && |\n| &&
+    `  -webkit-animation-name: backInRight;` && |\n| &&
+    `  animation-name: backInRight;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes backInUp {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateY(1200px) scale(0.7);` && |\n| &&
+    `    transform: translateY(1200px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes backInUp {` && |\n|.
 
-result = result && `` &&
-`  0% {` && |\n| &&
-`    -webkit-transform: translateY(1200px) scale(0.7);` && |\n| &&
-`    transform: translateY(1200px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backInUp {` && |\n| &&
-`  -webkit-animation-name: backInUp;` && |\n| &&
-`  animation-name: backInUp;` && |\n| &&
-`}` && |\n| &&
-`/* Back exits */` && |\n| &&
-`@-webkit-keyframes backOutDown {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateY(700px) scale(0.7);` && |\n| &&
-`    transform: translateY(700px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backOutDown {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateY(700px) scale(0.7);` && |\n| &&
-`    transform: translateY(700px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backOutDown {` && |\n| &&
-`  -webkit-animation-name: backOutDown;` && |\n| &&
-`  animation-name: backOutDown;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes backOutLeft {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backOutLeft {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(-2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backOutLeft {` && |\n| &&
-`  -webkit-animation-name: backOutLeft;` && |\n| &&
-`  animation-name: backOutLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes backOutRight {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n|.
-result = `` &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backOutRight {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
-`    transform: translateX(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    transform: translateX(2000px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backOutRight {` && |\n| &&
-`  -webkit-animation-name: backOutRight;` && |\n| &&
-`  animation-name: backOutRight;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes backOutUp {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateY(-700px) scale(0.7);` && |\n| &&
-`    transform: translateY(-700px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes backOutUp {` && |\n| &&
-`  0% {` && |\n| &&
-`    -webkit-transform: scale(1);` && |\n| &&
-`    transform: scale(1);` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
-`    transform: translateY(0px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  100% {` && |\n| &&
-`    -webkit-transform: translateY(-700px) scale(0.7);` && |\n| &&
-`    transform: translateY(-700px) scale(0.7);` && |\n| &&
-`    opacity: 0.7;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__backOutUp {` && |\n| &&
-`  -webkit-animation-name: backOutUp;` && |\n| &&
-`  animation-name: backOutUp;` && |\n| &&
-`}` && |\n| &&
-`/* Bouncing entrances  */` && |\n| &&
-`@-webkit-keyframes bounceIn {` && |\n| &&
-`  from,` && |\n| &&
-`  20%,` && |\n| &&
-`  40%,` && |\n| &&
-`  60%,` && |\n| &&
-`  80%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  0% {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`    transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`    transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  40% {` && |\n| &&
-`    -webkit-transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`    transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: scale3d(1.03, 1.03, 1.03);` && |\n| &&
-`    transform: scale3d(1.03, 1.03, 1.03);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: scale3d(0.97, 0.97, 0.97);` && |\n| &&
-`    transform: scale3d(0.97, 0.97, 0.97);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: scale3d(1, 1, 1);` && |\n| &&
-`    transform: scale3d(1, 1, 1);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceIn {` && |\n| &&
-`  from,` && |\n| &&
-`  20%,` && |\n| &&
-`  40%,` && |\n| &&
-`  60%,` && |\n| &&
-`  80%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  0% {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`    transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`    transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  40% {` && |\n| &&
-`    -webkit-transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`    transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: scale3d(1.03, 1.03, 1.03);` && |\n| &&
-`    transform: scale3d(1.03, 1.03, 1.03);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  80% {` && |\n| &&
-`    -webkit-transform: scale3d(0.97, 0.97, 0.97);` && |\n| &&
-`    transform: scale3d(0.97, 0.97, 0.97);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: scale3d(1, 1, 1);` && |\n| &&
-`    transform: scale3d(1, 1, 1);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceIn {` && |\n| &&
-`  -webkit-animation-duration: calc(1s * 0.75);` && |\n| &&
-`  animation-duration: calc(1s * 0.75);` && |\n| &&
-`  -webkit-animation-duration: calc(var(--animate-duration) * 0.75);` && |\n| &&
-`  animation-duration: calc(var(--animate-duration) * 0.75);` && |\n| &&
-`  -webkit-animation-name: bounceIn;` && |\n| &&
-`  animation-name: bounceIn;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceInDown {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  0% {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -3000px, 0) scaleY(3);` && |\n| &&
-`    transform: translate3d(0, -3000px, 0) scaleY(3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 25px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, 25px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(0, -10px, 0) scaleY(0.95);` && |\n| &&
-`    transform: translate3d(0, -10px, 0) scaleY(0.95);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(0, 5px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, 5px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceInDown {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  0% {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -3000px, 0) scaleY(3);` && |\n| &&
-`    transform: translate3d(0, -3000px, 0) scaleY(3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 25px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, 25px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(0, -10px, 0) scaleY(0.95);` && |\n| &&
-`    transform: translate3d(0, -10px, 0) scaleY(0.95);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(0, 5px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, 5px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceInDown {` && |\n| &&
-`  -webkit-animation-name: bounceInDown;` && |\n| &&
-`  animation-name: bounceInDown;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceInLeft {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  0% {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-3000px, 0, 0) scaleX(3);` && |\n| &&
-`    transform: translate3d(-3000px, 0, 0) scaleX(3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(25px, 0, 0) scaleX(1);` && |\n| &&
-`    transform: translate3d(25px, 0, 0) scaleX(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(-10px, 0, 0) scaleX(0.98);` && |\n| &&
-`    transform: translate3d(-10px, 0, 0) scaleX(0.98);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(5px, 0, 0) scaleX(0.995);` && |\n| &&
-`    transform: translate3d(5px, 0, 0) scaleX(0.995);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceInLeft {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  0% {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-3000px, 0, 0) scaleX(3);` && |\n| &&
-`    transform: translate3d(-3000px, 0, 0) scaleX(3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(25px, 0, 0) scaleX(1);` && |\n| &&
-`    transform: translate3d(25px, 0, 0) scaleX(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(-10px, 0, 0) scaleX(0.98);` && |\n| &&
-`    transform: translate3d(-10px, 0, 0) scaleX(0.98);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(5px, 0, 0) scaleX(0.995);` && |\n| &&
-`    transform: translate3d(5px, 0, 0) scaleX(0.995);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceInLeft {` && |\n| &&
-`  -webkit-animation-name: bounceInLeft;` && |\n| &&
-`  animation-name: bounceInLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceInRight {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(3000px, 0, 0) scaleX(3);` && |\n| &&
-`    transform: translate3d(3000px, 0, 0) scaleX(3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(-25px, 0, 0) scaleX(1);` && |\n| &&
-`    transform: translate3d(-25px, 0, 0) scaleX(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(10px, 0, 0) scaleX(0.98);` && |\n| &&
-`    transform: translate3d(10px, 0, 0) scaleX(0.98);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(-5px, 0, 0) scaleX(0.995);` && |\n| &&
-`    transform: translate3d(-5px, 0, 0) scaleX(0.995);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceInRight {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(3000px, 0, 0) scaleX(3);` && |\n| &&
-`    transform: translate3d(3000px, 0, 0) scaleX(3);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(-25px, 0, 0) scaleX(1);` && |\n| &&
-`    transform: translate3d(-25px, 0, 0) scaleX(1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(10px, 0, 0) scaleX(0.98);` && |\n| &&
-`    transform: translate3d(10px, 0, 0) scaleX(0.98);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(-5px, 0, 0) scaleX(0.995);` && |\n| &&
-`    transform: translate3d(-5px, 0, 0) scaleX(0.995);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceInRight {` && |\n| &&
-`  -webkit-animation-name: bounceInRight;` && |\n| &&
-`  animation-name: bounceInRight;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceInUp {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 3000px, 0) scaleY(5);` && |\n| &&
-`    transform: translate3d(0, 3000px, 0) scaleY(5);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(0, 10px, 0) scaleY(0.95);` && |\n| &&
-`    transform: translate3d(0, 10px, 0) scaleY(0.95);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(0, -5px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, -5px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceInUp {` && |\n| &&
-`  from,` && |\n| &&
-`  60%,` && |\n| &&
-`  75%,` && |\n| &&
-`  90%,` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 3000px, 0) scaleY(5);` && |\n| &&
-`    transform: translate3d(0, 3000px, 0) scaleY(5);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  60% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  75% {` && |\n| &&
-`    -webkit-transform: translate3d(0, 10px, 0) scaleY(0.95);` && |\n| &&
-`    transform: translate3d(0, 10px, 0) scaleY(0.95);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  90% {` && |\n| &&
-`    -webkit-transform: translate3d(0, -5px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, -5px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceInUp {` && |\n| &&
-`  -webkit-animation-name: bounceInUp;` && |\n| &&
-`  animation-name: bounceInUp;` && |\n| &&
-`}` && |\n| &&
-`/* Bouncing exits  */` && |\n| &&
-`@-webkit-keyframes bounceOut {` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`    transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  50%,` && |\n| &&
-`  55% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`    transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n|.
-result = result && ` ` &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`    transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceOut {` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`    transform: scale3d(0.9, 0.9, 0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  50%,` && |\n| &&
-`  55% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`    transform: scale3d(1.1, 1.1, 1.1);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`    transform: scale3d(0.3, 0.3, 0.3);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceOut {` && |\n| &&
-`  -webkit-animation-duration: calc(1s * 0.75);` && |\n| &&
-`  animation-duration: calc(1s * 0.75);` && |\n| &&
-`  -webkit-animation-duration: calc(var(--animate-duration) * 0.75);` && |\n| &&
-`  animation-duration: calc(var(--animate-duration) * 0.75);` && |\n| &&
-`  -webkit-animation-name: bounceOut;` && |\n| &&
-`  animation-name: bounceOut;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceOutDown {` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translate3d(0, 10px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, 10px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  40%,` && |\n| &&
-`  45% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 2000px, 0) scaleY(3);` && |\n| &&
-`    transform: translate3d(0, 2000px, 0) scaleY(3);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceOutDown {` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translate3d(0, 10px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, 10px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  40%,` && |\n| &&
-`  45% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, -20px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 2000px, 0) scaleY(3);` && |\n| &&
-`    transform: translate3d(0, 2000px, 0) scaleY(3);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceOutDown {` && |\n| &&
-`  -webkit-animation-name: bounceOutDown;` && |\n| &&
-`  animation-name: bounceOutDown;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceOutLeft {` && |\n| &&
-`  20% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(20px, 0, 0) scaleX(0.9);` && |\n| &&
-`    transform: translate3d(20px, 0, 0) scaleX(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-2000px, 0, 0) scaleX(2);` && |\n| &&
-`    transform: translate3d(-2000px, 0, 0) scaleX(2);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceOutLeft {` && |\n| &&
-`  20% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(20px, 0, 0) scaleX(0.9);` && |\n| &&
-`    transform: translate3d(20px, 0, 0) scaleX(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-2000px, 0, 0) scaleX(2);` && |\n| &&
-`    transform: translate3d(-2000px, 0, 0) scaleX(2);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceOutLeft {` && |\n| &&
-`  -webkit-animation-name: bounceOutLeft;` && |\n| &&
-`  animation-name: bounceOutLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceOutRight {` && |\n| &&
-`  20% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(-20px, 0, 0) scaleX(0.9);` && |\n| &&
-`    transform: translate3d(-20px, 0, 0) scaleX(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(2000px, 0, 0) scaleX(2);` && |\n| &&
-`    transform: translate3d(2000px, 0, 0) scaleX(2);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceOutRight {` && |\n| &&
-`  20% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(-20px, 0, 0) scaleX(0.9);` && |\n| &&
-`    transform: translate3d(-20px, 0, 0) scaleX(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(2000px, 0, 0) scaleX(2);` && |\n| &&
-`    transform: translate3d(2000px, 0, 0) scaleX(2);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceOutRight {` && |\n| &&
-`  -webkit-animation-name: bounceOutRight;` && |\n| &&
-`  animation-name: bounceOutRight;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes bounceOutUp {` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translate3d(0, -10px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, -10px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  40%,` && |\n| &&
-`  45% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 20px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, 20px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -2000px, 0) scaleY(3);` && |\n| &&
-`    transform: translate3d(0, -2000px, 0) scaleY(3);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes bounceOutUp {` && |\n| &&
-`  20% {` && |\n| &&
-`    -webkit-transform: translate3d(0, -10px, 0) scaleY(0.985);` && |\n| &&
-`    transform: translate3d(0, -10px, 0) scaleY(0.985);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  40%,` && |\n| &&
-`  45% {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 20px, 0) scaleY(0.9);` && |\n| &&
-`    transform: translate3d(0, 20px, 0) scaleY(0.9);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -2000px, 0) scaleY(3);` && |\n| &&
-`    transform: translate3d(0, -2000px, 0) scaleY(3);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__bounceOutUp {` && |\n| &&
-`  -webkit-animation-name: bounceOutUp;` && |\n| &&
-`  animation-name: bounceOutUp;` && |\n| &&
-`}` && |\n| &&
-`/* Fading entrances  */` && |\n| &&
-`@-webkit-keyframes fadeIn {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeIn {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeIn {` && |\n| &&
-`  -webkit-animation-name: fadeIn;` && |\n| &&
-`  animation-name: fadeIn;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInDown {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -100%, 0);` && |\n| &&
-`    transform: translate3d(0, -100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInDown {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -100%, 0);` && |\n| &&
-`    transform: translate3d(0, -100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInDown {` && |\n| &&
-`  -webkit-animation-name: fadeInDown;` && |\n| &&
-`  animation-name: fadeInDown;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInDownBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -2000px, 0);` && |\n| &&
-`    transform: translate3d(0, -2000px, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInDownBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, -2000px, 0);` && |\n| &&
-`    transform: translate3d(0, -2000px, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInDownBig {` && |\n| &&
-`  -webkit-animation-name: fadeInDownBig;` && |\n| &&
-`  animation-name: fadeInDownBig;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInLeft {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-100%, 0, 0);` && |\n| &&
-`    transform: translate3d(-100%, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInLeft {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-100%, 0, 0);` && |\n| &&
-`    transform: translate3d(-100%, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInLeft {` && |\n| &&
-`  -webkit-animation-name: fadeInLeft;` && |\n| &&
-`  animation-name: fadeInLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInLeftBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-2000px, 0, 0);` && |\n| &&
-`    transform: translate3d(-2000px, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInLeftBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-2000px, 0, 0);` && |\n| &&
-`    transform: translate3d(-2000px, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInLeftBig {` && |\n| &&
-`  -webkit-animation-name: fadeInLeftBig;` && |\n| &&
-`  animation-name: fadeInLeftBig;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInRight {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(100%, 0, 0);` && |\n| &&
-`    transform: translate3d(100%, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-*`}` && |\n| &&
-`}`.
-result = result &&
-`@keyframes fadeInRight {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(100%, 0, 0);` && |\n| &&
-`    transform: translate3d(100%, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInRight {` && |\n| &&
-`  -webkit-animation-name: fadeInRight;` && |\n| &&
-`  animation-name: fadeInRight;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInRightBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(2000px, 0, 0);` && |\n| &&
-`    transform: translate3d(2000px, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInRightBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(2000px, 0, 0);` && |\n| &&
-`    transform: translate3d(2000px, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInRightBig {` && |\n| &&
-`  -webkit-animation-name: fadeInRightBig;` && |\n| &&
-`  animation-name: fadeInRightBig;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInUp {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 100%, 0);` && |\n| &&
-`    transform: translate3d(0, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInUp {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 100%, 0);` && |\n| &&
-`    transform: translate3d(0, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInUp {` && |\n| &&
-`  -webkit-animation-name: fadeInUp;` && |\n| &&
-`  animation-name: fadeInUp;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInUpBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 2000px, 0);` && |\n| &&
-`    transform: translate3d(0, 2000px, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInUpBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 2000px, 0);` && |\n| &&
-`    transform: translate3d(0, 2000px, 0);` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInUpBig {` && |\n| &&
-`  -webkit-animation-name: fadeInUpBig;` && |\n| &&
-`  animation-name: fadeInUpBig;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInTopLeft {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-100%, -100%, 0);` && |\n| &&
-`    transform: translate3d(-100%, -100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInTopLeft {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-100%, -100%, 0);` && |\n| &&
-`    transform: translate3d(-100%, -100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInTopLeft {` && |\n| &&
-`  -webkit-animation-name: fadeInTopLeft;` && |\n| &&
-`  animation-name: fadeInTopLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInTopRight {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(100%, -100%, 0);` && |\n| &&
-`    transform: translate3d(100%, -100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInTopRight {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(100%, -100%, 0);` && |\n| &&
-`    transform: translate3d(100%, -100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInTopRight {` && |\n| &&
-`  -webkit-animation-name: fadeInTopRight;` && |\n| &&
-`  animation-name: fadeInTopRight;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInBottomLeft {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-100%, 100%, 0);` && |\n| &&
-`    transform: translate3d(-100%, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInBottomLeft {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(-100%, 100%, 0);` && |\n| &&
-`    transform: translate3d(-100%, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInBottomLeft {` && |\n| &&
-`  -webkit-animation-name: fadeInBottomLeft;` && |\n| &&
-`  animation-name: fadeInBottomLeft;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeInBottomRight {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(100%, 100%, 0);` && |\n| &&
-`    transform: translate3d(100%, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeInBottomRight {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(100%, 100%, 0);` && |\n| &&
-`    transform: translate3d(100%, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`    -webkit-transform: translate3d(0, 0, 0);` && |\n| &&
-`    transform: translate3d(0, 0, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeInBottomRight {` && |\n| &&
-`  -webkit-animation-name: fadeInBottomRight;` && |\n| &&
-`  animation-name: fadeInBottomRight;` && |\n| &&
-`}` && |\n| &&
-`/* Fading exits */` && |\n| &&
-`@-webkit-keyframes fadeOut {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeOut {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeOut {` && |\n| &&
-`  -webkit-animation-name: fadeOut;` && |\n| &&
-`  animation-name: fadeOut;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeOutDown {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 100%, 0);` && |\n| &&
-`    transform: translate3d(0, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeOutDown {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 100%, 0);` && |\n| &&
-`    transform: translate3d(0, 100%, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`.animate__fadeOutDown {` && |\n| &&
-`  -webkit-animation-name: fadeOutDown;` && |\n| &&
-`  animation-name: fadeOutDown;` && |\n| &&
-`}` && |\n| &&
-`@-webkit-keyframes fadeOutDownBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n| &&
-`  to {` && |\n| &&
-`    opacity: 0;` && |\n| &&
-`    -webkit-transform: translate3d(0, 2000px, 0);` && |\n| &&
-`    transform: translate3d(0, 2000px, 0);` && |\n| &&
-`  }` && |\n| &&
-`}` && |\n| &&
-`@keyframes fadeOutDownBig {` && |\n| &&
-`  from {` && |\n| &&
-`    opacity: 1;` && |\n| &&
-`  }` && |\n| &&
-`` && |\n|.
-
+    result = result && `` &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: translateY(1200px) scale(0.7);` && |\n| &&
+    `    transform: translateY(1200px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  80% {` && |\n| &&
+    `    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__backInUp {` && |\n| &&
+    `  -webkit-animation-name: backInUp;` && |\n| &&
+    `  animation-name: backInUp;` && |\n| &&
+    `}` && |\n| &&
+    `/* Back exits */` && |\n| &&
+    `@-webkit-keyframes backOutDown {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  20% {` && |\n| &&
+    `    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: translateY(700px) scale(0.7);` && |\n| &&
+    `    transform: translateY(700px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes backOutDown {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  20% {` && |\n| &&
+    `    -webkit-transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    transform: translateY(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: translateY(700px) scale(0.7);` && |\n| &&
+    `    transform: translateY(700px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__backOutDown {` && |\n| &&
+    `  -webkit-animation-name: backOutDown;` && |\n| &&
+    `  animation-name: backOutDown;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes backOutLeft {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  20% {` && |\n| &&
+    `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `@keyframes backOutLeft {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  20% {` && |\n| &&
+    `    -webkit-transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    transform: translateX(0px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n| &&
+    `  100% {` && |\n| &&
+    `    -webkit-transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    transform: translateX(-2000px) scale(0.7);` && |\n| &&
+    `    opacity: 0.7;` && |\n| &&
+    `  }` && |\n| &&
+    `}` && |\n| &&
+    `.animate__backOutLeft {` && |\n| &&
+    `  -webkit-animation-name: backOutLeft;` && |\n| &&
+    `  animation-name: backOutLeft;` && |\n| &&
+    `}` && |\n| &&
+    `@-webkit-keyframes backOutRight {` && |\n| &&
+    `  0% {` && |\n| &&
+    `    -webkit-transform: scale(1);` && |\n| &&
+    `    transform: scale(1);` && |\n| &&
+    `    opacity: 1;` && |\n| &&
+    `  }` && |\n| &&
+    `` && |\n|.
 
   ENDMETHOD.
 ENDCLASS.
