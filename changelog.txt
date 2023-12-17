@@ -11,4 +11,5 @@ Legend
 2023-12-15 v1.110.0
 -------------------
 
-+ test
++ custom control - image mapster
+! package structure
