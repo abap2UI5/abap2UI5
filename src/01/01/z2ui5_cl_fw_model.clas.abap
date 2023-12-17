@@ -71,7 +71,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
           CASE lr_attri->type_kind.
 
-            WHEN `h`.
+            WHEN cl_abap_typedescr=>typekind_table.
               z2ui5_cl_util_func=>trans_ref_tab_2_tab(
                 EXPORTING
                     ir_tab_from = <frontend>
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
               ASSIGN <frontend>->* TO <frontend>.
               CASE lr_attri->type_kind.
-                WHEN 'D' OR 'T'.
+                WHEN  cl_abap_typedescr=>typekind_date  OR cl_abap_typedescr=>typekind_time.
                   z2ui5_cl_util_func=>trans_json_2_any(
                     EXPORTING
                         val = `"` && <frontend> && `"`
@@ -153,14 +153,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
           ENDCASE.
       ENDCASE.
 
-*      IF lr_attri->bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way.
-*        INSERT VALUE #( n = lr_attri->name_front v = lr_attri->name ) INTO TABLE lt_binds.
-*      ENDIF.
     ENDLOOP.
-
-*    lo_update->add_attribute( n           = `OBINDS`
-*                              v           = z2ui5_cl_fw_utility=>trans_json_any_2( lt_binds )
-*                                apos_active = abap_false ).
 
     result = lr_view_model->stringify( ).
 

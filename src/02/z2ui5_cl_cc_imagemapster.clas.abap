@@ -2597,7 +2597,7 @@ result = result &&
 `            + (this._attributes.title ? &#39; title=&quot;&#39; + this._attributes.title + &#39;&quot;&#39; : &#39;&#39;)` && |\n| &&
 `            + &#39; /&gt;&#39;;` && |\n| &&
 `    };` && |\n|.
-result =  `` && |\n| &&
+result = result && |\n| &&
 `    Polygon.prototype.getCoordsForDisplayingInfo = function() {` && |\n| &&
 `        return {` && |\n| &&
 `            x : this._coords.points[0].x,` && |\n| &&
