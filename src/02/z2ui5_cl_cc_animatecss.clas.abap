@@ -470,7 +470,8 @@ CLASS z2ui5_cl_cc_animatecss IMPLEMENTATION.
 `    -webkit-transform: translateX(5px) rotateY(7deg);` && |\n| &&
 `    transform: translateX(5px) rotateY(7deg);` && |\n| &&
 `  }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = result &&
 `  31.5% {` && |\n| &&
 `    -webkit-transform: translateX(-3px) rotateY(-5deg);` && |\n| &&
 `    transform: translateX(-3px) rotateY(-5deg);` && |\n| &&
