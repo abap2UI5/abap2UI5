@@ -2260,7 +2260,8 @@ result = result &&
 `  from {` && |\n| &&
 `    opacity: 1;` && |\n| &&
 `  }` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = ``&&
 `  to {` && |\n| &&
 `    opacity: 0;` && |\n| &&
 `    -webkit-transform: translate3d(0, 2000px, 0);` && |\n| &&
