@@ -1615,7 +1615,8 @@ result = result && `        domElements.container.addEventListener(&#39;mousedow
 `    AppEvent.prototype.remove = function() {` && |\n| &&
 `        this.target.removeEventListener(this.eventType, this.func, false);` && |\n| &&
 `    };` && |\n| &&
-`` && |\n| &&
+`` && |\n|.
+result = result &&
 `    function Helper(node, x, y, action) {` && |\n| &&
 `        this._el = document.createElementNS(Area.SVG_NS, &#39;rect&#39;);` && |\n| &&
 `        ` && |\n| &&
@@ -2045,7 +2046,7 @@ result = result && `        domElements.container.addEventListener(&#39;mousedow
 `                break;` && |\n| &&
 `        }` && |\n| &&
 `` && |\n|.
-result = result && 
+result = result &&
 `        return tempParams;` && |\n| &&
 `    };` && |\n| &&
 `    ` && |\n| &&
@@ -2433,7 +2434,9 @@ result = result &&
 `        this._coords.isOpened = false;` && |\n| &&
 `        this.redraw().deselect();` && |\n| &&
 `    };` && |\n| &&
-`    ` && |\n| &&
+`    ` && |\n|.
+
+result = result &&
 `    Polygon.prototype.setSVGCoords = function(coords) {` && |\n| &&
 `        var polygonPointsAttrValue = coords.points.reduce(function(previousValue, currentItem) {` && |\n| &&
 `            return previousValue + currentItem.x + &#39; &#39; + currentItem.y + &#39; &#39;;` && |\n| &&
@@ -3049,7 +3052,9 @@ result =  `` && |\n| &&
 `                        ` && |\n| &&
 `                    return url.value.trim();` && |\n| &&
 `                }` && |\n| &&
-`            };` && |\n| &&
+`            };` && |\n|.
+
+result = result &&
 `        })();` && |\n| &&
 `        ` && |\n| &&
 `        ` && |\n| &&
