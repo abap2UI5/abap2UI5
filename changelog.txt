@@ -1,0 +1,14 @@
+abap2UI5 changelog
+=================
+
+Legend
+------
+* : fixed
+! : changed
++ : added
+- : removed
+
+2023-12-15 v1.110.0
+-------------------
+
++ test
