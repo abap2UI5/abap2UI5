@@ -424,6 +424,8 @@ public section.
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TOKENS
+    importing
+        ns type clike optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods TOKEN
@@ -6877,7 +6879,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD tokens.
 
-    result = _generic( `tokens` ).
+    result = _generic( name = `tokens` ns = ns ).
 
   ENDMETHOD.
 
