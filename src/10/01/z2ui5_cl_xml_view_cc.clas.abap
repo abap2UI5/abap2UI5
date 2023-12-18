@@ -5,6 +5,27 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
   PUBLIC SECTION.
 
+
+    METHODS multiinput
+      IMPORTING
+        !showclearicon    TYPE clike OPTIONAL
+        !showvaluehelp    TYPE clike OPTIONAL
+        !suggestionitems  TYPE clike OPTIONAL
+        !tokenupdate      TYPE clike OPTIONAL
+        !width            TYPE clike OPTIONAL
+        !id               TYPE clike OPTIONAL
+        !value            TYPE clike OPTIONAL
+        !tokens           TYPE clike OPTIONAL
+        !submit           TYPE clike OPTIONAL
+        !valuehelprequest TYPE clike OPTIONAL
+        !enabled          TYPE clike OPTIONAL
+        !class            TYPE clike OPTIONAL
+        !change           TYPE clike OPTIONAL
+        !addedTokens      TYPE clike OPTIONAL
+        !removedTokens    TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS camera_picture
       IMPORTING
         !id           TYPE clike OPTIONAL
@@ -22,11 +43,13 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !height       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS demo_output
       IMPORTING
         !val          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS focus
       IMPORTING
         !focusid        TYPE clike OPTIONAL
@@ -318,4 +341,24 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               t_prop = VALUE #( ( n = `title`  v = title ) ) ).
 
   ENDMETHOD.
+  METHOD multiinput.
+
+    result = mo_view->_generic( name   = `MultiInput` ns = `z2ui5`
+                       t_prop = VALUE #( ( n = `tokens` v = tokens )
+                                         ( n = `showClearIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showclearicon ) )
+                                         ( n = `showValueHelp` v = z2ui5_cl_util_func=>boolean_abap_2_json( showvaluehelp ) )
+                                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
+                                         ( n = `suggestionItems` v = suggestionitems )
+                                         ( n = `tokenUpdate` v = tokenupdate )
+                                         ( n = `submit` v = submit )
+                                         ( n = `width` v = width )
+                                         ( n = `value` v = value )
+                                         ( n = `id` v = id )
+                                         ( n = `change` v = change )
+                                         ( n = `valueHelpRequest` v = valuehelprequest )
+                                         ( n = `addedTokens` v = addedTokens )
+                                         ( n = `removedTokens` v = removedTokens )
+                                         ( n = `class` v = class ) ) ).
+  ENDMETHOD.
+
 ENDCLASS.
