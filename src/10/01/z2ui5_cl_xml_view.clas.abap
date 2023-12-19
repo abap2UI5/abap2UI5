@@ -12,6 +12,11 @@ public section.
     preferred parameter CLIENT
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+      class-methods FACTORY_plain
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   class-methods FACTORY_POPUP
     importing
       !T_NS type Z2UI5_IF_CLIENT=>TY_T_NAME_VALUE optional
@@ -4221,6 +4226,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                          ) ).
   ENDMETHOD.
 
+
+METHOD factory_plain.
+
+    result = NEW #( ).
+
+    result->mo_root   = result.
+    result->mo_parent = result.
+
+  ENDMETHOD.
 
   METHOD factory.
 

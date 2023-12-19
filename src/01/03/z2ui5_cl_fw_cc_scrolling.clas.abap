@@ -61,8 +61,6 @@ CLASS z2ui5_cl_fw_cc_scrolling IMPLEMENTATION.
              |\n|  &&
              `            oControl.setProperty("setUpdate", false);` && |\n|  &&
              `          var items = oControl.getProperty("items");` && |\n|  &&
-*            `           var resBinding = new sap.ui.model.ListBinding(sap.z2ui5.oView.getModel( ), "/EDIT/MT_SCROLL" );` && |\n|  &&
-*            `           resBinding.attachChange( ( ) => { alert( "Model Change" ); } ); ` &&
              `          if(!items){return;};` && |\n|  &&
              |\n|  &&
              `            setTimeout( (oControl) => { ` && |\n|  &&
