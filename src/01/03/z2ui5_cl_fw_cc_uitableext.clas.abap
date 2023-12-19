@@ -27,7 +27,6 @@ CLASS z2ui5_cl_fw_cc_uitableext IMPLEMENTATION.
              `      metadata: {` && |\n|  &&
              `          properties: {` && |\n|  &&
              `              tableId: { type: "String" }` && |\n|  &&
-
              `          }` && |\n|  &&
              `      },` && |\n|  &&
              |\n|  &&
