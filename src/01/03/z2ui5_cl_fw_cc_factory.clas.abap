@@ -27,7 +27,8 @@ CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
         z2ui5_cl_fw_cc_geolocation=>get_js( ) &&
         Z2UI5_CL_FW_CC_DEV_TOOLS=>get_js( ) &&
         z2ui5_cl_fw_cc_file_uploader=>get_js( ) &&
-        z2ui5_cl_fw_cc_multiinput=>get_js( ).
+        z2ui5_cl_fw_cc_multiinput=>get_js( ) &&
+        z2ui5_cl_fw_cc_uitableext=>get_js( ).
 
   ENDMETHOD.
 ENDCLASS.

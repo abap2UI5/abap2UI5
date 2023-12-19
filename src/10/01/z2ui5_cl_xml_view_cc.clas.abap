@@ -5,7 +5,6 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
   PUBLIC SECTION.
 
-
     METHODS multiinput
       IMPORTING
         !showclearicon    TYPE clike OPTIONAL
@@ -25,6 +24,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !removedTokens    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS uitableext
+      IMPORTING
+        !tableid  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS camera_picture
       IMPORTING
@@ -343,7 +348,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   ENDMETHOD.
   METHOD multiinput.
 
-    result = mo_view->_generic( name   = `MultiInput` ns = `z2ui5`
+    result = mo_view.
+    mo_view->_generic( name   = `MultiInput` ns = `z2ui5`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
                                          ( n = `showClearIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showclearicon ) )
                                          ( n = `showValueHelp` v = z2ui5_cl_util_func=>boolean_abap_2_json( showvaluehelp ) )
@@ -359,6 +365,14 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                          ( n = `addedTokens` v = addedTokens )
                                          ( n = `removedTokens` v = removedTokens )
                                          ( n = `class` v = class ) ) ).
+  ENDMETHOD.
+
+  METHOD uitableext.
+
+    result = mo_view->_generic( name   = `UITableExt` ns = `z2ui5`
+                       t_prop = VALUE #( ( n = `tableId` v = tableId )
+                        ) ).
+
   ENDMETHOD.
 
 ENDCLASS.
