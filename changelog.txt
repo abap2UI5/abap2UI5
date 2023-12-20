@@ -8,6 +8,16 @@ Legend
 + : added
 - : removed
 
+
+2023-12-15 v1.111.0
+-------------------
+
++ binding on cell level
++ custom control - MultiInput with backend token handling
++ custom control - ui.table filtering after model update
+* downport ready syntax
+
+
 2023-12-15 v1.110.0
 -------------------
 

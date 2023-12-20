@@ -338,8 +338,10 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD bind_tab_cell.
 
-    FIELD-SYMBOLS <ele> TYPE any.
-    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    data lr_ref_in type ref to data.
+    data lr_ref type ref to data.
 
     ASSIGN i_tab[ i_tab_index ] TO <row>.
     DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <row> ).
@@ -347,9 +349,9 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
-      DATA(lr_ref_in) = REF #( <ele> ).
+      lr_ref_in = REF #( <ele> ).
 
-      DATA(lr_ref) = REF #( i_val ).
+      lr_ref = REF #( i_val ).
       IF lr_ref = lr_ref_in.
         r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
           RETURN.
