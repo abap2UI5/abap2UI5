@@ -9,7 +9,7 @@ Legend
 - : removed
 
 
-2023-12-15 v1.111.0
+2023-12-15 v1.112.0
 -------------------
 
 + binding on cell level
