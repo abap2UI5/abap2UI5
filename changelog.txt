@@ -13,7 +13,7 @@ Legend
 -------------------
 
 + binding on cell level
-+ custom control - MultiInput with Backend Token Handling
++ custom control - MultiInput with backend token handling
 + custom control - ui.table filtering after model update
 * downport ready syntax
 
