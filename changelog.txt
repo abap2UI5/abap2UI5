@@ -9,17 +9,13 @@ Legend
 - : removed
 
 
-2023-12-15 v1.112.0
--------------------
-
-+ custom control - image mapster
-! package structure
-
 2023-12-15 v1.111.0
 -------------------
 
-+ custom control - image mapster
-! package structure
++ binding on cell level
++ custom control - MultiInput with Backend Token Handling
++ custom control - ui.table filtering after model update
+* downport ready syntax
 
 
 2023-12-15 v1.110.0
