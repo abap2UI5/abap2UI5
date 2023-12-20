@@ -8,6 +8,20 @@ Legend
 + : added
 - : removed
 
+
+2023-12-15 v1.112.0
+-------------------
+
++ custom control - image mapster
+! package structure
+
+2023-12-15 v1.111.0
+-------------------
+
++ custom control - image mapster
+! package structure
+
+
 2023-12-15 v1.110.0
 -------------------
 
