@@ -4,6 +4,8 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+    CONSTANTS c_abap_version TYPE string VALUE '1.111.0' ##NO_TEXT.
+
     CLASS-METHODS http_post
       IMPORTING
         body          TYPE string
@@ -12,18 +14,18 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
     CLASS-METHODS http_get
       IMPORTING
-        t_config                  TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-        content_security_policy   TYPE clike                            OPTIONAL
-        check_logging             TYPE abap_bool                        OPTIONAL
-        custom_js                 TYPE string                           OPTIONAL
-        json_model_limit          TYPE string                           DEFAULT '100'
+        t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        content_security_policy TYPE clike                            OPTIONAL
+        check_logging           TYPE abap_bool                        OPTIONAL
+        custom_js               TYPE string                           OPTIONAL
+        json_model_limit        TYPE string                           DEFAULT '100'
           PREFERRED PARAMETER t_config
       RETURNING
-        VALUE(r_result)           TYPE string.
+        VALUE(r_result)         TYPE string.
 
   PROTECTED SECTION.
     CLASS-METHODS get_js
-        returning value(result) type string.
+      RETURNING VALUE(result) TYPE string.
   PRIVATE SECTION.
 
 
