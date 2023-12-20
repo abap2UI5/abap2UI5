@@ -55,6 +55,7 @@ CLASS z2ui5_cl_fw_ui_startup IMPLEMENTATION.
     page->headercontent(
             )->title( `abap2UI5 - Developing UI5 Apps in Pure ABAP`
             )->toolbarspacer(
+            )->text( `v.` && z2ui5_cl_fw_http_handler=>c_abap_version
             )->link( text   = `SCN`
                      target = `_blank`
                      href   = `https://blogs.sap.com/tag/abap2ui5/`
