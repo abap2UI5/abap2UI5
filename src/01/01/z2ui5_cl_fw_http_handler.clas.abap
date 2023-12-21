@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_abap_version TYPE string VALUE '1.112.0' ##NO_TEXT.
+    CONSTANTS c_abap_version TYPE string VALUE '1.111.0' ##NO_TEXT.
 
     CLASS-METHODS http_post
       IMPORTING
@@ -87,8 +87,8 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                           get_js( ) && |\n| &&
                          lv_add_js && |\n| &&
         `                sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
-        `        setTimeout( () => { sap.z2ui5.DevTools = new z2ui5.DevTools();` && |\n|  &&
-        `            sap.z2ui5.DevTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && ` );` && |\n|  &&
+        `        setTimeout( () => { sap.z2ui5.DebuggingTools = new z2ui5.DebuggingTools();` && |\n|  &&
+        `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && ` );` && |\n|  &&
         `        } , 500 ); ` && |\n|  &&
                            ` });` && |\n| &&
                            `</script>` && |\n| &&
