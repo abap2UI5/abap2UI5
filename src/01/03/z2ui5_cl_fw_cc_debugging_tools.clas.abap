@@ -156,9 +156,9 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              |\n|  &&
              `        activateLogging(checkActive) {` && |\n|  &&
                           `            document.addEventListener ("keydown", function (zEvent) {` && |\n|  &&
-             `                if (zEvent.ctrlKey  &&  zEvent.key === "a") {  // case sensitive` && |\n|  &&
+             `                if (zEvent.ctrlKey ) { if ( zEvent.key === "a") {  // case sensitive` && |\n|  &&
              `                    sap.z2ui5.DebuggingTools.show();` && |\n|  &&
-             `                }` && |\n|  &&
+             `                } }` && |\n|  &&
              `            } );` && |\n|  &&
              `            if (!checkActive) {` && |\n|  &&
              `                return;` && |\n|  &&
