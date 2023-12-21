@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_abap_version TYPE string VALUE '1.111.0' ##NO_TEXT.
+    CONSTANTS c_abap_version TYPE string VALUE '1.112.0' ##NO_TEXT.
 
     CLASS-METHODS http_post
       IMPORTING
@@ -16,7 +16,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
       IMPORTING
         t_config                TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
         content_security_policy TYPE clike                            OPTIONAL
-        check_logging           TYPE abap_bool                        OPTIONAL
+        check_debugging         TYPE abap_bool                        OPTIONAL
         custom_js               TYPE string                           OPTIONAL
         json_model_limit        TYPE string                           DEFAULT '100'
           PREFERRED PARAMETER t_config
@@ -43,6 +43,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
       lt_config = VALUE #(
           (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+          (  n = `data-sap-ui-async`         v = `true` )
           (  n = `data-sap-ui-bindingSyntax` v = `complex` )
           (  n = `data-sap-ui-frameOptions`  v = `trusted` )
           (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
@@ -85,14 +86,22 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
     r_result = r_result && `<script>` && |\n|  &&
                           get_js( ) && |\n| &&
-                         lv_add_js && |\n| &&
-        `                sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
-        `        setTimeout( () => { sap.z2ui5.DebuggingTools = new z2ui5.DebuggingTools();` && |\n|  &&
-        `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_logging ) && ` );` && |\n|  &&
-        `        } , 500 ); ` && |\n|  &&
-                           ` });` && |\n| &&
-                           `</script>` && |\n| &&
-                           `<abc/></body></html>`.
+                         lv_add_js && |\n|.
+
+    IF check_debugging = abap_true.
+      r_result = r_result && `` &&
+         z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
+   `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
+   `        sap.ui.require(["z2ui5/DebuggingTools"], () => { sap.z2ui5.DebuggingTools = new z2ui5.DebuggingTools(); ` && |\n|  &&
+*   `        setTimeout( () => { sap.z2ui5.DebuggingTools = new z2ui5.DebuggingTools();` && |\n|  &&
+   `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_debugging ) && ` );` && |\n|  &&
+*   `        } , 500 ); ` && |\n|.
+    `});`.
+    ENDIF.
+
+    r_result =  r_result && ` });` && |\n| &&
+                   `</script>` && |\n| &&
+                 `<abc/></body></html>`.
 
   ENDMETHOD.
 
@@ -136,7 +145,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
   METHOD get_js.
 
-    result =  `sap.ui.core.BusyIndicator.show();` && |\n|  &&
+    result =  `  sap.ui.require(["sap/ui/core/BusyIndicator"], (BusyIndicator) => { BusyIndicator.show(); });` && |\n|  &&
               `sap.ui.getCore().attachInit(() => {` && |\n|  &&
               `    "use strict";` && |\n|  &&
               |\n|  &&
