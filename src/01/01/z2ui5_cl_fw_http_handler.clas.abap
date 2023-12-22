@@ -524,7 +524,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
              `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
              `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n|  &&
              `    sap.z2ui5.onAfterRoundtrip = []; }` && |\n|  &&
-             `);` .
+             `);`.
 
 
   ENDMETHOD.
