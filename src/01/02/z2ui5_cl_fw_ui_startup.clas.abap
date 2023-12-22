@@ -49,7 +49,7 @@ CLASS z2ui5_cl_fw_ui_startup IMPLEMENTATION.
                      client    = client
                      classname = ms_home-classname ).
 
-    DATA(page) = z2ui5_cl_ui5=>_factory(  )->_ns_m( )->shell(
+    DATA(page) = z2ui5_cl_ui5=>_factory( )->_ns_m( )->shell(
       )->page( shownavbutton = abap_false ).
 
     page->headercontent(
