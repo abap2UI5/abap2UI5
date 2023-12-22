@@ -19,9 +19,12 @@ CLASS z2ui5_cl_fw_cc_multiinput IMPLEMENTATION.
 
 
   METHOD get_js.
-result = `sap.ui.define("z2ui5/MultiInput" , [` && |\n|  &&
-         `  "sap/m/MultiInput"` && |\n|  &&
-         `], (MultiInput) => {` && |\n|  &&
+result = ` sap.ui.define( "z2ui5/MultiInput" , [` && |\n|  &&
+         `  "sap/m/MultiInput",` && |\n|  &&
+         `  "sap/m/MultiInputRenderer",` && |\n|  &&
+         `  "sap/m/Tokenizer",` && |\n|  &&
+         `  "sap/m/Token"` && |\n|  &&
+         `], (MultiInput,MultiInputRenderer, Tokenizer, Token) => {` && |\n|  &&
          `  "use strict";` && |\n|  &&
          |\n|  &&
          `  return MultiInput.extend("z2ui5.MultiInput", {` && |\n|  &&
@@ -33,12 +36,12 @@ result = `sap.ui.define("z2ui5/MultiInput" , [` && |\n|  &&
          `      },` && |\n|  &&
          |\n|  &&
          `      init() {` && |\n|  &&
-         `          MultiInput.prototype.init.call(this);` && |\n|  &&
+         `        debugger;  MultiInput.prototype.init.call(this);` && |\n|  &&
          `          this.attachTokenUpdate(this.onTokenUpdate);` && |\n|  &&
          |\n|  &&
          `          var fnValidator = function (args) {` && |\n|  &&
          `              var text = args.text;` && |\n|  &&
-         `              return new sap.m.Token({ key: text, text: text });` && |\n|  &&
+         `              return new Token({ key: text, text: text });` && |\n|  &&
          `          };` && |\n|  &&
          |\n|  &&
          `          this.addValidator(fnValidator);` && |\n|  &&
@@ -64,7 +67,7 @@ result = `sap.ui.define("z2ui5/MultiInput" , [` && |\n|  &&
          `      },` && |\n|  &&
          |\n|  &&
          `      renderer(oRM, oControl) {` && |\n|  &&
-         `          sap.m.MultiInputRenderer.render(oRM, oControl);` && |\n|  &&
+         `          debugger; MultiInputRenderer.render(oRM, oControl);` && |\n|  &&
          |\n|  &&
          `      }` && |\n|  &&
          `  });` && |\n|  &&
