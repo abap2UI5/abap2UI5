@@ -513,7 +513,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
              `    sap.z2ui5.oControllerNest = new Controller();` && |\n|  &&
              `    sap.z2ui5.oControllerNest2 = new Controller();` && |\n|  &&
              |\n|  &&
-             `    sap.z2ui5.pathname = sap.z2ui5.pathname || '/sap/test';` && |\n|  &&
+             `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n|  &&
              `    sap.z2ui5.checkNestAfter = false;` && |\n|  &&
              |\n|  &&
              `    sap.z2ui5.oBody = {` && |\n|  &&
