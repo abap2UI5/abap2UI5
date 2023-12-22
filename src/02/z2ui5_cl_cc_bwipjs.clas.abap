@@ -38,9 +38,7 @@ CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = `jQuery.sap.declare("z2ui5.bwipjs");` && |\n| &&
-                     |\n| &&
-                     `        sap.ui.require([` && |\n| &&
+    r_js  = `    sap.ui.define("z2ui5/bwipjs", [` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `        ], function (Control) {` && |\n| &&
                      `            "use strict";` && |\n| &&

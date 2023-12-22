@@ -19,7 +19,7 @@ CLASS z2ui5_cl_fw_cc_multiinput IMPLEMENTATION.
 
 
   METHOD get_js.
-result = `jQuery.sap.declare("z2ui5.MultiInput"); sap.ui.require([` && |\n|  &&
+result = `sap.ui.define("z2ui5/MultiInput" , [` && |\n|  &&
          `  "sap/m/MultiInput"` && |\n|  &&
          `], (MultiInput) => {` && |\n|  &&
          `  "use strict";` && |\n|  &&

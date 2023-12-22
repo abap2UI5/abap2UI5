@@ -19,8 +19,7 @@ CLASS Z2UI5_CL_FW_CC_TIMER IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `jQuery.sap.declare("z2ui5.Timer");` && |\n| &&
-    `sap.ui.require([` && |\n|  &&
+    result =  `sap.ui.define("z2ui5/Timer" , [` && |\n|  &&
     `   "sap/ui/core/Control"` && |\n|  &&
     `], (Control) => {` && |\n|  &&
     `   "use strict";` && |\n|  &&

@@ -17,12 +17,16 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 
+
   METHOD get_js.
 
-    result = `jQuery.sap.declare("z2ui5.DebuggingTools");` && |\n|  &&
-             `sap.ui.require([` && |\n|  &&
-             `    "sap/ui/core/Control"` && |\n|  &&
-             `], (Control) => {` && |\n|  &&
+    result = `` && |\n|  &&
+             `sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n|  &&
+             `    "sap/ui/core/Control",` && |\n|  &&
+             `    "z2ui5/Controller",` && |\n|  &&
+             `    "sap/ui/core/Fragment",` && |\n|  &&
+             `    "sap/ui/model/json/JSONModel"` && |\n|  &&
+             `], (Control, Controller, Fragment, JSONModel) => {` && |\n|  &&
              `    "use strict";` && |\n|  &&
              |\n|  &&
              `    return Control.extend("z2ui5.DebuggingTools", {` && |\n|  &&
@@ -138,7 +142,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                this.oFragment.close();` && |\n|  &&
              `                this.oFragment.destroy();` && |\n|  &&
              `            }` && |\n|  &&
-             `            this.oFragment = await sap.ui.core.Fragment.load({` && |\n|  &&
+             `            this.oFragment = await Fragment.load({` && |\n|  &&
              `                definition : XMLDef,` && |\n|  &&
              `               // name: "project1.control.DevTool",` && |\n|  &&
              `                controller: oFragmentController,` && |\n|  &&
@@ -148,7 +152,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `        ` && |\n|  &&
              `            let value = JSON.stringify( sap.z2ui5.oResponse, null, 3 );` && |\n|  &&
              `            let oData = { type : 'json' , value : value };` && |\n|  &&
-             `            var oModel = new sap.ui.model.json.JSONModel(oData);` && |\n|  &&
+             `            var oModel = new JSONModel(oData);` && |\n|  &&
              `            this.oFragment.setModel(oModel);` && |\n|  &&
              `            this.oFragment.open();` && |\n|  &&
              |\n|  &&
@@ -163,6 +167,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `            if (!checkActive) {` && |\n|  &&
              `                return;` && |\n|  &&
              `            }` && |\n|  &&
+             `         ` && |\n|  &&
              `            sap.z2ui5.onBeforeRoundtrip.push(() => {` && |\n|  &&
              `                console.log('Request Object:');` && |\n|  &&
              `                console.log(sap.z2ui5.oBody);` && |\n|  &&
@@ -210,5 +215,4 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `});`.
 
   ENDMETHOD.
-
 ENDCLASS.

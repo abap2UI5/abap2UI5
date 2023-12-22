@@ -20,8 +20,7 @@ CLASS Z2UI5_CL_FW_CC_INFO_FRONTEND IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = ` jQuery.sap.declare("z2ui5.Info");` && |\n| &&
-  `sap.ui.require([` && |\n|  &&
+    r_js  =  `sap.ui.define("z2ui5/Info",[` && |\n|  &&
   `   "sap/ui/core/Control"` && |\n|  &&
   `], (Control) => {` && |\n|  &&
   `   "use strict";` && |\n|  &&

@@ -20,8 +20,7 @@ CLASS z2ui5_cl_fw_cc_geolocation IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = ` jQuery.sap.declare("z2ui5.Geolocation");` && |\n| &&
-`sap.ui.require([` && |\n|  &&
+    r_js  = `sap.ui.define("z2ui5/Geolocation" , [` && |\n|  &&
 `   "sap/ui/core/Control"` && |\n|  &&
 `], (Control) => {` && |\n|  &&
 `   "use strict";` && |\n|  &&
