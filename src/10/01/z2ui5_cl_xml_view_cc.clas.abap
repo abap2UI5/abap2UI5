@@ -5,6 +5,15 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
   PUBLIC SECTION.
 
+    METHODS multiinput_ext
+      IMPORTING
+        !MultiInputId    TYPE clike OPTIONAL
+        !change    TYPE clike OPTIONAL
+        !addedTokens      TYPE clike OPTIONAL
+        !removedTokens    TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS multiinput
       IMPORTING
         !showclearicon    TYPE clike OPTIONAL
@@ -372,6 +381,17 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view->_generic( name   = `UITableExt` ns = `z2ui5`
                        t_prop = VALUE #( ( n = `tableId` v = tableId )
                         ) ).
+
+  ENDMETHOD.
+
+  METHOD multiinput_ext.
+
+    result = mo_view.
+    mo_view->_generic( name   = `MultiInputExt` ns = `z2ui5`
+                       t_prop = VALUE #( ( n = `MultiInputId` v = MultiInputId )
+                                         ( n = `change` v = change )
+                                         ( n = `addedTokens` v = addedTokens )
+                                         ( n = `removedTokens` v = removedTokens ) ) ).
 
   ENDMETHOD.
 

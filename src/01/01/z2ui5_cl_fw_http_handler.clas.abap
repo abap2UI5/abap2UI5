@@ -32,112 +32,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
-
-  METHOD http_get.
-
-    DATA(lt_config) = t_config.
-    IF lt_config IS INITIAL.
-      lt_config = VALUE #(
-          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-          (  n = `data-sap-ui-async`         v = `true` )
-          (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-          (  n = `data-sap-ui-frameOptions`  v = `trusted` )
-          (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
-    ENDIF.
-
-    DATA(lv_add_js) = z2ui5_cl_fw_cc_factory=>get_js_startup( ) && custom_js.
-
-    IF content_security_policy IS NOT SUPPLIED.
-      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
-        `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
-    ELSE.
-      lv_sec_policy = content_security_policy.
-    ENDIF.
-    z2ui5_cl_fw_db=>cleanup( ).
-
-    r_result = `<!DOCTYPE html>` && |\n| &&
-               `<html lang="en">` && |\n| &&
-               `<head>` && |\n| &&
-                  lv_sec_policy && |\n| &&
-               `    <meta charset="UTF-8">` && |\n| &&
-               `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
-               `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
-               `    <title>abap2UI5</title>` && |\n| &&
-               `    <style>` && |\n| &&
-               `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
-               `            height: 100%;` && |\n| &&
-               `        }` && |\n| &&
-               `    </style> ` &&
-               `    <script id="sap-ui-bootstrap"`.
-
-    LOOP AT lt_config REFERENCE INTO DATA(lr_config).
-      r_result = r_result && | { lr_config->n }="{ lr_config->v }"|.
-    ENDLOOP.
-
-    r_result = r_result &&
-        ` ></script></head>` && |\n| &&
-        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
-        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
-        `<abc/>` && |\n|.
-
-    r_result = r_result && `<script>  sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
-                          get_js( ) && |\n| &&
-                         lv_add_js && |\n|.
-
-    IF check_debugging = abap_true.
-      r_result = r_result && `` &&
-         z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
-   `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
-   `        sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n|  &&
-   `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_debugging ) && ` );` && |\n|  &&
-        ` });`.
-    ENDIF.
-    r_result =  r_result && ` ` && |\n| &&
-                   `</script>` && |\n| &&
-                 `<abc/></body></html>`.
-
-  ENDMETHOD.
-
-
-  METHOD http_post.
-
-    TRY.
-        DATA(lo_handler) = z2ui5_cl_fw_controller=>request_begin( body ).
-      CATCH cx_root INTO DATA(x).
-        lo_handler = z2ui5_cl_fw_controller=>app_system_factory( x ).
-    ENDTRY.
-
-    DO.
-      TRY.
-
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
-          ROLLBACK WORK.
-
-          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
-            lo_handler = lo_handler->app_leave_factory( ).
-            CONTINUE.
-          ENDIF.
-
-          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
-            lo_handler = lo_handler->app_call_factory( ).
-            CONTINUE.
-          ENDIF.
-
-          result = lo_handler->request_end( ).
-
-        CATCH cx_root INTO x.
-          lo_handler = z2ui5_cl_fw_controller=>app_system_factory( x ).
-          CONTINUE.
-      ENDTRY.
-
-      EXIT.
-    ENDDO.
-
-  ENDMETHOD.
 
   METHOD get_js.
 
@@ -184,6 +80,12 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
              `            if (sap.z2ui5.busyDialog) {` && |\n|  &&
              `                sap.z2ui5.busyDialog.close();` && |\n|  &&
              `            }` && |\n|  &&
+             `            sap.z2ui5.onAfterRendering.forEach(item=>{` && |\n|  &&
+             `                if (item !== undefined) {` && |\n|  &&
+             `                    item();` && |\n|  &&
+             `                }` && |\n|  &&
+             `            }` && |\n|  &&
+             `            )` && |\n|  &&
              `        },` && |\n|  &&
              |\n|  &&
              `        async displayFragment(xml, viewProp, openById) {` && |\n|  &&
@@ -522,6 +424,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
              `    sap.z2ui5.oController.Roundtrip();` && |\n|  &&
              |\n|  &&
              `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
+             `    sap.z2ui5.onAfterRendering = [];` && |\n|  &&
              `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n|  &&
              `    sap.z2ui5.onAfterRoundtrip = []; }` && |\n|  &&
              `);`.
@@ -529,4 +432,108 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD http_get.
+
+    DATA(lt_config) = t_config.
+    IF lt_config IS INITIAL.
+      lt_config = VALUE #(
+          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+          (  n = `data-sap-ui-async`         v = `true` )
+          (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+          (  n = `data-sap-ui-frameOptions`  v = `trusted` )
+          (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
+    ENDIF.
+
+    DATA(lv_add_js) = z2ui5_cl_fw_cc_factory=>get_js_startup( ) && custom_js.
+
+    IF content_security_policy IS NOT SUPPLIED.
+      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+        `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
+    ELSE.
+      lv_sec_policy = content_security_policy.
+    ENDIF.
+    z2ui5_cl_fw_db=>cleanup( ).
+
+    r_result = `<!DOCTYPE html>` && |\n| &&
+               `<html lang="en">` && |\n| &&
+               `<head>` && |\n| &&
+                  lv_sec_policy && |\n| &&
+               `    <meta charset="UTF-8">` && |\n| &&
+               `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
+               `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
+               `    <title>abap2UI5</title>` && |\n| &&
+               `    <style>` && |\n| &&
+               `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
+               `            height: 100%;` && |\n| &&
+               `        }` && |\n| &&
+               `    </style> ` &&
+               `    <script id="sap-ui-bootstrap"`.
+
+    LOOP AT lt_config REFERENCE INTO DATA(lr_config).
+      r_result = r_result && | { lr_config->n }="{ lr_config->v }"|.
+    ENDLOOP.
+
+    r_result = r_result &&
+        ` ></script></head>` && |\n| &&
+        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
+        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
+        `<abc/>` && |\n|.
+
+    r_result = r_result && `<script>  sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
+                          get_js( ) && |\n| &&
+                         lv_add_js && |\n|.
+
+    IF check_debugging = abap_true.
+      r_result = r_result && `` &&
+         z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
+   `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
+   `        sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n|  &&
+   `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_debugging ) && ` );` && |\n|  &&
+        ` });`.
+    ENDIF.
+    r_result =  r_result && ` ` && |\n| &&
+                   `</script>` && |\n| &&
+                 `<abc/></body></html>`.
+
+  ENDMETHOD.
+
+
+  METHOD http_post.
+
+    TRY.
+        DATA(lo_handler) = z2ui5_cl_fw_controller=>request_begin( body ).
+      CATCH cx_root INTO DATA(x).
+        lo_handler = z2ui5_cl_fw_controller=>app_system_factory( x ).
+    ENDTRY.
+
+    DO.
+      TRY.
+
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
+          ROLLBACK WORK.
+
+          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->app_leave_factory( ).
+            CONTINUE.
+          ENDIF.
+
+          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
+            lo_handler = lo_handler->app_call_factory( ).
+            CONTINUE.
+          ENDIF.
+
+          result = lo_handler->request_end( ).
+
+        CATCH cx_root INTO x.
+          lo_handler = z2ui5_cl_fw_controller=>app_system_factory( x ).
+          CONTINUE.
+      ENDTRY.
+
+      EXIT.
+    ENDDO.
+
+  ENDMETHOD.
 ENDCLASS.

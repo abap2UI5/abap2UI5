@@ -164,50 +164,51 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                    sap.z2ui5.DebuggingTools.show();` && |\n|  &&
              `                } }` && |\n|  &&
              `            } );` && |\n|  &&
-             `            if (!checkActive) {` && |\n|  &&
-             `                return;` && |\n|  &&
-             `            }` && |\n|  &&
-             `         ` && |\n|  &&
-             `            sap.z2ui5.onBeforeRoundtrip.push(() => {` && |\n|  &&
-             `                console.log('Request Object:');` && |\n|  &&
-             `                console.log(sap.z2ui5.oBody);` && |\n|  &&
-             `            });` && |\n|  &&
-             |\n|  &&
-             `            sap.z2ui5.onAfterRoundtrip.push(() => {` && |\n|  &&
-             |\n|  &&
-             `                console.log('Response Object:', sap.z2ui5.oResponse);` && |\n|  &&
-             |\n|  &&
-             `                // Destructure for easier access` && |\n|  &&
-             `                const { S_VIEW, S_POPUP, S_POPOVER, S_VIEW_NEST, S_VIEW_NEST2 } = sap.z2ui5.oResponse.PARAMS;` && |\n|  &&
-             |\n|  &&
-             `                // Helper function to log XML` && |\n|  &&
-             `                const logXML = (label, xml) => {` && |\n|  &&
-             `                    if (xml !== '') {` && |\n|  &&
-             `                        console.log(``${label}:``, xml);` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                };` && |\n|  &&
-             |\n|  &&
-             `                // Log different XML responses` && |\n|  &&
-             `                logXML('UI5-XML-View', S_VIEW.XML);` && |\n|  &&
-             `                logXML('UI5-XML-Popup', S_POPUP.XML);` && |\n|  &&
-             `                logXML('UI5-XML-Popover', S_POPOVER.XML);` && |\n|  &&
-             `                logXML('UI5-XML-Nest', S_VIEW_NEST.XML);` && |\n|  &&
-             `                logXML('UI5-XML-Nest2', S_VIEW_NEST2.XML);` && |\n|  &&
-             |\n|  &&
-             `            });` && |\n|  &&
-             |\n|  &&
-             `        },` && |\n|  &&
-             |\n|  &&
-             `        async init() {` && |\n|  &&
-             |\n|  &&
-             |\n|  &&
-             `        },` && |\n|  &&
-             |\n|  &&
-             `        exit() {` && |\n|  &&
-             `        },` && |\n|  &&
-             |\n|  &&
-             `        onAfterRendering() {` && |\n|  &&
-             `        },` && |\n|  &&
+             `       },` && |\n|  &&
+*             `            if (!checkActive) {` && |\n|  &&
+*             `                return;` && |\n|  &&
+*             `            }` && |\n|  &&
+*             `         ` && |\n|  &&
+*             `            sap.z2ui5.onBeforeRoundtrip.push(() => {` && |\n|  &&
+*             `                console.log('Request Object:');` && |\n|  &&
+*             `                console.log(sap.z2ui5.oBody);` && |\n|  &&
+*             `            });` && |\n|  &&
+*             |\n|  &&
+*             `            sap.z2ui5.onAfterRoundtrip.push(() => {` && |\n|  &&
+*             |\n|  &&
+*             `                console.log('Response Object:', sap.z2ui5.oResponse);` && |\n|  &&
+*             |\n|  &&
+*             `                // Destructure for easier access` && |\n|  &&
+*             `                const { S_VIEW, S_POPUP, S_POPOVER, S_VIEW_NEST, S_VIEW_NEST2 } = sap.z2ui5.oResponse.PARAMS;` && |\n|  &&
+*             |\n|  &&
+*             `                // Helper function to log XML` && |\n|  &&
+*             `                const logXML = (label, xml) => {` && |\n|  &&
+*             `                    if (xml !== '') {` && |\n|  &&
+*             `                        console.log(``${label}:``, xml);` && |\n|  &&
+*             `                    }` && |\n|  &&
+*             `                };` && |\n|  &&
+*             |\n|  &&
+*             `                // Log different XML responses` && |\n|  &&
+*             `                logXML('UI5-XML-View', S_VIEW.XML);` && |\n|  &&
+*             `                logXML('UI5-XML-Popup', S_POPUP.XML);` && |\n|  &&
+*             `                logXML('UI5-XML-Popover', S_POPOVER.XML);` && |\n|  &&
+*             `                logXML('UI5-XML-Nest', S_VIEW_NEST.XML);` && |\n|  &&
+*             `                logXML('UI5-XML-Nest2', S_VIEW_NEST2.XML);` && |\n|  &&
+*             |\n|  &&
+*             `            });` && |\n|  &&
+*             |\n|  &&
+*             `        },` && |\n|  &&
+*             |\n|  &&
+*             `        async init() {` && |\n|  &&
+*             |\n|  &&
+*             |\n|  &&
+*             `        },` && |\n|  &&
+*             |\n|  &&
+*             `        exit() {` && |\n|  &&
+*             `        },` && |\n|  &&
+*             |\n|  &&
+*             `        onAfterRendering() {` && |\n|  &&
+*             `        },` && |\n|  &&
              |\n|  &&
              `        renderer(oRm, oControl) {` && |\n|  &&
              `        }` && |\n|  &&

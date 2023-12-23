@@ -20,6 +20,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( 'HTTP GET - custom control js contains the command debugger' ).
     ENDIF.
 
+        IF lv_js CS `jQuery`.
+      cl_abap_unit_assert=>fail( 'HTTP GET - custom control js contains the command jQuery' ).
+    ENDIF.
+
+     IF lv_js CS `setTimeout`.
+      cl_abap_unit_assert=>fail( 'HTTP GET - custom control js contains the command setTimeout' ).
+    ENDIF.
+
   ENDMETHOD.
 
 ENDCLASS.
