@@ -438,8 +438,9 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
     DATA(lt_config) = t_config.
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
-          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+
           (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `data-sap-ui-async`         v = `true` )
           (  n = `data-sap-ui-bindingSyntax` v = `complex` )
           (  n = `data-sap-ui-frameOptions`  v = `trusted` )
@@ -483,12 +484,12 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
     r_result = r_result && `<script>  sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
                           get_js( ) && |\n| &&
-                         lv_add_js && |\n|.
+                         lv_add_js && |\n| &&
+    `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;`.
 
     IF check_debugging = abap_true.
       r_result = r_result && `` &&
          z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
-   `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
    `        sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n|  &&
    `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_debugging ) && ` );` && |\n|  &&
         ` });`.
