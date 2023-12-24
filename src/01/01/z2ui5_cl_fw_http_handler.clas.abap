@@ -42,6 +42,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `    "use strict";` && |\n|  &&
              `    return Controller.extend("z2ui5.Controller", {` && |\n|  &&
              `        async onAfterRendering() {` && |\n|  &&
+             `         try{` && |\n|  &&
              `            if (!sap.z2ui5.oResponse.PARAMS) {` && |\n|  &&
              `                return;` && |\n|  &&
              `            }` && |\n|  &&
@@ -86,6 +87,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `                }` && |\n|  &&
              `            }` && |\n|  &&
              `            )` && |\n|  &&
+             `           }catch(e){ MessageBox.error(e.toLocaleString()); }` && |\n|  &&
              `        },` && |\n|  &&
              |\n|  &&
              `        async displayFragment(xml, viewProp, openById) {` && |\n|  &&
@@ -315,7 +317,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `                oView.setModel(model);` && |\n|  &&
              `            }` && |\n|  &&
              `        },` && |\n|  &&
-             `        responseSuccess(response) {` && |\n|  &&
+             `   async     responseSuccess(response) {` && |\n|  &&
+             `         try{` && |\n|  &&
              `            sap.z2ui5.oResponse = response;` && |\n|  &&
              |\n|  &&
              `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY) {` && |\n|  &&
@@ -324,7 +327,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              |\n|  &&
              `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
              `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
-             `                sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+             `               await sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
              `            } else {` && |\n|  &&
              `                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);` && |\n|  &&
              `                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);` && |\n|  &&
@@ -335,6 +338,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `            }` && |\n|  &&
              `            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
              `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
+             `           }catch(e){ MessageBox.error(e.toLocaleString()); }` && |\n|  &&
              `        },` && |\n|  &&
              `        showMessage(msgType, params) {` && |\n|  &&
              `            if (params[msgType].TEXT !== '') {` && |\n|  &&
