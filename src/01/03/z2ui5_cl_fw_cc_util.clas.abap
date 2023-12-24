@@ -17,6 +17,7 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_FW_CC_UTIL IMPLEMENTATION.
 
+
   METHOD get_js.
 
     result =  `sap.ui.define("z2ui5/Util" , ["sap/ui/core/Control"], (Control)=>{` && |\n|  &&
@@ -31,5 +32,4 @@ CLASS Z2UI5_CL_FW_CC_UTIL IMPLEMENTATION.
              `  });`.
 
   ENDMETHOD.
-
 ENDCLASS.
