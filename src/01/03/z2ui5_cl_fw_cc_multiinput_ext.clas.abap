@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_cc_multiinput DEFINITION
+CLASS z2ui5_cl_fw_cc_multiinput_ext DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -13,38 +13,38 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_multiinput IMPLEMENTATION.
+CLASS z2ui5_cl_fw_cc_multiinput_ext IMPLEMENTATION.
 
 
 
 
   METHOD get_js.
-result = `jQuery.sap.declare("z2ui5.MultiInput"); sap.ui.require([` && |\n|  &&
-         `  "sap/m/MultiInput"` && |\n|  &&
-         `], (MultiInput) => {` && |\n|  &&
+
+result = ` sap.ui.define( "z2ui5/MultiInputExt" , ["sap/ui/core/Control", "sap/m/Token"` && |\n|  &&
+         `], (Control, Token) => {` && |\n|  &&
          `  "use strict";` && |\n|  &&
          |\n|  &&
-         `  return MultiInput.extend("z2ui5.MultiInput", {` && |\n|  &&
+         `  return Control.extend("z2ui5.MultiInputExt", {` && |\n|  &&
          `      metadata: {` && |\n|  &&
          `          properties: {` && |\n|  &&
+         `              MultiInputId: { type: "String" },` && |\n|  &&
          `              addedTokens: { type: "Array" },` && |\n|  &&
+         `              checkInit: { type: "Boolean", defaultValue : false },` && |\n|  &&
          `              removedTokens: { type: "Array" }` && |\n|  &&
-         `          }` && |\n|  &&
+         `          },` && |\n|  &&
+                              `                    events: {` && |\n| &&
+                     `                        "change": {` && |\n| &&
+                     `                            allowPreventDefault: true,` && |\n| &&
+                     `                            parameters: {}` && |\n| &&
+                     `                        }` && |\n| &&
+                     `                    },` && |\n| &&
          `      },` && |\n|  &&
          |\n|  &&
          `      init() {` && |\n|  &&
-         `          MultiInput.prototype.init.call(this);` && |\n|  &&
-         `          this.attachTokenUpdate(this.onTokenUpdate);` && |\n|  &&
-         |\n|  &&
-         `          var fnValidator = function (args) {` && |\n|  &&
-         `              var text = args.text;` && |\n|  &&
-         `              return new sap.m.Token({ key: text, text: text });` && |\n|  &&
-         `          };` && |\n|  &&
-         |\n|  &&
-         `          this.addValidator(fnValidator);` && |\n|  &&
+         `  sap.z2ui5.onAfterRendering.push( this.setControl.bind(this) ); ` && |\n|  &&
          `      },` && |\n|  &&
          |\n|  &&
-         `      onTokenUpdate(oEvent) {` && |\n|  &&
+         `      onTokenUpdate(oEvent) { ` && |\n|  &&
          `          this.setProperty("addedTokens", []);` && |\n|  &&
          `          this.setProperty("removedTokens", []);` && |\n|  &&
          |\n|  &&
@@ -61,11 +61,18 @@ result = `jQuery.sap.declare("z2ui5.MultiInput"); sap.ui.require([` && |\n|  &&
          `              });` && |\n|  &&
          `              this.setProperty("addedTokens", addedTokens);` && |\n|  &&
          `          }` && |\n|  &&
+         `      this.fireChange();` && |\n|  &&
          `      },` && |\n|  &&
-         |\n|  &&
+         `      setControl(){ let table = sap.z2ui5.oView.byId( this.getProperty("MultiInputId"));` && |\n|  &&
+         `         if ( this.getProperty("checkInit") == true ){ return; }   ` && |\n|  &&
+         `         this.setProperty( "checkInit" , true );` && |\n|  &&
+         `          table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n|  &&
+         `          var fnValidator = function (args) {` && |\n|  &&
+         `              var text = args.text;` && |\n|  &&
+         `              return new Token({ key: text, text: text });` && |\n|  &&
+         `          };` && |\n|  &&
+         `          table.addValidator(fnValidator); }, ` && |\n|  &&
          `      renderer(oRM, oControl) {` && |\n|  &&
-         `          sap.m.MultiInputRenderer.render(oRM, oControl);` && |\n|  &&
-         |\n|  &&
          `      }` && |\n|  &&
          `  });` && |\n|  &&
          `});`.

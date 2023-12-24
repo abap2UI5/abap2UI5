@@ -20,9 +20,7 @@ CLASS Z2UI5_CL_FW_CC_FILE_UPLOADER IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = `jQuery.sap.declare("z2ui5.FileUploader");` && |\n| &&
-                     |\n| &&
-                     `        sap.ui.require([` && |\n| &&
+    r_js  =    ` sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `            "sap/m/Button",` && |\n| &&
                      `            "sap/ui/unified/FileUploader"` && |\n| &&

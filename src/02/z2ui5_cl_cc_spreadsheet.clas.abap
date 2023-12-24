@@ -21,8 +21,7 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = ` jQuery.sap.declare("z2ui5.ExportSpreadsheet");` && |\n| &&
-                     `        sap.ui.require([` && |\n| &&
+    r_js  = `        sap.ui.define("z2ui5/ExportSpreadsheet" , [` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `            "sap/m/Button",` && |\n| &&
                      `            "sap/ui/export/Spreadsheet"` && |\n| &&

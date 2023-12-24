@@ -19,8 +19,7 @@ CLASS Z2UI5_CL_FW_CC_TITLE IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `jQuery.sap.declare("z2ui5.Title");` && |\n|  &&
-             `sap.ui.require(["sap/ui/core/Control"], (Control)=>{` && |\n|  &&
+    result =  `sap.ui.define("z2ui5/Title" , ["sap/ui/core/Control"], (Control)=>{` && |\n|  &&
              `        "use strict";` && |\n|  &&
              `        return Control.extend("z2ui5.Title", {` && |\n|  &&
              `            metadata: {` && |\n|  &&

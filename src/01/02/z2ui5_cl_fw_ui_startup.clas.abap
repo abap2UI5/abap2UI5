@@ -17,17 +17,17 @@ CLASS z2ui5_cl_fw_ui_startup DEFINITION
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home .
-    DATA client TYPE REF TO z2ui5_if_client .
-    DATA mv_check_initialized TYPE abap_bool .
-    DATA mv_check_demo TYPE abap_bool .
+    DATA client TYPE REF TO z2ui5_if_client.
+    DATA mv_check_initialized TYPE abap_bool.
+    DATA mv_check_demo TYPE abap_bool.
 
     CLASS-METHODS factory
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_ui_startup .
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_ui_startup.
 
-    METHODS z2ui5_on_init .
-    METHODS z2ui5_on_event .
-    METHODS view_display_start .
+    METHODS z2ui5_on_init.
+    METHODS z2ui5_on_event.
+    METHODS view_display_start.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -49,11 +49,11 @@ CLASS z2ui5_cl_fw_ui_startup IMPLEMENTATION.
                      client    = client
                      classname = ms_home-classname ).
 
-    DATA(page) = z2ui5_cl_ui5=>_factory(  )->_ns_m( )->shell(
+    DATA(page) = z2ui5_cl_ui5=>_factory( )->_ns_m( )->shell(
       )->page( shownavbutton = abap_false ).
 
     page->headercontent(
-            )->title( `abap2UI5 - Developing UI5 Apps in Pure ABAP`
+            )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP`
             )->toolbarspacer(
             )->text( `v.` && z2ui5_cl_fw_http_handler=>c_abap_version
             )->link( text   = `SCN`
