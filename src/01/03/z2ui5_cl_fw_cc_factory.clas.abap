@@ -29,6 +29,7 @@ CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
         z2ui5_cl_fw_cc_file_uploader=>get_js( ) &&
         z2ui5_cl_fw_cc_multiinput_ext=>get_js( ) &&
         z2ui5_cl_fw_cc_uitable_ext=>get_js( ) &&
+        z2ui5_cl_fw_cc_util=>get_js( ) &&
        `  `.
 
   ENDMETHOD.
