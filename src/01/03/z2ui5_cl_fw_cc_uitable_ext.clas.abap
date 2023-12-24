@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_cc_uitableext DEFINITION
+CLASS z2ui5_cl_fw_cc_uitable_ext DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_uitableext IMPLEMENTATION.
+CLASS z2ui5_cl_fw_cc_uitable_ext IMPLEMENTATION.
 
   METHOD get_js.
 

@@ -73,11 +73,6 @@ result = ` sap.ui.define( "z2ui5/MultiInputExt" , ["sap/ui/core/Control", "sap/m
          `          };` && |\n|  &&
          `          table.addValidator(fnValidator); }, ` && |\n|  &&
          `      renderer(oRM, oControl) {` && |\n|  &&
-          `         // MultiInput.prototype.init.call(this);` && |\n|  &&
-         `    //   let checkInit = oControl.getProperty("checkInit"); if ( checkInit == false ){ oControl.setProperty( "checkInit" , true );  ` && |\n|  &&
-         `    //   sap.z2ui5.onAfterRendering.push( oControl.setControl.bind(oControl) );` && |\n|  &&
-         |\n|  &&
-         `   //  } }` && |\n|  &&
          `      }` && |\n|  &&
          `  });` && |\n|  &&
          `});`.
