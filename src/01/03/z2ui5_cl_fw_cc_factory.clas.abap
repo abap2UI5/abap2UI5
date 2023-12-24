@@ -19,7 +19,7 @@ CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
   METHOD get_js_startup.
 
     result = ` ` &&
-   z2ui5_cl_fw_cc_timer=>get_js( ) &&
+        z2ui5_cl_fw_cc_timer=>get_js( ) &&
         z2ui5_cl_fw_cc_focus=>get_js( ) &&
         z2ui5_cl_fw_cc_title=>get_js( ) &&
         z2ui5_cl_fw_cc_history=>get_js( ) &&
