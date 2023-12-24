@@ -81,8 +81,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                prettifyXml (sourceXml) ` && |\n|  &&
              `                {` && |\n|  &&
              `                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n|  &&
-
-             `                        // describes how we want to modify the XML - indent everything` && |\n|  &&
+`                        // describes how we want to modify the XML - indent everything` && |\n|  &&
 
              `                     var sParse =   unescape( '%3Cxsl%3Astylesheet%20xmlns%3Axsl%3D%22http%3A//www.w3.org/1999/XSL/Transform%22%3E%0A%20%20%3Cxsl%3Astrip-space%20elements%3D%22*%22/%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22para%5Bconten` &&
 `t-style%5D%5Bnot%28text%28%29%29%5` &&
