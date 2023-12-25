@@ -402,12 +402,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `            if (sap.z2ui5.search) {` && |\n|  &&
              `                sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search;` && |\n|  &&
              `            }` && |\n|  &&
-             |\n|  &&
-             `            if (sap.z2ui5.readOData) {` && |\n|  &&
-             `                sap.z2ui5.readOData();` && |\n|  &&
-             `            } else {` && |\n|  &&
-             `                sap.z2ui5.oController.readHttp();` && |\n|  &&
-             `            }` && |\n|  &&
+             `           sap.z2ui5.oController.readHttp();` && |\n|  &&
              `        },` && |\n|  &&
              `    })` && |\n|  &&
              `});` && |\n|  &&
