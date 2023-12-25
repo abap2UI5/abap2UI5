@@ -42,6 +42,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `    "use strict";` && |\n|  &&
              `    return Controller.extend("z2ui5.Controller", {` && |\n|  &&
              `        async onAfterRendering() {` && |\n|  &&
+             `         try{` && |\n|  &&
              `            if (!sap.z2ui5.oResponse.PARAMS) {` && |\n|  &&
              `                return;` && |\n|  &&
              `            }` && |\n|  &&
@@ -86,6 +87,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `                }` && |\n|  &&
              `            }` && |\n|  &&
              `            )` && |\n|  &&
+             `           }catch(e){ MessageBox.error(e.toLocaleString()); }` && |\n|  &&
              `        },` && |\n|  &&
              |\n|  &&
              `        async displayFragment(xml, viewProp, openById) {` && |\n|  &&
@@ -315,7 +317,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `                oView.setModel(model);` && |\n|  &&
              `            }` && |\n|  &&
              `        },` && |\n|  &&
-             `        responseSuccess(response) {` && |\n|  &&
+             `   async     responseSuccess(response) {` && |\n|  &&
+             `         try{` && |\n|  &&
              `            sap.z2ui5.oResponse = response;` && |\n|  &&
              |\n|  &&
              `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY) {` && |\n|  &&
@@ -324,7 +327,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              |\n|  &&
              `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
              `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
-             `                sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+             `               await sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
              `            } else {` && |\n|  &&
              `                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);` && |\n|  &&
              `                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);` && |\n|  &&
@@ -335,6 +338,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `            }` && |\n|  &&
              `            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
              `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
+             `           }catch(e){ MessageBox.error(e.toLocaleString()); }` && |\n|  &&
              `        },` && |\n|  &&
              `        showMessage(msgType, params) {` && |\n|  &&
              `            if (params[msgType].TEXT !== '') {` && |\n|  &&
@@ -398,12 +402,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `            if (sap.z2ui5.search) {` && |\n|  &&
              `                sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search;` && |\n|  &&
              `            }` && |\n|  &&
-             |\n|  &&
-             `            if (sap.z2ui5.readOData) {` && |\n|  &&
-             `                sap.z2ui5.readOData();` && |\n|  &&
-             `            } else {` && |\n|  &&
-             `                sap.z2ui5.oController.readHttp();` && |\n|  &&
-             `            }` && |\n|  &&
+             `           sap.z2ui5.oController.readHttp();` && |\n|  &&
              `        },` && |\n|  &&
              `    })` && |\n|  &&
              `});` && |\n|  &&
@@ -438,8 +437,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
     DATA(lt_config) = t_config.
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
-          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `data-sap-ui-async`         v = `true` )
           (  n = `data-sap-ui-bindingSyntax` v = `complex` )
           (  n = `data-sap-ui-frameOptions`  v = `trusted` )
@@ -483,12 +482,12 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
     r_result = r_result && `<script>  sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
                           get_js( ) && |\n| &&
-                         lv_add_js && |\n|.
+                         lv_add_js && |\n| &&
+    `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;`.
 
     IF check_debugging = abap_true.
       r_result = r_result && `` &&
          z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
-   `        sap.z2ui5.JSON_MODEL_LIMIT = ` && json_model_limit && `;` && |\n| &&
    `        sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n|  &&
    `            sap.z2ui5.DebuggingTools.activateLogging(` && z2ui5_cl_util_func=>boolean_abap_2_json( check_debugging ) && ` );` && |\n|  &&
         ` });`.

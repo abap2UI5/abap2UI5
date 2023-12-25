@@ -4,16 +4,16 @@ CLASS z2ui5_cl_fw_cc_factory DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-    class-methods get_js_startup
-        returning
-            value(result) type string.
+    CLASS-METHODS get_js_startup
+      RETURNING
+        VALUE(result) TYPE string.
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
+CLASS z2ui5_cl_fw_cc_factory IMPLEMENTATION.
 
 
   METHOD get_js_startup.
