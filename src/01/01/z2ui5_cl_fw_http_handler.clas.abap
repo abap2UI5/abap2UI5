@@ -437,7 +437,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
     DATA(lt_config) = t_config.
     IF lt_config IS INITIAL.
       lt_config = VALUE #(
-
           (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
           (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `data-sap-ui-async`         v = `true` )
