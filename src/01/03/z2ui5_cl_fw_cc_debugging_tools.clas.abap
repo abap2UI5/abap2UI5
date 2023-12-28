@@ -15,7 +15,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 
 
   METHOD get_js.
@@ -44,10 +44,8 @@ CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
               `            }` && |\n|  &&
               `        },` && |\n|  &&
               |\n|  &&
-
               `        async show() {` && |\n|  &&
               |\n|  &&
-
               `            var oFragmentController = {` && |\n|  &&
                 `   prettifyXml: function (sourceXml) { ` && |\n|  &&
              `                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n|  &&
