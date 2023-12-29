@@ -181,11 +181,11 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `        },` && |\n|  &&
              `        onEventFrontend(...args) {` && |\n|  &&
              |\n|  &&
-             `            sap.z2ui5.onBeforeEventFrontend.forEach(item=>{` && |\n|  &&
+             `            sap.z2ui5.onBeforeEventFrontend.forEach(item => {` && |\n|  &&
              `                if (item !== undefined) {` && |\n|  &&
              `                    item(args);` && |\n|  &&
              `                }` && |\n|  &&
-             `            }` && |\n|  &&
+             `              }` && |\n|  &&
              `            )` && |\n|  &&
              |\n|  &&
              `            switch (args[0].EVENT) {` && |\n|  &&
@@ -223,8 +223,8 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `                sap.z2ui5.oController.PopoverDestroy();` && |\n|  &&
              `                break;` && |\n|  &&
              `            case 'NAV_CONTAINER_TO':` && |\n|  &&
-             `                let navCon = sap.z2ui5.oView.byId(args[1]);` && |\n|  &&
-             `                let navConTo = sap.z2ui5.oView.byId(args[2]);` && |\n|  &&
+             `                var navCon = sap.z2ui5.oView.byId(args[1]);` && |\n|  &&
+             `                var navConTo = sap.z2ui5.oView.byId(args[2]);` && |\n|  &&
              `                navCon.to(navConTo);` && |\n|  &&
              `                break;` && |\n|  &&
              `            case 'NEST_NAV_CONTAINER_TO':` && |\n|  &&
@@ -234,7 +234,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `                break;` && |\n|  &&
              `            case 'NEST2_NAV_CONTAINER_TO':` && |\n|  &&
              `                navCon = sap.z2ui5.oViewNest2.byId(args[1]);` && |\n|  &&
-             `                navConTo = sap.z2ui5.oViewNest.byId(args[2]);` && |\n|  &&
+             `                navConTo = sap.z2ui5.oViewNest2.byId(args[2]);` && |\n|  &&
              `                navCon.to(navConTo);` && |\n|  &&
              `                break;` && |\n|  &&
              `            }` && |\n|  &&

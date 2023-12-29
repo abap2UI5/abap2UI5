@@ -176,7 +176,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 METHOD get_js_cc.
 
       result =  `sap.z2ui5.DriverJS = { };` &&
-            `  debugger;  sap.z2ui5.DriverJS.drive = function() {` && |\n|  &&
+            `sap.z2ui5.DriverJS.drive = function() {` && |\n|  &&
       `   if( driver !== undefined ) { if( config !== undefined ) {` && |\n| &&
       `           driverObj = driver(config);` && |\n| &&
       `           driverObj.drive();` && |\n| &&
@@ -200,8 +200,8 @@ METHOD get_js_cc.
     DATA(ls_highlight_driver_config) = i_highlight_driver_config.
 
     "load driver object from window object
-    r_drive_js  = `const driver = window.driver.js.driver;` && |\n| &&
-                `let driverObj = new Object();` && |\n|.
+    r_drive_js  = `var driver = window.driver.js.driver;` && |\n| &&
+                  `var driverObj = new Object();` && |\n|.
 
     "handle tour
     IF i_steps_config IS NOT INITIAL.
@@ -241,7 +241,7 @@ METHOD get_js_cc.
                              `  };` && |\n| &&
                              `};`.
 
-      r_drive_js = r_drive_js && |\n| && `debugger;` &&
+      r_drive_js = r_drive_js && |\n| &&
                  `for (var key of Object.keys(config)) {` && |\n| &&
                  `  if( key.startsWith('on') ) {` && |\n| &&
                  `    config[key] = new Function( config[key] );` && |\n| &&
@@ -338,15 +338,15 @@ METHOD get_js_cc.
 
     METHOD get_js_local.
       result = `` && |\n|  &&
-  `this.driver=this.driver||{};this.driver.js=function(D){&quot;use strict&quot;;let F={};function z(e={}){F={animate:!0,allowClose:!0,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,showProgress:!1,stagePadding:10,stageRadius:5,` &&
-  `popoverOffset:10,showButtons:[&quot;next&quot;,&quot;previous&quot;,&quot;close&quot;],disableButtons:[],overlayColor:&quot;#000&quot;,...e}}function a(e){return e?F[e]:F}function W(e,o,t,i){return(e/=i/2)&lt;1?t/2*e*e+o:-t/2*(--e*(e-2)-1)+o}` &&
-  `function q(` &&
-  `e){const o=&#39;a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input[type=&quot;text&quot;]:not([disabled]), input[type=&quot;radio&quot;]:not([disabled]), input[type=&quot;checkbox&quot;]:not([disabled]), select:not(` &&
-  `[disabled])&#39;;return e.flatMap(t=&gt;{const i=t.matches(o),p=Array.from(t.querySelectorAll(o));return[...i?[t]:[],...p]}).filter(t=&gt;getComputedStyle(t).pointerEvents!==&quot;none&quot;&amp;&amp;ae(t))}function V(e){if(!e||se(e))return;` &&
-  `const o=a(` &&
-  `&quot;smoothScroll&quot;);e.scrollIntoView({behavior:!o||re(e)?&quot;auto&quot;:&quot;smooth&quot;,inline:&quot;center&quot;,block:&quot;center&quot;})}function re(e){if(!e||!e.parentElement)return;const o=e.parentElement;return ` &&
-  `o.scrollHeight&gt;o.clientHeight}function se(e){const o=e.getBoundingClientRect();return o.top&gt;=0&amp;&amp;o.left&gt;=0&amp;&amp;o.bottom&lt;=(window.innerHeight||document.documentElement.clientHeight)&amp;&amp;o.right&lt;=(` &&
-  `window.innerWidth||document.documentElement.clientWidth)}function ae(e){return!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)}let N={};function b(e,o){N[e]=o}function l(e){return e?N[e]:N}function K(){N={}}let E={};function O(e,o)` &&
+`this.driver=this.driver||{};this.driver.js=function(D){&quot;use strict&quot;;let F={};function z(e={}){F={animate:!0,allowClose:!0,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,showProgress:!1,stagePadding:10,stageRadius:5,` &&
+`popoverOffset:10,showButtons:[&quot;next&quot;,&quot;previous&quot;,&quot;close&quot;],disableButtons:[],overlayColor:&quot;#000&quot;,...e}}function a(e){return e?F[e]:F}function W(e,o,t,i){return(e/=i/2)&lt;1?t/2*e*e+o:-t/2*(--e*(e-2)-1)+o}` &&
+`function q(` &&
+`e){const o=&#39;a[href]:not([disabled]), button:not([disabled]), textarea:not([disabled]), input[type=&quot;text&quot;]:not([disabled]), input[type=&quot;radio&quot;]:not([disabled]), input[type=&quot;checkbox&quot;]:not([disabled]), select:not(` &&
+`[disabled])&#39;;return e.flatMap(t=&gt;{const i=t.matches(o),p=Array.from(t.querySelectorAll(o));return[...i?[t]:[],...p]}).filter(t=&gt;getComputedStyle(t).pointerEvents!==&quot;none&quot;&amp;&amp;ae(t))}function V(e){if(!e||se(e))return;` &&
+`const o=a(` &&
+`&quot;smoothScroll&quot;);e.scrollIntoView({behavior:!o||re(e)?&quot;auto&quot;:&quot;smooth&quot;,inline:&quot;center&quot;,block:&quot;center&quot;})}function re(e){if(!e||!e.parentElement)return;const o=e.parentElement;return ` &&
+`o.scrollHeight&gt;o.clientHeight}function se(e){const o=e.getBoundingClientRect();return o.top&gt;=0&amp;&amp;o.left&gt;=0&amp;&amp;o.bottom&lt;=(window.innerHeight||document.documentElement.clientHeight)&amp;&amp;o.right&lt;=(` &&
+`window.innerWidth||document.documentElement.clientWidth)}function ae(e){return!!(e.offsetWidth||e.offsetHeight||e.getClientRects().length)}let N={};function b(e,o){N[e]=o}function l(e){return e?N[e]:N}function K(){N={}}let E={};function O(e,o)` &&
 `{E[e]=o}function _(e){var o;(o=E[e])==null||o.call(E)}function ce(){E={}}function le(e,o,t,i){let p=l(&quot;__activeStagePosition&quot;);const n=p||t.getBoundingClientRect(),f=i.getBoundingClientRect(),w=W(e,n.x,f.x-n.x,o),r=W(e,n.y,f.y-n.y,o),v=W(e,` &&
 `n.width,f.width-n.width,o),s=W(e,n.height,f.height-n.height,o);p={x:w,y:r,width:v,height:s},Y(p),b(&quot;__activeStagePosition&quot;,p)}function X(e){if(!e)return;const o=e.getBoundingClientRect(),t={x:o.x,y:o.y,width:o.width,height:o.height};b(` &&
 `&quot;__activeStagePosition&quot;,t),Y(t)}function de(){const e=l(&quot;__activeStagePosition&quot;),o=l(&quot;__overlaySvg&quot;);if(!e)return;if(!o){console.warn(&quot;No stage svg found.&quot;);return}const t=window.innerWidth,` &&
@@ -469,5 +469,4 @@ METHOD get_js_cc.
 `D,Symbol.toStringTag,{value:&quot;Module&quot;}),D}({});`.
 
     ENDMETHOD.
-
 ENDCLASS.
