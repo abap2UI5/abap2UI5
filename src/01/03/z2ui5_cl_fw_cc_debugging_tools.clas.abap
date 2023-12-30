@@ -130,59 +130,60 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
               `                }` && |\n|  &&
               `            };` && |\n|  &&
               |\n|  &&
-*              `            let XMLDef = ``<core:FragmentDefinition` && |\n|  &&
-*              `            xmlns="sap.m"` && |\n|  &&
-*              `                xmlns:mvc="sap.ui.core.mvc"` && |\n|  &&
-*              `                xmlns:core="sap.ui.core"` && |\n|  &&
-*              `                xmlns:tnt="sap.tnt"` && |\n|  &&
-*              `                xmlns:editor="sap.ui.codeeditor">` && |\n|  &&
-*              `                  <Dialog title="abap2UI5 - Debugging Tools" stretch="true">` && |\n|  &&
-*              `                  <HBox>` && |\n|  &&
-*              `                <tnt:SideNavigation id="sideNavigation" selectedKey="PLAIN" itemSelect="onItemSelect">` && |\n|  &&
-*              `                    <tnt:NavigationList>` && |\n|  &&
-*              `                        <tnt:NavigationListItem text="Communication" icon="sap-icon://employee">` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Previous Request" id="REQUEST" key="REQUEST" />` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Response"                id="PLAIN"         key="PLAIN"/>` && |\n|  &&
-*              `                        </tnt:NavigationListItem>` && |\n|  &&
-*              `                        <tnt:NavigationListItem text="View" icon="sap-icon://employee">` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="View (XML)"           id="VIEW"          key="VIEW"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="View Model (JSON)"    id="MODEL"         key="MODEL"  />` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popup (XML)"          id="POPUP"         key="POPUP"          enabled="{/activePopup}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popup Model (JSON)"   id="POPUP_MODEL"   key="POPUP_MODEL"    enabled="{/activePopup}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popover (XML)"        id="POPOVER"       key="POPOVER"        enabled="{/activePopover}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popover Model (JSON)" id="POPOVER_MODEL" key="POPOVER_MODEL"  enabled="{/activePopover}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest1 (XML)"          id="NEST1"         key="NEST1"          enabled="{/activeNest1}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest1 Model (JSON)"   id="NEST1_MODEL"   key="NEST1_MODEL"    enabled="{/activeNest1}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest2 (XML)"          id="NEST2"         key="NEST2"          enabled="{/activeNest2}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest2 Model (JSON)"   id="NEST2_MODEL"   key="NEST2_MODEL"    enabled="{/activeNest2}"/>` && |\n|  &&
-*              `                        </tnt:NavigationListItem>` && |\n|  &&
-*              `                    </tnt:NavigationList>` && |\n|  &&
-*              `                </tnt:SideNavigation>` && |\n|  &&
-*              `                    <editor:CodeEditor` && |\n|  &&
-*              `                    type="{/type}"` && |\n|  &&
-*              `                    value='{/value}'` && |\n|  &&
-*              `                height="800px" width="1200px"/> </HBox>` && |\n|  &&
-*              `               <footer><Toolbar><ToolbarSpacer/><Button text="Close" press="onClose"/></Toolbar></footer>` && |\n|  &&
-*              `               </Dialog>` && |\n|  &&
-*              `            </core:FragmentDefinition>``;` && |\n|  &&
-              `          let  XMLDef = ``PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgIHhtbG5zPSJzYXAubSIKICAgICAgICAgICAgICAgIHhtbG5zOm12Yz0ic2FwLnVpLmNvcmUubXZjIgogICAgICAgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgICAgICAgICAgICB4bWxuczp`
-&&
-`0bnQ9InNhcC50bnQiCiAgICAgICAgICAgICAgICB4bWxuczplZGl0b3I9InNhcC51aS5jb2RlZWRpdG9yIj4KICAgICAgICAgICAgICAgICAgPERpYWxvZyB0aXRsZT0iYWJhcDJVSTUgLSBEZWJ1Z2dpbmcgVG9vbHMiIHN0cmV0Y2g9InRydWUiPgogICAgICAgICAgICAgICAgICA8SEJveD4KICAgICAgICAgICAgICAgIDx0bnQ` &&
-`6U2lkZU5hdmlnYXRpb24gaWQ9InNpZGVOYXZpZ2F0aW9uIiBzZWxlY3RlZEtleT0iUExBSU4iIGl0ZW1TZWxlY3Q9Im9uSXRlbVNlbGVjdCI+CiAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWN` &&
-`hdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQcmV2aW91cyBSZXF1ZXN0IiBpZD0iUkVRVUVTVCIga2V5PSJSRVFVRVNUIiAvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGl` &&
-`zdEl0ZW0gdGV4dD0iUmVzcG9uc2UiICAgICAgICAgICAgICAgIGlkPSJQTEFJTiIgICAgICAgICBrZXk9IlBMQUlOIi8+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0SXRlbT4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iVmlldyIgaWNvbj0` &&
-`ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IChYTUwpIiAgICAgICAgICAgaWQ9IlZJRVciICAgICAgICAgIGtleT0iVklFVyIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0` &&
-`gdGV4dD0iVmlldyBNb2RlbCAoSlNPTikiICAgIGlkPSJNT0RFTCIgICAgICAgICBrZXk9Ik1PREVMIiAgLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIChYTUwpIiAgICAgICAgICBpZD0iUE9QVVAiICAgICAgICAga2V5PSJQT1BVUCIgICAgICAgICAgZW5` &&
-`hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIE1vZGVsIChKU09OKSIgICBpZD0iUE9QVVBfTU9ERUwiICAga2V5PSJQT1BVUF9NT0RFTCIgICAgZW5hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICA` &&
-`gICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcG92ZXIgKFhNTCkiICAgICAgICBpZD0iUE9QT1ZFUiIgICAgICAga2V5PSJQT1BPVkVSIiAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVQb3BvdmVyfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0` &&
-`gdGV4dD0iUG9wb3ZlciBNb2RlbCAoSlNPTikiIGlkPSJQT1BPVkVSX01PREVMIiBrZXk9IlBPUE9WRVJfTU9ERUwiICBlbmFibGVkPSJ7L2FjdGl2ZVBvcG92ZXJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1Q` &&
-`xIiAgICAgICAgIGtleT0iTkVTVDEiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QxX01PREVMIiAgIGtleT0iTkVTVDFfTU9ERUwiICAgIGVuYWJsZWQ` &&
-`9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1QyIiAgICAgICAgIGtleT0iTkVTVDIiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICA` &&
-`gICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QyX01PREVMIiAgIGtleT0iTkVTVDJfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0SXRlbT4KICAgICAgICA` &&
-`gICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgIDwvdG50OlNpZGVOYXZpZ2F0aW9uPgogICAgICAgICAgICAgICAgICAgIDxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgIHR5cGU9InsvdHlwZX0iCiAgICAgICAgICAgICAgICAgICAgdmFsdWU9J3svdmFsdWV9JwogICA` &&
-`gICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIvPiA8L0hCb3g+CiAgICAgICAgICAgICAgIDxmb290ZXI+PFRvb2xiYXI+PFRvb2xiYXJTcGFjZXIvPjxCdXR0b24gdGV4dD0iQ2xvc2UiIHByZXNzPSJvbkNsb3NlIi8+PC9Ub29sYmFyPjwvZm9vdGVyPgogICAgICAgICAgICAgICA8L0RpYWxvZz4KICA` &&
-`gICAgICAgICAgPC9jb3JlOkZyYWdtZW50RGVmaW5pdGlvbj4=``;` && |\n|  &&
-              `            XMLDef = atob( XMLDef );` && |\n|  &&
+              `            let XMLDef = ``<core:FragmentDefinition` && |\n|  &&
+              `            xmlns="sap.m"` && |\n|  &&
+              `                xmlns:mvc="sap.ui.core.mvc"` && |\n|  &&
+              `                xmlns:core="sap.ui.core"` && |\n|  &&
+              `                xmlns:tnt="sap.tnt"` && |\n|  &&
+              `                xmlns:editor="sap.ui.codeeditor">` && |\n|  &&
+              `                  <Dialog title="abap2UI5 - Debugging Tools" stretch="true" id="debug-dialog">` && |\n|  &&
+              `                  <HBox>` && |\n|  &&
+              `                <tnt:SideNavigation id="sideNavigation" selectedKey="PLAIN" itemSelect="onItemSelect">` && |\n|  &&
+              `                    <tnt:NavigationList>` && |\n|  &&
+              `                        <tnt:NavigationListItem text="Communication" icon="sap-icon://employee">` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Previous Request" id="REQUEST" key="REQUEST" />` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Response"                id="PLAIN"         key="PLAIN"/>` && |\n|  &&
+              `                        </tnt:NavigationListItem>` && |\n|  &&
+              `                        <tnt:NavigationListItem text="View" icon="sap-icon://employee">` && |\n|  &&
+              `                            <tnt:NavigationListItem text="View (XML)"           id="VIEW"          key="VIEW"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="View Model (JSON)"    id="MODEL"         key="MODEL"  />` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Popup (XML)"          id="POPUP"         key="POPUP"          enabled="{/activePopup}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Popup Model (JSON)"   id="POPUP_MODEL"   key="POPUP_MODEL"    enabled="{/activePopup}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Popover (XML)"        id="POPOVER"       key="POPOVER"        enabled="{/activePopover}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Popover Model (JSON)" id="POPOVER_MODEL" key="POPOVER_MODEL"  enabled="{/activePopover}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Nest1 (XML)"          id="NEST1"         key="NEST1"          enabled="{/activeNest1}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Nest1 Model (JSON)"   id="NEST1_MODEL"   key="NEST1_MODEL"    enabled="{/activeNest1}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Nest2 (XML)"          id="NEST2"         key="NEST2"          enabled="{/activeNest2}"/>` && |\n|  &&
+              `                            <tnt:NavigationListItem text="Nest2 Model (JSON)"   id="NEST2_MODEL"   key="NEST2_MODEL"    enabled="{/activeNest2}"/>` && |\n|  &&
+              `                        </tnt:NavigationListItem>` && |\n|  &&
+              `                    </tnt:NavigationList>` && |\n|  &&
+              `                </tnt:SideNavigation>` && |\n|  &&
+              `                    <editor:CodeEditor` && |\n|  &&
+              `                    type="{/type}"` && |\n|  &&
+              `                    value='{/value}'` && |\n|  &&
+              `                height="800px" width="1200px"/> </HBox>` && |\n|  &&
+              `               <footer><Toolbar><ToolbarSpacer/><Button text="Close" press="onClose"/></Toolbar></footer>` && |\n|  &&
+              `               <core:HTML content="&lt;script&gt;$(sap.ui.getCore().byId(&#39;debug-dialog&#39;).getDomRef()).css(&quot;direction&quot;,&quot;LTR&quot;)&lt;/script&gt;"></core:HTML>` && |\n| &&
+              `               </Dialog>` && |\n|  &&
+              `            </core:FragmentDefinition>``;` && |\n|  &&
+*              `          let  XMLDef = ``PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgIHhtbG5zPSJzYXAubSIKICAgICAgICAgICAgICAgIHhtbG5zOm12Yz0ic2FwLnVpLmNvcmUubXZjIgogICAgICAgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgICAgICAgICAgICB4bWxuczp`
+*&&
+*`0bnQ9InNhcC50bnQiCiAgICAgICAgICAgICAgICB4bWxuczplZGl0b3I9InNhcC51aS5jb2RlZWRpdG9yIj4KICAgICAgICAgICAgICAgICAgPERpYWxvZyB0aXRsZT0iYWJhcDJVSTUgLSBEZWJ1Z2dpbmcgVG9vbHMiIHN0cmV0Y2g9InRydWUiPgogICAgICAgICAgICAgICAgICA8SEJveD4KICAgICAgICAgICAgICAgIDx0bnQ` &&
+*`6U2lkZU5hdmlnYXRpb24gaWQ9InNpZGVOYXZpZ2F0aW9uIiBzZWxlY3RlZEtleT0iUExBSU4iIGl0ZW1TZWxlY3Q9Im9uSXRlbVNlbGVjdCI+CiAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWN` &&
+*`hdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQcmV2aW91cyBSZXF1ZXN0IiBpZD0iUkVRVUVTVCIga2V5PSJSRVFVRVNUIiAvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGl` &&
+*`zdEl0ZW0gdGV4dD0iUmVzcG9uc2UiICAgICAgICAgICAgICAgIGlkPSJQTEFJTiIgICAgICAgICBrZXk9IlBMQUlOIi8+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0SXRlbT4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iVmlldyIgaWNvbj0` &&
+*`ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IChYTUwpIiAgICAgICAgICAgaWQ9IlZJRVciICAgICAgICAgIGtleT0iVklFVyIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0` &&
+*`gdGV4dD0iVmlldyBNb2RlbCAoSlNPTikiICAgIGlkPSJNT0RFTCIgICAgICAgICBrZXk9Ik1PREVMIiAgLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIChYTUwpIiAgICAgICAgICBpZD0iUE9QVVAiICAgICAgICAga2V5PSJQT1BVUCIgICAgICAgICAgZW5` &&
+*`hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIE1vZGVsIChKU09OKSIgICBpZD0iUE9QVVBfTU9ERUwiICAga2V5PSJQT1BVUF9NT0RFTCIgICAgZW5hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICA` &&
+*`gICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcG92ZXIgKFhNTCkiICAgICAgICBpZD0iUE9QT1ZFUiIgICAgICAga2V5PSJQT1BPVkVSIiAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVQb3BvdmVyfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0` &&
+*`gdGV4dD0iUG9wb3ZlciBNb2RlbCAoSlNPTikiIGlkPSJQT1BPVkVSX01PREVMIiBrZXk9IlBPUE9WRVJfTU9ERUwiICBlbmFibGVkPSJ7L2FjdGl2ZVBvcG92ZXJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1Q` &&
+*`xIiAgICAgICAgIGtleT0iTkVTVDEiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QxX01PREVMIiAgIGtleT0iTkVTVDFfTU9ERUwiICAgIGVuYWJsZWQ` &&
+*`9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1QyIiAgICAgICAgIGtleT0iTkVTVDIiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICA` &&
+*`gICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QyX01PREVMIiAgIGtleT0iTkVTVDJfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0SXRlbT4KICAgICAgICA` &&
+*`gICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgIDwvdG50OlNpZGVOYXZpZ2F0aW9uPgogICAgICAgICAgICAgICAgICAgIDxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgIHR5cGU9InsvdHlwZX0iCiAgICAgICAgICAgICAgICAgICAgdmFsdWU9J3svdmFsdWV9JwogICA` &&
+*`gICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIvPiA8L0hCb3g+CiAgICAgICAgICAgICAgIDxmb290ZXI+PFRvb2xiYXI+PFRvb2xiYXJTcGFjZXIvPjxCdXR0b24gdGV4dD0iQ2xvc2UiIHByZXNzPSJvbkNsb3NlIi8+PC9Ub29sYmFyPjwvZm9vdGVyPgogICAgICAgICAgICAgICA8L0RpYWxvZz4KICA` &&
+*`gICAgICAgICAgPC9jb3JlOkZyYWdtZW50RGVmaW5pdGlvbj4=``;` && |\n|  &&
+*              `            XMLDef = atob( XMLDef );` && |\n|  &&
               `            if (this.oFragment) {` && |\n|  &&
               `                this.oFragment.close();` && |\n|  &&
               `                this.oFragment.destroy();` && |\n|  &&
