@@ -1,65 +1,180 @@
-class Z2UI5_CL_CC_CHARTJS definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_cc_chartjs DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    BEGIN OF ty_dataset,
-        label        TYPE string,
-        data         TYPE string_table,
-        border_width TYPE i,
-      END OF ty_dataset .
-  types
-    ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY .
-  types:
-    BEGIN OF ty_data,
+    " Data
+    TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_dataset,
+        label            TYPE string,
+        type             TYPE string,
+        data             TYPE string_table,
+        border_width     TYPE i,
+        border_color     TYPE string,
+        show_line        TYPE abap_bool,
+        background_color TYPE ty_bg_color,
+        hover_offset     TYPE i,
+        order            TYPE i,
+        fill             TYPE string,
+        hidden           TYPE abap_bool,
+      END OF ty_dataset.
+
+    TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_data,
         labels   TYPE string_table,
         datasets TYPE ty_datasets,
       END OF ty_data .
-  types:
-    BEGIN OF ty_scale,
-        begin_at_zero TYPE abap_bool,
-      END OF ty_scale .
-  types:
-    BEGIN OF ty_colors_plugin,
-        enabled TYPE abap_bool,
+
+    " Options
+    TYPES:
+      BEGIN OF ty_custom_canvas_bg_color,
+        color TYPE string,
+      END OF ty_custom_canvas_bg_color.
+
+    TYPES:
+      BEGIN OF ty_colors_plugin,
+        enabled        TYPE abap_bool,
         force_override TYPE abap_bool,
       END OF ty_colors_plugin .
-  types:
-    BEGIN OF ty_plugins,
-        colors TYPE ty_colors_plugin,
+
+    TYPES:
+      BEGIN OF ty_legend,
+        position TYPE string,
+      END OF ty_legend .
+
+    TYPES:
+      BEGIN OF ty_title,
+        text    TYPE string,
+        display TYPE abap_bool,
+      END OF ty_title .
+
+    TYPES:
+      BEGIN OF ty_callback,
+        label TYPE string,
+      END OF ty_callback .
+
+    TYPES:
+      BEGIN OF ty_tooltip,
+        callbacks TYPE ty_callback,
+        mode      TYPE string,
+        intersect TYPE abap_bool,
+      END OF ty_tooltip .
+
+    TYPES:
+      BEGIN OF ty_filler,
+        propagate TYPE abap_bool,
+      END OF ty_filler .
+
+    TYPES:
+      BEGIN OF ty_plugins,
+        colors                         TYPE ty_colors_plugin,
+        custom_canvas_background_color TYPE ty_custom_canvas_bg_color,
+        legend                         TYPE ty_legend,
+        title                          TYPE ty_title,
+        tooltip                        TYPE ty_tooltip,
+        filler                         TYPE ty_filler,
       END OF ty_plugins .
-  types:
-    BEGIN OF ty_scales,
+
+    TYPES:
+      BEGIN OF ty_font,
+        size TYPE i,
+      END OF ty_font .
+
+    TYPES:
+      BEGIN OF ty_point_label,
+        display             TYPE abap_bool,
+        center_point_labels TYPE abap_bool,
+        font                TYPE ty_font,
+      END OF ty_point_label .
+
+    TYPES:
+      BEGIN OF ty_ticks,
+        step_size TYPE string,
+      END OF ty_ticks .
+
+    TYPES:
+      BEGIN OF ty_scale,
+        begin_at_zero TYPE abap_bool,
+        min           TYPE string,
+        max           TYPE string,
+        point_labels  TYPE ty_point_label,
+        stacked       TYPE abap_bool,
+        title         TYPE ty_title,
+        suggested_min TYPE i,
+        suggested_max TYPE i,
+        ticks         TYPE ty_ticks,
+      END OF ty_scale .
+
+    TYPES:
+      BEGIN OF ty_scales,
         y TYPE ty_scale,
+        x TYPE ty_scale,
+        r TYPE ty_scale,
       END OF ty_scales .
-  types:
-    BEGIN OF ty_options,
-        scales TYPE ty_scales,
-        plugins TYPE ty_plugins,
+
+    TYPES:
+      BEGIN OF ty_interaction,
+        mode      TYPE string,
+        intersect TYPE abap_bool,
+      END OF ty_interaction .
+
+    TYPES:
+      BEGIN OF ty_tension,
+        duration TYPE i,
+        easing   TYPE string,
+        from     TYPE i,
+        to       TYPE i,
+        loop     TYPE abap_bool,
+      END OF ty_tension .
+
+    TYPES:
+      BEGIN OF ty_animations,
+        tension TYPE ty_tension,
+      END OF ty_animations .
+
+    TYPES:
+      BEGIN OF ty_hover,
+        mode     TYPE string,
+        intersec TYPE abap_bool,
+      END OF ty_hover .
+
+    TYPES:
+      BEGIN OF ty_options,
+        scales      TYPE ty_scales,
+        responsive  TYPE abap_bool,
+        plugins     TYPE ty_plugins,
+        hover       TYPE ty_hover,
+        interaction TYPE ty_interaction,
+        animations  TYPE ty_animations,
       END OF ty_options .
-  types:
-    BEGIN OF ty_chart,
+
+    "ChartJS Configuration
+    TYPES:
+      BEGIN OF ty_chart,
         type    TYPE string,
         data    TYPE ty_data,
         options TYPE ty_options,
       END OF ty_chart .
 
-  class-methods GET_JS_LOCAL
-    returning
-      value(RESULT) type STRING .
-  class-methods GET_JS_URL
-    returning
-      value(RESULT) type STRING .
-  class-methods SET_JS_CONFIG
-    importing
-      !CANVAS_ID type STRING
-      !VIEW type STRING
-      !IS_CONFIG type TY_CHART
-    returning
-      value(CHARTJS_CONFIG) type STRING .
+    CLASS-METHODS get_js_local
+      RETURNING
+        VALUE(result) TYPE string .
+    CLASS-METHODS get_js_url
+      RETURNING
+        VALUE(result) TYPE string .
+    CLASS-METHODS set_js_config
+      IMPORTING
+        !canvas_id            TYPE string
+        !view                 TYPE string
+        !is_config            TYPE ty_chart
+      RETURNING
+        VALUE(chartjs_config) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
