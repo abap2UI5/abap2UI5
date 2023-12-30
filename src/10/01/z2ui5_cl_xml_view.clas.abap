@@ -3260,6 +3260,15 @@ public section.
       !onclick type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods html_canvas
+    importing
+      !id type CLIKE optional
+      !width type CLIKE optional
+      !height type CLIKE optional
+      !style type CLIKE optional
+      !class type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -4227,15 +4236,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
-METHOD factory_plain.
-
-    result = NEW #( ).
-
-    result->mo_root   = result.
-    result->mo_parent = result.
-
-  ENDMETHOD.
-
   METHOD factory.
 
     result = NEW #( ).
@@ -4257,6 +4257,16 @@ METHOD factory_plain.
     INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE result->mt_prop.
     INSERT VALUE #( n = `xmlns:mvc`       v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
     INSERT VALUE #( n = `xmlns:core`       v = `sap.ui.core` ) INTO TABLE result->mt_prop.
+
+  ENDMETHOD.
+
+
+METHOD factory_plain.
+
+    result = NEW #( ).
+
+    result->mo_root   = result.
+    result->mo_parent = result.
 
   ENDMETHOD.
 
@@ -4788,6 +4798,19 @@ METHOD factory_plain.
                              ( n = `onclick`  v = onclick )
                          ) ).
   ENDMETHOD.
+
+
+METHOD html_canvas.
+  result = _generic( name = `canvas`
+                     ns = `html`
+                     t_prop = VALUE #(
+                           ( n = `id`     v = id )
+                           ( n = `class`  v = class )
+                           ( n = `width`  v = width )
+                           ( n = `height` v = height )
+                           ( n = `style`  v = style )
+                       ) ).
+ENDMETHOD.
 
 
   METHOD html_map.
