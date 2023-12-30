@@ -66,11 +66,11 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
               `                    let selItem = oEvent.getSource().getSelectedItem();` && |\n|  &&
               |\n|  &&
               `                    if (selItem == 'MODEL') {` && |\n|  &&
-              `                       debugger; this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oView?.getModel()?.getData(), null, 3) , 'json' );` && |\n|  &&
+              `                       this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oView?.getModel()?.getData(), null, 3) , 'json' );` && |\n|  &&
               `                        return;` && |\n|  &&
               `                    }` && |\n|  &&
               `                    if (selItem == 'VIEW') {` && |\n|  &&
-              `                       debugger; this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n|  &&
+              `                       this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n|  &&
               `                        return;` && |\n|  &&
               `                    }` && |\n|  &&
               `                    if (selItem == 'PLAIN') {` && |\n|  &&
@@ -140,21 +140,21 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 *              `                  <HBox>` && |\n|  &&
 *              `                <tnt:SideNavigation id="sideNavigation" selectedKey="PLAIN" itemSelect="onItemSelect">` && |\n|  &&
 *              `                    <tnt:NavigationList>` && |\n|  &&
-*              `                        <tnt:NavigationListItem text="Communication" icon="sap-icon://employee">` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Previous Request" id="REQUEST" key="REQUEST" />` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Response"                id="PLAIN"         key="PLAIN"/>` && |\n|  &&
+*              `                        <tnt:NavigationListItem text="Communication" icon="sap-icon://employee" textDirection="LTR">` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Previous Request" id="REQUEST" key="REQUEST"             textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Response"                id="PLAIN"         key="PLAIN"  textDirection="LTR" />` && |\n|  &&
 *              `                        </tnt:NavigationListItem>` && |\n|  &&
-*              `                        <tnt:NavigationListItem text="View" icon="sap-icon://employee">` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="View (XML)"           id="VIEW"          key="VIEW"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="View Model (JSON)"    id="MODEL"         key="MODEL"  />` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popup (XML)"          id="POPUP"         key="POPUP"          enabled="{/activePopup}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popup Model (JSON)"   id="POPUP_MODEL"   key="POPUP_MODEL"    enabled="{/activePopup}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popover (XML)"        id="POPOVER"       key="POPOVER"        enabled="{/activePopover}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Popover Model (JSON)" id="POPOVER_MODEL" key="POPOVER_MODEL"  enabled="{/activePopover}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest1 (XML)"          id="NEST1"         key="NEST1"          enabled="{/activeNest1}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest1 Model (JSON)"   id="NEST1_MODEL"   key="NEST1_MODEL"    enabled="{/activeNest1}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest2 (XML)"          id="NEST2"         key="NEST2"          enabled="{/activeNest2}"/>` && |\n|  &&
-*              `                            <tnt:NavigationListItem text="Nest2 Model (JSON)"   id="NEST2_MODEL"   key="NEST2_MODEL"    enabled="{/activeNest2}"/>` && |\n|  &&
+*              `                        <tnt:NavigationListItem text="View" icon="sap-icon://employee"  textDirection="LTR" >` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="View (XML)"           id="VIEW"          key="VIEW"                                      textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="View Model (JSON)"    id="MODEL"         key="MODEL"                                     textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Popup (XML)"          id="POPUP"         key="POPUP"          enabled="{/activePopup}"   textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Popup Model (JSON)"   id="POPUP_MODEL"   key="POPUP_MODEL"    enabled="{/activePopup}"   textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Popover (XML)"        id="POPOVER"       key="POPOVER"        enabled="{/activePopover}" textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Popover Model (JSON)" id="POPOVER_MODEL" key="POPOVER_MODEL"  enabled="{/activePopover}" textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Nest1 (XML)"          id="NEST1"         key="NEST1"          enabled="{/activeNest1}"   textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Nest1 Model (JSON)"   id="NEST1_MODEL"   key="NEST1_MODEL"    enabled="{/activeNest1}"   textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Nest2 (XML)"          id="NEST2"         key="NEST2"          enabled="{/activeNest2}"   textDirection="LTR"/>` && |\n|  &&
+*              `                            <tnt:NavigationListItem text="Nest2 Model (JSON)"   id="NEST2_MODEL"   key="NEST2_MODEL"    enabled="{/activeNest2}"   textDirection="LTR"/>` && |\n|  &&
 *              `                        </tnt:NavigationListItem>` && |\n|  &&
 *              `                    </tnt:NavigationList>` && |\n|  &&
 *              `                </tnt:SideNavigation>` && |\n|  &&
@@ -163,25 +163,27 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 *              `                    value='{/value}'` && |\n|  &&
 *              `                height="800px" width="1200px"/> </HBox>` && |\n|  &&
 *              `               <footer><Toolbar><ToolbarSpacer/><Button text="Close" press="onClose"/></Toolbar></footer>` && |\n|  &&
-**              `               <core:HTML content="&lt;script&gt;debugger; $(sap.ui.getCore().byId(&#39;debug-dialog&#39;).getDomRef()).css(&quot;direction&quot;,&quot;LTR&quot;)&lt;/script&gt;"></core:HTML>` && |\n| &&
 *              `               </Dialog>` && |\n|  &&
 *              `            </core:FragmentDefinition>``;` && |\n|  &&
-              `          let  XMLDef = ` && `"PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgIHhtbG5zPSJzYXAubSIKICAgICAgICAgICAgICAgIHhtbG5zOm12Yz0ic2FwLnVpLmNvcmUubXZjIgogICAgICAgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgICAgICAgICAgICB4` &&
-`bWxuczp0bnQ9InNhcC50bnQiCiAgICAgICAgICAgICAgICB4bWxuczplZGl0b3I9InNhcC51aS5jb2RlZWRpdG9yIj4KICAgICAgICAgICAgICAgICAgPERpYWxvZyB0aXRsZT0iYWJhcDJVSTUgLSBEZWJ1Z2dpbmcgVG9vbHMiIHN0cmV0Y2g9InRydWUiIGlkPSJkZWJ1Zy1kaWFsb2ciPgogICAgICAgICAgICAgICAgICA8SEJv` &&
-`eD4KICAgICAgICAgICAgICAgIDx0bnQ6U2lkZU5hdmlnYXRpb24gaWQ9InNpZGVOYXZpZ2F0aW9uIiBzZWxlY3RlZEtleT0iUExBSU4iIGl0ZW1TZWxlY3Q9Im9uSXRlbVNlbGVjdCI+CiAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9u` &&
-`TGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWNhdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQcmV2aW91cyBSZXF1ZXN0IiBpZD0iUkVRVUVTVCIga2V5PSJSRVFVRVNUIiAvPgogICAgICAgICAgICAgICAgICAgICAg` &&
-`ICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUmVzcG9uc2UiICAgICAgICAgICAgICAgIGlkPSJQTEFJTiIgICAgICAgICBrZXk9IlBMQUlOIi8+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0SXRlbT4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlz` &&
-`dEl0ZW0gdGV4dD0iVmlldyIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IChYTUwpIiAgICAgICAgICAgaWQ9IlZJRVciICAgICAgICAgIGtleT0iVklFVyIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAg` &&
-`PHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iVmlldyBNb2RlbCAoSlNPTikiICAgIGlkPSJNT0RFTCIgICAgICAgICBrZXk9Ik1PREVMIiAgLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIChYTUwpIiAgICAgICAgICBpZD0iUE9QVVAiICAgICAgICAg` &&
-`a2V5PSJQT1BVUCIgICAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIE1vZGVsIChKU09OKSIgICBpZD0iUE9QVVBfTU9ERUwiICAga2V5PSJQT1BVUF9NT0RFTCIgICAgZW5hYmxlZD0iey9hY3RpdmVQ` &&
-`b3B1cH0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcG92ZXIgKFhNTCkiICAgICAgICBpZD0iUE9QT1ZFUiIgICAgICAga2V5PSJQT1BPVkVSIiAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVQb3BvdmVyfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAg` &&
-`PHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUG9wb3ZlciBNb2RlbCAoSlNPTikiIGlkPSJQT1BPVkVSX01PREVMIiBrZXk9IlBPUE9WRVJfTU9ERUwiICBlbmFibGVkPSJ7L2FjdGl2ZVBvcG92ZXJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSAo` &&
-`WE1MKSIgICAgICAgICAgaWQ9Ik5FU1QxIiAgICAgICAgIGtleT0iTkVTVDEiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QxX01PREVMIiAgIGtleT0i` &&
-`TkVTVDFfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1QyIiAgICAgICAgIGtleT0iTkVTVDIiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9` &&
-`Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QyX01PREVMIiAgIGtleT0iTkVTVDJfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmln` &&
-`YXRpb25MaXN0SXRlbT4KICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgIDwvdG50OlNpZGVOYXZpZ2F0aW9uPgogICAgICAgICAgICAgICAgICAgIDxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgIHR5cGU9InsvdHlwZX0iCiAgICAgICAgICAgICAgICAg` &&
-`ICAgdmFsdWU9J3svdmFsdWV9JwogICAgICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIvPiA8L0hCb3g+CiAgICAgICAgICAgICAgIDxmb290ZXI+PFRvb2xiYXI+PFRvb2xiYXJTcGFjZXIvPjxCdXR0b24gdGV4dD0iQ2xvc2UiIHByZXNzPSJvbkNsb3NlIi8+PC9Ub29sYmFyPjwvZm9vdGVyPgogICAg` &&
-`ICAgICAgICAgICA8L0RpYWxvZz4KICAgICAgICAgICAgPC9jb3JlOkZyYWdtZW50RGVmaW5pdGlvbj4=";` &&
+              `          let  XMLDef = ` && `"PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgIHhtbG5zPSJzYXAubSIKICAgICAgICAgICAgICAgIHhtbG5zOm12Yz0ic2FwLnVpLmNvcmUubXZjIgogICAgIC` &&
+`AgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgICAgICAgICAgICB4bWxuczp0bnQ9InNhcC50bnQiCiAgICAgICAg` &&
+`ICAgICAgICB4bWxuczplZGl0b3I9InNhcC51aS5jb2RlZWRpdG9yIj4KICAgICAgICAgICAgICAgICAgPERpYWxvZyB0aXRsZT0iYWJhcDJVSTUgLSBEZWJ1Z2dpbmcgVG9vbHMiIHN0cmV0Y2g9InRydWUiIGlkPSJkZWJ1Zy1kaWFsb2ciPgogICAgICAgICAgICAgICAgICA8SEJveD4KICAgICAgICAgICAgICAgIDx0` &&
+`bnQ6U2lkZU5hdmlnYXRpb24gaWQ9InNpZGVOYXZpZ2F0aW9uIiBzZWxlY3RlZEtleT0iUExBSU4iIGl0ZW1TZWxlY3Q9Im9uSXRlbVNlbGVjdCI+CiAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdD4KICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0i` &&
+`Q29tbXVuaWNhdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSIgIHRleHREaXJlY3Rpb249IkxUUiI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQcmV2aW91cyBSZXF1ZXN0IiBpZD0iUkVRVUVTVCIga2V5PSJSRVFVRVNUIiAgdGV4dERpcmVjdGlv` &&
+`bj0iTFRSIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJSZXNwb25zZSIgICAgICAgICAgICAgICAgaWQ9IlBMQUlOIiAgICAgICAgIGtleT0iUExBSU4iICB0ZXh0RGlyZWN0aW9uPSJMVFIiLz4KICAgICAgICAgICAgICAgICAgICAgICAgPC90bnQ6TmF2` &&
+`aWdhdGlvbkxpc3RJdGVtPgogICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IiBpY29uPSJzYXAtaWNvbjovL2VtcGxveWVlIiAgdGV4dERpcmVjdGlvbj0iTFRSIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRl` &&
+`eHQ9IlZpZXcgKFhNTCkiICAgICAgICAgICBpZD0iVklFVyIgICAgICAgICAga2V5PSJWSUVXIiAgdGV4dERpcmVjdGlvbj0iTFRSIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IE1vZGVsIChKU09OKSIgICAgaWQ9Ik1PREVMIiAgICAgICAgIGtl` &&
+`eT0iTU9ERUwiICAgdGV4dERpcmVjdGlvbj0iTFRSIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3B1cCAoWE1MKSIgICAgICAgICAgaWQ9IlBPUFVQIiAgICAgICAgIGtleT0iUE9QVVAiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlUG9wdXB9IiAg` &&
+`dGV4dERpcmVjdGlvbj0iTFRSIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3B1cCBNb2RlbCAoSlNPTikiICAgaWQ9IlBPUFVQX01PREVMIiAgIGtleT0iUE9QVVBfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlUG9wdXB9IiAgdGV4dERpcmVjdGlv` &&
+`bj0iTFRSIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIChYTUwpIiAgICAgICAgaWQ9IlBPUE9WRVIiICAgICAgIGtleT0iUE9QT1ZFUiIgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlUG9wb3Zlcn0iICB0ZXh0RGlyZWN0aW9uPSJMVFIiLz4K` &&
+`ICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcG92ZXIgTW9kZWwgKEpTT04pIiBpZD0iUE9QT1ZFUl9NT0RFTCIga2V5PSJQT1BPVkVSX01PREVMIiAgZW5hYmxlZD0iey9hY3RpdmVQb3BvdmVyfSIgIHRleHREaXJlY3Rpb249IkxUUiIvPgogICAgICAgICAg` &&
+`ICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iTmVzdDEgKFhNTCkiICAgICAgICAgIGlkPSJORVNUMSIgICAgICAgICBrZXk9Ik5FU1QxIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QxfSIgIHRleHREaXJlY3Rpb249IkxUUiIvPgogICAgICAgICAgICAgICAgICAgICAg` &&
+`ICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iTmVzdDEgTW9kZWwgKEpTT04pIiAgIGlkPSJORVNUMV9NT0RFTCIgICBrZXk9Ik5FU1QxX01PREVMIiAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QxfSIgIHRleHREaXJlY3Rpb249IkxUUiIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpO` &&
+`YXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iTmVzdDIgKFhNTCkiICAgICAgICAgIGlkPSJORVNUMiIgICAgICAgICBrZXk9Ik5FU1QyIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QyfSIgIHRleHREaXJlY3Rpb249IkxUUiIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlz` &&
+`dEl0ZW0gdGV4dD0iTmVzdDIgTW9kZWwgKEpTT04pIiAgIGlkPSJORVNUMl9NT0RFTCIgICBrZXk9Ik5FU1QyX01PREVMIiAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QyfSIgIHRleHREaXJlY3Rpb249IkxUUiIvPgogICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAg` &&
+`ICAgICAgICAgICAgPC90bnQ6TmF2aWdhdGlvbkxpc3Q+CiAgICAgICAgICAgICAgICA8L3RudDpTaWRlTmF2aWdhdGlvbj4KICAgICAgICAgICAgICAgICAgICA8ZWRpdG9yOkNvZGVFZGl0b3IKICAgICAgICAgICAgICAgICAgICB0eXBlPSJ7L3R5cGV9IgogICAgICAgICAgICAgICAgICAgIHZhbHVlPSd7L3ZhbHVl` &&
+`fScKICAgICAgICAgICAgICAgIGhlaWdodD0iODAwcHgiIHdpZHRoPSIxMjAwcHgiLz4gPC9IQm94PgogICAgICAgICAgICAgICA8Zm9vdGVyPjxUb29sYmFyPjxUb29sYmFyU3BhY2VyLz48QnV0dG9uIHRleHQ9IkNsb3NlIiBwcmVzcz0ib25DbG9zZSIvPjwvVG9vbGJhcj48L2Zvb3Rlcj4KICAgICAgICAgICAgICAg` &&
+`PC9EaWFsb2c+CiAgICAgICAgICAgIDwvY29yZTpGcmFnbWVudERlZmluaXRpb24+";` &&
               `            XMLDef = atob( XMLDef );` && |\n|  &&
               `            if (this.oFragment) {` && |\n|  &&
               `                this.oFragment.close();` && |\n|  &&
