@@ -11,7 +11,7 @@ public section.
         data         TYPE string_table,
         border_width TYPE i,
       END OF ty_dataset .
-  types:
+  types
     ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY .
   types:
     BEGIN OF ty_data,
