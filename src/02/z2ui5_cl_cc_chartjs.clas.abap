@@ -1,67 +1,65 @@
-CLASS z2ui5_cl_cc_chartjs DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_CHARTJS definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    TYPES:
-      BEGIN OF ty_dataset,
+  types:
+    BEGIN OF ty_dataset,
         label        TYPE string,
         data         TYPE string_table,
         border_width TYPE i,
-      END OF ty_dataset.
-
-    TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
-
-    TYPES:
-      BEGIN OF ty_data,
+      END OF ty_dataset .
+  types:
+    ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY .
+  types:
+    BEGIN OF ty_data,
         labels   TYPE string_table,
         datasets TYPE ty_datasets,
-      END OF ty_data.
-
-    TYPES:
-      BEGIN OF ty_scale,
+      END OF ty_data .
+  types:
+    BEGIN OF ty_scale,
         begin_at_zero TYPE abap_bool,
-      END OF ty_scale.
-    TYPES:
-      BEGIN OF ty_colors_plugin,
+      END OF ty_scale .
+  types:
+    BEGIN OF ty_colors_plugin,
         enabled TYPE abap_bool,
         force_override TYPE abap_bool,
-      END OF ty_colors_plugin.
-    TYPES:
-      BEGIN OF ty_plugins,
+      END OF ty_colors_plugin .
+  types:
+    BEGIN OF ty_plugins,
         colors TYPE ty_colors_plugin,
-      END OF ty_plugins.
-    TYPES:
-      BEGIN OF ty_scales,
+      END OF ty_plugins .
+  types:
+    BEGIN OF ty_scales,
         y TYPE ty_scale,
-      END OF ty_scales.
-    TYPES:
-      BEGIN OF ty_options,
+      END OF ty_scales .
+  types:
+    BEGIN OF ty_options,
         scales TYPE ty_scales,
         plugins TYPE ty_plugins,
-      END OF ty_options.
-    TYPES:
-      BEGIN OF ty_chart,
+      END OF ty_options .
+  types:
+    BEGIN OF ty_chart,
         type    TYPE string,
         data    TYPE ty_data,
         options TYPE ty_options,
       END OF ty_chart .
 
-    CLASS-METHODS get_js_local
-      RETURNING
-        VALUE(result) TYPE string .
-    CLASS-METHODS get_js_url
-      RETURNING
-        VALUE(result) TYPE string .
-    CLASS-METHODS set_js_config
-      IMPORTING
-        !canvas_id            TYPE string
-        !view                 TYPE string
-        !is_config            TYPE ty_chart
-      RETURNING
-        VALUE(chartjs_config) TYPE string .
+  class-methods GET_JS_LOCAL
+    returning
+      value(RESULT) type STRING .
+  class-methods GET_JS_URL
+    returning
+      value(RESULT) type STRING .
+  class-methods SET_JS_CONFIG
+    importing
+      !CANVAS_ID type STRING
+      !VIEW type STRING
+      !IS_CONFIG type TY_CHART
+    returning
+      value(CHARTJS_CONFIG) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
