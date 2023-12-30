@@ -193,7 +193,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
               `            });` && |\n|  &&
               |\n|  &&
               `            oFragmentController.oDialog = this.oFragment;` && |\n|  &&
-              `           $( oFragmentController.oDialog .getDomRef() ).css("direction","LTR");` && |\n|  &&
+              `            oFragmentController.oDialog.addStyleClass('dbg-ltr');` && |\n|  &&
               |\n|  &&
               `            let value = JSON.stringify(sap.z2ui5.oResponse, null, 3);` && |\n|  &&
               `            debugger; let oData = { ` && |\n|  &&

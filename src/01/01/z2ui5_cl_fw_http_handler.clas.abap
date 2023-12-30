@@ -468,6 +468,9 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
                `            height: 100%;` && |\n| &&
                `        }` && |\n| &&
+               `        .dbg-ltr {` && |\n| &&
+               `            direction: ltr !important;` && |\n| &&
+               `        }` && |\n| &&
                `    </style> ` &&
                `    <script id="sap-ui-bootstrap"`.
 
