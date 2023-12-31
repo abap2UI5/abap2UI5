@@ -10,17 +10,20 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_dataset,
-        label            TYPE string,
-        type             TYPE string,
-        data             TYPE string_table,
-        border_width     TYPE i,
-        border_color     TYPE string,
-        show_line        TYPE abap_bool,
-        background_color TYPE ty_bg_color,
-        hover_offset     TYPE i,
-        order            TYPE i,
-        fill             TYPE string,
-        hidden           TYPE abap_bool,
+        label              TYPE string,
+        type               TYPE string,
+        data               TYPE string_table,
+        border_width       TYPE i,
+        border_color       TYPE string,
+        show_line          TYPE abap_bool,
+        background_color   TYPE ty_bg_color,
+        hover_offset       TYPE i,
+        order              TYPE i,
+        fill               TYPE string,
+        hidden             TYPE abap_bool,
+        point_style        TYPE string,
+        point_border_color TYPE string,
+        point_radius       TYPE i,
       END OF ty_dataset.
 
     TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
@@ -33,6 +36,22 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     " Options
     TYPES:
+      BEGIN OF ty_padding,
+        bottom TYPE string,
+        top    TYPE string,
+        left   TYPE string,
+        right  TYPE string,
+      END OF ty_padding .
+
+    TYPES:
+      BEGIN OF ty_font,
+        size   TYPE i,
+        family TYPE string,
+        weight TYPE string,
+        style  TYPE string,
+      END OF ty_font .
+
+    TYPES:
       BEGIN OF ty_custom_canvas_bg_color,
         color TYPE string,
       END OF ty_custom_canvas_bg_color.
@@ -44,26 +63,74 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_colors_plugin .
 
     TYPES:
-      BEGIN OF ty_legend,
-        position TYPE string,
-      END OF ty_legend .
-
-    TYPES:
       BEGIN OF ty_title,
-        text    TYPE string,
-        display TYPE abap_bool,
+        text      TYPE string,
+        display   TYPE abap_bool,
+        align     TYPE string,
+        color     TYPE string,
+        full_size TYPE abap_bool,
+        position  TYPE string,
+        font      TYPE ty_font,
+        padding   TYPE ty_padding,
       END OF ty_title .
 
     TYPES:
+      BEGIN OF ty_labels,
+        box_width         TYPE i,
+        box_height        TYPE i,
+        color             TYPE abap_bool,
+        font              TYPE ty_font,
+        padding           TYPE i,
+        generate_labels   TYPE string,
+        filter            TYPE string,
+        sort              TYPE string,
+        point_style       TYPE string,
+        text_align        TYPE string,
+        use_point_style   TYPE abap_bool,
+        point_style_width TYPE i,
+        use_border_radius TYPE abap_bool,
+        border_radius     TYPE i,
+      END OF ty_labels .
+
+    TYPES:
+      BEGIN OF ty_legend,
+        position       TYPE string,
+        align          TYPE string,
+        display        TYPE abap_bool,
+        max_height     TYPE i,
+        max_width      TYPE i,
+        full_size      TYPE i,
+        on_click       TYPE string,
+        on_hover       TYPE string,
+        on_leave       TYPE string,
+        reverse        TYPE abap_bool,
+        labels         TYPE ty_labels,
+        rtl            TYPE abap_bool,
+        text_direction TYPE string,
+        title          TYPE ty_title,
+      END OF ty_legend .
+
+    TYPES:
+      BEGIN OF ty_subtitle,
+        text    TYPE string,
+        display TYPE abap_bool,
+        color   TYPE string,
+        font    TYPE ty_font,
+        padding TYPE ty_padding,
+      END OF ty_subtitle .
+
+    TYPES:
       BEGIN OF ty_callback,
-        label TYPE string,
+        label  TYPE string,
+        footer TYPE string,
       END OF ty_callback .
 
     TYPES:
       BEGIN OF ty_tooltip,
-        callbacks TYPE ty_callback,
-        mode      TYPE string,
-        intersect TYPE abap_bool,
+        callbacks       TYPE ty_callback,
+        mode            TYPE string,
+        intersect       TYPE abap_bool,
+        use_point_style TYPE abap_bool,
       END OF ty_tooltip .
 
     TYPES:
@@ -82,33 +149,113 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_plugins .
 
     TYPES:
-      BEGIN OF ty_font,
-        size TYPE i,
-      END OF ty_font .
-
-    TYPES:
       BEGIN OF ty_point_label,
         display             TYPE abap_bool,
         center_point_labels TYPE abap_bool,
         font                TYPE ty_font,
+        backdrop_color      TYPE string,
+        backdrop_padding    TYPE ty_padding,
+        border_radius       TYPE i,
+        callback            TYPE string,
+        padding             TYPE i,
       END OF ty_point_label .
 
     TYPES:
       BEGIN OF ty_ticks,
-        step_size TYPE string,
+        step_size           TYPE i,
+        count               TYPE i,
+        color               TYPE string,
+        align               TYPE string,
+        cross_align         TYPE string,
+        sample_size         TYPE i,
+        auto_skip           TYPE abap_bool,
+        include_bounds      TYPE abap_bool,
+        mirror              TYPE abap_bool,
+        auto_skip_padding   TYPE i,
+        label_offset        TYPE i,
+        max_rotation        TYPE i,
+        min_rotation        TYPE i,
+        padding             TYPE i,
+        max_ticks_limit     TYPE i,
+        backdrop_color      TYPE string,
+        backdrop_padding    TYPE ty_padding,
+        callback            TYPE string,
+        display             TYPE abap_bool,
+        show_label_backdrop TYPE abap_bool,
+        text_stroke_color   TYPE string,
+        font                TYPE ty_font,
+        text_stroke_width   TYPE i,
+        z                   TYPE i,
+        precision           TYPE i,
       END OF ty_ticks .
 
     TYPES:
+      BEGIN OF ty_border,
+        color       TYPE string,
+        display     TYPE abap_bool,
+        width       TYPE i,
+        dash        TYPE i,
+        dash_offset TYPE i,
+        z           TYPE i,
+      END OF ty_border .
+
+    TYPES:
+      BEGIN OF ty_grid,
+        color                   TYPE string,
+        border_color            TYPE string,
+        tick_color              TYPE string,
+        border_dash             TYPE string,
+        border_dash_offset      TYPE p LENGTH 3 DECIMALS 2,
+        circular                TYPE abap_bool,
+        line_width              TYPE i,
+        draw_on_chart_area      TYPE abap_bool,
+        draw_ticks              TYPE abap_bool,
+        offset                  TYPE abap_bool,
+        tick_border_dash        TYPE i,
+        tick_border_dash_offset TYPE i,
+        tick_length             TYPE i,
+        tick_width              TYPE i,
+        z                       TYPE i,
+      END OF ty_grid .
+
+    TYPES:
+      BEGIN OF ty_angle_lines,
+        color              TYPE string,
+        border_color       TYPE string,
+        display            TYPE abap_bool,
+        line_width         TYPE i,
+        border_dash        TYPE i,
+        border_dash_offset TYPE i,
+      END OF ty_angle_lines .
+
+    TYPES:
       BEGIN OF ty_scale,
-        begin_at_zero TYPE abap_bool,
-        min           TYPE string,
-        max           TYPE string,
-        point_labels  TYPE ty_point_label,
-        stacked       TYPE abap_bool,
-        title         TYPE ty_title,
-        suggested_min TYPE i,
-        suggested_max TYPE i,
-        ticks         TYPE ty_ticks,
+        begin_at_zero    TYPE abap_bool,
+        min              TYPE string,
+        max              TYPE string,
+        point_labels     TYPE ty_point_label,
+        stacked          TYPE abap_bool,
+        reverse          TYPE abap_bool,
+        align_to_pixels  TYPE abap_bool,
+        clip             TYPE abap_bool,
+        bounds           TYPE string,
+        background_color TYPE string,
+        type             TYPE string,
+        title            TYPE ty_title,
+        weight           TYPE i,
+        suggested_min    TYPE i,
+        suggested_max    TYPE i,
+        stack_weight     TYPE i,
+        stack            TYPE string,
+        position         TYPE string,
+        ticks            TYPE ty_ticks,
+        border           TYPE ty_border,
+        grid             TYPE ty_grid,
+        offset           TYPE abap_bool,
+        axis             TYPE string,
+        labels           TYPE string_table,
+        angle_lines      TYPE ty_angle_lines,
+        start_angle      TYPE i,
       END OF ty_scale .
 
     TYPES:
@@ -145,6 +292,12 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_hover .
 
     TYPES:
+      BEGIN OF ty_layout,
+        auto_padding TYPE abap_bool,
+        padding      TYPE ty_padding,
+      END OF ty_layout .
+
+    TYPES:
       BEGIN OF ty_options,
         scales      TYPE ty_scales,
         responsive  TYPE abap_bool,
@@ -152,6 +305,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         hover       TYPE ty_hover,
         interaction TYPE ty_interaction,
         animations  TYPE ty_animations,
+        layout      TYPE ty_layout,
       END OF ty_options .
 
     "ChartJS Configuration
@@ -192,7 +346,9 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
   METHOD get_js_url.
+*    result = `https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js`.
     result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js`.
+*    result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.js`.
   ENDMETHOD.
 
 
@@ -225,9 +381,11 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     ENDCASE.
 
     lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
+*    chartjs_config = chartjs_config && `debugger;import('chart.umd.js').then(({ Colors }) => { Chart.register(Colors); });`.
+*    chartjs_config = chartjs_config && `import { Colors } from 'chart.umd.js'; Chart.register(Colors);`.
     chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
     chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
-    chartjs_config = chartjs_config && `debugger;var ctx_` && lv_guid && ` = $('#' + el);`.
+    chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
     chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
 
   ENDMETHOD.
