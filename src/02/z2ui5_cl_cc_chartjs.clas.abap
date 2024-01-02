@@ -63,6 +63,14 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_colors_plugin .
 
     TYPES:
+      BEGIN OF ty_autocolors_plugin,
+        enabled TYPE abap_bool,
+        mode    TYPE string,
+        offset  TYPE i,
+        repeat  TYPE i,
+      END OF ty_autocolors_plugin .
+
+    TYPES:
       BEGIN OF ty_title,
         text      TYPE string,
         display   TYPE abap_bool,
@@ -121,16 +129,63 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_callback,
-        label  TYPE string,
-        footer TYPE string,
+        label             TYPE string,
+        footer            TYPE string,
+        before_title      TYPE string,
+        after_title       TYPE string,
+        title             TYPE string,
+        before_body       TYPE string,
+        before_label      TYPE string,
+        label_color       TYPE string,
+        label_text_color  TYPE string,
+        label_point_style TYPE string,
+        after_label       TYPE string,
+        after_body        TYPE string,
+        before_footer     TYPE string,
+        after_footer      TYPE string,
       END OF ty_callback .
 
     TYPES:
       BEGIN OF ty_tooltip,
-        callbacks       TYPE ty_callback,
-        mode            TYPE string,
-        intersect       TYPE abap_bool,
-        use_point_style TYPE abap_bool,
+        callbacks           TYPE ty_callback,
+        mode                TYPE string,
+        intersect           TYPE abap_bool,
+        use_point_style     TYPE abap_bool,
+        enabled             TYPE abap_bool,
+        display_colors      TYPE abap_bool,
+        rtl                 TYPE abap_bool,
+        external            TYPE string,
+        position            TYPE string,
+        item_sort           TYPE string,
+        filter              TYPE string,
+        background_color    TYPE string,
+        title_color         TYPE string,
+        title_align         TYPE string,
+        border_color        TYPE string,
+        text_direction      TYPE string,
+        x_align             TYPE string,
+        y_align             TYPE string,
+        title_font          TYPE ty_font,
+        body_font           TYPE ty_font,
+        footer_font         TYPE ty_font,
+        border_width        TYPE i,
+        box_width           TYPE i,
+        box_height          TYPE i,
+        box_padding         TYPE i,
+        title_spacing       TYPE i,
+        title_margin_bottom TYPE i,
+        body_spacing        TYPE i,
+        footer_spacing      TYPE i,
+        footer_margin_top   TYPE i,
+        caret_padding       TYPE i,
+        caret_size          TYPE i,
+        corner_radius       TYPE i,
+        body_color          TYPE string,
+        multikey_background TYPE string,
+        body_align          TYPE string,
+        footer_color        TYPE string,
+        footer_align        TYPE string,
+        padding             TYPE ty_padding,
       END OF ty_tooltip .
 
     TYPES:
@@ -141,6 +196,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_plugins,
         colors                         TYPE ty_colors_plugin,
+        autocolors                     TYPE ty_autocolors_plugin,
         custom_canvas_background_color TYPE ty_custom_canvas_bg_color,
         legend                         TYPE ty_legend,
         title                          TYPE ty_title,
@@ -268,8 +324,10 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_interaction,
-        mode      TYPE string,
-        intersect TYPE abap_bool,
+        mode              TYPE string,
+        intersect         TYPE abap_bool,
+        include_invisible TYPE abap_bool,
+        axis              TYPE string,
       END OF ty_interaction .
 
     TYPES:
@@ -299,6 +357,67 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_layout .
 
     TYPES:
+      BEGIN OF ty_point,
+        radius             TYPE i,
+        rotation           TYPE i,
+        border_width       TYPE i,
+        hit_radius         TYPE i,
+        hover_radius       TYPE i,
+        hover_border_width TYPE i,
+        point_style        TYPE string,
+        background_color   TYPE string,
+        border_color       TYPE string,
+      END OF ty_point .
+
+    TYPES:
+      BEGIN OF ty_line,
+        tension                  TYPE i,
+        border_cap_style         TYPE string,
+        border_width             TYPE i,
+        fill                     TYPE string,
+        border_dash              TYPE i,
+        border_dash_offset       TYPE i,
+        border_join_style        TYPE string,
+        cubic_interpolation_mode TYPE string,
+        cap_bezier_points        TYPE abap_bool,
+        stepped                  TYPE abap_bool,
+        background_color         TYPE string,
+        border_color             TYPE string,
+      END OF ty_line .
+
+    TYPES:
+      BEGIN OF ty_bar,
+        border_width     TYPE i,
+        background_color TYPE string,
+        border_color     TYPE string,
+        border_skipped   TYPE string,
+        border_radius    TYPE i,
+        inflate_amount   TYPE i,
+        point_style      TYPE string,
+      END OF ty_bar.
+
+    TYPES:
+      BEGIN OF ty_arc,
+        border_width       TYPE i,
+        background_color   TYPE string,
+        border_color       TYPE string,
+        border_align       TYPE string,
+        border_dash        TYPE i,
+        border_dash_offset TYPE i,
+        border_join_style  TYPE string,
+        circular           TYPE abap_bool,
+        angle              TYPE i,
+      END OF ty_arc.
+
+    TYPES:
+      BEGIN OF ty_elements,
+        point TYPE ty_point,
+        line  TYPE ty_line,
+        bar   TYPE ty_bar,
+        arc   TYPE ty_arc,
+      END OF ty_elements .
+
+    TYPES:
       BEGIN OF ty_options,
         scales      TYPE ty_scales,
         responsive  TYPE abap_bool,
@@ -307,12 +426,15 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         interaction TYPE ty_interaction,
         animations  TYPE ty_animations,
         layout      TYPE ty_layout,
+        elements    TYPE ty_elements,
+        events      TYPE string_table,
       END OF ty_options .
 
     "ChartJS Configuration
     TYPES:
       BEGIN OF ty_chart,
         type    TYPE string,
+        plugins TYPE string_table,
         data    TYPE ty_data,
         options TYPE ty_options,
       END OF ty_chart .
@@ -321,6 +443,12 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS get_js_url
+      RETURNING
+        VALUE(result) TYPE string .
+    CLASS-METHODS get_js_datalabels
+      RETURNING
+        VALUE(result) TYPE string .
+    CLASS-METHODS get_js_autocolors
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS set_js_config
@@ -341,15 +469,25 @@ ENDCLASS.
 CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
+  METHOD get_js_autocolors.
+    "chartjs-plugin-datalabels must be loaded after the Chart.js library!
+    result = `https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors`.
+  ENDMETHOD.
+
+
+  METHOD get_js_datalabels.
+    "chartjs-plugin-datalabels must be loaded after the Chart.js library!
+    result = `https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2`.
+  ENDMETHOD.
+
+
   METHOD get_js_local.
     result = ``.
   ENDMETHOD.
 
 
   METHOD get_js_url.
-*    result = `https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js`.
-    result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js`.
-*    result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.js`.
+    result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js`.
   ENDMETHOD.
 
 
@@ -365,6 +503,9 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
                           compress         = abap_true
                           pretty_name      = 'X'
                         ).
+
+*    REPLACE '"[ChartDataLabels]"' IN json_config WITH '[ChartDataLabels]'.
+      REPLACE '"ChartDataLabels","autocolors"' IN json_config WITH 'ChartDataLabels,autocolors'.
 
     ENDIF.
 
@@ -383,7 +524,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
 *    chartjs_config = chartjs_config && `debugger;import('chart.umd.js').then(({ Colors }) => { Chart.register(Colors); });`.
-*    chartjs_config = chartjs_config && `import { Colors } from 'chart.umd.js'; Chart.register(Colors);`.
+    chartjs_config = chartjs_config && `debugger;const autocolors = window['chartjs-plugin-autocolors'];`.
     chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
     chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
     chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
