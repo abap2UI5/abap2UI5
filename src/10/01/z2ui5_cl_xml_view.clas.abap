@@ -493,6 +493,7 @@ public section.
       !RESIZABLE type CLIKE optional
       !HORIZONTALSCROLLING type CLIKE optional
       !VERTICALSCROLLING type CLIKE optional
+      !afterclose type CLIKE optional
     preferred parameter TITLE
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -4049,7 +4050,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `contentHeight`  v = contentheight )
                                          ( n = `resizable`  v = z2ui5_cl_util_func=>boolean_abap_2_json( resizable ) )
                                          ( n = `horizontalScrolling`  v = z2ui5_cl_util_func=>boolean_abap_2_json( horizontalscrolling ) )
-                                         ( n = `verticalScrolling`  v = z2ui5_cl_util_func=>boolean_abap_2_json( verticalscrolling ) ) ) ).
+                                         ( n = `verticalScrolling`  v = z2ui5_cl_util_func=>boolean_abap_2_json( verticalscrolling ) )
+                                         ( n = `afterClose` v = afterclose ) ) ).
 
   ENDMETHOD.
 
