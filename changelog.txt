@@ -8,6 +8,12 @@ Legend
 + : added
 - : removed
 
+2023-12-20 v1.112.0
+-------------------
+
++ new debugging tools
+! UI5 module loading
+
 
 2023-12-20 v1.112.0
 -------------------
