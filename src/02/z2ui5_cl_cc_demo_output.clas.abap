@@ -18,6 +18,7 @@ ENDCLASS.
 CLASS z2ui5_cl_cc_demo_output IMPLEMENTATION.
 
   METHOD get_style.
+
     result = `<html:style type="text/css">body {` && |\n|  &&
                                   `     font-family: Arial;` && |\n|  &&
                                   `     font-size: 90%;` && |\n|  &&

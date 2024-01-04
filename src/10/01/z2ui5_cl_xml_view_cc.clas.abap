@@ -209,6 +209,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   METHOD demo_output.
 
+    mo_view->_generic( ns = `html` name = `style` ).
     result = mo_view->_cc_plain_xml( z2ui5_cl_cc_demo_output=>get_style( ) )->html( val ).
 
   ENDMETHOD.
