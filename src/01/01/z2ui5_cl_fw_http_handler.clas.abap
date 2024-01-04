@@ -439,6 +439,7 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
       lt_config = VALUE #(
 *          (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
           (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+*          (  n = `src`                       v = `https://ui5.sap.com/1.120.0/resources/sap-ui-core.js` )
           (  n = `data-sap-ui-theme`         v = `sap_horizon` )
           (  n = `data-sap-ui-async`         v = `true` )
           (  n = `data-sap-ui-bindingSyntax` v = `complex` )
