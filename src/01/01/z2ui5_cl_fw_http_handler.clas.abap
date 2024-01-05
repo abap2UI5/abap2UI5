@@ -22,7 +22,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
           PREFERRED PARAMETER t_config
       RETURNING
         VALUE(r_result)         TYPE string
-        ##needed.
+        ##NEEDED.
 
   PROTECTED SECTION.
     CLASS-METHODS get_js
