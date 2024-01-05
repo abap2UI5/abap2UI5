@@ -238,7 +238,6 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         tooltip                        TYPE ty_tooltip,
         filler                         TYPE ty_filler,
         subtitle                       TYPE ty_subtitle,
-
       END OF ty_plugins .
 
     TYPES:
