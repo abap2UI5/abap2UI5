@@ -238,7 +238,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         tooltip                        TYPE ty_tooltip,
         filler                         TYPE ty_filler,
         subtitle                       TYPE ty_subtitle,
-END OF ty_plugins .
+
+      END OF ty_plugins .
 
     TYPES:
       BEGIN OF ty_point_label,
@@ -538,10 +539,10 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     DATA lv_libs TYPE string VALUE ``.
 
     result = `` && |\n| &&
-             `var libs = ["` && z2ui5_cl_cc_chartjs=>get_js_url( ) && `"];` && |\n|.
+             `var libs = ["` && get_js_url( ) && `"];` && |\n|.
 
     IF datalabels = abap_true.
-      result = result && `libs.push("` && z2ui5_cl_cc_chartjs=>get_js_datalabels( ) && `");` && |\n|.
+      result = result && `libs.push("` && get_js_datalabels( ) && `");` && |\n|.
       IF lv_libs IS INITIAL.
         lv_libs = lv_libs && `ChartDataLabels`.
       ELSE.
@@ -549,7 +550,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
       ENDIF.
     ENDIF.
     IF autocolors = abap_true.
-      result = result && `libs.push("` && z2ui5_cl_cc_chartjs=>get_js_autocolors( ) && `");` && |\n|.
+      result = result && `libs.push("` && get_js_autocolors( ) && `");` && |\n|.
       IF lv_libs IS INITIAL.
         lv_libs = lv_libs && `autocolors`.
       ELSE.
@@ -592,17 +593,15 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     DATA lv_canvas_el TYPE string.
     DATA lv_guid TYPE string.
-    DATA lv_lib TYPE string.
-    DATA lv_plugins TYPE string.
     DATA ls_config TYPE ty_chart.
+
     ls_config = is_config.
+
     ASSIGN COMPONENT 'PLUGINS' OF STRUCTURE ls_config TO FIELD-SYMBOL(<fs_plugins>).
     IF sy-subrc = 0.
       CLEAR <fs_plugins>.
-      ls_config-plugins = VALUE #( ( `dummy` ) ).
-    ELSE.
-      ls_config-plugins = VALUE #( ( `dummy` ) ).
     ENDIF.
+    ls_config-plugins = VALUE #( ( `dummy` ) ).
 
     IF ls_config IS NOT INITIAL.
       DATA json_config TYPE string VALUE ``.
