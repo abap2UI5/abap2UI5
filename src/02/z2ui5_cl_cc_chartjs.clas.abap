@@ -8,6 +8,62 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
     TYPES:
+      BEGIN OF ty_padding,
+        bottom TYPE string,
+        top    TYPE string,
+        left   TYPE string,
+        right  TYPE string,
+      END OF ty_padding .
+
+    TYPES:
+      BEGIN OF ty_font,
+        size        TYPE i,
+        family      TYPE string,
+        weight      TYPE string,
+        style       TYPE string,
+        line_height TYPE string,
+      END OF ty_font .
+
+    TYPES:
+      BEGIN OF ty_datalabels_lbl,
+        color TYPE string,
+        font  TYPE ty_font,
+      END OF ty_datalabels_lbl .
+
+    TYPES:
+      BEGIN OF ty_datalabels_labels,
+        title TYPE ty_datalabels_lbl,
+        value TYPE ty_datalabels_lbl,
+      END OF ty_datalabels_labels .
+
+    TYPES:
+      BEGIN OF ty_datalabels,
+        align             TYPE string,
+        anchor            TYPE string,
+        background_color  TYPE string,
+        border_color      TYPE string,
+        border_radius     TYPE i,
+        border_width      TYPE i,
+        clamp             TYPE abap_bool,
+        clip              TYPE abap_bool,
+        color             TYPE string,
+        display           TYPE abap_bool,
+        font              TYPE ty_font,
+        formatter         TYPE string,
+        labels            TYPE ty_datalabels_labels,
+        listeners         TYPE string,
+        offset            TYPE i,
+        opacity           TYPE i,
+        padding           TYPE ty_padding,
+        rotation          TYPE i,
+        text_align        TYPE string,
+        text_stroke_color TYPE string,
+        text_stroke_width TYPE i,
+        text_shadow_blur  TYPE i,
+        text_shadow_color TYPE string,
+      END OF ty_datalabels .
+
+    TYPES:
       BEGIN OF ty_dataset,
         label              TYPE string,
         type               TYPE string,
@@ -23,6 +79,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         point_style        TYPE string,
         point_border_color TYPE string,
         point_radius       TYPE i,
+        rtl                TYPE abap_bool,
+        datalabels         TYPE ty_datalabels,
       END OF ty_dataset.
 
     TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
@@ -35,31 +93,9 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     " Options
     TYPES:
-      BEGIN OF ty_padding,
-        bottom TYPE string,
-        top    TYPE string,
-        left   TYPE string,
-        right  TYPE string,
-      END OF ty_padding .
-
-    TYPES:
-      BEGIN OF ty_font,
-        size   TYPE i,
-        family TYPE string,
-        weight TYPE string,
-        style  TYPE string,
-      END OF ty_font .
-
-    TYPES:
       BEGIN OF ty_custom_canvas_bg_color,
         color TYPE string,
       END OF ty_custom_canvas_bg_color.
-
-    TYPES:
-      BEGIN OF ty_colors_plugin,
-        enabled        TYPE abap_bool,
-        force_override TYPE abap_bool,
-      END OF ty_colors_plugin .
 
     TYPES:
       BEGIN OF ty_autocolors_plugin,
@@ -194,7 +230,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_plugins,
-        colors                         TYPE ty_colors_plugin,
+        datalabels                     TYPE ty_datalabels,
         autocolors                     TYPE ty_autocolors_plugin,
         custom_canvas_background_color TYPE ty_custom_canvas_bg_color,
         legend                         TYPE ty_legend,
@@ -202,6 +238,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         tooltip                        TYPE ty_tooltip,
         filler                         TYPE ty_filler,
         subtitle                       TYPE ty_subtitle,
+
       END OF ty_plugins .
 
     TYPES:
@@ -416,6 +453,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         arc   TYPE ty_arc,
       END OF ty_elements .
 
+
     TYPES:
       BEGIN OF ty_options,
         scales      TYPE ty_scales,
@@ -564,7 +602,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
       CLEAR <fs_plugins>.
       ls_config-plugins = VALUE #( ( `dummy` ) ).
     ELSE.
-       ls_config-plugins = VALUE #( ( `dummy` ) ).
+      ls_config-plugins = VALUE #( ( `dummy` ) ).
     ENDIF.
 
     IF ls_config IS NOT INITIAL.
