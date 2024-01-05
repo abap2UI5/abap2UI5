@@ -21,7 +21,8 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
         json_model_limit        TYPE string                           DEFAULT '100'
           PREFERRED PARAMETER t_config
       RETURNING
-        VALUE(r_result)         TYPE string.
+        VALUE(r_result)         TYPE string
+        ##needed.
 
   PROTECTED SECTION.
     CLASS-METHODS get_js
