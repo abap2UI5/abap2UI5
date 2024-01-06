@@ -4,9 +4,64 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-
     " Data
     TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
+
+    TYPES:
+      BEGIN OF ty_padding,
+        bottom TYPE string,
+        top    TYPE string,
+        left   TYPE string,
+        right  TYPE string,
+      END OF ty_padding .
+
+    TYPES:
+      BEGIN OF ty_font,
+        size        TYPE i,
+        family      TYPE string,
+        weight      TYPE string,
+        style       TYPE string,
+        line_height TYPE string,
+      END OF ty_font .
+
+    TYPES:
+      BEGIN OF ty_datalabels_lbl,
+        color TYPE string,
+        font  TYPE ty_font,
+      END OF ty_datalabels_lbl .
+
+    TYPES:
+      BEGIN OF ty_datalabels_labels,
+        title TYPE ty_datalabels_lbl,
+        value TYPE ty_datalabels_lbl,
+      END OF ty_datalabels_labels .
+
+    TYPES:
+      BEGIN OF ty_datalabels,
+        align             TYPE string,
+        anchor            TYPE string,
+        background_color  TYPE string,
+        border_color      TYPE string,
+        border_radius     TYPE i,
+        border_width      TYPE i,
+        clamp             TYPE abap_bool,
+        clip              TYPE abap_bool,
+        color             TYPE string,
+        display           TYPE abap_bool,
+        font              TYPE ty_font,
+        formatter         TYPE string,
+        labels            TYPE ty_datalabels_labels,
+        listeners         TYPE string,
+        offset            TYPE i,
+        opacity           TYPE i,
+        padding           TYPE ty_padding,
+        rotation          TYPE i,
+        text_align        TYPE string,
+        text_stroke_color TYPE string,
+        text_stroke_width TYPE i,
+        text_shadow_blur  TYPE i,
+        text_shadow_color TYPE string,
+      END OF ty_datalabels .
 
     TYPES:
       BEGIN OF ty_dataset,
@@ -24,6 +79,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         point_style        TYPE string,
         point_border_color TYPE string,
         point_radius       TYPE i,
+        rtl                TYPE abap_bool,
+        datalabels         TYPE ty_datalabels,
       END OF ty_dataset.
 
     TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
@@ -36,31 +93,9 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     " Options
     TYPES:
-      BEGIN OF ty_padding,
-        bottom TYPE string,
-        top    TYPE string,
-        left   TYPE string,
-        right  TYPE string,
-      END OF ty_padding .
-
-    TYPES:
-      BEGIN OF ty_font,
-        size   TYPE i,
-        family TYPE string,
-        weight TYPE string,
-        style  TYPE string,
-      END OF ty_font .
-
-    TYPES:
       BEGIN OF ty_custom_canvas_bg_color,
         color TYPE string,
       END OF ty_custom_canvas_bg_color.
-
-    TYPES:
-      BEGIN OF ty_colors_plugin,
-        enabled        TYPE abap_bool,
-        force_override TYPE abap_bool,
-      END OF ty_colors_plugin .
 
     TYPES:
       BEGIN OF ty_autocolors_plugin,
@@ -195,7 +230,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_plugins,
-        colors                         TYPE ty_colors_plugin,
+        datalabels                     TYPE ty_datalabels,
         autocolors                     TYPE ty_autocolors_plugin,
         custom_canvas_background_color TYPE ty_custom_canvas_bg_color,
         legend                         TYPE ty_legend,
@@ -417,6 +452,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         arc   TYPE ty_arc,
       END OF ty_elements .
 
+
     TYPES:
       BEGIN OF ty_options,
         scales      TYPE ty_scales,
@@ -449,6 +485,12 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS get_js_autocolors
+      RETURNING
+        VALUE(result) TYPE string .
+    CLASS-METHODS load_js
+      IMPORTING
+        datalabels    TYPE abap_bool DEFAULT abap_false
+        autocolors    TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS set_js_config
@@ -491,21 +533,82 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD load_js.
+
+    DATA lv_libs TYPE string VALUE ``.
+
+    result = `` && |\n| &&
+             `var libs = ["` && get_js_url( ) && `"];` && |\n|.
+
+    IF datalabels = abap_true.
+      result = result && `libs.push("` && get_js_datalabels( ) && `");` && |\n|.
+      IF lv_libs IS INITIAL.
+        lv_libs = lv_libs && `ChartDataLabels`.
+      ELSE.
+        lv_libs = lv_libs && `,` && `ChartDataLabels`.
+      ENDIF.
+    ENDIF.
+    IF autocolors = abap_true.
+      result = result && `libs.push("` && get_js_autocolors( ) && `");` && |\n|.
+      IF lv_libs IS INITIAL.
+        lv_libs = lv_libs && `autocolors`.
+      ELSE.
+        lv_libs = lv_libs && `,` && `autocolors`.
+      ENDIF.
+    ENDIF.
+
+    result = result && `` && |\n| &&
+      `var fixJsonLibs = function(data){` && |\n| &&
+      `` && |\n| &&
+      ` Object.keys(data).forEach(function(key) {` && |\n| &&
+      `   if(key=="plugins") {` && |\n| &&
+      `     data[key] = [` && lv_libs && `];` && |\n| &&
+      `   };` && |\n| &&
+      `})};` && |\n| &&
+      `var loadLibs = function(){` && |\n| &&
+      ` if(libs.length > 0){` && |\n| &&
+      `   var nextLib = libs.shift();` && |\n| &&
+      `   var headTag = document.getElementsByTagName('head')[0];` && |\n| &&
+      `` && |\n| &&
+      `   var scriptTag = document.createElement('script');` && |\n| &&
+      `   scriptTag.src = nextLib;` && |\n| &&
+      `` && |\n| &&
+      `   scriptTag.onload = function(e){` && |\n| &&
+      `     loadLibs();` && |\n| &&
+      `   };` && |\n| &&
+      `` && |\n| &&
+      `   headTag.appendChild(scriptTag);` && |\n| &&
+      ` }` && |\n| &&
+      `` && |\n| &&
+      ` else return;` && |\n| &&
+      `` && |\n| &&
+      `};` && |\n| &&
+      `loadLibs();`.
+
+  ENDMETHOD.
+
+
   METHOD set_js_config.
 
     DATA lv_canvas_el TYPE string.
     DATA lv_guid TYPE string.
+    DATA ls_config TYPE ty_chart.
 
-    IF is_config IS NOT INITIAL.
-      DATA(json_config) = ``.
+    ls_config = is_config.
+
+    ASSIGN COMPONENT 'PLUGINS' OF STRUCTURE ls_config TO FIELD-SYMBOL(<fs_plugins>).
+    IF sy-subrc = 0.
+      CLEAR <fs_plugins>.
+    ENDIF.
+    ls_config-plugins = VALUE #( ( `dummy` ) ).
+
+    IF ls_config IS NOT INITIAL.
+      DATA json_config TYPE string VALUE ``.
       json_config =  /ui2/cl_json=>serialize(
-                          data             = is_config
+                          data             = ls_config
                           compress         = abap_true
                           pretty_name      = 'X'
                         ).
-
-*    REPLACE '"[ChartDataLabels]"' IN json_config WITH '[ChartDataLabels]'.
-      REPLACE '"ChartDataLabels","autocolors"' IN json_config WITH 'ChartDataLabels,autocolors'.
 
     ENDIF.
 
@@ -523,9 +626,10 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     ENDCASE.
 
     lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
-*    chartjs_config = chartjs_config && `debugger;import('chart.umd.js').then(({ Colors }) => { Chart.register(Colors); });`.
-    chartjs_config = chartjs_config && `debugger;const autocolors = window['chartjs-plugin-autocolors'];`.
+    chartjs_config = chartjs_config && ``.
+    chartjs_config = chartjs_config && `try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};`.
     chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
+    chartjs_config = chartjs_config && `fixJsonLibs(cjs);`.
     chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
     chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
     chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
