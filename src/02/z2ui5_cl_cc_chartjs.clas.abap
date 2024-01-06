@@ -14,7 +14,6 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES ty_x_y_r_data_t TYPE STANDARD TABLE OF ty_x_y_r_data WITH DEFAULT KEY.
     TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
-    TYPES ty_bubble_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_padding,
