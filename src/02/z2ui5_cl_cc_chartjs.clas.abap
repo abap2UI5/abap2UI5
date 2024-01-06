@@ -5,6 +5,14 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
   PUBLIC SECTION.
     " Data
+    TYPES:
+      BEGIN OF ty_x_y_r_data,
+        x TYPE string,
+        y TYPE string,
+        r TYPE string,
+      END OF ty_x_y_r_data.
+
+    TYPES ty_x_y_r_data_t TYPE STANDARD TABLE OF ty_x_y_r_data WITH DEFAULT KEY.
     TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
     TYPES:
@@ -68,10 +76,14 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         label              TYPE string,
         type               TYPE string,
         data               TYPE string_table,
+        data_x_y_r         TYPE ty_x_y_r_data_t,
         border_width       TYPE i,
         border_color       TYPE string,
+        border_radius      TYPE i,
+        border_skipped     TYPE abap_bool,
         show_line          TYPE abap_bool,
-        background_color   TYPE ty_bg_color,
+        background_color_t TYPE ty_bg_color,
+        background_color   TYPE string,
         hover_offset       TYPE i,
         order              TYPE i,
         fill               TYPE string,
@@ -79,6 +91,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         point_style        TYPE string,
         point_border_color TYPE string,
         point_radius       TYPE i,
+        point_hover_radius TYPE i,
         rtl                TYPE abap_bool,
         datalabels         TYPE ty_datalabels,
       END OF ty_dataset.
@@ -463,6 +476,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         animations  TYPE ty_animations,
         layout      TYPE ty_layout,
         elements    TYPE ty_elements,
+        index_axis  TYPE string,
         events      TYPE string_table,
       END OF ty_options .
 
@@ -537,7 +551,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     DATA lv_libs TYPE string VALUE ``.
 
-    result = `` && |\n| &&
+    result = `debugger;` && |\n| &&
              `var libs = ["` && get_js_url( ) && `"];` && |\n|.
 
     IF datalabels = abap_true.
@@ -610,23 +624,31 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
                           pretty_name      = 'X'
                         ).
 
+      FIND 'dataXYR' IN json_config.
+      IF sy-subrc = 0.
+        REPLACE ALL OCCURRENCES OF 'dataXYR' IN json_config WITH 'data'.
+      ENDIF.
+      FIND 'backgroundColorT' IN json_config.
+      IF sy-subrc = 0.
+        REPLACE ALL OCCURRENCES OF 'backgroundColorT' IN json_config WITH 'backgroundColor'.
+      ENDIF.
     ENDIF.
 
     CASE view.
       WHEN 'MAIN'.
-        lv_canvas_el = `sap.z2ui5.oView.createId('` && canvas_id && `');`.
+        lv_canvas_el = `sap.z2ui5.oView.createId('` && canvas_id && `')`.
       WHEN 'POPUP'.
-        lv_canvas_el = `sap.z2ui5.oPopup.createId('` && canvas_id && `');`.
+        lv_canvas_el = `sap.z2ui5.oPopup.createId('` && canvas_id && `')`.
       WHEN 'POPOVER'.
-        lv_canvas_el = `sap.z2ui5.oPopover.createId('` && canvas_id && `');`.
+        lv_canvas_el = `sap.z2ui5.oPopover.createId('` && canvas_id && `')`.
       WHEN 'NEST'.
-        lv_canvas_el = `sap.z2ui5.oViewNest.createId('` && canvas_id && `');`.
+        lv_canvas_el = `sap.z2ui5.oViewNest.createId('` && canvas_id && `')`.
       WHEN 'NEST2'.
-        lv_canvas_el = `sap.z2ui5.oViewNest2.createId('` && canvas_id && `');`.
+        lv_canvas_el = `sap.z2ui5.oViewNest2.createId('` && canvas_id && `')`.
     ENDCASE.
 
     lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
-    chartjs_config = chartjs_config && ``.
+    chartjs_config = chartjs_config && `debugger;`.
     chartjs_config = chartjs_config && `try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};`.
     chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
     chartjs_config = chartjs_config && `fixJsonLibs(cjs);`.
