@@ -242,7 +242,15 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_filler .
 
     TYPES:
+      BEGIN OF ty_deferred,
+        delay    TYPE i,
+        x_offset TYPE string,
+        y_offset TYPE string,
+      END OF ty_deferred.
+
+    TYPES:
       BEGIN OF ty_plugins,
+        deferred                       TYPE ty_deferred,
         datalabels                     TYPE ty_datalabels,
         autocolors                     TYPE ty_autocolors_plugin,
         custom_canvas_background_color TYPE ty_custom_canvas_bg_color,
@@ -501,10 +509,14 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     CLASS-METHODS get_js_autocolors
       RETURNING
         VALUE(result) TYPE string .
+    CLASS-METHODS get_js_deferred
+      RETURNING
+        VALUE(result) TYPE string .
     CLASS-METHODS load_js
       IMPORTING
         datalabels    TYPE abap_bool DEFAULT abap_false
         autocolors    TYPE abap_bool DEFAULT abap_false
+        deferred      TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS set_js_config
@@ -537,6 +549,12 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_js_deferred.
+    "chartjs-plugin-datalabels must be loaded after the Chart.js library!
+    result = `https://cdn.jsdelivr.net/npm/chartjs-plugin-deferred@2.0.0/dist/chartjs-plugin-deferred.min.js`.
+  ENDMETHOD.
+
+
   METHOD get_js_local.
     result = ``.
   ENDMETHOD.
@@ -551,7 +569,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     DATA lv_libs TYPE string VALUE ``.
 
-    result = `debugger;` && |\n| &&
+    result = `` && |\n| &&
              `var libs = ["` && get_js_url( ) && `"];` && |\n|.
 
     IF datalabels = abap_true.
@@ -568,6 +586,14 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
         lv_libs = lv_libs && `autocolors`.
       ELSE.
         lv_libs = lv_libs && `,` && `autocolors`.
+      ENDIF.
+    ENDIF.
+    IF deferred = abap_true.
+      result = result && `libs.push("` && get_js_deferred( ) && `");` && |\n|.
+      IF lv_libs IS INITIAL.
+        lv_libs = lv_libs && `ChartDeferred`.
+      ELSE.
+        lv_libs = lv_libs && `,` && `ChartDeferred`.
       ENDIF.
     ENDIF.
 
@@ -650,11 +676,13 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
     chartjs_config = chartjs_config && `debugger;`.
     chartjs_config = chartjs_config && `try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};`.
+    chartjs_config = chartjs_config && `try { var chartdeferred = window['chartjs-plugin-deferred']; } catch (err){};`.
     chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
     chartjs_config = chartjs_config && `fixJsonLibs(cjs);`.
     chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
     chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
-    chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
+*    chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
+    chartjs_config = chartjs_config && `var ` && canvas_id && ` = new Chart( ctx_` && lv_guid && `, cjs );`.
 
   ENDMETHOD.
 ENDCLASS.
