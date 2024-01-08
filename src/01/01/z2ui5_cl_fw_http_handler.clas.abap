@@ -189,9 +189,10 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
              `              }` && |\n|  &&
              `            )` && |\n|  &&
              |\n|  &&
+             `            let oCrossAppNavigator;` && |\n|  &&
              `            switch (args[0].EVENT) {` && |\n|  &&
              `            case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n|  &&
-             `                let oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
+             `                oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
              `                oCrossAppNavigator.backToPreviousApp();` && |\n|  &&
              `                break;` && |\n|  &&
              `            case 'CROSS_APP_NAV_TO_EXT':` && |\n|  &&
