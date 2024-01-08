@@ -148,6 +148,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !items        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS timer
       IMPORTING
         !finished     TYPE clike OPTIONAL
@@ -157,6 +158,18 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
           PREFERRED PARAMETER finished
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS chartjs
+      IMPORTING
+        !canvas_id    TYPE clike OPTIONAL
+        !view         TYPE clike OPTIONAL
+        !config       TYPE clike OPTIONAL
+        !height       TYPE clike OPTIONAL
+        !width        TYPE clike OPTIONAL
+        !style        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS constructor
       IMPORTING
         !view TYPE REF TO z2ui5_cl_xml_view .
@@ -167,7 +180,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
 
   METHOD bwip_js.
@@ -197,6 +210,20 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                 ( n = `autoplay` v = z2ui5_cl_util_func=>boolean_abap_2_json( autoplay ) )
        ) ).
 
+  ENDMETHOD.
+
+
+  METHOD chartjs.
+    result = mo_view.
+    mo_view->_generic( name   = `chartjs`
+                       ns     = `z2ui5`
+                       t_prop = VALUE #( ( n = `canvas_id`  v = canvas_id )
+                                         ( n = `view`       v = view )
+                                         ( n = `config`     v = config )
+                                         ( n = `height`     v = height )
+                                         ( n = `width`      v = width )
+                                         ( n = `style`      v = style )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -271,6 +298,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD history.
+
+    result = mo_view.
+    mo_view->_generic( name   = `History`
+              ns     = `z2ui5`
+              t_prop = VALUE #( ( n = `search`  v = search ) ) ).
+
+  ENDMETHOD.
+
+
   METHOD info_frontend.
 
     result = mo_view.
@@ -295,6 +332,40 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               ns     = `z2ui5`
               t_prop = VALUE #( ( n = `items`  v = items )
               ) ).
+
+  ENDMETHOD.
+
+
+  METHOD multiinput.
+
+    result = mo_view.
+    mo_view->_generic( name   = `MultiInput` ns = `z2ui5`
+                       t_prop = VALUE #( ( n = `tokens` v = tokens )
+                                         ( n = `showClearIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showclearicon ) )
+                                         ( n = `showValueHelp` v = z2ui5_cl_util_func=>boolean_abap_2_json( showvaluehelp ) )
+                                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
+                                         ( n = `suggestionItems` v = suggestionitems )
+                                         ( n = `tokenUpdate` v = tokenupdate )
+                                         ( n = `submit` v = submit )
+                                         ( n = `width` v = width )
+                                         ( n = `value` v = value )
+                                         ( n = `id` v = id )
+                                         ( n = `change` v = change )
+                                         ( n = `valueHelpRequest` v = valuehelprequest )
+                                         ( n = `addedTokens` v = addedTokens )
+                                         ( n = `removedTokens` v = removedTokens )
+                                         ( n = `class` v = class ) ) ).
+  ENDMETHOD.
+
+
+  METHOD multiinput_ext.
+
+    result = mo_view.
+    mo_view->_generic( name   = `MultiInputExt` ns = `z2ui5`
+                       t_prop = VALUE #( ( n = `MultiInputId` v = MultiInputId )
+                                         ( n = `change` v = change )
+                                         ( n = `addedTokens` v = addedTokens )
+                                         ( n = `removedTokens` v = removedTokens ) ) ).
 
   ENDMETHOD.
 
@@ -339,14 +410,6 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD history.
-
-    result = mo_view.
-    mo_view->_generic( name   = `History`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `search`  v = search ) ) ).
-
-  ENDMETHOD.
 
   METHOD title.
 
@@ -356,26 +419,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               t_prop = VALUE #( ( n = `title`  v = title ) ) ).
 
   ENDMETHOD.
-  METHOD multiinput.
 
-    result = mo_view.
-    mo_view->_generic( name   = `MultiInput` ns = `z2ui5`
-                       t_prop = VALUE #( ( n = `tokens` v = tokens )
-                                         ( n = `showClearIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showclearicon ) )
-                                         ( n = `showValueHelp` v = z2ui5_cl_util_func=>boolean_abap_2_json( showvaluehelp ) )
-                                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
-                                         ( n = `suggestionItems` v = suggestionitems )
-                                         ( n = `tokenUpdate` v = tokenupdate )
-                                         ( n = `submit` v = submit )
-                                         ( n = `width` v = width )
-                                         ( n = `value` v = value )
-                                         ( n = `id` v = id )
-                                         ( n = `change` v = change )
-                                         ( n = `valueHelpRequest` v = valuehelprequest )
-                                         ( n = `addedTokens` v = addedTokens )
-                                         ( n = `removedTokens` v = removedTokens )
-                                         ( n = `class` v = class ) ) ).
-  ENDMETHOD.
 
   METHOD uitableext.
 
@@ -384,16 +428,4 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                         ) ).
 
   ENDMETHOD.
-
-  METHOD multiinput_ext.
-
-    result = mo_view.
-    mo_view->_generic( name   = `MultiInputExt` ns = `z2ui5`
-                       t_prop = VALUE #( ( n = `MultiInputId` v = MultiInputId )
-                                         ( n = `change` v = change )
-                                         ( n = `addedTokens` v = addedTokens )
-                                         ( n = `removedTokens` v = removedTokens ) ) ).
-
-  ENDMETHOD.
-
 ENDCLASS.

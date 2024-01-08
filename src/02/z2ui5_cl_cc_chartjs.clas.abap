@@ -526,6 +526,10 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         !is_config            TYPE ty_chart
       RETURNING
         VALUE(chartjs_config) TYPE string .
+    CLASS-METHODS load_cc
+      RETURNING
+        VALUE(result) TYPE string .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -562,6 +566,97 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
   METHOD get_js_url.
     result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js`.
+  ENDMETHOD.
+
+
+  METHOD load_cc.
+    result = `debugger;` && |\n| &&
+    `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
+    `   "sap/ui/core/Control",` && |\n|  &&
+    `], function (Control) {` && |\n|  &&
+    `   "use strict";` && |\n|  &&
+    |\n|  &&
+    `   return Control.extend("z2ui5.chartjs", {` && |\n|  &&
+    `       metadata: {` && |\n|  &&
+    `           properties: {` && |\n|  &&
+    `               config: { ` && |\n|  &&
+    `                 type: "Array" ` && |\n|  &&
+    `               },` && |\n|  &&
+    `               canvas_id: {` && |\n| &&
+    `                  type: "string",` && |\n| &&
+    `                  defaultValue: ""` && |\n| &&
+    `               },` && |\n| &&
+    `               width: {` && |\n| &&
+    `                  type: "string",` && |\n| &&
+    `                  defaultValue: ""` && |\n| &&
+    `               },` && |\n| &&
+    `               height: {` && |\n| &&
+    `                  type: "string",` && |\n| &&
+    `                  defaultValue: ""` && |\n| &&
+    `               },` && |\n| &&
+    `               style: {` && |\n| &&
+    `                  type: "string",` && |\n| &&
+    `                  defaultValue: ""` && |\n| &&
+    `               },` && |\n| &&
+    `               view: {` && |\n| &&
+    `                  type: "string",` && |\n| &&
+    `                  defaultValue: ""` && |\n| &&
+    `               }` && |\n| &&
+    `           }` && |\n| &&
+    `       },` && |\n|  &&
+    `       init() {` && |\n|  &&
+*    `          if (!sap.z2ui5.oMessaging){` && |\n|  &&
+*    `          sap.z2ui5.oMessaging = {};` && |\n|  &&
+*    `          sap.z2ui5.oMessaging.oMessageProcessor = new sap.ui.core.message.ControlMessageProcessor();` && |\n|  &&
+*    `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n|  &&
+*    `          sap.z2ui5.oMessaging.oMessageManager.registerMessageProcessor(sap.z2ui5.oMessaging.oMessageProcessor);` && |\n|  &&
+*    `        }` && |\n|  &&
+    `       },` && |\n|  &&
+    |\n|  &&
+    `       onModelChange(oEvent) {` && |\n|  &&
+    `           this.Chart2Model();` && |\n|  &&
+    `       },` && |\n|  &&
+    |\n|  &&
+    `       Chart2Model( ){` && |\n|  &&
+*    `           var oData = Messaging.getMessageModel().getData();` && |\n|  &&
+    `           var oData = [];` && |\n|  &&
+    `           var Model = [];` && |\n|  &&
+*    `           oData.forEach(element => {` && |\n|  &&
+*    `               Model.push( { ` && |\n|  &&
+*    `                       MESSAGE : element.message , ` && |\n|  &&
+*    `                       DESCRIPTION : element.description , ` && |\n|  &&
+*    `                       TYPE : element.type, ` && |\n|  &&
+*    `                       TARGET : element.aTargets[0] , ` && |\n|  &&
+*    `                       ADDITIONALTEXT : element.additionalText , ` && |\n|  &&
+*    `                       DATE : element.date , ` && |\n|  &&
+*    `                       DESCRIPTIONURL : element.descriptionUrl, ` && |\n|  &&
+*    `                       PERSISTENT : element.persistent } );` && |\n|  &&
+*    `           });` && |\n|  &&
+    `           this.setProperty("config", Model );` && |\n|  &&
+    `       },` && |\n|  &&
+    |\n|  &&
+    `       Model2Chart( ){` && |\n|  &&
+    `           var Model = this.getProperty("config");` && |\n|  &&
+    `           if(!Model) { return; }` && |\n|  &&
+    |\n|  &&
+*    `           Model.forEach(element => {` && |\n|  &&
+*    `               var target = element.CANVAS_ID;` && |\n|  &&
+*    `               if ( target == undefined ) { target = element.CANVAS_ID }` && |\n|  &&
+*    `           });` && |\n|  &&
+*    `           var resBinding = new sap.ui.model.ListBinding(Messaging.getMessageModel(), "/" );` && |\n|  &&
+*    `           resBinding.attachChange(this.onModelChange.bind(this));` && |\n|  &&
+    `       },` && |\n|  &&
+    |\n|  &&
+    `       renderer(oRm, oControl) {` && |\n|  &&
+    `         oControl.Model2Chart();` && |\n|  &&
+    `         var canvas_id = oControl.getProperty("canvas_id");` && |\n|  &&
+    `         var width = oControl.getProperty("width");` && |\n|  &&
+    `         var height = oControl.getProperty("height");` && |\n|  &&
+    `         var style = oControl.getProperty("style");` && |\n|  &&
+    `         oRm.write( "&lt;canvas id='" + canvas_id + "' width='" + width + "' height='" + height + "' style = '" + style + "' /&gt;");` && |\n|  &&
+    `       }` && |\n|  &&
+    `   });`  && |\n|  &&
+    `});`.
   ENDMETHOD.
 
 
