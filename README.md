@@ -36,9 +36,10 @@
 6. Installation, Configuration & Debugging [(SCN - 14.04.2023)](https://blogs.sap.com/2023/04/14/abap2ui5-6-7-installation-configuration-debugging/)<br>
 7. Technical Background: Under the Hood of abap2UI5 [(SCN - 26.04.2023)](https://blogs.sap.com/2023/04/26/abap2ui5-7-7-technical-background-under-the-hood-of-abap2ui5/)<br>
 8. Repository Organization: Working with abapGit, abaplint & open-abap [(SCN - 21.08.2023)](https://blogs.sap.com/2023/08/21/abap2ui5-a1-repository-setup-with-abapgit-abaplint-open-abap/)<br>
-9. Update I: Community Feedback & Additional Features [(SCN - 11.09.2023)](https://blogs.sap.com/2023/09/11/abap2ui5-a2-community-feedback-new-features/)<br>
+9. Update I: Community Feedback & New Features - Sep. 2023 [(SCN - 11.09.2023)](https://blogs.sap.com/2023/09/11/abap2ui5-a2-community-feedback-new-features/)<br>
 10. Extensions I: Exploring External Libraries & Native Device Capabilities [(SCN - 04.12.2023)](https://blogs.sap.com/2023/12/04/abap2ui5-a3-extensions-i-exploring-external-libraries-native-device-capabilities/)<br>
 11. Extensions II: Guideline for Developing New Features in JavaScript [(SCN - 11.12.2023)](https://blogs.sap.com/2023/12/11/abap2ui5-a4-extensions-ii-guideline-for-developing-new-features-in-javascript/)<br>
+12. Update II: Community Feedback, New Features & Outlook – Jan. 2024 [(SCN - 08.01.2024)](https://blogs.sap.com/2024/01/08/abap2ui5-12-update-ii-community-feedback-new-features-outlook-january-2024/)<br>
 
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
