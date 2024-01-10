@@ -570,6 +570,9 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
   METHOD load_cc.
+
+    DATA lv_libs TYPE string VALUE ``.
+
     result = `debugger;` && |\n| &&
     `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
     `   "sap/ui/core/Control",` && |\n|  &&
@@ -604,14 +607,21 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `               }` && |\n| &&
     `           }` && |\n| &&
     `       },` && |\n|  &&
-    `       init() {` && |\n|  &&
-*    `          if (!sap.z2ui5.oMessaging){` && |\n|  &&
-*    `          sap.z2ui5.oMessaging = {};` && |\n|  &&
-*    `          sap.z2ui5.oMessaging.oMessageProcessor = new sap.ui.core.message.ControlMessageProcessor();` && |\n|  &&
-*    `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n|  &&
-*    `          sap.z2ui5.oMessaging.oMessageManager.registerMessageProcessor(sap.z2ui5.oMessaging.oMessageProcessor);` && |\n|  &&
-*    `        }` && |\n|  &&
-    `       },` && |\n|  &&
+    `      init() {` && |\n|  &&
+    `      },` && |\n|  &&
+    |\n|  &&
+    `      fixJsonLibs(data) {` && |\n| &&
+    `         ` && |\n| &&
+    `          if (!data.hasOwnProperty("plugins")) { ` && |\n| &&
+    `           data["plugins"] = [` && lv_libs && `];` && |\n| &&
+    `           return;` && |\n| &&
+    `          };` && |\n| &&
+    `         ` && |\n| &&
+    `          Object.keys(data).forEach(function(key) {` && |\n| &&
+    `            if(key=="plugins") {` && |\n| &&
+    `              data[key] = [` && lv_libs && `];` && |\n| &&
+    `            };` && |\n| &&
+    `         })},` && |\n| &&
     |\n|  &&
     `       onModelChange(oEvent) {` && |\n|  &&
     `           this.Chart2Model();` && |\n|  &&
@@ -643,7 +653,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 *    `               var target = element.CANVAS_ID;` && |\n|  &&
 *    `               if ( target == undefined ) { target = element.CANVAS_ID }` && |\n|  &&
 *    `           });` && |\n|  &&
-*    `           var resBinding = new sap.ui.model.ListBinding(Messaging.getMessageModel(), "/" );` && |\n|  &&
+*    `           var resBinding = new sap.ui.model.ListBinding(sap.z2ui5.cjsConfig, "/" );` && |\n|  &&
 *    `           resBinding.attachChange(this.onModelChange.bind(this));` && |\n|  &&
     `       },` && |\n|  &&
     |\n|  &&
@@ -654,7 +664,20 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `         var height = oControl.getProperty("height");` && |\n|  &&
     `         var style = oControl.getProperty("style");` && |\n|  &&
     `         oRm.write( "&lt;canvas id='" + canvas_id + "' width='" + width + "' height='" + height + "' style = '" + style + "' /&gt;");` && |\n|  &&
-    `       }` && |\n|  &&
+    |\n|  &&
+    `         var Model = oControl.getProperty("config");` && |\n|  &&
+    `         if(!Model ) { return; };` && |\n|  &&
+    `         var cVar = canvas_id+'_chartjs'; ` && |\n|  &&
+    `         setTimeout( (oControl) => { ` && |\n|  &&
+    |\n|  &&
+    `             var ctx = document.getElementById(canvas_id); ` && |\n|  &&
+    `             sap.z2ui5.autocolors = {}; try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};` && |\n|  &&
+    `             fixJsonLibs(Model);` && |\n|  &&
+    `             window[cVar] = new Chart( ctx, Model );` && |\n|  &&
+    `   ` && |\n|  &&
+    `         }, 150 , oControl );` && |\n|  &&
+    `       },` && |\n|  &&
+    |\n|  &&
     `   });`  && |\n|  &&
     `});`.
   ENDMETHOD.
@@ -678,9 +701,9 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     IF autocolors = abap_true.
       result = result && `libs.push("` && get_js_autocolors( ) && `");` && |\n|.
       IF lv_libs IS INITIAL.
-        lv_libs = lv_libs && `autocolors`.
+        lv_libs = lv_libs && `sap.z2ui5.autocolors `.
       ELSE.
-        lv_libs = lv_libs && `,` && `autocolors`.
+        lv_libs = lv_libs && `,` && `sap.z2ui5.autocolors `.
       ENDIF.
     ENDIF.
     IF deferred = abap_true.
@@ -694,6 +717,10 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     result = result && `` && |\n| &&
       `var fixJsonLibs = function(data){` && |\n| &&
+      ` if (!data.hasOwnProperty("plugins")) {` && |\n| &&
+      `   data["plugins"] = [` && lv_libs && `];` && |\n| &&
+      `   return;` && |\n| &&
+      ` };` && |\n| &&
       `` && |\n| &&
       ` Object.keys(data).forEach(function(key) {` && |\n| &&
       `   if(key=="plugins") {` && |\n| &&
