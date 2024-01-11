@@ -135,7 +135,7 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
 
         WHEN `h`.
           lo_actual->add_attribute( n           = lr_attri->name_front
-                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = lr_attri->compress  )
+                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = conv #( lr_attri->compress ) )
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
@@ -151,7 +151,7 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
             WHEN OTHERS.
 
               lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
+                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = conv #( lr_attri->compress ) )
                                         apos_active = abap_false ).
           ENDCASE.
       ENDCASE.
