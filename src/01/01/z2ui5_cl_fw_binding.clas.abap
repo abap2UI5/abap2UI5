@@ -28,6 +28,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_temp      TYPE abap_bool,
         viewname        TYPE string,
         pretty_name     TYPE string,
+        compress        TYPE string,
         depth           TYPE i,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
@@ -41,6 +42,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_attri     TYPE data OPTIONAL
         view            TYPE string OPTIONAL
         pretty_name     TYPE clike OPTIONAL
+        compress        TYPE clike OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -55,6 +57,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_check_attri TYPE abap_bool.
     DATA mv_view TYPE string.
     DATA mv_pretty_name TYPE string.
+    DATA mv_compress TYPE string.
 
     CLASS-METHODS update_attri
       IMPORTING
@@ -131,7 +134,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
 
   METHOD bind.
@@ -158,6 +161,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     bind->bind_type   = mv_type.
     bind->pretty_name = mv_pretty_name.
+    bind->compress    = mv_compress.
     bind->name_front  = name_front_create( bind->name ).
     bind->viewname    = mv_view.
 
@@ -257,6 +261,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mv_check_attri = check_attri.
     r_result->mv_view = view.
     r_result->mv_pretty_name = pretty_name.
+    r_result->mv_compress = compress.
 
 
     IF z2ui5_cl_util_func=>rtti_check_type_kind_dref( data ).
@@ -293,6 +298,25 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_t_attri_by_include.
+
+    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
+
+    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
+
+      DATA(lv_element) = attri && lr_comp->name.
+
+      DATA(ls_attri) = VALUE ty_s_attri(
+        name      = lv_element
+        type_kind = lr_comp->type_kind ).
+      INSERT ls_attri INTO TABLE result.
+
+    ENDLOOP.
+
+
+  ENDMETHOD.
+
+
   METHOD get_t_attri_by_oref.
 
     DATA(lv_name) = COND #( WHEN val IS NOT INITIAL THEN `MO_APP` && `->` && val ELSE `MO_APP` ).
@@ -317,24 +341,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_t_attri_by_include.
-
-    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
-
-    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
-
-      DATA(lv_element) = attri && lr_comp->name.
-
-      DATA(ls_attri) = VALUE ty_s_attri(
-        name      = lv_element
-        type_kind = lr_comp->type_kind ).
-      INSERT ls_attri INTO TABLE result.
-
-    ENDLOOP.
-
-
-  ENDMETHOD.
 
   METHOD get_t_attri_by_struc.
 

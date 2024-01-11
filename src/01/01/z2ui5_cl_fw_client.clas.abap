@@ -29,16 +29,69 @@ CLASS z2ui5_cl_fw_client DEFINITION
       RETURNING
         VALUE(r_result) TYPE string.
 
+private section.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_client IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
+
+
+  METHOD bind_tab_cell.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    data lr_ref_in type ref to data.
+    data lr_ref type ref to data.
+
+    ASSIGN i_tab[ i_tab_index ] TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <row> ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+          RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
 
 
   METHOD constructor.
 
     mo_handler = handler.
+
+  ENDMETHOD.
+
+
+  METHOD set_arg_string.
+
+    IF val IS NOT INITIAL.
+
+      LOOP AT val REFERENCE INTO DATA(lr_arg).
+        DATA(lv_new) = lr_arg->*.
+        IF lv_new IS INITIAL.
+          CONTINUE.
+        ENDIF.
+        IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
+          lv_new = `"` && lv_new && `"`.
+        ENDIF.
+        result = result && `, ` && lv_new.
+      ENDLOOP.
+
+    ENDIF.
+
+    result = result && `)`.
 
   ENDMETHOD.
 
@@ -85,16 +138,33 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest_view_destroy.
+  METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_handler->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    mo_handler->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~nest2_view_destroy.
+  METHOD z2ui5_if_client~nest2_view_display.
+
+    mo_handler->ms_next-s_set-s_view_nest2-xml = val.
+    mo_handler->ms_next-s_set-s_view_nest2-id = id.
+    mo_handler->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
+    mo_handler->ms_next-s_set-s_view_nest2-method_insert = method_insert.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~nest2_view_model_update.
 
     mo_handler->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~nest_view_destroy.
+
+    mo_handler->ms_next-s_set-s_view_nest-check_update_model = abap_true.
 
   ENDMETHOD.
 
@@ -108,14 +178,6 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~nest2_view_display.
-
-    mo_handler->ms_next-s_set-s_view_nest2-xml = val.
-    mo_handler->ms_next-s_set-s_view_nest2-id = id.
-    mo_handler->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
-    mo_handler->ms_next-s_set-s_view_nest2-method_insert = method_insert.
-
-  ENDMETHOD.
 
   METHOD z2ui5_if_client~nest_view_model_update.
 
@@ -123,11 +185,6 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~nest2_view_model_update.
-
-    mo_handler->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
-
-  ENDMETHOD.
 
   METHOD z2ui5_if_client~popover_destroy.
 
@@ -216,6 +273,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
                         data  = val
                         pretty_name = pretty_name
+                        compress = compress
                       ).
 
     result = lo_binder->main( ).
@@ -228,27 +286,6 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD z2ui5_if_client~_bind_local.
-
-    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app   = mo_handler->ms_db-app
-                        attri = mo_handler->ms_db-t_attri
-                        check_attri = mo_handler->ms_db-check_attri
-                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
-                        data  = val
-                        pretty_name = pretty_name
-                      ).
-
-    result = lo_binder->main( ).
-    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
-    mo_handler->ms_db-check_attri = lo_binder->mv_check_attri.
-
-    IF path = abap_false.
-      result = `{` && result && `}`.
-    ENDIF.
-
-  ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_clear.
 
@@ -286,6 +323,30 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         data  = val
                         view  = view
                         pretty_name = pretty_name
+                        compress = compress
+                      ).
+
+    result = lo_binder->main( ).
+    mo_handler->ms_db-t_attri = lo_binder->mt_attri.
+    mo_handler->ms_db-check_attri = lo_binder->mv_check_attri.
+
+    IF path = abap_false.
+      result = `{` && result && `}`.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~_bind_local.
+
+    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+                        app   = mo_handler->ms_db-app
+                        attri = mo_handler->ms_db-t_attri
+                        check_attri = mo_handler->ms_db-check_attri
+                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
+                        data  = val
+                        pretty_name = pretty_name
+                        compress = compress
                       ).
 
     result = lo_binder->main( ).
@@ -312,57 +373,4 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     result = `onEventFrontend( { 'EVENT' : '` && val && `' }` && set_arg_string( t_arg ).
 
   ENDMETHOD.
-
-
-  METHOD set_arg_string.
-
-    IF val IS NOT INITIAL.
-
-      LOOP AT val REFERENCE INTO DATA(lr_arg).
-        DATA(lv_new) = lr_arg->*.
-        IF lv_new IS INITIAL.
-          CONTINUE.
-        ENDIF.
-        IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
-          lv_new = `"` && lv_new && `"`.
-        ENDIF.
-        result = result && `, ` && lv_new.
-      ENDLOOP.
-
-    ENDIF.
-
-    result = result && `)`.
-
-  ENDMETHOD.
-
-
-  METHOD bind_tab_cell.
-
-    FIELD-SYMBOLS <ele>  TYPE any.
-    FIELD-SYMBOLS <row>  TYPE any.
-    data lr_ref_in type ref to data.
-    data lr_ref type ref to data.
-
-    ASSIGN i_tab[ i_tab_index ] TO <row>.
-    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <row> ).
-
-    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
-
-      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
-      lr_ref_in = REF #( <ele> ).
-
-      lr_ref = REF #( i_val ).
-      IF lr_ref = lr_ref_in.
-        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
-          RETURN.
-      ENDIF.
-
-    ENDLOOP.
-
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
-
-  ENDMETHOD.
-
 ENDCLASS.

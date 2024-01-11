@@ -25,12 +25,14 @@ CLASS z2ui5_cl_fw_model DEFINITION
     DATA mt_attri TYPE z2ui5_cl_fw_binding=>ty_t_attri.
     DATA mv_viewname TYPE string.
 
+protected section.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_model IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
+
 
   METHOD factory.
 
@@ -40,6 +42,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
     r_result->mv_viewname = viewname.
 
   ENDMETHOD.
+
 
   METHOD main_set_backend.
 
@@ -132,7 +135,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
         WHEN `h`.
           lo_actual->add_attribute( n           = lr_attri->name_front
-                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name )
+                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = lr_attri->compress  )
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
@@ -148,7 +151,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
             WHEN OTHERS.
 
               lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = z2ui5_cl_util_func=>trans_json_any_2( <attribute> )
+                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
                                         apos_active = abap_false ).
           ENDCASE.
       ENDCASE.
@@ -158,5 +161,4 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
     result = lr_view_model->stringify( ).
 
   ENDMETHOD.
-
 ENDCLASS.
