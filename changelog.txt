@@ -8,7 +8,14 @@ Legend
 + : added
 - : removed
 
-2024-01-03 v1.112.0
+2024-01-12 v1.114.0
+-------------------
+
+* cross app navigation
+* table output
+! debugger tools
+
+2024-01-03 v1.113.0
 -------------------
 
 + new debugging tools
