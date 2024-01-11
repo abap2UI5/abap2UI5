@@ -273,7 +273,8 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
                         data  = val
                         pretty_name = pretty_name
-                        compress = compress
+*                        compress = compress
+                        compress = abap_true
                       ).
 
     result = lo_binder->main( ).
@@ -323,7 +324,8 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
                         data  = val
                         view  = view
                         pretty_name = pretty_name
-                        compress = compress
+*                        compress = compress
+                        compress = abap_true
                       ).
 
     result = lo_binder->main( ).
@@ -346,7 +348,8 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
                         type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
                         data  = val
                         pretty_name = pretty_name
-                        compress = compress
+*                        compress = compress
+                        compress = abap_true
                       ).
 
     result = lo_binder->main( ).
