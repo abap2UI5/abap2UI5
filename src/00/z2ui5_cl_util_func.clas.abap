@@ -535,7 +535,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize( data = any pretty_name = CONV #( pretty_name ) compress = CONV #( compress ) ).
+    result = /ui2/cl_json=>serialize( data = any pretty_name = CONV #( pretty_name ) compress = compress ).
 
   ENDMETHOD.
 
