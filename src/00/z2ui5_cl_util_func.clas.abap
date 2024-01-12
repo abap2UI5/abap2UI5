@@ -657,7 +657,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       ENDIF.
       FIELD-SYMBOLS <comp_from_deref> TYPE any.
       ASSIGN <comp_from>->* TO <comp_from_deref>.
-      DATA(lv_type_kind) = z2ui5_cl_util_func=>rtti_get_type_kind( <comp_to> ).
+      DATA(lv_type_kind) = rtti_get_type_kind( <comp_to> ).
 
       IF <comp_from_deref> IS INITIAL.
         CONTINUE.
