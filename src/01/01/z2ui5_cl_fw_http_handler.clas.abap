@@ -339,8 +339,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                `                this.updateModelIfRequired('S_POPOVER', sap.z2ui5.oViewPopover);` && |\n|  &&
                `                sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
 *               `            }` && |\n|  &&
-
-               `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n|  &&
+`           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n|  &&
                `        },` && |\n|  &&
                `        showMessage(msgType, params) {` && |\n|  &&
                `            if (params[msgType]?.TEXT !== undefined) {` && |\n|  &&
