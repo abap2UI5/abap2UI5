@@ -6,13 +6,11 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-  PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
-    DATA mv_stretch_active TYPE string.
-    DATA mv_textarea TYPE string.
     data mt_tab type string.
     METHODS display.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 

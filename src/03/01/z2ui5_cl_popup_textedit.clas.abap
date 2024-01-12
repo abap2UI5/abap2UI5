@@ -6,12 +6,12 @@ CLASS z2ui5_cl_popup_textedit DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-  PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
     DATA mv_stretch_active TYPE string.
     DATA mv_textarea TYPE string.
     METHODS display.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 

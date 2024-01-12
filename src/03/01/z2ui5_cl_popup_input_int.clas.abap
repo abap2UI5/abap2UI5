@@ -6,17 +6,18 @@ CLASS z2ui5_cl_popup_input_int DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-  PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
     data mt_tab type string.
     METHODS display.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_input_int IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_INPUT_INT IMPLEMENTATION.
+
 
   METHOD display.
 
@@ -48,8 +49,8 @@ CLASS z2ui5_cl_popup_input_int IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_app~main.
 
   ENDMETHOD.
-
 ENDCLASS.
