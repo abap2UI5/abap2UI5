@@ -35,14 +35,14 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        app             TYPE REF TO object OPTIONAL
-        attri           TYPE ty_t_attri OPTIONAL
-        type            TYPE string OPTIONAL
-        data            TYPE data OPTIONAL
-        check_attri     TYPE data OPTIONAL
-        view            TYPE string OPTIONAL
-        pretty_name     TYPE clike OPTIONAL
-        compress        TYPE clike OPTIONAL
+        app             TYPE REF TO object  OPTIONAL
+        attri           TYPE ty_t_attri     OPTIONAL
+        type            TYPE clike          OPTIONAL
+        data            TYPE data           OPTIONAL
+        check_attri     TYPE data           OPTIONAL
+        view            TYPE clike          OPTIONAL
+        pretty_name     TYPE clike          OPTIONAL
+        compress        TYPE abap_bool      OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -134,7 +134,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
+CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
 
   METHOD bind.

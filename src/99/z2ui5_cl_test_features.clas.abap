@@ -62,7 +62,7 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
       DATA(lo_prev) = client->get_app( client->get(  )-s_draft-id_prev_app ).
 
       TRY.
-          DATA(lo_popup_decide) = CAST z2ui5_cl_ui_pop_to_confirm( lo_prev ).
+          DATA(lo_popup_decide) = CAST z2ui5_cl_popup_to_confirm( lo_prev ).
           client->message_box_display( `the result is ` && lo_popup_decide->check_result( ) ).
         CATCH cx_root.
       ENDTRY.
@@ -74,7 +74,7 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'z2ui5_cl_ui_pop_messages'.
-        data(lo_popup_msg) = z2ui5_cl_ui_pop_messages=>factory(
+        data(lo_popup_msg) = z2ui5_cl_popup_messages=>factory(
             i_messages            =  VALUE #(
       ( message = 'An empty Report field causes an empty XML Message to be sent' type = 'E' id = 'MSG1' number = '001' )
       ( message = 'Check was executed for wrong Scenario' type = 'E' id = 'MSG1' number = '002' )
@@ -88,7 +88,7 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
         client->nav_app_call( lo_popup_msg ).
 
       WHEN 'z2ui5_cl_ui_pop_to_confirm'.
-        DATA(lo_app) = z2ui5_cl_ui_pop_to_confirm=>factory(
+        DATA(lo_app) = z2ui5_cl_popup_to_confirm=>factory(
             i_question_text       = `this is a question`
         ).
         mv_check_popup_active = abap_true.
