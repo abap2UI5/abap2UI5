@@ -673,7 +673,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
              t_result    = <comp_to> ).
 
         WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-          z2ui5_cl_util_func=>trans_ref_struc_2_struc(
+          trans_ref_struc_2_struc(
             EXPORTING
                 ir_struc_from = <comp_from>
             IMPORTING
