@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS cv_project_version TYPE string VALUE `1.115.0`.
+    CONSTANTS c_abap_version TYPE string VALUE `1.115.0` ##NO_TEXT.
 
     CLASS-METHODS http_post
       IMPORTING
@@ -31,7 +31,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
 
 
   METHOD get_js.
