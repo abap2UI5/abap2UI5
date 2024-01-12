@@ -57,20 +57,20 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                `                await this.displayFragment(S_POPUP.XML, 'oViewPopup');` && |\n|  &&
                `            }` && |\n|  &&
                `            if (!sap.z2ui5.checkNestAfter) {` && |\n|  &&
-               `                if (S_VIEW_NEST?.XML !== undefined ) {` && |\n|  &&
+               `                if (S_VIEW_NEST?.XML) {` && |\n|  &&
                `                    sap.z2ui5.oController.NestViewDestroy();` && |\n|  &&
                `                    await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');` && |\n|  &&
                `                    sap.z2ui5.checkNestAfter = true;` && |\n|  &&
                `                }` && |\n|  &&
                `            }` && |\n|  &&
                `            if (!sap.z2ui5.checkNestAfter2) {` && |\n|  &&
-               `                if (S_VIEW_NEST2?.XML !== undefined) {` && |\n|  &&
+               `                if (S_VIEW_NEST2?.XML) {` && |\n|  &&
                `                    sap.z2ui5.oController.NestViewDestroy2();` && |\n|  &&
                `                    await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n|  &&
                `                    sap.z2ui5.checkNestAfter2 = true;` && |\n|  &&
                `                }` && |\n|  &&
                `            }` && |\n|  &&
-               `            if (S_POPOVER?.XML !== undefined) {` && |\n|  &&
+               `            if (S_POPOVER?.XML) {` && |\n|  &&
                `                await this.displayFragment(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n|  &&
                `            }` && |\n|  &&
                `            BusyIndicator.hide();` && |\n|  &&
@@ -86,7 +86,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                `                }` && |\n|  &&
                `            }` && |\n|  &&
                `            )` && |\n|  &&
-               `           }catch(e){ MessageBox.error(e.toLocaleString()); }` && |\n|  &&
+               `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n|  &&
                `        },` && |\n|  &&
                |\n|  &&
                `        async displayFragment(xml, viewProp, openById) {` && |\n|  &&
@@ -311,7 +311,7 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                `            document.write(response);` && |\n|  &&
                `        },` && |\n|  &&
                `        updateModelIfRequired(paramKey, oView) {` && |\n|  &&
-               `            if (sap.z2ui5.oResponse.PARAMS[paramKey].CHECK_UPDATE_MODEL) {` && |\n|  &&
+               `            if (sap.z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n|  &&
                `                let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `                model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
                `                oView.setModel(model);` && |\n|  &&
@@ -321,24 +321,26 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
                `         try{` && |\n|  &&
                `            sap.z2ui5.oResponse = response;` && |\n|  &&
                |\n|  &&
-               `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.CHECK_DESTROY) {` && |\n|  &&
+               `            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` && |\n|  &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
                `            }` && |\n|  &&
                |\n|  &&
-               `            if (sap.z2ui5.oResponse.PARAMS.S_VIEW.XML !== '') {` && |\n|  &&
+               `            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
+               `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
+               `            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.XML) { if ( sap.z2ui5.oResponse.PARAMS?.S_VIEW?.XML !== '') {` && |\n|  &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
                `               await sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-               `            } else {` && |\n|  &&
+               `            return;  } } ` && |\n|  &&
+*               `            } else {` && |\n|  &&
                `                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);` && |\n|  &&
                `                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);` && |\n|  &&
                `                this.updateModelIfRequired('S_VIEW_NEST2', sap.z2ui5.oViewNest2);` && |\n|  &&
                `                this.updateModelIfRequired('S_POPUP', sap.z2ui5.oViewPopup);` && |\n|  &&
                `                this.updateModelIfRequired('S_POPOVER', sap.z2ui5.oViewPopover);` && |\n|  &&
                `                sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
-               `            }` && |\n|  &&
-               `            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
-               `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n|  &&
-               `           }catch(e){ MessageBox.error(e.toLocaleString()); }` && |\n|  &&
+*               `            }` && |\n|  &&
+
+               `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n|  &&
                `        },` && |\n|  &&
                `        showMessage(msgType, params) {` && |\n|  &&
                `            if (params[msgType]?.TEXT !== undefined) {` && |\n|  &&
