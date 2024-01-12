@@ -28,7 +28,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_temp      TYPE abap_bool,
         viewname        TYPE string,
         pretty_name     TYPE string,
-        compress        TYPE string,
+        compress        TYPE abap_bool,
         depth           TYPE i,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
@@ -57,7 +57,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_check_attri TYPE abap_bool.
     DATA mv_view TYPE string.
     DATA mv_pretty_name TYPE string.
-    DATA mv_compress TYPE string.
+    DATA mv_compress TYPE abap_bool.
 
     CLASS-METHODS update_attri
       IMPORTING
@@ -181,7 +181,7 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
     DATA(lv_id) = z2ui5_cl_util_func=>func_get_uuid_22( ).
 
     INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_util_func=>trans_json_any_2( mr_data )
+                    data_stringify = z2ui5_cl_util_func=>trans_json_any_2( any = mr_data compress = me->mv_compress )
                     bind_type      = cs_bind_type-one_time )
            INTO TABLE mt_attri.
     result = |/{ lv_id }|.

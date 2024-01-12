@@ -74,7 +74,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       IMPORTING
         !any          TYPE any
         !pretty_name  TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
-        !compress     TYPE abap_bool DEFAULT abap_false
+        !compress     TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 

@@ -50,7 +50,6 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
         WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way AND
               viewname  = mv_viewname.
       TRY.
-
           DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
 
           FIELD-SYMBOLS <backend> TYPE any.
@@ -86,8 +85,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
                   EXPORTING
                       ir_struc_from = <frontend>
                   IMPORTING
-                      r_result    = <backend> ).
-
+                      r_result      = <backend> ).
 
             WHEN OTHERS.
 
@@ -143,7 +141,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
         WHEN `h`.
           lo_actual->add_attribute( n           = lr_attri->name_front
-                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = CONV #( lr_attri->compress ) )
+                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
@@ -159,7 +157,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
             WHEN OTHERS.
 
               lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = CONV #( lr_attri->compress ) )
+                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
                                         apos_active = abap_false ).
           ENDCASE.
       ENDCASE.
