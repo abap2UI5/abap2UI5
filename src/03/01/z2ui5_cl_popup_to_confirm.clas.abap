@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui_pop_to_confirm DEFINITION
+CLASS z2ui5_cl_popup_to_confirm DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -15,7 +15,7 @@ CLASS z2ui5_cl_ui_pop_to_confirm DEFINITION
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
       RETURNING
-        VALUE(r_result)       TYPE REF TO z2ui5_cl_ui_pop_to_confirm.
+        VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_to_confirm.
 
     METHODS check_result
       RETURNING
@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UI_POP_TO_CONFIRM IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_TO_CONFIRM IMPLEMENTATION.
 
 
   METHOD check_result.

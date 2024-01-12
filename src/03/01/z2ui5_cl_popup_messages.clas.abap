@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui_pop_messages DEFINITION
+CLASS z2ui5_cl_popup_messages DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_ui_pop_messages DEFINITION
         i_messages            TYPE ty_t_msg
         i_title               TYPE string DEFAULT `abap2UI5 - Message Popup`
       RETURNING
-        VALUE(r_result)       TYPE REF TO z2ui5_cl_ui_pop_messages.
+        VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_messages.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -46,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_ui_pop_messages IMPLEMENTATION.
+CLASS z2ui5_cl_popup_messages IMPLEMENTATION.
 
 
   METHOD factory.

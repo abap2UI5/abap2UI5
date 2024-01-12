@@ -155,7 +155,7 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
       pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE clike     DEFAULT abap_false
+      compress      TYPE abap_bool  DEFAULT abap_true
       tab           TYPE STANDARD TABLE  OPTIONAL
       tab_index     TYPE i          OPTIONAL
     RETURNING
@@ -167,7 +167,7 @@ INTERFACE z2ui5_if_client
       path          TYPE abap_bool  DEFAULT abap_false
       view          TYPE string     DEFAULT cs_view-main
       pretty_name   TYPE clike      DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE clike      DEFAULT abap_false
+      compress      TYPE abap_bool  DEFAULT abap_true
       tab           TYPE STANDARD TABLE  OPTIONAL
       tab_index     TYPE i          OPTIONAL
     RETURNING
@@ -178,7 +178,7 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
       pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE clike     DEFAULT abap_false
+      compress      TYPE abap_bool  DEFAULT abap_true
     RETURNING
       VALUE(result) TYPE string.
 

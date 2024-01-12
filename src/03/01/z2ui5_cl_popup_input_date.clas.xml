@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UI_POP_MESSAGES</CLSNAME>
+    <CLSNAME>Z2UI5_CL_POPUP_INPUT_DATE</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ui - popup messages</DESCRIPT>
+    <DESCRIPT>ui - popup input date</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

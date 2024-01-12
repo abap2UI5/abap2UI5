@@ -25,13 +25,13 @@ CLASS z2ui5_cl_fw_model DEFINITION
     DATA mt_attri TYPE z2ui5_cl_fw_binding=>ty_t_attri.
     DATA mv_viewname TYPE string.
 
-protected section.
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
+CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
 
   METHOD factory.
@@ -50,7 +50,6 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
         WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way AND
               viewname  = mv_viewname.
       TRY.
-
           DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
 
           FIELD-SYMBOLS <backend> TYPE any.
@@ -80,6 +79,13 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
                     ir_tab_from = <frontend>
                 IMPORTING
                     t_result    = <backend> ).
+
+            WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
+              z2ui5_cl_util_func=>trans_ref_struc_2_struc(
+                  EXPORTING
+                      ir_struc_from = <frontend>
+                  IMPORTING
+                      r_result      = <backend> ).
 
             WHEN OTHERS.
 
@@ -135,7 +141,7 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
 
         WHEN `h`.
           lo_actual->add_attribute( n           = lr_attri->name_front
-                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = conv #( lr_attri->compress ) )
+                                    v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute>  pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
                                     apos_active = abap_false ).
 
         WHEN OTHERS.
@@ -151,7 +157,7 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
             WHEN OTHERS.
 
               lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = conv #( lr_attri->compress ) )
+                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
                                         apos_active = abap_false ).
           ENDCASE.
       ENDCASE.

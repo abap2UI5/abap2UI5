@@ -20,27 +20,27 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_bound( lo_handler->ms_db-app ).
 
-    DATA(lo_app_fw) = CAST z2ui5_cl_fw_ui_startup( lo_handler->ms_db-app ) ##NEEDED.
+    DATA(lo_app_fw) = CAST z2ui5_cl_fw_app_startup( lo_handler->ms_db-app ) ##NEEDED.
 
   ENDMETHOD.
 
   METHOD test_req_begin_app_start.
 
-    DATA(lv_body) = `{"OLOCATION":{"ORIGIN":"https://url.abap-web.us10.hana.ondemand.com","PATHNAME":"/sap/bc/http/sap/z_http_service_for_ui","SEARCH":"?sap-client=100&app_start=z2ui5_cl_fw_ui_hello_world","VERSION":"c` &&
+    DATA(lv_body) = `{"OLOCATION":{"ORIGIN":"https://url.abap-web.us10.hana.ondemand.com","PATHNAME":"/sap/bc/http/sap/z_http_service_for_ui","SEARCH":"?sap-client=100&app_start=z2ui5_cl_app_hello_world","VERSION":"c` &&
       `om.sap.ui5.dist:sapui5-sdk-dist:1.115.0:war"}}`.
 
     DATA(lo_handler) = z2ui5_cl_fw_controller=>request_begin( lv_body ).
 
     cl_abap_unit_assert=>assert_bound( lo_handler->ms_db-app ).
 
-    DATA(lo_app_fw) = CAST z2ui5_cl_fw_ui_hello_world( lo_handler->ms_db-app ) ##NEEDED.
+    DATA(lo_app_fw) = CAST z2ui5_cl_app_hello_world( lo_handler->ms_db-app ) ##NEEDED.
 
   ENDMETHOD.
 
 
   METHOD test_req_end.
 
-    DATA(lv_body) = `{"OLOCATION":{"ORIGIN":"https://url.abap-web.us10.hana.ondemand.com","PATHNAME":"/sap/bc/http/sap/z_http_service_for_ui","SEARCH":"?sap-client=100&app_start=z2ui5_cl_fw_ui_hello_world","VERSION":"c` &&
+    DATA(lv_body) = `{"OLOCATION":{"ORIGIN":"https://url.abap-web.us10.hana.ondemand.com","PATHNAME":"/sap/bc/http/sap/z_http_service_for_ui","SEARCH":"?sap-client=100&app_start=z2ui5_cl_app_hello_world","VERSION":"c` &&
           `om.sap.ui5.dist:sapui5-sdk-dist:1.115.0:war"}}`.
 
     DATA(lo_handler) = z2ui5_cl_fw_controller=>request_begin( lv_body ).

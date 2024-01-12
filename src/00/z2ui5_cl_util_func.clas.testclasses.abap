@@ -440,7 +440,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_tab_json) = z2ui5_cl_util_func=>trans_json_any_2( lt_tab ).
 
-    DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr","SELECTED":false}]`.
+    DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr"}]`.
 
     IF lv_result <> lv_tab_json.
       cl_abap_unit_assert=>fail(  ).

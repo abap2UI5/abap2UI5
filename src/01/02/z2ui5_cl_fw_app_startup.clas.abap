@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_ui_startup DEFINITION
+CLASS z2ui5_cl_fw_app_startup DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED .
@@ -23,7 +23,7 @@ CLASS z2ui5_cl_fw_ui_startup DEFINITION
 
     CLASS-METHODS factory
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_ui_startup.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app_startup.
 
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
@@ -34,7 +34,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_ui_startup IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
 
   METHOD factory.
@@ -198,7 +198,7 @@ CLASS z2ui5_cl_fw_ui_startup IMPLEMENTATION.
     ms_home-btn_event_id   = `BUTTON_CHECK`.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = `Z2UI5_CL_FW_UI_HELLO_WORLD`.
+    ms_home-classname      = `Z2UI5_CL_APP_HELLO_WORLD`.
     mv_check_demo          = abap_true.
 
   ENDMETHOD.

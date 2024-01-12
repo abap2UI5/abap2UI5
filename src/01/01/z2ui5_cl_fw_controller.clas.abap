@@ -389,12 +389,12 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     ENDIF.
 
     IF ix IS BOUND.
-      result->ms_next-o_app_call = z2ui5_cl_fw_ui_error=>factory( ix ).
+      result->ms_next-o_app_call = z2ui5_cl_fw_app_error=>factory( ix ).
       result = result->app_call_factory( abap_true ).
       RETURN.
     ENDIF.
 
-    result->ms_db-app = z2ui5_cl_fw_ui_startup=>factory( ).
+    result->ms_db-app = z2ui5_cl_fw_app_startup=>factory( ).
     result->ms_db-app->id = result->ms_db-id.
 
   ENDMETHOD.

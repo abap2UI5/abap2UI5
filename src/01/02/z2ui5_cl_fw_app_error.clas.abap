@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_ui_error DEFINITION
+CLASS z2ui5_cl_fw_app_error DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED.
@@ -12,7 +12,7 @@ CLASS z2ui5_cl_fw_ui_error DEFINITION
       IMPORTING
         !error        TYPE REF TO cx_root
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_ui_error.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app_error.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -20,7 +20,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_ui_error IMPLEMENTATION.
+CLASS z2ui5_cl_fw_app_error IMPLEMENTATION.
 
 
   METHOD factory.
