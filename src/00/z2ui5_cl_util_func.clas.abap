@@ -122,6 +122,12 @@ CLASS z2ui5_cl_util_func DEFINITION
       EXPORTING
         !t_result    TYPE STANDARD TABLE.
 
+    CLASS-METHODS trans_ref_struc_2_struc
+      IMPORTING
+        !ir_struc_from TYPE REF TO data
+      EXPORTING
+        !r_result      TYPE data.
+
     CLASS-METHODS c_trim_upper
       IMPORTING
         !val          TYPE clike
@@ -195,7 +201,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
+CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
 
   METHOD app_get_url.
@@ -625,6 +631,62 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   ENDMETHOD.
+
+
+  METHOD trans_ref_struc_2_struc.
+
+    FIELD-SYMBOLS <ls_from> TYPE any.
+
+    ASSIGN ir_struc_from->* TO <ls_from>.
+    x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+    CLEAR r_result.
+
+    DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_datadescr=>describe_by_data( r_result ) ).
+    DATA(lt_components) = lo_struc->get_components( ).
+    LOOP AT lt_components INTO DATA(ls_comp).
+
+      DATA(lv_from) = ls_comp-name.
+      REPLACE ALL OCCURRENCES OF `_` IN lv_from WITH ``.
+      ASSIGN COMPONENT lv_from OF STRUCTURE <ls_from> TO FIELD-SYMBOL(<comp_from>).
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      ASSIGN COMPONENT ls_comp-name OF STRUCTURE r_result TO FIELD-SYMBOL(<comp_to>).
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      FIELD-SYMBOLS <comp_from_deref> TYPE any.
+      ASSIGN <comp_from>->* TO <comp_from_deref>.
+      DATA(lv_type_kind) = z2ui5_cl_util_func=>rtti_get_type_kind( <comp_to> ).
+
+      IF <comp_from_deref> IS INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      CASE lv_type_kind.
+
+        WHEN cl_abap_typedescr=>typekind_table.
+          z2ui5_cl_util_func=>trans_ref_tab_2_tab(
+         EXPORTING
+             ir_tab_from = <comp_from>
+         IMPORTING
+             t_result    = <comp_to> ).
+
+        WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
+          z2ui5_cl_util_func=>trans_ref_struc_2_struc(
+            EXPORTING
+                ir_struc_from = <comp_from>
+            IMPORTING
+                r_result    = <comp_to> ).
+
+        WHEN OTHERS.
+          <comp_to> = <comp_from_deref>.
+      ENDCASE.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
 
 
   METHOD trans_xml_2_any.
