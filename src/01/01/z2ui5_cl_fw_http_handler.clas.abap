@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
 
   PUBLIC SECTION.
 
-    CONSTANTS c_abap_version TYPE string VALUE `1.115.0` ##NO_TEXT.
+    CONSTANTS c_abap_version TYPE string VALUE `1.115.0`.
 
     CLASS-METHODS http_post
       IMPORTING
