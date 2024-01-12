@@ -4,7 +4,6 @@ CLASS z2ui5_cl_test_features DEFINITION PUBLIC.
 
     INTERFACES z2ui5_if_app.
 
-    DATA mv_input2 TYPE string.
     DATA mv_check_popup_active TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
   PROTECTED SECTION.
