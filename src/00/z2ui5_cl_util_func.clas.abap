@@ -666,7 +666,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       CASE lv_type_kind.
 
         WHEN cl_abap_typedescr=>typekind_table.
-          z2ui5_cl_util_func=>trans_ref_tab_2_tab(
+          trans_ref_tab_2_tab(
          EXPORTING
              ir_tab_from = <comp_from>
          IMPORTING
