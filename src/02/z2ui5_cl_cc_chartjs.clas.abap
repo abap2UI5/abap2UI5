@@ -623,42 +623,19 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `            };` && |\n| &&
     `         })},` && |\n| &&
     |\n|  &&
-    `       onModelChange(oEvent) {` && |\n|  &&
-    `           this.Chart2Model();` && |\n|  &&
-    `       },` && |\n|  &&
-    |\n|  &&
-    `       Chart2Model( ){` && |\n|  &&
-*    `           var oData = Messaging.getMessageModel().getData();` && |\n|  &&
-    `           var oData = [];` && |\n|  &&
-    `           var Model = [];` && |\n|  &&
-*    `           oData.forEach(element => {` && |\n|  &&
-*    `               Model.push( { ` && |\n|  &&
-*    `                       MESSAGE : element.message , ` && |\n|  &&
-*    `                       DESCRIPTION : element.description , ` && |\n|  &&
-*    `                       TYPE : element.type, ` && |\n|  &&
-*    `                       TARGET : element.aTargets[0] , ` && |\n|  &&
-*    `                       ADDITIONALTEXT : element.additionalText , ` && |\n|  &&
-*    `                       DATE : element.date , ` && |\n|  &&
-*    `                       DESCRIPTIONURL : element.descriptionUrl, ` && |\n|  &&
-*    `                       PERSISTENT : element.persistent } );` && |\n|  &&
-*    `           });` && |\n|  &&
-    `           this.setProperty("config", Model );` && |\n|  &&
-    `       },` && |\n|  &&
-    |\n|  &&
-    `       Model2Chart( ){` && |\n|  &&
-    `           var Model = this.getProperty("config");` && |\n|  &&
-    `           if(!Model) { return; }` && |\n|  &&
-    |\n|  &&
-*    `           Model.forEach(element => {` && |\n|  &&
-*    `               var target = element.CANVAS_ID;` && |\n|  &&
-*    `               if ( target == undefined ) { target = element.CANVAS_ID }` && |\n|  &&
-*    `           });` && |\n|  &&
-*    `           var resBinding = new sap.ui.model.ListBinding(sap.z2ui5.cjsConfig, "/" );` && |\n|  &&
-*    `           resBinding.attachChange(this.onModelChange.bind(this));` && |\n|  &&
+    `       setConfig: function(oConfig) { ` && |\n|  &&
+*    `         debugger;` && |\n|  &&
+    `         this.setProperty("config", oConfig );` && |\n|  &&
+    `         var canvas_id = this.getProperty("canvas_id");` && |\n|  &&
+    `         var cVar = canvas_id+'_chartjs'; ` && |\n|  &&
+    `         if(window[cVar]?.data) { window[cVar].data = oConfig.data; }` && |\n|  &&
+    `         if(window[cVar]?.options) { window[cVar].options = oConfig.options; }` && |\n|  &&
+    `         if(window[cVar]?.config._config.type) { window[cVar].config._config.type = oConfig.type; }` && |\n|  &&
+    `         if(window[cVar]?.config._config.plugins) { window[cVar].config._config.plugins = oConfig.plugins; }` && |\n|  &&
+    `         if(window[cVar]){ window[cVar].update(); }` && |\n|  &&
     `       },` && |\n|  &&
     |\n|  &&
     `       renderer(oRm, oControl) {` && |\n|  &&
-    `         oControl.Model2Chart();` && |\n|  &&
     `         var canvas_id = oControl.getProperty("canvas_id");` && |\n|  &&
     `         var width = oControl.getProperty("width");` && |\n|  &&
     `         var height = oControl.getProperty("height");` && |\n|  &&
@@ -671,7 +648,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `         setTimeout( (oControl) => { ` && |\n|  &&
     |\n|  &&
     `             var ctx = document.getElementById(canvas_id); ` && |\n|  &&
-    `             sap.z2ui5.autocolors = {}; try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};` && |\n|  &&
+    `             sap.z2ui5.autocolors = {}; try { sap.z2ui5.autocolors = window['chartjs-plugin-autocolors']; } catch (err){};` && |\n|  &&
     `             fixJsonLibs(Model);` && |\n|  &&
     `             window[cVar] = new Chart( ctx, Model );` && |\n|  &&
     `   ` && |\n|  &&
