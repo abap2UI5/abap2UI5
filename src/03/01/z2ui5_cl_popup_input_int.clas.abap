@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_popup_to_select DEFINITION
+CLASS z2ui5_cl_popup_input_int DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -18,7 +18,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
+CLASS z2ui5_cl_popup_input_int IMPLEMENTATION.
 
   METHOD display.
 

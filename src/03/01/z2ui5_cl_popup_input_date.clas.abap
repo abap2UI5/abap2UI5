@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_popup_to_select DEFINITION
+CLASS z2ui5_cl_popup_input_date DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
@@ -18,7 +18,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_INPUT_DATE IMPLEMENTATION.
+
 
   METHOD display.
 
@@ -50,8 +51,8 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_app~main.
 
   ENDMETHOD.
-
 ENDCLASS.

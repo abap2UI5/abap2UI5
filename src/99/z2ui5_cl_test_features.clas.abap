@@ -26,21 +26,18 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( ).
     view->shell(
-        )->page( title = 'abap2UI5 - flow logic - APP 01' navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true ) shownavbutton = abap_true
+        )->page( title = 'abap2UI5 - UI functions' navbuttonpress = client->_event( val = 'BACK' check_view_destroy = abap_true ) shownavbutton = abap_true
        )->grid( 'L6 M12 S12' )->content( 'layout'
-       )->simple_form( 'Controller' )->content( 'form'
+       )->simple_form( title = 'Popups' editable = abap_true )->content( 'form'
          )->label( 'Test'
-         )->button( text = 'z2ui5_cl_ui_pop_to_confirm' press = client->_event( 'z2ui5_cl_ui_pop_to_confirm' )
+         )->button( text = 'POPUP_TO_INFORM' press = client->_event( 'z2ui5_cl_ui_pop_to_confirm' )
          )->label( 'Test'
-         )->button( text = 'z2ui5_cl_ui_pop_messages' press = client->_event( 'z2ui5_cl_ui_pop_messages' )
+         )->button( text = 'POPUP_TO_CONFIRM' press = client->_event( 'z2ui5_cl_ui_pop_to_confirm' )
+         )->label( 'Test'
+         )->button( text = 'POPUP_MESSAGES' press = client->_event( 'z2ui5_cl_ui_pop_messages' )
          )->label( 'Demo'
-         )->button( text = 'z2ui5_cl_ui_pop_to_select' press = client->_event( 'z2ui5_cl_ui_pop_to_select' )
-         )->label( 'Demo'
-         )->input( client->_bind_edit( mv_input )
-         )->button( text = 'call new app (set data)' press = client->_event( 'CALL_NEW_APP_READ' )
-              )->label( 'some data, you can read it in the next app'
-         )->input( client->_bind_edit( mv_input2 )
-    ).
+         )->button( text = 'POPUP_TO_SELECT' press = client->_event( 'z2ui5_cl_ui_pop_to_select' )
+      ).
 
     client->view_display( view->stringify( ) ).
 
