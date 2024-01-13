@@ -6,6 +6,7 @@ CLASS z2ui5_cl_test_features DEFINITION PUBLIC.
 
     DATA mv_check_popup_active TYPE abap_bool.
     DATA mv_check_initialized TYPE abap_bool.
+
   PROTECTED SECTION.
 
     METHODS display_view
@@ -17,7 +18,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
+CLASS z2ui5_cl_test_features IMPLEMENTATION.
 
 
   METHOD display_view.
@@ -44,10 +45,10 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    if mv_check_initialized = abap_false.
-    mv_check_initialized = abap_true.
-       display_view( client ).
-    endif.
+    IF mv_check_initialized = abap_false.
+      mv_check_initialized = abap_true.
+      display_view( client ).
+    ENDIF.
 *    IF client->get( )-check_on_navigated = abap_true.
 *      display_view( client ).
 *    ENDIF.
@@ -69,7 +70,7 @@ CLASS Z2UI5_CL_TEST_FEATURES IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'z2ui5_cl_ui_pop_messages'.
-        data(lo_popup_msg) = z2ui5_cl_popup_messages=>factory(
+        DATA(lo_popup_msg) = z2ui5_cl_popup_messages=>factory(
             i_messages            =  VALUE #(
       ( message = 'An empty Report field causes an empty XML Message to be sent' type = 'E' id = 'MSG1' number = '001' )
       ( message = 'Check was executed for wrong Scenario' type = 'E' id = 'MSG1' number = '002' )
