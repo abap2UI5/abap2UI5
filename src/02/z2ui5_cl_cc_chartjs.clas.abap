@@ -624,14 +624,17 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `         })},` && |\n| &&
     |\n|  &&
     `       setConfig: function(oConfig) { ` && |\n|  &&
-*    `         debugger;` && |\n|  &&
-    `         this.setProperty("config", oConfig );` && |\n|  &&
+    `         var prevConfig = this.getProperty("config");` && |\n|  &&
     `         var canvas_id = this.getProperty("canvas_id");` && |\n|  &&
     `         var cVar = canvas_id+'_chartjs'; ` && |\n|  &&
+    `         if(prevConfig) { delete prevConfig["plugins"]; }` && |\n|  &&
+    `         if(prevConfig == oConfig) { return }` && |\n|  &&
+    `         this.setProperty("config", oConfig );` && |\n|  &&
+    `         if(oConfig){ this.fixJsonLibs(oConfig); };` && |\n|  &&
     `         if(window[cVar]?.data) { window[cVar].data = oConfig.data; }` && |\n|  &&
     `         if(window[cVar]?.options) { window[cVar].options = oConfig.options; }` && |\n|  &&
     `         if(window[cVar]?.config._config.type) { window[cVar].config._config.type = oConfig.type; }` && |\n|  &&
-    `         if(window[cVar]?.config._config.plugins) { window[cVar].config._config.plugins = oConfig.plugins; }` && |\n|  &&
+*    `         if(window[cVar]?.config._config.plugins) { window[cVar].config._config.plugins = oConfig.plugins; }` && |\n|  &&
     `         if(window[cVar]){ window[cVar].update(); }` && |\n|  &&
     `       },` && |\n|  &&
     |\n|  &&
@@ -649,7 +652,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     |\n|  &&
     `             var ctx = document.getElementById(canvas_id); ` && |\n|  &&
     `             sap.z2ui5.autocolors = {}; try { sap.z2ui5.autocolors = window['chartjs-plugin-autocolors']; } catch (err){};` && |\n|  &&
-    `             fixJsonLibs(Model);` && |\n|  &&
+    `             sap.z2ui5.ChartDeferred = {}; try { sap.z2ui5.ChartDeferred = window['chartjs-plugin-deferred']; } catch (err){};` && |\n|  &&
     `             window[cVar] = new Chart( ctx, Model );` && |\n|  &&
     `   ` && |\n|  &&
     `         }, 150 , oControl );` && |\n|  &&
@@ -686,9 +689,9 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     IF deferred = abap_true.
       result = result && `libs.push("` && get_js_deferred( ) && `");` && |\n|.
       IF lv_libs IS INITIAL.
-        lv_libs = lv_libs && `ChartDeferred`.
+        lv_libs = lv_libs && `sap.z2ui5.ChartDeferred`.
       ELSE.
-        lv_libs = lv_libs && `,` && `ChartDeferred`.
+        lv_libs = lv_libs && `,` && `sap.z2ui5.ChartDeferred`.
       ENDIF.
     ENDIF.
 
