@@ -19,7 +19,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
     DATA mr_tab TYPE REF TO data.
-    DATA mr_tab_popup TYPE REF TO data.
+    DATA mr_tab_popup TYPE REF TO data ##NEEDED.
     DATA client TYPE REF TO z2ui5_if_client.
     METHODS z2ui5_on_event.
     METHODS display.
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT r_result.
+    r_result = new #( ).
     CREATE DATA r_result->mr_tab LIKE i_tab.
     FIELD-SYMBOLS <tab> TYPE any.
     ASSIGN r_result->mr_tab->* TO <tab>.
@@ -83,7 +83,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 *      Z2UI5_f4_set_data( ).
-*      Z2UI5_view_display( ).
+      display( ).
       RETURN.
     ENDIF.
 
@@ -120,6 +120,8 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD get_selected_index.
+
+result = 1.
 
   ENDMETHOD.
 
