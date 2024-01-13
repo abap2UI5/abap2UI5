@@ -429,7 +429,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
 
