@@ -279,7 +279,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     result = shift_left( shift_right( CONV string( val ) ) ).
     result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
     result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
-    result = shift_left( shift_right( CONV string( val ) ) ).
+    result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
 

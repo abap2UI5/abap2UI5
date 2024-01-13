@@ -82,6 +82,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_c_trim_lower           FOR TESTING RAISING cx_static_check.
     METHODS test_c_trim_upper           FOR TESTING RAISING cx_static_check.
     METHODS test_c_replace_assign_struc FOR TESTING RAISING cx_static_check.
+    METHODS test_c_trim_horizontal_tab  FOR TESTING RAISING cx_static_check.
 
     METHODS test_time_get_timestampl       FOR TESTING RAISING cx_static_check.
     METHODS test_time_substract_seconds    FOR TESTING RAISING cx_static_check.
@@ -836,6 +837,17 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         act                  = lv_result4
         exp                  = `*MO_APP->*MS_STRUC-`
      ).
+
+  ENDMETHOD.
+
+
+  METHOD test_c_trim_horizontal_tab.
+
+    IF z2ui5_cl_util_func=>c_trim( |{ cl_abap_char_utilities=>horizontal_tab }|
+                                && |JsadfHHs|
+                                && |{ cl_abap_char_utilities=>horizontal_tab }| ) <> `JsadfHHs`.
+      cl_abap_unit_assert=>fail(  ).
+    ENDIF.
 
   ENDMETHOD.
 
