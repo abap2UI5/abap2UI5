@@ -125,7 +125,10 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD set_output_table.
 
-    FIELD-SYMBOLS <tab> TYPE any.
+    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <row2> TYPE any.
+    FIELD-SYMBOLS <row3> TYPE any.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mr_tab->* TO <tab>.
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
@@ -144,9 +147,15 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
     ASSIGN mr_tab_popup->* TO <tab_out>.
-    <tab_out> = CORRESPONDING #( <tab> ).
-    ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
-    <tab_out2> = CORRESPONDING #( <tab> ).
+        ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
+    loop at <tab> ASSIGNING <row>.
+      insert INITIAL LINE INTO <tab_out> ASSIGNING <row2>.
+      insert INITIAL LINE INTO <tab_out2> ASSIGNING <row3>.
+      <row2> = CORRESPONDING #( <row> ).
+      <row3> = CORRESPONDING #( <row> ).
+    endloop.
+*    <tab_out> = CORRESPONDING #( <tab> ).
+*    <tab_out2> = CORRESPONDING #( <tab> ).
 
   ENDMETHOD.
 
