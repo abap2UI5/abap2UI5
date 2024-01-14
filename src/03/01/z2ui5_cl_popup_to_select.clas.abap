@@ -12,17 +12,23 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_to_select.
 
-    METHODS get_selected_index
+    METHODS result
       RETURNING
         VALUE(result) TYPE i.
 
-  PROTECTED SECTION.
-    DATA check_initialized TYPE abap_bool.
     DATA mr_tab TYPE REF TO data.
     DATA mr_tab_popup TYPE REF TO data ##NEEDED.
+    DATA mr_tab_popup_backup TYPE REF TO data ##NEEDED.
+
+  PROTECTED SECTION.
+    DATA check_initialized TYPE abap_bool.
     DATA client TYPE REF TO z2ui5_if_client.
-    METHODS z2ui5_on_event.
+    DATA mv_selected_index TYPE i.
+    METHODS on_event.
     METHODS display.
+    METHODS set_output_table.
+    METHODS on_event_confirm.
+    METHODS on_event_search.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -33,7 +39,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = new #( ).
+    r_result = NEW #( ).
     CREATE DATA r_result->mr_tab LIKE i_tab.
     FIELD-SYMBOLS <tab> TYPE any.
     ASSIGN r_result->mr_tab->* TO <tab>.
@@ -43,30 +49,31 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client ).
+    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
+    ASSIGN mr_tab_popup->* TO <tab_out>.
 
-    FIELD-SYMBOLS <tab> TYPE any.
-    ASSIGN mr_tab->* TO <tab>.
-    popup = popup->table_select_dialog(
-              items              =  `{path:'` && client->_bind_edit( val = <tab> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client ).
+    DATA(tab) = popup->table_select_dialog(
+              items              =  `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
               cancel             = client->_event( 'CANCEL' )
               search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
               confirm            = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
             ).
 
-
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
     DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
     DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
     DATA(lt_comp) = lo_struct->get_components( ).
+    DELETE lt_comp WHERE name =  'ZZSELKZ'.
 
-    DATA(list) = popup->column_list_item( valign = `Top` selected = `{SELKZ}` ).
-    DATA(cells) = popup->cells( ).
+    DATA(list) = tab->column_list_item( valign = `Top` selected = `{ZZSELKZ}` ).
+    DATA(cells) = list->cells( ).
+
     LOOP AT lt_comp INTO DATA(ls_comp).
       cells->text( text = `{` && ls_comp-name && `}` ).
     ENDLOOP.
 
-    DATA(columns) = list->columns( ).
+    DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
       columns->column( width = '8rem' )->header( ns = `` )->text( text = ls_comp-name ).
     ENDLOOP.
@@ -82,46 +89,146 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
-*      Z2UI5_f4_set_data( ).
+      set_output_table( ).
       display( ).
       RETURN.
     ENDIF.
 
-    z2ui5_on_event( ).
+    on_event( ).
 
   ENDMETHOD.
 
-  METHOD z2ui5_on_event.
+  METHOD on_event.
 
     CASE client->get( )-event.
 
       WHEN 'CONFIRM'.
-*        DELETE mt_f4_table WHERE selkz <> abap_true.
-*        mv_product = VALUE #( mt_f4_table[ 1 ]-product OPTIONAL ).
-*        client->view_model_update( ).
+        on_event_confirm( ).
 
       WHEN 'CANCEL'.
         client->popup_destroy( ).
+        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN 'SEARCH'.
-*        DATA(lt_arg) = client->get( )-t_event_arg.
-*        READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
-*        Z2UI5_f4_set_data( ).
-*        LOOP AT mt_f4_table INTO DATA(ls_tab).
-*          IF ls_tab-product CS ls_arg.
-*            CONTINUE.
-*          ENDIF.
-*          DELETE mt_f4_table.
-*        ENDLOOP.
-        client->popup_model_update( ).
+        on_event_search( ).
 
     ENDCASE.
 
   ENDMETHOD.
 
-  METHOD get_selected_index.
+  METHOD result.
 
-result = 1.
+    result = mv_selected_index.
+
+  ENDMETHOD.
+
+
+  METHOD set_output_table.
+
+    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <row2> TYPE any.
+    FIELD-SYMBOLS <row3> TYPE any.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN mr_tab->* TO <tab>.
+
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
+    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
+    DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+    DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
+    DATA(lt_comp) = lo_struct->get_components( ).
+    INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+
+    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
+    DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
+
+    CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
+    CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
+
+    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
+    ASSIGN mr_tab_popup->* TO <tab_out>.
+    ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
+    LOOP AT <tab> ASSIGNING <row>.
+
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row LIKE LINE OF <tab_out>.
+      ASSIGN lr_row->* TO <row2>.
+      <row2> = CORRESPONDING #( <row> ).
+      INSERT <row2> INTO TABLE <tab_out>.
+
+      DATA lr_row2 TYPE REF TO data.
+      CREATE DATA lr_row2 LIKE LINE OF <tab_out2>.
+      ASSIGN lr_row2->* TO <row3>.
+      <row3> = CORRESPONDING #( <row> ).
+      INSERT <row3> INTO TABLE <tab_out2>.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD on_event_confirm.
+
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <field> TYPE any.
+    ASSIGN mr_tab_popup->* TO <tab>.
+    LOOP AT <tab> ASSIGNING <row>.
+      DATA(lv_tabix) = sy-tabix.
+      ASSIGN ('<row>-ZZSELKZ') TO <field>.
+      IF <field> = abap_true.
+        mv_selected_index = lv_tabix.
+        EXIT.
+      ENDIF.
+    ENDLOOP.
+    client->popup_destroy( ).
+    client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
+  ENDMETHOD.
+
+
+  METHOD on_event_search.
+
+    DATA(lt_arg) = client->get( )-t_event_arg.
+    READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
+
+    FIELD-SYMBOLS <row> TYPE any.
+    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab_out_backup> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <row2> TYPE any.
+    FIELD-SYMBOLS <field2> TYPE any.
+    ASSIGN mr_tab_popup->* TO <tab_out>.
+    CLEAR <tab_out>.
+    ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
+
+    LOOP AT <tab_out_backup> ASSIGNING <row>.
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row LIKE LINE OF <tab_out>.
+      ASSIGN lr_row->* TO <row2>.
+      <row2> = CORRESPONDING #( <row> ).
+      INSERT <row2> INTO TABLE <tab_out>.
+    ENDLOOP.
+
+    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
+    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
+    DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+    DATA(lt_comp) = lo_struct->get_components( ).
+    LOOP AT <tab_out> ASSIGNING <row2>.
+      DATA(lv_check_continue) = abap_false.
+      LOOP AT lt_comp INTO DATA(ls_comp).
+        DATA(lv_assign) = '<ROW2>-' && ls_comp-name.
+        ASSIGN (lv_assign) TO <field2>.
+        IF <field2> CS ls_arg.
+          lv_check_continue = abap_true.
+          EXIT.
+        ENDIF.
+      ENDLOOP.
+      IF lv_check_continue = abap_true.
+        CONTINUE.
+      ENDIF.
+      DELETE <tab_out>.
+    ENDLOOP.
+    client->popup_model_update( ).
 
   ENDMETHOD.
 

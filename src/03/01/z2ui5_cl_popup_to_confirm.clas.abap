@@ -17,7 +17,7 @@ CLASS z2ui5_cl_popup_to_confirm DEFINITION
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_to_confirm.
 
-    METHODS check_result
+    METHODS result
       RETURNING
         VALUE(result) TYPE abap_bool.
 
@@ -40,7 +40,7 @@ ENDCLASS.
 CLASS Z2UI5_CL_POPUP_TO_CONFIRM IMPLEMENTATION.
 
 
-  METHOD check_result.
+  METHOD result.
 
     result = check_result_confirmed.
 

@@ -427,6 +427,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+*    FIELD-SYMBOLS <data> type any.
+*    assign mr_data->* to <data>.
+*    data(lv_value) = escape( val = z2ui5_cl_util_func=>trans_json_any_2( <data> ) format = cl_abap_format=>e_json_string ).
+
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
