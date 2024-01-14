@@ -147,15 +147,13 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
     ASSIGN mr_tab_popup->* TO <tab_out>.
-        ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
-    loop at <tab> ASSIGNING <row>.
-      insert INITIAL LINE INTO <tab_out> ASSIGNING <row2>.
-      insert INITIAL LINE INTO <tab_out2> ASSIGNING <row3>.
+    ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
+    LOOP AT <tab> ASSIGNING <row>.
+      INSERT INITIAL LINE INTO <tab_out> ASSIGNING <row2>.
+      INSERT INITIAL LINE INTO <tab_out2> ASSIGNING <row3>.
       <row2> = CORRESPONDING #( <row> ).
       <row3> = CORRESPONDING #( <row> ).
-    endloop.
-*    <tab_out> = CORRESPONDING #( <tab> ).
-*    <tab_out2> = CORRESPONDING #( <tab> ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -185,13 +183,19 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     DATA(lt_arg) = client->get( )-t_event_arg.
     READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
 
+    FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out_backup> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row2> TYPE any.
     FIELD-SYMBOLS <field2> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
-    <tab_out> = CORRESPONDING #( <tab_out_backup> ).
+
+    LOOP AT <tab_out_backup> ASSIGNING <row>.
+      INSERT INITIAL LINE INTO <tab_out> ASSIGNING <row2>.
+      <row2> = CORRESPONDING #( <row> ).
+    ENDLOOP.
+*    <tab_out> = CORRESPONDING #( <tab_out_backup> ).
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
     DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
