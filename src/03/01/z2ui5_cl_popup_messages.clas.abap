@@ -13,19 +13,12 @@ CLASS z2ui5_cl_popup_messages DEFINITION
         id         TYPE string,
         number     TYPE string,
         message    TYPE string,
-        log_no     TYPE string,
-        log_msg_no TYPE string,
         message_v1 TYPE string,
         message_v2 TYPE string,
         message_v3 TYPE string,
         message_v4 TYPE string,
-        parameter  TYPE string,
-        row        TYPE string,
-        field      TYPE string,
-        system     TYPE string,
       END OF ty_s_msg.
     TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg.
-
     DATA mt_msg TYPE ty_t_msg.
 
     CLASS-METHODS factory
@@ -62,7 +55,7 @@ CLASS z2ui5_cl_popup_messages IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog( title
             )->table(
-                mode = 'SingleSelectLeft'
+*                mode = 'SingleSelectLeft'
                 items = client->_bind_edit( mt_msg )
                 )->columns(
                     )->column( )->text( 'Title' )->get_parent(
@@ -70,7 +63,7 @@ CLASS z2ui5_cl_popup_messages IMPLEMENTATION.
                     )->column( )->text( 'Info' )->get_parent(
                     )->column( )->text( 'Description' )->get_parent(
                 )->get_parent(
-                )->items( )->column_list_item( selected = '{SELKZ}'
+                )->items( )->column_list_item(
                     )->cells(
                         )->text( '{TYPE}'
                         )->text( '{ID}'

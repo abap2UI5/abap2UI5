@@ -12,7 +12,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_to_select.
 
-    METHODS get_selected_index
+    METHODS result
       RETURNING
         VALUE(result) TYPE i.
 
@@ -116,7 +116,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD get_selected_index.
+  METHOD result.
 
     result = mv_selected_index.
 
