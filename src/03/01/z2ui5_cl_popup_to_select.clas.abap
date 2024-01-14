@@ -149,10 +149,19 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
     LOOP AT <tab> ASSIGNING <row>.
-      INSERT INITIAL LINE INTO <tab_out> ASSIGNING <row2>.
-      INSERT INITIAL LINE INTO <tab_out2> ASSIGNING <row3>.
+
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row LIKE LINE OF <tab_out>.
+      ASSIGN lr_row->* TO <row2>.
       <row2> = CORRESPONDING #( <row> ).
+      INSERT <row2> INTO TABLE <tab_out>.
+
+      DATA lr_row2 TYPE REF TO data.
+      CREATE DATA lr_row2 LIKE LINE OF <tab_out2>.
+      ASSIGN lr_row2->* TO <row3>.
       <row3> = CORRESPONDING #( <row> ).
+      INSERT <row3> INTO TABLE <tab_out2>.
+
     ENDLOOP.
 
   ENDMETHOD.
@@ -189,13 +198,16 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <row2> TYPE any.
     FIELD-SYMBOLS <field2> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab_out>.
+    CLEAR <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
 
     LOOP AT <tab_out_backup> ASSIGNING <row>.
-      INSERT INITIAL LINE INTO <tab_out> ASSIGNING <row2>.
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row LIKE LINE OF <tab_out>.
+      ASSIGN lr_row->* TO <row2>.
       <row2> = CORRESPONDING #( <row> ).
+      INSERT <row2> INTO TABLE <tab_out>.
     ENDLOOP.
-*    <tab_out> = CORRESPONDING #( <tab_out_backup> ).
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
     DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
