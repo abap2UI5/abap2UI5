@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_popup_to_confirm DEFINITION
+CLASS z2ui5_cl_popup_pdf DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -9,21 +9,28 @@ CLASS z2ui5_cl_popup_to_confirm DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        i_question_text       TYPE string
-        i_title               TYPE string DEFAULT `Title`
-        i_icon                TYPE string DEFAULT 'sap-icon://question-mark'
+        i_title               TYPE string DEFAULT `PDF Viewer`
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
+        i_pdf type string
       RETURNING
-        VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_to_confirm.
+        VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_pdf.
+
+    TYPES:
+      BEGIN OF ty_s_result,
+        text         TYPE string,
+        check_cancel TYPE abap_bool,
+      END OF ty_s_result.
+    DATA ms_result TYPE ty_s_result.
+
+    data mv_pdf type string.
 
     METHODS result
       RETURNING
-        VALUE(result) TYPE abap_bool.
+        VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
-
     DATA title TYPE string.
     DATA icon TYPE string.
     DATA question_text TYPE string.
@@ -37,24 +44,23 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POPUP_TO_CONFIRM IMPLEMENTATION.
-
-
-  METHOD result.
-
-    result = check_result_confirmed.
-
-  ENDMETHOD.
+CLASS Z2UI5_CL_POPUP_PDF IMPLEMENTATION.
 
 
   METHOD factory.
 
-    r_result = new #( ).
+    r_result = NEW #( ).
     r_result->title = i_title.
-    r_result->icon = i_icon.
-    r_result->question_text = i_question_text.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
+    r_result->mv_pdf = i_pdf.
+
+  ENDMETHOD.
+
+
+  METHOD result.
+
+    result = ms_result.
 
   ENDMETHOD.
 
@@ -64,11 +70,20 @@ CLASS Z2UI5_CL_POPUP_TO_CONFIRM IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  )->dialog(
                   title = title
                   icon = icon
-                   afterclose = client->_event( 'BUTTON_CANCEL' )
+                  stretch = abap_true
+                  afterclose = client->_event( 'BUTTON_CANCEL' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'
-                      )->text( question_text
-              )->get_parent( )->get_parent(
+                  )->label( text  = question_text
+                  )->_generic(
+                        ns = `html`
+                        name = `iframe`
+                        t_prop = VALUE #(
+                            ( n = `src`    v = mv_pdf )
+                            ( n = `height` v = `800px` )
+                            ( n = `width`  v = `99%` )
+                    )
+              )->get_parent( )->get_parent( )->get_parent(
               )->footer( )->overflow_toolbar(
                   )->toolbar_spacer(
                   )->button(
@@ -95,6 +110,7 @@ CLASS Z2UI5_CL_POPUP_TO_CONFIRM IMPLEMENTATION.
     ENDIF.
 
     CASE client->get( )-event.
+
       WHEN `BUTTON_CONFIRM`.
         check_result_confirmed = abap_true.
         client->popup_destroy( ).
