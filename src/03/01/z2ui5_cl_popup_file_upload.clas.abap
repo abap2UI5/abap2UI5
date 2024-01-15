@@ -56,6 +56,7 @@ CLASS Z2UI5_CL_POPUP_FILE_UPLOAD IMPLEMENTATION.
     r_result->question_text = i_text.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
+    r_result->mv_path = i_path.
 
   ENDMETHOD.
 
