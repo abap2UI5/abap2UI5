@@ -9,20 +9,21 @@ CLASS z2ui5_cl_popup_input_value DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        i_text                TYPE string
-        i_title               TYPE string DEFAULT `Title`
-        i_button_text_confirm TYPE string DEFAULT `OK`
-        i_button_text_cancel  TYPE string DEFAULT `Cancel`
+        text                TYPE string DEFAULT `Enter New Value`
+        val                 TYPE string OPTIONAL
+        title               TYPE string DEFAULT `Popup Input Value`
+        button_text_confirm TYPE string DEFAULT `OK`
+        button_text_cancel  TYPE string DEFAULT `Cancel`
+          PREFERRED PARAMETER val
       RETURNING
-        VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_input_value.
+        VALUE(r_result)     TYPE REF TO z2ui5_cl_popup_input_value.
 
     TYPES:
       BEGIN OF ty_s_result,
-        text         TYPE string,
+        value        TYPE string,
         check_cancel TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
-
 
     METHODS result
       RETURNING
@@ -49,11 +50,12 @@ CLASS Z2UI5_CL_POPUP_INPUT_VALUE IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->title = i_title.
+    r_result->title = title.
 *    r_result->icon = i_icon.
-    r_result->question_text = i_text.
-    r_result->button_text_confirm = i_button_text_confirm.
-    r_result->button_text_cancel = i_button_text_cancel.
+    r_result->question_text = text.
+    r_result->button_text_confirm = button_text_confirm.
+    r_result->button_text_cancel = button_text_cancel.
+    r_result->ms_result-value = val.
 
   ENDMETHOD.
 
@@ -75,7 +77,7 @@ CLASS Z2UI5_CL_POPUP_INPUT_VALUE IMPLEMENTATION.
                   )->vbox( 'sapUiMediumMargin'
                   )->label( text  = question_text
                   )->input(
-                    value  = client->_bind_edit( ms_result-text )
+                    value  = client->_bind_edit( ms_result-value )
                     submit = client->_event( 'BUTTON_CONFIRM' )
               )->get_parent( )->get_parent(
               )->footer( )->overflow_toolbar(
