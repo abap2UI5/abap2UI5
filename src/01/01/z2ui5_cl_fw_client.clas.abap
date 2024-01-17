@@ -304,7 +304,7 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
     IF tab IS NOT INITIAL.
 
-      DATA(lv_name) = z2ui5_if_client~_bind_edit( val = tab path = abap_true ).
+      DATA(lv_name) = z2ui5_if_client~_bind_edit( val = tab path = abap_true pretty_name = pretty_name ).
       result = bind_tab_cell(
             iv_name     = lv_name
             i_tab_index = tab_index
