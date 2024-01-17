@@ -77,6 +77,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
               z2ui5_cl_util_func=>trans_ref_tab_2_tab(
                 EXPORTING
                     ir_tab_from = <frontend>
+                    pretty_name = lr_attri->pretty_name
                 IMPORTING
                     t_result    = <backend> ).
 
@@ -84,6 +85,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
               z2ui5_cl_util_func=>trans_ref_struc_2_struc(
                   EXPORTING
                       ir_struc_from = <frontend>
+                      pretty_name   = lr_attri->pretty_name
                   IMPORTING
                       r_result      = <backend> ).
 

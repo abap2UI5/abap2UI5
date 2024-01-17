@@ -119,12 +119,14 @@ CLASS z2ui5_cl_util_func DEFINITION
     CLASS-METHODS trans_ref_tab_2_tab
       IMPORTING
         !ir_tab_from TYPE REF TO data
+        pretty_name  TYPE abap_bool DEFAULT abap_false
       EXPORTING
         !t_result    TYPE STANDARD TABLE.
 
     CLASS-METHODS trans_ref_struc_2_struc
       IMPORTING
         !ir_struc_from TYPE REF TO data
+        pretty_name    TYPE abap_bool DEFAULT abap_false
       EXPORTING
         !r_result      TYPE data.
 
@@ -541,7 +543,68 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize( data = any pretty_name = CONV #( pretty_name ) compress = compress ).
+    result = /ui2/cl_json=>serialize(
+        data = any
+        pretty_name = CONV #( pretty_name )
+        compress = compress ).
+
+  ENDMETHOD.
+
+
+  METHOD trans_ref_struc_2_struc.
+
+    FIELD-SYMBOLS <ls_from> TYPE any.
+
+    ASSIGN ir_struc_from->* TO <ls_from>.
+    x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+    CLEAR r_result.
+
+    DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_datadescr=>describe_by_data( r_result ) ).
+    DATA(lt_components) = lo_struc->get_components( ).
+    LOOP AT lt_components INTO DATA(ls_comp).
+
+      DATA(lv_from) = ls_comp-name.
+      IF pretty_name = abap_true.
+        REPLACE ALL OCCURRENCES OF `_` IN lv_from WITH ``.
+      ENDIF.
+      ASSIGN COMPONENT lv_from OF STRUCTURE <ls_from> TO FIELD-SYMBOL(<comp_from>).
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      ASSIGN COMPONENT ls_comp-name OF STRUCTURE r_result TO FIELD-SYMBOL(<comp_to>).
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
+      FIELD-SYMBOLS <comp_from_deref> TYPE any.
+      ASSIGN <comp_from>->* TO <comp_from_deref>.
+      DATA(lv_type_kind) = rtti_get_type_kind( <comp_to> ).
+
+      IF <comp_from_deref> IS INITIAL.
+        CONTINUE.
+      ENDIF.
+
+      CASE lv_type_kind.
+
+        WHEN cl_abap_typedescr=>typekind_table.
+          trans_ref_tab_2_tab(
+         EXPORTING
+             ir_tab_from = <comp_from>
+             pretty_name = pretty_name
+         IMPORTING
+             t_result    = <comp_to> ).
+
+        WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
+          trans_ref_struc_2_struc(
+            EXPORTING
+                ir_struc_from = <comp_from>
+            IMPORTING
+                r_result    = <comp_to> ).
+
+        WHEN OTHERS.
+          <comp_to> = <comp_from_deref>.
+      ENDCASE.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -604,6 +667,9 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
             ENDIF.
 
             FIELD-SYMBOLS <comp_ui5> TYPE data.
+            IF pretty_name = abap_true.
+              REPLACE ALL OCCURRENCES OF `_` IN ls_comp-name  WITH ``.
+            ENDIF.
             ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row_ui5> TO <comp_ui5>.
 
             IF sy-subrc <> 0.
@@ -615,8 +681,12 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
             IF sy-subrc = 0.
               CASE ls_comp-type->kind.
                 WHEN cl_abap_typedescr=>kind_table.
-                  trans_ref_tab_2_tab( EXPORTING ir_tab_from = <comp_ui5>
-                                       IMPORTING t_result    = <comp> ).
+                  trans_ref_tab_2_tab(
+                    EXPORTING
+                        ir_tab_from = <comp_ui5>
+                        pretty_name = pretty_name
+                    IMPORTING
+                        t_result    = <comp> ).
                 WHEN OTHERS.
                   <comp> = <ls_data_ui5>.
               ENDCASE.
@@ -629,64 +699,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       INSERT <row> INTO TABLE t_result.
     ENDLOOP.
 
-
   ENDMETHOD.
-
-
-  METHOD trans_ref_struc_2_struc.
-
-    FIELD-SYMBOLS <ls_from> TYPE any.
-
-    ASSIGN ir_struc_from->* TO <ls_from>.
-    x_check_raise( xsdbool( sy-subrc <> 0 ) ).
-    CLEAR r_result.
-
-    DATA(lo_struc) = CAST cl_abap_structdescr( cl_abap_datadescr=>describe_by_data( r_result ) ).
-    DATA(lt_components) = lo_struc->get_components( ).
-    LOOP AT lt_components INTO DATA(ls_comp).
-
-      DATA(lv_from) = ls_comp-name.
-*      REPLACE ALL OCCURRENCES OF `_` IN lv_from WITH ``.
-      ASSIGN COMPONENT lv_from OF STRUCTURE <ls_from> TO FIELD-SYMBOL(<comp_from>).
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-      ASSIGN COMPONENT ls_comp-name OF STRUCTURE r_result TO FIELD-SYMBOL(<comp_to>).
-      IF sy-subrc <> 0.
-        CONTINUE.
-      ENDIF.
-      FIELD-SYMBOLS <comp_from_deref> TYPE any.
-      ASSIGN <comp_from>->* TO <comp_from_deref>.
-      DATA(lv_type_kind) = rtti_get_type_kind( <comp_to> ).
-
-      IF <comp_from_deref> IS INITIAL.
-        CONTINUE.
-      ENDIF.
-
-      CASE lv_type_kind.
-
-        WHEN cl_abap_typedescr=>typekind_table.
-          trans_ref_tab_2_tab(
-         EXPORTING
-             ir_tab_from = <comp_from>
-         IMPORTING
-             t_result    = <comp_to> ).
-
-        WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
-          trans_ref_struc_2_struc(
-            EXPORTING
-                ir_struc_from = <comp_from>
-            IMPORTING
-                r_result    = <comp_to> ).
-
-        WHEN OTHERS.
-          <comp_to> = <comp_from_deref>.
-      ENDCASE.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
 
 
   METHOD trans_xml_2_any.

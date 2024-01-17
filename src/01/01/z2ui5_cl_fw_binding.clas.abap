@@ -27,7 +27,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_dissolved TYPE abap_bool,
         check_temp      TYPE abap_bool,
         viewname        TYPE string,
-        pretty_name     TYPE string,
+        pretty_name     TYPE abap_bool,
         compress        TYPE abap_bool,
         depth           TYPE i,
       END OF ty_s_attri.
@@ -153,10 +153,21 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF bind->bind_type <> mv_type AND bind->bind_type IS NOT INITIAL.
+    IF bind->bind_type IS NOT INITIAL and bind->bind_type <> mv_type.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
+    ENDIF.
+
+    IF bind->bind_type IS NOT INITIAL and bind->pretty_name <> mv_pretty_name.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `<p>Binding Error - Two different pretty types for same attribute used (` && bind->name && `).`.
+    ENDIF.
+
+    IF bind->bind_type IS NOT INITIAL.
+      result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+      RETURN.
     ENDIF.
 
     bind->bind_type   = mv_type.
@@ -443,6 +454,19 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     result = replace( val = val    sub = `*` with = `_` occ = 0 ).
     result = replace( val = result sub = `>` with = `_` occ = 0 ).
     result = replace( val = result sub = `-` with = `_` occ = 0 ).
+
+    IF mv_pretty_name = abap_true.
+      SPLIT result AT `_` INTO TABLE DATA(lt_tab).
+      result = to_lower( lt_tab[ 1 ] ).
+      LOOP AT lt_tab INTO DATA(lv_val) FROM 2.
+        TRY.
+            lv_val = to_lower( lv_val ).
+            lv_val = to_upper( lv_val(1) ) && lv_val+1.
+            result = result && lv_val.
+          CATCH cx_root.
+        ENDTRY.
+      ENDLOOP.
+    ENDIF.
 
   ENDMETHOD.
 
