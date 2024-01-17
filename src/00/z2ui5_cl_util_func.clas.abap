@@ -687,6 +687,13 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
                         pretty_name = pretty_name
                     IMPORTING
                         t_result    = <comp> ).
+                WHEN cl_abap_typedescr=>kind_struct.
+                  trans_ref_struc_2_struc(
+                    EXPORTING
+                        ir_struc_from = <comp_ui5>
+                        pretty_name = pretty_name
+                    IMPORTING
+                        r_result    = <comp> ).
                 WHEN OTHERS.
                   <comp> = <ls_data_ui5>.
               ENDCASE.
