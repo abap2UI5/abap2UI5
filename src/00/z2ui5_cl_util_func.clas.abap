@@ -429,32 +429,28 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
     TRY.
 
-        DATA lo_interface TYPE REF TO object.
+        DATA obj TYPE REF TO object.
         CALL METHOD ('XCO_CP_ABAP')=>interface
           EXPORTING
-            val    = val
+            iv_name      = val
           RECEIVING
-            result = lo_interface.
+            ro_interface = obj.
 
-        DATA lo_implementations TYPE REF TO object.
-        CALL METHOD lo_interface->('implementations')
-          RECEIVING
-            result = lo_implementations.
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
+        obj = <any>.
 
-        DATA lt_implementations TYPE string_table.
-        CALL METHOD lo_implementations->('get')
-          RECEIVING
-            result = lt_implementations.
+        ASSIGN obj->('IF_XCO_INTF_IMPLEMENTATIONS_FC~ALL') TO <any>.
+        obj = <any>.
 
-        DATA lo_impl_all TYPE REF TO object.
-        CALL METHOD lo_implementations->('all')
-          RECEIVING
-            result = lo_impl_all.
+        CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET').
 
         DATA lt_implementation_names TYPE string_table.
-        CALL METHOD lo_impl_all->('get_names')
+        CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
           RECEIVING
-            result = lt_implementation_names.
+            rt_names = lt_implementation_names.
+
+        result = lt_implementation_names.
 
       CATCH cx_sy_dyn_call_illegal_class.
 
@@ -463,13 +459,13 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
             clsname    TYPE c LENGTH 30,
             refclsname TYPE c LENGTH 30,
           END OF ty_s_impl.
+        DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl.
+
         TYPES:
           BEGIN OF ty_s_key,
             intkey TYPE c LENGTH 30,
           END OF ty_s_key.
-        DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl.
         DATA ls_key TYPE ty_s_key.
-
         ls_key-intkey = val.
 
         DATA(lv_fm) = `SEO_INTERFACE_IMPLEM_GET_ALL`.
