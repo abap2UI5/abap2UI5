@@ -299,10 +299,6 @@ CLASS Z2UI5_CL_FW_HTTP_HANDLER IMPLEMENTATION.
                `            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
                `            sap.z2ui5.oBody.ARGUMENTS = args;` && |\n|  &&
                |\n|  &&
-               `            if (sap.z2ui5.checkLogActive) {` && |\n|  &&
-               `                console.log('Request Object:');` && |\n|  &&
-               `                console.log(sap.z2ui5.oBody);` && |\n|  &&
-               `            }` && |\n|  &&
                `            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n|  &&
                `            sap.z2ui5.oResponse = {};` && |\n|  &&
                `            sap.z2ui5.oController.Roundtrip();` && |\n|  &&
