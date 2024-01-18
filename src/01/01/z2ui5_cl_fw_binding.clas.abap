@@ -456,16 +456,17 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     result = replace( val = result sub = `-` with = `_` occ = 0 ).
 
     IF mv_pretty_name = abap_true.
-      SPLIT result AT `_` INTO TABLE DATA(lt_tab).
-      result = to_lower( lt_tab[ 1 ] ).
-      LOOP AT lt_tab INTO DATA(lv_val) FROM 2.
-        TRY.
-            lv_val = to_lower( lv_val ).
-            lv_val = to_upper( lv_val(1) ) && lv_val+1.
-            result = result && lv_val.
-          CATCH cx_root.
-        ENDTRY.
-      ENDLOOP.
+      replace all OCCURRENCES OF `_` in result with ``.
+*      SPLIT result AT `_` INTO TABLE DATA(lt_tab).
+*      result = to_lower( lt_tab[ 1 ] ).
+*      LOOP AT lt_tab INTO DATA(lv_val) FROM 2.
+*        TRY.
+*            lv_val = to_lower( lv_val ).
+*            lv_val = to_upper( lv_val(1) ) && lv_val+1.
+*            result = result && lv_val.
+*          CATCH cx_root.
+*        ENDTRY.
+*      ENDLOOP.
     ENDIF.
 
   ENDMETHOD.

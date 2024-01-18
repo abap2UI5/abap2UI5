@@ -597,6 +597,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
           trans_ref_struc_2_struc(
             EXPORTING
                 ir_struc_from = <comp_from>
+                pretty_name   = pretty_name
             IMPORTING
                 r_result    = <comp_to> ).
 
