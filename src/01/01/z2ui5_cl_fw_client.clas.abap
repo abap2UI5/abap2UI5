@@ -45,7 +45,7 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
     data lr_ref type ref to data.
 
     ASSIGN i_tab[ i_tab_index ] TO <row>.
-    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <row> ).
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <row> ).
 
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 

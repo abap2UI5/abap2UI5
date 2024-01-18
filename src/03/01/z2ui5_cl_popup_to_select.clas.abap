@@ -12,9 +12,16 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_to_select.
 
+    TYPES:
+      BEGIN OF ty_s_result,
+        index        TYPE i,
+        check_cancel TYPE abap_bool,
+      END OF ty_s_result.
+    DATA ms_result TYPE ty_s_result.
+
     METHODS result
       RETURNING
-        VALUE(result) TYPE i.
+        VALUE(result) TYPE ty_s_result.
 
     DATA mr_tab TYPE REF TO data.
     DATA mr_tab_popup TYPE REF TO data ##NEEDED.
@@ -23,7 +30,6 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
     DATA client TYPE REF TO z2ui5_if_client.
-    DATA mv_selected_index TYPE i.
     METHODS on_event.
     METHODS display.
     METHODS set_output_table.
@@ -31,6 +37,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     METHODS on_event_search.
 
   PRIVATE SECTION.
+    DATA lv_check_table_line TYPE abap_bool.
 ENDCLASS.
 
 
@@ -58,12 +65,10 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
               cancel             = client->_event( 'CANCEL' )
               search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
               confirm            = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
+              growing = abap_true
             ).
 
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
-    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
-    DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
-    DATA(lt_comp) = lo_struct->get_components( ).
+    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <tab_out> ).
     DELETE lt_comp WHERE name =  'ZZSELKZ'.
 
     DATA(list) = tab->column_list_item( valign = `Top` selected = `{ZZSELKZ}` ).
@@ -106,6 +111,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
         on_event_confirm( ).
 
       WHEN 'CANCEL'.
+        ms_result-check_cancel = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
@@ -118,7 +124,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD result.
 
-    result = mv_selected_index.
+    result = ms_result.
 
   ENDMETHOD.
 
@@ -127,15 +133,20 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <row2> TYPE any.
-    FIELD-SYMBOLS <row3> TYPE any.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mr_tab->* TO <tab>.
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
     DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
-    DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+    TRY.
+        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+        DATA(lt_comp) = lo_struct->get_components( ).
+      CATCH cx_root.
+        lv_check_table_line = abap_true.
+        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
+        INSERT VALUE #( name = 'TAB_LINE' type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
+    ENDTRY.
     DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
-    DATA(lt_comp) = lo_struct->get_components( ).
     INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
 
     DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
@@ -146,23 +157,24 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <field> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
     LOOP AT <tab> ASSIGNING <row>.
-
       DATA lr_row TYPE REF TO data.
       CREATE DATA lr_row LIKE LINE OF <tab_out>.
       ASSIGN lr_row->* TO <row2>.
-      <row2> = CORRESPONDING #( <row> ).
+      IF lv_check_table_line = abap_true.
+        ASSIGN lr_row->('TAB_LINE') TO <field>.
+        <field> = <row>.
+      ELSE.
+        <row2> = CORRESPONDING #( <row> ).
+      ENDIF.
       INSERT <row2> INTO TABLE <tab_out>.
 
-      DATA lr_row2 TYPE REF TO data.
-      CREATE DATA lr_row2 LIKE LINE OF <tab_out2>.
-      ASSIGN lr_row2->* TO <row3>.
-      <row3> = CORRESPONDING #( <row> ).
-      INSERT <row3> INTO TABLE <tab_out2>.
-
     ENDLOOP.
+
+    <tab_out2> = <tab_out>.
 
   ENDMETHOD.
 
@@ -177,7 +189,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
       DATA(lv_tabix) = sy-tabix.
       ASSIGN ('<row>-ZZSELKZ') TO <field>.
       IF <field> = abap_true.
-        mv_selected_index = lv_tabix.
+        ms_result-index = lv_tabix.
         EXIT.
       ENDIF.
     ENDLOOP.
@@ -192,22 +204,14 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     DATA(lt_arg) = client->get( )-t_event_arg.
     READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
 
-    FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out_backup> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row2> TYPE any.
     FIELD-SYMBOLS <field2> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab_out>.
-    CLEAR <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
 
-    LOOP AT <tab_out_backup> ASSIGNING <row>.
-      DATA lr_row TYPE REF TO data.
-      CREATE DATA lr_row LIKE LINE OF <tab_out>.
-      ASSIGN lr_row->* TO <row2>.
-      <row2> = CORRESPONDING #( <row> ).
-      INSERT <row2> INTO TABLE <tab_out>.
-    ENDLOOP.
+    <tab_out> = <tab_out_backup>.
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
     DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
@@ -218,7 +222,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
       LOOP AT lt_comp INTO DATA(ls_comp).
         DATA(lv_assign) = '<ROW2>-' && ls_comp-name.
         ASSIGN (lv_assign) TO <field2>.
-        IF <field2> CS ls_arg.
+        IF to_upper( <field2> ) CS to_upper( ls_arg ).
           lv_check_continue = abap_true.
           EXIT.
         ENDIF.

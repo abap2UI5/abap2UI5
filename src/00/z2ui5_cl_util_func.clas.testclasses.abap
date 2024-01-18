@@ -696,7 +696,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(ls_row) = VALUE ty_row( ).
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( ls_row  ).
+    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( ls_row  ).
 
     IF lines( lt_comp ) <> 7.
       cl_abap_unit_assert=>fail( ).
