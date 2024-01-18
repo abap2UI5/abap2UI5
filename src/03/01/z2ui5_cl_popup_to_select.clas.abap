@@ -30,7 +30,6 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
     DATA client TYPE REF TO z2ui5_if_client.
-*    DATA mv_selected_index TYPE i.
     METHODS on_event.
     METHODS display.
     METHODS set_output_table.
@@ -38,7 +37,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     METHODS on_event_search.
 
   PRIVATE SECTION.
-    DATA: lv_check_table_line TYPE abap_bool.
+    DATA lv_check_table_line TYPE abap_bool.
 ENDCLASS.
 
 
@@ -134,7 +133,6 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <row2> TYPE any.
-    FIELD-SYMBOLS <row3> TYPE any.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN mr_tab->* TO <tab>.
 
@@ -206,7 +204,6 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     DATA(lt_arg) = client->get( )-t_event_arg.
     READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
 
-    FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out_backup> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row2> TYPE any.

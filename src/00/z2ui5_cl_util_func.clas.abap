@@ -459,7 +459,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
             clsname    TYPE c LENGTH 30,
             refclsname TYPE c LENGTH 30,
           END OF ty_s_impl.
-        DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl.
+        DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
 
         TYPES:
           BEGIN OF ty_s_key,

@@ -29,8 +29,8 @@ CLASS z2ui5_cl_fw_app_startup DEFINITION
     METHODS z2ui5_on_event.
     METHODS view_display_start.
   PROTECTED SECTION.
+    DATA mt_classes TYPE string_table.
   PRIVATE SECTION.
-    DATA: mt_classes TYPE string_table.
 ENDCLASS.
 
 
