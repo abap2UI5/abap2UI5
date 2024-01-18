@@ -360,7 +360,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_struc( <attribute> ).
+    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <attribute> ).
 
     DATA(lv_attri) = z2ui5_cl_util_func=>c_replace_assign_struc( val ).
     LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
