@@ -505,7 +505,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 *        plugins TYPE string_table,
         data    TYPE ty_data,
         options TYPE ty_options,
-      END OF ty_chart .
+      END OF ty_chart ##NEEDED.
 
     CLASS-METHODS get_chartjs_local
       RETURNING
@@ -592,6 +592,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
   METHOD load_cc.
 
+    DATA lv_libs TYPE string VALUE ` `.
 
     result = `debugger;` && |\n| &&
     `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
@@ -676,7 +677,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
   METHOD load_js.
 
-    DATA lv_libs TYPE string VALUE ``.
+    DATA lv_libs TYPE string VALUE ` `.
 
     result = `` && |\n| &&
              `var libs = ["` && get_chartjs_url( ) && `"];` && |\n|.
