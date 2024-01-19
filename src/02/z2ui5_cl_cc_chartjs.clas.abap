@@ -505,7 +505,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 *        plugins TYPE string_table,
         data    TYPE ty_data,
         options TYPE ty_options,
-      END OF ty_chart ##NEEDED.
+      END OF ty_chart.
 
     CLASS-METHODS get_chartjs_local
       RETURNING
