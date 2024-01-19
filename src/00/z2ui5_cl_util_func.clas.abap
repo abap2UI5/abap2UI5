@@ -622,31 +622,14 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    DATA lo_json TYPE REF TO z2ui5_cl_util_ui2_json.
+    DATA(lo_json) = NEW z2ui5_cl_util_ui2_json( ).
 
     CREATE OBJECT lo_json
       EXPORTING
         compress    = compress
         pretty_name = pretty_name.
-*      name_mappings     = name_mappings
-*      assoc_arrays      = assoc_arrays
-*      assoc_arrays_opt  = assoc_arrays_opt
-*      expand_includes   = expand_includes
-*      numc_as_string   = numc_as_string
-*      conversion_exits  = conversion_exits
-*      ts_as_iso8601    = ts_as_iso8601.
 
     result = lo_json->serialize_int( data = any ).
-
-*    result = z2ui5_cl_util_ui2_json=>serialize(
-*        data = any
-*        pretty_name = CONV #( pretty_name )
-*        compress = compress ).
-
-*    result = /ui2/cl_json=>serialize(
-*        data = any
-*        pretty_name = CONV #( pretty_name )
-*        compress = compress ).
 
   ENDMETHOD.
 
