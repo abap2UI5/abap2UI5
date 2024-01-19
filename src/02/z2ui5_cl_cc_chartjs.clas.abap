@@ -72,10 +72,20 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       END OF ty_datalabels .
 
     TYPES:
+      BEGIN OF ty_data_venn,
+        sets               TYPE string_table,
+        value              TYPE string,
+        values             TYPE string_table,
+      END OF ty_data_venn .
+
+    TYPES ty_data_venn_t TYPE STANDARD TABLE OF ty_data_venn WITH DEFAULT KEY.
+
+    TYPES:
       BEGIN OF ty_dataset,
         label              TYPE string,
         type               TYPE string,
         data               TYPE string_table,
+        data_venn          TYPE ty_data_venn_t,
         data_x_y_r         TYPE ty_x_y_r_data_t,
         border_width       TYPE i,
         border_color       TYPE string,
@@ -492,15 +502,15 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_chart,
         type    TYPE string,
-        plugins TYPE string_table,
+*        plugins TYPE string_table,
         data    TYPE ty_data,
         options TYPE ty_options,
       END OF ty_chart .
 
-    CLASS-METHODS get_js_local
+    CLASS-METHODS get_chartjs_local
       RETURNING
         VALUE(result) TYPE string .
-    CLASS-METHODS get_js_url
+    CLASS-METHODS get_chartjs_url
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS get_js_datalabels
@@ -512,11 +522,19 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     CLASS-METHODS get_js_deferred
       RETURNING
         VALUE(result) TYPE string .
+    CLASS-METHODS get_js_venn
+      RETURNING
+        VALUE(result) TYPE string .
+    CLASS-METHODS get_js_wordcloud
+      RETURNING
+        VALUE(result) TYPE string .
     CLASS-METHODS load_js
       IMPORTING
         datalabels    TYPE abap_bool DEFAULT abap_false
         autocolors    TYPE abap_bool DEFAULT abap_false
         deferred      TYPE abap_bool DEFAULT abap_false
+        venn          TYPE abap_bool DEFAULT abap_false
+        wordcloud     TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS set_js_config
@@ -541,6 +559,16 @@ ENDCLASS.
 CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
+  METHOD get_chartjs_local.
+    result = ``.
+  ENDMETHOD.
+
+
+  METHOD get_chartjs_url.
+    result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js`.
+  ENDMETHOD.
+
+
   METHOD get_js_autocolors.
     "chartjs-plugin-datalabels must be loaded after the Chart.js library!
     result = `https://cdn.jsdelivr.net/npm/chartjs-plugin-autocolors`.
@@ -559,13 +587,13 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_js_local.
-    result = ``.
+  METHOD get_js_venn.
+    result = `https://cdn.jsdelivr.net/npm/chartjs-chart-venn@4.2.7/build/index.umd.min.js`.
   ENDMETHOD.
 
 
-  METHOD get_js_url.
-    result = `https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.js`.
+  METHOD get_js_wordcloud.
+    result = `https://cdn.jsdelivr.net/npm/chartjs-chart-wordcloud@4.3.2/build/index.umd.min.js`.
   ENDMETHOD.
 
 
@@ -607,34 +635,25 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `               }` && |\n| &&
     `           }` && |\n| &&
     `       },` && |\n|  &&
-    `      init() {` && |\n|  &&
-    `      },` && |\n|  &&
-    |\n|  &&
-    `      fixJsonLibs(data) {` && |\n| &&
-    `         ` && |\n| &&
-    `          if (!data.hasOwnProperty("plugins")) { ` && |\n| &&
-    `           data["plugins"] = [` && lv_libs && `];` && |\n| &&
-    `           return;` && |\n| &&
-    `          };` && |\n| &&
-    `         ` && |\n| &&
-    `          Object.keys(data).forEach(function(key) {` && |\n| &&
-    `            if(key=="plugins") {` && |\n| &&
-    `              data[key] = [` && lv_libs && `];` && |\n| &&
-    `            };` && |\n| &&
-    `         })},` && |\n| &&
+    `       init() {` && |\n|  &&
+    `       },` && |\n|  &&
     |\n|  &&
     `       setConfig: function(oConfig) { ` && |\n|  &&
-    `         var prevConfig = this.getProperty("config");` && |\n|  &&
     `         var canvas_id = this.getProperty("canvas_id");` && |\n|  &&
     `         var cVar = canvas_id+'_chartjs'; ` && |\n|  &&
-    `         if(prevConfig) { delete prevConfig["plugins"]; }` && |\n|  &&
-    `         if(prevConfig == oConfig) { return }` && |\n|  &&
+    `         var cType = oConfig.type;` && |\n|  &&
+    `         if(cType == 'venn') {` && |\n|  &&
+    `           var tConfig = JSON.stringify(oConfig);` && |\n|  &&
+    `           tConfig = tConfig.replace("dataVenn","data");` && |\n|  &&
+    `           oConfig = JSON.parse(tConfig);` && |\n|  &&
+    `         } else {` && |\n|  &&
+    `           this.setProperty("config", oConfig );` && |\n|  &&
+    `         };` && |\n|  &&
     `         this.setProperty("config", oConfig );` && |\n|  &&
-    `         if(oConfig){ this.fixJsonLibs(oConfig); };` && |\n|  &&
+    `         if(oConfig){ fixJsonLibs(oConfig); };` && |\n|  &&
     `         if(window[cVar]?.data) { window[cVar].data = oConfig.data; }` && |\n|  &&
     `         if(window[cVar]?.options) { window[cVar].options = oConfig.options; }` && |\n|  &&
     `         if(window[cVar]?.config._config.type) { window[cVar].config._config.type = oConfig.type; }` && |\n|  &&
-*    `         if(window[cVar]?.config._config.plugins) { window[cVar].config._config.plugins = oConfig.plugins; }` && |\n|  &&
     `         if(window[cVar]){ window[cVar].update(); }` && |\n|  &&
     `       },` && |\n|  &&
     |\n|  &&
@@ -668,7 +687,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     DATA lv_libs TYPE string VALUE ``.
 
     result = `` && |\n| &&
-             `var libs = ["` && get_js_url( ) && `"];` && |\n|.
+             `var libs = ["` && get_chartjs_url( ) && `"];` && |\n|.
 
     IF datalabels = abap_true.
       result = result && `libs.push("` && get_js_datalabels( ) && `");` && |\n|.
@@ -694,6 +713,13 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
         lv_libs = lv_libs && `,` && `sap.z2ui5.ChartDeferred`.
       ENDIF.
     ENDIF.
+    IF venn = abap_true.
+      result = result && `libs.push("` && get_js_venn( ) && `");` && |\n|.
+    ENDIF.
+    IF wordcloud = abap_true.
+      result = result && `libs.push("` && get_js_wordcloud( ) && `");` && |\n|.
+    ENDIF.
+
 
     result = result && `` && |\n| &&
       `var fixJsonLibs = function(data){` && |\n| &&
@@ -732,59 +758,59 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
   METHOD set_js_config.
 
-    DATA lv_canvas_el TYPE string.
-    DATA lv_guid TYPE string.
-    DATA ls_config TYPE ty_chart.
-
-    ls_config = is_config.
-
-    ASSIGN COMPONENT 'PLUGINS' OF STRUCTURE ls_config TO FIELD-SYMBOL(<fs_plugins>).
-    IF sy-subrc = 0.
-      CLEAR <fs_plugins>.
-    ENDIF.
-    ls_config-plugins = VALUE #( ( `dummy` ) ).
-
-    IF ls_config IS NOT INITIAL.
-      DATA json_config TYPE string VALUE ``.
-      json_config =  /ui2/cl_json=>serialize(
-                          data             = ls_config
-                          compress         = abap_true
-                          pretty_name      = 'X'
-                        ).
-
-      FIND 'dataXYR' IN json_config.
-      IF sy-subrc = 0.
-        REPLACE ALL OCCURRENCES OF 'dataXYR' IN json_config WITH 'data'.
-      ENDIF.
-      FIND 'backgroundColorT' IN json_config.
-      IF sy-subrc = 0.
-        REPLACE ALL OCCURRENCES OF 'backgroundColorT' IN json_config WITH 'backgroundColor'.
-      ENDIF.
-    ENDIF.
-
-    CASE view.
-      WHEN 'MAIN'.
-        lv_canvas_el = `sap.z2ui5.oView.createId('` && canvas_id && `')`.
-      WHEN 'POPUP'.
-        lv_canvas_el = `sap.z2ui5.oPopup.createId('` && canvas_id && `')`.
-      WHEN 'POPOVER'.
-        lv_canvas_el = `sap.z2ui5.oPopover.createId('` && canvas_id && `')`.
-      WHEN 'NEST'.
-        lv_canvas_el = `sap.z2ui5.oViewNest.createId('` && canvas_id && `')`.
-      WHEN 'NEST2'.
-        lv_canvas_el = `sap.z2ui5.oViewNest2.createId('` && canvas_id && `')`.
-    ENDCASE.
-
-    lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
-    chartjs_config = chartjs_config && `debugger;`.
-    chartjs_config = chartjs_config && `try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};`.
-    chartjs_config = chartjs_config && `try { var chartdeferred = window['chartjs-plugin-deferred']; } catch (err){};`.
-    chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
-    chartjs_config = chartjs_config && `fixJsonLibs(cjs);`.
-    chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
-    chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
-*    chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
-    chartjs_config = chartjs_config && `var ` && canvas_id && ` = new Chart( ctx_` && lv_guid && `, cjs );`.
+*    DATA lv_canvas_el TYPE string.
+*    DATA lv_guid TYPE string.
+*    DATA ls_config TYPE ty_chart.
+*
+*    ls_config = is_config.
+*
+*    ASSIGN COMPONENT 'PLUGINS' OF STRUCTURE ls_config TO FIELD-SYMBOL(<fs_plugins>).
+*    IF sy-subrc = 0.
+*      CLEAR <fs_plugins>.
+*    ENDIF.
+*    ls_config-plugins = VALUE #( ( `dummy` ) ).
+*
+*    IF ls_config IS NOT INITIAL.
+*      DATA json_config TYPE string VALUE ``.
+*      json_config =  /ui2/cl_json=>serialize(
+*                          data             = ls_config
+*                          compress         = abap_true
+*                          pretty_name      = 'X'
+*                        ).
+*
+*      FIND 'dataXYR' IN json_config.
+*      IF sy-subrc = 0.
+*        REPLACE ALL OCCURRENCES OF 'dataXYR' IN json_config WITH 'data'.
+*      ENDIF.
+*      FIND 'backgroundColorT' IN json_config.
+*      IF sy-subrc = 0.
+*        REPLACE ALL OCCURRENCES OF 'backgroundColorT' IN json_config WITH 'backgroundColor'.
+*      ENDIF.
+*    ENDIF.
+*
+*    CASE view.
+*      WHEN 'MAIN'.
+*        lv_canvas_el = `sap.z2ui5.oView.createId('` && canvas_id && `')`.
+*      WHEN 'POPUP'.
+*        lv_canvas_el = `sap.z2ui5.oPopup.createId('` && canvas_id && `')`.
+*      WHEN 'POPOVER'.
+*        lv_canvas_el = `sap.z2ui5.oPopover.createId('` && canvas_id && `')`.
+*      WHEN 'NEST'.
+*        lv_canvas_el = `sap.z2ui5.oViewNest.createId('` && canvas_id && `')`.
+*      WHEN 'NEST2'.
+*        lv_canvas_el = `sap.z2ui5.oViewNest2.createId('` && canvas_id && `')`.
+*    ENDCASE.
+*
+*    lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
+*    chartjs_config = chartjs_config && `debugger;`.
+*    chartjs_config = chartjs_config && `try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};`.
+*    chartjs_config = chartjs_config && `try { var chartdeferred = window['chartjs-plugin-deferred']; } catch (err){};`.
+*    chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
+*    chartjs_config = chartjs_config && `fixJsonLibs(cjs);`.
+*    chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
+*    chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
+**    chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
+*    chartjs_config = chartjs_config && `var ` && canvas_id && ` = new Chart( ctx_` && lv_guid && `, cjs );`.
 
   ENDMETHOD.
 ENDCLASS.
