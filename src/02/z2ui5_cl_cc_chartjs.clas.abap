@@ -537,13 +537,6 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         wordcloud     TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string .
-    CLASS-METHODS set_js_config
-      IMPORTING
-        !canvas_id            TYPE string
-        !view                 TYPE string
-        !is_config            TYPE ty_chart
-      RETURNING
-        VALUE(chartjs_config) TYPE string .
     CLASS-METHODS load_cc
       RETURNING
         VALUE(result) TYPE string .
@@ -599,6 +592,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
   METHOD load_cc.
 
+    DATA lv_libs TYPE string VALUE ` `.
 
     result = `debugger;` && |\n| &&
     `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
@@ -751,65 +745,6 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
       `` && |\n| &&
       `};` && |\n| &&
       `loadLibs();`.
-
-  ENDMETHOD.
-
-
-  METHOD set_js_config.
-
-*    DATA lv_canvas_el TYPE string.
-*    DATA lv_guid TYPE string.
-*    DATA ls_config TYPE ty_chart.
-*
-*    ls_config = is_config.
-*
-*    ASSIGN COMPONENT 'PLUGINS' OF STRUCTURE ls_config TO FIELD-SYMBOL(<fs_plugins>).
-*    IF sy-subrc = 0.
-*      CLEAR <fs_plugins>.
-*    ENDIF.
-*    ls_config-plugins = VALUE #( ( `dummy` ) ).
-*
-*    IF ls_config IS NOT INITIAL.
-*      DATA json_config TYPE string VALUE ``.
-*      json_config =  /ui2/cl_json=>serialize(
-*                          data             = ls_config
-*                          compress         = abap_true
-*                          pretty_name      = 'X'
-*                        ).
-*
-*      FIND 'dataXYR' IN json_config.
-*      IF sy-subrc = 0.
-*        REPLACE ALL OCCURRENCES OF 'dataXYR' IN json_config WITH 'data'.
-*      ENDIF.
-*      FIND 'backgroundColorT' IN json_config.
-*      IF sy-subrc = 0.
-*        REPLACE ALL OCCURRENCES OF 'backgroundColorT' IN json_config WITH 'backgroundColor'.
-*      ENDIF.
-*    ENDIF.
-*
-*    CASE view.
-*      WHEN 'MAIN'.
-*        lv_canvas_el = `sap.z2ui5.oView.createId('` && canvas_id && `')`.
-*      WHEN 'POPUP'.
-*        lv_canvas_el = `sap.z2ui5.oPopup.createId('` && canvas_id && `')`.
-*      WHEN 'POPOVER'.
-*        lv_canvas_el = `sap.z2ui5.oPopover.createId('` && canvas_id && `')`.
-*      WHEN 'NEST'.
-*        lv_canvas_el = `sap.z2ui5.oViewNest.createId('` && canvas_id && `')`.
-*      WHEN 'NEST2'.
-*        lv_canvas_el = `sap.z2ui5.oViewNest2.createId('` && canvas_id && `')`.
-*    ENDCASE.
-*
-*    lv_guid = z2ui5_cl_util_func=>func_get_uuid_22( ).
-*    chartjs_config = chartjs_config && `debugger;`.
-*    chartjs_config = chartjs_config && `try { var autocolors = window['chartjs-plugin-autocolors']; } catch (err){};`.
-*    chartjs_config = chartjs_config && `try { var chartdeferred = window['chartjs-plugin-deferred']; } catch (err){};`.
-*    chartjs_config = chartjs_config && `var cjs = ` && json_config && `;`.
-*    chartjs_config = chartjs_config && `fixJsonLibs(cjs);`.
-*    chartjs_config = chartjs_config && `var el =` && lv_canvas_el && `;`.
-*    chartjs_config = chartjs_config && `var ctx_` && lv_guid && ` = $('#' + el);`.
-**    chartjs_config = chartjs_config && `var chart = new Chart( ctx_` && lv_guid && `, cjs );`.
-*    chartjs_config = chartjs_config && `var ` && canvas_id && ` = new Chart( ctx_` && lv_guid && `, cjs );`.
 
   ENDMETHOD.
 ENDCLASS.
