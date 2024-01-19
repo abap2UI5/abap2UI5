@@ -246,15 +246,15 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS get_token_range_mapping
       RETURNING
-      VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
+        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
 
-PROTECTED SECTION.
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
+CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
 
   METHOD app_get_url.
@@ -491,7 +491,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
   METHOD get_token_t_by_range_t.
 
-    data(lt_mapping) = get_token_range_mapping( ).
+    DATA(lt_mapping) = get_token_range_mapping( ).
 
     LOOP AT val REFERENCE INTO DATA(lr_row).
 

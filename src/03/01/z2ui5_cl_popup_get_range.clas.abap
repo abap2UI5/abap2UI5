@@ -22,12 +22,12 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
     DATA mv_value2      TYPE string.
     DATA mt_token       TYPE z2ui5_cl_util_func=>ty_t_token.
 
-    TYPES:
-      BEGIN OF ty_s_filter,
-        product TYPE z2ui5_cl_util_func=>ty_t_range,
-      END OF ty_s_filter.
-
-    DATA ms_filter TYPE ty_s_filter.
+*    TYPES:
+*      BEGIN OF ty_s_filter,
+*        product TYPE z2ui5_cl_util_func=>ty_t_range,
+*      END OF ty_s_filter.
+*
+*    DATA ms_filter TYPE ty_s_filter.
 
     CLASS-METHODS factory
       IMPORTING
@@ -146,7 +146,15 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-
+        CLEAR mt_filter.
+        LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_product).
+          INSERT VALUE #(
+                   low = lr_product->low
+                   high = lr_product->high
+                   option = lr_product->option
+                   key = z2ui5_cl_util_func=>func_get_uuid_32( )
+           ) INTO TABLE mt_filter.
+        ENDLOOP.
 
       view_display( ).
       RETURN.
@@ -155,14 +163,14 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
     CASE client->get( )-event.
       WHEN `BUTTON_CONFIRM`.
 
-        CLEAR ms_filter-product.
+        CLEAR ms_result-t_range.
         LOOP AT mt_filter REFERENCE INTO DATA(lr_filter).
           INSERT VALUE #(
               sign = `I`
               option = lr_filter->option
               low = lr_filter->low
               high = lr_filter->high
-           ) INTO TABLE ms_filter-product.
+           ) INTO TABLE ms_result-t_range.
         ENDLOOP.
 
         check_result_confirmed = abap_true.
@@ -170,16 +178,6 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `BUTTON_CANCEL`.
-
-        CLEAR mt_filter.
-        LOOP AT ms_filter-product REFERENCE INTO DATA(lr_product).
-          INSERT VALUE #(
-                   low = lr_product->low
-                   high = lr_product->high
-                   option = lr_product->option
-                   key = z2ui5_cl_util_func=>func_get_uuid_32( )
-           ) INTO TABLE mt_filter.
-        ENDLOOP.
 
         check_result_confirmed = abap_false.
         client->popup_destroy( ).
