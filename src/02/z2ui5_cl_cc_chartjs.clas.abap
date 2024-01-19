@@ -599,7 +599,6 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
   METHOD load_cc.
 
-    DATA lv_libs TYPE string VALUE ``.
 
     result = `debugger;` && |\n| &&
     `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
