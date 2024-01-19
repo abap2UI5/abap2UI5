@@ -232,6 +232,12 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    CLASS-METHODS get_range_t_by_token_t
+      IMPORTING
+        VALUE(val)    TYPE ty_t_token
+      RETURNING
+        VALUE(result) TYPE ty_t_range.
+
     CLASS-METHODS get_range_by_token
       IMPORTING
         VALUE(value)  TYPE string
@@ -430,6 +436,14 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD get_range_t_by_token_t.
+
+    LOOP AT val INTO DATA(ls_token).
+      INSERT get_range_by_token( ls_token-text ) INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
   METHOD get_range_by_token.
 
     DATA(lv_length) = strlen( value ) - 1.
@@ -499,7 +513,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
       REPLACE `{HIGH}` IN lv_value WITH lr_row->high.
 
-      INSERT VALUE #( key = lv_value text = lv_value visible = abap_true editable = abap_false ) INTO TABLE result.
+      INSERT VALUE #( key = lv_value text = lv_value visible = abap_true editable = abap_true ) INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.

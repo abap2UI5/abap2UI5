@@ -66,6 +66,7 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( client ).
 
     lo_popup = lo_popup->dialog(
+    afterclose = client->_event( 'BUTTON_CANCEL' )
     contentheight = `50%`
     contentwidth = `50%`
         title = 'Define Filter Conditons' ).
