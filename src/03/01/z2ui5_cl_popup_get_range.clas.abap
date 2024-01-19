@@ -16,26 +16,13 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
       END OF ty_s_filter_pop.
     DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH EMPTY KEY.
 
-*    CLASS-DATA st_mapping TYPE z2ui5_if_client=>ty_t_name_value.
-
     DATA mv_value       TYPE string.
     DATA mv_value2      TYPE string.
     DATA mt_token       TYPE z2ui5_cl_util_func=>ty_t_token.
 
-*    TYPES:
-*      BEGIN OF ty_s_filter,
-*        product TYPE z2ui5_cl_util_func=>ty_t_range,
-*      END OF ty_s_filter.
-*
-*    DATA ms_filter TYPE ty_s_filter.
-
     CLASS-METHODS factory
       IMPORTING
         t_range         TYPE z2ui5_cl_util_func=>ty_t_range  OPTIONAL
-*        i_title               TYPE string DEFAULT `Title`
-*        i_icon                TYPE string DEFAULT 'sap-icon://question-mark'
-*        i_button_text_confirm TYPE string DEFAULT `OK`
-*        i_button_text_cancel  TYPE string DEFAULT `Cancel`
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range.
 
@@ -73,11 +60,6 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->ms_result-t_range = t_range.
-*    r_result->title = i_title.
-*    r_result->icon = i_icon.
-*    r_result->question_text = i_question_text.
-*    r_result->button_text_confirm = i_button_text_confirm.
-*    r_result->button_text_cancel = i_button_text_cancel.
 
   ENDMETHOD.
 
