@@ -16,10 +16,6 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
       END OF ty_s_filter_pop.
     DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH EMPTY KEY.
 
-    DATA mv_value       TYPE string.
-    DATA mv_value2      TYPE string.
-    DATA mt_token       TYPE z2ui5_cl_util_func=>ty_t_token.
-
     CLASS-METHODS factory
       IMPORTING
         t_range         TYPE z2ui5_cl_util_func=>ty_t_range  OPTIONAL
@@ -40,12 +36,6 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
   PROTECTED SECTION.
 
     DATA client TYPE REF TO z2ui5_if_client.
-
-    DATA title TYPE string.
-    DATA icon TYPE string.
-    DATA question_text TYPE string.
-    DATA button_text_confirm TYPE string.
-    DATA button_text_cancel TYPE string.
     DATA check_initialized TYPE abap_bool.
     DATA check_result_confirmed TYPE abap_bool.
     METHODS view_display.
