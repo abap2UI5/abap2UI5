@@ -92,7 +92,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       RAISING
         cx_xslt_serialization_error.
 
-    CLASS-METHODS boolean_check
+    CLASS-METHODS boolean_check_by_data
       IMPORTING
         !val          TYPE any
       RETURNING
@@ -205,6 +205,12 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS boolean_check_by_name
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -243,7 +249,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD boolean_abap_2_json.
 
-    IF boolean_check( val ).
+    IF boolean_check_by_data( val ).
       result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
     ELSE.
       result = val.
@@ -252,14 +258,11 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD boolean_check.
+  METHOD boolean_check_by_data.
 
     TRY.
         DATA(lv_type_name) = rtti_get_type_name( val ).
-        CASE lv_type_name.
-          WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
-            result = abap_true.
-        ENDCASE.
+        result = boolean_check_by_name( lv_type_name ).
       CATCH cx_root.
     ENDTRY.
 
@@ -619,10 +622,31 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize(
-        data = any
-        pretty_name = CONV #( pretty_name )
-        compress = compress ).
+    DATA lo_json TYPE REF TO z2ui5_cl_util_ui2_json.
+
+    CREATE OBJECT lo_json
+      EXPORTING
+        compress    = compress
+        pretty_name = pretty_name.
+*      name_mappings     = name_mappings
+*      assoc_arrays      = assoc_arrays
+*      assoc_arrays_opt  = assoc_arrays_opt
+*      expand_includes   = expand_includes
+*      numc_as_string   = numc_as_string
+*      conversion_exits  = conversion_exits
+*      ts_as_iso8601    = ts_as_iso8601.
+
+    result = lo_json->serialize_int( data = any ).
+
+*    result = z2ui5_cl_util_ui2_json=>serialize(
+*        data = any
+*        pretty_name = CONV #( pretty_name )
+*        compress = compress ).
+
+*    result = /ui2/cl_json=>serialize(
+*        data = any
+*        pretty_name = CONV #( pretty_name )
+*        compress = compress ).
 
   ENDMETHOD.
 
@@ -881,4 +905,14 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
+
+  METHOD boolean_check_by_name.
+
+    CASE val.
+      WHEN `ABAP_BOOL` OR `XSDBOOLEAN` OR 'FLAG' OR 'XFELD' OR 'ABAP_BOOLEAN'.
+        result = abap_true.
+    ENDCASE.
+
+  ENDMETHOD.
+
 ENDCLASS.
