@@ -909,7 +909,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   METHOD boolean_check_by_name.
 
     CASE val.
-      WHEN `ABAP_BOOL` OR `XSDBOOLEAN` OR 'FLAG' OR 'XFELD' OR 'ABAP_BOOLEAN'.
+      WHEN 'ABAP_BOOL' OR 'XSDBOOLEAN' OR 'FLAG' OR 'XFELD' OR 'ABAP_BOOLEAN'.
         result = abap_true.
     ENDCASE.
 

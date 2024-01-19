@@ -4,12 +4,6 @@ CLASS lcl_utility DEFINITION
 
   PUBLIC SECTION.
 
-  CLASS-METHODS boolean_abap_2_json
-      IMPORTING
-        val           TYPE any
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS factory
       IMPORTING
         client          TYPE REF TO z2ui5_if_client optional
@@ -161,16 +155,6 @@ CLASS lcl_utility IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root.
     ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD boolean_abap_2_json.
-
-    IF boolean_check( val ).
-      result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
-    ELSE.
-      result = val.
-    ENDIF.
 
   ENDMETHOD.
 

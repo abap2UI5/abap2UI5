@@ -381,8 +381,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
       ELSE.
 
-        IF lr_comp->type->absolute_name = '\TYPE=XSDBOOLEAN'
-        OR lr_comp->type->absolute_name = '\TYPE=ABAP_BOOL'.
+        DATA(lv_type_name) = substring_after( val = lr_comp->type->absolute_name sub = '\TYPE=').
+        IF z2ui5_cl_util_func=>boolean_check_by_name( lv_type_name ).
+*        IF lr_comp->type->absolute_name = '\TYPE=XSDBOOLEAN'
+*        OR lr_comp->type->absolute_name = '\TYPE=ABAP_BOOL'.
 
           DATA(ls_attri) = VALUE ty_s_attri(
                 name      = lv_element
