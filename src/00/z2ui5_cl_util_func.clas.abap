@@ -234,7 +234,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS get_range_t_by_token_t
       IMPORTING
-        VALUE(val)    TYPE ty_t_token
+        val           TYPE ty_t_token
       RETURNING
         VALUE(result) TYPE ty_t_range.
 
