@@ -500,7 +500,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     "ChartJS Configuration
     TYPES:
-      BEGIN OF ty_chart,
+      BEGIN OF ty_chart ##NEEDED,
         type    TYPE string,
 *        plugins TYPE string_table,
         data    TYPE ty_data,
