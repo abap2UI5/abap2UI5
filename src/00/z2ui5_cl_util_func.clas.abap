@@ -174,7 +174,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS c_trim
       IMPORTING
-        !val          TYPE clike
+        !val          TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
@@ -254,13 +254,19 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
 
+    CLASS-METHODS get_tab_filter_by_val
+      IMPORTING
+        val TYPE clike
+      CHANGING
+        tab TYPE STANDARD TABLE.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_func IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD app_get_url.
@@ -436,14 +442,6 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_range_t_by_token_t.
-
-    LOOP AT val INTO DATA(ls_token).
-      INSERT get_range_by_token( ls_token-text ) INTO TABLE result.
-    ENDLOOP.
-
-  ENDMETHOD.
-
   METHOD get_range_by_token.
 
     DATA(lv_length) = strlen( value ) - 1.
@@ -480,6 +478,37 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
         ENDIF.
 
     ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD get_range_t_by_token_t.
+
+    LOOP AT val INTO DATA(ls_token).
+      INSERT get_range_by_token( ls_token-text ) INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_tab_filter_by_val.
+
+    LOOP AT tab ASSIGNING FIELD-SYMBOL(<row>).
+      DATA(lv_row) = ``.
+      DATA(lv_index) = 1.
+      DO.
+        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        lv_row = lv_row && <field>.
+        lv_index = lv_index + 1.
+      ENDDO.
+
+      IF lv_row NS val.
+        DELETE tab.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
