@@ -357,6 +357,7 @@ public section.
   methods SHELL
     importing
       !NS type CLIKE optional
+      appWidthLimited type clike optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods BLOCKS
@@ -6300,7 +6301,9 @@ ENDMETHOD.
 
   METHOD shell.
     result = _generic( name = `Shell`
-                       ns   = ns ).
+                       ns   = ns
+                              t_prop = VALUE #( ( n = `appWidthLimited`  v = z2ui5_cl_util_func=>boolean_abap_2_json( appWidthLimited ) ) )
+                    ).
   ENDMETHOD.
 
 

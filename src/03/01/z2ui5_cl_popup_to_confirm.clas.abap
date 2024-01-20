@@ -10,7 +10,7 @@ CLASS z2ui5_cl_popup_to_confirm DEFINITION
     CLASS-METHODS factory
       IMPORTING
         i_question_text       TYPE string
-        i_title               TYPE string DEFAULT `Title`
+        i_title               TYPE string DEFAULT `Popup To Confirm`
         i_icon                TYPE string DEFAULT 'sap-icon://question-mark'
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
