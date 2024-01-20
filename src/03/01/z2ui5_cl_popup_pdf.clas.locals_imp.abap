@@ -4,15 +4,9 @@ CLASS lcl_utility DEFINITION
 
   PUBLIC SECTION.
 
-  CLASS-METHODS boolean_abap_2_json
-      IMPORTING
-        val           TYPE any
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS factory
       IMPORTING
-        client          TYPE REF TO z2ui5_if_client optional
+        client          TYPE REF TO z2ui5_if_client OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO lcl_utility.
 
@@ -22,9 +16,9 @@ CLASS lcl_utility DEFINITION
 
     METHODS app_get_url
       IMPORTING
-        classname TYPE string OPTIONAL
+        classname     TYPE string OPTIONAL
       RETURNING
-        VALUE(result)    TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS url_param_get
       IMPORTING
@@ -120,13 +114,7 @@ CLASS lcl_utility DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS boolean_check
-      IMPORTING
-        val           TYPE any
-      RETURNING
-        VALUE(result) TYPE abap_bool.
-
-            CLASS-METHODS rtti_get_type_name
+    CLASS-METHODS rtti_get_type_name
       IMPORTING
         val           TYPE any
       RETURNING
@@ -151,32 +139,9 @@ CLASS lcl_utility IMPLEMENTATION.
 
   ENDMETHOD.
 
- METHOD boolean_check.
-
-    TRY.
-        DATA(lv_type_name) = rtti_get_type_name( val ).
-        CASE lv_type_name.
-          WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
-            result = abap_true.
-        ENDCASE.
-      CATCH cx_root.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD boolean_abap_2_json.
-
-    IF boolean_check( val ).
-      result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
-    ELSE.
-      result = val.
-    ENDIF.
-
-  ENDMETHOD.
-
   METHOD factory.
 
-    r_result = new #( ).
+    r_result = NEW #( ).
     r_result->mi_client = client.
 
   ENDMETHOD.

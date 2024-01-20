@@ -4,6 +4,19 @@ CLASS z2ui5_cl_util_func DEFINITION
 
   PUBLIC SECTION.
 
+    TYPES:
+      BEGIN OF ty_s_token,
+        key      TYPE string,
+        text     TYPE string,
+        visible  TYPE abap_bool,
+        selkz    TYPE abap_bool,
+        editable TYPE abap_bool,
+      END OF ty_s_token.
+    TYPES ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
+
+    TYPES ty_t_range TYPE RANGE OF string.
+    TYPES ty_s_range TYPE LINE OF ty_t_range.
+
     CLASS-METHODS js_load_ext_lib
       RETURNING
         VALUE(result) TYPE string.
@@ -92,7 +105,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       RAISING
         cx_xslt_serialization_error.
 
-    CLASS-METHODS boolean_check
+    CLASS-METHODS boolean_check_by_data
       IMPORTING
         !val          TYPE any
       RETURNING
@@ -146,41 +159,49 @@ CLASS z2ui5_cl_util_func DEFINITION
       IMPORTING
         !rtti_data TYPE clike
       EXPORTING
-        !e_data    TYPE REF TO data .
+        !e_data    TYPE REF TO data.
+
     CLASS-METHODS time_get_timestampl
       RETURNING
-        VALUE(result) TYPE timestampl .
+        VALUE(result) TYPE timestampl.
+
     CLASS-METHODS time_substract_seconds
       IMPORTING
         !time         TYPE timestampl
         !seconds      TYPE i
       RETURNING
-        VALUE(result) TYPE timestampl .
+        VALUE(result) TYPE timestampl.
+
     CLASS-METHODS c_trim
       IMPORTING
         !val          TYPE clike
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS c_trim_lower
       IMPORTING
         !val          TYPE clike
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
+
     CLASS-METHODS url_param_get_tab
       IMPORTING
         !i_val           TYPE clike
       RETURNING
-        VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value .
+        VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
+
     CLASS-METHODS rtti_get_t_attri_by_object
       IMPORTING
         !val          TYPE REF TO object
       RETURNING
-        VALUE(result) TYPE abap_attrdescr_tab .
+        VALUE(result) TYPE abap_attrdescr_tab.
+
     CLASS-METHODS rtti_get_t_comp_by_data
       IMPORTING
         !val          TYPE any
       RETURNING
         VALUE(result) TYPE cl_abap_structdescr=>component_table.
+
     CLASS-METHODS rtti_get_type_name
       IMPORTING
         !val          TYPE any
@@ -204,6 +225,34 @@ CLASS z2ui5_cl_util_func DEFINITION
         !val          TYPE any
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS boolean_check_by_name
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS get_range_t_by_token_t
+      IMPORTING
+        val           TYPE ty_t_token
+      RETURNING
+        VALUE(result) TYPE ty_t_range.
+
+    CLASS-METHODS get_range_by_token
+      IMPORTING
+        VALUE(value)  TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_range.
+
+    CLASS-METHODS get_token_t_by_range_t
+      IMPORTING
+        val           TYPE ty_t_range
+      RETURNING
+        VALUE(result) TYPE ty_t_token.
+
+    CLASS-METHODS get_token_range_mapping
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -243,7 +292,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD boolean_abap_2_json.
 
-    IF boolean_check( val ).
+    IF boolean_check_by_data( val ).
       result = COND #( WHEN val = abap_true THEN `true` ELSE `false` ).
     ELSE.
       result = val.
@@ -252,16 +301,29 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD boolean_check.
+  METHOD boolean_check_by_data.
 
     TRY.
         DATA(lv_type_name) = rtti_get_type_name( val ).
-        CASE lv_type_name.
-          WHEN `ABAP_BOOL` OR `XSDBOOLEAN`.
-            result = abap_true.
-        ENDCASE.
+        result = boolean_check_by_name( lv_type_name ).
       CATCH cx_root.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD boolean_check_by_name.
+
+    CASE val.
+      WHEN 'ABAP_BOOL'
+      OR 'XSDBOOLEAN'
+      OR 'FLAG'
+      OR 'XFELD'
+      OR 'ABAP_BOOLEAN'
+      OR 'WDY_BOOLEAN'
+      OR 'OS_BOOLEAN'.
+        result = abap_true.
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -370,6 +432,89 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       CATCH cx_root.
         ASSERT 1 = 0.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD get_range_t_by_token_t.
+
+    LOOP AT val INTO DATA(ls_token).
+      INSERT get_range_by_token( ls_token-text ) INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD get_range_by_token.
+
+    DATA(lv_length) = strlen( value ) - 1.
+    CASE value(1).
+
+      WHEN `=`.
+        result = VALUE #(  option = `EQ` low = value+1 ).
+      WHEN `<`.
+        IF value+1(1) = `=`.
+          result = VALUE #(  option = `LE` low = value+2 ).
+        ELSE.
+          result = VALUE #(  option = `LT` low = value+1 ).
+        ENDIF.
+      WHEN `>`.
+        IF value+1(1) = `=`.
+          result = VALUE #(  option = `GE` low = value+2 ).
+        ELSE.
+          result = VALUE #(  option = `GT` low = value+1 ).
+        ENDIF.
+
+      WHEN `*`.
+        IF value+lv_length(1) = `*`.
+          SHIFT value RIGHT DELETING TRAILING `*`.
+          SHIFT value LEFT DELETING LEADING `*`.
+          result = VALUE #( sign = `I` option = `CP` low = value ).
+        ENDIF.
+
+      WHEN OTHERS.
+        IF value CP `...`.
+          SPLIT value AT `...` INTO result-low result-high.
+          result-option = `BT`.
+        ELSE.
+          result = VALUE #( sign = `I` option = `EQ` low = value ).
+        ENDIF.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD get_token_range_mapping.
+
+
+    result = VALUE #(
+(   n = `EQ`     v = `={LOW}`    )
+(   n = `LT`     v = `<{LOW}`   )
+(   n = `LE`     v = `<={LOW}`  )
+(   n = `GT`     v = `>{LOW}`   )
+(   n = `GE`     v = `>={LOW}`  )
+(   n = `CP`     v = `*{LOW}*`  )
+(   n = `BT`     v = `{LOW}...{HIGH}` )
+(   n = `NE`     v = `!(={LOW})`    )
+(   n = `NE`     v = `!(<leer>)`    )
+(   n = `<leer>` v = `<leer>`    )
+).
+
+  ENDMETHOD.
+
+
+  METHOD get_token_t_by_range_t.
+
+    DATA(lt_mapping) = get_token_range_mapping( ).
+
+    LOOP AT val REFERENCE INTO DATA(lr_row).
+
+      DATA(lv_value) = lt_mapping[ n = lr_row->option ]-v.
+      REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
+      REPLACE `{HIGH}` IN lv_value WITH lr_row->high.
+
+      INSERT VALUE #( key = lv_value text = lv_value visible = abap_true editable = abap_true ) INTO TABLE result.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -619,10 +764,11 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    result = /ui2/cl_json=>serialize(
-        data = any
-        pretty_name = CONV #( pretty_name )
-        compress = compress ).
+    DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
+        compress    = compress
+        pretty_name = pretty_name ).
+
+    result = lo_json->serialize_int( data = any ).
 
   ENDMETHOD.
 

@@ -148,25 +148,30 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
         WHEN OTHERS.
 
-          CASE lr_attri->type.
+          IF z2ui5_cl_util_func=>boolean_check_by_name( lr_attri->type ).
 
-            WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`.
+            lo_actual->add_attribute( n           = lr_attri->name_front
+                             v           = SWITCH #( <attribute> WHEN abap_true THEN `true` ELSE `false` )
+                             apos_active = abap_false ).
 
-              lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = SWITCH #( <attribute> WHEN abap_true THEN `true` ELSE `false` )
-                                        apos_active = abap_false ).
+          ELSE.
 
-            WHEN OTHERS.
+            lo_actual->add_attribute( n           = lr_attri->name_front
+                             v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
+                             apos_active = abap_false ).
 
-              lo_actual->add_attribute( n           = lr_attri->name_front
-                                        v           = z2ui5_cl_util_func=>trans_json_any_2( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
-                                        apos_active = abap_false ).
-          ENDCASE.
-      ENDCASE.
+          ENDIF.
 
-    ENDLOOP.
+*          CASE lr_attri->type.
+*            WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`
+*        WHEN OTHERS.
+*      ENDCASE.
 
-    result = lr_view_model->stringify( ).
+  ENDCASE.
 
-  ENDMETHOD.
+ENDLOOP.
+
+result = lr_view_model->stringify( ).
+
+ENDMETHOD.
 ENDCLASS.

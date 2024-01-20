@@ -258,20 +258,20 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_bool) = xsdbool( 1 = 1 ).
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check( lv_bool )
+        act                  = z2ui5_cl_util_func=>boolean_check_by_data( lv_bool )
         exp                  = abap_true ).
 
     lv_bool = xsdbool( 1 = 2 ).
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check( lv_bool )
+        act                  = z2ui5_cl_util_func=>boolean_check_by_data( lv_bool )
         exp                  = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check( abap_true )
+        act                  = z2ui5_cl_util_func=>boolean_check_by_data( abap_true )
         exp                  = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check( abap_false )
+        act                  = z2ui5_cl_util_func=>boolean_check_by_data( abap_false )
         exp                  = abap_true ).
 
   ENDMETHOD.
