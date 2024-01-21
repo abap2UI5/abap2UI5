@@ -271,6 +271,30 @@ CLASS z2ui5_cl_util_func DEFINITION
       CHANGING
         tab TYPE STANDARD TABLE.
 
+  CLASS-METHODS decode_x_base64
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE xstring.
+
+    CLASS-METHODS encode_x_base64
+      IMPORTING
+        val           TYPE xstring
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS get_string_by_xstring
+      IMPORTING
+        val           TYPE xstring
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS get_xstring_by_string
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE xstring.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -278,6 +302,122 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_func IMPLEMENTATION.
+
+  METHOD decode_x_base64.
+
+    TRY.
+
+        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>('DECODE_X_BASE64')
+          EXPORTING
+            encoded = val
+          RECEIVING
+            decoded = result.
+
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(classname) = 'CL_HTTP_UTILITY'.
+        CALL METHOD (classname)=>('DECODE_X_BASE64')
+          EXPORTING
+            encoded = val
+          RECEIVING
+            decoded = result.
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+
+  METHOD get_xstring_by_string.
+
+    DATA conv TYPE REF TO object.
+
+    TRY.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
+          RECEIVING
+            instance = conv.
+
+        CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
+        CALL METHOD (conv_out_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            data   = val
+          IMPORTING
+            buffer = result.
+    ENDTRY.
+
+
+
+*    result = cl_abap_conv_codepage=>create_out( )->convert( val ).
+
+  ENDMETHOD.
+
+  METHOD get_string_by_xstring.
+
+    DATA conv TYPE REF TO object.
+
+    TRY.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
+          RECEIVING
+            instance = conv.
+
+        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
+        CALL METHOD (conv_in_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            input = val
+          IMPORTING
+            data  = result.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD encode_x_base64.
+
+    TRY.
+
+        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>('ENCODE_X_BASE64')
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(classname) = 'CL_HTTP_UTILITY'.
+        CALL METHOD (classname)=>('ENCODE_X_BASE64')
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD get_sql_by_string.
 
