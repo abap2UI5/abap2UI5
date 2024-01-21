@@ -23,6 +23,13 @@ INTERFACE z2ui5_if_client
       popup   TYPE string VALUE `POPUP`,
     END OF cs_view.
 
+  CONSTANTS:
+    BEGIN OF cs_compress_mode,
+      standard TYPE string VALUE `STANDARD`,
+      full     TYPE string VALUE `FULL`,
+      none     TYPE string VALUE `NONE`,
+    END OF cs_compress_mode.
+
   TYPES:
     BEGIN OF ty_s_name_value,
       n TYPE string,
@@ -155,7 +162,7 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
       pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE abap_bool  DEFAULT abap_true
+      compress      TYPE clike     DEFAULT cs_compress_mode-standard
       tab           TYPE STANDARD TABLE  OPTIONAL
       tab_index     TYPE i          OPTIONAL
     RETURNING
@@ -167,7 +174,7 @@ INTERFACE z2ui5_if_client
       path          TYPE abap_bool  DEFAULT abap_false
       view          TYPE string     DEFAULT cs_view-main
       pretty_name   TYPE clike      DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE abap_bool  DEFAULT abap_true
+      compress      TYPE clike      DEFAULT cs_compress_mode-standard
       tab           TYPE STANDARD TABLE  OPTIONAL
       tab_index     TYPE i          OPTIONAL
     RETURNING
@@ -178,7 +185,7 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
       pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE abap_bool  DEFAULT abap_true
+      compress      TYPE clike     DEFAULT cs_compress_mode-standard
     RETURNING
       VALUE(result) TYPE string.
 

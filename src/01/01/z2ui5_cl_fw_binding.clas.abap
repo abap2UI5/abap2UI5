@@ -28,7 +28,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_temp      TYPE abap_bool,
         viewname        TYPE string,
         pretty_name     TYPE abap_bool,
-        compress        TYPE abap_bool,
+        compress        TYPE string,
         depth           TYPE i,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
@@ -42,7 +42,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_attri     TYPE data           OPTIONAL
         view            TYPE clike          OPTIONAL
         pretty_name     TYPE clike          OPTIONAL
-        compress        TYPE abap_bool      OPTIONAL
+        compress        TYPE clike          OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -57,7 +57,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_check_attri TYPE abap_bool.
     DATA mv_view TYPE string.
     DATA mv_pretty_name TYPE string.
-    DATA mv_compress TYPE abap_bool.
+    DATA mv_compress TYPE string.
 
     CLASS-METHODS update_attri
       IMPORTING

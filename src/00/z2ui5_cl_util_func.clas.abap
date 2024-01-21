@@ -87,7 +87,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       IMPORTING
         !any          TYPE any
         !pretty_name  TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
-        !compress     TYPE abap_bool DEFAULT abap_true
+        !compress     TYPE clike DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
@@ -266,7 +266,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
+CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
 
   METHOD app_get_url.
@@ -793,11 +793,31 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
   METHOD trans_json_any_2.
 
-    DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
-        compress    = compress
+    CASE compress.
+
+      WHEN z2ui5_if_client=>cs_compress_mode-full.
+
+        result = /ui2/cl_json=>serialize(
+          data             = any
+          compress         = abap_true
+          pretty_name      = pretty_name ).
+
+      WHEN z2ui5_if_client=>cs_compress_mode-none.
+
+        result = /ui2/cl_json=>serialize(
+         data             = any
+         compress         = abap_false
+         pretty_name      = pretty_name ).
+
+      WHEN OTHERS.
+
+        DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
+        compress    = abap_true
         pretty_name = pretty_name ).
 
-    result = lo_json->serialize_int( data = any ).
+        result = lo_json->serialize_int( any ).
+
+    ENDCASE.
 
   ENDMETHOD.
 
