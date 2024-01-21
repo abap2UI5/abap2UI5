@@ -346,7 +346,8 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       WHEN 'ABAP_BOOL'
       OR 'XSDBOOLEAN'
       OR 'FLAG'
-*      OR 'XFELD'
+      OR 'XFLAG'
+      OR 'XFELD'
       OR 'ABAP_BOOLEAN'
       OR 'WDY_BOOLEAN'
       OR 'OS_BOOLEAN'.

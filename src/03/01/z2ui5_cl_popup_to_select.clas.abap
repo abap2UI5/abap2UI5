@@ -189,7 +189,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     LOOP AT <tab> ASSIGNING <row_selected>.
 
-      ASSIGN ('<row>-ZZSELKZ') TO <selkz>.
+      ASSIGN ('<ROW_SELECTED>-ZZSELKZ') TO <selkz>.
       IF <selkz> = abap_false.
         CONTINUE.
       ENDIF.
@@ -199,13 +199,14 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
       IF check_table_line = abap_true.
         FIELD-SYMBOLS <table_line_selected> TYPE any.
-        ASSIGN ('<ROW>-TAB_LINE') TO <table_line_selected>.
+        ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
         <row_result> = <table_line_selected>.
       ELSE.
         <row_result> = CORRESPONDING #( <row_selected> ).
       ENDIF.
       EXIT.
     ENDLOOP.
+
     client->popup_destroy( ).
     client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
