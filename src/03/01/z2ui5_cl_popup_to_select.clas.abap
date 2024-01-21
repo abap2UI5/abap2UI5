@@ -8,7 +8,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        i_tab           TYPE data
+        i_tab           TYPE STANDARD TABLE
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_to_select.
 
@@ -48,6 +48,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     r_result = NEW #( ).
     CREATE DATA r_result->mr_tab LIKE i_tab.
+    CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
     FIELD-SYMBOLS <tab> TYPE any.
     ASSIGN r_result->mr_tab->* TO <tab>.
     <tab> = i_tab.
@@ -182,26 +183,27 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
   METHOD on_event_confirm.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row> TYPE any.
-    FIELD-SYMBOLS <field> TYPE any.
+    FIELD-SYMBOLS <row_selected> TYPE any.
+    FIELD-SYMBOLS <selkz> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab>.
-    LOOP AT <tab> ASSIGNING <row>.
-      ASSIGN ('<row>-ZZSELKZ') TO <field>.
-      IF <field> = abap_false.
+
+    LOOP AT <tab> ASSIGNING <row_selected>.
+
+      ASSIGN ('<row>-ZZSELKZ') TO <selkz>.
+      IF <selkz> = abap_false.
         CONTINUE.
       ENDIF.
-      FIELD-SYMBOLS <tab3> TYPE STANDARD TABLE.
-      ASSIGN mr_tab->* TO <tab3>.
-      FIELD-SYMBOLS <row3> TYPE any.
-      FIELD-SYMBOLS <field2> TYPE any.
-*      CREATE DATA ms_result-row LIKE LINE OF <tab3>.
-*      ASSIGN ms_result-row->* TO <row3>.
-*      IF check_table_line = abap_true.
-*        ASSIGN ('<ROW>-TAB_LINE') TO <field2>.
-*        <row3> = <field2>.
-*      ELSE.
-*        <row3> = CORRESPONDING #( <row> ).
-*      ENDIF.
+
+      FIELD-SYMBOLS <row_result> TYPE any.
+      ASSIGN ms_result-row->* TO <row_result>.
+
+      IF check_table_line = abap_true.
+        FIELD-SYMBOLS <table_line_selected> TYPE any.
+        ASSIGN ('<ROW>-TAB_LINE') TO <table_line_selected>.
+        <row_result> = <table_line_selected>.
+      ELSE.
+        <row_result> = CORRESPONDING #( <row_selected> ).
+      ENDIF.
       EXIT.
     ENDLOOP.
     client->popup_destroy( ).
