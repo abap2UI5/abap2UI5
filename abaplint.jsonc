@@ -24,7 +24,14 @@
     "align_parameters": false,
     "smim_consistency": true,
     "allowed_object_naming": true,
-    "allowed_object_types": true,
+    "allowed_object_types": {
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "INTF",
+        "TRAN",
+      ]
+    },
     "ambiguous_statement": true,
     "avoid_use": false,
     "begin_end_names": true,
