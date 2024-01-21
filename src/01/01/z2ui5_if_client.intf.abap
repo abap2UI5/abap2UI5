@@ -133,11 +133,15 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_app_leave
     IMPORTING
-      app TYPE REF TO z2ui5_if_app.
+      app           TYPE REF TO z2ui5_if_app
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS nav_app_call
     IMPORTING
-      app TYPE REF TO z2ui5_if_app.
+      app           TYPE REF TO z2ui5_if_app
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS message_box_display
     IMPORTING
