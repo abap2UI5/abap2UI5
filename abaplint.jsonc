@@ -310,7 +310,8 @@
         "^sylangu$",
         "^syst_title$",
         "^syuzeit$",
-        "^xubname$"
+        "^xubname$",
+        "xfeld",
       ]
     },
   }
