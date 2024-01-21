@@ -194,14 +194,14 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
       ASSIGN mr_tab->* TO <tab3>.
       FIELD-SYMBOLS <row3> TYPE any.
       FIELD-SYMBOLS <field2> TYPE any.
-      CREATE DATA ms_result-row LIKE LINE OF <tab3>.
-      ASSIGN ms_result-row->* TO <row3>.
-      IF check_table_line = abap_true.
-        ASSIGN ('<ROW>-TAB_LINE') TO <field2>.
-        <row3> = <field2>.
-      ELSE.
-        <row3> = CORRESPONDING #( <row> ).
-      ENDIF.
+*      CREATE DATA ms_result-row LIKE LINE OF <tab3>.
+*      ASSIGN ms_result-row->* TO <row3>.
+*      IF check_table_line = abap_true.
+*        ASSIGN ('<ROW>-TAB_LINE') TO <field2>.
+*        <row3> = <field2>.
+*      ELSE.
+*        <row3> = CORRESPONDING #( <row> ).
+*      ENDIF.
       EXIT.
     ENDLOOP.
     client->popup_destroy( ).
