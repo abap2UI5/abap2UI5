@@ -52,8 +52,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         border_color      TYPE string,
         border_radius     TYPE i,
         border_width      TYPE i,
-        clamp             TYPE abap_bool,
-        clip              TYPE abap_bool,
+        clamp             TYPE xfeld,
+        clip              TYPE xfeld,
         color             TYPE string,
         display           TYPE abap_bool,
         font              TYPE ty_font,
@@ -90,19 +90,19 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         border_width       TYPE i,
         border_color       TYPE string,
         border_radius      TYPE i,
-        border_skipped     TYPE abap_bool,
-        show_line          TYPE abap_bool,
+        border_skipped     TYPE xfeld,
+        show_line          TYPE xfeld,
         background_color_t TYPE ty_bg_color,
         background_color   TYPE string,
         hover_offset       TYPE i,
         order              TYPE i,
         fill               TYPE string,
-        hidden             TYPE abap_bool,
+        hidden             TYPE xfeld,
         point_style        TYPE string,
         point_border_color TYPE string,
         point_radius       TYPE i,
         point_hover_radius TYPE i,
-        rtl                TYPE abap_bool,
+        rtl                TYPE xfeld,
         datalabels         TYPE ty_datalabels,
       END OF ty_dataset.
 
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_autocolors_plugin,
-        enabled TYPE abap_bool,
+        enabled TYPE xfeld,
         mode    TYPE string,
         offset  TYPE i,
         repeat  TYPE i,
@@ -131,10 +131,10 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_title,
         text      TYPE string,
-        display   TYPE abap_bool,
+        display   TYPE xfeld,
         align     TYPE string,
         color     TYPE string,
-        full_size TYPE abap_bool,
+        full_size TYPE xfeld,
         position  TYPE string,
         font      TYPE ty_font,
         padding   TYPE ty_padding,
@@ -144,7 +144,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       BEGIN OF ty_labels,
         box_width         TYPE i,
         box_height        TYPE i,
-        color             TYPE abap_bool,
+        color             TYPE xfeld,
         font              TYPE ty_font,
         padding           TYPE i,
         generate_labels   TYPE string,
@@ -152,9 +152,9 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         sort              TYPE string,
         point_style       TYPE string,
         text_align        TYPE string,
-        use_point_style   TYPE abap_bool,
+        use_point_style   TYPE xfeld,
         point_style_width TYPE i,
-        use_border_radius TYPE abap_bool,
+        use_border_radius TYPE xfeld,
         border_radius     TYPE i,
       END OF ty_labels .
 
@@ -162,16 +162,16 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       BEGIN OF ty_legend,
         position       TYPE string,
         align          TYPE string,
-        display        TYPE abap_bool,
+        display        TYPE xfeld,
         max_height     TYPE i,
         max_width      TYPE i,
         full_size      TYPE i,
         on_click       TYPE string,
         on_hover       TYPE string,
         on_leave       TYPE string,
-        reverse        TYPE abap_bool,
+        reverse        TYPE xfeld,
         labels         TYPE ty_labels,
-        rtl            TYPE abap_bool,
+        rtl            TYPE xfeld,
         text_direction TYPE string,
         title          TYPE ty_title,
       END OF ty_legend .
@@ -179,7 +179,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_subtitle,
         text    TYPE string,
-        display TYPE abap_bool,
+        display TYPE xfeld,
         color   TYPE string,
         font    TYPE ty_font,
         padding TYPE ty_padding,
@@ -207,11 +207,11 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       BEGIN OF ty_tooltip,
         callbacks           TYPE ty_callback,
         mode                TYPE string,
-        intersect           TYPE abap_bool,
-        use_point_style     TYPE abap_bool,
-        enabled             TYPE abap_bool,
-        display_colors      TYPE abap_bool,
-        rtl                 TYPE abap_bool,
+        intersect           TYPE xfeld,
+        use_point_style     TYPE xfeld,
+        enabled             TYPE xfeld,
+        display_colors      TYPE xfeld,
+        rtl                 TYPE xfeld,
         external            TYPE string,
         position            TYPE string,
         item_sort           TYPE string,
@@ -248,7 +248,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_filler,
-        propagate TYPE abap_bool,
+        propagate TYPE xfeld,
       END OF ty_filler .
 
     TYPES:
@@ -273,8 +273,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_point_label,
-        display             TYPE abap_bool,
-        center_point_labels TYPE abap_bool,
+        display             TYPE xfeld,
+        center_point_labels TYPE xfeld,
         font                TYPE ty_font,
         backdrop_color      TYPE string,
         backdrop_padding    TYPE ty_padding,
@@ -291,9 +291,9 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         align               TYPE string,
         cross_align         TYPE string,
         sample_size         TYPE i,
-        auto_skip           TYPE abap_bool,
-        include_bounds      TYPE abap_bool,
-        mirror              TYPE abap_bool,
+        auto_skip           TYPE xfeld,
+        include_bounds      TYPE xfeld,
+        mirror              TYPE xfeld,
         auto_skip_padding   TYPE i,
         label_offset        TYPE i,
         max_rotation        TYPE i,
@@ -303,8 +303,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         backdrop_color      TYPE string,
         backdrop_padding    TYPE ty_padding,
         callback            TYPE string,
-        display             TYPE abap_bool,
-        show_label_backdrop TYPE abap_bool,
+        display             TYPE xfeld,
+        show_label_backdrop TYPE xfeld,
         text_stroke_color   TYPE string,
         font                TYPE ty_font,
         text_stroke_width   TYPE i,
@@ -315,7 +315,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_border,
         color       TYPE string,
-        display     TYPE abap_bool,
+        display     TYPE xfeld,
         width       TYPE i,
         dash        TYPE i,
         dash_offset TYPE i,
@@ -329,11 +329,11 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         tick_color              TYPE string,
         border_dash             TYPE string,
         border_dash_offset      TYPE p LENGTH 3 DECIMALS 2,
-        circular                TYPE abap_bool,
+        circular                TYPE xfeld,
         line_width              TYPE i,
-        draw_on_chart_area      TYPE abap_bool,
-        draw_ticks              TYPE abap_bool,
-        offset                  TYPE abap_bool,
+        draw_on_chart_area      TYPE xfeld,
+        draw_ticks              TYPE xfeld,
+        offset                  TYPE xfeld,
         tick_border_dash        TYPE i,
         tick_border_dash_offset TYPE i,
         tick_length             TYPE i,
@@ -345,7 +345,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
       BEGIN OF ty_angle_lines,
         color              TYPE string,
         border_color       TYPE string,
-        display            TYPE abap_bool,
+        display            TYPE xfeld,
         line_width         TYPE i,
         border_dash        TYPE i,
         border_dash_offset TYPE i,
@@ -353,14 +353,14 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_scale,
-        begin_at_zero    TYPE abap_bool,
+        begin_at_zero    TYPE xfeld,
         min              TYPE string,
         max              TYPE string,
         point_labels     TYPE ty_point_label,
-        stacked          TYPE abap_bool,
-        reverse          TYPE abap_bool,
-        align_to_pixels  TYPE abap_bool,
-        clip             TYPE abap_bool,
+        stacked          TYPE xfeld,
+        reverse          TYPE xfeld,
+        align_to_pixels  TYPE xfeld,
+        clip             TYPE xfeld,
         bounds           TYPE string,
         background_color TYPE string,
         type             TYPE string,
@@ -374,7 +374,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         ticks            TYPE ty_ticks,
         border           TYPE ty_border,
         grid             TYPE ty_grid,
-        offset           TYPE abap_bool,
+        offset           TYPE xfeld,
         axis             TYPE string,
         labels           TYPE string_table,
         angle_lines      TYPE ty_angle_lines,
@@ -391,8 +391,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_interaction,
         mode              TYPE string,
-        intersect         TYPE abap_bool,
-        include_invisible TYPE abap_bool,
+        intersect         TYPE xfeld,
+        include_invisible TYPE xfeld,
         axis              TYPE string,
       END OF ty_interaction .
 
@@ -402,7 +402,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         easing   TYPE string,
         from     TYPE i,
         to       TYPE i,
-        loop     TYPE abap_bool,
+        loop     TYPE xfeld,
       END OF ty_tension .
 
     TYPES:
@@ -413,12 +413,12 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_hover,
         mode     TYPE string,
-        intersec TYPE abap_bool,
+        intersec TYPE xfeld,
       END OF ty_hover .
 
     TYPES:
       BEGIN OF ty_layout,
-        auto_padding TYPE abap_bool,
+        auto_padding TYPE xfeld,
         padding      TYPE ty_padding,
       END OF ty_layout .
 
@@ -445,8 +445,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         border_dash_offset       TYPE i,
         border_join_style        TYPE string,
         cubic_interpolation_mode TYPE string,
-        cap_bezier_points        TYPE abap_bool,
-        stepped                  TYPE abap_bool,
+        cap_bezier_points        TYPE xfeld,
+        stepped                  TYPE xfeld,
         background_color         TYPE string,
         border_color             TYPE string,
       END OF ty_line .
@@ -471,7 +471,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         border_dash        TYPE i,
         border_dash_offset TYPE i,
         border_join_style  TYPE string,
-        circular           TYPE abap_bool,
+        circular           TYPE xfeld,
         angle              TYPE i,
       END OF ty_arc.
 
@@ -487,7 +487,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
     TYPES:
       BEGIN OF ty_options,
         scales      TYPE ty_scales,
-        responsive  TYPE abap_bool,
+        responsive  TYPE xfeld,
         plugins     TYPE ty_plugins,
         hover       TYPE ty_hover,
         interaction TYPE ty_interaction,
@@ -530,11 +530,11 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         VALUE(result) TYPE string .
     CLASS-METHODS load_js
       IMPORTING
-        datalabels    TYPE abap_bool DEFAULT abap_false
-        autocolors    TYPE abap_bool DEFAULT abap_false
-        deferred      TYPE abap_bool DEFAULT abap_false
-        venn          TYPE abap_bool DEFAULT abap_false
-        wordcloud     TYPE abap_bool DEFAULT abap_false
+        datalabels    TYPE xfeld DEFAULT abap_false
+        autocolors    TYPE xfeld DEFAULT abap_false
+        deferred      TYPE xfeld DEFAULT abap_false
+        venn          TYPE xfeld DEFAULT abap_false
+        wordcloud     TYPE xfeld DEFAULT abap_false
       RETURNING
         VALUE(result) TYPE string .
     CLASS-METHODS load_cc
@@ -683,7 +683,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     IF datalabels = abap_true.
       result = result && `libs.push("` && get_js_datalabels( ) && `");` && |\n|.
-      IF lv_libs IS INITIAL.
+      IF lv_libs = ` `.
         lv_libs = lv_libs && `ChartDataLabels`.
       ELSE.
         lv_libs = lv_libs && `,` && `ChartDataLabels`.
@@ -691,7 +691,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     ENDIF.
     IF autocolors = abap_true.
       result = result && `libs.push("` && get_js_autocolors( ) && `");` && |\n|.
-      IF lv_libs IS INITIAL.
+      IF lv_libs = ` `.
         lv_libs = lv_libs && `sap.z2ui5.autocolors `.
       ELSE.
         lv_libs = lv_libs && `,` && `sap.z2ui5.autocolors `.
@@ -699,7 +699,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     ENDIF.
     IF deferred = abap_true.
       result = result && `libs.push("` && get_js_deferred( ) && `");` && |\n|.
-      IF lv_libs IS INITIAL.
+      IF lv_libs = ` `.
         lv_libs = lv_libs && `sap.z2ui5.ChartDeferred`.
       ELSE.
         lv_libs = lv_libs && `,` && `sap.z2ui5.ChartDeferred`.
