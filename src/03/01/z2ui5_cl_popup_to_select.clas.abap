@@ -186,7 +186,6 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <field> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab>.
     LOOP AT <tab> ASSIGNING <row>.
-      DATA(lv_tabix) = sy-tabix.
       ASSIGN ('<row>-ZZSELKZ') TO <field>.
       IF <field> = abap_false.
         CONTINUE.
