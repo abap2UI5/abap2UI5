@@ -100,7 +100,6 @@
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false
     },
-    "forbidden_void_type": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
       "checkData": true
@@ -258,7 +257,7 @@
     "when_others_last": true,
     "whitespace_end": true,
     "xml_consistency": true,
- "forbidden_void_type": {
+    "forbidden_void_type": {
       "check": [
         "^boole_d$",
         "^char10$",
