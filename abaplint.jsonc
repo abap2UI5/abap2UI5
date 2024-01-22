@@ -317,7 +317,7 @@
         "^syst_title$",
         "^syuzeit$",
         "^xubname$",
-        "xfeld",
+        "^xfeld$",
       ]
     },
   }
