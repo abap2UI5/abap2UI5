@@ -132,50 +132,50 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD set_output_table.
 
-    FIELD-SYMBOLS <row> TYPE any.
-    FIELD-SYMBOLS <row2> TYPE any.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    ASSIGN mr_tab->* TO <tab>.
-
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
-    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
-    TRY.
-        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
-        DATA(lt_comp) = lo_struct->get_components( ).
-      CATCH cx_root.
-        check_table_line = abap_true.
-        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
-        INSERT VALUE #( name = 'TAB_LINE' type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
-    ENDTRY.
-    DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
-    INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
-
-    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
-    DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
-
-    CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
-    CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
-
-    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <field> TYPE any.
-    ASSIGN mr_tab_popup->* TO <tab_out>.
-    ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
-    LOOP AT <tab> ASSIGNING <row>.
-      DATA lr_row TYPE REF TO data.
-      CREATE DATA lr_row LIKE LINE OF <tab_out>.
-      ASSIGN lr_row->* TO <row2>.
-      IF check_table_line = abap_true.
-        ASSIGN lr_row->('TAB_LINE') TO <field>.
-        <field> = <row>.
-      ELSE.
-        <row2> = CORRESPONDING #( <row> ).
-      ENDIF.
-      INSERT <row2> INTO TABLE <tab_out>.
-
-    ENDLOOP.
-
-    <tab_out2> = <tab_out>.
+*    FIELD-SYMBOLS <row> TYPE any.
+*    FIELD-SYMBOLS <row2> TYPE any.
+*    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+*    ASSIGN mr_tab->* TO <tab>.
+*
+*    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
+*    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
+*    TRY.
+*        DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
+*        DATA(lt_comp) = lo_struct->get_components( ).
+*      CATCH cx_root.
+*        check_table_line = abap_true.
+*        DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
+*        INSERT VALUE #( name = 'TAB_LINE' type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
+*    ENDTRY.
+*    DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
+*    INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+*
+*    DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
+*    DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
+*
+*    CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
+*    CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
+*
+*    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
+*    FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
+*    FIELD-SYMBOLS <field> TYPE any.
+*    ASSIGN mr_tab_popup->* TO <tab_out>.
+*    ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
+*    LOOP AT <tab> ASSIGNING <row>.
+*      DATA lr_row TYPE REF TO data.
+*      CREATE DATA lr_row LIKE LINE OF <tab_out>.
+*      ASSIGN lr_row->* TO <row2>.
+*      IF check_table_line = abap_true.
+*        ASSIGN lr_row->('TAB_LINE') TO <field>.
+*        <field> = <row>.
+*      ELSE.
+*        <row2> = CORRESPONDING #( <row> ).
+*      ENDIF.
+*      INSERT <row2> INTO TABLE <tab_out>.
+*
+*    ENDLOOP.
+*
+*    <tab_out2> = <tab_out>.
 
   ENDMETHOD.
 
