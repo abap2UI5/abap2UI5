@@ -14,7 +14,8 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        row          TYPE REF TO data,
+*        row          TYPE ref to data,
+        row          TYPE string,
         check_cancel TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
