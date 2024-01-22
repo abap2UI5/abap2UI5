@@ -317,7 +317,8 @@
         "^syst_title$",
         "^syuzeit$",
         "^xubname$",
-        "^xfeld$",
+        "^feld$",
+        "^abap_boolean$",
       ]
     },
   }
