@@ -29,7 +29,7 @@
         "CLAS",
         "DEVC",
         "INTF",
-        "TRAN",
+        "TABL",
       ]
     },
     "ambiguous_statement": true,
