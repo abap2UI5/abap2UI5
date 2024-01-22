@@ -15,7 +15,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     TYPES:
       BEGIN OF ty_s_result,
         row          TYPE REF TO data,
-        check_cancel TYPE xflag,
+        check_cancel TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
@@ -46,12 +46,12 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD factory.
 
-    r_result = NEW #( ).
-    CREATE DATA r_result->mr_tab LIKE i_tab.
-    CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
-    FIELD-SYMBOLS <tab> TYPE any.
-    ASSIGN r_result->mr_tab->* TO <tab>.
-    <tab> = i_tab.
+*    r_result = NEW #( ).
+*    CREATE DATA r_result->mr_tab LIKE i_tab.
+*    CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
+*    FIELD-SYMBOLS <tab> TYPE any.
+*    ASSIGN r_result->mr_tab->* TO <tab>.
+*    <tab> = i_tab.
 
   ENDMETHOD.
 
