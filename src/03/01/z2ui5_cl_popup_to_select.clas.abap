@@ -182,33 +182,33 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD on_event_confirm.
 
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <row_selected> TYPE any.
-    FIELD-SYMBOLS <selkz> TYPE any.
-    ASSIGN mr_tab_popup->* TO <tab>.
-
-    LOOP AT <tab> ASSIGNING <row_selected>.
-
-      ASSIGN ('<ROW_SELECTED>-ZZSELKZ') TO <selkz>.
-      IF <selkz> = abap_false.
-        CONTINUE.
-      ENDIF.
-
-      FIELD-SYMBOLS <row_result> TYPE any.
-      ASSIGN ms_result-row->* TO <row_result>.
-
-      IF check_table_line = abap_true.
-        FIELD-SYMBOLS <table_line_selected> TYPE any.
-        ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
-        <row_result> = <table_line_selected>.
-      ELSE.
-        <row_result> = CORRESPONDING #( <row_selected> ).
-      ENDIF.
-      EXIT.
-    ENDLOOP.
-
-    client->popup_destroy( ).
-    client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+*    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+*    FIELD-SYMBOLS <row_selected> TYPE any.
+*    FIELD-SYMBOLS <selkz> TYPE any.
+*    ASSIGN mr_tab_popup->* TO <tab>.
+*
+*    LOOP AT <tab> ASSIGNING <row_selected>.
+*
+*      ASSIGN ('<ROW_SELECTED>-ZZSELKZ') TO <selkz>.
+*      IF <selkz> = abap_false.
+*        CONTINUE.
+*      ENDIF.
+*
+*      FIELD-SYMBOLS <row_result> TYPE any.
+*      ASSIGN ms_result-row->* TO <row_result>.
+*
+*      IF check_table_line = abap_true.
+*        FIELD-SYMBOLS <table_line_selected> TYPE any.
+*        ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
+*        <row_result> = <table_line_selected>.
+*      ELSE.
+*        <row_result> = CORRESPONDING #( <row_selected> ).
+*      ENDIF.
+*      EXIT.
+*    ENDLOOP.
+*
+*    client->popup_destroy( ).
+*    client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
   ENDMETHOD.
 
