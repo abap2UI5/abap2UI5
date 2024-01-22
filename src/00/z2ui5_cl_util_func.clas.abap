@@ -64,7 +64,7 @@ CLASS z2ui5_cl_util_func DEFINITION
     CLASS-METHODS x_check_raise
       IMPORTING
         !v    TYPE clike DEFAULT `CX_SY_SUBRC`
-        !when TYPE xfeld.
+        !when TYPE abap_bool.
 
     CLASS-METHODS x_raise
       IMPORTING
