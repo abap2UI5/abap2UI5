@@ -18,6 +18,14 @@ CLASS z2ui5_cl_util_func DEFINITION
     TYPES ty_s_range TYPE LINE OF ty_t_range.
 
     TYPES:
+      BEGIN OF ty_s_sql_multi,
+        name    TYPE string,
+        t_range TYPE ty_t_range,
+        t_token type ty_T_token,
+      END OF ty_s_sql_multi.
+    TYPES ty_t_sql_multi TYPE STANDARD TABLE OF ty_s_sql_multi WITH EMPTY KEY.
+
+    TYPES:
       BEGIN OF ty_s_sql_result,
         table TYPE string,
       END OF ty_s_sql_result.
@@ -271,7 +279,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       CHANGING
         tab TYPE STANDARD TABLE.
 
-  CLASS-METHODS decode_x_base64
+    CLASS-METHODS decode_x_base64
       IMPORTING
         val           TYPE string
       RETURNING
@@ -294,6 +302,24 @@ CLASS z2ui5_cl_util_func DEFINITION
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
+
+    CLASS-METHODS time_get_time_by_stampl
+      IMPORTING
+        val           TYPE z2ui5_sql_t_01-timestampl
+      RETURNING
+        VALUE(result) TYPE t.
+
+    CLASS-METHODS time_get_date_by_stampl
+      IMPORTING
+        val           TYPE z2ui5_sql_t_01-timestampl
+      RETURNING
+        VALUE(result) TYPE d.
+
+    CLASS-METHODS copy_ref_data_to_ref_data
+      IMPORTING
+        from          TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO data.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -859,12 +885,22 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD rtti_get_t_comp_by_data.
 
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( val ).
     TRY.
-        DATA(lo_tab) = CAST cl_abap_tabledescr( lo_type ).
-        DATA(lo_struct) = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+        DATA(lo_type) = cl_abap_typedescr=>describe_by_data( val ).
+        DATA(lo_struct) = CAST cl_abap_structdescr( lo_type ).
       CATCH cx_root.
-        lo_struct = CAST cl_abap_structdescr( lo_type ).
+        TRY.
+            DATA(lo_tab) = CAST cl_abap_tabledescr( lo_type ).
+            lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+          CATCH cx_root.
+            TRY.
+                DATA(lo_ref) = cl_abap_typedescr=>describe_by_data_ref( val ).
+                lo_struct = CAST cl_abap_structdescr( lo_ref ).
+              CATCH cx_root.
+                lo_tab = CAST cl_abap_tabledescr( lo_ref ).
+                lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+            ENDTRY.
+        ENDTRY.
     ENDTRY.
 
     result = lo_struct->get_components( ).
@@ -1239,4 +1275,31 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
+
+  METHOD time_get_date_by_stampl.
+
+    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE result TIME DATA(lv_dummy).
+
+  ENDMETHOD.
+
+  METHOD time_get_time_by_stampl.
+
+    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
+
+  ENDMETHOD.
+
+
+  METHOD copy_ref_data_to_ref_data.
+
+    FIELD-SYMBOLS <from> TYPE data.
+    FIELD-SYMBOLS <result> TYPE data.
+
+    ASSIGN from->* TO <from>.
+    CREATE DATA result LIKE <from>.
+    ASSIGN result->* TO <result>.
+
+    <result> = <from>.
+
+  ENDMETHOD.
+
 ENDCLASS.

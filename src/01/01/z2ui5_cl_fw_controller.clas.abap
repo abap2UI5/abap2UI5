@@ -329,12 +329,12 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     result = app_next_factory( ms_next-o_app_leave ).
 
-*    TRY.
+    TRY.
         DATA(ls_draft) = z2ui5_cl_fw_db=>read( id = result->ms_db-id check_load_app = abap_false ).
         result->ms_db-id_prev_app_stack = ls_draft-id_prev_app_stack.
-*      CATCH cx_root.
-*        result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
-*    ENDTRY.
+      CATCH cx_root.
+        result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
+    ENDTRY.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
