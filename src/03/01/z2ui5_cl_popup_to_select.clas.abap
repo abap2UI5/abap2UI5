@@ -15,7 +15,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     TYPES:
       BEGIN OF ty_s_result,
         row          TYPE REF TO data,
-        check_cancel TYPE xfeld,
+        check_cancel TYPE xflag,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
