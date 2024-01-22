@@ -24,7 +24,14 @@
     "align_parameters": false,
     "smim_consistency": true,
     "allowed_object_naming": true,
-    "allowed_object_types": true,
+    "allowed_object_types": {
+      "allowed": [
+        "CLAS",
+        "DEVC",
+        "INTF",
+        "TABL",
+      ]
+    },
     "ambiguous_statement": true,
     "avoid_use": false,
     "begin_end_names": true,
@@ -100,7 +107,6 @@
       "ignoreGlobalClassDefinition": false,
       "ignoreGlobalInterface": false
     },
-    "forbidden_void_type": true,
     "form_tables_obsolete": true,
     "fully_type_constants": {
       "checkData": true
@@ -258,7 +264,7 @@
     "when_others_last": true,
     "whitespace_end": true,
     "xml_consistency": true,
- "forbidden_void_type": {
+    "forbidden_void_type": {
       "check": [
         "^boole_d$",
         "^char10$",
@@ -310,7 +316,8 @@
         "^sylangu$",
         "^syst_title$",
         "^syuzeit$",
-        "^xubname$"
+        "^xubname$",
+        "xfeld",
       ]
     },
   }
