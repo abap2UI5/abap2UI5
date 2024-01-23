@@ -16,8 +16,10 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
     DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH EMPTY KEY.
 
     CLASS-METHODS factory
-      IMPORTING data            TYPE REF TO data
-      RETURNING VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
+      IMPORTING
+        val             TYPE z2ui5_cl_util_func=>ty_t_sql_multi
+      RETURNING
+        VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
 
     TYPES:
       BEGIN OF ty_s_result,
@@ -47,12 +49,14 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
 
   METHOD factory.
     r_result = NEW #( ).
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( data ).
 
-    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
-      INSERT VALUE #( name    = lr_comp->name
-        ) INTO TABLE r_result->ms_result-t_sql.
-    ENDLOOP.
+    r_result->ms_result-t_sql = val.
+*    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( data ).
+
+*    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+*      INSERT VALUE #( name    = lr_comp->name
+*        ) INTO TABLE r_result->ms_result-t_sql.
+*    ENDLOOP.
   ENDMETHOD.
 
   METHOD result.
@@ -79,6 +83,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
     grid->label( `{NAME}` ).
 
     grid->multi_input( tokens = `{T_TOKEN}`
+        enabled = abap_false
              valuehelprequest = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) )
             )->tokens(
                  )->token( key      = `{KEY}`
@@ -88,7 +93,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
                            editable = `{EDITABLE}` ).
 
     grid->button( text = `Select` press = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
-    grid->button( icon = 'sap-icon://decline' type = `Transparent` press = client->_event( val = `LIST_DELETE` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
+    grid->button( icon =  'sap-icon://delete' type = `Transparent` text = `Clear` press = client->_event( val = `LIST_DELETE` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
 
     lo_popup->footer( )->overflow_toolbar(
         )->button( text  = `Clear All`
@@ -117,9 +122,11 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
     IF client->get( )-check_on_navigated = abap_true.
 
       DATA(lo_popup) = CAST z2ui5_cl_popup_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ) .
-      ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
-      <tab>-t_range = lo_popup->result( )-t_range.
-      <tab>-t_token = z2ui5_cl_util_func=>get_token_t_by_range_t( <tab>-t_range ).
+      IF lo_popup->result( )-check_cancel = abap_false.
+        ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
+        <tab>-t_range = lo_popup->result( )-t_range.
+        <tab>-t_token = z2ui5_cl_util_func=>get_token_t_by_range_t( <tab>-t_range ).
+      ENDIF.
       popup_display( ).
 
     ENDIF.
@@ -129,8 +136,8 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
       WHEN 'LIST_DELETE'.
         DATA(lt_event) = client->get( )-t_event_arg.
         ASSIGN ms_result-t_sql[ name = lt_event[ 1 ] ] TO <tab>.
-        <tab>-t_token = VALUE #( ( ) ).
-        <tab>-t_range = VALUE #( ( ) ).
+        CLEAR <tab>-t_token.
+        CLEAR <tab>-t_range.
         client->popup_model_update( ).
 
       WHEN 'LIST_OPEN'.
@@ -140,19 +147,18 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
         client->nav_app_call( z2ui5_cl_popup_get_range=>factory( ls_sql-t_range ) ).
 
       WHEN `BUTTON_CONFIRM`.
-        check_result_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `BUTTON_CANCEL`.
-        check_result_confirmed = abap_false.
+        ms_result-check_cancel = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `POPUP_DELETE_ALL`.
         LOOP AT ms_result-t_sql REFERENCE INTO DATA(lr_sql).
-          lr_sql->t_range = VALUE #( ( ) ).
-          lr_sql->t_token = VALUE #( ( ) ).
+          CLEAR lr_sql->t_range.
+          CLEAR lr_sql->t_token.
         ENDLOOP.
         client->popup_model_update( ).
 

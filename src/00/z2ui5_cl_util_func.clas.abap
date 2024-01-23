@@ -21,7 +21,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       BEGIN OF ty_s_sql_multi,
         name    TYPE string,
         t_range TYPE ty_t_range,
-        t_token type ty_T_token,
+        t_token TYPE ty_t_token,
       END OF ty_s_sql_multi.
     TYPES ty_t_sql_multi TYPE STANDARD TABLE OF ty_s_sql_multi WITH EMPTY KEY.
 
@@ -29,6 +29,12 @@ CLASS z2ui5_cl_util_func DEFINITION
       BEGIN OF ty_s_sql_result,
         table TYPE string,
       END OF ty_s_sql_result.
+
+    CLASS-METHODS get_sql_multi_by_data
+      IMPORTING
+        val           TYPE data
+      RETURNING
+        VALUE(result) TYPE ty_t_sql_multi.
 
     CLASS-METHODS get_sql_by_string
       IMPORTING
@@ -925,7 +931,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
       CATCH cx_root.
         DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
         DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
-                         lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
+                         lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
 
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
@@ -1299,6 +1305,14 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     ASSIGN result->* TO <result>.
 
     <result> = <from>.
+
+  ENDMETHOD.
+
+  METHOD get_sql_multi_by_data.
+
+    LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
+      INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
+    ENDLOOP.
 
   ENDMETHOD.
 

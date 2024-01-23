@@ -307,6 +307,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~clear.
+
+    CASE val.
+      WHEN z2ui5_if_client~cs_clear-view.
+        CLEAR mo_handler->ms_next-s_set-s_view.
+    ENDCASE.
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_edit.
 
