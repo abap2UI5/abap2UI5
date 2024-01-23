@@ -143,6 +143,8 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     IF mv_check_initialized = abap_false.
       mv_check_initialized = abap_true.
       z2ui5_on_init( ).
+       view_display_start( ).
+       return.
     ENDIF.
 
     IF client->get( )-check_on_navigated = abap_true.
@@ -153,7 +155,8 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
             FIELD-SYMBOLS <class> TYPE string.
             ASSIGN ls_result-row->* TO <class>.
             ms_home-classname = <class>.
-            on_event_check( ).
+            view_display_start( ).
+            return.
           ENDIF.
         CATCH cx_root.
       ENDTRY.
@@ -174,6 +177,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
         ms_home-btn_event_id   = `BUTTON_CHECK`.
         ms_home-btn_icon       = `sap-icon://validate`.
         ms_home-class_editable = abap_true.
+        client->view_model_update( ).
 
       WHEN `BUTTON_CHECK`.
         on_event_check( ).

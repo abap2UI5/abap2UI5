@@ -1171,6 +1171,25 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
                         pretty_name = pretty_name
                     IMPORTING
                         r_result    = <comp> ).
+                WHEN cl_abap_typedescr=>kind_elem.
+                  CASE ls_comp-type->absolute_name.
+                    WHEN `\TYPE=D`.
+                      DATA match TYPE i.
+                      " support for ISO8601 => https://en.wikipedia.org/wiki/ISO_8601
+                      REPLACE FIRST OCCURRENCE OF REGEX `^(\d{4})-(\d{2})-(\d{2})` IN <ls_data_ui5> WITH `$1$2$3`
+                      REPLACEMENT LENGTH match.             "#EC NOTEXT
+                         <comp> = <ls_data_ui5>.
+
+                    WHEN `\TYPE=T`.
+
+                      " support for ISO8601 => https://en.wikipedia.org/wiki/ISO_8601
+                      REPLACE FIRST OCCURRENCE OF REGEX `^(\d{2}):(\d{2}):(\d{2})` IN <ls_data_ui5> WITH `$1$2$3`
+                      REPLACEMENT LENGTH match.             "#EC NOTEXT
+                         <comp> = <ls_data_ui5>.
+
+                    WHEN OTHERS.
+                      <comp> = <ls_data_ui5>.
+                  ENDCASE.
                 WHEN OTHERS.
                   <comp> = <ls_data_ui5>.
               ENDCASE.

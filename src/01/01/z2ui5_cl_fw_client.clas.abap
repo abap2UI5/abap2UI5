@@ -219,7 +219,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_handler->ms_next-s_set-s_popup-check_destroy = abap_true.
+    mo_handler->ms_next-s_set-s_popup = value #( check_destroy = abap_true ).
 
   ENDMETHOD.
 

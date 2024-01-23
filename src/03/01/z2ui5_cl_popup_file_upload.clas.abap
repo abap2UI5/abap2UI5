@@ -9,22 +9,23 @@ CLASS z2ui5_cl_popup_file_upload DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        i_text                TYPE string default `Choose the file to upload:`
+        i_text                TYPE string DEFAULT `Choose the file to upload:`
         i_title               TYPE string DEFAULT `File Upload`
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
-        i_path type string optional
+        i_path                TYPE string OPTIONAL
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_popup_file_upload.
 
     TYPES:
       BEGIN OF ty_s_result,
-        text         TYPE string,
-        check_cancel TYPE abap_bool,
+        value           TYPE string,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
-    data mv_path type string.
-    data mv_value type string.
+    DATA mv_path TYPE string.
+    DATA mv_value TYPE string.
+    DATA check_confirm_enabled TYPE abap_bool.
 
     METHODS result
       RETURNING
@@ -38,14 +39,13 @@ CLASS z2ui5_cl_popup_file_upload DEFINITION
     DATA button_text_confirm TYPE string.
     DATA button_text_cancel TYPE string.
     DATA check_initialized TYPE abap_bool.
-    DATA check_result_confirmed TYPE abap_bool.
     METHODS view_display.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POPUP_FILE_UPLOAD IMPLEMENTATION.
+CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
 
 
   METHOD factory.
@@ -91,6 +91,7 @@ CLASS Z2UI5_CL_POPUP_FILE_UPLOAD IMPLEMENTATION.
                   )->button(
                       text  = button_text_confirm
                       press = client->_event( 'BUTTON_CONFIRM' )
+                      enabled = client->_bind( check_confirm_enabled )
                       type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
@@ -109,26 +110,27 @@ CLASS Z2UI5_CL_POPUP_FILE_UPLOAD IMPLEMENTATION.
     ENDIF.
 
     CASE client->get( )-event.
-    when `UPLOAD`.
 
-            SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
-            SPLIT lv_data AT `,` INTO lv_dummy lv_data.
+      WHEN `UPLOAD`.
 
-            DATA(lv_data2) = lcl_utility=>decode_x_base64( lv_data ).
-            ms_result-text = lcl_utility=>get_string_by_xstring( lv_data2 ).
+        SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
+        SPLIT lv_data AT `,` INTO lv_dummy lv_data.
 
-            client->message_box_display( `file uploaded` ).
+        DATA(lv_data2) = lcl_utility=>decode_x_base64( lv_data ).
+        ms_result-value = lcl_utility=>get_string_by_xstring( lv_data2 ).
 
-            CLEAR mv_value.
-            CLEAR mv_path.
+        check_confirm_enabled = abap_true.
+*        client->message_box_display( `file uploaded` ).
 
+        CLEAR mv_value.
+        CLEAR mv_path.
+        client->popup_model_update( ).
 
       WHEN `BUTTON_CONFIRM`.
-        check_result_confirmed = abap_true.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
       WHEN `BUTTON_CANCEL`.
-        check_result_confirmed = abap_false.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
     ENDCASE.
