@@ -311,13 +311,13 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS time_get_time_by_stampl
       IMPORTING
-        val           TYPE z2ui5_sql_t_01-timestampl
+        val           TYPE timestampl
       RETURNING
         VALUE(result) TYPE t.
 
     CLASS-METHODS time_get_date_by_stampl
       IMPORTING
-        val           TYPE z2ui5_sql_t_01-timestampl
+        val           TYPE timestampl
       RETURNING
         VALUE(result) TYPE d.
 

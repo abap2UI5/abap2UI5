@@ -13,8 +13,6 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
         key    TYPE string,
       END OF ty_s_filter_pop.
 
-    DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH EMPTY KEY.
-
     CLASS-METHODS factory
       IMPORTING
         val             TYPE z2ui5_cl_util_func=>ty_t_sql_multi
@@ -32,12 +30,9 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
     METHODS result
       RETURNING VALUE(result) TYPE ty_s_result.
 
-*  data mt_comp type cl_abap_structdescr=>component_table.
-
   PROTECTED SECTION.
     DATA client                 TYPE REF TO z2ui5_if_client.
     DATA check_initialized      TYPE abap_bool.
-    DATA check_result_confirmed TYPE abap_bool.
     DATA mv_popup_name TYPE LINE OF string_table.
     METHODS popup_display.
 
@@ -121,7 +116,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
 
-      DATA(lo_popup) = CAST z2ui5_cl_popup_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ) .
+      DATA(lo_popup) = CAST z2ui5_cl_popup_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
       IF lo_popup->result( )-check_cancel = abap_false.
         ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
         <tab>-t_range = lo_popup->result( )-t_range.
