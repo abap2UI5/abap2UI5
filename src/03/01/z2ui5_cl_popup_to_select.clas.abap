@@ -91,7 +91,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    me->client     = client.
+    me->client = client.
 
     IF check_initialized = abap_false.
       check_initialized = abap_true.
