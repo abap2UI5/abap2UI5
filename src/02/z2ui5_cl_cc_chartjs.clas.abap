@@ -104,6 +104,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         point_hover_radius TYPE i,
         rtl                TYPE abap_bool,
         datalabels         TYPE ty_datalabels,
+        tension            TYPE string,
       END OF ty_dataset.
 
     TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
@@ -264,24 +265,39 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         content          TYPE string,
         display          TYPE abap_bool,
         font             TYPE ty_font,
+        x_value          TYPE string,
+        y_value          TYPE string,
       END OF ty_label.
 
     TYPES:
       BEGIN OF ty_annotations,
-        type         TYPE string,
-        border_color TYPE string,
-        border_width TYPE string,
-        click        TYPE string,
-        scaleid      TYPE string,
-        value        TYPE string,
-        draw_time    TYPE string,
-        x_max        TYPE string,
-        x_min        TYPE string,
-        x_scaleid    TYPE string,
-        y_scaleid    TYPE string,
-        y_max        TYPE string,
-        y_min        TYPE string,
-        label        TYPE ty_label,
+        type                    TYPE string,
+        border_color            TYPE string,
+        border_width            TYPE string,
+        background_shadow_color TYPE string,
+        background_color        TYPE string,
+        click                   TYPE string,
+        enter                   TYPE string,
+        leave                   TYPE string,
+        scaleid                 TYPE string,
+        value                   TYPE string,
+        draw_time               TYPE string,
+        x_max                   TYPE string,
+        x_min                   TYPE string,
+        x_scaleid               TYPE string,
+        y_scaleid               TYPE string,
+        y_max                   TYPE string,
+        y_min                   TYPE string,
+        label                   TYPE ty_label,
+        sides                   TYPE string,
+        radius                  TYPE string,
+        font                    TYPE ty_font,
+        x_value                 TYPE string,
+        y_value                 TYPE string,
+        rotation                TYPE string,
+        shadow_blur             TYPE string,
+        shadow_offset_x         TYPE string,
+        shadow_offset_y         TYPE string,
       END OF ty_annotations.
 
     TYPES:
@@ -693,8 +709,9 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
     `         var tConfig = JSON.stringify(oConfig);` && |\n|  &&
     `         tConfig = tConfig.replace("dataVenn","data");` && |\n|  &&
     `         tConfig = tConfig.replace("scaleid","scaleID");` && |\n|  &&
-    `         tConfig = tConfig.replace("xScaleid","xScaleID");` && |\n|  &&
-    `         tConfig = tConfig.replace("yScaleid","yScaleID");` && |\n|  &&
+    `         tConfig = tConfig.replaceAll("xScaleid","xScaleID");` && |\n|  &&
+    `         tConfig = tConfig.replaceAll("yScaleid","yScaleID");` && |\n|  &&
+    `         tConfig = tConfig.replaceAll("dataXYR","data");` && |\n|  &&
     `         oConfig = JSON.parse(tConfig);` && |\n|  &&
     `         this.setProperty("config", oConfig );` && |\n|  &&
     `         if(oConfig){ fixJsonLibs(oConfig); };` && |\n|  &&
