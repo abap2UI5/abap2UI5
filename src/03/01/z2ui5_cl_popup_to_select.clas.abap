@@ -14,8 +14,8 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        row          TYPE ref to data,
-        check_cancel TYPE abap_bool,
+        row             TYPE REF TO data,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
@@ -109,10 +109,10 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'CONFIRM'.
+        ms_result-check_confirmed = abap_true.
         on_event_confirm( ).
 
       WHEN 'CANCEL'.
-        ms_result-check_cancel = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 

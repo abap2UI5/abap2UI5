@@ -19,8 +19,8 @@ CLASS z2ui5_cl_popup_textedit DEFINITION
     DATA check_initialized TYPE abap_bool.
     TYPES:
       BEGIN OF ty_s_result,
-        text         TYPE string,
-        check_cancel TYPE abap_bool,
+        text            TYPE string,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
@@ -87,11 +87,11 @@ CLASS z2ui5_cl_popup_textedit IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN `BUTTON_TEXTAREA_CONFIRM`.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `BUTTON_TEXTAREA_CANCEL`.
-        ms_result-check_cancel = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 

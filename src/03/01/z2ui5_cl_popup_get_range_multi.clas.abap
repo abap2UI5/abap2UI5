@@ -5,14 +5,6 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
-    TYPES:
-      BEGIN OF ty_s_filter_pop,
-        option TYPE string,
-        low    TYPE string,
-        high   TYPE string,
-        key    TYPE string,
-      END OF ty_s_filter_pop.
-
     CLASS-METHODS factory
       IMPORTING
         val             TYPE z2ui5_cl_util_func=>ty_t_sql_multi
@@ -21,8 +13,8 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_sql        TYPE z2ui5_cl_util_func=>ty_t_sql_multi,
-        check_cancel TYPE abap_bool,
+        t_sql           TYPE z2ui5_cl_util_func=>ty_t_sql_multi,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
 
     DATA ms_result TYPE ty_s_result.
@@ -142,11 +134,11 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
         client->nav_app_call( z2ui5_cl_popup_get_range=>factory( ls_sql-t_range ) ).
 
       WHEN `BUTTON_CONFIRM`.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `BUTTON_CANCEL`.
-        ms_result-check_cancel = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 

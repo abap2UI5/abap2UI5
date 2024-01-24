@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_popup_table DEFINITION
+CLASS z2ui5_cl_popup_layout DEFINITION
   PUBLIC
   FINAL
   CREATE PROTECTED.
@@ -6,15 +6,25 @@ CLASS z2ui5_cl_popup_table DEFINITION
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
 
+    TYPES:
+      BEGIN OF ty_s_layout,
+        name            TYPE string,
+        visible         TYPE abap_bool,
+        length          TYPE string,
+        mergeduplicates TYPE abap_bool,
+      END OF ty_s_layout.
+    TYPES ty_t_layout TYPE STANDARD TABLE OF ty_s_layout WITH EMPTY KEY.
+
     CLASS-METHODS factory
       IMPORTING
-        i_tab           TYPE STANDARD TABLE
+        t_layout        TYPE ty_t_layout OPTIONAL
+        i_tab           TYPE STANDARD TABLE OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_cl_popup_table.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_popup_layout.
 
     TYPES:
       BEGIN OF ty_s_result,
-        row             TYPE REF TO data,
+        t_layout        TYPE ty_t_layout,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
@@ -22,8 +32,6 @@ CLASS z2ui5_cl_popup_table DEFINITION
     METHODS result
       RETURNING
         VALUE(result) TYPE ty_s_result.
-
-    DATA mr_tab TYPE REF TO data.
 
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
@@ -37,50 +45,41 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_table IMPLEMENTATION.
-
+CLASS z2ui5_cl_popup_layout IMPLEMENTATION.
 
   METHOD display.
-
-    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
-    ASSIGN mr_tab->* TO <tab_out>.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog(
               afterclose = client->_event( 'BUTTON_CONFIRM' )
               stretch = abap_true
-              title = 'Table View'
-*              icon = 'sap-icon://edit'
+              title = 'Layout View'
           )->content( ).
 
     DATA(tab) = popup->table(
-       items = client->_bind( <tab_out> ) ).
-*           )->header_toolbar(
-*             )->overflow_toolbar(
-*                 )->toolbar_spacer(
-*                 )->button( text = `Filter` press = client->_event( `PREVIEW_FILTER` ) icon = `sap-icon://filter`
-*           )->button(  text = `Display Popup` press = client->_event( `BUTTON_START` ) type = `Emphasized`
-*            )->get_parent( )->get_parent( ).
+       items = client->_bind_edit( ms_result-t_layout ) ).
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( ms_result-t_layout ).
 
     DATA(list) = tab->column_list_item( valign = `Top` ).
     DATA(cells) = list->cells( ).
 
-    LOOP AT lt_comp INTO DATA(ls_comp).
-      cells->text( text = `{` && ls_comp-name && `}` ).
+    DATA(columns) = tab->columns( ).
+    LOOP AT lt_comp INTO DATA(ls_comp2).
+      DATA(col) = columns->column( width = '8rem' )->header( ns = `` ).
+      col->text( text = ls_comp2-name  ).
     ENDLOOP.
 
-    DATA(columns) = tab->columns( ).
-    LOOP AT lt_comp INTO ls_comp.
-      columns->column( width = '8rem' )->header( ns = `` )->text( text = ls_comp-name ).
+    LOOP AT lt_comp INTO DATA(ls_comp).
+      IF ls_comp-name = 'NAME'.
+        cells->text(  `{` && ls_comp-name && `}` ).
+      ELSE.
+        cells->checkbox( `{` && ls_comp-name && `}` ).
+      ENDIF.
     ENDLOOP.
 
     popup->get_parent(
         )->footer( )->overflow_toolbar(
             )->toolbar_spacer(
-*              )->button(
-*                  text  = 'Cancel'
-*                  press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
             )->button(
                 text  = 'OK'
                 press = client->_event( 'BUTTON_CONFIRM' )
@@ -94,11 +93,17 @@ CLASS z2ui5_cl_popup_table IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    CREATE DATA r_result->mr_tab LIKE i_tab.
-    CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
-    FIELD-SYMBOLS <tab> TYPE any.
-    ASSIGN r_result->mr_tab->* TO <tab>.
-    <tab> = i_tab.
+
+    IF t_layout IS INITIAL.
+
+      DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_tab ).
+      LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
+        INSERT VALUE #( name = lr_comp->name visible = abap_true mergeduplicates = abap_false ) INTO TABLE r_result->ms_result-t_layout.
+      ENDLOOP.
+
+    ELSE.
+      r_result->ms_result-t_layout = t_layout.
+    ENDIF.
 
   ENDMETHOD.
 
@@ -108,13 +113,13 @@ CLASS z2ui5_cl_popup_table IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'BUTTON_CONFIRM'.
+
         ms_result-check_confirmed = abap_true.
         on_event_confirm( ).
 
       WHEN 'CANCEL'.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-
 
     ENDCASE.
 

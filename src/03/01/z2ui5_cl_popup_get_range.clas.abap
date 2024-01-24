@@ -24,8 +24,8 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_range      TYPE z2ui5_cl_util_func=>ty_t_range,
-        check_cancel TYPE abap_bool,
+        t_range         TYPE z2ui5_cl_util_func=>ty_t_range,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
@@ -37,7 +37,6 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
 
     DATA client TYPE REF TO z2ui5_if_client.
     DATA check_initialized TYPE abap_bool.
-    DATA check_result_confirmed TYPE abap_bool.
     METHODS view_display.
   PRIVATE SECTION.
 ENDCLASS.
@@ -150,12 +149,11 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
            ) INTO TABLE ms_result-t_range.
         ENDLOOP.
 
-        check_result_confirmed = abap_true.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `BUTTON_CANCEL`.
-        ms_result-check_cancel = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
