@@ -30,7 +30,7 @@ CLASS z2ui5_cl_util_func DEFINITION
         table TYPE string,
       END OF ty_s_sql_result.
 
-    CLASS-METHODS get_source_code_method
+    CLASS-METHODS source_code_get_method
       IMPORTING
         iv_classname  TYPE clike
         iv_methodname TYPE clike
@@ -334,6 +334,16 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
+    CLASS-METHODS get_file_types
+      RETURNING
+        VALUE(result) TYPE string_table.
+
+    CLASS-METHODS source_method_to_file
+      IMPORTING
+        it_source     TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -342,131 +352,26 @@ ENDCLASS.
 
 CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
-  METHOD decode_x_base64.
 
-    TRY.
 
-        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>('DECODE_X_BASE64')
-          EXPORTING
-            encoded = val
-          RECEIVING
-            decoded = result.
+  METHOD get_file_types.
 
-      CATCH cx_sy_dyn_call_illegal_class.
-
-        DATA(classname) = 'CL_HTTP_UTILITY'.
-        CALL METHOD (classname)=>('DECODE_X_BASE64')
-          EXPORTING
-            encoded = val
-          RECEIVING
-            decoded = result.
-
-    ENDTRY.
+    DATA(lv_types) = `abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, ` &&
+`dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja` &&
+`vascri` &&
+`pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni` &&
+`x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,` &&
+` sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,` &&
+` csp, cssound_score, cssound_orchestra, cssound_document`.
+    SPLIT lv_types AT ',' INTO TABLE result.
 
   ENDMETHOD.
 
+  METHOD source_method_to_file.
 
-
-  METHOD get_xstring_by_string.
-
-    DATA conv TYPE REF TO object.
-
-    TRY.
-        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
-          RECEIVING
-            instance = conv.
-
-        CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
-          EXPORTING
-            source = val
-          RECEIVING
-            result = result.
-      CATCH cx_sy_dyn_call_illegal_class.
-
-        DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
-        CALL METHOD (conv_out_class)=>create
-          EXPORTING
-            encoding = 'UTF-8'
-          RECEIVING
-            conv     = conv.
-
-        CALL METHOD conv->('CONVERT')
-          EXPORTING
-            data   = val
-          IMPORTING
-            buffer = result.
-    ENDTRY.
-
-
-
-*    result = cl_abap_conv_codepage=>create_out( )->convert( val ).
-
-  ENDMETHOD.
-
-  METHOD get_string_by_xstring.
-
-    DATA conv TYPE REF TO object.
-
-    TRY.
-        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
-          RECEIVING
-            instance = conv.
-
-        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
-          EXPORTING
-            source = val
-          RECEIVING
-            result = result.
-      CATCH cx_sy_dyn_call_illegal_class.
-
-        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
-        CALL METHOD (conv_in_class)=>create
-          EXPORTING
-            encoding = 'UTF-8'
-          RECEIVING
-            conv     = conv.
-
-        CALL METHOD conv->('CONVERT')
-          EXPORTING
-            input = val
-          IMPORTING
-            data  = result.
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD encode_x_base64.
-
-    TRY.
-
-        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>('ENCODE_X_BASE64')
-          EXPORTING
-            unencoded = val
-          RECEIVING
-            encoded   = result.
-
-      CATCH cx_sy_dyn_call_illegal_class.
-
-        DATA(classname) = 'CL_HTTP_UTILITY'.
-        CALL METHOD (classname)=>('ENCODE_X_BASE64')
-          EXPORTING
-            unencoded = val
-          RECEIVING
-            encoded   = result.
-
-    ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD get_sql_by_string.
-
-    DATA(lv_sql) = conv string( val ).
-    REPLACE ALL OCCURRENCES OF ` ` IN lv_sql  WITH ``.
-    lv_sql = to_upper( lv_sql ).
-    SPLIT lv_sql AT 'SELECTFROM' INTO DATA(lv_dummy) DATA(lv_tab).
-    SPLIT lv_tab AT `FIELDS` INTO lv_tab lv_dummy.
-
-    result-table = lv_tab.
+    LOOP AT it_source INTO DATA(lv_source).
+      result = result && lv_source+1 && cl_abap_char_utilities=>newline.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -536,6 +441,20 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD copy_ref_data_to_ref_data.
+
+    FIELD-SYMBOLS <from> TYPE data.
+    FIELD-SYMBOLS <result> TYPE data.
+
+    ASSIGN from->* TO <from>.
+    CREATE DATA result LIKE <from>.
+    ASSIGN result->* TO <result>.
+
+    <result> = <from>.
+
+  ENDMETHOD.
+
+
   METHOD c_replace_assign_struc.
 
     rv_attri  = iv_attri.
@@ -574,6 +493,54 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   METHOD c_trim_upper.
 
     result = to_upper( c_trim( CONV string( val ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD decode_x_base64.
+
+    TRY.
+
+        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>('DECODE_X_BASE64')
+          EXPORTING
+            encoded = val
+          RECEIVING
+            decoded = result.
+
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(classname) = 'CL_HTTP_UTILITY'.
+        CALL METHOD (classname)=>('DECODE_X_BASE64')
+          EXPORTING
+            encoded = val
+          RECEIVING
+            decoded = result.
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD encode_x_base64.
+
+    TRY.
+
+        CALL METHOD ('CL_WEB_HTTP_UTILITY')=>('ENCODE_X_BASE64')
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(classname) = 'CL_HTTP_UTILITY'.
+        CALL METHOD (classname)=>('ENCODE_X_BASE64')
+          EXPORTING
+            unencoded = val
+          RECEIVING
+            encoded   = result.
+
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -644,80 +611,6 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_source_code_method.
-    DATA object TYPE REF TO object.
-    FIELD-SYMBOLS <any> TYPE any.
-    DATA lt_source TYPE string_table.
-
-    TRY.
-        DATA lv_class TYPE c LENGTH 30.
-        DATA lv_method TYPE c LENGTH 61.
-        lv_class  = iv_classname.
-        lv_method = iv_methodname.
-
-        CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
-          EXPORTING
-            iv_name  = lv_class
-          RECEIVING
-            ro_class = object.
-
-        ASSIGN ('OBJECT->IF_XCO_AO_CLASS~IMPLEMENTATION') TO <any>.
-        object = <any>.
-
-        CALL METHOD object->('IF_XCO_CLAS_IMPLEMENTATION~METHOD')
-          EXPORTING
-            iv_name   = lv_method
-          RECEIVING
-            ro_method = object.
-
-        CALL METHOD object->('IF_XCO_CLAS_I_METHOD~CONTENT')
-          RECEIVING
-            ro_content = object.
-
-        CALL METHOD object->('IF_XCO_CLAS_I_METHOD_CONTENT~GET_SOURCE')
-          RECEIVING
-            rt_source = result.
-
-      CATCH cx_sy_dyn_call_error.
-
-        DATA(lv_name) = 'CL_OO_FACTORY'.
-        CALL METHOD (lv_name)=>('CREATE_INSTANCE')
-          RECEIVING
-            result = object.
-
-        CALL METHOD object->('IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE')
-          EXPORTING
-            clif_name = iv_classname
-          RECEIVING
-            result    = object.
-
-        CALL METHOD object->('IF_OO_CLIF_SOURCE~GET_SOURCE')
-          IMPORTING
-            source = lt_source.
-
-        DATA(lv_check_method) = abap_false.
-        LOOP AT lt_source INTO DATA(lv_source).
-          DATA(lv_source_upper) = to_upper( lv_source ).
-
-          IF lv_source_upper CS `ENDMETHOD`.
-            lv_check_method = abap_false.
-          ENDIF.
-
-          IF lv_source_upper CS to_upper( |{ iv_methodname }| ).
-            lv_check_method = abap_true.
-            CONTINUE.
-          ENDIF.
-
-          IF lv_check_method = abap_true.
-            INSERT lv_source INTO TABLE result.
-          ENDIF.
-
-        ENDLOOP.
-
-    ENDTRY.
-
-  ENDMETHOD.
-
   METHOD get_range_by_token.
 
     DATA(lv_length) = strlen( value ) - 1.
@@ -763,6 +656,61 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     LOOP AT val INTO DATA(ls_token).
       INSERT get_range_by_token( ls_token-text ) INTO TABLE result.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_sql_by_string.
+
+    DATA(lv_sql) = CONV string( val ).
+    REPLACE ALL OCCURRENCES OF ` ` IN lv_sql  WITH ``.
+    lv_sql = to_upper( lv_sql ).
+    SPLIT lv_sql AT 'SELECTFROM' INTO DATA(lv_dummy) DATA(lv_tab).
+    SPLIT lv_tab AT `FIELDS` INTO lv_tab lv_dummy.
+
+    result-table = lv_tab.
+
+  ENDMETHOD.
+
+
+  METHOD get_sql_multi_by_data.
+
+    LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
+      INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_string_by_xstring.
+
+    DATA conv TYPE REF TO object.
+
+    TRY.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
+          RECEIVING
+            instance = conv.
+
+        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
+        CALL METHOD (conv_in_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            input = val
+          IMPORTING
+            data  = result.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -820,6 +768,43 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
       INSERT VALUE #( key = lv_value text = lv_value visible = abap_true editable = abap_true ) INTO TABLE result.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD get_xstring_by_string.
+
+    DATA conv TYPE REF TO object.
+
+    TRY.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
+          RECEIVING
+            instance = conv.
+
+        CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_illegal_class.
+
+        DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
+        CALL METHOD (conv_out_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
+
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            data   = val
+          IMPORTING
+            buffer = result.
+    ENDTRY.
+
+
+
+*    result = cl_abap_conv_codepage=>create_out( )->convert( val ).
 
   ENDMETHOD.
 
@@ -1055,8 +1040,97 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD source_code_get_method.
+    DATA object TYPE REF TO object.
+    FIELD-SYMBOLS <any> TYPE any.
+    DATA lt_source TYPE string_table.
+
+    TRY.
+        DATA lv_class TYPE c LENGTH 30.
+        DATA lv_method TYPE c LENGTH 61.
+        lv_class  = iv_classname.
+        lv_method = iv_methodname.
+
+        CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
+          EXPORTING
+            iv_name  = lv_class
+          RECEIVING
+            ro_class = object.
+
+        ASSIGN ('OBJECT->IF_XCO_AO_CLASS~IMPLEMENTATION') TO <any>.
+        object = <any>.
+
+        CALL METHOD object->('IF_XCO_CLAS_IMPLEMENTATION~METHOD')
+          EXPORTING
+            iv_name   = lv_method
+          RECEIVING
+            ro_method = object.
+
+        CALL METHOD object->('IF_XCO_CLAS_I_METHOD~CONTENT')
+          RECEIVING
+            ro_content = object.
+
+        CALL METHOD object->('IF_XCO_CLAS_I_METHOD_CONTENT~GET_SOURCE')
+          RECEIVING
+            rt_source = result.
+
+      CATCH cx_sy_dyn_call_error.
+
+        DATA(lv_name) = 'CL_OO_FACTORY'.
+        CALL METHOD (lv_name)=>('CREATE_INSTANCE')
+          RECEIVING
+            result = object.
+
+        CALL METHOD object->('IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE')
+          EXPORTING
+            clif_name = iv_classname
+          RECEIVING
+            result    = object.
+
+        CALL METHOD object->('IF_OO_CLIF_SOURCE~GET_SOURCE')
+          IMPORTING
+            source = lt_source.
+
+        DATA(lv_check_method) = abap_false.
+        LOOP AT lt_source INTO DATA(lv_source).
+          DATA(lv_source_upper) = to_upper( lv_source ).
+
+          IF lv_source_upper CS `ENDMETHOD`.
+            lv_check_method = abap_false.
+          ENDIF.
+
+          IF lv_source_upper CS to_upper( |{ iv_methodname }| ).
+            lv_check_method = abap_true.
+            CONTINUE.
+          ENDIF.
+
+          IF lv_check_method = abap_true.
+            INSERT lv_source INTO TABLE result.
+          ENDIF.
+
+        ENDLOOP.
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD time_get_date_by_stampl.
+
+    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE result TIME DATA(lv_dummy).
+
+  ENDMETHOD.
+
+
   METHOD time_get_timestampl.
     GET TIME STAMP FIELD result.
+  ENDMETHOD.
+
+
+  METHOD time_get_time_by_stampl.
+
+    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
+
   ENDMETHOD.
 
 
@@ -1381,39 +1455,4 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
-
-  METHOD time_get_date_by_stampl.
-
-    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE result TIME DATA(lv_dummy).
-
-  ENDMETHOD.
-
-  METHOD time_get_time_by_stampl.
-
-    CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE DATA(lv_dummy) TIME result.
-
-  ENDMETHOD.
-
-
-  METHOD copy_ref_data_to_ref_data.
-
-    FIELD-SYMBOLS <from> TYPE data.
-    FIELD-SYMBOLS <result> TYPE data.
-
-    ASSIGN from->* TO <from>.
-    CREATE DATA result LIKE <from>.
-    ASSIGN result->* TO <result>.
-
-    <result> = <from>.
-
-  ENDMETHOD.
-
-  METHOD get_sql_multi_by_data.
-
-    LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
-      INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
-    ENDLOOP.
-
-  ENDMETHOD.
-
 ENDCLASS.
