@@ -18,8 +18,8 @@ CLASS z2ui5_cl_popup_pdf DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        text         TYPE string,
-        check_cancel TYPE abap_bool,
+        text            TYPE string,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 

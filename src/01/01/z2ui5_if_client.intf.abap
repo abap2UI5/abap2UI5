@@ -15,6 +15,11 @@ INTERFACE z2ui5_if_client
     END OF cs_event.
 
   CONSTANTS:
+    BEGIN OF cs_clear,
+      view TYPE string VALUE `VIEW`,
+    END OF cs_clear.
+
+  CONSTANTS:
     BEGIN OF cs_view,
       main    TYPE string VALUE `MAIN`,
       nested  TYPE string VALUE `NEST`,
@@ -133,11 +138,15 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_app_leave
     IMPORTING
-      app TYPE REF TO z2ui5_if_app.
+      app           TYPE REF TO z2ui5_if_app
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS nav_app_call
     IMPORTING
-      app TYPE REF TO z2ui5_if_app.
+      app           TYPE REF TO z2ui5_if_app
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS message_box_display
     IMPORTING
@@ -197,6 +206,10 @@ INTERFACE z2ui5_if_client
       VALUE(result) TYPE string.
 
   METHODS _bind_clear
+    IMPORTING
+      val TYPE data.
+
+  METHODS clear
     IMPORTING
       val TYPE data.
 

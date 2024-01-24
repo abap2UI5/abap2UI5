@@ -28,6 +28,7 @@ CLASS z2ui5_cl_fw_app_startup DEFINITION
     METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS view_display_start.
+    METHODS on_event_check.
   PROTECTED SECTION.
     DATA mt_classes TYPE string_table.
   PRIVATE SECTION.
@@ -142,14 +143,20 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     IF mv_check_initialized = abap_false.
       mv_check_initialized = abap_true.
       z2ui5_on_init( ).
+       view_display_start( ).
+       return.
     ENDIF.
 
     IF client->get( )-check_on_navigated = abap_true.
       TRY.
           DATA(lo_f4) = CAST z2ui5_cl_popup_to_select( client->get_app( client->get( )-s_draft-id_prev_app ) ).
           DATA(ls_result) = lo_f4->result( ).
-          IF ls_result-check_cancel = abap_false.
-            ms_home-classname = mt_classes[ ls_result-index ].
+          IF ls_result-check_confirmed = abap_true.
+            FIELD-SYMBOLS <class> TYPE string.
+            ASSIGN ls_result-row->* TO <class>.
+            ms_home-classname = <class>.
+            view_display_start( ).
+            return.
           ENDIF.
         CATCH cx_root.
       ENDTRY.
@@ -170,26 +177,10 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
         ms_home-btn_event_id   = `BUTTON_CHECK`.
         ms_home-btn_icon       = `sap-icon://validate`.
         ms_home-class_editable = abap_true.
+        client->view_model_update( ).
 
       WHEN `BUTTON_CHECK`.
-        TRY.
-            DATA li_app_test TYPE REF TO z2ui5_if_app.
-            ms_home-classname = z2ui5_cl_util_func=>c_trim_upper( ms_home-classname ).
-            CREATE OBJECT li_app_test TYPE (ms_home-classname).
-
-            client->message_toast_display( `App is ready to start!` ).
-            ms_home-btn_text          = `edit`.
-            ms_home-btn_event_id      = `BUTTON_CHANGE`.
-            ms_home-btn_icon          = `sap-icon://edit`.
-            ms_home-class_value_state = `Success`.
-            ms_home-class_editable    = abap_false.
-
-          CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
-            ms_home-class_value_state_text = lx->get_text( ).
-            ms_home-class_value_state      = `Warning`.
-            client->message_box_display( text = ms_home-class_value_state_text
-                                         type = `error` ).
-        ENDTRY.
+        on_event_check( ).
 
       WHEN 'VALUE_HELP'.
         mt_classes = z2ui5_cl_util_func=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` ).
@@ -221,4 +212,28 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     mv_check_demo          = abap_true.
 
   ENDMETHOD.
+
+  METHOD on_event_check.
+
+    TRY.
+        DATA li_app_test TYPE REF TO z2ui5_if_app.
+        ms_home-classname = z2ui5_cl_util_func=>c_trim_upper( ms_home-classname ).
+        CREATE OBJECT li_app_test TYPE (ms_home-classname).
+
+        client->message_toast_display( `App is ready to start!` ).
+        ms_home-btn_text          = `edit`.
+        ms_home-btn_event_id      = `BUTTON_CHANGE`.
+        ms_home-btn_icon          = `sap-icon://edit`.
+        ms_home-class_value_state = `Success`.
+        ms_home-class_editable    = abap_false.
+
+      CATCH cx_root INTO DATA(lx) ##CATCH_ALL.
+        ms_home-class_value_state_text = lx->get_text( ).
+        ms_home-class_value_state      = `Warning`.
+        client->message_box_display( text = ms_home-class_value_state_text
+                                     type = `error` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.

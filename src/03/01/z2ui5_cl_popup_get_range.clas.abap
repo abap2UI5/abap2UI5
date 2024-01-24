@@ -24,8 +24,8 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_range      TYPE z2ui5_cl_util_func=>ty_t_range,
-        check_cancel TYPE abap_bool,
+        t_range         TYPE z2ui5_cl_util_func=>ty_t_range,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
@@ -37,7 +37,6 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
 
     DATA client TYPE REF TO z2ui5_if_client.
     DATA check_initialized TYPE abap_bool.
-    DATA check_result_confirmed TYPE abap_bool.
     METHODS view_display.
   PRIVATE SECTION.
 ENDCLASS.
@@ -50,6 +49,7 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->ms_result-t_range = t_range.
+    INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
 
   ENDMETHOD.
 
@@ -89,8 +89,8 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
                      key = '{N}'
                      text = '{N}'
              )->get_parent(
-             )->input( value = `{LOW}`
-             )->input( value = `{HIGH}`  visible = `{= ${OPTION} === 'BT' }`
+             )->input( value = `{LOW}` submit = client->_event( 'BUTTON_CONFIRM' )
+             )->input( value = `{HIGH}`  visible = `{= ${OPTION} === 'BT' }` submit = client->_event( 'BUTTON_CONFIRM' )
              )->button( icon = 'sap-icon://decline' type = `Transparent` press = client->_event( val = `POPUP_DELETE` t_arg = VALUE #( ( `${KEY}` ) ) )
              ).
 
@@ -119,15 +119,15 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-        CLEAR mt_filter.
-        LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_product).
-          INSERT VALUE #(
-                   low = lr_product->low
-                   high = lr_product->high
-                   option = lr_product->option
-                   key = z2ui5_cl_util_func=>func_get_uuid_32( )
-           ) INTO TABLE mt_filter.
-        ENDLOOP.
+      CLEAR mt_filter.
+      LOOP AT ms_result-t_range REFERENCE INTO DATA(lr_product).
+        INSERT VALUE #(
+                 low = lr_product->low
+                 high = lr_product->high
+                 option = lr_product->option
+                 key = z2ui5_cl_util_func=>func_get_uuid_32( )
+         ) INTO TABLE mt_filter.
+      ENDLOOP.
 
       view_display( ).
       RETURN.
@@ -138,6 +138,9 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
 
         CLEAR ms_result-t_range.
         LOOP AT mt_filter REFERENCE INTO DATA(lr_filter).
+          IF lr_filter->low IS INITIAL AND lr_filter->high IS INITIAL.
+            CONTINUE.
+          ENDIF.
           INSERT VALUE #(
               sign = `I`
               option = lr_filter->option
@@ -146,13 +149,11 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
            ) INTO TABLE ms_result-t_range.
         ENDLOOP.
 
-        check_result_confirmed = abap_true.
+        ms_result-check_confirmed = abap_true.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `BUTTON_CANCEL`.
-
-        check_result_confirmed = abap_false.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 

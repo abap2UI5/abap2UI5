@@ -50,6 +50,7 @@ CLASS Z2UI5_CL_POPUP_TO_CONFIRM IMPLEMENTATION.
   METHOD factory.
 
     r_result = new #( ).
+*    r_result->z2ui5_if_app~id = z2ui5_cl_util_func=>func_get_uuid_22( ).
     r_result->title = i_title.
     r_result->icon = i_icon.
     r_result->question_text = i_question_text.

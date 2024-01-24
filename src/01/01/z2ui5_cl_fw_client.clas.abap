@@ -29,20 +29,20 @@ CLASS z2ui5_cl_fw_client DEFINITION
       RETURNING
         VALUE(r_result) TYPE string.
 
-private section.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
+CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
 
   METHOD bind_tab_cell.
 
     FIELD-SYMBOLS <ele>  TYPE any.
     FIELD-SYMBOLS <row>  TYPE any.
-    data lr_ref_in type ref to data.
-    data lr_ref type ref to data.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
 
     ASSIGN i_tab[ i_tab_index ] TO <row>.
     DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <row> ).
@@ -55,14 +55,14 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
       lr_ref = REF #( i_val ).
       IF lr_ref = lr_ref_in.
         r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
-          RETURN.
+        RETURN.
       ENDIF.
 
     ENDLOOP.
 
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 
   ENDMETHOD.
 
@@ -130,11 +130,19 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_call.
     mo_handler->ms_next-o_app_call = app.
+    IF app->id_draft IS INITIAL.
+      app->id_app = z2ui5_cl_util_func=>func_get_uuid_32( ).
+    ENDIF.
+    result = app->id_app.
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nav_app_leave.
     mo_handler->ms_next-o_app_leave = app.
+    IF app->id_draft IS INITIAL.
+      app->id_app = z2ui5_cl_util_func=>func_get_uuid_32( ).
+    ENDIF.
+    result = app->id_app.
   ENDMETHOD.
 
 
@@ -211,7 +219,7 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_handler->ms_next-s_set-s_popup-check_destroy = abap_true.
+    mo_handler->ms_next-s_set-s_popup = value #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
@@ -299,6 +307,14 @@ CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~clear.
+
+    CASE val.
+      WHEN z2ui5_if_client~cs_clear-view.
+        CLEAR mo_handler->ms_next-s_set-s_view.
+    ENDCASE.
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_edit.
 

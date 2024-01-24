@@ -264,6 +264,7 @@ public section.
     importing
       !UNIT type CLIKE optional
       !FOOTERCOLOR type CLIKE optional
+      !blocked type CLIKE optional
       !FRAMETYPE type CLIKE optional
       !PRIORITY type CLIKE optional
       !PRIORITYTEXT type CLIKE optional
@@ -6757,6 +6758,7 @@ ENDMETHOD.
                        t_prop = VALUE #(
                                 ( n = `unit`   v = unit )
                                 ( n = `footerColor`   v = footerColor )
+                                ( n = `blocked`   v = z2ui5_cl_util_func=>boolean_abap_2_json( blocked ) )
                                 ( n = `frameType`   v = frameType )
                                 ( n = `priority`   v = priority )
                                 ( n = `priorityText`   v = priorityText )

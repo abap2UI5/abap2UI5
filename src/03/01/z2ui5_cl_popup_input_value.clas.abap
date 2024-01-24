@@ -20,8 +20,8 @@ CLASS z2ui5_cl_popup_input_value DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        value        TYPE string,
-        check_cancel TYPE abap_bool,
+        value           TYPE string,
+        check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
 
