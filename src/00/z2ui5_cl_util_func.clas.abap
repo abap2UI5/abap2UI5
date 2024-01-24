@@ -678,7 +678,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
           RECEIVING
             rt_source = result.
 
-      CATCH cx_sy_dyn_call_error INTO DATA(x).
+      CATCH cx_sy_dyn_call_error.
 
         DATA(lv_name) = 'CL_OO_FACTORY'.
         CALL METHOD (lv_name)=>('CREATE_INSTANCE')
