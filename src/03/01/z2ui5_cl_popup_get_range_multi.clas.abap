@@ -35,15 +35,10 @@ ENDCLASS.
 CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
 
   METHOD factory.
+
     r_result = NEW #( ).
-
     r_result->ms_result-t_sql = val.
-*    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( data ).
 
-*    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
-*      INSERT VALUE #( name    = lr_comp->name
-*        ) INTO TABLE r_result->ms_result-t_sql.
-*    ENDLOOP.
   ENDMETHOD.
 
   METHOD result.
@@ -109,7 +104,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
     IF client->get( )-check_on_navigated = abap_true.
 
       DATA(lo_popup) = CAST z2ui5_cl_popup_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
-      IF lo_popup->result( )-check_cancel = abap_false.
+      IF lo_popup->result( )-check_confirmed = abap_true.
         ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
         <tab>-t_range = lo_popup->result( )-t_range.
         <tab>-t_token = z2ui5_cl_util_func=>get_token_t_by_range_t( <tab>-t_range ).

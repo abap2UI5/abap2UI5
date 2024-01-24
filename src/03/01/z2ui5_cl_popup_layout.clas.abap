@@ -45,7 +45,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_layout IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
+
 
   METHOD display.
 
@@ -139,6 +140,7 @@ CLASS z2ui5_cl_popup_layout IMPLEMENTATION.
     result = ms_result.
 
   ENDMETHOD.
+
 
   METHOD z2ui5_if_app~main.
 

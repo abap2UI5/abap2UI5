@@ -151,7 +151,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
       TRY.
           DATA(lo_f4) = CAST z2ui5_cl_popup_to_select( client->get_app( client->get( )-s_draft-id_prev_app ) ).
           DATA(ls_result) = lo_f4->result( ).
-          IF ls_result-check_cancel = abap_false.
+          IF ls_result-check_confirmed = abap_true.
             FIELD-SYMBOLS <class> TYPE string.
             ASSIGN ls_result-row->* TO <class>.
             ms_home-classname = <class>.
