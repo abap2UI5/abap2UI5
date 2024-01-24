@@ -51,7 +51,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -113,9 +113,9 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
       ASSIGN (lv_assign) TO <ref>.
       IF sy-subrc <> 0.
-       RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
       ENDIF.
 
       z2ui5_cl_util_func=>rtti_xml_set_to_data(
@@ -196,11 +196,15 @@ CLASS Z2UI5_CL_FW_DB IMPLEMENTATION.
 
             result = z2ui5_cl_util_func=>trans_xml_any_2( ls_db ).
 
+          CATCH z2ui5_cx_util_error INTO DATA(x_util).
+            RAISE EXCEPTION x_util.
+
           CATCH cx_root INTO DATA(x2).
 
             RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
-                val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ).
+*                val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attribtues of your class`.
+                val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
 
         ENDTRY.
     ENDTRY.
