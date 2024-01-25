@@ -48,7 +48,7 @@ CLASS z2ui5_cl_util_func DEFINITION
         iv_classname  TYPE clike
         iv_methodname TYPE clike
       RETURNING
-        VALUE(result) TYPE string_table.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS filter_get_multi_by_data
       IMPORTING
@@ -116,7 +116,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS uuid_Get_c22
+    CLASS-METHODS uuid_get_c22
       RETURNING
         VALUE(result) TYPE string.
 
@@ -364,7 +364,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD itab_get_itab_by_csv.
 
-   SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
+    SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
 
     DATA lt_comp TYPE cl_abap_structdescr=>component_table.
@@ -457,7 +457,10 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   METHOD source_method_to_file.
 
     LOOP AT it_source INTO DATA(lv_source).
-      result = result && lv_source+1 && cl_abap_char_utilities=>newline.
+      TRY.
+          result = result && lv_source+1 && cl_abap_char_utilities=>newline.
+        CATCH cx_root.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.
@@ -637,7 +640,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD uuid_Get_c22.
+  METHOD uuid_get_c22.
 
     TRY.
         DATA uuid TYPE c LENGTH 22.
@@ -1083,12 +1086,13 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
     DATA lt_source TYPE string_table.
+    DATA lt_string TYPE string_table.
 
     TRY.
         DATA lv_class TYPE c LENGTH 30.
         DATA lv_method TYPE c LENGTH 61.
-        lv_class  = iv_classname.
-        lv_method = iv_methodname.
+        lv_class  = to_upper( iv_classname ).
+        lv_method = to_upper( iv_methodname ).
 
         CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
           EXPORTING
@@ -1122,7 +1126,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
         CALL METHOD object->('IF_OO_CLIF_SOURCE_FACTORY~CREATE_CLIF_SOURCE')
           EXPORTING
-            clif_name = iv_classname
+            clif_name = lv_class
           RECEIVING
             result    = object.
 
@@ -1138,18 +1142,20 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
             lv_check_method = abap_false.
           ENDIF.
 
-          IF lv_source_upper CS to_upper( |{ iv_methodname }| ).
+          IF lv_source_upper CS `METHOD ` && lv_method.
             lv_check_method = abap_true.
             CONTINUE.
           ENDIF.
 
           IF lv_check_method = abap_true.
-            INSERT lv_source INTO TABLE result.
+            INSERT lv_source INTO TABLE lt_string.
           ENDIF.
 
         ENDLOOP.
 
     ENDTRY.
+
+    result = source_method_to_file( lt_string ).
 
   ENDMETHOD.
 

@@ -150,28 +150,23 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
           IF z2ui5_cl_util_func=>boolean_check_by_name( lr_attri->type ).
 
-            lo_actual->add_attribute( n           = lr_attri->name_front
+            lo_actual->add_attribute( n  = lr_attri->name_front
                              v           = SWITCH #( <attribute> WHEN abap_true THEN `true` ELSE `false` )
                              apos_active = abap_false ).
 
           ELSE.
 
-            lo_actual->add_attribute( n           = lr_attri->name_front
+            lo_actual->add_attribute( n  = lr_attri->name_front
                              v           = z2ui5_cl_util_func=>trans_json_by_any( any = <attribute> pretty_name = lr_attri->pretty_name compress = lr_attri->compress )
                              apos_active = abap_false ).
 
           ENDIF.
 
-*          CASE lr_attri->type.
-*            WHEN `ABAP_BOOL` OR `ABAP_BOOLEAN` OR `XSDBOOLEAN`
-*        WHEN OTHERS.
-*      ENDCASE.
+      ENDCASE.
 
-  ENDCASE.
+    ENDLOOP.
 
-ENDLOOP.
+    result = lr_view_model->stringify( ).
 
-result = lr_view_model->stringify( ).
-
-ENDMETHOD.
+  ENDMETHOD.
 ENDCLASS.

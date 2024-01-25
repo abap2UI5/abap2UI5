@@ -34,14 +34,16 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
+
 
   METHOD factory.
 
-    result = new #( ).
+    result = NEW #( ).
     result->ms_config = i_config.
 
   ENDMETHOD.
+
 
   METHOD get.
 
@@ -113,6 +115,7 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
     z2ui5_cl_fw_db=>cleanup( ).
 
   ENDMETHOD.
+
 
   METHOD get_js.
 
@@ -366,56 +369,26 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `            }` && |\n|  &&
                `            BusyIndicator.show();` && |\n|  &&
                `            sap.z2ui5.oBody = {};` && |\n|  &&
-*               `            let isUpdated = false;` && |\n|  &&
                `            if ( sap.z2ui5.oController == this ) {` && |\n|  &&
                `                sap.z2ui5.oBody.EDIT = sap.z2ui5.oView.getModel().getData().EDIT;` && |\n|  &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
                `            }else if ` && |\n|  &&
-*               `            if (sap.z2ui5.oViewPopup) {` && |\n|  &&
-*               `                if (sap.z2ui5.oViewPopup.isOpen ) { if( sap.z2ui5.oViewPopup.isOpen() == true ) {` && |\n|  &&
                `               (  sap.z2ui5.oControllerPopup == this ) {` && |\n|  &&
                `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
-*               `                    isUpdated = true;` && |\n|  &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
                `                }else if ( ` && |\n|  &&
-*               `                } }` && |\n|  &&
-*               `                if (isUpdated == false) { if (sap.z2ui5.oViewPopup.getVisible ) { if( sap.z2ui5.oViewPopup.getVisible() == true ) {` && |\n|  &&
-*               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
-*               `                    debugger;` && |\n|  &&
-*               `                    isUpdated = true;` && |\n|  &&
-*               `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-*               `                } } }` && |\n|  &&
-*               `            }` && |\n|  &&
-*               `            if (isUpdated == false) {` && |\n|  &&
                `                sap.z2ui5.oControllerPopover == this ) {` && |\n|  &&
-*               `                if (sap.z2ui5.oViewPopover) {` && |\n|  &&
-*               `                    if (sap.z2ui5.oViewPopover.isOpen) {` && |\n|  &&
-*               `                        if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n|  &&
                `                            sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n|  &&
-*               `                            isUpdated = true;` && |\n|  &&
                `                            sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-*               `                        }` && |\n|  &&
-*               `                    }` && |\n|  &&
-*               `                    sap.z2ui5.oViewPopover.destroy();` && |\n|  &&
                `                }else if ( ` && |\n|  &&
-*               `            }` && |\n|  &&
-*               `            if (isUpdated == false) {` && |\n|  &&
-*               `                if (sap.z2ui5.oViewNest == this.getView()) {` && |\n|  &&
                `                sap.z2ui5.oControllerNest == this ) {` && |\n|  &&
                `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest.getModel().getData().EDIT;` && |\n|  &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'NEST';` && |\n|  &&
-*               `                    isUpdated = true;` && |\n|  &&
                `                }else if (` && |\n|  &&
-*               `            }` && |\n|  &&
-*               `            if (isUpdated == false) {` && |\n|  &&
-*               `                if (sap.z2ui5.oViewNest == this.getView()) {` && |\n|  &&
                `                sap.z2ui5.oControllerNest2 == this ) {` && |\n|  &&
                `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest2.getModel().getData().EDIT;` && |\n|  &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n|  &&
-*               `                    isUpdated = true;` && |\n|  &&
                `                }` && |\n|  &&
-*               `            }` && |\n|  &&
-               |\n|  &&
                `            sap.z2ui5.onBeforeRoundtrip.forEach(item=>{` && |\n|  &&
                `                if (item !== undefined) {` && |\n|  &&
                `                    item();` && |\n|  &&
@@ -456,14 +429,12 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
                `               await sap.z2ui5.oController.createView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `            return;  } } ` && |\n|  &&
-*               `            } else {` && |\n|  &&
                `                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);` && |\n|  &&
                `                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);` && |\n|  &&
                `                this.updateModelIfRequired('S_VIEW_NEST2', sap.z2ui5.oViewNest2);` && |\n|  &&
                `                this.updateModelIfRequired('S_POPUP', sap.z2ui5.oViewPopup);` && |\n|  &&
                `                this.updateModelIfRequired('S_POPOVER', sap.z2ui5.oViewPopover);` && |\n|  &&
                `                sap.z2ui5.oController.onAfterRendering();` && |\n|  &&
-*               `            }` && |\n|  &&
 `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n|  &&
                `        },` && |\n|  &&
                `        showMessage(msgType, params) {` && |\n|  &&
@@ -557,5 +528,4 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `);`.
 
   ENDMETHOD.
-
 ENDCLASS.
