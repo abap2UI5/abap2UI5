@@ -9,6 +9,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
+class z2ui5_cl_fw_controller definition local friends ltcl_unit_test.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
 

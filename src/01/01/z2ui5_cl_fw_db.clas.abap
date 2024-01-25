@@ -79,7 +79,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
                                      id_prev           = db-id_prev
                                      id_prev_app       = db-id_prev_app
                                      id_prev_app_stack = db-id_prev_app_stack
-                                     uname             = z2ui5_cl_util_func=>func_get_user_tech( )
+                                     uname             = z2ui5_cl_util_func=>user_get_tech( )
                                      timestampl        = z2ui5_cl_util_func=>time_get_timestampl( )
                                      data              = lv_xml ).
 
@@ -118,7 +118,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
             val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
       ENDIF.
 
-      z2ui5_cl_util_func=>rtti_xml_set_to_data(
+      z2ui5_cl_util_func=>trans_srtti_xml_2_data(
         EXPORTING
           rtti_data = lr_attri->data_rtti
          IMPORTING
@@ -160,7 +160,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
   METHOD trans_any_2_xml.
 
     TRY.
-        result = z2ui5_cl_util_func=>trans_xml_any_2( db ).
+        result = z2ui5_cl_util_func=>trans_xml_by_any( db ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
         TRY.
@@ -189,12 +189,12 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
               IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
-              lr_attri->data_rtti = z2ui5_cl_util_func=>rtti_xml_get_by_data( <deref_attri> ).
+              lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <deref_attri> ).
               CLEAR <deref_attri>.
               CLEAR <attri>.
             ENDLOOP.
 
-            result = z2ui5_cl_util_func=>trans_xml_any_2( ls_db ).
+            result = z2ui5_cl_util_func=>trans_xml_by_any( ls_db ).
 
           CATCH z2ui5_cx_util_error INTO DATA(x_util).
             RAISE EXCEPTION x_util.

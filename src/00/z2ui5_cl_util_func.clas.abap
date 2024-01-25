@@ -23,35 +23,44 @@ CLASS z2ui5_cl_util_func DEFINITION
         t_range TYPE ty_t_range,
         t_token TYPE ty_t_token,
       END OF ty_s_sql_multi.
-    TYPES ty_t_sql_multi TYPE STANDARD TABLE OF ty_s_sql_multi WITH EMPTY KEY.
+    TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_sql_multi WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_s_sql_result,
         table TYPE string,
       END OF ty_s_sql_result.
 
-    CLASS-METHODS source_code_get_method
+    CLASS-METHODS itab_get_itab_by_csv
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    CLASS-METHODS itab_get_csv_by_itab
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
+
+    CLASS-METHODS source_get_method
       IMPORTING
         iv_classname  TYPE clike
         iv_methodname TYPE clike
       RETURNING
         VALUE(result) TYPE string_table.
 
-    CLASS-METHODS get_sql_multi_by_data
+    CLASS-METHODS filter_get_multi_by_data
       IMPORTING
         val           TYPE data
       RETURNING
-        VALUE(result) TYPE ty_t_sql_multi.
+        VALUE(result) TYPE ty_t_filter_multi.
 
-    CLASS-METHODS get_sql_by_string
+    CLASS-METHODS sql_get_by_string
       IMPORTING
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE ty_s_sql_result.
-
-    CLASS-METHODS js_load_ext_lib
-      RETURNING
-        VALUE(result) TYPE string.
 
     CLASS-METHODS app_get_url_source_code
       IMPORTING
@@ -103,19 +112,19 @@ CLASS z2ui5_cl_util_func DEFINITION
         !v TYPE clike DEFAULT `CX_SY_SUBRC`
           PREFERRED PARAMETER v.
 
-    CLASS-METHODS func_get_uuid_32
+    CLASS-METHODS uuid_get_c32
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS func_get_uuid_22
+    CLASS-METHODS uuid_Get_c22
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS func_get_user_tech
+    CLASS-METHODS user_get_tech
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS trans_json_any_2
+    CLASS-METHODS trans_json_by_any
       IMPORTING
         !any          TYPE any
         !pretty_name  TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
@@ -129,7 +138,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       EXPORTING
         !any TYPE any.
 
-    CLASS-METHODS trans_xml_any_2
+    CLASS-METHODS trans_xml_by_any
       IMPORTING
         !any          TYPE any
       RETURNING
@@ -181,13 +190,13 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS rtti_xml_get_by_data
+    CLASS-METHODS trans_srtti_xml_by_data
       IMPORTING
         !data         TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS rtti_xml_set_to_data
+    CLASS-METHODS trans_srtti_xml_2_data
       IMPORTING
         !rtti_data TYPE clike
       EXPORTING
@@ -264,53 +273,53 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    CLASS-METHODS get_range_t_by_token_t
+    CLASS-METHODS filter_get_range_t_by_token_t
       IMPORTING
         val           TYPE ty_t_token
       RETURNING
         VALUE(result) TYPE ty_t_range.
 
-    CLASS-METHODS get_range_by_token
+    CLASS-METHODS filter_get_range_by_token
       IMPORTING
         VALUE(value)  TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_range.
 
-    CLASS-METHODS get_token_t_by_range_t
+    CLASS-METHODS filter_get_token_t_by_range_t
       IMPORTING
         val           TYPE ty_t_range
       RETURNING
         VALUE(result) TYPE ty_t_token.
 
-    CLASS-METHODS get_token_range_mapping
+    CLASS-METHODS filter_get_token_range_mapping
       RETURNING
         VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
 
-    CLASS-METHODS get_tab_filter_by_val
+    CLASS-METHODS itab_filter_by_val
       IMPORTING
         val TYPE clike
       CHANGING
         tab TYPE STANDARD TABLE.
 
-    CLASS-METHODS decode_x_base64
+    CLASS-METHODS conv_decode_x_base64
       IMPORTING
         val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
-    CLASS-METHODS encode_x_base64
+    CLASS-METHODS conv_encode_x_base64
       IMPORTING
         val           TYPE xstring
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS get_string_by_xstring
+    CLASS-METHODS conv_get_string_by_xstring
       IMPORTING
         val           TYPE xstring
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS get_xstring_by_string
+    CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
         val           TYPE string
       RETURNING
@@ -328,13 +337,13 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE d.
 
-    CLASS-METHODS copy_ref_data_to_ref_data
+    CLASS-METHODS conv_copy_ref_data
       IMPORTING
         from          TYPE REF TO data
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    CLASS-METHODS get_file_types
+    CLASS-METHODS source_get_file_types
       RETURNING
         VALUE(result) TYPE string_table.
 
@@ -353,8 +362,86 @@ ENDCLASS.
 CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
 
+  METHOD itab_get_itab_by_csv.
 
-  METHOD get_file_types.
+   SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
+    SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
+
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+    LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
+
+      DATA(lv_name) =  c_trim_upper( lr_col->* ).
+      REPLACE ` ` IN lv_name WITH `_`.
+
+      INSERT VALUE #( name = lv_name type = cl_abap_elemdescr=>get_c( 40 ) ) INTO TABLE lt_comp.
+    ENDLOOP.
+
+    DATA(struc) = cl_abap_structdescr=>get( lt_comp ).
+    DATA(o_table_desc) = cl_abap_tabledescr=>create(
+          p_line_type  = CAST #( struc )
+          p_table_kind = cl_abap_tabledescr=>tablekind_std
+          p_unique     = abap_false ).
+
+    CREATE DATA result TYPE HANDLE o_table_desc.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN result->* TO <tab>.
+
+    DELETE lt_rows WHERE table_line IS INITIAL.
+
+    LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
+
+      SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row TYPE HANDLE struc.
+
+      LOOP AT lt_cols REFERENCE INTO lr_col.
+        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+        ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        <field> = lr_col->*.
+      ENDLOOP.
+
+      INSERT <row> INTO TABLE <tab>.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+
+  METHOD itab_get_csv_by_itab.
+
+    FIELD-SYMBOLS <tab> TYPE table.
+    ASSIGN val TO <tab>.
+
+    DATA lr_row TYPE REF TO data.
+
+    DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
+
+    DATA(struc) = CAST cl_abap_structdescr( tab->get_table_line_type( ) ).
+
+    LOOP AT struc->get_components( ) REFERENCE INTO DATA(lr_comp).
+      result = result && lr_comp->name && ';'.
+    ENDLOOP.
+
+    result = result && cl_abap_char_utilities=>cr_lf.
+
+    LOOP AT <tab> REFERENCE INTO lr_row.
+
+      DATA(lv_index) = 1.
+      DO.
+        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        lv_index = lv_index + 1.
+        result = result && <field> && ';'.
+      ENDDO.
+      result = result && cl_abap_char_utilities=>cr_lf.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD source_get_file_types.
 
     DATA(lv_types) = `abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, ` &&
 `dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja` &&
@@ -441,7 +528,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD copy_ref_data_to_ref_data.
+  METHOD conv_copy_ref_data.
 
     FIELD-SYMBOLS <from> TYPE data.
     FIELD-SYMBOLS <result> TYPE data.
@@ -497,7 +584,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD decode_x_base64.
+  METHOD conv_decode_x_base64.
 
     TRY.
 
@@ -521,7 +608,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD encode_x_base64.
+  METHOD conv_encode_x_base64.
 
     TRY.
 
@@ -545,12 +632,12 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD func_get_user_tech.
+  METHOD user_get_tech.
     result = sy-uname.
   ENDMETHOD.
 
 
-  METHOD func_get_uuid_22.
+  METHOD uuid_Get_c22.
 
     TRY.
         DATA uuid TYPE c LENGTH 22.
@@ -583,7 +670,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD func_get_uuid_32.
+  METHOD uuid_get_c32.
 
     TRY.
         DATA uuid TYPE c LENGTH 32.
@@ -611,24 +698,24 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_range_by_token.
+  METHOD filter_get_range_by_token.
 
     DATA(lv_length) = strlen( value ) - 1.
     CASE value(1).
 
       WHEN `=`.
-        result = VALUE #(  option = `EQ` low = value+1 ).
+        result = VALUE #(  sign = `I` option = `EQ` low = value+1 ).
       WHEN `<`.
         IF value+1(1) = `=`.
-          result = VALUE #(  option = `LE` low = value+2 ).
+          result = VALUE #( sign = `I` option = `LE` low = value+2 ).
         ELSE.
-          result = VALUE #(  option = `LT` low = value+1 ).
+          result = VALUE #( sign = `I` option = `LT` low = value+1 ).
         ENDIF.
       WHEN `>`.
         IF value+1(1) = `=`.
-          result = VALUE #(  option = `GE` low = value+2 ).
+          result = VALUE #( sign = `I` option = `GE` low = value+2 ).
         ELSE.
-          result = VALUE #(  option = `GT` low = value+1 ).
+          result = VALUE #( sign = `I` option = `GT` low = value+1 ).
         ENDIF.
 
       WHEN `*`.
@@ -651,16 +738,16 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_range_t_by_token_t.
+  METHOD filter_get_range_t_by_token_t.
 
     LOOP AT val INTO DATA(ls_token).
-      INSERT get_range_by_token( ls_token-text ) INTO TABLE result.
+      INSERT filter_get_range_by_token( ls_token-text ) INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.
 
 
-  METHOD get_sql_by_string.
+  METHOD sql_get_by_string.
 
     DATA(lv_sql) = CONV string( val ).
     REPLACE ALL OCCURRENCES OF ` ` IN lv_sql  WITH ``.
@@ -673,7 +760,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_sql_multi_by_data.
+  METHOD filter_get_multi_by_data.
 
     LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
       INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
@@ -682,7 +769,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_string_by_xstring.
+  METHOD conv_get_string_by_xstring.
 
     DATA conv TYPE REF TO object.
 
@@ -715,7 +802,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_tab_filter_by_val.
+  METHOD itab_filter_by_val.
 
     LOOP AT tab ASSIGNING FIELD-SYMBOL(<row>).
       DATA(lv_row) = ``.
@@ -737,8 +824,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_token_range_mapping.
-
+  METHOD filter_get_token_range_mapping.
 
     result = VALUE #(
 (   n = `EQ`     v = `={LOW}`    )
@@ -756,9 +842,9 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_token_t_by_range_t.
+  METHOD filter_get_token_t_by_range_t.
 
-    DATA(lt_mapping) = get_token_range_mapping( ).
+    DATA(lt_mapping) = filter_get_token_range_mapping( ).
 
     LOOP AT val REFERENCE INTO DATA(lr_row).
 
@@ -772,7 +858,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_xstring_by_string.
+  METHOD conv_get_xstring_by_string.
 
     DATA conv TYPE REF TO object.
 
@@ -801,53 +887,6 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
           IMPORTING
             buffer = result.
     ENDTRY.
-
-
-
-*    result = cl_abap_conv_codepage=>create_out( )->convert( val ).
-
-  ENDMETHOD.
-
-
-  METHOD js_load_ext_lib.
-
-    result = `      async loadScriptExt(url) {` && |\n|  &&
-             `          this.BusyDialog = new sap.m.BusyDialog({ title: "External Library", text: "... now loading the data from a far away server" });` && |\n|  &&
-             `          this.BusyDialog.open();` && |\n|  &&
-             |\n|  &&
-             `          const loadScript = (FILE_URL, async = true, type = "text/javascript") => {` && |\n|  &&
-             `              return new Promise((resolve, reject) => {` && |\n|  &&
-             `                  try {` && |\n|  &&
-             `                      const scriptEle = document.createElement("script");` && |\n|  &&
-             `                      scriptEle.type = type;` && |\n|  &&
-             `                      scriptEle.async = async;` && |\n|  &&
-             `                      scriptEle.src = FILE_URL;` && |\n|  &&
-             `                      scriptEle.addEventListener("load", (ev) => {` && |\n|  &&
-             `                          resolve({ status: true });` && |\n|  &&
-             `                      });` && |\n|  &&
-             `                      scriptEle.addEventListener("error", (ev) => {` && |\n|  &&
-             `                          reject({` && |\n|  &&
-             `                              status: false,` && |\n|  &&
-             `                              message: ``Failed to load the script ${FILE_URL}``` && |\n|  &&
-             `                          });` && |\n|  &&
-             `                      });` && |\n|  &&
-             `                      document.body.appendChild(scriptEle);` && |\n|  &&
-             `                  } catch (error) {` && |\n|  &&
-             `                      reject(error);` && |\n|  &&
-             `                  }` && |\n|  &&
-             `              });` && |\n|  &&
-             `          };` && |\n|  &&
-             |\n|  &&
-             `          await loadScript(url)` && |\n|  &&
-             `              .then(data => {` && |\n|  &&
-             `                  this.result = 'A';` && |\n|  &&
-             `              }).catch(err => {` && |\n|  &&
-             `                  this.result = 'E';` && |\n|  &&
-             `              });` && |\n|  &&
-             `          this.BusyDialog.close();` && |\n|  &&
-             `          return this.result;` && |\n|  &&
-             |\n|  &&
-             `      },`.
 
   ENDMETHOD.
 
@@ -980,7 +1019,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rtti_xml_get_by_data.
+  METHOD trans_srtti_xml_by_data.
 
     TRY.
 
@@ -1008,7 +1047,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rtti_xml_set_to_data.
+  METHOD trans_srtti_xml_2_data.
 
     TRY.
         DATA srtti TYPE REF TO object.
@@ -1040,7 +1079,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD source_code_get_method.
+  METHOD source_get_method.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
     DATA lt_source TYPE string_table.
@@ -1151,7 +1190,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD trans_json_any_2.
+  METHOD trans_json_by_any.
 
     CASE compress.
 
@@ -1369,7 +1408,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD trans_xml_any_2.
+  METHOD trans_xml_by_any.
 
     CALL TRANSFORMATION id
          SOURCE data = any
