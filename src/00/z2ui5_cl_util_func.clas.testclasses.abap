@@ -364,7 +364,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_func_get_uuid_32.
 
-    DATA(lv_uuid) = z2ui5_cl_util_func=>func_get_uuid_32( ).
+    DATA(lv_uuid) = z2ui5_cl_util_func=>uuid_get_c32( ).
 
     IF lv_uuid IS INITIAL.
       cl_abap_unit_assert=>fail(  ).
@@ -378,7 +378,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_func_get_uuid_22.
 
-    DATA(lv_uuid) = z2ui5_cl_util_func=>func_get_uuid_22( ).
+    DATA(lv_uuid) = z2ui5_cl_util_func=>uuid_Get_c22( ).
 
     IF lv_uuid IS INITIAL.
       cl_abap_unit_assert=>fail( ).
@@ -392,7 +392,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD test_func_get_user_tech.
 
-    DATA(lv_uname) = z2ui5_cl_util_func=>func_get_user_tech( ).
+    DATA(lv_uname) = z2ui5_cl_util_func=>user_get_tech( ).
     IF sy-uname <> lv_uname OR lv_uname IS INITIAL.
       cl_abap_unit_assert=>fail(  ).
     ENDIF.
@@ -439,7 +439,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                    ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
 
 
-    DATA(lv_tab_json) = z2ui5_cl_util_func=>trans_json_any_2( lt_tab ).
+    DATA(lv_tab_json) = z2ui5_cl_util_func=>trans_json_by_any( lt_tab ).
 
     DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr"}]`.
 
@@ -508,7 +508,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(ls_row) = VALUE ty_row( ).
     ls_row-title = `test`.
 
-    DATA(lv_json) = z2ui5_cl_util_func=>trans_json_any_2( ls_row ).
+    DATA(lv_json) = z2ui5_cl_util_func=>trans_json_by_any( ls_row ).
 
     IF lv_json IS INITIAL.
       cl_abap_unit_assert=>fail(  ).
@@ -729,7 +729,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_trans_xml_any_2__w_obj.
 
     DATA(lo_obj) = NEW ltcl_test_app( ).
-    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_any_2( lo_obj ).
+    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_by_any( lo_obj ).
 
     IF lv_xml IS INITIAL.
       cl_abap_unit_assert=>fail( ).
@@ -739,7 +739,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_trans_xml_2_any__w_obj.
 
     DATA(lo_obj) = NEW ltcl_test_app( ).
-    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_any_2( lo_obj ).
+    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_by_any( lo_obj ).
 
     CLEAR lo_obj.
     z2ui5_cl_util_func=>trans_xml_2_any(
@@ -771,7 +771,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(ls_row) = VALUE ty_row( ).
     ls_row-value = `test`.
 
-    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_any_2( ls_row ).
+    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_by_any( ls_row ).
 
     IF lv_xml IS INITIAL.
       cl_abap_unit_assert=>fail( ).
@@ -796,7 +796,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(ls_row2) = VALUE ty_row( ).
     ls_row-value = `test`.
 
-    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_any_2( ls_row ).
+    DATA(lv_xml) = z2ui5_cl_util_func=>trans_xml_by_any( ls_row ).
 
     z2ui5_cl_util_func=>trans_xml_2_any(
       EXPORTING

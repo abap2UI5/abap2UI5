@@ -131,7 +131,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nav_app_call.
     mo_handler->ms_next-o_app_call = app.
     IF app->id_draft IS INITIAL.
-      app->id_app = z2ui5_cl_util_func=>func_get_uuid_32( ).
+      app->id_app = z2ui5_cl_util_func=>uuid_get_c32( ).
     ENDIF.
     result = app->id_app.
   ENDMETHOD.
@@ -140,7 +140,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~nav_app_leave.
     mo_handler->ms_next-o_app_leave = app.
     IF app->id_draft IS INITIAL.
-      app->id_app = z2ui5_cl_util_func=>func_get_uuid_32( ).
+      app->id_app = z2ui5_cl_util_func=>uuid_get_c32( ).
     ENDIF.
     result = app->id_app.
   ENDMETHOD.

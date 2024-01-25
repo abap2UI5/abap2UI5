@@ -64,6 +64,14 @@ CLASS z2ui5_cl_fw_controller DEFINITION
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
     DATA ms_next   TYPE ty_s_next.
 
+    CLASS-METHODS main
+      IMPORTING
+        body          TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+
     CLASS-METHODS request_begin
       IMPORTING
         body          TYPE string
@@ -131,7 +139,6 @@ CLASS z2ui5_cl_fw_controller DEFINITION
 
     METHODS app_client_end_db.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -139,10 +146,46 @@ ENDCLASS.
 
 CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
+  METHOD main.
+
+    TRY.
+        DATA(lo_handler) = request_begin( body ).
+      CATCH cx_root INTO DATA(x).
+        lo_handler = app_system_factory( x ).
+    ENDTRY.
+
+    DO.
+      TRY.
+
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
+          ROLLBACK WORK.
+
+          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->app_leave_factory( ).
+            CONTINUE.
+          ENDIF.
+
+          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
+            lo_handler = lo_handler->app_call_factory( ).
+            CONTINUE.
+          ENDIF.
+
+          result = lo_handler->request_end( ).
+
+        CATCH cx_root INTO x.
+          lo_handler = app_system_factory( x ).
+          CONTINUE.
+      ENDTRY.
+
+      EXIT.
+    ENDDO.
+
+  ENDMETHOD.
 
   METHOD app_next_factory.
 
-    app->id_draft = COND #( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>func_get_uuid_32( ) ELSE app->id_draft ).
+    app->id_draft = COND #( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( ) ELSE app->id_draft ).
 
     r_result = NEW #( ).
     r_result->ms_db-app         = app.
@@ -234,7 +277,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     TRY.
         FIELD-SYMBOLS <struc> TYPE any.
-        data ls_params type ref to data.
+        DATA ls_params TYPE REF TO data.
         ls_params  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
         ASSIGN ls_params->* TO <struc>.
 
@@ -314,7 +357,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     result = NEW #( ).
     result->ms_db         = z2ui5_cl_fw_db=>load_app( id_prev ).
-    result->ms_db-id      = z2ui5_cl_util_func=>func_get_uuid_32( ).
+    result->ms_db-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
     result->ms_db-id_prev = id_prev.
 
     TRY.
@@ -348,10 +391,9 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     TRY.
         DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
-        lv_classname = shift_left( val = lv_classname
-                                   sub = cl_abap_char_utilities=>horizontal_tab ).
-        lv_classname = shift_right( val = lv_classname
-                                    sub = cl_abap_char_utilities=>horizontal_tab ).
+        lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
+*        lv_classname = shift_left( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
+*        lv_classname = shift_right( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
       CATCH cx_root.
     ENDTRY.
 
@@ -366,7 +408,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     TRY.
         result = NEW #( ).
-        result->ms_db-id = z2ui5_cl_util_func=>func_get_uuid_32( ).
+        result->ms_db-id = z2ui5_cl_util_func=>uuid_get_c32( ).
 
         lv_classname = z2ui5_cl_util_func=>c_trim_upper( lv_classname ).
         CREATE OBJECT result->ms_db-app TYPE (lv_classname).
@@ -382,7 +424,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
   METHOD app_system_factory.
 
     result = NEW #( ).
-    result->ms_db-id = z2ui5_cl_util_func=>func_get_uuid_32( ).
+    result->ms_db-id = z2ui5_cl_util_func=>uuid_get_c32( ).
 
     IF ix IS NOT BOUND AND error_text IS NOT INITIAL.
       ix = NEW z2ui5_cx_util_error( val = error_text ).
@@ -447,7 +489,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
                             apos_active = abap_false ).
 
     lo_resp->add_attribute( n           = `PARAMS`
-                            v           = z2ui5_cl_util_func=>trans_json_any_2( ms_next-s_set )
+                            v           = z2ui5_cl_util_func=>trans_json_by_any( ms_next-s_set )
                             apos_active = abap_false ).
 
     lo_resp->add_attribute( n = `ID`
