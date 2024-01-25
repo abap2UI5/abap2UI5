@@ -146,12 +146,12 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `            if (!sap.z2ui5.checkNestAfter2) {` && |\n|  &&
                `                if (S_VIEW_NEST2?.XML) {` && |\n|  &&
                `                    sap.z2ui5.oController.NestViewDestroy2();` && |\n|  &&
-               `                    await this.displayNestedView(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n|  &&
+               `                    await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n|  &&
                `                    sap.z2ui5.checkNestAfter2 = true;` && |\n|  &&
                `                }` && |\n|  &&
                `            }` && |\n|  &&
                `            if (S_POPOVER?.XML) {` && |\n|  &&
-               `                await this.displayFragment(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n|  &&
+               `                await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n|  &&
                `            }` && |\n|  &&
                `            BusyIndicator.hide();` && |\n|  &&
                `            if (sap.z2ui5.isBusy) {` && |\n|  &&
@@ -172,7 +172,7 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `        async displayFragment(xml, viewProp, openById) {` && |\n|  &&
                `            const oFragment = await Fragment.load({` && |\n|  &&
                `                definition: xml,` && |\n|  &&
-               `                controller: sap.z2ui5.oController,` && |\n|  &&
+               `                controller: sap.z2ui5.oControllerPopup,` && |\n|  &&
                `            });` && |\n|  &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
@@ -185,13 +185,27 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `            }` && |\n|  &&
                `            sap.z2ui5[viewProp] = oFragment;` && |\n|  &&
                `        },` && |\n|  &&
-               |\n|  &&
+               `        async displayPopover(xml, viewProp, openById) {` && |\n|  &&
+               `            const oFragment = await Fragment.load({` && |\n|  &&
+               `                definition: xml,` && |\n|  &&
+               `                controller: sap.z2ui5.oControllerPopover,` && |\n|  &&
+               `            });` && |\n|  &&
+               `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+               `            oFragment.setModel(oview_model);` && |\n|  &&
+               `            let oControl = openById ? this.getControlById(openById) : null;` && |\n|  &&
+               `            if (oControl) {` && |\n|  &&
+               `                oFragment.openBy(oControl);` && |\n|  &&
+               `            } else {` && |\n|  &&
+               `                oFragment.open();` && |\n|  &&
+               `            }` && |\n|  &&
+               `            sap.z2ui5[viewProp] = oFragment;` && |\n|  &&
+               `        },` && |\n|  &&
                `        async displayNestedView(xml, viewProp, viewNestId) {` && |\n|  &&
                `            const oView = await XMLView.create({` && |\n|  &&
                `                definition: xml,` && |\n|  &&
                `                controller: sap.z2ui5.oControllerNest,` && |\n|  &&
                `            });` && |\n|  &&
-               |\n|  &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
                `            oView.setModel(oview_model);` && |\n|  &&
@@ -205,7 +219,24 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `            }` && |\n|  &&
                `            sap.z2ui5[viewProp] = oView;` && |\n|  &&
                `        },` && |\n|  &&
+               `        async displayNestedView2(xml, viewProp, viewNestId) {` && |\n|  &&
+               `            const oView = await XMLView.create({` && |\n|  &&
+               `                definition: xml,` && |\n|  &&
+               `                controller: sap.z2ui5.oControllerNest2,` && |\n|  &&
+               `            });` && |\n|  &&
+               `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
+               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+               `            oView.setModel(oview_model);` && |\n|  &&
                |\n|  &&
+               `            let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n|  &&
+               `            if (oParent) {` && |\n|  &&
+               `                try {` && |\n|  &&
+               `                    oParent[sap.z2ui5.oResponse.PARAMS[viewNestId].METHOD_DESTROY]();` && |\n|  &&
+               `                } catch {}` && |\n|  &&
+               `                oParent[sap.z2ui5.oResponse.PARAMS[viewNestId].METHOD_INSERT](oView);` && |\n|  &&
+               `            }` && |\n|  &&
+               `            sap.z2ui5[viewProp] = oView;` && |\n|  &&
+               `        },` && |\n|  &&
                `        getControlById(id) {` && |\n|  &&
                `            let oControl = sap.z2ui5.oView.byId(id);` && |\n|  &&
                `            if (!oControl) {` && |\n|  &&
@@ -335,42 +366,55 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `            }` && |\n|  &&
                `            BusyIndicator.show();` && |\n|  &&
                `            sap.z2ui5.oBody = {};` && |\n|  &&
-               `            let isUpdated = false;` && |\n|  &&
-               `            if (sap.z2ui5.oViewPopup) {` && |\n|  &&
-*               `                if (sap.z2ui5.oViewPopup.isOpen ) { if( sap.z2ui5.oViewPopup.isOpen() == true ) {` && |\n|  &&
-*               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
-*               `                    isUpdated = true;` && |\n|  &&
-*               `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-*               `                } }` && |\n|  &&
-               `                if (sap.z2ui5.oViewPopup.getVisible ) { if( sap.z2ui5.oViewPopup.getVisible() == true ) {` && |\n|  &&
-               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
-               `                    isUpdated = true;` && |\n|  &&
-               `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-               `                } }` && |\n|  &&
-               `            }` && |\n|  &&
-               `            if (isUpdated == false) {` && |\n|  &&
-               `                if (sap.z2ui5.oViewPopover) {` && |\n|  &&
-               `                    if (sap.z2ui5.oViewPopover.isOpen) {` && |\n|  &&
-               `                        if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n|  &&
-               `                            sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n|  &&
-               `                            isUpdated = true;` && |\n|  &&
-               `                            sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-               `                        }` && |\n|  &&
-               `                    }` && |\n|  &&
-               `                    sap.z2ui5.oViewPopover.destroy();` && |\n|  &&
-               `                }` && |\n|  &&
-               `            }` && |\n|  &&
-               `            if (isUpdated == false) {` && |\n|  &&
-               `                if (sap.z2ui5.oViewNest == this.getView()) {` && |\n|  &&
-               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest.getModel().getData().EDIT;` && |\n|  &&
-               `                    sap.z2ui5.oBody.VIEWNAME = 'NEST';` && |\n|  &&
-               `                    isUpdated = true;` && |\n|  &&
-               `                }` && |\n|  &&
-               `            }` && |\n|  &&
-               `            if (isUpdated == false) {` && |\n|  &&
+*               `            let isUpdated = false;` && |\n|  &&
+               `            if ( sap.z2ui5.oController == this ) {` && |\n|  &&
                `                sap.z2ui5.oBody.EDIT = sap.z2ui5.oView.getModel().getData().EDIT;` && |\n|  &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
-               `            }` && |\n|  &&
+               `            }else if ` && |\n|  &&
+*               `            if (sap.z2ui5.oViewPopup) {` && |\n|  &&
+*               `                if (sap.z2ui5.oViewPopup.isOpen ) { if( sap.z2ui5.oViewPopup.isOpen() == true ) {` && |\n|  &&
+               `               (  sap.z2ui5.oControllerPopup == this ) {` && |\n|  &&
+               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
+*               `                    isUpdated = true;` && |\n|  &&
+               `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
+               `                }else if ( ` && |\n|  &&
+*               `                } }` && |\n|  &&
+*               `                if (isUpdated == false) { if (sap.z2ui5.oViewPopup.getVisible ) { if( sap.z2ui5.oViewPopup.getVisible() == true ) {` && |\n|  &&
+*               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
+*               `                    debugger;` && |\n|  &&
+*               `                    isUpdated = true;` && |\n|  &&
+*               `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
+*               `                } } }` && |\n|  &&
+*               `            }` && |\n|  &&
+*               `            if (isUpdated == false) {` && |\n|  &&
+               `                sap.z2ui5.oControllerPopover == this ) {` && |\n|  &&
+*               `                if (sap.z2ui5.oViewPopover) {` && |\n|  &&
+*               `                    if (sap.z2ui5.oViewPopover.isOpen) {` && |\n|  &&
+*               `                        if (sap.z2ui5.oViewPopover.isOpen() == true) {` && |\n|  &&
+               `                            sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n|  &&
+*               `                            isUpdated = true;` && |\n|  &&
+               `                            sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
+*               `                        }` && |\n|  &&
+*               `                    }` && |\n|  &&
+*               `                    sap.z2ui5.oViewPopover.destroy();` && |\n|  &&
+               `                }else if ( ` && |\n|  &&
+*               `            }` && |\n|  &&
+*               `            if (isUpdated == false) {` && |\n|  &&
+*               `                if (sap.z2ui5.oViewNest == this.getView()) {` && |\n|  &&
+               `                sap.z2ui5.oControllerNest == this ) {` && |\n|  &&
+               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest.getModel().getData().EDIT;` && |\n|  &&
+               `                    sap.z2ui5.oBody.VIEWNAME = 'NEST';` && |\n|  &&
+*               `                    isUpdated = true;` && |\n|  &&
+               `                }else if (` && |\n|  &&
+*               `            }` && |\n|  &&
+*               `            if (isUpdated == false) {` && |\n|  &&
+*               `                if (sap.z2ui5.oViewNest == this.getView()) {` && |\n|  &&
+               `                sap.z2ui5.oControllerNest2 == this ) {` && |\n|  &&
+               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest2.getModel().getData().EDIT;` && |\n|  &&
+               `                    sap.z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n|  &&
+*               `                    isUpdated = true;` && |\n|  &&
+               `                }` && |\n|  &&
+*               `            }` && |\n|  &&
                |\n|  &&
                `            sap.z2ui5.onBeforeRoundtrip.forEach(item=>{` && |\n|  &&
                `                if (item !== undefined) {` && |\n|  &&
@@ -495,6 +539,8 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
                `    sap.z2ui5.oController = new Controller();` && |\n|  &&
                `    sap.z2ui5.oControllerNest = new Controller();` && |\n|  &&
                `    sap.z2ui5.oControllerNest2 = new Controller();` && |\n|  &&
+               `    sap.z2ui5.oControllerPopup = new Controller();` && |\n|  &&
+               `    sap.z2ui5.oControllerPopover = new Controller();` && |\n|  &&
                |\n|  &&
                `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n|  &&
                `    sap.z2ui5.checkNestAfter = false;` && |\n|  &&
