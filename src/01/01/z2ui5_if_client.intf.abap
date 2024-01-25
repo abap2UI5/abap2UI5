@@ -24,8 +24,8 @@ INTERFACE z2ui5_if_client
       main    TYPE string VALUE `MAIN`,
       nested  TYPE string VALUE `NEST`,
       nested2 TYPE string VALUE `NEST2`,
-      popover TYPE string VALUE `POPOVER`,
-      popup   TYPE string VALUE `POPUP`,
+*      popover TYPE string VALUE `POPOVER`,
+*      popup   TYPE string VALUE `POPUP`,
     END OF cs_view.
 
   CONSTANTS:
@@ -174,6 +174,7 @@ INTERFACE z2ui5_if_client
       compress      TYPE clike     DEFAULT cs_compress_mode-standard
       tab           TYPE STANDARD TABLE  OPTIONAL
       tab_index     TYPE i          OPTIONAL
+      struc         TYPE data       OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
@@ -184,8 +185,9 @@ INTERFACE z2ui5_if_client
       view          TYPE string     DEFAULT cs_view-main
       pretty_name   TYPE clike      DEFAULT /ui2/cl_json=>pretty_mode-none
       compress      TYPE clike      DEFAULT cs_compress_mode-standard
-      tab           TYPE STANDARD TABLE  OPTIONAL
+      tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
+      struc         TYPE data       OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 

@@ -29,6 +29,16 @@ CLASS z2ui5_cl_fw_client DEFINITION
       RETURNING
         VALUE(r_result) TYPE string.
 
+    METHODS bind_struc_comp
+      IMPORTING
+        iv_name         TYPE string
+        i_struc         type data
+*        i_tab_index     TYPE i
+*        i_tab           TYPE STANDARD TABLE
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -36,6 +46,35 @@ ENDCLASS.
 
 CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
+
+  METHOD bind_struc_comp.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_struc TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_struc ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
 
   METHOD bind_tab_cell.
 
@@ -274,6 +313,18 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+    IF struc IS NOT INITIAL.
+
+      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val = struc path = abap_true pretty_name = pretty_name ).
+      result = bind_struc_comp(
+            iv_name     = lv_name_struc
+            i_struc     = struc
+            i_val       = val ).
+
+      RETURN.
+
+    ENDIF.
+
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app   = mo_handler->ms_db-app
                         attri = mo_handler->ms_db-t_attri
@@ -328,6 +379,19 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
             i_val       = val ).
 
       RETURN.
+
+    ENDIF.
+
+    IF struc IS NOT INITIAL.
+
+      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val = struc path = abap_true pretty_name = pretty_name ).
+      result = bind_struc_comp(
+            iv_name     = lv_name_struc
+            i_struc     = struc
+            i_val       = val ).
+
+      RETURN.
+
     ENDIF.
 
 
