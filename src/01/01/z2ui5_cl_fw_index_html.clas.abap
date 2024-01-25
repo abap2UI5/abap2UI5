@@ -38,7 +38,7 @@ CLASS z2ui5_cl_fw_index_html IMPLEMENTATION.
 
   METHOD factory.
 
-    CREATE OBJECT result.
+    result = new #( ).
     result->ms_config = i_config.
 
   ENDMETHOD.

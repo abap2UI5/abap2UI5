@@ -149,9 +149,9 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
   METHOD main.
 
     TRY.
-        DATA(lo_handler) = z2ui5_cl_fw_controller=>request_begin( body ).
+        DATA(lo_handler) = request_begin( body ).
       CATCH cx_root INTO DATA(x).
-        lo_handler = z2ui5_cl_fw_controller=>app_system_factory( x ).
+        lo_handler = app_system_factory( x ).
     ENDTRY.
 
     DO.
@@ -174,7 +174,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
           result = lo_handler->request_end( ).
 
         CATCH cx_root INTO x.
-          lo_handler = z2ui5_cl_fw_controller=>app_system_factory( x ).
+          lo_handler = app_system_factory( x ).
           CONTINUE.
       ENDTRY.
 
