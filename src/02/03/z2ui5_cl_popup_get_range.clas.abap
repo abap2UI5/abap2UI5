@@ -43,7 +43,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_GET_RANGE IMPLEMENTATION.
+
 
   METHOD factory.
 
@@ -69,20 +70,24 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
     afterclose = client->_event( 'BUTTON_CANCEL' )
     contentheight = `50%`
     contentwidth = `50%`
-        title = 'Define Filter Conditons' ).
+*        title = 'Define Filter Conditons' ).
+        title = TEXT-001 ).
 
     DATA(vbox) = lo_popup->vbox( height = `100%` justifycontent = 'SpaceBetween' ).
 
     DATA(item) = vbox->list(
            "   headertext = `Product`
-              nodata = `no conditions defined`
-             items           = client->_bind_edit( mt_filter )
-             selectionchange = client->_event( 'SELCHANGE' )
-                )->custom_list_item( ).
+*              nodata = `no conditions defined`
+              nodata = TEXT-002
+              items           = client->_bind_edit( mt_filter )
+              selectionchange = client->_event( 'SELCHANGE' )
+                 )->custom_list_item( ).
 
-    DATA(grid) = item->grid( ).
+*    DATA(grid) = item->grid( ).
+    DATA(hbox) = item->hbox( justifycontent = 'SpaceAround' alignitems = `Center` ).
 
-    grid->combobox(
+*    grid->combobox(
+    hbox->combobox(
                  selectedkey = `{OPTION}`
                  items       = client->_bind_local( z2ui5_cl_util_func=>filter_get_token_range_mapping( ) )
              )->item(
@@ -95,14 +100,16 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
              ).
 
     lo_popup->footer( )->overflow_toolbar(
-        )->button( text = `Delete All` icon = 'sap-icon://delete' type = `Transparent` press = client->_event( val = `POPUP_DELETE_ALL` )
-        )->button( text = `Add Item`   icon = `sap-icon://add` press = client->_event( val = `POPUP_ADD` )
+        )->button( text = TEXT-003 icon = 'sap-icon://delete' type = `Transparent` press = client->_event( val = `POPUP_DELETE_ALL` )
+        )->button( text = TEXT-004   icon = `sap-icon://add` press = client->_event( val = `POPUP_ADD` )
         )->toolbar_spacer(
        )->button(
-            text  = 'Cancel'
+*            text  = 'Cancel'
+            text  = TEXT-005
             press = client->_event( 'BUTTON_CANCEL' )
        )->button(
-            text  = 'OK'
+*            text  = 'OK'
+            text  = TEXT-006
             press = client->_event( 'BUTTON_CONFIRM' )
             type  = 'Emphasized'
        ).

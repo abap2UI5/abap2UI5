@@ -1272,6 +1272,12 @@ public section.
     importing
       !CLASS type CLIKE optional
       !DEFAULT_SPAN type CLIKE optional
+      !width type CLIKE optional
+      !vSpacing type CLIKE optional
+      !position type CLIKE optional
+      !hSpacing type CLIKE optional
+      !defaultIndent type CLIKE optional
+      !containerQuery type CLIKE optional
     preferred parameter DEFAULT_SPAN
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -4745,6 +4751,12 @@ METHOD factory_plain.
     result = _generic( name   = `Grid`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `defaultSpan` v = default_span )
+                                         ( n = `containerQuery` v = z2ui5_cl_util_func=>boolean_abap_2_json( containerQuery ) )
+                                         ( n = `defaultIndent` v = defaultIndent )
+                                         ( n = `hSpacing` v = hSpacing )
+                                         ( n = `position` v = position )
+                                         ( n = `vSpacing` v = vSpacing )
+                                         ( n = `width` v = width )
                                          ( n = `class`       v = class ) ) ).
   ENDMETHOD.
 
