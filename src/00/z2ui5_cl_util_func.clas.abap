@@ -807,7 +807,9 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD itab_filter_by_val.
 
-    LOOP AT tab ASSIGNING FIELD-SYMBOL(<row>).
+    FIELD-SYMBOLS <row> TYPE any.
+
+    LOOP AT tab ASSIGNING <row>.
       DATA(lv_row) = ``.
       DATA(lv_index) = 1.
       DO.
