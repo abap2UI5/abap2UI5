@@ -71,7 +71,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
   METHOD search.
 
-    DATA lr_app TYPE REF TO z2ui5_cl_app_search_apps=>ty_app.
+    DATA lr_app TYPE REF TO ty_app.
 
     LOOP AT mt_apps REFERENCE INTO lr_app.
       lr_app->visible = abap_false.
