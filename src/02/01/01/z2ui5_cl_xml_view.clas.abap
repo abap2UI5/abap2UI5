@@ -5364,7 +5364,7 @@ ENDMETHOD.
                                          ( n = `noDataText`             v = nodatatext )
                                          ( n = `id`                     v = id )
                                          ( n = `sticky`                 v = sticky )
-                                         ( n = `delete`                 v = selectionChange )
+                                         ( n = `delete`                 v = delete )
                                          ( n = `backgroundDesign`                 v = backgroundDesign )
                                          ( n = `modeAnimationOn`        v = z2ui5_cl_util_func=>boolean_abap_2_json( modeanimationon ) )
                                          ( n = `growingScrollToLoad`    v = z2ui5_cl_util_func=>boolean_abap_2_json( growingscrolltoload ) )
