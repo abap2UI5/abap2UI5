@@ -11,7 +11,7 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
         name    TYPE string,
         visible TYPE abap_bool,
       END OF ty_app.
-    DATA mt_apps TYPE STANDARD TABLE OF ty_app.
+    DATA mt_apps TYPE STANDARD TABLE OF ty_app with empty key.
 
     DATA check_initialized TYPE abap_bool.
     DATA mv_search_value TYPE string.
