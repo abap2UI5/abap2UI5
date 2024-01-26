@@ -913,6 +913,12 @@ public section.
       !LEVEL type CLIKE optional
       !CLASS type CLIKE optional
       !ID type CLIKE optional
+      !textAlign type CLIKE optional
+      !textDirection type CLIKE optional
+      !titleStyle type CLIKE optional
+      !width type CLIKE optional
+      !wrappingType type CLIKE optional
+      !visible type CLIKE optional
     preferred parameter TEXT
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
@@ -1147,6 +1153,7 @@ public section.
       !INCLUDEITEMINSELECTION type CLIKE optional
       !GROWING type CLIKE optional
       !INSET type CLIKE optional
+      !backgroundDesign type CLIKE optional
       !REMEMBERSELECTIONS type CLIKE optional
       !SHOWUNREAD type CLIKE optional
       !VISIBLE type CLIKE optional
@@ -1154,6 +1161,7 @@ public section.
       !ID type CLIKE optional
       !ITEMPRESS type CLIKE optional
       !SELECT type CLIKE optional
+      !delete type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
   methods CUSTOM_LIST_ITEM
@@ -3272,6 +3280,98 @@ public section.
       !class type CLIKE optional
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods notification_list
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !footertext type CLIKE optional
+      !growing type CLIKE optional
+      !growingdirection type CLIKE optional
+      !growingscrolltoLoad type CLIKE optional
+      !growingthreshold type CLIKE optional
+      !growingtriggertext type CLIKE optional
+      !headerlevel type CLIKE optional
+      !headertext type CLIKE optional
+      !includeiteminselection type CLIKE optional
+      !inset type CLIKE optional
+      !keyboardmode type CLIKE optional
+      !mode type CLIKE optional
+      !modeanimationon type CLIKE optional
+      !multiselectmode type CLIKE optional
+      !nodatatext type CLIKE optional
+      !rememberselections type CLIKE optional
+      !shownodata type CLIKE optional
+      !showseparators type CLIKE optional
+      !showunread type CLIKE optional
+      !sticky type CLIKE optional
+      !swipedirection type CLIKE optional
+      !visible type CLIKE optional
+      !width type CLIKE optional
+      !beforeopencontextMenu type CLIKE optional
+      !delete type CLIKE optional
+      !growingfinished type CLIKE optional
+      !growingstarted type CLIKE optional
+      !itempress type CLIKE optional
+      !select type CLIKE optional
+      !selectionchange type CLIKE optional
+      !swipe type CLIKE optional
+      !updatefinished type CLIKE optional
+      !updatestarted type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods notification_list_group
+    importing
+      !id type CLIKE optional
+      !autopriority type CLIKE optional
+      !collapsed type CLIKE optional
+      !enablecollapsebuttonwhenempty type CLIKE optional
+      !highlight type CLIKE optional
+      !highlightText type CLIKE optional
+      !navigated type CLIKE optional
+      !priority type CLIKE optional
+      !selected type CLIKE optional
+      !showbuttons type CLIKE optional
+      !showclosebutton type CLIKE optional
+      !showemptygroup type CLIKE optional
+      !showitemscounter type CLIKE optional
+      !title type CLIKE optional
+      !type type CLIKE optional
+      !unread type CLIKE optional
+      !visible type CLIKE optional
+      !class type CLIKE optional
+      !oncollapse type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods notification_list_item
+    importing
+      !id type CLIKE optional
+      !visible type CLIKE optional
+      !class type CLIKE optional
+      !authorAvatarColor type CLIKE optional
+      !authorInitials type CLIKE optional
+      !description type CLIKE optional
+      !hideShowMoreButton type CLIKE optional
+      !truncate type CLIKE optional
+      !authorName type CLIKE optional
+      !authorPicture type CLIKE optional
+      !counter type CLIKE optional
+      !datetime type CLIKE optional
+      !highlight type CLIKE optional
+      !highlightText type CLIKE optional
+      !navigated type CLIKE optional
+      !priority type CLIKE optional
+      !selected type CLIKE optional
+      !showButtons type CLIKE optional
+      !showCloseButton type CLIKE optional
+      !title type CLIKE optional
+      !type type CLIKE optional
+      !unread type CLIKE optional
+      !close type CLIKE optional
+      !detailPress type CLIKE optional
+      !press type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -5264,6 +5364,8 @@ ENDMETHOD.
                                          ( n = `noDataText`             v = nodatatext )
                                          ( n = `id`                     v = id )
                                          ( n = `sticky`                 v = sticky )
+                                         ( n = `delete`                 v = selectionChange )
+                                         ( n = `backgroundDesign`                 v = backgroundDesign )
                                          ( n = `modeAnimationOn`        v = z2ui5_cl_util_func=>boolean_abap_2_json( modeanimationon ) )
                                          ( n = `growingScrollToLoad`    v = z2ui5_cl_util_func=>boolean_abap_2_json( growingscrolltoload ) )
                                          ( n = `includeItemInSelection` v = z2ui5_cl_util_func=>boolean_abap_2_json( includeiteminselection ) )
@@ -5510,6 +5612,107 @@ ENDMETHOD.
   METHOD nodes.
     result = _generic( name = `nodes`
                        ns   = `commons` ).
+  ENDMETHOD.
+
+
+  METHOD notification_list.
+    result = _generic( name = `NotificationList`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `footerText`  v = footerText )
+                             ( n = `growingDirection`  v = growingDirection )
+                             ( n = `growingThreshold`  v = growingThreshold )
+                             ( n = `growingTriggerText`  v = growingTriggerText )
+                             ( n = `headerLevel`  v = headerLevel )
+                             ( n = `headerText`  v = headerText  )
+                             ( n = `keyboardMode`  v = keyboardMode  )
+                             ( n = `mode`  v = mode  )
+                             ( n = `multiSelectMode`  v = multiSelectMode  )
+                             ( n = `noDataText`  v = noDataText  )
+                             ( n = `sticky`  v = sticky  )
+                             ( n = `swipeDirection`  v = swipeDirection  )
+                             ( n = `width`  v = width  )
+                             ( n = `showSeparators`  v = showSeparators  )
+                             ( n = `beforeOpenContextMenu`  v = beforeOpenContextMenu  )
+                             ( n = `delete`  v = delete  )
+                             ( n = `growingFinished`  v = growingFinished  )
+                             ( n = `growingStarted`  v = growingStarted  )
+                             ( n = `itemPress`  v = itemPress  )
+                             ( n = `select`  v = select  )
+                             ( n = `selectionChange`  v = selectionChange  )
+                             ( n = `swipe`  v = swipe  )
+                             ( n = `updateFinished`  v = updateFinished  )
+                             ( n = `updateStarted`  v = updateStarted  )
+                             ( n = `growingScrollToLoad`           v = z2ui5_cl_util_func=>boolean_abap_2_json( growingScrollToLoad ) )
+                             ( n = `visible`           v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                             ( n = `growing`           v = z2ui5_cl_util_func=>boolean_abap_2_json( growing ) )
+                             ( n = `includeItemInSelection`           v = z2ui5_cl_util_func=>boolean_abap_2_json( includeItemInSelection ) )
+                             ( n = `inset`           v = z2ui5_cl_util_func=>boolean_abap_2_json( inset ) )
+                             ( n = `modeAnimationOn`           v = z2ui5_cl_util_func=>boolean_abap_2_json( modeAnimationOn ) )
+                             ( n = `rememberSelections`           v = z2ui5_cl_util_func=>boolean_abap_2_json( rememberSelections ) )
+                             ( n = `showNoData`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showNoData ) )
+                             ( n = `showUnread`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showUnread ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD notification_list_group.
+    result = _generic( name = `NotificationListGroup`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `highlight`  v = highlight )
+                             ( n = `highlightText`  v = highlightText )
+                             ( n = `priority`  v = priority )
+                             ( n = `title`  v = title )
+                             ( n = `type`  v = type )
+                             ( n = `onCollapse`  v = onCollapse )
+                             ( n = `visible`           v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                             ( n = `autoPriority`           v = z2ui5_cl_util_func=>boolean_abap_2_json( autoPriority ) )
+                             ( n = `collapsed`           v = z2ui5_cl_util_func=>boolean_abap_2_json( collapsed ) )
+                             ( n = `enableCollapseButtonWhenEmpty`           v = z2ui5_cl_util_func=>boolean_abap_2_json( enableCollapseButtonWhenEmpty ) )
+                             ( n = `navigated`           v = z2ui5_cl_util_func=>boolean_abap_2_json( navigated ) )
+                             ( n = `selected`           v = z2ui5_cl_util_func=>boolean_abap_2_json( selected ) )
+                             ( n = `showButtons`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showButtons ) )
+                             ( n = `showCloseButton`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showCloseButton ) )
+                             ( n = `showEmptyGroup`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showEmptyGroup ) )
+                             ( n = `showItemsCounter`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showItemsCounter ) )
+                             ( n = `unread`           v = z2ui5_cl_util_func=>boolean_abap_2_json( unread ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD notification_list_item.
+    result = _generic( name = `NotificationListItem`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `authorAvatarColor`  v = authorAvatarColor )
+                             ( n = `authorInitials`  v = authorInitials )
+                             ( n = `description`  v = description )
+                             ( n = `authorName`  v = authorName )
+                             ( n = `authorPicture`  v = authorPicture )
+                             ( n = `datetime`  v = datetime )
+                             ( n = `counter`  v = counter )
+                             ( n = `highlightText`  v = highlightText )
+                             ( n = `priority`  v = priority )
+                             ( n = `title`  v = title )
+                             ( n = `type`  v = type )
+                             ( n = `close`  v = close )
+                             ( n = `detailPress`  v = detailPress )
+                             ( n = `press`  v = press )
+                             ( n = `visible`           v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                             ( n = `hideShowMoreButton`           v = z2ui5_cl_util_func=>boolean_abap_2_json( hideShowMoreButton ) )
+                             ( n = `truncate`           v = z2ui5_cl_util_func=>boolean_abap_2_json( truncate ) )
+                             ( n = `highlight`           v = z2ui5_cl_util_func=>boolean_abap_2_json( highlight ) )
+                             ( n = `navigated`           v = z2ui5_cl_util_func=>boolean_abap_2_json( navigated ) )
+                             ( n = `selected`           v = z2ui5_cl_util_func=>boolean_abap_2_json( selected ) )
+                             ( n = `showButtons`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showButtons ) )
+                             ( n = `showCloseButton`           v = z2ui5_cl_util_func=>boolean_abap_2_json( showCloseButton ) )
+                             ( n = `truncate`           v = z2ui5_cl_util_func=>boolean_abap_2_json( truncate ) )
+                             ( n = `unread`           v = z2ui5_cl_util_func=>boolean_abap_2_json( unread ) )
+                         ) ).
   ENDMETHOD.
 
 
@@ -6891,7 +7094,13 @@ ENDMETHOD.
               t_prop = VALUE #( ( n = `text`     v = text )
                                 ( n = `class`     v = class )
                                 ( n = `id`     v = id )
+                                ( n = `wrappingType`     v = wrappingType )
+                                ( n = `textAlign`     v = textAlign )
+                                ( n = `textDirection`     v = textDirection )
+                                ( n = `titleStyle`     v = titleStyle )
+                                ( n = `width`     v = width )
                                 ( n = `wrapping` v = z2ui5_cl_util_func=>boolean_abap_2_json( wrapping ) )
+                                ( n = `visible` v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                                 ( n = `level` v = level ) ) ).
   ENDMETHOD.
 
