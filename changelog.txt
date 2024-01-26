@@ -11,6 +11,7 @@ Legend
 2024-01-26 v1.116.0
 -------------------
 
++ StartUp App with Value Help
 + Popup Error, Popup Range, Popup Table
 + Custom Control Chart.js
 * Popup Model Handling
