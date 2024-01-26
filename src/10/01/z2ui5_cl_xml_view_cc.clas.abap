@@ -7,12 +7,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS multiinput_ext
       IMPORTING
-        !MultiInputId    TYPE clike OPTIONAL
-        !change    TYPE clike OPTIONAL
-        !addedTokens      TYPE clike OPTIONAL
-        !removedTokens    TYPE clike OPTIONAL
+        !multiinputid  TYPE clike OPTIONAL
+        !change        TYPE clike OPTIONAL
+        !addedtokens   TYPE clike OPTIONAL
+        !removedtokens TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS multiinput
       IMPORTING
@@ -29,14 +29,14 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !enabled          TYPE clike OPTIONAL
         !class            TYPE clike OPTIONAL
         !change           TYPE clike OPTIONAL
-        !addedTokens      TYPE clike OPTIONAL
-        !removedTokens    TYPE clike OPTIONAL
+        !addedtokens      TYPE clike OPTIONAL
+        !removedtokens    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS uitableext
       IMPORTING
-        !tableid  TYPE clike OPTIONAL
+        !tableid      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -180,7 +180,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
 
   METHOD bwip_js.
@@ -236,8 +236,13 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
   METHOD demo_output.
 
+    "make it run without syntax error also when CC are deleted (for example for downports))
     mo_view->_generic( ns = `html` name = `style` ).
-    result = mo_view->_cc_plain_xml( z2ui5_cl_cc_demo_output=>get_style( ) )->html( val ).
+    DATA lv_style TYPE string.
+    CALL METHOD ('Z2UI5_CL_CC_DEMO_OUTPUT')=>('GET_STYLE')
+      RECEIVING
+        result = lv_style.
+    result = mo_view->_cc_plain_xml( lv_style )->html( val ).
 
   ENDMETHOD.
 
@@ -352,8 +357,8 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                                          ( n = `id` v = id )
                                          ( n = `change` v = change )
                                          ( n = `valueHelpRequest` v = valuehelprequest )
-                                         ( n = `addedTokens` v = addedTokens )
-                                         ( n = `removedTokens` v = removedTokens )
+                                         ( n = `addedTokens` v = addedtokens )
+                                         ( n = `removedTokens` v = removedtokens )
                                          ( n = `class` v = class ) ) ).
   ENDMETHOD.
 
@@ -362,10 +367,10 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
     result = mo_view.
     mo_view->_generic( name   = `MultiInputExt` ns = `z2ui5`
-                       t_prop = VALUE #( ( n = `MultiInputId` v = MultiInputId )
+                       t_prop = VALUE #( ( n = `MultiInputId` v = multiinputid )
                                          ( n = `change` v = change )
-                                         ( n = `addedTokens` v = addedTokens )
-                                         ( n = `removedTokens` v = removedTokens ) ) ).
+                                         ( n = `addedTokens` v = addedtokens )
+                                         ( n = `removedTokens` v = removedtokens ) ) ).
 
   ENDMETHOD.
 
@@ -424,7 +429,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
   METHOD uitableext.
 
     result = mo_view->_generic( name   = `UITableExt` ns = `z2ui5`
-                       t_prop = VALUE #( ( n = `tableId` v = tableId )
+                       t_prop = VALUE #( ( n = `tableId` v = tableid )
                         ) ).
 
   ENDMETHOD.
