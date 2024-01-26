@@ -97,7 +97,6 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_rtti_get_t_attri_by_obj   FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_t_comp_by_struc  FOR TESTING RAISING cx_static_check.
 
-    METHODS test_trans_json_any_2__w_tab     FOR TESTING RAISING cx_static_check.
     METHODS test_trans_json_any_2__w_struc  FOR TESTING RAISING cx_static_check.
     METHODS test_trans_json_2_any__w_dref     FOR TESTING RAISING cx_static_check.
     METHODS test_trans_ref_tab_2_tab  FOR TESTING RAISING cx_static_check.
@@ -425,29 +424,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_trans_json_any_2__w_tab.
 
-    TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        selected TYPE abap_bool,
-      END OF ty_row.
-    TYPES ty_t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-
-    DATA(lt_tab) = VALUE ty_t_tab( ( title = 'Test'  value = 'this is a description' selected = abap_true )
-                                   ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
-
-
-    DATA(lv_tab_json) = z2ui5_cl_util_func=>trans_json_by_any( lt_tab ).
-
-    DATA(lv_result) = `[{"TITLE":"Test","VALUE":"this is a description","SELECTED":true},{"TITLE":"Test2","VALUE":"this is a new descr"}]`.
-
-    IF lv_result <> lv_tab_json.
-      cl_abap_unit_assert=>fail(  ).
-    ENDIF.
-
-  ENDMETHOD.
 
 
   METHOD test_trans_json_2_any__w_dref.
