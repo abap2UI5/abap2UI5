@@ -8,9 +8,19 @@ Legend
 + : added
 - : removed
 
+2024-01-26 v1.116.0
+-------------------
+
++ StartUp App with Value Help
++ Popup Error, Popup Range, Popup Table
++ Custom Control Chart.js
+* Popup Model Handling
+* Bugfixes
+
 
 2024-01-19 v1.115.0
 -------------------
+
 * Binding Logic
 + Popups (Confirm, Inform, Select Entry, PDF View, Message View)
 
@@ -21,6 +31,7 @@ Legend
 * cross app navigation
 * table output
 ! debugger tools
+
 
 2024-01-03 v1.113.0
 -------------------

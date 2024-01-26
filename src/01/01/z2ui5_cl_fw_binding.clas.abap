@@ -153,13 +153,13 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    IF bind->bind_type IS NOT INITIAL and bind->bind_type <> mv_type.
+    IF bind->bind_type IS NOT INITIAL AND bind->bind_type <> mv_type.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
     ENDIF.
 
-    IF bind->bind_type IS NOT INITIAL and bind->pretty_name <> mv_pretty_name.
+    IF bind->bind_type IS NOT INITIAL AND bind->pretty_name <> mv_pretty_name.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `<p>Binding Error - Two different pretty types for same attribute used (` && bind->name && `).`.
@@ -178,7 +178,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     IF strlen( result ) > 30.
-      bind->name_front = z2ui5_cl_util_func=>uuid_Get_c22( ).
+      bind->name_front = z2ui5_cl_util_func=>uuid_get_c22( ).
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
     ENDIF.
 
@@ -189,7 +189,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = z2ui5_cl_util_func=>uuid_Get_c22( ).
+    DATA(lv_id) = z2ui5_cl_util_func=>uuid_get_c22( ).
 
     INSERT VALUE #( name           = lv_id
                     data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any = mr_data compress = me->mv_compress )
@@ -383,8 +383,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
         DATA(lv_type_name) = substring_after( val = lr_comp->type->absolute_name sub = '\TYPE=').
         IF z2ui5_cl_util_func=>boolean_check_by_name( lv_type_name ).
-*        IF lr_comp->type->absolute_name = '\TYPE=XSDBOOLEAN'
-*        OR lr_comp->type->absolute_name = '\TYPE=ABAP_BOOL'.
 
           DATA(ls_attri) = VALUE ty_s_attri(
                 name      = lv_element
@@ -440,10 +438,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*    FIELD-SYMBOLS <data> type any.
-*    assign mr_data->* to <data>.
-*    data(lv_value) = escape( val = z2ui5_cl_util_func=>trans_json_any_2( <data> ) format = cl_abap_format=>e_json_string ).
-
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
@@ -458,17 +452,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     result = replace( val = result sub = `-` with = `_` occ = 0 ).
 
     IF mv_pretty_name = abap_true.
-      replace all OCCURRENCES OF `_` in result with ``.
-*      SPLIT result AT `_` INTO TABLE DATA(lt_tab).
-*      result = to_lower( lt_tab[ 1 ] ).
-*      LOOP AT lt_tab INTO DATA(lv_val) FROM 2.
-*        TRY.
-*            lv_val = to_lower( lv_val ).
-*            lv_val = to_upper( lv_val(1) ) && lv_val+1.
-*            result = result && lv_val.
-*          CATCH cx_root.
-*        ENDTRY.
-*      ENDLOOP.
+      REPLACE ALL OCCURRENCES OF `_` IN result WITH ``.
     ENDIF.
 
   ENDMETHOD.

@@ -392,8 +392,6 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     TRY.
         DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
         lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
-*        lv_classname = shift_left( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
-*        lv_classname = shift_right( val = lv_classname sub = cl_abap_char_utilities=>horizontal_tab ).
       CATCH cx_root.
     ENDTRY.
 
