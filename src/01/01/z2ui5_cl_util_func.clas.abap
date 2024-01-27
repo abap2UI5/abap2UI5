@@ -1536,16 +1536,18 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD db_load_by_handle.
 
-    DATA(ls_db) = VALUE z2ui5_t_fw_02( ).
+*    DATA(lt_db) = VALUE z2ui5_t_fw_02( ).
 
-    SELECT SINGLE FROM z2ui5_t_fw_02
+    SELECT FROM z2ui5_t_fw_02
     FIELDS data
        WHERE
         uname = @uname
         AND handle = @handle
         AND handle2 = @handle2
         AND handle3 = @handle3
-     INTO CORRESPONDING FIELDS OF @ls_db.
+     INTo table @data(lt_db).
+
+    data(ls_db) = lt_db[ 1 ].
 
     trans_xml_2_any(
       EXPORTING
