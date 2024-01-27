@@ -1536,7 +1536,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD db_load_by_handle.
 
-    DATA lt_db type STANDARD TABLE Of z2ui5_t_fw_02 with empty key.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
 
     SELECT FROM z2ui5_t_fw_02
     FIELDS data
@@ -1545,9 +1545,9 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
         AND handle = @handle
         AND handle2 = @handle2
         AND handle3 = @handle3
-     INTo CORRESPONDING FIELDS OF table @lt_db.
+     INTO CORRESPONDING FIELDS OF TABLE @lt_db.
 
-    data(ls_db) = lt_db[ 1 ].
+    DATA(ls_db) = lt_db[ 1 ].
 
     trans_xml_2_any(
       EXPORTING
@@ -1560,12 +1560,14 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD db_load_by_id.
 
-    DATA(ls_db) = VALUE z2ui5_t_fw_02( ).
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
 
-    SELECT SINGLE FROM z2ui5_t_fw_02
+    SELECT FROM z2ui5_t_fw_02
     FIELDS data
     WHERE id = @id
-    INTO CORRESPONDING FIELDS OF @ls_db.
+    INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+
+    DATA(ls_db) = lt_db[ 1 ].
 
     trans_xml_2_any(
       EXPORTING
