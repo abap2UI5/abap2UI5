@@ -75,6 +75,10 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
                                        editable = `true`
            )->content(  )->_ns_m( ).
 
+    DATA(lv_url_search) = z2ui5_cl_util_func=>app_get_url(
+                    client    = client
+                    classname = 'z2ui5_cl_app_search_apps' ).
+
     content->label( `Step 1`
         )->text( `Create a new class in your abap system`
         )->label( `Step 2`
@@ -85,6 +89,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
                  target = `_blank`
                  href   = `https://github.com/abap2UI5/abap2UI5/blob/main/src/03/02/z2ui5_cl_app_hello_world.clas.abap`
         )->label( `Step 4` ).
+
 
     IF ms_home-class_editable = abap_true.
 
@@ -109,7 +114,8 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
                  href    = lv_url
                  enabled = z2ui5_cl_util_func=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
-    DATA(form) = grid->simpleform( title    = `Samples`
+
+    DATA(form) = grid->simpleform( title    = `Apps`
                                     editable = abap_true
                                     layout   = `ResponsiveGridLayout` ).
 
@@ -121,15 +127,35 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
                                                href   = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
+data(lv_url_samples) =  z2ui5_cl_util_func=>app_get_url(
+                    client    = client
+                    classname = 'z2ui5_cl_demo_app_000' ).
+
     DATA(cont) = form->content(  )->_ns_m( ).
-    cont->label( ).
-    cont->button(
+    cont->label( `Samples`).
+*    cont->button(
+*       text    = `Continue...`
+*       press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
+*       enabled = xsdbool( mv_check_demo = abap_true ) )->_go_new( ).
+     cont->link(
        text    = `Continue...`
-       press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
-       enabled = xsdbool( mv_check_demo = abap_true ) )->_go_new( ).
-    cont->button( visible = abap_false )->link( text   = `More on GitHub...`
-                                               target = `_blank`
-                                               href   = `https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md` ).
+       target = `_blank`
+*       press   = client->_event( val = `DEMOS` check_view_destroy = abap_true )
+        href   = lv_url_samples
+       enabled = xsdbool( mv_check_demo = abap_true )
+       )->_go_new( ).
+    cont->button( visible = abap_false ).
+
+    cont->label( `Local`
+         )->link( text   = `Search apps on your system...`
+                  target = `_blank`
+                  href   = lv_url_search
+         ).
+
+    cont->label( `Online` )->link( text   = `More on GitHub...`
+                                                target = `_blank`
+                                                href   = `https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md` ).
+
 
     client->view_display( form->_stringify( ) ).
 
@@ -143,8 +169,8 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     IF mv_check_initialized = abap_false.
       mv_check_initialized = abap_true.
       z2ui5_on_init( ).
-       view_display_start( ).
-       return.
+      view_display_start( ).
+      RETURN.
     ENDIF.
 
     IF client->get( )-check_on_navigated = abap_true.
@@ -156,7 +182,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
             ASSIGN ls_result-row->* TO <class>.
             ms_home-classname = <class>.
             view_display_start( ).
-            return.
+            RETURN.
           ENDIF.
         CATCH cx_root.
       ENDTRY.
