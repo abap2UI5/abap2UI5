@@ -100,8 +100,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
           value  = client->_bind_edit( mv_search_value )
           search = client->_event( 'ON_SEARCH' )
           change = client->_event( 'ON_SEARCH' )
-
-*         livechange = client->_event( 'ON_SEARCH' )
           width  = `17.5rem`
           id     = `SEARCH`
            )->get_parent( ).

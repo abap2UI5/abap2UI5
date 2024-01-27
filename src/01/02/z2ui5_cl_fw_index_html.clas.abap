@@ -169,10 +169,8 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `                }` && |\n|  &&
                `            }` && |\n|  &&
                `            )` && |\n|  &&
-
 `           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new sap.m.BusyDialog({ text : "Please Restart t` &&
-`he App" }).open();  } } ) }` && |\n|
-&&
+`he App" }).open();  } } ) }` && |\n| &&
                `        },` && |\n|  &&
                |\n|  &&
                `        async displayFragment(xml, viewProp, openById) {` && |\n|  &&

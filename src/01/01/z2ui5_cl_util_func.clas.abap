@@ -1538,15 +1538,14 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
     DATA(ls_db) = VALUE z2ui5_t_fw_02( ).
 
-    SELECT SINGLE data
-        FROM z2ui5_t_fw_02
-        INTO CORRESPONDING FIELDS OF ls_db
+    SELECT SINGLE FROM z2ui5_t_fw_02
+    FIELDS data
        WHERE
-        uname = uname
-        AND handle = handle
-        AND handle2 = handle2
-        AND handle3 = handle3
-        .
+        uname = @uname
+        AND handle = @handle
+        AND handle2 = @handle2
+        AND handle3 = @handle3
+     INTO CORRESPONDING FIELDS OF @ls_db.
 
     trans_xml_2_any(
       EXPORTING
@@ -1561,10 +1560,10 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
     DATA(ls_db) = VALUE z2ui5_t_fw_02( ).
 
-    SELECT SINGLE data
-        FROM z2ui5_t_fw_02
-        INTO CORRESPONDING FIELDS OF ls_db
-       WHERE id = id.
+    SELECT SINGLE FROM z2ui5_t_fw_02
+    FIELDS data
+    WHERE id = @id
+    INTO CORRESPONDING FIELDS OF @ls_db.
 
     trans_xml_2_any(
       EXPORTING
@@ -1586,7 +1585,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
         data    = trans_xml_by_any( data )
     ).
 
-    MODIFY z2ui5_t_fw_02 FROM ls_db.
+    MODIFY z2ui5_t_fw_02 FROM @ls_db.
 
     IF check_commit = abap_true.
       COMMIT WORK AND WAIT.
