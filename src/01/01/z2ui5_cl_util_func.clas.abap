@@ -1538,8 +1538,8 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
 
-    SELECT FROM z2ui5_t_fw_02
-    FIELDS data
+    SELECT data
+    FROM z2ui5_t_fw_02
        WHERE
         uname = @uname
         AND handle = @handle
@@ -1562,8 +1562,8 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
 
-    SELECT FROM z2ui5_t_fw_02
-    FIELDS data
+    SELECT data
+    FROM z2ui5_t_fw_02
     WHERE id = @id
     INTO CORRESPONDING FIELDS OF TABLE @lt_db.
 
