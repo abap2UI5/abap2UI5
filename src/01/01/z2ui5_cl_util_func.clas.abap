@@ -1536,7 +1536,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD db_load_by_handle.
 
-*    DATA(lt_db) = VALUE z2ui5_t_fw_02( ).
+    DATA lt_db type STANDARD TABLE Of z2ui5_t_fw_02 with empty key.
 
     SELECT FROM z2ui5_t_fw_02
     FIELDS data
@@ -1545,7 +1545,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
         AND handle = @handle
         AND handle2 = @handle2
         AND handle3 = @handle3
-     INTo table @data(lt_db).
+     INTo CORRESPONDING FIELDS OF table @lt_db.
 
     data(ls_db) = lt_db[ 1 ].
 
