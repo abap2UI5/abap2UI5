@@ -30,6 +30,14 @@ CLASS z2ui5_cl_util_func DEFINITION
         table TYPE string,
       END OF ty_s_sql_result.
 
+    TYPES:
+      BEGIN OF ty_data_element_texts,
+        header TYPE string,
+        short  TYPE string,
+        medium TYPE string,
+        long   TYPE string,
+      END OF ty_data_element_texts.
+
     CLASS-METHODS itab_get_itab_by_csv
       IMPORTING
         val           TYPE string
@@ -393,6 +401,12 @@ CLASS z2ui5_cl_util_func DEFINITION
         it_source     TYPE string_table
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_get_data_element_texts
+      IMPORTING
+        i_data_element_name TYPE string
+      RETURNING
+        VALUE(result)       TYPE ty_data_element_texts.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -1678,6 +1692,72 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
   METHOD x_raise.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_data_element_texts.
+
+    DATA:
+      ddic_ref          TYPE REF TO data,
+      data_element_name TYPE c LENGTH 30,
+      data_element      TYPE REF TO object,
+      content           TYPE REF TO object,
+
+      BEGIN OF ddic,
+        reptext   TYPE string,
+        scrtext_s TYPE string,
+        scrtext_m TYPE string,
+        scrtext_l TYPE string,
+      END OF ddic.
+
+    data_element_name = i_data_element_name.
+
+    TRY.
+        CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATA_ELEMENT')
+          EXPORTING
+            iv_name         = data_element_name
+          RECEIVING
+            ro_data_element = data_element.
+
+        CALL METHOD data_element->('CONTENT')
+          RECEIVING
+            ro_content = content.
+
+        CALL METHOD content->('GET_SHORT_FIELD_LABEL')
+          RECEIVING
+            rs_short_field_label = result-short.
+
+        CALL METHOD content->('GET_MEDIUM_FIELD_LABEL')
+          RECEIVING
+            rs_medium_field_label = result-medium.
+
+        CALL METHOD content->('GET_LONG_FIELD_LABEL')
+          RECEIVING
+            rs_long_field_label = result-long.
+
+      CATCH cx_root.
+
+        CREATE DATA ddic_ref TYPE ('DFIES').
+        ASSIGN ddic_ref->* TO FIELD-SYMBOL(<ddic>).
+        ASSERT sy-subrc = 0.
+
+        DATA(data_descr) = CAST cl_abap_datadescr( cl_abap_elemdescr=>describe_by_name( data_element_name ) ).
+
+        CALL METHOD data_descr->('GET_DDIC_FIELD')
+          RECEIVING
+            p_flddescr   = <ddic>
+          EXCEPTIONS
+            not_found    = 1
+            no_ddic_type = 2
+            OTHERS       = 3.
+        ddic = CORRESPONDING #( <ddic> ).
+        result-header = ddic-reptext.
+        result-short  = ddic-scrtext_s.
+        result-medium = ddic-scrtext_m.
+        result-long   = ddic-scrtext_l.
+
+    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.
