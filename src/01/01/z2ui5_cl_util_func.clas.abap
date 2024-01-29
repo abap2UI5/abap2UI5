@@ -1699,17 +1699,17 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
   METHOD rtti_get_data_element_texts.
 
     DATA:
-      ddic_ref          TYPE REF TO data,
       data_element_name TYPE c LENGTH 30,
+      ddic_ref          TYPE REF TO data,
       data_element      TYPE REF TO object,
       content           TYPE REF TO object,
-
       BEGIN OF ddic,
         reptext   TYPE string,
         scrtext_s TYPE string,
         scrtext_m TYPE string,
         scrtext_l TYPE string,
-      END OF ddic.
+      END OF ddic,
+      exists TYPE abap_bool.
 
     data_element_name = i_data_element_name.
 
@@ -1720,25 +1720,39 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
           RECEIVING
             ro_data_element = data_element.
 
-        CALL METHOD data_element->('CONTENT')
+        CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~EXISTS')
+          RECEIVING
+            rv_exists = exists.
+
+        IF exists = abap_false.
+          RETURN.
+        ENDIF.
+
+        CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~CONTENT')
           RECEIVING
             ro_content = content.
 
-        CALL METHOD content->('GET_SHORT_FIELD_LABEL')
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL')
+          RECEIVING
+            rs_heading_field_label = result-header.
+
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL')
           RECEIVING
             rs_short_field_label = result-short.
 
-        CALL METHOD content->('GET_MEDIUM_FIELD_LABEL')
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL')
           RECEIVING
             rs_medium_field_label = result-medium.
 
-        CALL METHOD content->('GET_LONG_FIELD_LABEL')
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL')
           RECEIVING
             rs_long_field_label = result-long.
 
-      CATCH cx_root.
+      CATCH cx_root. " fallback
 
-        CREATE DATA ddic_ref TYPE ('DFIES').
+        DATA(struct_desrc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( 'DFIES' ) ).
+
+        CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
         ASSIGN ddic_ref->* TO FIELD-SYMBOL(<ddic>).
         ASSERT sy-subrc = 0.
 
@@ -1751,6 +1765,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
             not_found    = 1
             no_ddic_type = 2
             OTHERS       = 3.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
         ddic = CORRESPONDING #( <ddic> ).
         result-header = ddic-reptext.
         result-short  = ddic-scrtext_s.
