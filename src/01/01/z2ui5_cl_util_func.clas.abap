@@ -1714,6 +1714,35 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     data_element_name = i_data_element_name.
 
     TRY.
+        cl_abap_typedescr=>describe_by_name( 'T100' ).
+
+        DATA(struct_desrc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( 'DFIES' ) ).
+
+        CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
+        ASSIGN ddic_ref->* TO FIELD-SYMBOL(<ddic>).
+        ASSERT sy-subrc = 0.
+
+        DATA(data_descr) = CAST cl_abap_datadescr( cl_abap_elemdescr=>describe_by_name( data_element_name ) ).
+
+        CALL METHOD data_descr->('GET_DDIC_FIELD')
+          RECEIVING
+            p_flddescr   = <ddic>
+          EXCEPTIONS
+            not_found    = 1
+            no_ddic_type = 2
+            OTHERS       = 3.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        ddic = CORRESPONDING #( <ddic> ).
+        result-header = ddic-reptext.
+        result-short  = ddic-scrtext_s.
+        result-medium = ddic-scrtext_m.
+        result-long   = ddic-scrtext_l.
+
+      CATCH cx_root. " ABAP Cloud
+
         CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATA_ELEMENT')
           EXPORTING
             iv_name         = data_element_name
@@ -1747,33 +1776,6 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
         CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL')
           RECEIVING
             rs_long_field_label = result-long.
-
-      CATCH cx_root. " fallback
-
-        DATA(struct_desrc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( 'DFIES' ) ).
-
-        CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
-        ASSIGN ddic_ref->* TO FIELD-SYMBOL(<ddic>).
-        ASSERT sy-subrc = 0.
-
-        DATA(data_descr) = CAST cl_abap_datadescr( cl_abap_elemdescr=>describe_by_name( data_element_name ) ).
-
-        CALL METHOD data_descr->('GET_DDIC_FIELD')
-          RECEIVING
-            p_flddescr   = <ddic>
-          EXCEPTIONS
-            not_found    = 1
-            no_ddic_type = 2
-            OTHERS       = 3.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
-
-        ddic = CORRESPONDING #( <ddic> ).
-        result-header = ddic-reptext.
-        result-short  = ddic-scrtext_s.
-        result-medium = ddic-scrtext_m.
-        result-long   = ddic-scrtext_l.
 
     ENDTRY.
 
