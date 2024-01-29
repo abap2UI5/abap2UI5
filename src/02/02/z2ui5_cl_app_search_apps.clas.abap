@@ -15,13 +15,14 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
 
     DATA check_initialized TYPE abap_bool.
     DATA mv_search_value TYPE string.
-
+    DATA mv_selected_key TYPE string.
   PROTECTED SECTION.
     METHODS search.
     METHODS view_display
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -91,22 +92,93 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
     DATA(page) = z2ui5_cl_xml_view=>factory(
           )->shell(
-          )->page(
-                title = 'abap2UI5 - Search Apps'
-                navbuttonpress = client->_event( 'BACK' )
-                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack is not initial )
-           )->header_content(
-                )->search_field(
-          value  = client->_bind_edit( mv_search_value )
-          search = client->_event( 'ON_SEARCH' )
-          change = client->_event( 'ON_SEARCH' )
-          width  = `17.5rem`
-          id     = `SEARCH`
-           )->get_parent( ).
+*          )->page(
+*                title = 'abap2UI5 - Search Apps'
+*                navbuttonpress = client->_event( 'BACK' )
+*                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack is not initial )
+*           )->header_content(
+*                )->search_field(
+*          value  = client->_bind_edit( mv_search_value )
+*          search = client->_event( 'ON_SEARCH' )
+*          change = client->_event( 'ON_SEARCH' )
+*          width  = `17.5rem`
+*          id     = `SEARCH`
+*           )->get_parent( ).
+
+)->tool_page(
+                          )->header( ns = `tnt`
+                            )->tool_header(
+
+                            )->button( text = `Back` press = client->_event( 'BACK' )
+                            )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
+
+*                              )->image( src = `https://www.sap.com/dam/application/shared/logos/sap-logo-svg.svg`
+*                                        height = `1.5rem`
+*                                        class = `sapUiSmallMarginBegin`
+*
+*                              )->title( level = `H1`
+*                                        text  = `Nav Container I`
+*                              )->title( level = `H3`
+*                                        text  = `Second Title`
+*                              )->toolbar_spacer(
+*                              )->overflow_Toolbar_Button( text = `Search`
+*                                                          tooltip = `Search`
+*                                                          icon = `sap-icon://search`
+*                                                          type = `Transparent`
+*                              )->overflow_toolbar_button( text = `Task`
+*                                                          tooltip = `Task`
+*                                                          icon = `sap-icon://circle-task`
+*                                                          type = `Transparent`
+*                              )->overflow_toolbar_button( text = `Notifications`
+*                                                          tooltip = `Notifications`
+*                                                          icon = `sap-icon://bell`
+*                                                          type = `Transparent`
+*                              )->avatar( src = ``
+*                                         displaysize = `XS`
+*                              )->overflow_toolbar_button( text = `Custom Action`
+*                                                          tooltip = `Custom Action`
+*                                                          icon = `sap-icon://grid`
+*                                                          type = `Transparent`
+                              )->get_parent(
+                            )->get_parent( )->sub_header( ns = `tnt`
+                            )->tool_header( ).
+
+     data(pages) =  page->icon_tab_header( selectedkey = client->_bind_edit( mv_selected_key )
+*                                                  select = client->_event( `OnSelectIconTabBar` )
+*                                                  select = client->_event_client( action = 'NAV_TO' t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
+                                                  select = client->_event_client( val = client->cs_event-nav_container_to t_arg  = value #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
+                                                  mode = `Inline`
+                                  )->items(
+                                    )->icon_tab_filter( key = `page1` text = `Favorites` )->get_parent(
+                                    )->icon_tab_filter( key = `page2` text = `System` )->get_parent(
+                                    )->icon_tab_filter( key = `page3` text = `Install from GitHub`
+*                                      )->items(
+*                                         )->icon_tab_filter( key = `page11` text = `User 1` )->get_parent(
+*                                         )->icon_tab_filter( key = `page32` text = `User 2` )->get_parent(
+*                                         )->icon_tab_filter( key = `page33` text = `User 3`
+                                  )->get_parent( )->get_parent( )->get_parent( )->get_parent( )->get_parent(
+                                )->main_contents(
+*                                )->button( text = `page1` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page1` ) ) )
+*                                )->button( text = `page2` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page2` ) ) )
+*                                )->button( text = `page3` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page3` ) ) )
+                                  )->nav_container( id = `NavCon` initialpage = `page1` defaulttransitionname = `flip`
+                                     )->pages( ).
+         data(page1) =  pages->page( showheader = abap_false
+
+                                       id             = `page1`
+                           ).
+                                    pages->page(
+                                       title          = 'second page'
+                                       id             = `page2`
+                                    )->get_parent(
+                                     )->page(
+                                       title          = 'third page'
+                                       id             = `page3`
+                                ).
 
     LOOP AT mt_apps REFERENCE INTO DATA(lr_app).
       DATA(lv_tabix) = sy-tabix.
-      page->generic_tile(
+      page1->generic_tile(
         class = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
         press     = client->_event( val = `ON_PRESS` t_arg = VALUE #( ( `${$source>/header}` ) ) )
         header  = client->_bind( val = lr_app->name    tab = mt_apps tab_index = lv_tabix )
