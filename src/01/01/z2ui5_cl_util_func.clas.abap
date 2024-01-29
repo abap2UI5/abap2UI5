@@ -275,8 +275,6 @@ CLASS z2ui5_cl_util_func DEFINITION
         VALUE(result) TYPE string.
 
     CLASS-METHODS rtti_check_lang_version_cloud
-      IMPORTING
-        val           TYPE clike
       RETURNING
         VALUE(result) TYPE abap_bool.
 

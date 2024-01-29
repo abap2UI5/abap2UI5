@@ -28,7 +28,7 @@ CLASS z2ui5_cl_popup_itab_json_dl DEFINITION
 
     DATA title TYPE string.
     DATA icon TYPE string.
-    DATA question_text TYPE string.
+*    DATA question_text TYPE string.
     DATA button_text_confirm TYPE string.
     DATA button_text_cancel TYPE string.
     DATA check_initialized TYPE abap_bool.
@@ -39,14 +39,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_itab_json_dl IMPLEMENTATION.
-
-
-  METHOD result.
-
-    result = check_result_confirmed.
-
-  ENDMETHOD.
+CLASS Z2UI5_CL_POPUP_ITAB_JSON_DL IMPLEMENTATION.
 
 
   METHOD factory.
@@ -59,6 +52,13 @@ CLASS z2ui5_cl_popup_itab_json_dl IMPLEMENTATION.
 *    r_result->question_text = i_question_text.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
+
+  ENDMETHOD.
+
+
+  METHOD result.
+
+    result = check_result_confirmed.
 
   ENDMETHOD.
 

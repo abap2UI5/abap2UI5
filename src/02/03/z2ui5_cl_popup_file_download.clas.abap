@@ -21,9 +21,9 @@ CLASS z2ui5_cl_popup_file_download DEFINITION
     DATA mv_type TYPE string VALUE `data:text/csv;base64,`.
     DATA mv_size TYPE string.
 
-    DATA mv_path TYPE string.
+*    DATA mv_path TYPE string.
     DATA mv_value TYPE string.
-    DATA check_confirm_enabled TYPE abap_bool.
+*    DATA check_confirm_enabled TYPE abap_bool.
     DATA mv_check_download TYPE abap_bool.
 
     METHODS result
@@ -45,7 +45,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_file_download IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_FILE_DOWNLOAD IMPLEMENTATION.
 
 
   METHOD factory.

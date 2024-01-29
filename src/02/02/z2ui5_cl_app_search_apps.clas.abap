@@ -89,7 +89,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
   METHOD view_display.
 
 
-
     DATA(page) = z2ui5_cl_xml_view=>factory(
           )->shell(
 *          )->page(
@@ -104,41 +103,10 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *          width  = `17.5rem`
 *          id     = `SEARCH`
 *           )->get_parent( ).
-
 )->tool_page(
                           )->header( ns = `tnt`
                             )->tool_header(
-
                             )->button( text = `Back` press = client->_event( 'BACK' )
-                            )->link( text = 'Source_Code' target = '_blank' href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
-
-*                              )->image( src = `https://www.sap.com/dam/application/shared/logos/sap-logo-svg.svg`
-*                                        height = `1.5rem`
-*                                        class = `sapUiSmallMarginBegin`
-*
-*                              )->title( level = `H1`
-*                                        text  = `Nav Container I`
-*                              )->title( level = `H3`
-*                                        text  = `Second Title`
-*                              )->toolbar_spacer(
-*                              )->overflow_Toolbar_Button( text = `Search`
-*                                                          tooltip = `Search`
-*                                                          icon = `sap-icon://search`
-*                                                          type = `Transparent`
-*                              )->overflow_toolbar_button( text = `Task`
-*                                                          tooltip = `Task`
-*                                                          icon = `sap-icon://circle-task`
-*                                                          type = `Transparent`
-*                              )->overflow_toolbar_button( text = `Notifications`
-*                                                          tooltip = `Notifications`
-*                                                          icon = `sap-icon://bell`
-*                                                          type = `Transparent`
-*                              )->avatar( src = ``
-*                                         displaysize = `XS`
-*                              )->overflow_toolbar_button( text = `Custom Action`
-*                                                          tooltip = `Custom Action`
-*                                                          icon = `sap-icon://grid`
-*                                                          type = `Transparent`
                               )->get_parent(
                             )->get_parent( )->sub_header( ns = `tnt`
                             )->tool_header( ).
