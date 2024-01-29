@@ -31,7 +31,7 @@ CLASS z2ui5_cl_popup_itab_json_dl DEFINITION
 *    DATA question_text TYPE string.
     DATA button_text_confirm TYPE string.
     DATA button_text_cancel TYPE string.
-    DATA check_initialized TYPE abap_bool.
+*    DATA check_initialized TYPE abap_bool.
     DATA check_result_confirmed TYPE abap_bool.
 
   PRIVATE SECTION.

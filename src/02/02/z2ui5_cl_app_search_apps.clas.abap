@@ -132,7 +132,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                                   )->nav_container( id = `NavCon` initialpage = `page1` defaulttransitionname = `flip`
                                      )->pages( ).
          data(page1) =  pages->page( showheader = abap_false
-
                                        id             = `page1`
                            ).
                                     pages->page(
