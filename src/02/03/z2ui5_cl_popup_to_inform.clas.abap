@@ -44,9 +44,9 @@ CLASS z2ui5_cl_popup_to_inform IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  )->dialog(
-                  title = title
-                  icon = icon
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
+                  title      = title
+                  icon       = icon
                   afterclose = client->_event( 'BUTTON_CONFIRM' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'

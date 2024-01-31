@@ -36,9 +36,9 @@ CLASS z2ui5_cl_popup_error IMPLEMENTATION.
     r_result = NEW #( ).
     r_result->title = i_title.
     r_result->icon = i_icon.
-    if error->previous is bound.
-    r_result->question_text = error->previous->get_text( ).
-    endif.
+    IF error->previous IS BOUND.
+      r_result->question_text = error->previous->get_text( ).
+    ENDIF.
     r_result->question_text = r_result->question_text && `  ` && error->get_text( ).
     r_result->button_text_confirm = i_button_text.
 
@@ -47,9 +47,9 @@ CLASS z2ui5_cl_popup_error IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  )->dialog(
-                  title = title
-                  icon = icon
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
+                  title      = title
+                  icon       = icon
                   afterclose = client->_event( 'BUTTON_CONFIRM' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'

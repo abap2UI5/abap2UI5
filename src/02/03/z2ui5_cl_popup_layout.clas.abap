@@ -52,8 +52,8 @@ CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog(
               afterclose = client->_event( 'BUTTON_CONFIRM' )
-              stretch = abap_true
-              title = 'Layout View'
+              stretch    = abap_true
+              title      = 'Layout View'
           )->content( ).
 
     DATA(tab) = popup->table(
@@ -67,12 +67,12 @@ CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
     DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO DATA(ls_comp2).
       DATA(col) = columns->column( width = '8rem' )->header( ns = `` ).
-      col->text( text = ls_comp2-name  ).
+      col->text( text = ls_comp2-name ).
     ENDLOOP.
 
     LOOP AT lt_comp INTO DATA(ls_comp).
       IF ls_comp-name = 'NAME'.
-        cells->text(  `{` && ls_comp-name && `}` ).
+        cells->text( `{` && ls_comp-name && `}` ).
       ELSE.
         cells->checkbox( `{` && ls_comp-name && `}` ).
       ENDIF.
@@ -99,7 +99,8 @@ CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
 
       DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_tab ).
       LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
-        INSERT VALUE #( name = lr_comp->name visible = abap_true mergeduplicates = abap_false ) INTO TABLE r_result->ms_result-t_layout.
+        INSERT VALUE #( name = lr_comp->name visible = abap_true mergeduplicates = abap_false )
+          INTO TABLE r_result->ms_result-t_layout.
       ENDLOOP.
 
     ELSE.

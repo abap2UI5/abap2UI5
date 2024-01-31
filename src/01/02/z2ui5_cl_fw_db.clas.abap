@@ -61,8 +61,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
     DATA(lv_four_hours_ago) = z2ui5_cl_util_func=>time_substract_seconds(
                                 time    = lv_time
-                                seconds = 60 * 60 * 4
-                              ).
+                                seconds = 60 * 60 * 4 ).
 
     DELETE FROM z2ui5_t_fw_01 WHERE timestampl < @lv_four_hours_ago.
     COMMIT WORK.
@@ -97,10 +96,11 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
   METHOD load_app.
 
     DATA(ls_db) = read( id ).
+    FIELD-SYMBOLS <ref> TYPE any.
 
     z2ui5_cl_util_func=>trans_xml_2_any(
         EXPORTING
-            xml  = ls_db-data
+            xml = ls_db-data
         IMPORTING
             any = result ).
 
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
         WHERE data_rtti IS NOT INITIAL
           AND type_kind = cl_abap_classdescr=>typekind_dref.
 
-      FIELD-SYMBOLS <ref> TYPE any.
+
       DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
       ASSIGN (lv_assign) TO <ref>.
       IF sy-subrc <> 0.
@@ -158,6 +158,8 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
 
   METHOD trans_any_2_xml.
+    FIELD-SYMBOLS <attri> TYPE any.
+    FIELD-SYMBOLS <deref_attri> TYPE any.
 
     TRY.
         result = z2ui5_cl_util_func=>trans_xml_by_any( db ).
@@ -180,8 +182,8 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
             LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
 
               DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
-              FIELD-SYMBOLS <attri> TYPE any.
-              FIELD-SYMBOLS <deref_attri> TYPE any.
+
+
               UNASSIGN <deref_attri>.
               UNASSIGN <attri>.
               ASSIGN (lv_assign) TO <attri>.
@@ -189,9 +191,9 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
               IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
-*              IF <deref_attri> IS NOT INITIAL.
-                lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <deref_attri> ).
-*              ENDIF.
+
+              lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <deref_attri> ).
+
               CLEAR <deref_attri>.
               CLEAR <attri>.
             ENDLOOP.
@@ -205,8 +207,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
             RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
-*               val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attribtues of your class`.
-                val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
+              val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
 
         ENDTRY.
     ENDTRY.

@@ -65,7 +65,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
     grid->label( `{NAME}` ).
 
     grid->multi_input( tokens = `{T_TOKEN}`
-        enabled = abap_false
+        enabled               = abap_false
              valuehelprequest = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) )
             )->tokens(
                  )->token( key      = `{KEY}`
@@ -74,8 +74,12 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
                            selected = `{SELKZ}`
                            editable = `{EDITABLE}` ).
 
-    grid->button( text = `Select` press = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
-    grid->button( icon =  'sap-icon://delete' type = `Transparent` text = `Clear` press = client->_event( val = `LIST_DELETE` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
+    grid->button( text  = `Select`
+                  press = client->_event( val = `LIST_OPEN` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
+    grid->button( icon  = 'sap-icon://delete'
+                  type  = `Transparent`
+                  text  = `Clear`
+                  press = client->_event( val = `LIST_DELETE` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
 
     lo_popup->footer( )->overflow_toolbar(
         )->button( text  = `Clear All`

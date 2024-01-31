@@ -40,7 +40,8 @@ CLASS z2ui5_cl_ui5_suite IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD segments.
-    result = _add( n = `segments` ns   = `sap.suite.ui.microchart` )->_ns_suite( ).
+    result = _add( n  = `segments`
+                   ns = `sap.suite.ui.microchart` )->_ns_suite( ).
   ENDMETHOD.
 
   METHOD interactdonutchart.

@@ -85,63 +85,63 @@ CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
                      `                    renderer: null` && |\n| &&
                      `                },` && |\n| &&
                      |\n| &&
-                     `  init() {` && |\n|  &&
-                     |\n|  &&
-                     |\n|  &&
+                     `  init() {` && |\n| &&
+                     |\n| &&
+                     |\n| &&
                      `      },` &&
                      `   onAfterRendering() {  ` &&
-                      `     if(window.bwipjs == undefined) {  const loadScript = (FILE_URL, async = true, type = "text/javascript") => {` && |\n|  &&
-                     `              return new Promise((resolve, reject) => {` && |\n|  &&
-                     `                  try {` && |\n|  &&
-                     `                      const scriptEle = document.createElement("script");` && |\n|  &&
-                     `                      scriptEle.type = type;` && |\n|  &&
-                     `                      scriptEle.async = async;` && |\n|  &&
-                     `                      scriptEle.src =FILE_URL;` && |\n|  &&
-                     `                      scriptEle.addEventListener("load", (ev) => {` && |\n|  &&
-                     `                          resolve({ status: true });` && |\n|  &&
-                     `                      });` && |\n|  &&
-                     `                      scriptEle.addEventListener("error", (ev) => {` && |\n|  &&
-                     `                          reject({` && |\n|  &&
-                     `                              status: false,` && |\n|  &&
-                     `                              message: ``Failed to load the script ${FILE_URL}``` && |\n|  &&
-                     `                          });` && |\n|  &&
-                     `                      });` && |\n|  &&
-                     `                      document.body.appendChild(scriptEle);` && |\n|  &&
-                     `                  } catch (error) {` && |\n|  &&
-                     `                      reject(error);` && |\n|  &&
-                     `                  }` && |\n|  &&
-                     `              });` && |\n|  &&
-                     `          };` && |\n|  &&
-                     `          ` && |\n|  &&
-                     `          this.BusyDialog = new sap.m.BusyDialog( { title : "Loading bwip-js", text : "... now loading the data from a far away server" });` && |\n|  &&
-                     `          this.BusyDialog.open();` && |\n|  &&
-                     `          loadScript("https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js")` && |\n|  &&
-                     `              .then( data  => {` && |\n|  &&
-                     `                  this.BusyDialog.close();` && |\n|  &&
-                       ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
-                     `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n|  &&
-                     `            text:        this.getProperty("text"),    // Text to encode` && |\n|  &&
-                     `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
-                     `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
-                     `            includetext: true,            // Show human-readable text` && |\n|  &&
-                     `            textxalign:  'center',        // Always good to set this` && |\n|  &&
-                     `              })` && |\n|  &&
-                     `              .catch( err => {` && |\n|  &&
-                     `                  new sap.m.MessageBox.error('Error on load bwip-js library: ' + err);` && |\n|  &&
-                     `                  this.BusyDialog.close();` && |\n|  &&
-                     `              }); } ) } else {` && |\n|  &&
-                     ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n|  &&
-                     `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n|  &&
-                     `            text:        this.getProperty("text"),    // Text to encode` && |\n|  &&
-                     `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n|  &&
-                     `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n|  &&
-                     `            includetext: true,            // Show human-readable text` && |\n|  &&
-                     `            textxalign:  'center',        // Always good to set this` && |\n|  &&
-                     `        }); }` && |\n|  &&
+                      `     if(window.bwipjs == undefined) {  const loadScript = (FILE_URL, async = true, type = "text/javascript") => {` && |\n| &&
+                     `              return new Promise((resolve, reject) => {` && |\n| &&
+                     `                  try {` && |\n| &&
+                     `                      const scriptEle = document.createElement("script");` && |\n| &&
+                     `                      scriptEle.type = type;` && |\n| &&
+                     `                      scriptEle.async = async;` && |\n| &&
+                     `                      scriptEle.src =FILE_URL;` && |\n| &&
+                     `                      scriptEle.addEventListener("load", (ev) => {` && |\n| &&
+                     `                          resolve({ status: true });` && |\n| &&
+                     `                      });` && |\n| &&
+                     `                      scriptEle.addEventListener("error", (ev) => {` && |\n| &&
+                     `                          reject({` && |\n| &&
+                     `                              status: false,` && |\n| &&
+                     `                              message: ``Failed to load the script ${FILE_URL}``` && |\n| &&
+                     `                          });` && |\n| &&
+                     `                      });` && |\n| &&
+                     `                      document.body.appendChild(scriptEle);` && |\n| &&
+                     `                  } catch (error) {` && |\n| &&
+                     `                      reject(error);` && |\n| &&
+                     `                  }` && |\n| &&
+                     `              });` && |\n| &&
+                     `          };` && |\n| &&
+                     `          ` && |\n| &&
+                     `          this.BusyDialog = new sap.m.BusyDialog( { title : "Loading bwip-js", text : "... now loading the data from a far away server" });` && |\n| &&
+                     `          this.BusyDialog.open();` && |\n| &&
+                     `          loadScript("https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js")` && |\n| &&
+                     `              .then( data  => {` && |\n| &&
+                     `                  this.BusyDialog.close();` && |\n| &&
+                       ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n| &&
+                     `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n| &&
+                     `            text:        this.getProperty("text"),    // Text to encode` && |\n| &&
+                     `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n| &&
+                     `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n| &&
+                     `            includetext: true,            // Show human-readable text` && |\n| &&
+                     `            textxalign:  'center',        // Always good to set this` && |\n| &&
+                     `              })` && |\n| &&
+                     `              .catch( err => {` && |\n| &&
+                     `                  new sap.m.MessageBox.error('Error on load bwip-js library: ' + err);` && |\n| &&
+                     `                  this.BusyDialog.close();` && |\n| &&
+                     `              }); } ) } else {` && |\n| &&
+                     ` let canvas = bwipjs.toCanvas('mycanvas', {` && |\n| &&
+                     `            bcid:        this.getProperty("bcid"),       // Barcode type` && |\n| &&
+                     `            text:        this.getProperty("text"),    // Text to encode` && |\n| &&
+                     `            scale:       this.getProperty("scale"),               // 3x scaling factor` && |\n| &&
+                     `            height:      this.getProperty("height"),               // Bar height, in millimeters` && |\n| &&
+                     `            includetext: true,            // Show human-readable text` && |\n| &&
+                     `            textxalign:  'center',        // Always good to set this` && |\n| &&
+                     `        }); }` && |\n| &&
                      `  },` && |\n| &&
                      `                renderer: function (oRm, oControl) {` && |\n| &&
-                     `                    oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n|  &&
-                     `    // The return value is the canvas element` && |\n|  &&
+                     `                    oRm.write( "&lt;canvas id='mycanvas' /&gt;");` && |\n| && |\n| &&
+                     `    // The return value is the canvas element` && |\n| &&
                      `                }` && |\n| &&
                      `            });` && |\n| &&
                      `        });`.
@@ -153,7 +153,7 @@ CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
 
     result = ``.
 
-  ENDMETHod.
+  ENDMETHOD.
 
 
   METHOD get_t_barcode_types.
@@ -164,8 +164,7 @@ CLASS Z2UI5_CL_CC_BWIPJS IMPLEMENTATION.
       ( sym = 'ean13'   desc = 'EAN-13'    text = '9520123456788'           opts = 'includetext guardwhitespace' )
       ( sym = 'upca'    desc = 'UPC-A'     text = '012345000058'            opts = 'includetext' )
       ( sym = 'isbn'    desc = 'ISBN'      text = '978-1-56581-231-4 90000' opts = 'includetext guardwhitespace' )
-      ( sym = 'qrcode'  desc = 'QR Code'   text = 'http://goo.gl/0bis'      opts = 'eclevel=M' )
-    ).
+      ( sym = 'qrcode'  desc = 'QR Code'   text = 'http://goo.gl/0bis'      opts = 'eclevel=M' ) ).
 
   ENDMETHOD.
 ENDCLASS.

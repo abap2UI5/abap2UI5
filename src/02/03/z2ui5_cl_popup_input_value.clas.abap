@@ -51,7 +51,7 @@ CLASS Z2UI5_CL_POPUP_INPUT_VALUE IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->title = title.
-*    r_result->icon = i_icon.
+
     r_result->question_text = text.
     r_result->button_text_confirm = button_text_confirm.
     r_result->button_text_cancel = button_text_cancel.
@@ -69,13 +69,13 @@ CLASS Z2UI5_CL_POPUP_INPUT_VALUE IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  )->dialog(
-                  title = title
-                  icon = icon
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
+                  title      = title
+                  icon       = icon
                   afterclose = client->_event( 'BUTTON_CANCEL' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'
-                  )->label( text  = question_text
+                  )->label( question_text
                   )->input(
                     value  = client->_bind_edit( ms_result-value )
                     submit = client->_event( 'BUTTON_CONFIRM' )

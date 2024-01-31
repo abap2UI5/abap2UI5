@@ -45,6 +45,8 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
 
   METHOD main_set_backend.
+    FIELD-SYMBOLS <backend> TYPE any.
+    FIELD-SYMBOLS <frontend> TYPE any.
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
         WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way AND
@@ -52,7 +54,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
       TRY.
           DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
 
-          FIELD-SYMBOLS <backend> TYPE any.
+
           UNASSIGN <backend>.
           ASSIGN (lv_name_back) TO <backend>.
           IF sy-subrc <> 0.
@@ -62,7 +64,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
           ENDIF.
 
           DATA(lv_name_front) = `MODEL->` && lr_attri->name_front.
-          FIELD-SYMBOLS <frontend> TYPE any.
+
           UNASSIGN <frontend>.
           ASSIGN (lv_name_front) TO <frontend>.
           IF sy-subrc <> 0.
@@ -93,10 +95,10 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
               ASSIGN <frontend>->* TO <frontend>.
               CASE lr_attri->type_kind.
-                WHEN  cl_abap_typedescr=>typekind_date  OR cl_abap_typedescr=>typekind_time.
+                WHEN cl_abap_typedescr=>typekind_date  OR cl_abap_typedescr=>typekind_time.
                   z2ui5_cl_util_func=>trans_json_2_any(
                     EXPORTING
-                        val = `"` && <frontend> && `"`
+                        val  = `"` && <frontend> && `"`
                     CHANGING
                         data = <backend> ).
 
@@ -117,6 +119,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
     DATA(lr_view_model) = z2ui5_cl_util_tree_json=>factory( ).
     DATA(lo_update) = lr_view_model->add_attribute_object( z2ui5_cl_fw_binding=>cv_model_edit_name ).
+    FIELD-SYMBOLS <attribute> TYPE any.
 
     LOOP AT mt_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
@@ -131,7 +134,7 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
                                 ELSE lo_update ).
 
       DATA(lv_name_back) = `MO_APP->` && lr_attri->name.
-      FIELD-SYMBOLS <attribute> TYPE any.
+
       ASSIGN (lv_name_back) TO <attribute>.
       IF sy-subrc <> 0.
         RAISE EXCEPTION TYPE z2ui5_cx_util_error

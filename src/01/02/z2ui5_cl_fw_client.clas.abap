@@ -33,7 +33,7 @@ CLASS z2ui5_cl_fw_client DEFINITION
     METHODS bind_struc_comp
       IMPORTING
         iv_name         TYPE string
-        i_struc         type data
+        i_struc         TYPE data
         i_val           TYPE data
       RETURNING
         VALUE(r_result) TYPE string.
@@ -257,7 +257,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_handler->ms_next-s_set-s_popup = value #( check_destroy = abap_true ).
+    mo_handler->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
@@ -302,7 +302,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF tab IS NOT INITIAL.
 
-      DATA(lv_name) = z2ui5_if_client~_bind( val = tab path = abap_true ).
+      DATA(lv_name) = z2ui5_if_client~_bind( val  = tab
+                                             path = abap_true ).
       result = bind_tab_cell(
             iv_name     = lv_name
             i_tab_index = tab_index
@@ -314,25 +315,26 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF struc IS NOT INITIAL.
 
-      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val = struc path = abap_true pretty_mode = pretty_mode ).
+      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val         = struc
+                                                        path        = abap_true
+                                                        pretty_mode = pretty_mode ).
       result = bind_struc_comp(
-            iv_name     = lv_name_struc
-            i_struc     = struc
-            i_val       = val ).
+            iv_name = lv_name_struc
+            i_struc = struc
+            i_val   = val ).
 
       RETURN.
 
     ENDIF.
 
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app   = mo_handler->ms_db-app
-                        attri = mo_handler->ms_db-t_attri
+                        app         = mo_handler->ms_db-app
+                        attri       = mo_handler->ms_db-t_attri
                         check_attri = mo_handler->ms_db-check_attri
-                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_way
-                        data  = val
+                        type        = z2ui5_cl_fw_binding=>cs_bind_type-one_way
+                        data        = val
                         pretty_name = pretty_mode
-                        compress = compress_mode
-                      ).
+                        compress    = compress_mode ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
@@ -370,7 +372,9 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF tab IS NOT INITIAL.
 
-      DATA(lv_name) = z2ui5_if_client~_bind_edit( val = tab path = abap_true pretty_mode = pretty_mode ).
+      DATA(lv_name) = z2ui5_if_client~_bind_edit( val         = tab
+                                                  path        = abap_true
+                                                  pretty_mode = pretty_mode ).
       result = bind_tab_cell(
             iv_name     = lv_name
             i_tab_index = tab_index
@@ -383,26 +387,27 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF struc IS NOT INITIAL.
 
-      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val = struc path = abap_true pretty_mode = pretty_mode ).
+      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val         = struc
+                                                        path        = abap_true
+                                                        pretty_mode = pretty_mode ).
       result = bind_struc_comp(
-            iv_name     = lv_name_struc
-            i_struc     = struc
-            i_val       = val ).
+            iv_name = lv_name_struc
+            i_struc = struc
+            i_val   = val ).
 
       RETURN.
 
     ENDIF.
 
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app   = mo_handler->ms_db-app
-                        attri = mo_handler->ms_db-t_attri
+                        app         = mo_handler->ms_db-app
+                        attri       = mo_handler->ms_db-t_attri
                         check_attri = mo_handler->ms_db-check_attri
-                        type  = z2ui5_cl_fw_binding=>cs_bind_type-two_way
-                        data  = val
-                        view  = view
+                        type        = z2ui5_cl_fw_binding=>cs_bind_type-two_way
+                        data        = val
+                        view        = view
                         pretty_name = pretty_mode
-                        compress = compress_mode
-                      ).
+                        compress    = compress_mode ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
@@ -418,14 +423,13 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~_bind_local.
 
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app   = mo_handler->ms_db-app
-                        attri = mo_handler->ms_db-t_attri
+                        app         = mo_handler->ms_db-app
+                        attri       = mo_handler->ms_db-t_attri
                         check_attri = mo_handler->ms_db-check_attri
-                        type  = z2ui5_cl_fw_binding=>cs_bind_type-one_time
-                        data  = val
+                        type        = z2ui5_cl_fw_binding=>cs_bind_type-one_time
+                        data        = val
                         pretty_name = pretty_mode
-                        compress = compress_mode
-                      ).
+                        compress    = compress_mode ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.

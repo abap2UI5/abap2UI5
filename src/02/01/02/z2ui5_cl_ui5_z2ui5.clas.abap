@@ -20,7 +20,7 @@ CLASS z2ui5_cl_ui5_z2ui5 DEFINITION
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_ui5_z2ui5.
 
-   METHODS timer
+    METHODS timer
       IMPORTING
         finished      TYPE clike OPTIONAL
         delayms       TYPE clike OPTIONAL

@@ -38,63 +38,62 @@ CLASS lcl_github IMPLEMENTATION.
 
     result = VALUE #(
         (
-        name  = `Table Loader`
-        descr = `Upload, Edit & Download Table Content (CSV, JSON)`
-        author_link = `https://github.com/oblomov-dev`
+        name              = `Table Loader`
+        descr             = `Upload, Edit & Download Table Content (CSV, JSON)`
+        author_link       = `https://github.com/oblomov-dev`
         check_cloud_ready = abap_true
-        min_release = `750`
-        link = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
-        t_app = VALUE #(
+        min_release       = `750`
+        link              = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
+        t_app             = VALUE #(
           (
-            name = `Upload JSON`
-            descr = `Modify DB Table with JSON Data`
+            name      = `Upload JSON`
+            descr     = `Modify DB Table with JSON Data`
             classname = `z2ui5_dbl_cl_app_01`
           )
           (
-            name = `Download (CSV, JSON)`
-            descr = `Download DB Table as JSON and CSV`
+            name      = `Download (CSV, JSON)`
+            descr     = `Download DB Table as JSON and CSV`
             classname = `z2ui5_dbl_cl_app_01`
           )
         ) )
          (
-        name  = `Axage`
-        descr = `Play the Game Axage`
-        author_link = `https://github.com/oblomov-dev`
+        name              = `Axage`
+        descr             = `Play the Game Axage`
+        author_link       = `https://github.com/oblomov-dev`
         check_cloud_ready = abap_true
-        min_release = `750`
-        link = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
-        t_app = VALUE #(
+        min_release       = `750`
+        link              = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
+        t_app             = VALUE #(
           (
-            name = `Upload JSON`
-            descr = `Modify DB Table with JSON Data`
+            name      = `Upload JSON`
+            descr     = `Modify DB Table with JSON Data`
             classname = `z2ui5_dbl_cl_app_01`
           )
           (
-            name = `Download (CSV, JSON)`
-            descr = `Download DB Table as JSON and CSV`
+            name      = `Download (CSV, JSON)`
+            descr     = `Download DB Table as JSON and CSV`
             classname = `z2ui5_dbl_cl_app_01`
           )
         ) )
                  (
-        name  = `Advent of Code`
-        descr = `Solve the Advent of Code `
-        author_link = `https://github.com/oblomov-dev`
+        name              = `Advent of Code`
+        descr             = `Solve the Advent of Code `
+        author_link       = `https://github.com/oblomov-dev`
         check_cloud_ready = abap_true
-        min_release = `750`
-        link = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
-        t_app = VALUE #(
+        min_release       = `750`
+        link              = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
+        t_app             = VALUE #(
           (
-            name = `Upload JSON`
-            descr = `Modify DB Table with JSON Data`
+            name      = `Upload JSON`
+            descr     = `Modify DB Table with JSON Data`
             classname = `z2ui5_dbl_cl_app_01`
           )
           (
-            name = `Download (CSV, JSON)`
-            descr = `Download DB Table as JSON and CSV`
+            name      = `Download (CSV, JSON)`
+            descr     = `Download DB Table as JSON and CSV`
             classname = `z2ui5_dbl_cl_app_01`
           )
-        ) )
-         ).
+        ) ) ).
 
 
     LOOP AT result REFERENCE INTO DATA(lr_repo).
@@ -108,7 +107,8 @@ CLASS lcl_github IMPLEMENTATION.
       ENDLOOP.
 
       lr_repo->number_of_app = lines( lr_repo->t_app ).
-      lr_repo->author_name = shift_left( val = lr_repo->author_link sub = `https://github.com/` ).
+      lr_repo->author_name = shift_left( val = lr_repo->author_link
+                                         sub = `https://github.com/` ).
     ENDLOOP.
 
   ENDMETHOD.

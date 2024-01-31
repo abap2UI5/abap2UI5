@@ -1,15 +1,15 @@
-class Z2UI5_CL_CC_SPREADSHEET definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_cc_spreadsheet DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  class-methods GET_JS
-    importing
-      !I_COLUMNCONFIG type CLIKE
-    returning
-      value(R_JS) type STRING .
+    CLASS-METHODS get_js
+      IMPORTING
+      !i_columnconfig TYPE clike
+      RETURNING
+      VALUE(r_js) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.

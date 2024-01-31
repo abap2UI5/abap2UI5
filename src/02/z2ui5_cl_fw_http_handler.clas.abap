@@ -33,11 +33,11 @@ CLASS z2ui5_cl_fw_http_handler IMPLEMENTATION.
   METHOD http_get.
 
     DATA(lo_index) = z2ui5_cl_fw_index_html=>factory( VALUE #(
-         t_config = t_config
+         t_config                = t_config
          content_security_policy = content_security_policy
          custom_js               = custom_js
          json_model_limit        = json_model_limit
-     ) ).
+      ) ).
 
     result = lo_index->get( ).
 

@@ -149,13 +149,13 @@ CLASS Z2UI5_CL_UTIL_TREE_JSON IMPLEMENTATION.
       EXPORTING
         val  = iv_json
       CHANGING
-        data = result->mr_actual
-    ).
+        data = result->mr_actual ).
 
   ENDMETHOD.
 
 
   METHOD get_attribute.
+    FIELD-SYMBOLS <attribute> TYPE any.
 
     z2ui5_cl_util_func=>x_check_raise( xsdbool( mr_actual IS INITIAL ) ).
 
@@ -167,7 +167,7 @@ CLASS Z2UI5_CL_UTIL_TREE_JSON IMPLEMENTATION.
                                               with = `_`
                                               occ  = 0 ).
 
-    FIELD-SYMBOLS <attribute> TYPE any.
+
     ASSIGN (lv_name) TO <attribute>.
     z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
@@ -183,7 +183,7 @@ CLASS Z2UI5_CL_UTIL_TREE_JSON IMPLEMENTATION.
     FIELD-SYMBOLS <attribute> TYPE any.
     ASSIGN mr_actual->* TO <attribute>.
     z2ui5_cl_util_func=>x_check_raise( when = xsdbool( sy-subrc <> 0 )
-                                v  = `value of attribute in JSON not found` ).
+                                v           = `value of attribute in JSON not found` ).
     result = <attribute>.
 
   ENDMETHOD.

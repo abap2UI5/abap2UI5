@@ -54,7 +54,7 @@ CLASS z2ui5_cl_popup_messages IMPLEMENTATION.
   METHOD view_display.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog(
-        title = title
+        title      = title
         afterclose = client->_event( 'BUTTON_CONTINUE' )
             )->table(
 *                mode = 'SingleSelectLeft'

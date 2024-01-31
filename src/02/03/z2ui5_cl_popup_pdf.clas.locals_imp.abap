@@ -148,7 +148,8 @@ CLASS lcl_utility IMPLEMENTATION.
 
   METHOD app_get_url.
 
-    result = z2ui5_cl_util_func=>app_get_url( classname = classname client = mi_client ).
+    result = z2ui5_cl_util_func=>app_get_url( classname = classname
+                                              client    = mi_client ).
 
   ENDMETHOD.
 
@@ -169,9 +170,10 @@ CLASS lcl_utility IMPLEMENTATION.
 
 
   METHOD get_uuid.
+    DATA uuid TYPE c LENGTH 32.
     TRY.
 
-        DATA uuid TYPE c LENGTH 32.
+
 
         TRY.
             CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c32
@@ -196,14 +198,13 @@ CLASS lcl_utility IMPLEMENTATION.
 
   METHOD get_table_by_json.
 
-*    DATA lt_tab TYPE ty_t_table.
-*
+
 
     DATA lt_tab TYPE REF TO data.
 
     /ui2/cl_json=>deserialize(
       EXPORTING
-        json             = val
+        json = val
 *        jsonx            =
 *        pretty_name      =
 *        assoc_arrays     =
@@ -212,8 +213,7 @@ CLASS lcl_utility IMPLEMENTATION.
 *        conversion_exits =
 *        hex_as_base64    =
       CHANGING
-        data             = lt_tab
-    ).
+        data = lt_tab ).
 
     result = lt_tab.
 
@@ -222,9 +222,7 @@ CLASS lcl_utility IMPLEMENTATION.
 
   METHOD trans_data_2_xml.
 
-    " FIELD-SYMBOLS <object> TYPE any.
-    "  ASSIGN object->* TO <object>.
-    "  raise( when = xsdbool( sy-subrc <> 0 ) ).
+
 
     CALL TRANSFORMATION id
        SOURCE data = data
@@ -243,23 +241,24 @@ CLASS lcl_utility IMPLEMENTATION.
 
   METHOD get_table_by_xml.
 
-*    DATA lt_tab TYPE ty_t_table.
-*
+
     CALL TRANSFORMATION id SOURCE xml = val RESULT data = result.
-*
-*    result = lt_tab.
+
 
   ENDMETHOD.
 
   METHOD get_table_by_csv.
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA lr_row TYPE REF TO data.
 
     SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
 
-    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
 
-      DATA(lv_name) =  trim_upper( lr_col->* ).
+      DATA(lv_name) = trim_upper( lr_col->* ).
       REPLACE ` ` IN lv_name WITH `_`.
 
       INSERT VALUE #( name = lv_name type = cl_abap_elemdescr=>get_c( 40 ) ) INTO TABLE lt_comp.
@@ -272,7 +271,7 @@ CLASS lcl_utility IMPLEMENTATION.
           p_unique     = abap_false ).
 
     CREATE DATA result TYPE HANDLE o_table_desc.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
     ASSIGN result->* TO <tab>.
 
     DELETE lt_rows WHERE table_line IS INITIAL.
@@ -280,12 +279,13 @@ CLASS lcl_utility IMPLEMENTATION.
     LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
 
       SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
-      DATA lr_row TYPE REF TO data.
+
       CREATE DATA lr_row TYPE HANDLE struc.
 
       LOOP AT lt_cols REFERENCE INTO lr_col.
         ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
         ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        assert sy-subrc = 0.
         <field> = lr_col->*.
       ENDLOOP.
 
@@ -345,9 +345,10 @@ CLASS lcl_utility IMPLEMENTATION.
   METHOD get_csv_by_table.
 
     FIELD-SYMBOLS <tab> TYPE table.
+
     ASSIGN val TO <tab>.
 
-    DATA lr_row TYPE REF TO data.
+
 
     DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
 
@@ -359,7 +360,7 @@ CLASS lcl_utility IMPLEMENTATION.
 
     result = result && cl_abap_char_utilities=>cr_lf.
 
-    LOOP AT <tab> REFERENCE INTO lr_row.
+    LOOP AT <tab> REFERENCE INTO DATA(lr_row).
 
       DATA(lv_index) = 1.
       DO.
@@ -392,8 +393,7 @@ CLASS lcl_utility IMPLEMENTATION.
 *               name_mappings    =
 *               conversion_exits =
            "   format_output    = abap_true
-*               hex_as_base64    =
-             ).
+*               hex_as_base64    = ).
 
 
   ENDMETHOD.
@@ -481,7 +481,7 @@ CLASS lcl_utility IMPLEMENTATION.
 
 
 
-*    result = cl_abap_conv_codepage=>create_out( )->convert( val ).
+
 
   ENDMETHOD.
 

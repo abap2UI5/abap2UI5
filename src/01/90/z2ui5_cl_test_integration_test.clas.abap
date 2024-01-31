@@ -83,26 +83,7 @@ CLASS Z2UI5_CL_TEST_INTEGRATION_TEST IMPLEMENTATION.
                                    press = client->_event( 'BUTTON_POST' )
              )->get_root( )->xml_get( ) ).
 
-*      WHEN 'TEST_TIMER'.
-*        client->timer_set( event_finished = 'TIMER_FINISHED'
-*                             interval_ms  = `500` ).
-*
-*        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
-*                                    )->page( title          = 'abap2UI5 - First Example'
-*                                             navbuttonpress = client->_event( 'BACK' )
-*                                             shownavbutton  = abap_true
-*                                        )->simple_form( title    = 'Form Title'
-*                                                        editable = abap_true
-*                                            )->content( 'form'
-*                                                )->title( 'Input'
-*                                                )->label( 'quantity'
-*                                                )->input( client->_bind( quantity )
-*                                                )->label( 'product'
-*                                                )->input( value   = product
-*                                                          enabled = abap_false
-*                                                )->button( text  = 'post'
-*                                                           press = client->_event( 'BUTTON_POST' )
-*                                     )->get_root( )->xml_get( ) ).
+
 
       WHEN OTHERS.
         client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
@@ -124,19 +105,7 @@ CLASS Z2UI5_CL_TEST_INTEGRATION_TEST IMPLEMENTATION.
 
     ENDCASE.
 
-*    IF sv_state = 'TEST_SCROLL_CURSOR'.
-*
-**      client->view_display( `test` ).
-**      client->cursor_set( id             = 'id_text2'
-**                          cursorpos      = '5'
-**                          selectionstart = '5'
-**                          selectionend   = '10' ).
-**
-**      client->scroll_position_set( VALUE #( v = '99999'
-**                                ( n = 'id_page' )
-**                                ( n = 'id_text3' ) ) ).
-*
-*    ENDIF.
+
 
     IF sv_state = 'TEST_NAVIGATE'.
       DATA(lo_app) = NEW z2ui5_cl_test_integration_test( ).

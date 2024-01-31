@@ -45,11 +45,12 @@ ENDCLASS.
 CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD factory.
+    FIELD-SYMBOLS <tab> TYPE any.
 
     r_result = NEW #( ).
     CREATE DATA r_result->mr_tab LIKE i_tab.
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
-    FIELD-SYMBOLS <tab> TYPE any.
+
     ASSIGN r_result->mr_tab->* TO <tab>.
     <tab> = i_tab.
 
@@ -62,17 +63,17 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client ).
     DATA(tab) = popup->table_select_dialog(
-              items              =  `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
-              cancel             = client->_event( 'CANCEL' )
-              search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
-              confirm            = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
-              growing = abap_true
-            ).
+              items   = `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
+              cancel  = client->_event( 'CANCEL' )
+              search  = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
+              confirm = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
+              growing = abap_true ).
 
     DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <tab_out> ).
-    DELETE lt_comp WHERE name =  'ZZSELKZ'.
+    DELETE lt_comp WHERE name = 'ZZSELKZ'.
 
-    DATA(list) = tab->column_list_item( valign = `Top` selected = `{ZZSELKZ}` ).
+    DATA(list) = tab->column_list_item( valign   = `Top`
+                                        selected = `{ZZSELKZ}` ).
     DATA(cells) = list->cells( ).
 
     LOOP AT lt_comp INTO DATA(ls_comp).
@@ -135,6 +136,10 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <row> TYPE any.
     FIELD-SYMBOLS <row2> TYPE any.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <field> TYPE any.
+    DATA lr_row TYPE REF TO data.
     ASSIGN mr_tab->* TO <tab>.
 
     DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab> ).
@@ -156,17 +161,18 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
     CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
 
-    FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <tab_out2> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <field> TYPE any.
+
+
+
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
     LOOP AT <tab> ASSIGNING <row>.
-      DATA lr_row TYPE REF TO data.
+
       CREATE DATA lr_row LIKE LINE OF <tab_out>.
       ASSIGN lr_row->* TO <row2>.
       IF check_table_line = abap_true.
         ASSIGN lr_row->('TAB_LINE') TO <field>.
+        ASSERT sy-subrc = 0.
         <field> = <row>.
       ELSE.
         <row2> = CORRESPONDING #( <row> ).
@@ -185,21 +191,25 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row_selected> TYPE any.
     FIELD-SYMBOLS <selkz> TYPE any.
+    FIELD-SYMBOLS <row_result> TYPE any.
+    FIELD-SYMBOLS <table_line_selected> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab>.
 
     LOOP AT <tab> ASSIGNING <row_selected>.
 
       ASSIGN ('<ROW_SELECTED>-ZZSELKZ') TO <selkz>.
+      ASSERT sy-subrc = 0.
       IF <selkz> = abap_false.
         CONTINUE.
       ENDIF.
 
-      FIELD-SYMBOLS <row_result> TYPE any.
+
       ASSIGN ms_result-row->* TO <row_result>.
 
       IF check_table_line = abap_true.
-        FIELD-SYMBOLS <table_line_selected> TYPE any.
+
         ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
+        ASSERT sy-subrc = 0.
         <row_result> = <table_line_selected>.
       ELSE.
         <row_result> = CORRESPONDING #( <row_selected> ).
@@ -215,13 +225,15 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD on_event_search.
 
-    DATA(lt_arg) = client->get( )-t_event_arg.
-    READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
-
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <tab_out_backup> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row2> TYPE any.
     FIELD-SYMBOLS <field2> TYPE any.
+
+    DATA(lt_arg) = client->get( )-t_event_arg.
+    READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
+    assert sy-subrc = 0.
+
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.
 
@@ -236,6 +248,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
       LOOP AT lt_comp INTO DATA(ls_comp).
         DATA(lv_assign) = '<ROW2>-' && ls_comp-name.
         ASSIGN (lv_assign) TO <field2>.
+        ASSERT sy-subrc = 0.
         IF to_upper( <field2> ) CS to_upper( ls_arg ).
           lv_check_continue = abap_true.
           EXIT.

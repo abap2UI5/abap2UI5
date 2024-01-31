@@ -3397,7 +3397,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD action_sheet.
-    result = _generic( name = `ActionSheet`
+    result = _generic( name   = `ActionSheet`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -3421,14 +3421,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD additional_numbers.
-    result = _generic( name = `additionalNumbers` ).
+    result = _generic( `additionalNumbers` ).
   ENDMETHOD.
 
 
   METHOD analytic_map.
 
-    result = _generic( name = `AnalyticMap`
-                      ns    = `vbm`
+    result = _generic( name  = `AnalyticMap`
+                      ns     = `vbm`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
                             ( n = `initialPosition`  v = initialposition )
@@ -3444,7 +3444,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD appointment_items.
-    result = _generic( name = `appointmentItems` ).
+    result = _generic( `appointmentItems` ).
   ENDMETHOD.
 
 
@@ -3543,14 +3543,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `title`                     v = title )
                                          ( n = `animationSettings`         v = animationsettings )
                                          ( n = `alignShape`                v = alignshape )
-                                         ( n = `color`                     v = color   )
+                                         ( n = `color`                     v = color )
                                          ( n = `fontSize`                  v = fontsize )
                                          ( n = `connectable`               v = z2ui5_cl_util_func=>boolean_abap_2_json( connectable ) )
                                          ( n = `fontFamily`                v = fontfamily )
                                          ( n = `filter`                    v = filter )
                                          ( n = `transform`                 v = transform )
                                          ( n = `countInBirdEye`            v = z2ui5_cl_util_func=>boolean_abap_2_json( countinbirdeye ) )
-                                         ( n = `fontWeight`                v = fontweight   )
+                                         ( n = `fontWeight`                v = fontweight )
                                          ( n = `showTitle`                 v = z2ui5_cl_util_func=>boolean_abap_2_json( showtitle ) )
                                          ( n = `selected`                  v = z2ui5_cl_util_func=>boolean_abap_2_json( selected ) )
                                          ( n = `resizable`                 v = z2ui5_cl_util_func=>boolean_abap_2_json( resizable ) )
@@ -3635,7 +3635,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD busy_indicator.
     result = _generic( name = `BusyIndicator`
-                   t_prop = VALUE #(
+                   t_prop   = VALUE #(
                          ( n = `id`  v = id )
                          ( n = `class`  v = class )
                          ( n = `customIcon`  v = customicon )
@@ -3707,8 +3707,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD card.
-    result = _generic( name = `Card` ns = `f`
-                   t_prop = VALUE #(
+    result = _generic( name = `Card`
+                       ns   = `f`
+                   t_prop   = VALUE #(
                          ( n = `id`  v = id )
                          ( n = `class`  v = class )
                          ( n = `headerPosition`  v = headerposition )
@@ -3720,8 +3721,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD card_header.
-    result = _generic( name = `Header` ns = `f`
-                   t_prop = VALUE #(
+    result = _generic( name = `Header`
+                       ns   = `f`
+                   t_prop   = VALUE #(
                          ( n = `id`  v = id )
                          ( n = `class`  v = class )
                          ( n = `dataTimestamp`  v = datatimestamp )
@@ -3766,7 +3768,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD carousel_layout.
     result = _generic( name = `CarouselLayout`
-                   t_prop = VALUE #(
+                   t_prop   = VALUE #(
                          ( n = `visiblePagesCount`  v = visiblepagescount )
                        ) ).
   ENDMETHOD.
@@ -3840,7 +3842,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD column_element_data.
-    result =  _generic( name   = `ColumnElementData` ns = `form`
+    result = _generic( name    = `ColumnElementData`
+                       ns      = `form`
                         t_prop = VALUE #( ( n = `cellsLarge` v = cellslarge )
                                           ( n = `cellsSmall` v = cellssmall ) ) ).
   ENDMETHOD.
@@ -3928,48 +3931,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD constructor.
 
-*    mt_prop = VALUE #( ( n = `xmlns`           v = `sap.m` )
-*                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
-*                       ( n = `xmlns:core`      v = `sap.ui.core` )
-*                       ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
-*                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
-**                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
-**                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-*                       ( n = `xmlns:table `    v = `sap.ui.table` )
-*                       ( n = `xmlns:f`         v = `sap.f` )
-*                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
-*                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
-*                       ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
-*                       ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
-*                       ( n = `xmlns:uxap`      v = `sap.uxap` )
-*                       ( n = `xmlns:sap`       v = `sap` )
-*                       ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
-*                       ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
-*                       ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
-*                       ( n = `xmlns:u`         v = `sap.ui.unified` )
-*                       ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
-*                       ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
-*                       ( n = `xmlns:config`    v = `sap.gantt.config` )
-*                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
-*                       ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
-*                       ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
-*                       ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
-*                       ( n = `xmlns:vk`        v = `sap.ui.vk` )
-*                       ( n = `xmlns:vbm`        v = `sap.ui.vbm` )
-*                       ( n = `xmlns:ndc`        v = `sap.ndc` )
-*                       ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
-*                       ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
-*                       ( n = `xmlns:p13n`      v = `sap.m.p13n` )
-*                       ( n = `xmlns:upload`    v = `sap.m.upload` )
-*                       ( n = `xmlns:fl`        v = `sap.ui.fl` )
-*                       ( n = `xmlns:tnt `      v = `sap.tnt` ) ).
+
   ENDMETHOD.
 
 
   METHOD container_content.
 
-    result = _generic( name = `ContainerContent`
-                      ns    = `vk`
+    result = _generic( name  = `ContainerContent`
+                      ns     = `vk`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
                             ( n = `title`  v = title )
@@ -4043,7 +4012,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD custom_layout.
-    result = _generic( name = `customLayout` ).
+    result = _generic( `customLayout` ).
   ENDMETHOD.
 
 
@@ -4134,7 +4103,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD detail_pages.
-    result = _generic( name = `detailPages` ).
+    result = _generic( `detailPages` ).
   ENDMETHOD.
 
 
@@ -4156,7 +4125,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD draft_indicator.
-    result = _generic( name = `DraftIndicator`
+    result = _generic( name   = `DraftIndicator`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -4218,7 +4187,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD expandable_text.
-    result = _generic( name = `ExpandableText`
+    result = _generic( name   = `ExpandableText`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `emptyIndicatorMode`  v = emptyindicatormode )
@@ -4247,7 +4216,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD facet_filter.
-    result = _generic( name = `FacetFilter`
+    result = _generic( name   = `FacetFilter`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -4266,7 +4235,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD facet_filter_item.
-    result = _generic( name = `FacetFilterItem`
+    result = _generic( name   = `FacetFilterItem`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -4288,7 +4257,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD facet_filter_list.
-    result = _generic( name = `FacetFilterList`
+    result = _generic( name   = `FacetFilterList`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -4445,7 +4414,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD feed_list_item_action.
-    result =  _generic( name   = `FeedListItemAction`
+    result = _generic( name    = `FeedListItemAction`
                         t_prop = VALUE #( ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
                                           ( n = `icon`    v = icon )
                                           ( n = `key`     v = key )
@@ -4518,12 +4487,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD filter_items.
-    result = _generic( name = `filterItems` ).
+    result = _generic( `filterItems` ).
   ENDMETHOD.
 
 
   METHOD first_status.
-    result = _generic( name = `firstStatus` ).
+    result = _generic( `firstStatus` ).
   ENDMETHOD.
 
 
@@ -4753,7 +4722,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD group_items.
-    result = _generic( name = `groupItems` ).
+    result = _generic( `groupItems` ).
   ENDMETHOD.
 
 
@@ -4804,12 +4773,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD header_container.
-    result = _generic( name = `headerContainer` ).
+    result = _generic( `headerContainer` ).
   ENDMETHOD.
 
 
   METHOD header_container_control.
-    result = _generic( name = `HeaderContainer`
+    result = _generic( name   = `HeaderContainer`
                        t_prop = VALUE #( ( n = `backgroundDesign` v = backgrounddesign )
                                          ( n = `gridLayout` v = z2ui5_cl_util_func=>boolean_abap_2_json( gridlayout ) )
                                          ( n = `height` v = height )
@@ -4823,7 +4792,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `width` v = width )
                                          ( n = `id` v = id )
                                          ( n = `scroll` v = scroll )
-) ).
+      ) ).
   ENDMETHOD.
 
 
@@ -4871,9 +4840,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD html.
 
-    result = _generic( name = `HTML`
-                       ns   = `core`
-                       t_prop = VALUE  #(
+    result = _generic( name   = `HTML`
+                       ns     = `core`
+                       t_prop = VALUE #(
                           ( n = 'id' v = id )
                           ( n = 'content' v = content )
                           ( n = 'afterRendering' v = afterrendering )
@@ -4886,7 +4855,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD html_area.
-    result = _generic( name = `area` ns = 'html'
+    result = _generic( name   = `area`
+                       ns     = 'html'
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `shape`  v = shape )
@@ -4900,8 +4870,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD html_canvas.
-    result = _generic( name = `canvas`
-                       ns = `html`
+    result = _generic( name   = `canvas`
+                       ns     = `html`
                        t_prop = VALUE #(
                              ( n = `id`     v = id )
                              ( n = `class`  v = class )
@@ -4913,7 +4883,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD html_map.
-    result = _generic( name = `map` ns = 'html'
+    result = _generic( name   = `map`
+                       ns     = 'html'
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -5006,14 +4977,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          (  n = `tabDensityMode`          v = tabdensitymode )
                                          (  n = `tabsOverflowMode`          v = tabsoverflowmode )
                                          (  n = `visible`          v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
-                                         (  n = `mode`            v = mode  ) ) ).
+                                         (  n = `mode`            v = mode ) ) ).
 
   ENDMETHOD.
 
 
   METHOD icon_tab_separator.
 
-    result = _generic( name = `IconTabSeparator`
+    result = _generic( name    = `IconTabSeparator`
                         t_prop = VALUE #( ( n = `icon` v = icon )
                                           ( n = `iconDensityAware` v = icondensityaware )
                                           ( n = `id` v = id )
@@ -5057,9 +5028,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                 ( n = `error` v = error )
                 ( n = `press` v = press )
                 ( n = `load` v = load )
-                ( n = `decorative` v =  z2ui5_cl_util_func=>boolean_abap_2_json( decorative ) )
-                ( n = `densityAware` v =  z2ui5_cl_util_func=>boolean_abap_2_json( densityaware ) )
-                ( n = `lazyLoading` v =  z2ui5_cl_util_func=>boolean_abap_2_json( lazyloading ) )
+                ( n = `decorative` v = z2ui5_cl_util_func=>boolean_abap_2_json( decorative ) )
+                ( n = `densityAware` v = z2ui5_cl_util_func=>boolean_abap_2_json( densityaware ) )
+                ( n = `lazyLoading` v = z2ui5_cl_util_func=>boolean_abap_2_json( lazyloading ) )
                  ) ).
   ENDMETHOD.
 
@@ -5083,7 +5054,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `id`               v = id )
                            ( n = `class`               v = class )
                            ( n = `text`             v = text )
-                           ( n = `renderMode `      v = rendermode  )
+                           ( n = `renderMode `      v = rendermode )
                            ( n = `colorScheme`      v = colorscheme )
                            ( n = `displayOnly`      v = z2ui5_cl_util_func=>boolean_abap_2_json( displayonly ) )
                            ( n = `icon`             v = icon )
@@ -5224,7 +5195,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD items.
-    result = _generic( name = `items`  ns = ns ).
+    result = _generic( name = `items`
+                       ns   = ns ).
   ENDMETHOD.
 
 
@@ -5261,15 +5233,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD light_box.
-    result =  _generic( name   = `LightBox`
-                    t_prop = VALUE #( ( n = `id`         v = id )
+    result = _generic( name = `LightBox`
+                    t_prop  = VALUE #( ( n = `id`         v = id )
                                       ( n = `class`    v = class )
                                       ( n = `visible`    v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
 
   METHOD light_box_item.
-    result =  _generic( name   = `LightBoxItem`
+    result = _generic( name    = `LightBoxItem`
                         t_prop = VALUE #( ( n = `alt`         v = alt )
                                           ( n = `imageSrc`    v = imagesrc )
                                           ( n = `subtitle`    v = subtitle )
@@ -5332,7 +5304,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD link_tile_content.
     result = _generic( name = `LinkTileContent`
-                   t_prop = VALUE #(
+                   t_prop   = VALUE #(
                          ( n = `iconSrc`  v = iconsrc )
                          ( n = `linkHref`  v = linkhref )
                          ( n = `linkText`  v = linktext )
@@ -5394,16 +5366,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD main_contents.
 
-    result = _generic( name   = `mainContents`
-                       ns     = `tnt` ).
+    result = _generic( name = `mainContents`
+                       ns   = `tnt` ).
 
   ENDMETHOD.
 
 
   METHOD map_container.
 
-    result = _generic( name = `MapContainer`
-                      ns    = `vk`
+    result = _generic( name  = `MapContainer`
+                      ns     = `vk`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
                             ( n = `autoAdjustHeight`  v = z2ui5_cl_util_func=>boolean_abap_2_json( autoadjustheight ) )
@@ -5413,7 +5385,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD markers.
-    result = _generic( name = `markers` ns = ns ).
+    result = _generic( name = `markers`
+                       ns   = ns ).
   ENDMETHOD.
 
 
@@ -5455,7 +5428,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD master_pages.
-    result = _generic( name = `masterPages` ).
+    result = _generic( `masterPages` ).
   ENDMETHOD.
 
 
@@ -5592,14 +5565,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic( name   = `NavContainer`
                        t_prop = VALUE #(
-                        ( n = `initialPage`  v = initialpage  )
-                        ( n = `id`           v = id  )
-                        ( n = `height`           v = height  )
-                        ( n = `width`           v = width  )
+                        ( n = `initialPage`  v = initialpage )
+                        ( n = `id`           v = id )
+                        ( n = `height`           v = height )
+                        ( n = `width`           v = width )
                         ( n = `autoFocus` v = z2ui5_cl_util_func=>boolean_abap_2_json( autofocus ) )
                         ( n = `visible` v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
-                        ( n = `defaultTransitionName`   v = defaulttransitionname  )
-                        )  ).
+                        ( n = `defaultTransitionName`   v = defaulttransitionname )
+                        ) ).
 
   ENDMETHOD.
 
@@ -5611,7 +5584,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD notification_list.
-    result = _generic( name = `NotificationList`
+    result = _generic( name   = `NotificationList`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -5620,25 +5593,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                              ( n = `growingThreshold`  v = growingthreshold )
                              ( n = `growingTriggerText`  v = growingtriggertext )
                              ( n = `headerLevel`  v = headerlevel )
-                             ( n = `headerText`  v = headertext  )
-                             ( n = `keyboardMode`  v = keyboardmode  )
-                             ( n = `mode`  v = mode  )
-                             ( n = `multiSelectMode`  v = multiselectmode  )
-                             ( n = `noDataText`  v = nodatatext  )
-                             ( n = `sticky`  v = sticky  )
-                             ( n = `swipeDirection`  v = swipedirection  )
-                             ( n = `width`  v = width  )
-                             ( n = `showSeparators`  v = showseparators  )
-                             ( n = `beforeOpenContextMenu`  v = beforeopencontextmenu  )
-                             ( n = `delete`  v = delete  )
-                             ( n = `growingFinished`  v = growingfinished  )
-                             ( n = `growingStarted`  v = growingstarted  )
-                             ( n = `itemPress`  v = itempress  )
-                             ( n = `select`  v = select  )
-                             ( n = `selectionChange`  v = selectionchange  )
-                             ( n = `swipe`  v = swipe  )
-                             ( n = `updateFinished`  v = updatefinished  )
-                             ( n = `updateStarted`  v = updatestarted  )
+                             ( n = `headerText`  v = headertext )
+                             ( n = `keyboardMode`  v = keyboardmode )
+                             ( n = `mode`  v = mode )
+                             ( n = `multiSelectMode`  v = multiselectmode )
+                             ( n = `noDataText`  v = nodatatext )
+                             ( n = `sticky`  v = sticky )
+                             ( n = `swipeDirection`  v = swipedirection )
+                             ( n = `width`  v = width )
+                             ( n = `showSeparators`  v = showseparators )
+                             ( n = `beforeOpenContextMenu`  v = beforeopencontextmenu )
+                             ( n = `delete`  v = delete )
+                             ( n = `growingFinished`  v = growingfinished )
+                             ( n = `growingStarted`  v = growingstarted )
+                             ( n = `itemPress`  v = itempress )
+                             ( n = `select`  v = select )
+                             ( n = `selectionChange`  v = selectionchange )
+                             ( n = `swipe`  v = swipe )
+                             ( n = `updateFinished`  v = updatefinished )
+                             ( n = `updateStarted`  v = updatestarted )
                              ( n = `growingScrollToLoad`           v = z2ui5_cl_util_func=>boolean_abap_2_json( growingscrolltoload ) )
                              ( n = `visible`           v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                              ( n = `growing`           v = z2ui5_cl_util_func=>boolean_abap_2_json( growing ) )
@@ -5653,7 +5626,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD notification_list_group.
-    result = _generic( name = `NotificationListGroup`
+    result = _generic( name   = `NotificationListGroup`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -5679,7 +5652,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD notification_list_item.
-    result = _generic( name = `NotificationListItem`
+    result = _generic( name   = `NotificationListItem`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -5735,8 +5708,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD numeric_header.
 
-    result = _generic( name = `NumericHeader` ns = `f`
-                   t_prop = VALUE #(
+    result = _generic( name = `NumericHeader`
+                       ns   = `f`
+                   t_prop   = VALUE #(
                          ( n = `id`  v = id )
                          ( n = `class`  v = class )
                          ( n = `datatimestamp`  v = datatimestamp )
@@ -5771,7 +5745,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD numeric_side_indicator.
-    result = _generic( name = `NumericSideIndicator`  ns = `f`
+    result = _generic( name   = `NumericSideIndicator`
+                       ns     = `f`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
@@ -5864,7 +5839,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD object_marker.
-    result = _generic( name = `ObjectMarker`
+    result = _generic( name   = `ObjectMarker`
                        t_prop = VALUE #( ( n = `additionalInfo` v = additionalinfo )
                                          ( n = `type`           v = type )
                                          ( n = `visible`        v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
@@ -6024,7 +5999,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD pages.
-    result = _generic( name   = `pages`  ).
+    result = _generic( `pages` ).
 
   ENDMETHOD.
 
@@ -6058,9 +6033,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD pane_container.
-    result = _generic( name   = `PaneContainer` ns = `layout`
+    result = _generic( name   = `PaneContainer`
+                       ns     = `layout`
                        t_prop = VALUE #( ( n = `resize`       v = resize )
-                                         ( n = `orientation`  v = orientation  ) ) ).
+                                         ( n = `orientation`  v = orientation ) ) ).
   ENDMETHOD.
 
 
@@ -6130,9 +6106,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD process_flow.
-    result = _generic( name   = `ProcessFlow`
-                   ns     = 'commons'
-                   t_prop = VALUE #( ( n = `id`               v = id )
+    result = _generic( name = `ProcessFlow`
+                   ns       = 'commons'
+                   t_prop   = VALUE #( ( n = `id`               v = id )
                                      ( n = `foldedCorners`    v = z2ui5_cl_util_func=>boolean_abap_2_json( foldedcorners ) )
                                      ( n = `scrollable`       v = z2ui5_cl_util_func=>boolean_abap_2_json( scrollable ) )
                                      ( n = `showLabels`       v = z2ui5_cl_util_func=>boolean_abap_2_json( showlabels ) )
@@ -6149,9 +6125,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD process_flow_lane_header.
 
-    result = _generic( name   = `ProcessFlowLaneHeader`
-                   ns     = 'commons'
-                   t_prop = VALUE #( ( n = `iconSrc`          v = iconsrc )
+    result = _generic( name = `ProcessFlowLaneHeader`
+                   ns       = 'commons'
+                   t_prop   = VALUE #( ( n = `iconSrc`          v = iconsrc )
                                      ( n = `laneId`           v = laneid )
                                      ( n = `position`         v = position )
                                      ( n = `state`            v = state )
@@ -6161,9 +6137,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD process_flow_node.
-    result = _generic( name   = `ProcessFlowNode`
-                   ns     = 'commons'
-                   t_prop = VALUE #( ( n = `laneId`               v = laneid )
+    result = _generic( name = `ProcessFlowNode`
+                   ns       = 'commons'
+                   t_prop   = VALUE #( ( n = `laneId`               v = laneid )
                                      ( n = `nodeId`               v = nodeid )
                                      ( n = `title`                v = title )
                                      ( n = `titleAbbreviation`    v = titleabbreviation )
@@ -6171,7 +6147,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                      ( n = `state`                v = state )
                                      ( n = `stateText`            v = statetext )
                                      ( n = `texts`                v = texts )
-                                     ( n = `highlighted`          v = z2ui5_cl_util_func=>boolean_abap_2_json( highlighted )  )
+                                     ( n = `highlighted`          v = z2ui5_cl_util_func=>boolean_abap_2_json( highlighted ) )
                                      ( n = `focused`              v = z2ui5_cl_util_func=>boolean_abap_2_json( focused ) )
                                      ( n = `selected`             v = z2ui5_cl_util_func=>boolean_abap_2_json( selected ) )
                                      ( n = `tag`                  v = tag )
@@ -6209,14 +6185,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD quick_view_group.
-    result = _generic( name = `QuickViewGroup`
-                       t_prop   = VALUE #( ( n = `heading` v = heading )
+    result = _generic( name   = `QuickViewGroup`
+                       t_prop = VALUE #( ( n = `heading` v = heading )
                                            ( n = `visible` v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
 
   METHOD quick_view_group_element.
-    result =  _generic( name   = `QuickViewGroupElement`
+    result = _generic( name    = `QuickViewGroupElement`
                         t_prop = VALUE #( ( n = `emailSubject`  v = emailsubject )
                                           ( n = `label`       v = label )
                                           ( n = `pageLinkId`  v = pagelinkid )
@@ -6239,7 +6215,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD quick_view_page_avatar.
-    result = _generic( name = `avatar` ).
+    result = _generic( `avatar` ).
   ENDMETHOD.
 
 
@@ -6325,10 +6301,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD responsive_splitter.
-    result = _generic( name   = `ResponsiveSplitter` ns = `layout`
+    result = _generic( name   = `ResponsiveSplitter`
+                       ns     = `layout`
                        t_prop = VALUE #( ( n = `defaultPane`  v = defaultpane )
                                          ( n = `height`       v = height )
-                                         ( n = `width`        v = width  ) ) ).
+                                         ( n = `width`        v = width ) ) ).
   ENDMETHOD.
 
 
@@ -6412,7 +6389,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD second_status.
-    result = _generic( name = `secondStatus` ).
+    result = _generic( `secondStatus` ).
   ENDMETHOD.
 
 
@@ -6453,7 +6430,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD select.
-    result = _generic( name = `Select`
+    result = _generic( name   = `Select`
                        t_prop = VALUE #(
                              ( n = `id`                  v = id )
                              ( n = `class`                  v = class )
@@ -6499,10 +6476,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD shell.
-    result = _generic( name = `Shell`
-                       ns   = ns
-                              t_prop = VALUE #( ( n = `appWidthLimited`  v = z2ui5_cl_util_func=>boolean_abap_2_json( appwidthlimited ) ) )
-                    ).
+    result = _generic( name          = `Shell`
+                       ns            = ns
+                              t_prop = VALUE #( ( n = `appWidthLimited`  v = z2ui5_cl_util_func=>boolean_abap_2_json( appwidthlimited ) ) ) ).
   ENDMETHOD.
 
 
@@ -6588,7 +6564,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD smart_variant_management.
-    result = _generic( name   = `SmartVariantManagement` ns = `svm`
+    result = _generic( name   = `SmartVariantManagement`
+                       ns     = `svm`
                        t_prop = VALUE #( ( n = `id`      v = id )
                                          ( n = `showExecuteOnSelection`  v = z2ui5_cl_util_func=>boolean_abap_2_json( showexecuteonselection ) ) ) ).
   ENDMETHOD.
@@ -6614,12 +6591,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD sort_items.
-    result = _generic( name = `sortItems` ).
+    result = _generic( `sortItems` ).
   ENDMETHOD.
 
 
   METHOD splitter_layout_data.
-    result = _generic( name   = `SplitterLayoutData` ns = `layout`
+    result = _generic( name   = `SplitterLayoutData`
+                       ns     = `layout`
                        t_prop = VALUE #( ( n = `size`         v = size )
                                          ( n = `minSize`      v = minsize )
                                          ( n = `resizable`    v = z2ui5_cl_util_func=>boolean_abap_2_json( resizable ) ) ) ).
@@ -6656,17 +6634,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD split_pane.
-    result = _generic( name   = `SplitPane` ns = `layout`
+    result = _generic( name   = `SplitPane`
+                       ns     = `layout`
                        t_prop = VALUE #( ( n = `id`                   v = id )
-                                         ( n = `requiredParentWidth`  v = requiredparentwidth )  ) ).
+                                         ( n = `requiredParentWidth`  v = requiredparentwidth ) ) ).
   ENDMETHOD.
 
 
   METHOD spot.
 
     result = me.
-    _generic( name = `Spot`
-                      ns    = `vbm`
+    _generic( name           = `Spot`
+                      ns     = `vbm`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
                             ( n = `position`  v = position )
@@ -6683,8 +6662,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD spots.
 
-    result = _generic( name = `Spots`
-                      ns    = `vbm`
+    result = _generic( name  = `Spots`
+                      ns     = `vbm`
                       t_prop = VALUE #(
                             ( n = `id`  v = id )
                             ( n = `items`  v = items )
@@ -6748,7 +6727,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD statuses.
-    result = _generic( name = `statuses` ns = ns ).
+    result = _generic( name = `statuses`
+                       ns   = ns ).
   ENDMETHOD.
 
 
@@ -6775,7 +6755,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD sub_header.
 
     result = _generic( name = `subHeader`
-                      ns   = ns ).
+                      ns    = ns ).
 
   ENDMETHOD.
 
@@ -6860,8 +6840,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD table_select_dialog.
 
-    result = _generic( name   = `TableSelectDialog`
-               t_prop = VALUE #( ( n = `confirmButtonText`    v = confirmbuttontext )
+    result = _generic( name = `TableSelectDialog`
+               t_prop       = VALUE #( ( n = `confirmButtonText`    v = confirmbuttontext )
                                  ( n = `contentHeight`        v = contentheight )
                                  ( n = `contentWidth`         v = contentwidth )
                                  ( n = `draggable`            v = z2ui5_cl_util_func=>boolean_abap_2_json( draggable ) )
@@ -7127,15 +7107,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD tokens.
 
-    result = _generic( name = `tokens` ns = ns ).
+    result = _generic( name = `tokens`
+                       ns   = ns ).
 
   ENDMETHOD.
 
 
   METHOD toolbar.
 
-    result = _generic( name = `Toolbar`
-                       ns = ns
+    result = _generic( name   = `Toolbar`
+                       ns     = ns
                        t_prop = VALUE #( ( n = `active`  v = z2ui5_cl_util_func=>boolean_abap_2_json( active ) )
                                          ( n = `ariaHasPopup`  v = ariahaspopup )
                                          ( n = `design`  v = design )
@@ -7246,7 +7227,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `showSortMenuEntry`    v = showsortmenuentry )
                           ( n = `sortProperty`         v = sortproperty )
                           ( n = `showFilterMenuEntry`  v = showfiltermenuentry )
-                          ( n = `autoresizable`  v =  z2ui5_cl_util_func=>boolean_abap_2_json( autoresizable ) )
+                          ( n = `autoresizable`  v = z2ui5_cl_util_func=>boolean_abap_2_json( autoresizable ) )
                           ( n = `filterProperty`       v = filterproperty ) ) ).
   ENDMETHOD.
 
@@ -7380,9 +7361,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD upload_set_item.
-    result = _generic( name   = `UploadSetItem`
-                   ns     = 'upload'
-                   t_prop = VALUE #( ( n = `fileName`      v = filename )
+    result = _generic( name = `UploadSetItem`
+                   ns       = 'upload'
+                   t_prop   = VALUE #( ( n = `fileName`      v = filename )
                                      ( n = `mediaType`     v = mediatype )
                                      ( n = `url`           v = url )
                                      ( n = `thumbnailUrl`  v = thumbnailurl )
@@ -7401,13 +7382,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD upload_set_toolbar_placeholder.
-    result = _generic( name = `UploadSetToolbarPlaceholder` ns = `upload` ).
+    result = _generic( name = `UploadSetToolbarPlaceholder`
+                       ns   = `upload` ).
   ENDMETHOD.
 
 
   METHOD variant_item.
 
-    result = _generic( name   = `VariantItem`
+    result = _generic( name     = `VariantItem`
                          ns     = `vm`
                          t_prop = VALUE #( ( n = `executeOnSelection`      v = z2ui5_cl_util_func=>boolean_abap_2_json( executeonselection ) )
                                            ( n = `global`                  v = z2ui5_cl_util_func=>boolean_abap_2_json( global ) )
@@ -7438,8 +7420,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD variant_items.
 
-    result = _generic( name   = `variantItems`
-                         ns     = `vm` ).
+    result = _generic( name = `variantItems`
+                         ns = `vm` ).
 
   ENDMETHOD.
 
@@ -7476,7 +7458,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `VariantManagement`
                        ns     = `flvm`
                        t_prop = VALUE #( ( n = `displayTextForExecuteOnSelectionForStandardVariant`  v = displaytextfsv )
-                                         ( n = `editable`       v = z2ui5_cl_util_func=>boolean_abap_2_json( editable )  )
+                                         ( n = `editable`       v = z2ui5_cl_util_func=>boolean_abap_2_json( editable ) )
                                          ( n = `executeOnSelectionForStandardDefault`        v = z2ui5_cl_util_func=>boolean_abap_2_json( executeonselectionforstandflt ) )
                                          ( n = `headerLevel`      v = headerlevel )
                                          ( n = `inErrorState`      v = z2ui5_cl_util_func=>boolean_abap_2_json( inerrorstate ) )
@@ -7530,8 +7512,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD view_settings_dialog.
 
-    result = _generic( name   = `ViewSettingsDialog`
-              t_prop = VALUE #( ( n = `confirm`                  v = confirm )
+    result = _generic( name = `ViewSettingsDialog`
+              t_prop        = VALUE #( ( n = `confirm`                  v = confirm )
                                 ( n = `cancel`                   v = cancel )
                                 ( n = `filterDetailPageOpened`   v = filterdetailpageopened )
                                 ( n = `reset`                    v = reset )
@@ -7553,8 +7535,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD view_settings_filter_item.
-    result = _generic( name   = `ViewSettingsFilterItem`
-                  t_prop = VALUE #( ( n = `enabled`         v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
+    result = _generic( name = `ViewSettingsFilterItem`
+                  t_prop    = VALUE #( ( n = `enabled`         v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
                                     ( n = `key`             v = key )
                                     ( n = `selected`        v = z2ui5_cl_util_func=>boolean_abap_2_json( selected ) )
                                     ( n = `text`            v = text )
@@ -7564,8 +7546,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD view_settings_item.
-    result = _generic( name   = `ViewSettingsItem`
-                  t_prop = VALUE #( ( n = `enabled`         v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
+    result = _generic( name = `ViewSettingsItem`
+                  t_prop    = VALUE #( ( n = `enabled`         v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
                                     ( n = `key`             v = key )
                                     ( n = `selected`        v = z2ui5_cl_util_func=>boolean_abap_2_json( selected ) )
                                     ( n = `text`            v = text )
@@ -7583,13 +7565,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD vos.
 
     result = _generic( name = `vos`
-                      ns    = `vbm`
-                  ).
+                      ns    = `vbm` ).
 
   ENDMETHOD.
 
 
   METHOD xml_get.
+    DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
 
     CASE mv_name.
       WHEN `ZZPLAIN`.
@@ -7598,7 +7580,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     ENDCASE.
 
     IF me = mo_root.
-      DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
+
 
 
 

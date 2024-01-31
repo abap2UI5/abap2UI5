@@ -186,9 +186,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD bwip_js.
 
     result = mo_view.
-    mo_view->_generic( name   = `bwipjs`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `bcid`   v = bcid )
+    mo_view->_generic( name = `bwipjs`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `bcid`   v = bcid )
                                 ( n = `text`   v = text )
                                 ( n = `scale`  v = scale )
                                 ( n = `height` v = height )
@@ -200,9 +200,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD camera_picture.
 
     result = mo_view.
-    mo_view->_generic( name   = `CameraPicture`
-              ns     = `z2ui5`
-              t_prop = VALUE #(
+    mo_view->_generic( name = `CameraPicture`
+              ns            = `z2ui5`
+              t_prop        = VALUE #(
                 ( n = `id`       v = id )
                 ( n = `value`    v = value )
                 ( n = `press`    v = press )
@@ -235,10 +235,12 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
 
   METHOD demo_output.
+    DATA lv_style TYPE string.
 
     "make it run without syntax error also when CC are deleted (for example for downports))
-    mo_view->_generic( ns = `html` name = `style` ).
-    DATA lv_style TYPE string.
+    mo_view->_generic( ns   = `html`
+                       name = `style` ).
+
     CALL METHOD ('Z2UI5_CL_CC_DEMO_OUTPUT')=>('GET_STYLE')
       RECEIVING
         result = lv_style.
@@ -250,9 +252,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD file_uploader.
 
     result = mo_view.
-    mo_view->_generic( name   = `FileUploader`
-              ns     = `z2ui5`
-              t_prop = VALUE #( (  n = `placeholder`        v = placeholder )
+    mo_view->_generic( name = `FileUploader`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( (  n = `placeholder`        v = placeholder )
                                 (  n = `upload`             v = upload )
                                 (  n = `path`               v = path )
                                 (  n = `value`              v = value )
@@ -270,9 +272,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD focus.
 
     result = mo_view.
-    mo_view->_generic( name   = `Focus`
-              ns     = `z2ui5`
-              t_prop = VALUE #(
+    mo_view->_generic( name = `Focus`
+              ns            = `z2ui5`
+              t_prop        = VALUE #(
                 ( n = `setUpdate`       v = setupdate )
                 ( n = `selectionStart`  v = selectionstart )
                 ( n = `selectionEnd`    v = selectionend )
@@ -285,9 +287,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD geolocation.
 
     result = mo_view.
-    mo_view->_generic( name   = `Geolocation`
-              ns     = `z2ui5`
-              t_prop = VALUE #(
+    mo_view->_generic( name = `Geolocation`
+              ns            = `z2ui5`
+              t_prop        = VALUE #(
                     ( n = `finished`  v = finished )
                     ( n = `longitude`  v = longitude )
                     ( n = `latitude`  v = latitude )
@@ -306,9 +308,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD history.
 
     result = mo_view.
-    mo_view->_generic( name   = `History`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `search`  v = search ) ) ).
+    mo_view->_generic( name = `History`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `search`  v = search ) ) ).
 
   ENDMETHOD.
 
@@ -316,9 +318,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD info_frontend.
 
     result = mo_view.
-    mo_view->_generic( name   = `Info`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `ui5_version`  v = ui5_version )
+    mo_view->_generic( name = `Info`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `ui5_version`  v = ui5_version )
                                 ( n = `ui5_gav`  v = ui5_gav )
                                 ( n = `finished`  v = finished )
                                 ( n = `ui5_theme`  v = ui5_theme )
@@ -333,9 +335,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD messaging.
 
     result = mo_view.
-    mo_view->_generic( name   = `Messaging`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `items`  v = items )
+    mo_view->_generic( name = `Messaging`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `items`  v = items )
               ) ).
 
   ENDMETHOD.
@@ -344,7 +346,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD multiinput.
 
     result = mo_view.
-    mo_view->_generic( name   = `MultiInput` ns = `z2ui5`
+    mo_view->_generic( name   = `MultiInput`
+                       ns     = `z2ui5`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
                                          ( n = `showClearIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showclearicon ) )
                                          ( n = `showValueHelp` v = z2ui5_cl_util_func=>boolean_abap_2_json( showvaluehelp ) )
@@ -366,7 +369,8 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD multiinput_ext.
 
     result = mo_view.
-    mo_view->_generic( name   = `MultiInputExt` ns = `z2ui5`
+    mo_view->_generic( name   = `MultiInputExt`
+                       ns     = `z2ui5`
                        t_prop = VALUE #( ( n = `MultiInputId` v = multiinputid )
                                          ( n = `change` v = change )
                                          ( n = `addedTokens` v = addedtokens )
@@ -378,9 +382,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD scrolling.
 
     result = mo_view.
-    mo_view->_generic( name   = `Scrolling`
-              ns     = `z2ui5`
-              t_prop = VALUE #(
+    mo_view->_generic( name = `Scrolling`
+              ns            = `z2ui5`
+              t_prop        = VALUE #(
                 ( n = `setUpdate`   v = setupdate )
                 ( n = `items`       v = items )
        ) ).
@@ -391,9 +395,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD spreadsheet_export.
 
     result = mo_view.
-    mo_view->_generic( name   = `ExportSpreadsheet`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `tableId`  v = tableid )
+    mo_view->_generic( name = `ExportSpreadsheet`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `tableId`  v = tableid )
                                 ( n = `text`     v = text )
                                 ( n = `icon`     v = icon )
                                 ( n = `type`     v = type )
@@ -405,9 +409,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD timer.
 
     result = mo_view.
-    mo_view->_generic( name   = `Timer`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `delayMS`  v = delayms )
+    mo_view->_generic( name = `Timer`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
                                 ( n = `checkActive`  v = z2ui5_cl_util_func=>boolean_abap_2_json( checkactive ) )
                                 ( n = `checkRepeat`  v = z2ui5_cl_util_func=>boolean_abap_2_json( checkrepeat ) )
@@ -419,17 +423,18 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
   METHOD title.
 
     result = mo_view.
-    mo_view->_generic( name   = `Title`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `title`  v = title ) ) ).
+    mo_view->_generic( name = `Title`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `title`  v = title ) ) ).
 
   ENDMETHOD.
 
 
   METHOD uitableext.
 
-    result = mo_view->_generic( name   = `UITableExt` ns = `z2ui5`
-                       t_prop = VALUE #( ( n = `tableId` v = tableid )
+    result = mo_view->_generic( name = `UITableExt`
+                                ns   = `z2ui5`
+                       t_prop        = VALUE #( ( n = `tableId` v = tableid )
                         ) ).
 
   ENDMETHOD.

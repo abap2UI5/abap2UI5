@@ -47,8 +47,8 @@ CLASS z2ui5_cl_popup_table IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog(
               afterclose = client->_event( 'BUTTON_CONFIRM' )
-              stretch = abap_true
-              title = 'Table View'
+              stretch    = abap_true
+              title      = 'Table View'
 *              icon = 'sap-icon://edit'
           )->content( ).
 
@@ -92,11 +92,12 @@ CLASS z2ui5_cl_popup_table IMPLEMENTATION.
 
 
   METHOD factory.
+    FIELD-SYMBOLS <tab> TYPE any.
 
     r_result = NEW #( ).
     CREATE DATA r_result->mr_tab LIKE i_tab.
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
-    FIELD-SYMBOLS <tab> TYPE any.
+
     ASSIGN r_result->mr_tab->* TO <tab>.
     <tab> = i_tab.
 

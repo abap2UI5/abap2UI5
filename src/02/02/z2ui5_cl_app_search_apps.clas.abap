@@ -56,21 +56,20 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
       z2ui5_cl_util_func=>db_load_by_handle(
         EXPORTING
-          uname   = sy-uname
-          handle  = 'z2ui5_cl_app_search_apps'
+          uname  = sy-uname
+          handle = 'z2ui5_cl_app_search_apps'
         IMPORTING
-          result  = mt_favs
-      ).
+          result = mt_favs ).
 
-      mt_apps =  VALUE #( FOR row IN z2ui5_cl_util_func=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` )
-        ( name  = row  ) ).
+      mt_apps = VALUE #( FOR row IN z2ui5_cl_util_func=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` )
+        ( name  = row ) ).
       search( ).
       view_display( client ).
       RETURN.
     ENDIF.
 
     IF client->get( )-check_on_navigated = abap_true.
-      view_display( client  ).
+      view_display( client ).
     ENDIF.
 
     CASE client->get( )-event.
@@ -80,17 +79,15 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
         DATA(lt_arg) = client->get( )-t_event_arg.
         DATA(lv_app) = lt_arg[ 1 ].
 
-*        LOOP AT mt_apps REFERENCE INTO DATA(lr_apps) WHERE name = lv_app.
-*          lr_apps->check_fav = abap_true.
-*        ENDLOOP.
+
 
         INSERT VALUE #( name = lv_app ) INTO TABLE mt_favs.
-*        view_display( client ).
+
 
         z2ui5_cl_util_func=>db_save(
-            uname        = sy-uname
-            handle       = 'z2ui5_cl_app_search_apps'
-            data         = mt_favs  ).
+            uname  = sy-uname
+            handle = 'z2ui5_cl_app_search_apps'
+            data   = mt_favs ).
 
         view_action_sheet( lv_app ).
 
@@ -109,9 +106,9 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
   METHOD search.
 
-    DATA lr_app TYPE REF TO ty_app.
 
-    LOOP AT mt_apps REFERENCE INTO lr_app.
+
+    LOOP AT mt_apps REFERENCE INTO DATA(lr_app).
       lr_app->visible = abap_false.
       IF lr_app->name CS 'DEMO' OR lr_app->name CS `Z2UI5_CL_POPUP`.
         CONTINUE.
@@ -141,7 +138,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *          width  = `17.5rem`
 *          id     = `SEARCH`
 *           )->get_parent( ).
-)->tool_page(
+      )->tool_page(
                           )->header( `tnt`
                             )->tool_header(
                             )->title( `abap2UI5 - App Overview`
@@ -149,18 +146,21 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                                   )->link( text = `Visit the abap2UI5 Project`
 *                            )->button( text = `Bak` press = client->_event( 'BACK' )
                               )->get_parent(
-                            )->get_parent( )->sub_header( ns = `tnt`
+                            )->get_parent( )->sub_header( `tnt`
                             )->tool_header( ).
 
-    DATA(pages) =  page->icon_tab_header( selectedkey = client->_bind_edit( mv_selected_key )
+    DATA(pages) = page->icon_tab_header( selectedkey    = client->_bind_edit( mv_selected_key )
 *                                                  select = client->_event( `OnSelectIconTabBar` )
 *                                                  select = client->_event_client( action = 'NAV_TO' t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
                                                  select = client->_event_client( val = client->cs_event-nav_container_to t_arg  = VALUE #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
-                                                 mode = `Inline`
+                                                 mode   = `Inline`
                                  )->items(
-                                   )->icon_tab_filter( key = `page_favs` text = `Favorites` )->get_parent(
-                                   )->icon_tab_filter( key = `page_all` text = `Search...` )->get_parent(
-                                   )->icon_tab_filter( key = `page_online` text = `More on GitHub...`
+                                   )->icon_tab_filter( key  = `page_favs`
+                                                       text = `Favorites` )->get_parent(
+                                   )->icon_tab_filter( key  = `page_all`
+                                                       text = `Search...` )->get_parent(
+                                   )->icon_tab_filter( key  = `page_online`
+                                                       text = `More on GitHub...`
 *                                      )->items(
 *                                         )->icon_tab_filter( key = `page11` text = `User 1` )->get_parent(
 *                                         )->icon_tab_filter( key = `page32` text = `User 2` )->get_parent(
@@ -170,41 +170,43 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *                                )->button( text = `page1` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page1` ) ) )
 *                                )->button( text = `page2` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page2` ) ) )
 *                                )->button( text = `page3` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page3` ) ) )
-                                 )->nav_container( id = `NavCon` initialpage = `page_favs` defaulttransitionname = `flip`
+                                 )->nav_container( id                    = `NavCon`
+                                                   initialpage           = `page_favs`
+                                                   defaulttransitionname = `flip`
                                     )->pages( ).
 
     pages->page(
                            title = `12 Apps`
-            id             = `page_favs`
+            id                   = `page_favs`
                 )->header_content(
                 )->button( text = `Edit`
-)->search_field(
-value  = client->_bind_edit( mv_search_value )
-search = client->_event( 'ON_SEARCH' )
-change = client->_event( 'ON_SEARCH' )
-width  = `17.5rem`
+      )->search_field(
+      value  = client->_bind_edit( mv_search_value )
+      search = client->_event( 'ON_SEARCH' )
+      change = client->_event( 'ON_SEARCH' )
+      width  = `17.5rem`
 *id     = `SEARCH`
-)->get_parent( ).
+      )->get_parent( ).
 
     DATA(page_all) = pages->page(
-      title = `12 Apps on the System`
-             id             = `page_all`
+      title     = `12 Apps on the System`
+             id = `page_all`
                  )->header_content(
-)->search_field(
-value  = client->_bind_edit( mv_search_value )
-search = client->_event( 'ON_SEARCH' )
-change = client->_event( 'ON_SEARCH' )
-width  = `17.5rem`
-id     = `SEARCH`
-)->get_parent( ).
+      )->search_field(
+      value  = client->_bind_edit( mv_search_value )
+      search = client->_event( 'ON_SEARCH' )
+      change = client->_event( 'ON_SEARCH' )
+      width  = `17.5rem`
+      id     = `SEARCH`
+      )->get_parent( ).
 
 
     LOOP AT mt_apps REFERENCE INTO DATA(lr_app).
       DATA(lv_tabix) = sy-tabix.
       page_all->generic_tile(
-        id    = lr_app->name
-        class = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
-        press     = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/header}` ) ( `${$source>/id}` ) ) )
+        id      = lr_app->name
+        class   = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
+        press   = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/header}` ) ( `${$source>/id}` ) ) )
         header  = client->_bind( val = lr_app->name    tab = mt_apps tab_index = lv_tabix )
         visible = client->_bind( val = lr_app->visible tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.
@@ -217,18 +219,20 @@ id     = `SEARCH`
 
     DATA(page_online) = pages->page(
 *            title = `Your app is not listed here? Fell free to send a PR and extend this page`
-                   id             = `page_online`
+                   id = `page_online`
                     )->header_content(
                      )->toolbar_spacer(
-                     )->checkbox( text = `Cloud` selected = client->_bind_edit( ms_favrites-check_cloud_ready )
-                     )->checkbox( text = `On-Premise` selected = client->_bind_edit( ms_favrites-check_premise_ready )
+                     )->checkbox( text     = `Cloud`
+                                  selected = client->_bind_edit( ms_favrites-check_cloud_ready )
+                     )->checkbox( text     = `On-Premise`
+                                  selected = client->_bind_edit( ms_favrites-check_premise_ready )
                      )->button( text = `sort`
-)->search_field(
-value  = client->_bind_edit( mv_search_value )
-search = client->_event( 'ON_SEARCH' )
-change = client->_event( 'ON_SEARCH' )
-width  = `17.5rem`
-)->get_parent(
+      )->search_field(
+      value  = client->_bind_edit( mv_search_value )
+      search = client->_event( 'ON_SEARCH' )
+      change = client->_event( 'ON_SEARCH' )
+      width  = `17.5rem`
+      )->get_parent(
 *           )->sub_header(
 *            )->overflow_toolbar(
 *             )->text( `Your open-source app is not listed here? Feel free to send a PR and extend this page`
@@ -236,7 +240,8 @@ width  = `17.5rem`
 *            )->get_parent( )->get_parent(
             )->content( ).
 
-    page_online->message_strip( type = `Warning` text = `Your open-source app is not listed here? Feel free to send a PR and extend this page` ).
+    page_online->message_strip( type = `Warning`
+                                text = `Your open-source app is not listed here? Feel free to send a PR and extend this page` ).
 
     DATA(lt_repos) = NEW lcl_github( )->get_repositories( ).
 
@@ -245,12 +250,12 @@ width  = `17.5rem`
 
     DATA(item) = page_online->list(
              "   headertext = `Product`
-                nodata = `no conditions defined`
+                nodata         = `no conditions defined`
                items           = client->_bind_local( lt_repos )
                selectionchange = client->_event( 'SELCHANGE' )
                   )->custom_list_item( ).
 
-*    DATA(grid) = item->grid( ).
+
 
     item = item->vbox( ).
 
@@ -261,46 +266,30 @@ width  = `17.5rem`
 *                     key = '{}'
 *                     text = '{}'
 *             )->get_parent(
-    item->text(  ).
+    item->text( ).
     DATA(row) = item->grid( ).
-    row->title( text = `{NAME}` ).
-    row->text( text = `{DESCR}` ).
-    row->text(  ).
-    row->checkbox( text = `Cloud Ready` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+    row->title( `{NAME}` ).
+    row->text( `{DESCR}` ).
+    row->text( ).
+    row->checkbox( text     = `Cloud Ready`
+                   selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
 
     row = item->grid( ).
 *    row = item->hbox( ).
 *    item->text( text = `{DESCR}`
-    row->link( target = `_blank` text = `{AUTHOR_NAME}` href = `{AUTHOR_LINK}` ).
+    row->link( target = `_blank`
+               text   = `{AUTHOR_NAME}`
+               href   = `{AUTHOR_LINK}` ).
 
-    row->link( target = `_blank` text = `{LINK}` href = `{LINK}` ).
-*     row->text(  ).
-    row->checkbox( text = `Installed` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
-    row->checkbox( text = `On-Premise since: 7.50` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
-*    page_online->footer( )->toolbar(
-*        )->text( `Your app is not listed here? Fell free to send a PR and extend this page`
-*        ).
-*     DATA(tab) = page_online->table(
-*       items = client->_bind_local( lt_repos ) ).
-*
-*    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( lt_repos ).
-*
-*    DATA(list) = tab->column_list_item( valign = `Top` ).
-*    DATA(cells) = list->cells( ).
-*
-*    DATA(columns) = tab->columns( ).
-*    LOOP AT lt_comp INTO DATA(ls_comp2).
-*      DATA(col) = columns->column( width = '8rem' )->header( ns = `` ).
-*      col->text( text = ls_comp2-name  ).
-*    ENDLOOP.
-*
-*    LOOP AT lt_comp INTO DATA(ls_comp).
-**      IF ls_comp-name = 'NAME'.
-*        cells->text(  `{` && ls_comp-name && `}` ).
-**      ELSE.
-**        cells->checkbox( `{` && ls_comp-name && `}` ).
-**      ENDIF.
-*    ENDLOOP.
+    row->link( target = `_blank`
+               text   = `{LINK}`
+               href   = `{LINK}` ).
+
+    row->checkbox( text     = `Installed`
+                   selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+    row->checkbox( text     = `On-Premise since: 7.50`
+                   selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+
 
 *     page_online
 
@@ -315,39 +304,53 @@ width  = `17.5rem`
 
     action_sheet_view->_generic_property( VALUE #( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` ) ).
 
-    action_sheet_view->action_sheet( placement = `Botton` showcancelbutton = abap_true title = `Choose Your Action`
-      )->button( text = `Accept`  icon = `sap-icon://accept`    press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text = `Reject`  icon = `sap-icon://decline`   press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text = `Email`   icon = `sap-icon://email`     press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text = `Forward` icon = `sap-icon://forward`   press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text = `Delete`  icon = `sap-icon://delete`    press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text = `Other`                                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-    ).
+    action_sheet_view->action_sheet( placement        = `Botton`
+                                     showcancelbutton = abap_true
+                                     title            = `Choose Your Action`
+      )->button( text  = `Accept`
+                 icon  = `sap-icon://accept`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Reject`
+                 icon  = `sap-icon://decline`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Email`
+                 icon  = `sap-icon://email`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Forward`
+                 icon  = `sap-icon://forward`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Delete`
+                 icon  = `sap-icon://delete`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Other`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})` ).
 
-    client->popover_display( xml = action_sheet_view->stringify( ) by_id = val ).
+    client->popover_display( xml   = action_sheet_view->stringify( )
+                             by_id = val ).
 
   ENDMETHOD.
 
   METHOD view_nest_display.
 
-    DATA lr_app TYPE REF TO ty_app.
-    DATA lv_tabix TYPE syst-tabix.
+
+
 
     DATA(lo_view_nested) = z2ui5_cl_xml_view=>factory( ).
 
-    LOOP AT mt_favs REFERENCE INTO lr_app.
+    LOOP AT mt_favs REFERENCE INTO DATA(lr_app).
       " WHERE check_fav = abap_true.
-      lv_tabix = sy-tabix.
+      DATA(lv_tabix) = sy-tabix.
       lo_view_nested->generic_tile(
 *      page_favs->generic_tile(
-        class = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
-        press     = client->_event( val = `ON_PRESS` t_arg = VALUE #( ( `${$source>/header}` ) ) )
-        header  = client->_bind( val = lr_app->name    tab = mt_favs tab_index = lv_tabix )
-*        visible = client->_bind( val = lr_app->check_fav tab = mt_apps tab_index = lv_tabix )
-        ).
+        class  = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
+        press  = client->_event( val = `ON_PRESS` t_arg = VALUE #( ( `${$source>/header}` ) ) )
+        header = client->_bind( val = lr_app->name    tab = mt_favs tab_index = lv_tabix )
+*        visible = client->_bind( val = lr_app->check_fav tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.
 
-    client->nest_view_display( val = lo_view_nested->stringify( ) id = `page_favs`  method_insert = 'addContent'  ).
+    client->nest_view_display( val           = lo_view_nested->stringify( )
+                               id            = `page_favs`
+                               method_insert = 'addContent' ).
 
   ENDMETHOD.
 

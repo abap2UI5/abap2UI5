@@ -28,10 +28,10 @@ CLASS z2ui5_cl_popup_itab_json_dl DEFINITION
 
     DATA title TYPE string.
     DATA icon TYPE string.
-*    DATA question_text TYPE string.
+
     DATA button_text_confirm TYPE string.
     DATA button_text_cancel TYPE string.
-*    DATA check_initialized TYPE abap_bool.
+
     DATA check_result_confirmed TYPE abap_bool.
 
   PRIVATE SECTION.
@@ -46,10 +46,10 @@ CLASS Z2UI5_CL_POPUP_ITAB_JSON_DL IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->mr_itab = z2ui5_cl_util_func=>conv_copy_ref_data( itab ).
-*    r_result->z2ui5_if_app~id = z2ui5_cl_util_func=>func_get_uuid_22( ).
+
     r_result->title = i_title.
     r_result->icon = i_icon.
-*    r_result->question_text = i_question_text.
+
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
 
@@ -64,6 +64,7 @@ CLASS Z2UI5_CL_POPUP_ITAB_JSON_DL IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
+    DATA app TYPE REF TO object.
 
     me->client = client.
 
@@ -75,12 +76,12 @@ CLASS Z2UI5_CL_POPUP_ITAB_JSON_DL IMPLEMENTATION.
           DATA(lv_text) = `<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="` &&
                            lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
 
-          DATA(lx) = NEW z2ui5_cx_util_error(  val = lv_text ).
+          DATA(lx) = NEW z2ui5_cx_util_error( val = lv_text ).
           client->nav_app_leave( z2ui5_cl_popup_error=>factory( lx ) ).
 
         ELSE.
 
-          DATA app TYPE REF TO object.
+
           CALL METHOD ('Z2UI5_DBT_CL_APP_03')=>('FACTORY_POPUP_BY_ITAB')
             EXPORTING
               itab   = mr_itab

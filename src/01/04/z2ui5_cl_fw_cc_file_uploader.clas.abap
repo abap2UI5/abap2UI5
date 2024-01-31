@@ -1,13 +1,13 @@
-class Z2UI5_CL_FW_CC_FILE_UPLOADER definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_fw_cc_file_uploader DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  class-methods GET_JS
-    returning
-      value(R_JS) type STRING .
+    CLASS-METHODS get_js
+      RETURNING
+      VALUE(r_js) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -20,7 +20,7 @@ CLASS Z2UI5_CL_FW_CC_FILE_UPLOADER IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  =    ` sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
+    r_js  = ` sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `            "sap/m/Button",` && |\n| &&
                      `            "sap/ui/unified/FileUploader"` && |\n| &&
