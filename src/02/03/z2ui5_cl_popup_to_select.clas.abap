@@ -61,7 +61,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.
     ASSIGN mr_tab_popup->* TO <tab_out>.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client ).
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
     DATA(tab) = popup->table_select_dialog(
               items   = `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
               cancel  = client->_event( 'CANCEL' )

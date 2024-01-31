@@ -50,7 +50,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog(
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
               afterclose = client->_event( 'BUTTON_CONFIRM' )
               stretch    = abap_true
               title      = 'Layout View'

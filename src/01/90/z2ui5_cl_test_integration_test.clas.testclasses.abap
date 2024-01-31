@@ -19,8 +19,6 @@ CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
     METHODS test_navigate      FOR TESTING RAISING cx_static_check.
     METHODS test_startup_path  FOR TESTING RAISING cx_static_check.
 
-    METHODS test_app_change_value FOR TESTING RAISING cx_static_check.
-    METHODS test_app_event        FOR TESTING RAISING cx_static_check.
     METHODS test_app_dump         FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
@@ -254,27 +252,10 @@ CLASS ltcl_integration_test IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD test_app_change_value.
-
-
-
-
-
-
-  ENDMETHOD.
-
-  METHOD test_app_event.
-
-
-
-
-
-  ENDMETHOD.
-
   METHOD test_app_dump.
+
     DATA lo_data TYPE REF TO data.
     FIELD-SYMBOLS <val> TYPE any.
-    DATA lv_text TYPE string.
 
     z2ui5_cl_test_integration_test=>sv_state = `ERROR`.
     DATA(lv_response) = z2ui5_cl_fw_http_handler=>http_post( `{ "OLOCATION" : { "SEARCH" : "app_start=z2ui5_cl_test_integration_test"}}` ).
@@ -286,13 +267,9 @@ CLASS ltcl_integration_test IMPLEMENTATION.
       CHANGING
         data  = lo_data ).
 
-
-
     UNASSIGN <val>.
     ASSIGN (`LO_DATA->PARAMS->S_VIEW->XML->*`) TO <val>.
     cl_abap_unit_assert=>assert_not_initial( <val> ).
-
-
 
   ENDMETHOD.
 

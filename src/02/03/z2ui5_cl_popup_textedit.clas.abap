@@ -48,7 +48,7 @@ CLASS z2ui5_cl_popup_textedit IMPLEMENTATION.
 
   METHOD display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( client )->dialog(
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
               afterclose = client->_event( 'BUTTON_TEXTAREA_CANCEL' )
               stretch    = mv_stretch_active
               title      = 'Title'
