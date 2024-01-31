@@ -48,6 +48,8 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
     CLASS-METHODS set_js_config
       IMPORTING
         !is_config TYPE ty_c OPTIONAL
+        !auto_resize TYPE abap_bool DEFAULT abap_false
+      PREFERRED  PARAMETER is_config
       RETURNING
         VALUE(imagemapster_config) TYPE string .
 
@@ -3322,7 +3324,12 @@ ENDMETHOD.
 *`        ],` &&
 *`        mapKey: "state"` &&
 *`    }
-`   );` &&
+*`   );` &&
+`   );`.
+
+   IF auto_resize = abap_true.
+
+imagemapster_config = imagemapster_config &&
 `` &&
 `    function resize(maxWidth, maxHeight) {` &&
 `        var image = $("img"),` &&
@@ -3360,6 +3367,7 @@ ENDMETHOD.
 `    }` &&
 `` &&
 `    $(window).bind("resize", onWindowResize);`.
+    ENDIF.
 
   ENDMETHOD.
 ENDCLASS.
