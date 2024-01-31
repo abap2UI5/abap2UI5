@@ -189,7 +189,9 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
               IF sy-subrc <> 0.
                 CONTINUE.
               ENDIF.
-              lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <deref_attri> ).
+*              IF <deref_attri> IS NOT INITIAL.
+                lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <deref_attri> ).
+*              ENDIF.
               CLEAR <deref_attri>.
               CLEAR <attri>.
             ENDLOOP.
@@ -203,7 +205,7 @@ CLASS z2ui5_cl_fw_db IMPLEMENTATION.
 
             RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
-*                val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attribtues of your class`.
+*               val = x->get_text( ) && `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attribtues of your class`.
                 val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
 
         ENDTRY.

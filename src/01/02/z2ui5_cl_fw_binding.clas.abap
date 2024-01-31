@@ -192,7 +192,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     DATA(lv_id) = z2ui5_cl_util_func=>uuid_get_c22( ).
 
     INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any = mr_data compress = me->mv_compress )
+                    data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any = mr_data compress_mode = me->mv_compress )
                     bind_type      = cs_bind_type-one_time )
            INTO TABLE mt_attri.
     result = |/{ lv_id }|.
