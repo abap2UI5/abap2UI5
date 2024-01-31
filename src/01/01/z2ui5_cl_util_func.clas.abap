@@ -1741,7 +1741,8 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
         result-medium = ddic-scrtext_m.
         result-long   = ddic-scrtext_l.
 
-      CATCH cx_root. " ABAP Cloud
+      CATCH cx_root. 
+        " ABAP Cloud
 
         CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATA_ELEMENT')
           EXPORTING
