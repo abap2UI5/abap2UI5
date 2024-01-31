@@ -293,7 +293,7 @@ CLASS z2ui5_cl_ui5_m IMPLEMENTATION.
                        ) )->_ns_m( ).
   ENDMETHOD.
 
-  
+
   METHOD toolbarspacer.
     result = me.
     _add( n  = `ToolbarSpacer`

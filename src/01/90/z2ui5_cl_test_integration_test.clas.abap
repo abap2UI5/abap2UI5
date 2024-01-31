@@ -49,7 +49,7 @@ CLASS Z2UI5_CL_TEST_INTEGRATION_TEST IMPLEMENTATION.
         DATA(lv_test) = 1 / 0 ##NEEDED.
 
       WHEN 'TEST_ONE_WAY'.
-        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
+        client->view_display( z2ui5_cl_xml_view=>factory( )->shell(
             )->page( title          = 'abap2UI5 - First Example'
                      navbuttonpress = client->_event( 'BACK' )
                      shownavbutton  = abap_true
@@ -68,7 +68,7 @@ CLASS Z2UI5_CL_TEST_INTEGRATION_TEST IMPLEMENTATION.
 
       WHEN 'TEST_POPUP'.
 
-        client->popup_display( z2ui5_cl_xml_view=>factory( client
+        client->popup_display( z2ui5_cl_xml_view=>factory(
             )->dialog( title = 'abap2UI5 - First Example'
                 )->simple_form( title    = 'Form Title'
                                 editable = abap_true
@@ -86,7 +86,7 @@ CLASS Z2UI5_CL_TEST_INTEGRATION_TEST IMPLEMENTATION.
 
 
       WHEN OTHERS.
-        client->view_display( z2ui5_cl_xml_view=>factory( client )->shell(
+        client->view_display( z2ui5_cl_xml_view=>factory( )->shell(
             )->page( title          = 'abap2UI5 - First Example'
                      navbuttonpress = client->_event( 'BACK' )
                      shownavbutton  = abap_true

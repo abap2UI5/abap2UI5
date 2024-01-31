@@ -246,8 +246,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     DATA(lt_repos) = NEW lcl_github( )->get_repositories( ).
 
 
-
-
     DATA(item) = page_online->list(
              "   headertext = `Product`
                 nodata         = `no conditions defined`
@@ -332,9 +330,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
   METHOD view_nest_display.
 
-
-
-
     DATA(lo_view_nested) = z2ui5_cl_xml_view=>factory( ).
 
     LOOP AT mt_favs REFERENCE INTO DATA(lr_app).
@@ -344,7 +339,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *      page_favs->generic_tile(
         class  = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
         press  = client->_event( val = `ON_PRESS` t_arg = VALUE #( ( `${$source>/header}` ) ) )
-        header = client->_bind( val = lr_app->name    tab = mt_favs tab_index = lv_tabix )
+        header = client->_bind( val = lr_app->name    tab = mt_favs tab_index = lv_tabix ) ).
 *        visible = client->_bind( val = lr_app->check_fav tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.
 
