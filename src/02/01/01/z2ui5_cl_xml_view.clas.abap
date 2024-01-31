@@ -497,6 +497,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !horizontalscrolling TYPE clike OPTIONAL
         !verticalscrolling   TYPE clike OPTIONAL
         !afterclose          TYPE clike OPTIONAL
+        !beforeopen          TYPE clike OPTIONAL
+        !beforeclose         TYPE clike OPTIONAL
+        !afteropen           TYPE clike OPTIONAL
+        !draggable           TYPE clike OPTIONAL
+        !closeonnavigation   TYPE clike OPTIONAL
+        !escapehandler       TYPE clike OPTIONAL
+        !type                TYPE clike OPTIONAL
+        !titlealignment      TYPE clike OPTIONAL
+        !state               TYPE clike OPTIONAL
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
@@ -2073,6 +2082,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !tabdensitymode      TYPE clike OPTIONAL
         !tabsoverflowmode    TYPE clike OPTIONAL
         !visible             TYPE clike OPTIONAL
+        !id                  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
     METHODS nav_container
@@ -4115,14 +4125,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `title`  v = title )
                                          ( n = `icon`  v = icon )
                                          ( n = `stretch`  v = stretch )
+                                         ( n = `state`  v = state )
+                                         ( n = `titleAlignment`  v = titleAlignment )
+                                         ( n = `type`  v = type )
                                          ( n = `showHeader`  v = showheader )
                                          ( n = `contentWidth`  v = contentwidth )
                                          ( n = `contentHeight`  v = contentheight )
+                                         ( n = `escapeHandler`  v = escapeHandler )
+                                         ( n = `closeOnNavigation`  v = z2ui5_cl_util_func=>boolean_abap_2_json( closeonnavigation ) )
+                                         ( n = `draggable`  v = z2ui5_cl_util_func=>boolean_abap_2_json( draggable ) )
                                          ( n = `resizable`  v = z2ui5_cl_util_func=>boolean_abap_2_json( resizable ) )
                                          ( n = `horizontalScrolling`  v = z2ui5_cl_util_func=>boolean_abap_2_json( horizontalscrolling ) )
                                          ( n = `verticalScrolling`  v = z2ui5_cl_util_func=>boolean_abap_2_json( verticalscrolling ) )
+                                         ( n = `afterOpen`  v = afterOpen )
+                                         ( n = `beforeClose`  v = beforeClose )
+                                         ( n = `beforeOpen`  v = beforeOpen )
                                          ( n = `afterClose` v = afterclose ) ) ).
-
   ENDMETHOD.
 
 
@@ -4979,6 +4997,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          (  n = `maxNestingLevel`          v = maxnestinglevel )
                                          (  n = `tabDensityMode`          v = tabdensitymode )
                                          (  n = `tabsOverflowMode`          v = tabsoverflowmode )
+                                         (  n = `id`          v = id )
                                          (  n = `visible`          v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                                          (  n = `mode`            v = mode ) ) ).
 
