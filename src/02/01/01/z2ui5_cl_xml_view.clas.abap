@@ -8,24 +8,21 @@ CLASS z2ui5_cl_xml_view DEFINITION
     CLASS-METHODS factory
       IMPORTING
         !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-        !client       TYPE REF TO z2ui5_if_client OPTIONAL
-          PREFERRED PARAMETER client
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS factory_plain
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     CLASS-METHODS factory_popup
       IMPORTING
         !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
-        !client       TYPE REF TO z2ui5_if_client OPTIONAL
-          PREFERRED PARAMETER client
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS constructor .
+    METHODS constructor.
+
     METHODS horizontal_layout
       IMPORTING
         !class         TYPE clike OPTIONAL
@@ -33,7 +30,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !allowwrapping TYPE clike OPTIONAL
         !id            TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS icon
       IMPORTING
         !src                   TYPE clike OPTIONAL
@@ -3384,8 +3382,6 @@ CLASS z2ui5_cl_xml_view DEFINITION
     DATA mo_parent TYPE REF TO z2ui5_cl_xml_view.
     DATA mt_child  TYPE STANDARD TABLE OF REF TO z2ui5_cl_xml_view WITH EMPTY KEY.
 
-    DATA mi_client TYPE REF TO z2ui5_if_client.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -4349,7 +4345,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       result->mt_prop = t_ns.
     ENDIF.
 
-    result->mi_client = client.
     result->mt_prop  = VALUE #( BASE result->mt_prop
                                 (  n = 'displayBlock'   v = 'true' )
                                 (  n = 'height'         v = '100%' ) ).
@@ -4384,7 +4379,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
       result->mt_prop = t_ns.
     ENDIF.
 
-    result->mi_client = client.
     result->mv_name   = `FragmentDefinition`.
     result->mv_ns     = `core`.
     result->mo_root   = result.

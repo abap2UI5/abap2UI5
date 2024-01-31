@@ -19,12 +19,12 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
     DATA mv_search_value TYPE string.
     DATA mv_selected_key TYPE string.
 
-    data:
-      begin of ms_favrites,
-        check_cloud_ready type abap_bool,
-        check_premise_ready type abap_bool,
-        search_field type string,
-     end of ms_favrites.
+    DATA:
+      BEGIN OF ms_favrites,
+        check_cloud_ready   TYPE abap_bool,
+        check_premise_ready TYPE abap_bool,
+        search_field        TYPE string,
+      END OF ms_favrites.
 
   PROTECTED SECTION.
     METHODS search.
@@ -173,11 +173,11 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                                  )->nav_container( id = `NavCon` initialpage = `page_favs` defaulttransitionname = `flip`
                                     )->pages( ).
 
-     pages->page(
-                            title = `12 Apps`
-             id             = `page_favs`
-                 )->header_content(
-                 )->button( text = `Edit`
+    pages->page(
+                           title = `12 Apps`
+            id             = `page_favs`
+                )->header_content(
+                )->button( text = `Edit`
 )->search_field(
 value  = client->_bind_edit( mv_search_value )
 search = client->_event( 'ON_SEARCH' )
@@ -261,22 +261,22 @@ width  = `17.5rem`
 *                     key = '{}'
 *                     text = '{}'
 *             )->get_parent(
- item->text(  ).
- data(row) = item->grid( ).
+    item->text(  ).
+    DATA(row) = item->grid( ).
     row->title( text = `{NAME}` ).
-     row->text( text = `{DESCR}` ).
-     row->text(  ).
-     row->checkbox( text = `Cloud Ready` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+    row->text( text = `{DESCR}` ).
+    row->text(  ).
+    row->checkbox( text = `Cloud Ready` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
 
-   row = item->grid( ).
+    row = item->grid( ).
 *    row = item->hbox( ).
 *    item->text( text = `{DESCR}`
- row->link( target = `_blank` text = `{AUTHOR_NAME}` href = `{AUTHOR_LINK}` ).
+    row->link( target = `_blank` text = `{AUTHOR_NAME}` href = `{AUTHOR_LINK}` ).
 
     row->link( target = `_blank` text = `{LINK}` href = `{LINK}` ).
 *     row->text(  ).
-      row->checkbox( text = `Installed` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
-      row->checkbox( text = `On-Premise since: 7.50` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+    row->checkbox( text = `Installed` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+    row->checkbox( text = `On-Premise since: 7.50` selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
 *    page_online->footer( )->toolbar(
 *        )->text( `Your app is not listed here? Fell free to send a PR and extend this page`
 *        ).

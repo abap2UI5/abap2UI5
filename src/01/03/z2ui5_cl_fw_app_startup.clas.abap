@@ -93,8 +93,8 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
         emptyspanl = `4`
         emptyspanm = `0`
         emptyspans = `0`
-        columnsxl = `2`
-        columnsl = `2`
+        columnsxl = `1`
+        columnsl = `1`
         columnsm = `1`
         singlecontainerfullsize = abap_false
     )->content( `form` ).
@@ -131,6 +131,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     simple_form2->button( press = client->_event( ms_home-btn_event_id )
                      text  = ms_home-btn_text
                      icon  = ms_home-btn_icon
+                     width = `70%`
                      ).
     simple_form2->label( `Step 5`
     )->link( text    = `Link to the Application`
@@ -143,15 +144,15 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     simple_form2->label( `abap2UI5 Version` ).
     simple_form2->text( z2ui5_cl_fw_http_handler=>c_abap_version ).
 
-*    DATA(lv_url_search2) = z2ui5_cl_util_func=>app_get_url(
-*                    client    = client
-*                    classname = 'z2ui5_cl_app_search_apps' ).
-
     DATA(lv_url_samples2) = z2ui5_cl_util_func=>app_get_url(
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
+
+*    DATA(lv_url_search2) = z2ui5_cl_util_func=>app_get_url(
+*                    client    = client
+*                    classname = 'z2ui5_cl_app_search_apps' ).
 *    simple_form2->label( `Install & Run Apps` ).
 *    simple_form2->button( text   = `Apps on your system` press = client->_event_client( val   = client->cs_event-open_new_tab
 *                                                         t_arg = VALUE #( ( `$` && client->_bind_local( lv_url_search2 ) ) ) )
@@ -161,6 +162,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     simple_form2->button(
       text    = `Check out the samples` press = client->_event_client( val   = client->cs_event-open_new_tab
                                                          t_arg = VALUE #( ( `$` && client->_bind_local( lv_url_samples2 ) ) ) )
+          width = `70%`
          ).
 
     simple_form2->toolbar( )->title( `` ).
