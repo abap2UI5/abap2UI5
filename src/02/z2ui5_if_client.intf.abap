@@ -24,9 +24,17 @@ INTERFACE z2ui5_if_client
       main    TYPE string VALUE `MAIN`,
       nested  TYPE string VALUE `NEST`,
       nested2 TYPE string VALUE `NEST2`,
-*      popover TYPE string VALUE `POPOVER`,
-*      popup   TYPE string VALUE `POPUP`,
     END OF cs_view.
+
+  CONSTANTS:
+    BEGIN OF cs_pretty_mode,
+      none          TYPE char1  VALUE ``,
+      low_case      TYPE char1  VALUE `L`,
+      camel_case    TYPE char1  VALUE `X`,
+      extended      TYPE char1  VALUE `Y`,
+      user          TYPE char1  VALUE `U`,
+      user_low_case TYPE char1  VALUE `C`,
+    END OF  cs_pretty_mode .
 
   CONSTANTS:
     BEGIN OF cs_compress_mode,
@@ -170,8 +178,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
-      pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE clike     DEFAULT cs_compress_mode-standard
+      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
+      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
       tab           TYPE STANDARD TABLE  OPTIONAL
       tab_index     TYPE i          OPTIONAL
       struc         TYPE data       OPTIONAL
@@ -183,8 +191,8 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool  DEFAULT abap_false
       view          TYPE string     DEFAULT cs_view-main
-      pretty_name   TYPE clike      DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE clike      DEFAULT cs_compress_mode-standard
+      pretty_mode   TYPE clike      DEFAULT cs_pretty_mode-none
+      compress_mode TYPE clike      DEFAULT cs_compress_mode-standard
       tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
       struc         TYPE data       OPTIONAL
@@ -195,8 +203,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
-      pretty_name   TYPE clike     DEFAULT /ui2/cl_json=>pretty_mode-none
-      compress      TYPE clike     DEFAULT cs_compress_mode-standard
+      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
+      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
     RETURNING
       VALUE(result) TYPE string.
 

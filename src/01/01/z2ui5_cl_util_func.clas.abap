@@ -151,11 +151,11 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS trans_json_by_any
       IMPORTING
-        !any          TYPE any
-        !pretty_name  TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
-        !compress     TYPE clike DEFAULT abap_true
+        !any           TYPE any
+        !pretty_mode   TYPE clike DEFAULT z2ui5_if_client=>cs_pretty_mode-none
+        !compress_mode TYPE clike DEFAULT z2ui5_if_client=>cs_compress_mode-standard
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result)  TYPE string.
 
     CLASS-METHODS trans_xml_2_any
       IMPORTING
@@ -400,7 +400,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_func IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD app_get_url.
@@ -933,6 +933,16 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD rtti_check_ref_data.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_data_ref( val ).
+        result = abap_true.
+      CATCH cx_root.
+    ENDTRY.
+  ENDMETHOD.
+
+
   METHOD rtti_check_type_kind_dref.
 
     DATA(lv_type_kind) = cl_abap_datadescr=>get_data_type_kind( val ).
@@ -1024,14 +1034,6 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD rtti_check_ref_data.
-
-    TRY.
-        cl_abap_typedescr=>describe_by_data_ref( val ).
-        result = abap_true.
-      CATCH cx_root.
-    ENDTRY.
-  ENDMETHOD.
 
   METHOD rtti_get_type_name.
 
@@ -1230,27 +1232,27 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD trans_json_by_any.
 
-    CASE compress.
+    CASE compress_mode.
 
       WHEN z2ui5_if_client=>cs_compress_mode-full.
 
         result = /ui2/cl_json=>serialize(
           data             = any
           compress         = abap_true
-          pretty_name      = pretty_name ).
+          pretty_name      = pretty_mode ).
 
       WHEN z2ui5_if_client=>cs_compress_mode-none.
 
         result = /ui2/cl_json=>serialize(
          data             = any
          compress         = abap_false
-         pretty_name      = pretty_name ).
+         pretty_name      = pretty_mode ).
 
       WHEN OTHERS.
 
         DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
         compress    = abap_true
-        pretty_name = pretty_name ).
+        pretty_name = pretty_mode ).
 
         result = lo_json->serialize_int( any ).
 
