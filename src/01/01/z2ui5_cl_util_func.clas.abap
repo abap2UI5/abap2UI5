@@ -151,11 +151,11 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS trans_json_by_any
       IMPORTING
-        !any          TYPE any
-        !pretty_name  TYPE clike DEFAULT /ui2/cl_json=>pretty_mode-none
-        !compress     TYPE clike DEFAULT abap_true
+        !any           TYPE any
+        !pretty_mode   TYPE clike DEFAULT z2ui5_if_client=>cs_pretty_mode-none
+        !compress_mode TYPE clike DEFAULT z2ui5_if_client=>cs_compress_mode-standard
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result)  TYPE string.
 
     CLASS-METHODS trans_xml_2_any
       IMPORTING
@@ -274,6 +274,16 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS rtti_check_lang_version_cloud
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS rtti_check_class_exists
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
     CLASS-METHODS rtti_check_type_kind_dref
       IMPORTING
         !val          TYPE any
@@ -291,6 +301,12 @@ CLASS z2ui5_cl_util_func DEFINITION
         !val          TYPE any
       RETURNING
         VALUE(result) TYPE string.
+
+    CLASS-METHODS rtti_check_ref_data
+      IMPORTING
+        !val          TYPE any
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS boolean_check_by_name
       IMPORTING
@@ -364,7 +380,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS conv_copy_ref_data
       IMPORTING
-        from          TYPE REF TO data
+        from          TYPE any
       RETURNING
         VALUE(result) TYPE REF TO data.
 
@@ -384,111 +400,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_func IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
-
-  METHOD itab_get_itab_by_csv.
-
-    SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
-    SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
-
-    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
-    LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
-
-      DATA(lv_name) =  c_trim_upper( lr_col->* ).
-      REPLACE ` ` IN lv_name WITH `_`.
-
-      INSERT VALUE #( name = lv_name type = cl_abap_elemdescr=>get_c( 40 ) ) INTO TABLE lt_comp.
-    ENDLOOP.
-
-    DATA(struc) = cl_abap_structdescr=>get( lt_comp ).
-    DATA(o_table_desc) = cl_abap_tabledescr=>create(
-          p_line_type  = CAST #( struc )
-          p_table_kind = cl_abap_tabledescr=>tablekind_std
-          p_unique     = abap_false ).
-
-    CREATE DATA result TYPE HANDLE o_table_desc.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    ASSIGN result->* TO <tab>.
-
-    DELETE lt_rows WHERE table_line IS INITIAL.
-
-    LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
-
-      SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
-      DATA lr_row TYPE REF TO data.
-      CREATE DATA lr_row TYPE HANDLE struc.
-
-      LOOP AT lt_cols REFERENCE INTO lr_col.
-        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
-        ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
-        <field> = lr_col->*.
-      ENDLOOP.
-
-      INSERT <row> INTO TABLE <tab>.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-
-  METHOD itab_get_csv_by_itab.
-
-    FIELD-SYMBOLS <tab> TYPE table.
-    ASSIGN val TO <tab>.
-
-    DATA lr_row TYPE REF TO data.
-
-    DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
-
-    DATA(struc) = CAST cl_abap_structdescr( tab->get_table_line_type( ) ).
-
-    LOOP AT struc->get_components( ) REFERENCE INTO DATA(lr_comp).
-      result = result && lr_comp->name && ';'.
-    ENDLOOP.
-
-    result = result && cl_abap_char_utilities=>cr_lf.
-
-    LOOP AT <tab> REFERENCE INTO lr_row.
-
-      DATA(lv_index) = 1.
-      DO.
-        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
-        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
-        IF sy-subrc <> 0.
-          EXIT.
-        ENDIF.
-        lv_index = lv_index + 1.
-        result = result && <field> && ';'.
-      ENDDO.
-      result = result && cl_abap_char_utilities=>cr_lf.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD source_get_file_types.
-
-    DATA(lv_types) = `abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, ` &&
-`dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja` &&
-`vascri` &&
-`pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni` &&
-`x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,` &&
-` sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,` &&
-` csp, cssound_score, cssound_orchestra, cssound_document`.
-    SPLIT lv_types AT ',' INTO TABLE result.
-
-  ENDMETHOD.
-
-  METHOD source_method_to_file.
-
-    LOOP AT it_source INTO DATA(lv_source).
-      TRY.
-          result = result && lv_source+1 && cl_abap_char_utilities=>newline.
-        CATCH cx_root.
-      ENDTRY.
-    ENDLOOP.
-
-  ENDMETHOD.
 
   METHOD app_get_url.
 
@@ -561,53 +474,15 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     FIELD-SYMBOLS <from> TYPE data.
     FIELD-SYMBOLS <result> TYPE data.
 
-    ASSIGN from->* TO <from>.
+    IF rtti_check_ref_data( from ).
+      ASSIGN from->* TO <from>.
+    ELSE.
+      ASSIGN from TO <from>.
+    ENDIF.
     CREATE DATA result LIKE <from>.
     ASSIGN result->* TO <result>.
 
     <result> = <from>.
-
-  ENDMETHOD.
-
-
-  METHOD c_replace_assign_struc.
-
-    rv_attri  = iv_attri.
-    DATA(lv_length) = strlen( rv_attri ) - 2.
-    DATA(lv_attri_end) = rv_attri+lv_length.
-
-    IF lv_attri_end = `>*`.
-      lv_attri_end = `>`.
-      lv_length = lv_length.
-    ELSE.
-      lv_attri_end = `-`.
-      lv_length = lv_length + 2.
-    ENDIF.
-    rv_attri = rv_attri(lv_length) && lv_attri_end.
-
-  ENDMETHOD.
-
-
-  METHOD c_trim.
-
-    result = shift_left( shift_right( CONV string( val ) ) ).
-    result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
-    result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
-    result = shift_left( shift_right( result ) ).
-
-  ENDMETHOD.
-
-
-  METHOD c_trim_lower.
-
-    result = to_lower( c_trim( CONV string( val ) ) ).
-
-  ENDMETHOD.
-
-
-  METHOD c_trim_upper.
-
-    result = to_upper( c_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
 
@@ -660,68 +535,187 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD user_get_tech.
-    result = sy-uname.
-  ENDMETHOD.
+  METHOD conv_get_string_by_xstring.
 
-
-  METHOD uuid_get_c22.
+    DATA conv TYPE REF TO object.
 
     TRY.
-        DATA uuid TYPE c LENGTH 22.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
+          RECEIVING
+            instance = conv.
 
-        TRY.
-            CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c22
-              RECEIVING
-                uuid = uuid.
+        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_illegal_class.
 
-          CATCH cx_sy_dyn_call_illegal_class.
+        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
+        CALL METHOD (conv_in_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
 
-            DATA(lv_fm) = `GUID_CREATE`.
-            CALL FUNCTION lv_fm
-              IMPORTING
-                ev_guid_22 = uuid.
-
-        ENDTRY.
-
-        result = uuid.
-
-      CATCH cx_root.
-        ASSERT 1 = 0.
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            input = val
+          IMPORTING
+            data  = result.
     ENDTRY.
-
-    result = replace( val = result sub = `}` with = `0` occ = 0 ).
-    result = replace( val = result sub = `{` with = `0` occ = 0 ).
-    result = replace( val = result sub = `"` with = `0` occ = 0 ).
-    result = replace( val = result sub = `'` with = `0` occ = 0 ).
 
   ENDMETHOD.
 
 
-  METHOD uuid_get_c32.
+  METHOD conv_get_xstring_by_string.
+
+    DATA conv TYPE REF TO object.
 
     TRY.
-        DATA uuid TYPE c LENGTH 32.
+        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
+          RECEIVING
+            instance = conv.
 
-        TRY.
-            CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c32
-              RECEIVING
-                uuid = uuid.
+        CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
+          EXPORTING
+            source = val
+          RECEIVING
+            result = result.
+      CATCH cx_sy_dyn_call_illegal_class.
 
-          CATCH cx_sy_dyn_call_illegal_class.
+        DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
+        CALL METHOD (conv_out_class)=>create
+          EXPORTING
+            encoding = 'UTF-8'
+          RECEIVING
+            conv     = conv.
 
-            DATA(lv_fm) = `GUID_CREATE`.
-            CALL FUNCTION lv_fm
-              IMPORTING
-                ev_guid_32 = uuid.
-
-        ENDTRY.
-
-        result = uuid.
-
-      CATCH cx_root.
-        ASSERT 1 = 0.
+        CALL METHOD conv->('CONVERT')
+          EXPORTING
+            data   = val
+          IMPORTING
+            buffer = result.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD c_replace_assign_struc.
+
+    rv_attri  = iv_attri.
+    DATA(lv_length) = strlen( rv_attri ) - 2.
+    DATA(lv_attri_end) = rv_attri+lv_length.
+
+    IF lv_attri_end = `>*`.
+      lv_attri_end = `>`.
+      lv_length = lv_length.
+    ELSE.
+      lv_attri_end = `-`.
+      lv_length = lv_length + 2.
+    ENDIF.
+    rv_attri = rv_attri(lv_length) && lv_attri_end.
+
+  ENDMETHOD.
+
+
+  METHOD c_trim.
+
+    result = shift_left( shift_right( CONV string( val ) ) ).
+    result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( shift_right( result ) ).
+
+  ENDMETHOD.
+
+
+  METHOD c_trim_lower.
+
+    result = to_lower( c_trim( CONV string( val ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD c_trim_upper.
+
+    result = to_upper( c_trim( CONV string( val ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD db_load_by_handle.
+
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
+
+    SELECT data
+    FROM z2ui5_t_fw_02
+       WHERE
+        uname = @uname
+        AND handle = @handle
+        AND handle2 = @handle2
+        AND handle3 = @handle3
+     INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+
+    DATA(ls_db) = lt_db[ 1 ].
+
+    trans_xml_2_any(
+      EXPORTING
+        xml = ls_db-data
+      IMPORTING
+        any = result
+    ).
+
+  ENDMETHOD.
+
+
+  METHOD db_load_by_id.
+
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
+
+    SELECT data
+    FROM z2ui5_t_fw_02
+    WHERE id = @id
+    INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+
+    DATA(ls_db) = lt_db[ 1 ].
+
+    trans_xml_2_any(
+      EXPORTING
+        xml = ls_db-data
+      IMPORTING
+        any = result
+    ).
+
+  ENDMETHOD.
+
+
+  METHOD db_save.
+
+    DATA(ls_db) = VALUE z2ui5_t_fw_02(
+        id      = uuid_get_c32( )
+        uname   = uname
+        handle  = handle
+        handle2 = handle2
+        handle3 = handle3
+        data    = trans_xml_by_any( data )
+    ).
+
+    MODIFY z2ui5_t_fw_02 FROM @ls_db.
+
+    IF check_commit = abap_true.
+      COMMIT WORK AND WAIT.
+    ENDIF.
+
+    result = ls_db-id.
+
+  ENDMETHOD.
+
+
+  METHOD filter_get_multi_by_data.
+
+    LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
+      INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -775,85 +769,6 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD sql_get_by_string.
-
-    DATA(lv_sql) = CONV string( val ).
-    REPLACE ALL OCCURRENCES OF ` ` IN lv_sql  WITH ``.
-    lv_sql = to_upper( lv_sql ).
-    SPLIT lv_sql AT 'SELECTFROM' INTO DATA(lv_dummy) DATA(lv_tab).
-    SPLIT lv_tab AT `FIELDS` INTO lv_tab lv_dummy.
-
-    result-table = lv_tab.
-
-  ENDMETHOD.
-
-
-  METHOD filter_get_multi_by_data.
-
-    LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
-      INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD conv_get_string_by_xstring.
-
-    DATA conv TYPE REF TO object.
-
-    TRY.
-        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_in
-          RECEIVING
-            instance = conv.
-
-        CALL METHOD conv->('IF_ABAP_CONV_IN~CONVERT')
-          EXPORTING
-            source = val
-          RECEIVING
-            result = result.
-      CATCH cx_sy_dyn_call_illegal_class.
-
-        DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
-        CALL METHOD (conv_in_class)=>create
-          EXPORTING
-            encoding = 'UTF-8'
-          RECEIVING
-            conv     = conv.
-
-        CALL METHOD conv->('CONVERT')
-          EXPORTING
-            input = val
-          IMPORTING
-            data  = result.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD itab_filter_by_val.
-
-    FIELD-SYMBOLS <row> TYPE any.
-
-    LOOP AT tab ASSIGNING <row>.
-      DATA(lv_row) = ``.
-      DATA(lv_index) = 1.
-      DO.
-        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
-        IF sy-subrc <> 0.
-          EXIT.
-        ENDIF.
-        lv_row = lv_row && <field>.
-        lv_index = lv_index + 1.
-      ENDDO.
-
-      IF lv_row NS val.
-        DELETE tab.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD filter_get_token_range_mapping.
 
     result = VALUE #(
@@ -888,36 +803,143 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD conv_get_xstring_by_string.
+  METHOD itab_filter_by_val.
 
-    DATA conv TYPE REF TO object.
+    FIELD-SYMBOLS <row> TYPE any.
+
+    LOOP AT tab ASSIGNING <row>.
+      DATA(lv_row) = ``.
+      DATA(lv_index) = 1.
+      DO.
+        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        lv_row = lv_row && <field>.
+        lv_index = lv_index + 1.
+      ENDDO.
+
+      IF lv_row NS val.
+        DELETE tab.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD itab_get_csv_by_itab.
+
+    FIELD-SYMBOLS <tab> TYPE table.
+    ASSIGN val TO <tab>.
+
+    DATA lr_row TYPE REF TO data.
+
+    DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
+
+    DATA(struc) = CAST cl_abap_structdescr( tab->get_table_line_type( ) ).
+
+    LOOP AT struc->get_components( ) REFERENCE INTO DATA(lr_comp).
+      result = result && lr_comp->name && ';'.
+    ENDLOOP.
+
+    result = result && cl_abap_char_utilities=>cr_lf.
+
+    LOOP AT <tab> REFERENCE INTO lr_row.
+
+      DATA(lv_index) = 1.
+      DO.
+        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+        ASSIGN COMPONENT lv_index OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        IF sy-subrc <> 0.
+          EXIT.
+        ENDIF.
+        lv_index = lv_index + 1.
+        result = result && <field> && ';'.
+      ENDDO.
+      result = result && cl_abap_char_utilities=>cr_lf.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD itab_get_itab_by_csv.
+
+    SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
+    SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
+
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+    LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
+
+      DATA(lv_name) =  c_trim_upper( lr_col->* ).
+      REPLACE ` ` IN lv_name WITH `_`.
+
+      INSERT VALUE #( name = lv_name type = cl_abap_elemdescr=>get_c( 40 ) ) INTO TABLE lt_comp.
+    ENDLOOP.
+
+    DATA(struc) = cl_abap_structdescr=>get( lt_comp ).
+    DATA(o_table_desc) = cl_abap_tabledescr=>create(
+          p_line_type  = CAST #( struc )
+          p_table_kind = cl_abap_tabledescr=>tablekind_std
+          p_unique     = abap_false ).
+
+    CREATE DATA result TYPE HANDLE o_table_desc.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    ASSIGN result->* TO <tab>.
+
+    DELETE lt_rows WHERE table_line IS INITIAL.
+
+    LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
+
+      SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
+      DATA lr_row TYPE REF TO data.
+      CREATE DATA lr_row TYPE HANDLE struc.
+
+      LOOP AT lt_cols REFERENCE INTO lr_col.
+        ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
+        ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        <field> = lr_col->*.
+      ENDLOOP.
+
+      INSERT <row> INTO TABLE <tab>.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_class_exists.
+
+    cl_abap_classdescr=>describe_by_name(
+       EXPORTING
+           p_name = val
+       EXCEPTIONS
+        type_not_found = 1
+        ).
+    IF sy-subrc = 0.
+      result = abap_true.
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_check_lang_version_cloud.
 
     TRY.
-        CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
-          RECEIVING
-            instance = conv.
-
-        CALL METHOD conv->('IF_ABAP_CONV_OUT~CONVERT')
-          EXPORTING
-            source = val
-          RECEIVING
-            result = result.
-      CATCH cx_sy_dyn_call_illegal_class.
-
-        DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
-        CALL METHOD (conv_out_class)=>create
-          EXPORTING
-            encoding = 'UTF-8'
-          RECEIVING
-            conv     = conv.
-
-        CALL METHOD conv->('CONVERT')
-          EXPORTING
-            data   = val
-          IMPORTING
-            buffer = result.
+        cl_abap_typedescr=>describe_by_name( 'T100' ).
+        result = abap_false.
+      CATCH cx_root.
+        result = abap_true.
     ENDTRY.
 
+  ENDMETHOD.
+
+
+  METHOD rtti_check_ref_data.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_data_ref( val ).
+        result = abap_true.
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 
 
@@ -1055,62 +1077,16 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD trans_srtti_xml_by_data.
+  METHOD source_get_file_types.
 
-    TRY.
-
-        DATA srtti TYPE REF TO object.
-
-        CALL METHOD ('ZCL_SRTTI_TYPEDESCR')=>('CREATE_BY_DATA_OBJECT')
-          EXPORTING
-            data_object = data
-          RECEIVING
-            srtti       = srtti.
-
-        CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
-
-      CATCH cx_root.
-        DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-        DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
-                         lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
-
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = lv_text.
-
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD trans_srtti_xml_2_data.
-
-    TRY.
-        DATA srtti TYPE REF TO object.
-        CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
-
-        DATA rtti_type TYPE REF TO cl_abap_typedescr.
-        CALL METHOD srtti->('GET_RTTI')
-          RECEIVING
-            rtti = rtti_type.
-
-        DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
-        lo_datadescr ?= rtti_type.
-
-        CREATE DATA e_data TYPE HANDLE lo_datadescr.
-        ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
-        CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
-
-      CATCH cx_root.
-
-        DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-        DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
-
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = lv_text.
-
-    ENDTRY.
+    DATA(lv_types) = `abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, ` &&
+`dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja` &&
+`vascri` &&
+`pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni` &&
+`x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,` &&
+` sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,` &&
+` csp, cssound_score, cssound_orchestra, cssound_document`.
+    SPLIT lv_types AT ',' INTO TABLE result.
 
   ENDMETHOD.
 
@@ -1193,6 +1169,31 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD source_method_to_file.
+
+    LOOP AT it_source INTO DATA(lv_source).
+      TRY.
+          result = result && lv_source+1 && cl_abap_char_utilities=>newline.
+        CATCH cx_root.
+      ENDTRY.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD sql_get_by_string.
+
+    DATA(lv_sql) = CONV string( val ).
+    REPLACE ALL OCCURRENCES OF ` ` IN lv_sql  WITH ``.
+    lv_sql = to_upper( lv_sql ).
+    SPLIT lv_sql AT 'SELECTFROM' INTO DATA(lv_dummy) DATA(lv_tab).
+    SPLIT lv_tab AT `FIELDS` INTO lv_tab lv_dummy.
+
+    result-table = lv_tab.
+
+  ENDMETHOD.
+
+
   METHOD time_get_date_by_stampl.
 
     CONVERT TIME STAMP val TIME ZONE sy-zonlo INTO DATE result TIME DATA(lv_dummy).
@@ -1231,27 +1232,27 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD trans_json_by_any.
 
-    CASE compress.
+    CASE compress_mode.
 
       WHEN z2ui5_if_client=>cs_compress_mode-full.
 
         result = /ui2/cl_json=>serialize(
           data             = any
           compress         = abap_true
-          pretty_name      = pretty_name ).
+          pretty_name      = pretty_mode ).
 
       WHEN z2ui5_if_client=>cs_compress_mode-none.
 
         result = /ui2/cl_json=>serialize(
          data             = any
          compress         = abap_false
-         pretty_name      = pretty_name ).
+         pretty_name      = pretty_mode ).
 
       WHEN OTHERS.
 
         DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
         compress    = abap_true
-        pretty_name = pretty_name ).
+        pretty_name = pretty_mode ).
 
         result = lo_json->serialize_int( any ).
 
@@ -1438,6 +1439,86 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD trans_srtti_xml_2_data.
+
+*    TRY.
+
+    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
+
+      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
+      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
+                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
+
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = lv_text.
+
+    ENDIF.
+
+    DATA srtti TYPE REF TO object.
+    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
+
+    DATA rtti_type TYPE REF TO cl_abap_typedescr.
+    CALL METHOD srtti->('GET_RTTI')
+      RECEIVING
+        rtti = rtti_type.
+
+    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
+    lo_datadescr ?= rtti_type.
+
+    CREATE DATA e_data TYPE HANDLE lo_datadescr.
+    ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
+    CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
+
+*      CATCH cx_root.
+*
+*        DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
+*        DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
+*
+*        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*          EXPORTING
+*            val = lv_text.
+*
+*    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD trans_srtti_xml_by_data.
+
+*    TRY.
+
+    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
+
+      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
+      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
+                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
+
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = lv_text.
+
+    ENDIF.
+
+    DATA srtti TYPE REF TO object.
+
+    CALL METHOD ('ZCL_SRTTI_TYPEDESCR')=>('CREATE_BY_DATA_OBJECT')
+      EXPORTING
+        data_object = data
+      RECEIVING
+        srtti       = srtti.
+
+    CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
+
+*      CATCH cx_root.
+*
+*
+*
+*    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD trans_xml_2_any.
 
     CALL TRANSFORMATION id
@@ -1519,6 +1600,72 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD user_get_tech.
+    result = sy-uname.
+  ENDMETHOD.
+
+
+  METHOD uuid_get_c22.
+
+    TRY.
+        DATA uuid TYPE c LENGTH 22.
+
+        TRY.
+            CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c22
+              RECEIVING
+                uuid = uuid.
+
+          CATCH cx_sy_dyn_call_illegal_class.
+
+            DATA(lv_fm) = `GUID_CREATE`.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_22 = uuid.
+
+        ENDTRY.
+
+        result = uuid.
+
+      CATCH cx_root.
+        ASSERT 1 = 0.
+    ENDTRY.
+
+    result = replace( val = result sub = `}` with = `0` occ = 0 ).
+    result = replace( val = result sub = `{` with = `0` occ = 0 ).
+    result = replace( val = result sub = `"` with = `0` occ = 0 ).
+    result = replace( val = result sub = `'` with = `0` occ = 0 ).
+
+  ENDMETHOD.
+
+
+  METHOD uuid_get_c32.
+
+    TRY.
+        DATA uuid TYPE c LENGTH 32.
+
+        TRY.
+            CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c32
+              RECEIVING
+                uuid = uuid.
+
+          CATCH cx_sy_dyn_call_illegal_class.
+
+            DATA(lv_fm) = `GUID_CREATE`.
+            CALL FUNCTION lv_fm
+              IMPORTING
+                ev_guid_32 = uuid.
+
+        ENDTRY.
+
+        result = uuid.
+
+      CATCH cx_root.
+        ASSERT 1 = 0.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD x_check_raise.
 
     IF when = abap_true.
@@ -1533,70 +1680,4 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
-
-  METHOD db_load_by_handle.
-
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
-
-    SELECT data
-    FROM z2ui5_t_fw_02
-       WHERE
-        uname = @uname
-        AND handle = @handle
-        AND handle2 = @handle2
-        AND handle3 = @handle3
-     INTO CORRESPONDING FIELDS OF TABLE @lt_db.
-
-    DATA(ls_db) = lt_db[ 1 ].
-
-    trans_xml_2_any(
-      EXPORTING
-        xml = ls_db-data
-      IMPORTING
-        any = result
-    ).
-
-  ENDMETHOD.
-
-  METHOD db_load_by_id.
-
-    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
-
-    SELECT data
-    FROM z2ui5_t_fw_02
-    WHERE id = @id
-    INTO CORRESPONDING FIELDS OF TABLE @lt_db.
-
-    DATA(ls_db) = lt_db[ 1 ].
-
-    trans_xml_2_any(
-      EXPORTING
-        xml = ls_db-data
-      IMPORTING
-        any = result
-    ).
-
-  ENDMETHOD.
-
-  METHOD db_save.
-
-    DATA(ls_db) = VALUE z2ui5_t_fw_02(
-        id      = uuid_get_c32( )
-        uname   = uname
-        handle  = handle
-        handle2 = handle2
-        handle3 = handle3
-        data    = trans_xml_by_any( data )
-    ).
-
-    MODIFY z2ui5_t_fw_02 FROM @ls_db.
-
-    IF check_commit = abap_true.
-      COMMIT WORK AND WAIT.
-    ENDIF.
-
-    result = ls_db-id.
-
-  ENDMETHOD.
-
 ENDCLASS.
