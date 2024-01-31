@@ -51,6 +51,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !alt                   TYPE clike OPTIONAL
         !activecolor           TYPE clike OPTIONAL
         !activebackgroundcolor TYPE clike OPTIONAL
+        !visible               TYPE clike OPTIONAL
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
     METHODS dynamic_page
@@ -152,6 +153,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !popinlayout         TYPE clike OPTIONAL
         !fixedlayout         TYPE clike OPTIONAL
         !backgrounddesign    TYPE clike OPTIONAL
+        !visible             TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
@@ -3387,7 +3389,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -4912,6 +4914,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `press`  v = press )
                                 ( n = `hoverBackgroundColor`  v = hoverbackgroundcolor )
                                 ( n = `hoverColor`  v = hovercolor )
+                                ( n = `visible`  v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                                 ( n = `decorative`  v = z2ui5_cl_util_func=>boolean_abap_2_json( decorative ) )
                                 ( n = `noTabStop`  v = z2ui5_cl_util_func=>boolean_abap_2_json( notabstop ) )
                                 ( n = `useIconTooltip`  v = z2ui5_cl_util_func=>boolean_abap_2_json( useicontooltip ) )
@@ -6831,6 +6834,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `popinLayout`            v = popinlayout )
                            ( n = `selectionChange`  v = selectionchange )
                            ( n = `backgroundDesign`  v = backgrounddesign )
+                           ( n = `visible`  v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
                            ( n = `alternateRowColors`  v = z2ui5_cl_util_func=>boolean_abap_2_json( alternaterowcolors ) )
                            ( n = `fixedLayout`  v = z2ui5_cl_util_func=>boolean_abap_2_json( fixedlayout ) )
                            ( n = `showOverlay`  v = z2ui5_cl_util_func=>boolean_abap_2_json( showoverlay ) )

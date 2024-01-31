@@ -9,6 +9,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     CLASS-METHODS factory
       IMPORTING
         i_tab           TYPE STANDARD TABLE
+        i_title         TYPE clike OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_to_select.
 
@@ -31,6 +32,7 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     DATA check_initialized TYPE abap_bool.
     DATA check_table_line TYPE abap_bool.
     DATA client TYPE REF TO z2ui5_if_client.
+    DATA title TYPE string.
     METHODS on_event.
     METHODS display.
     METHODS set_output_table.
@@ -48,6 +50,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE any.
 
     r_result = NEW #( ).
+    r_result->title = i_title.
     CREATE DATA r_result->mr_tab LIKE i_tab.
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
 
@@ -63,11 +66,13 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
     DATA(tab) = popup->table_select_dialog(
-              items   = `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
-              cancel  = client->_event( 'CANCEL' )
-              search  = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
-              confirm = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
-              growing = abap_true ).
+              items              =  `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
+              cancel             = client->_event( 'CANCEL' )
+              search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
+              confirm            = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
+              growing = abap_true
+              title   = title
+            ).
 
     DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <tab_out> ).
     DELETE lt_comp WHERE name = 'ZZSELKZ'.
@@ -82,7 +87,13 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     DATA(columns) = tab->columns( ).
     LOOP AT lt_comp INTO ls_comp.
-      columns->column( width = '8rem' )->header( ns = `` )->text( text = ls_comp-name ).
+      DATA(text) = COND #(
+                     LET data_element_name = substring_after( val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name sub = '\TYPE=' )
+                         medium_label = z2ui5_cl_util_func=>rtti_get_data_element_texts( data_element_name )-medium IN
+                     WHEN medium_label IS NOT INITIAL
+                     THEN medium_label
+                     ELSE ls_comp-name ).
+      columns->column( width = '8rem' )->header( ns = `` )->text( text = text ).
     ENDLOOP.
 
     client->popup_display( popup->stringify( ) ).

@@ -13,7 +13,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_factory IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CC_FACTORY IMPLEMENTATION.
 
 
   METHOD get_js_startup.
@@ -30,6 +30,7 @@ CLASS z2ui5_cl_fw_cc_factory IMPLEMENTATION.
         z2ui5_cl_fw_cc_multiinput_ext=>get_js( ) &&
         z2ui5_cl_fw_cc_uitable_ext=>get_js( ) &&
         z2ui5_cl_fw_cc_util=>get_js( ) &&
+        z2ui5_cl_fw_cc_favicon=>get_js( ) &&
        `  `.
 
   ENDMETHOD.
