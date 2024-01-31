@@ -1742,8 +1742,6 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
         result-long   = ddic-scrtext_l.
 
       CATCH cx_root.
-        " ABAP Cloud
-
         CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATA_ELEMENT')
           EXPORTING
             iv_name         = data_element_name
