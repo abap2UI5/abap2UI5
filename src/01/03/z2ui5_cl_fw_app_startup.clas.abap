@@ -143,9 +143,9 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     simple_form2->label( `abap2UI5 Version` ).
     simple_form2->text( z2ui5_cl_fw_http_handler=>c_abap_version ).
 
-    DATA(lv_url_search2) = z2ui5_cl_util_func=>app_get_url(
-                    client    = client
-                    classname = 'z2ui5_cl_app_search_apps' ).
+*    DATA(lv_url_search2) = z2ui5_cl_util_func=>app_get_url(
+*                    client    = client
+*                    classname = 'z2ui5_cl_app_search_apps' ).
 
     DATA(lv_url_samples2) = z2ui5_cl_util_func=>app_get_url(
                   client    = client

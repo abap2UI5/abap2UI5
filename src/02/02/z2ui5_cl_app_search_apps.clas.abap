@@ -150,7 +150,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *                            )->button( text = `Bak` press = client->_event( 'BACK' )
                               )->get_parent(
                             )->get_parent( )->sub_header( ns = `tnt`
-
                             )->tool_header( ).
 
     DATA(pages) =  page->icon_tab_header( selectedkey = client->_bind_edit( mv_selected_key )
@@ -174,7 +173,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                                  )->nav_container( id = `NavCon` initialpage = `page_favs` defaulttransitionname = `flip`
                                     )->pages( ).
 
-    DATA(page_favs) =  pages->page(
+     pages->page(
                             title = `12 Apps`
              id             = `page_favs`
                  )->header_content(
@@ -220,7 +219,6 @@ id     = `SEARCH`
 *            title = `Your app is not listed here? Fell free to send a PR and extend this page`
                    id             = `page_online`
                     )->header_content(
-
                      )->toolbar_spacer(
                      )->checkbox( text = `Cloud` selected = client->_bind_edit( ms_favrites-check_cloud_ready )
                      )->checkbox( text = `On-Premise` selected = client->_bind_edit( ms_favrites-check_premise_ready )
@@ -332,7 +330,7 @@ width  = `17.5rem`
 
   METHOD view_nest_display.
 
-    DATA lr_app TYPE REF TO z2ui5_cl_app_search_apps=>ty_app.
+    DATA lr_app TYPE REF TO ty_app.
     DATA lv_tabix TYPE syst-tabix.
 
     DATA(lo_view_nested) = z2ui5_cl_xml_view=>factory( ).
