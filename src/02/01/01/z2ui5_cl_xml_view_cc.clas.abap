@@ -170,6 +170,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS favicon
+      IMPORTING
+        !favicon      TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS constructor
       IMPORTING
         !view TYPE REF TO z2ui5_cl_xml_view .
@@ -180,7 +186,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
 
   METHOD bwip_js.
@@ -243,6 +249,16 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
       RECEIVING
         result = lv_style.
     result = mo_view->_cc_plain_xml( lv_style )->html( val ).
+
+  ENDMETHOD.
+
+
+  METHOD favicon.
+
+    result = mo_view.
+    mo_view->_generic( name   = `Favicon`
+              ns     = `z2ui5`
+              t_prop = VALUE #( ( n = `favicon`  v = favicon ) ) ).
 
   ENDMETHOD.
 
