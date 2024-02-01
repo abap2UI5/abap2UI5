@@ -10,14 +10,14 @@ CLASS z2ui5_cl_fw_model_ajson DEFINITION
         app         TYPE REF TO object
         viewname    TYPE string
         t_attri     TYPE  z2ui5_cl_fw_binding=>ty_t_attri
-        json_string TYPE string.
+        json_string TYPE string ##NEEDED.
 
     CLASS-METHODS back_to_front
       IMPORTING
         app           TYPE REF TO object
         t_attri       TYPE  z2ui5_cl_fw_binding=>ty_t_attri
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string ##NEEDED.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -27,28 +27,32 @@ ENDCLASS.
 CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
 
   METHOD front_to_back.
+    TRY.
+        DATA(ajson) = z2ui5_cl_ajson=>parse( json_string )->slice( `/EDIT` ).
 
-    DATA(ajson) = z2ui5_cl_ajson=>parse( json_string )->slice( `/EDIT` ).
+        LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
+            WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
+            AND  viewname  = viewname.
 
-    LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
-        AND  viewname  = viewname.
+          DATA(lv_name_back) = `APP->` && lr_attri->name.
+          FIELD-SYMBOLS <backend> TYPE any.
+          ASSIGN (lv_name_back) TO <backend>.
+          ASSERT sy-subrc = 0.
 
-      DATA(lv_name_back) = `APP->` && lr_attri->name.
-      ASSIGN (lv_name_back) TO FIELD-SYMBOL(<backend>).
-      ASSERT sy-subrc = 0.
+          DATA(ajson_val) = ajson->slice( `/` && lr_attri->name_front ).
 
-      DATA(ajson_val) = ajson->slice( `/` && lr_attri->name_front ).
+          TRY.
+              ajson_val->to_abap(
+                IMPORTING
+                  ev_container     = <backend> ).
 
-      TRY.
-          ajson_val->to_abap(
-            IMPORTING
-              ev_container     = <backend> ).
+            CATCH cx_root.
 
-        CATCH cx_root INTO DATA(lx).
+          ENDTRY.
+        ENDLOOP.
 
-      ENDTRY.
-    ENDLOOP.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 

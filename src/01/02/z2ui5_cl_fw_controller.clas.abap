@@ -476,7 +476,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
          viewname    = ms_actual-viewname
          app         = ms_db-app
          t_attri     = ms_db-t_attri
-         json_string = z2ui5_cl_fw_controller=>ss_config-body
+         json_string = ss_config-body
      ).
 
     ENDIF.
