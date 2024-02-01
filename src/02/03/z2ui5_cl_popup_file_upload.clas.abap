@@ -52,7 +52,7 @@ CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->title = i_title.
-*    r_result->icon = i_icon.
+
     r_result->question_text = i_text.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
@@ -70,15 +70,15 @@ CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  )->dialog(
-                  title = title
-                  icon = icon
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
+                  title       = title
+                  icon        = icon
                    afterclose = client->_event( 'BUTTON_CANCEL' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'
-                  )->label( text  = question_text
+                  )->label( question_text
                   )->_z2ui5( )->file_uploader(
-                        value = client->_bind_edit( mv_value )
+                        value       = client->_bind_edit( mv_value )
                         path        = client->_bind_edit( mv_path )
                         placeholder = 'filepath here...'
                         upload      = client->_event( 'UPLOAD' )
@@ -89,10 +89,10 @@ CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
                       text  = button_text_cancel
                       press = client->_event( 'BUTTON_CANCEL' )
                   )->button(
-                      text  = button_text_confirm
-                      press = client->_event( 'BUTTON_CONFIRM' )
+                      text    = button_text_confirm
+                      press   = client->_event( 'BUTTON_CONFIRM' )
                       enabled = client->_bind( check_confirm_enabled )
-                      type  = 'Emphasized' ).
+                      type    = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -116,11 +116,11 @@ CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
         SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
         SPLIT lv_data AT `,` INTO lv_dummy lv_data.
 
-        DATA(lv_data2) = lcl_utility=>decode_x_base64( lv_data ).
-        ms_result-value = lcl_utility=>get_string_by_xstring( lv_data2 ).
+        DATA(lv_data2) = z2ui5_cl_util_func=>conv_decode_x_base64( lv_data ).
+        ms_result-value = z2ui5_cl_util_func=>conv_get_string_by_xstring( lv_data2 ).
 
         check_confirm_enabled = abap_true.
-*        client->message_box_display( `file uploaded` ).
+
 
         CLEAR mv_value.
         CLEAR mv_path.

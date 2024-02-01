@@ -47,9 +47,10 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
 
   METHOD on_event_check.
+    DATA li_app_test TYPE REF TO z2ui5_if_app.
 
     TRY.
-        DATA li_app_test TYPE REF TO z2ui5_if_app.
+
         ms_home-classname = z2ui5_cl_util_func=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
@@ -76,52 +77,51 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
                      client    = client
                      classname = ms_home-classname ).
 
-    DATA(page2) = z2ui5_cl_xml_view=>factory( )->shell(  )->page(
+    DATA(page2) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
          shownavbutton = abap_false ).
 
-    page2->header_content(  )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP`  )->toolbar_spacer( ).
+    page2->header_content( )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP` )->toolbar_spacer( ).
 
     DATA(simple_form2) = page2->simple_form(
-        editable = abap_true
-        layout = `ResponsiveGridLayout`
-        labelspanxl = `4`
-        labelspanl = `3`
-        labelspanm = `4`
-        labelspans = `12`
-        adjustlabelspan = abap_false
-        emptyspanxl = `0`
-        emptyspanl = `4`
-        emptyspanm = `0`
-        emptyspans = `0`
-        columnsxl = `2`
-        columnsl = `2`
-        columnsm = `1`
+        editable                = abap_true
+        layout                  = `ResponsiveGridLayout`
+        labelspanxl             = `4`
+        labelspanl              = `3`
+        labelspanm              = `4`
+        labelspans              = `12`
+        adjustlabelspan         = abap_false
+        emptyspanxl             = `0`
+        emptyspanl              = `4`
+        emptyspanm              = `0`
+        emptyspans              = `0`
+        columnsxl               = `1`
+        columnsl                = `1`
+        columnsm                = `1`
         singlecontainerfullsize = abap_false
-    )->content( `form` ).
+      )->content( `form` ).
 
 
     simple_form2->toolbar( )->title( `Quickstart` ).
     simple_form2->label( `Step 1`
-    )->text( `Create a new class in your ABAP system`
-    )->label( `Step 2`
-    )->text( `Add the interface: Z2UI5_IF_APP`
-    )->label( `Step 3`
-    )->text( `Define the view, implement behaviour`
-    )->label(
-    )->link( text   = `(Example)`
+      )->text( `Create a new class in your ABAP system`
+      )->label( `Step 2`
+      )->text( `Add the interface: Z2UI5_IF_APP`
+      )->label( `Step 3`
+      )->text( `Define the view, implement behaviour`
+      )->label(
+      )->link( text = `(Example)`
              target = `_blank`
              href   = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/02/z2ui5_cl_app_hello_world.clas.abap`
-    )->label( `Step 4` ).
+      )->label( `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
 
       simple_form2->input( placeholder = `fill in the class name and press 'check'`
-                      editable    = z2ui5_cl_util_func=>boolean_abap_2_json( ms_home-class_editable )
-                      value       = client->_bind_edit( ms_home-classname )
-                      submit      = client->_event( ms_home-btn_event_id )
+                      editable         = z2ui5_cl_util_func=>boolean_abap_2_json( ms_home-class_editable )
+                      value            = client->_bind_edit( ms_home-classname )
+                      submit           = client->_event( ms_home-btn_event_id )
                       valuehelprequest = client->_event( 'VALUE_HELP' )
-                      showvaluehelp = abap_true
-                       ).
+                      showvaluehelp    = abap_true ).
 
     ELSE.
       simple_form2->text( ms_home-classname ).
@@ -129,11 +129,11 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
     simple_form2->label( ).
     simple_form2->button( press = client->_event( ms_home-btn_event_id )
-                     text  = ms_home-btn_text
-                     icon  = ms_home-btn_icon
-                     ).
+                     text       = ms_home-btn_text
+                     icon       = ms_home-btn_icon
+                     width      = `70%` ).
     simple_form2->label( `Step 5`
-    )->link( text    = `Link to the Application`
+      )->link( text  = `Link to the Application`
              target  = `_blank`
              href    = lv_url
              enabled = z2ui5_cl_util_func=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
@@ -141,27 +141,24 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
     simple_form2->toolbar( )->title( `System Information` ).
     simple_form2->label( `abap2UI5 Version` ).
-    simple_form2->text( z2ui5_cl_fw_http_handler=>c_abap_version ).
-
-*    DATA(lv_url_search2) = z2ui5_cl_util_func=>app_get_url(
-*                    client    = client
-*                    classname = 'z2ui5_cl_app_search_apps' ).
+    simple_form2->text( z2ui5_if_app=>version ).
+    simple_form2->label( `ABAP for Cloud` ).
+    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util_func=>rtti_check_lang_version_cloud( ) ).
 
     DATA(lv_url_samples2) = z2ui5_cl_util_func=>app_get_url(
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
-*    simple_form2->label( `Install & Run Apps` ).
-*    simple_form2->button( text   = `Apps on your system` press = client->_event_client( val   = client->cs_event-open_new_tab
-*                                                         t_arg = VALUE #( ( `$` && client->_bind_local( lv_url_search2 ) ) ) )
-*         ).
+
+
 
     simple_form2->label( `Development` ).
     simple_form2->button(
-      text    = `Check out the samples` press = client->_event_client( val   = client->cs_event-open_new_tab
+      text      = `Check out the samples`
+      press     = client->_event_client( val                   = client->cs_event-open_new_tab
                                                          t_arg = VALUE #( ( `$` && client->_bind_local( lv_url_samples2 ) ) ) )
-         ).
+          width = `70%` ).
 
     simple_form2->toolbar( )->title( `` ).
     simple_form2->label( `` ).
@@ -169,22 +166,28 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
     simple_form2->toolbar( )->title( `Contribution` ).
     simple_form2->label( `Open an issue` ).
-    simple_form2->link( text   = `You have comments, wishes or bugs?`
-                 target = `_blank`
-                 href   = `https://github.com/abap2UI5/abap2UI5/issues` ).
+    simple_form2->link( text = `You have problems, comments or wishes?`
+                 target      = `_blank`
+                 href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
     simple_form2->label( `Open a Pull Request` ).
-    simple_form2->link( text   = `You added a new feature?`
-               target = `_blank`
-               href   = `https://github.com/abap2UI5/abap2UI5/pulls` ).
+    simple_form2->link( text = `You added a new feature or fixed a bug?`
+               target        = `_blank`
+               href          = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
     simple_form2->toolbar( )->title( `Links & More` ).
-    simple_form2->label(  ).
-    simple_form2->link( text   = `Repository on GitHub`  target = `_blank`  href = `https://github.com/abap2UI5/abap2UI5`  ).
-    simple_form2->label(  ).
-    simple_form2->link( text   = `News on Twitter`  target = `_blank`  href = `https://twitter.com/abap2UI5`  ).
-    simple_form2->label(  ).
-    simple_form2->link( text   = `Blog Series on SAP Community`  target = `_blank`  href = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635`  ).
+    simple_form2->label( ).
+    simple_form2->link( text   = `Repository on GitHub`
+                        target = `_blank`
+                        href   = `https://github.com/abap2UI5/abap2UI5` ).
+    simple_form2->label( ).
+    simple_form2->link( text   = `News on Twitter`
+                        target = `_blank`
+                        href   = `https://twitter.com/abap2UI5` ).
+    simple_form2->label( ).
+    simple_form2->link( text   = `Blog Series on SAP Community`
+                        target = `_blank`
+                        href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
 
     client->view_display( page2->stringify( ) ).
 
@@ -192,6 +195,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
+    FIELD-SYMBOLS <class> TYPE string.
 
     me->client = client.
 
@@ -207,7 +211,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
           DATA(lo_f4) = CAST z2ui5_cl_popup_to_select( client->get_app( client->get( )-s_draft-id_prev_app ) ).
           DATA(ls_result) = lo_f4->result( ).
           IF ls_result-check_confirmed = abap_true.
-            FIELD-SYMBOLS <class> TYPE string.
+
             ASSIGN ls_result-row->* TO <class>.
             ms_home-classname = <class>.
             view_display_start( ).
@@ -224,6 +228,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
 
   METHOD z2ui5_on_event.
+    DATA li_app TYPE REF TO z2ui5_if_app.
 
     CASE client->get( )-event.
 
@@ -243,7 +248,7 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
       WHEN `DEMOS`.
 
-        DATA li_app TYPE REF TO z2ui5_if_app.
+
         TRY.
             CREATE OBJECT li_app TYPE (`Z2UI5_CL_DEMO_APP_000`).
             mv_check_demo = abap_true.

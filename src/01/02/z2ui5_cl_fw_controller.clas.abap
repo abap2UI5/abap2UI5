@@ -197,7 +197,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     r_result->ms_next-s_set     = ms_next-s_set.
 
     TRY.
-        DATA(ls_db_next) = z2ui5_cl_fw_db=>load_app( id = app->id_draft ).
+        DATA(ls_db_next) = z2ui5_cl_fw_db=>load_app( app->id_draft ).
         r_result->ms_db-t_attri = ls_db_next-t_attri.
       CATCH cx_root.
     ENDTRY.
@@ -206,10 +206,14 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
 
   METHOD app_client_begin_event.
+    FIELD-SYMBOLS <any> TYPE any.
+    FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <arg_row> TYPE any.
+    FIELD-SYMBOLS <val> TYPE any.
 
     TRY.
 
-        FIELD-SYMBOLS <any> TYPE any.
+
         ASSIGN (`SO_BODY->MR_ACTUAL`) TO <any>.
         z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
         ASSIGN (`<ANY>->ARGUMENTS`) TO <any>.
@@ -217,15 +221,15 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
         ASSIGN (`<ANY>->*`) TO <any>.
         z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
-        FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
+
         ASSIGN <any> TO <arg>.
         z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
-        FIELD-SYMBOLS <arg_row> TYPE any.
+
         LOOP AT <arg> ASSIGNING <arg_row>.
 
           IF sy-tabix = 1.
-            FIELD-SYMBOLS <val> TYPE any.
+
             ASSIGN (`<ARG_ROW>->EVENT->*`) TO <val>.
             ms_actual-event = <val>.
           ELSE.
@@ -244,6 +248,11 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
 
   METHOD body_read_location.
+    FIELD-SYMBOLS <struc> TYPE any.
+
+    FIELD-SYMBOLS <val_ref> TYPE REF TO data.
+    FIELD-SYMBOLS <tab> TYPE table.
+    FIELD-SYMBOLS <val2> TYPE data.
 
     TRY.
         DATA(location)     = so_body->get_attribute( `OLOCATION` ).
@@ -276,18 +285,18 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     ENDTRY.
 
     TRY.
-        FIELD-SYMBOLS <struc> TYPE any.
-        DATA ls_params TYPE REF TO data.
-        ls_params  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
+
+
+        DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
         ASSIGN ls_params->* TO <struc>.
 
         DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <struc> ).
 
         LOOP AT lt_comp INTO DATA(ls_comp).
 
-          FIELD-SYMBOLS <val_ref> TYPE REF TO data.
-          FIELD-SYMBOLS <tab> TYPE table.
-          FIELD-SYMBOLS <val2> TYPE data.
+
+
+
           ASSIGN COMPONENT ls_comp-name OF STRUCTURE <struc> TO <val_ref>.
           ASSIGN <val_ref>->* TO <tab>.
           ASSIGN <tab>[ 1 ] TO <val_ref>.
@@ -315,7 +324,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
       result->ms_actual-check_on_navigated = abap_true.
     ELSE.
       result = app_client_begin_factory( lv_id_prev ).
-      result->app_client_begin_model(  ).
+      result->app_client_begin_model( ).
       result->app_client_begin_event( ).
       result->ms_actual-check_on_navigated = abap_false.
     ENDIF.
@@ -345,7 +354,8 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+      z2ui5_cl_fw_db=>create( id = ms_db-id
+                              db = ms_db ).
     ENDIF.
 
     CLEAR result->ms_db-t_attri.
@@ -373,7 +383,8 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     result = app_next_factory( ms_next-o_app_leave ).
 
     TRY.
-        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id = result->ms_db-id check_load_app = abap_false ).
+        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id             = result->ms_db-id
+                                               check_load_app = abap_false ).
         result->ms_db-id_prev_app_stack = ls_draft-id_prev_app_stack.
       CATCH cx_root.
         result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
@@ -381,7 +392,8 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     CLEAR ms_next.
     IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+      z2ui5_cl_fw_db=>create( id = ms_db-id
+                              db = ms_db ).
     ENDIF.
 
   ENDMETHOD.
@@ -396,7 +408,8 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     ENDTRY.
 
     IF lv_classname IS INITIAL.
-      lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start` url = ss_config-search ).
+      lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start`
+                                                        url = ss_config-search ).
     ENDIF.
 
     IF lv_classname IS INITIAL.
@@ -443,12 +456,12 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
     TRY.
         DATA(lo_model) = z2ui5_cl_fw_model=>factory(
-        viewname = ms_actual-viewname
-        app      = ms_db-app
-        attri    = ms_db-t_attri ).
+          viewname = ms_actual-viewname
+          app      = ms_db-app
+          attri    = ms_db-t_attri ).
 
         lo_model->main_set_backend(
-            so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual  ).
+            so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual ).
 
       CATCH cx_root.
     ENDTRY.
@@ -500,7 +513,8 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
   METHOD app_client_end_db.
 
-    z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+    z2ui5_cl_fw_db=>create( id = ms_db-id
+                            db = ms_db ).
 
   ENDMETHOD.
 

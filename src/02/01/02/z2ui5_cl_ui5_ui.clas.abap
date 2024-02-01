@@ -69,9 +69,9 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
 
   METHOD listitem.
     result = me.
-    _add( n   = `ListItem`
-              ns     = `sap.ui.core`
-              t_p  = VALUE #( ( n = `text` v = text )
+    _add( n       = `ListItem`
+              ns  = `sap.ui.core`
+              t_p = VALUE #( ( n = `text` v = text )
                                 ( n = `icon` v = icon )
                                 ( n = `key`  v = key )
                                 ( n = `textDirection`  v = textdirection )
@@ -81,8 +81,8 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
 
   METHOD codeeditor.
     result = me.
-    _add( n   = `CodeEditor`
-              ns     = `sap.ui.codeeditor`
+    _add( n       = `CodeEditor`
+              ns  = `sap.ui.codeeditor`
               t_p = VALUE #( ( n = `value`   v = value )
                                 ( n = `type`    v = type )
                                 ( n = `editable`   v = _2bool( editable ) )
@@ -112,7 +112,8 @@ CLASS z2ui5_cl_ui5_ui IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD tabcontainer.
-    result = _add( n = `TabContainer` ns = `sap.ui.webc.main` )->_ns_ui( ).
+    result = _add( n  = `TabContainer`
+                   ns = `sap.ui.webc.main` )->_ns_ui( ).
   ENDMETHOD.
 
   METHOD content.

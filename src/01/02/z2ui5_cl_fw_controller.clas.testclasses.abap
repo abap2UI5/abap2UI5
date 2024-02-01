@@ -9,7 +9,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
-class z2ui5_cl_fw_controller definition local friends ltcl_unit_test.
+CLASS z2ui5_cl_fw_controller DEFINITION LOCAL FRIENDS ltcl_unit_test.
 
 CLASS ltcl_unit_test IMPLEMENTATION.
 
@@ -48,10 +48,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
 
-
     DATA(lv_resp) = lo_handler->request_end( ).
 
-    IF lv_resp NS `QUANTITY`.
+    IF lv_resp NS `NAME`.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 

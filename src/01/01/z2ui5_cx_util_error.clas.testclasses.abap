@@ -19,8 +19,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
       CATCH z2ui5_cx_util_error INTO DATA(lx).
         cl_abap_unit_assert=>assert_equals(
-            act                  = lx->get_text( )
-            exp                  = `this is an error text` ).
+            act = lx->get_text( )
+            exp = `this is an error text` ).
     ENDTRY.
 
   ENDMETHOD.

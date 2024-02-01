@@ -34,8 +34,8 @@ CLASS z2ui5_cl_ui5_ui_webc DEFINITION
 
     METHODS input
       IMPORTING id            TYPE clike OPTIONAL
-                text          type clike OPTIONAL
-                click         type clike optional
+                text          TYPE clike OPTIONAL
+                click         TYPE clike OPTIONAL
                 value         TYPE clike OPTIONAL
                 width         TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
@@ -68,7 +68,7 @@ CLASS Z2UI5_CL_UI5_UI_WEBC IMPLEMENTATION.
   METHOD button.
 
     result = me.
-    _add( n   = `Button`
+    _add( n            = `Button`
                    ns  = 'sap.ui.webc.main'
                    t_p = VALUE #( ( n = `id`                 v = id )
                                   ( n = `icon`        v = icon )
@@ -92,7 +92,7 @@ CLASS Z2UI5_CL_UI5_UI_WEBC IMPLEMENTATION.
   METHOD input.
 
     result = me.
-    _add( n   = `Input`
+    _add( n            = `Input`
                    ns  = 'sap.ui.webc.main'
                    t_p = VALUE #(
                     ( n = `id` v = id )
@@ -108,7 +108,7 @@ CLASS Z2UI5_CL_UI5_UI_WEBC IMPLEMENTATION.
   METHOD label.
 
     result = me.
-    _add( n   = `Label`
+    _add( n            = `Label`
                    ns  = 'sap.ui.webc.main'
                    t_p = VALUE #(
                     ( n = `id`   v = id )
@@ -132,7 +132,7 @@ CLASS Z2UI5_CL_UI5_UI_WEBC IMPLEMENTATION.
   METHOD toast.
 
     result = me.
-    _add( n   = `Toast`
+    _add( n            = `Toast`
                    ns  = 'sap.ui.webc.main'
                    t_p = VALUE #(
                     ( n = `id` v = id )

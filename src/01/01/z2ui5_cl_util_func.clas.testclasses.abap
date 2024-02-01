@@ -122,15 +122,16 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
   METHOD test_assign.
 
     DATA(lo_app) = NEW ltcl_test_app( ).
+    FIELD-SYMBOLS <any> TYPE any.
 
     lo_app->mv_val = `ABC`.
-    FIELD-SYMBOLS <any> TYPE any.
+
     DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
     ASSIGN (lv_assign) TO <any>.
 
     cl_abap_unit_assert=>assert_equals(
-        act  = <any>
-        exp  = `ABC` ).
+        act = <any>
+        exp = `ABC` ).
 
   ENDMETHOD.
 
@@ -156,42 +157,45 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
     DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_elemdescr=>describe_by_data( abap_true ) ).
 
     cl_abap_unit_assert=>assert_equals(
-     act = lo_ele->get_relative_name( )
-     exp = `ABAP_BOOL` ).
+      act = lo_ele->get_relative_name( )
+      exp = `ABAP_BOOL` ).
 
   ENDMETHOD.
 
   METHOD test_substring_after.
 
     cl_abap_unit_assert=>assert_equals(
-     act = substring_after( val = 'this is a string' sub = 'a' )
-     exp = ` string` ).
+      act = substring_after( val = 'this is a string' sub = 'a' )
+      exp = ` string` ).
 
   ENDMETHOD.
 
   METHOD test_substring_before.
 
     cl_abap_unit_assert=>assert_equals(
-     act = substring_before( val = 'this is a string' sub = 'a' )
-     exp = `this is ` ).
+      act = substring_before( val = 'this is a string' sub = 'a' )
+      exp = `this is ` ).
 
   ENDMETHOD.
 
   METHOD test_string_shift.
 
     cl_abap_unit_assert=>assert_equals(
-     act = shift_left( shift_right( val = `   string   ` sub = ` ` ) )
-     exp = `string` ).
+      act = shift_left( shift_right( val = `   string   ` sub = ` ` ) )
+      exp = `string` ).
 
   ENDMETHOD.
 
   METHOD test_string_replace.
 
-    DATA(lv_search) = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 ) ##NEEDED.
+    DATA(lv_search) = replace( val  = `one two three`
+                               sub  = `two`
+                               with = 'ABC'
+                               occ  = 0 ) ##NEEDED.
 
     cl_abap_unit_assert=>assert_equals(
-     act = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 )
-     exp = `one ABC three` ).
+      act = replace( val  = `one two three` sub  = `two` with = 'ABC' occ  = 0 )
+      exp = `one ABC three` ).
 
   ENDMETHOD.
 
@@ -229,8 +233,8 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
     DATA(lv_xsdbool) = check_input( xsdbool( 1 = 1 ) ).
     IF lv_xsdbool = abap_false.
       cl_abap_unit_assert=>assert_equals(
-       act = lv_xsdbool
-       exp = abap_false ).
+        act = lv_xsdbool
+        exp = abap_false ).
     ENDIF.
 
     IF check_input( abap_false ).
@@ -257,21 +261,21 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_bool) = xsdbool( 1 = 1 ).
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check_by_data( lv_bool )
-        exp                  = abap_true ).
+        act = z2ui5_cl_util_func=>boolean_check_by_data( lv_bool )
+        exp = abap_true ).
 
     lv_bool = xsdbool( 1 = 2 ).
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check_by_data( lv_bool )
-        exp                  = abap_true ).
+        act = z2ui5_cl_util_func=>boolean_check_by_data( lv_bool )
+        exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check_by_data( abap_true )
-        exp                  = abap_true ).
+        act = z2ui5_cl_util_func=>boolean_check_by_data( abap_true )
+        exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>boolean_check_by_data( abap_false )
-        exp                  = abap_true ).
+        act = z2ui5_cl_util_func=>boolean_check_by_data( abap_false )
+        exp = abap_true ).
 
   ENDMETHOD.
 
@@ -285,20 +289,23 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_test) = NEW z2ui5_cl_util_func( ).
     DATA(lv_name) = z2ui5_cl_util_func=>rtti_get_classname_by_ref( lo_test ).
-    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UTIL_FUNC` act = lv_name ).
+    cl_abap_unit_assert=>assert_equals( exp = `Z2UI5_CL_UTIL_FUNC`
+                                        act = lv_name ).
 
     DATA(lo_test2) = NEW ltcl_test_app( ).
     DATA(lv_name2) = z2ui5_cl_util_func=>rtti_get_classname_by_ref( lo_test2 ).
-    cl_abap_unit_assert=>assert_equals( exp = `LTCL_TEST_APP` act = lv_name2 ).
+    cl_abap_unit_assert=>assert_equals( exp = `LTCL_TEST_APP`
+                                        act = lv_name2 ).
 
   ENDMETHOD.
 
   METHOD test_boolean_abap_2_json.
 
-    cl_abap_unit_assert=>assert_equals( exp = `false` act = z2ui5_cl_util_func=>boolean_abap_2_json( abap_false ) ).
+    cl_abap_unit_assert=>assert_equals( exp = `false`
+                                        act = z2ui5_cl_util_func=>boolean_abap_2_json( abap_false ) ).
 
     IF `{ABCD}` <> z2ui5_cl_util_func=>boolean_abap_2_json( `{ABCD}` ).
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -309,15 +316,14 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_time2) = z2ui5_cl_util_func=>time_substract_seconds(
          time    = lv_time
-         seconds = 60 * 60 * 4
-      ).
+         seconds = 60 * 60 * 4 ).
 
     IF lv_time IS INITIAL OR lv_time2 IS INITIAL.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
     IF lv_time < lv_time2.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -328,11 +334,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_time2) = z2ui5_cl_util_func=>time_get_timestampl( ).
 
     IF lv_time IS INITIAL OR lv_time2 IS INITIAL.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
     IF lv_time2 < lv_time.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -340,7 +346,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_c_trim.
 
     IF z2ui5_cl_util_func=>c_trim( ` JsadfHHs  ` ) <> `JsadfHHs`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -348,7 +354,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_c_trim_lower.
 
     IF z2ui5_cl_util_func=>c_trim_lower( ` JsadfHHs  ` ) <> `jsadfhhs`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -356,7 +362,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_c_trim_upper.
 
     IF z2ui5_cl_util_func=>c_trim_upper( ` JsadfHHs  ` ) <> `JSADFHHS`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -366,18 +372,18 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_uuid) = z2ui5_cl_util_func=>uuid_get_c32( ).
 
     IF lv_uuid IS INITIAL.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
     IF strlen( lv_uuid ) <> 32.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
 
   METHOD test_func_get_uuid_22.
 
-    DATA(lv_uuid) = z2ui5_cl_util_func=>uuid_Get_c22( ).
+    DATA(lv_uuid) = z2ui5_cl_util_func=>uuid_get_c22( ).
 
     IF lv_uuid IS INITIAL.
       cl_abap_unit_assert=>fail( ).
@@ -393,7 +399,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_uname) = z2ui5_cl_util_func=>user_get_tech( ).
     IF sy-uname <> lv_uname OR lv_uname IS INITIAL.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -402,7 +408,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     TRY.
         z2ui5_cl_util_func=>x_raise( ).
-        cl_abap_unit_assert=>fail(  ).
+        cl_abap_unit_assert=>fail( ).
       CATCH cx_root.
     ENDTRY.
 
@@ -411,15 +417,15 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_x_check_raise.
 
     TRY.
-        z2ui5_cl_util_func=>x_check_raise( when = xsdbool( 1 = 1 ) ).
-        cl_abap_unit_assert=>fail(  ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( 1 = 1 ) ).
+        cl_abap_unit_assert=>fail( ).
       CATCH cx_root.
     ENDTRY.
 
     TRY.
-        z2ui5_cl_util_func=>x_check_raise( when = xsdbool( 1 = 3 ) ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( 1 = 3 ) ).
       CATCH cx_root.
-        cl_abap_unit_assert=>fail(  ).
+        cl_abap_unit_assert=>fail( ).
     ENDTRY.
 
   ENDMETHOD.
@@ -430,42 +436,41 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_trans_json_2_any__w_dref.
 
     DATA(lv_test) = `{ ` &&
-   ` "EDIT": { ` &&
-   `     "DATE": "2023-08-26", ` &&
-   `     "DEC1": -0.3333, ` &&
-   `     "DEC2": 0, ` &&
-   `     "DEC_SUM": -0.3333, ` &&
-   `     "INT1": 0, ` &&
-   `     "INT2": 0, ` &&
-   `     "INT_SUM": 0, ` &&
-   `     "TIME": "12:51:55" ` &&
-   ` }, ` &&
-   ` "oScroll": [], ` &&
-   ` "OMESSAGEMANAGER": [], ` &&
-   ` "ID": "0242B09497911EEE90CFA16736E6EEF8", ` &&
-   ` "ARGUMENTS": [{ ` &&
-   `     "EVENT": "BACK", ` &&
-   `     "METHOD": "UPDATE", ` &&
-   `     "CHECK_VIEW_DESTROY": false ` &&
-   ` }]  ` &&
-   `  }  `.
+      ` "EDIT": { ` &&
+      `     "DATE": "2023-08-26", ` &&
+      `     "DEC1": -0.3333, ` &&
+      `     "DEC2": 0, ` &&
+      `     "DEC_SUM": -0.3333, ` &&
+      `     "INT1": 0, ` &&
+      `     "INT2": 0, ` &&
+      `     "INT_SUM": 0, ` &&
+      `     "TIME": "12:51:55" ` &&
+      ` }, ` &&
+      ` "oScroll": [], ` &&
+      ` "OMESSAGEMANAGER": [], ` &&
+      ` "ID": "0242B09497911EEE90CFA16736E6EEF8", ` &&
+      ` "ARGUMENTS": [{ ` &&
+      `     "EVENT": "BACK", ` &&
+      `     "METHOD": "UPDATE", ` &&
+      `     "CHECK_VIEW_DESTROY": false ` &&
+      ` }]  ` &&
+      `  }  `.
 
     DATA mr_data TYPE REF TO data.
+    FIELD-SYMBOLS <any> TYPE any.
 
     z2ui5_cl_util_func=>trans_json_2_any(
       EXPORTING
         val  = lv_test
       CHANGING
-        data = mr_data
-    ).
+        data = mr_data ).
 
-    FIELD-SYMBOLS <any> TYPE any.
+
     ASSIGN (`MR_DATA->EDIT->TIME->*`) TO <any>.
 
     cl_abap_unit_assert=>assert_equals(
-        act                  =  <any>
-        exp                  =  `12:51:55`
-      ).
+        act = <any>
+        exp = `12:51:55` ).
 
   ENDMETHOD.
 
@@ -488,7 +493,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_json) = z2ui5_cl_util_func=>trans_json_by_any( ls_row ).
 
     IF lv_json IS INITIAL.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -519,7 +524,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                    ( title = 'Test2' value = 'this is a new descr'   selected = abap_false ) ).
 
     IF lt_tab <> lt_tab2.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -530,7 +535,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_url) = z2ui5_cl_util_func=>url_param_create_url( lt_param ).
 
     IF lv_url <> `sap-client=100&app_start=z2ui5_cl_app_hello_world`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -542,7 +547,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         url = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
     IF lv_param <> `z2ui5_cl_app_hello_world`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -551,11 +556,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lt_param) = z2ui5_cl_util_func=>url_param_get_tab( `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
     IF lt_param[ n = `sap-client` ]-v <> `100`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
     IF lt_param[ n = `app_start` ]-v <> `z2ui5_cl_app_hello_world`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -568,7 +573,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
          url   = `https://url.com/rvice_for_ui?sap-client=100&app_start=z2ui5_cl_app_hello_world` ).
 
     IF lv_param <> `sap-client=100&app_start=z2ui5_cl_app_hello_world2`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
@@ -576,21 +581,20 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_x_check_raise_not.
 
     TRY.
-        z2ui5_cl_util_func=>x_check_raise( when = xsdbool( 1 = 2 ) ).
+        z2ui5_cl_util_func=>x_check_raise( xsdbool( 1 = 2 ) ).
 
       CATCH z2ui5_cx_util_error.
-        cl_abap_unit_assert=>fail(  ).
+        cl_abap_unit_assert=>fail( ).
     ENDTRY.
   ENDMETHOD.
 
   METHOD test_rtti_get_type_name.
 
     DATA(lv_xsdbool) = VALUE xsdboolean( ).
-    DATA(lv_name) = z2ui5_cl_util_func=>rtti_get_type_name( lv_xsdbool  ).
+    DATA(lv_name) = z2ui5_cl_util_func=>rtti_get_type_name( lv_xsdbool ).
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_name
-        exp                  =  `XSDBOOLEAN`
-     ).
+        act = lv_name
+        exp = `XSDBOOLEAN` ).
 
   ENDMETHOD.
 
@@ -598,36 +602,34 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_string) = VALUE string( ).
 
-    DATA(lv_type_kind) = z2ui5_cl_util_func=>rtti_get_type_kind( lv_string  ).
-    cl_abap_unit_assert=>assert_equals(
-        act                  = lv_type_kind
-        exp                  =  cl_abap_typedescr=>typekind_string
-     ).
-
+    DATA(lv_type_kind) = z2ui5_cl_util_func=>rtti_get_type_kind( lv_string ).
     DATA lr_string TYPE REF TO string.
-    CREATE DATA lr_string.
-    lv_type_kind = z2ui5_cl_util_func=>rtti_get_type_kind( lr_string  ).
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_type_kind
-        exp                  = cl_abap_typedescr=>typekind_dref
-    ).
+        act = lv_type_kind
+        exp = cl_abap_typedescr=>typekind_string ).
+
+
+    CREATE DATA lr_string.
+    lv_type_kind = z2ui5_cl_util_func=>rtti_get_type_kind( lr_string ).
+    cl_abap_unit_assert=>assert_equals(
+        act = lv_type_kind
+        exp = cl_abap_typedescr=>typekind_dref ).
 
   ENDMETHOD.
 
   METHOD test_rtti_check_type_kind.
 
     DATA(lv_string) = VALUE string( ).
-    cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>rtti_check_type_kind_dref( lv_string )
-        exp                  =  abap_false
-     ).
-
     DATA lr_string TYPE REF TO string.
+    cl_abap_unit_assert=>assert_equals(
+        act = z2ui5_cl_util_func=>rtti_check_type_kind_dref( lv_string )
+        exp = abap_false ).
+
+
     CREATE DATA lr_string.
     cl_abap_unit_assert=>assert_equals(
-        act                  = z2ui5_cl_util_func=>rtti_check_type_kind_dref( lr_string )
-        exp                  =  abap_true
-     ).
+        act = z2ui5_cl_util_func=>rtti_check_type_kind_dref( lr_string )
+        exp = abap_true ).
 
   ENDMETHOD.
 
@@ -673,7 +675,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(ls_row) = VALUE ty_row( ).
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( ls_row  ).
+    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( ls_row ).
 
     IF lines( lt_comp ) <> 7.
       cl_abap_unit_assert=>fail( ).
@@ -722,9 +724,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     z2ui5_cl_util_func=>trans_xml_2_any(
       EXPORTING
         xml = lv_xml
-     IMPORTING
-        any = lo_obj
-    ).
+      IMPORTING
+        any = lo_obj ).
 
     IF lo_obj IS NOT BOUND.
       cl_abap_unit_assert=>fail( ).
@@ -778,14 +779,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     z2ui5_cl_util_func=>trans_xml_2_any(
       EXPORTING
         xml = lv_xml
-     IMPORTING
-        any = ls_row2
-    ).
+      IMPORTING
+        any = ls_row2 ).
 
     cl_abap_unit_assert=>assert_equals(
-        act  = ls_row
-        exp  = ls_row2
-    ).
+        act = ls_row
+        exp = ls_row2 ).
 
   ENDMETHOD.
 
@@ -793,27 +792,23 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lv_result) = z2ui5_cl_util_func=>c_replace_assign_struc( `MO_APP->MS_STRUC->*`).
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_result
-        exp                  = 'MO_APP->MS_STRUC->'
-     ).
+        act = lv_result
+        exp = 'MO_APP->MS_STRUC->' ).
 
     DATA(lv_result2) = z2ui5_cl_util_func=>c_replace_assign_struc( `MO_APP->MS_STRUC-MS_STRUC->*`).
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_result2
-        exp                  = 'MO_APP->MS_STRUC-MS_STRUC->'
-     ).
+        act = lv_result2
+        exp = 'MO_APP->MS_STRUC-MS_STRUC->' ).
 
     DATA(lv_result3) = z2ui5_cl_util_func=>c_replace_assign_struc( `*MO_APP->*MS_STRUC->*`).
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_result3
-        exp                  = `*MO_APP->*MS_STRUC->`
-     ).
+        act = lv_result3
+        exp = `*MO_APP->*MS_STRUC->` ).
 
     DATA(lv_result4) = z2ui5_cl_util_func=>c_replace_assign_struc( `*MO_APP->*MS_STRUC`).
     cl_abap_unit_assert=>assert_equals(
-        act                  = lv_result4
-        exp                  = `*MO_APP->*MS_STRUC-`
-     ).
+        act = lv_result4
+        exp = `*MO_APP->*MS_STRUC-` ).
 
   ENDMETHOD.
 
@@ -823,7 +818,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     IF z2ui5_cl_util_func=>c_trim( |{ cl_abap_char_utilities=>horizontal_tab }|
                                 && |JsadfHHs|
                                 && |{ cl_abap_char_utilities=>horizontal_tab }| ) <> `JsadfHHs`.
-      cl_abap_unit_assert=>fail(  ).
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.

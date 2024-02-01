@@ -223,8 +223,10 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
     "( n = lv_n ns  = lv_ns ).
 
     IF check_popup = abap_false.
-      result->_add_p( n = `displayBlock`  v = `true` ).
-      result->_add_p( n = `height`  v = `100%` ).
+      result->_add_p( n = `displayBlock`
+                      v = `true` ).
+      result->_add_p( n = `height`
+                      v = `100%` ).
     ENDIF.
 
     result->_node->mt_ns   = result->_node->mo_root->mt_ns.

@@ -32,7 +32,8 @@ CLASS z2ui5_cl_fw_app_error IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
-    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname sub = ` ` ).
+    DATA(lv_url) = shift_left( val = client->get( )-s_config-origin && client->get( )-s_config-pathname
+                               sub = ` ` ).
     DATA(lv_url_app) = lv_url && client->get( )-s_config-search.
 
     DATA(lv_text) = ``.

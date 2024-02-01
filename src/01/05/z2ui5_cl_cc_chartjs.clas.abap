@@ -659,45 +659,45 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
     result = `debugger;` && |\n| &&
-    `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
-    `   "sap/ui/core/Control",` && |\n|  &&
-    `], function (Control) {` && |\n|  &&
-    `   "use strict";` && |\n|  &&
-    |\n|  &&
-    `   return Control.extend("z2ui5.chartjs", {` && |\n|  &&
-    `       metadata: {` && |\n|  &&
-    `           properties: {` && |\n|  &&
-    `               config: { ` && |\n|  &&
-    `                 type: "Array" ` && |\n|  &&
-    `               },` && |\n|  &&
-    `               canvas_id: {` && |\n| &&
-    `                  type: "string",` && |\n| &&
-    `                  defaultValue: ""` && |\n| &&
-    `               },` && |\n| &&
-    `               width: {` && |\n| &&
-    `                  type: "string",` && |\n| &&
-    `                  defaultValue: ""` && |\n| &&
-    `               },` && |\n| &&
-    `               height: {` && |\n| &&
-    `                  type: "string",` && |\n| &&
-    `                  defaultValue: ""` && |\n| &&
-    `               },` && |\n| &&
-    `               style: {` && |\n| &&
-    `                  type: "string",` && |\n| &&
-    `                  defaultValue: ""` && |\n| &&
-    `               },` && |\n| &&
-    `               view: {` && |\n| &&
-    `                  type: "string",` && |\n| &&
-    `                  defaultValue: ""` && |\n| &&
-    `               }` && |\n| &&
-    `           }` && |\n| &&
-    `       },` && |\n|  &&
-    `       init() {` && |\n|  &&
-    `       },` && |\n|  &&
-    |\n|  &&
-    `       setConfig: function(oConfig) { ` && |\n|  &&
-    `         var canvas_id = this.getProperty("canvas_id");` && |\n|  &&
-    `         var cVar = canvas_id+'_chartjs'; ` && |\n|  &&
+      `sap.ui.define("z2ui5/chartjs", [` && |\n| &&
+      `   "sap/ui/core/Control",` && |\n| &&
+      `], function (Control) {` && |\n| &&
+      `   "use strict";` && |\n| &&
+      |\n| &&
+      `   return Control.extend("z2ui5.chartjs", {` && |\n| &&
+      `       metadata: {` && |\n| &&
+      `           properties: {` && |\n| &&
+      `               config: { ` && |\n| &&
+      `                 type: "Array" ` && |\n| &&
+      `               },` && |\n| &&
+      `               canvas_id: {` && |\n| &&
+      `                  type: "string",` && |\n| &&
+      `                  defaultValue: ""` && |\n| &&
+      `               },` && |\n| &&
+      `               width: {` && |\n| &&
+      `                  type: "string",` && |\n| &&
+      `                  defaultValue: ""` && |\n| &&
+      `               },` && |\n| &&
+      `               height: {` && |\n| &&
+      `                  type: "string",` && |\n| &&
+      `                  defaultValue: ""` && |\n| &&
+      `               },` && |\n| &&
+      `               style: {` && |\n| &&
+      `                  type: "string",` && |\n| &&
+      `                  defaultValue: ""` && |\n| &&
+      `               },` && |\n| &&
+      `               view: {` && |\n| &&
+      `                  type: "string",` && |\n| &&
+      `                  defaultValue: ""` && |\n| &&
+      `               }` && |\n| &&
+      `           }` && |\n| &&
+      `       },` && |\n| &&
+      `       init() {` && |\n| &&
+      `       },` && |\n| &&
+      |\n| &&
+      `       setConfig: function(oConfig) { ` && |\n| &&
+      `         var canvas_id = this.getProperty("canvas_id");` && |\n| &&
+      `         var cVar = canvas_id+'_chartjs'; ` && |\n| &&
 *    `         var cType = oConfig.type;` && |\n|  &&
 *    `         if(cType == 'venn') {` && |\n|  &&
 *    `           var tConfig = JSON.stringify(oConfig);` && |\n|  &&
@@ -706,43 +706,43 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 *    `         } else {` && |\n|  &&
 *    `           this.setProperty("config", oConfig );` && |\n|  &&
 *    `         };` && |\n|  &&
-    `         var tConfig = JSON.stringify(oConfig);` && |\n|  &&
-    `         tConfig = tConfig.replace("dataVenn","data");` && |\n|  &&
-    `         tConfig = tConfig.replace("scaleid","scaleID");` && |\n|  &&
-    `         tConfig = tConfig.replaceAll("xScaleid","xScaleID");` && |\n|  &&
-    `         tConfig = tConfig.replaceAll("yScaleid","yScaleID");` && |\n|  &&
-    `         tConfig = tConfig.replaceAll("dataXYR","data");` && |\n|  &&
-    `         oConfig = JSON.parse(tConfig);` && |\n|  &&
-    `         this.setProperty("config", oConfig );` && |\n|  &&
-    `         if(oConfig){ fixJsonLibs(oConfig); };` && |\n|  &&
-    `         if(window[cVar]?.data) { window[cVar].data = oConfig.data; }` && |\n|  &&
-    `         if(window[cVar]?.options) { window[cVar].options = oConfig.options; }` && |\n|  &&
-    `         if(window[cVar]?.config._config.type) { window[cVar].config._config.type = oConfig.type; }` && |\n|  &&
-    `         if(window[cVar]){ window[cVar].update(); }` && |\n|  &&
-    `       },` && |\n|  &&
-    |\n|  &&
-    `       renderer(oRm, oControl) {` && |\n|  &&
-    `         var canvas_id = oControl.getProperty("canvas_id");` && |\n|  &&
-    `         var width = oControl.getProperty("width");` && |\n|  &&
-    `         var height = oControl.getProperty("height");` && |\n|  &&
-    `         var style = oControl.getProperty("style");` && |\n|  &&
-    `         oRm.write( "&lt;canvas id='" + canvas_id + "' width='" + width + "' height='" + height + "' style = '" + style + "' /&gt;");` && |\n|  &&
-    |\n|  &&
-    `         var Model = oControl.getProperty("config");` && |\n|  &&
-    `         if(!Model ) { return; };` && |\n|  &&
-    `         var cVar = canvas_id+'_chartjs'; ` && |\n|  &&
-    `         setTimeout( (oControl) => { ` && |\n|  &&
-    |\n|  &&
-    `             var ctx = document.getElementById(canvas_id); ` && |\n|  &&
-    `             sap.z2ui5.autocolors = {}; try { sap.z2ui5.autocolors = window['chartjs-plugin-autocolors']; } catch (err){};` && |\n|  &&
-    `             sap.z2ui5.ChartDeferred = {}; try { sap.z2ui5.ChartDeferred = window['chartjs-plugin-deferred']; } catch (err){};` && |\n|  &&
-    `             window[cVar] = new Chart( ctx, Model );` && |\n|  &&
-    `   ` && |\n|  &&
-    `         }, 150 , oControl );` && |\n|  &&
-    `       },` && |\n|  &&
-    |\n|  &&
-    `   });`  && |\n|  &&
-    `});`.
+      `         var tConfig = JSON.stringify(oConfig);` && |\n| &&
+      `         tConfig = tConfig.replace("dataVenn","data");` && |\n| &&
+      `         tConfig = tConfig.replace("scaleid","scaleID");` && |\n| &&
+      `         tConfig = tConfig.replaceAll("xScaleid","xScaleID");` && |\n| &&
+      `         tConfig = tConfig.replaceAll("yScaleid","yScaleID");` && |\n| &&
+      `         tConfig = tConfig.replaceAll("dataXYR","data");` && |\n| &&
+      `         oConfig = JSON.parse(tConfig);` && |\n| &&
+      `         this.setProperty("config", oConfig );` && |\n| &&
+      `         if(oConfig){ fixJsonLibs(oConfig); };` && |\n| &&
+      `         if(window[cVar]?.data) { window[cVar].data = oConfig.data; }` && |\n| &&
+      `         if(window[cVar]?.options) { window[cVar].options = oConfig.options; }` && |\n| &&
+      `         if(window[cVar]?.config._config.type) { window[cVar].config._config.type = oConfig.type; }` && |\n| &&
+      `         if(window[cVar]){ window[cVar].update(); }` && |\n| &&
+      `       },` && |\n| &&
+      |\n| &&
+      `       renderer(oRm, oControl) {` && |\n| &&
+      `         var canvas_id = oControl.getProperty("canvas_id");` && |\n| &&
+      `         var width = oControl.getProperty("width");` && |\n| &&
+      `         var height = oControl.getProperty("height");` && |\n| &&
+      `         var style = oControl.getProperty("style");` && |\n| &&
+      `         oRm.write( "&lt;canvas id='" + canvas_id + "' width='" + width + "' height='" + height + "' style = '" + style + "' /&gt;");` && |\n| &&
+      |\n| &&
+      `         var Model = oControl.getProperty("config");` && |\n| &&
+      `         if(!Model ) { return; };` && |\n| &&
+      `         var cVar = canvas_id+'_chartjs'; ` && |\n| &&
+      `         setTimeout( (oControl) => { ` && |\n| &&
+      |\n| &&
+      `             var ctx = document.getElementById(canvas_id); ` && |\n| &&
+      `             sap.z2ui5.autocolors = {}; try { sap.z2ui5.autocolors = window['chartjs-plugin-autocolors']; } catch (err){};` && |\n| &&
+      `             sap.z2ui5.ChartDeferred = {}; try { sap.z2ui5.ChartDeferred = window['chartjs-plugin-deferred']; } catch (err){};` && |\n| &&
+      `             window[cVar] = new Chart( ctx, Model );` && |\n| &&
+      `   ` && |\n| &&
+      `         }, 150 , oControl );` && |\n| &&
+      `       },` && |\n| &&
+      |\n| &&
+      `   });`  && |\n| &&
+      `});`.
   ENDMETHOD.
 
 

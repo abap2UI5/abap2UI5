@@ -470,13 +470,13 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     CASE val.
       WHEN 'ABAP_BOOL'
-      OR 'XSDBOOLEAN'
-      OR 'FLAG'
-      OR 'XFLAG'
-      OR 'XFELD'
-      OR 'ABAP_BOOLEAN'
-      OR 'WDY_BOOLEAN'
-      OR 'OS_BOOLEAN'.
+          OR 'XSDBOOLEAN'
+          OR 'FLAG'
+          OR 'XFLAG'
+          OR 'XFELD'
+          OR 'ABAP_BOOLEAN'
+          OR 'WDY_BOOLEAN'
+          OR 'OS_BOOLEAN'.
         result = abap_true.
     ENDCASE.
 
@@ -636,8 +636,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
   METHOD c_trim.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
-    result = shift_right( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
-    result = shift_left( val = result sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_right( val = result
+                          sub = cl_abap_char_utilities=>horizontal_tab ).
+    result = shift_left( val = result
+                         sub = cl_abap_char_utilities=>horizontal_tab ).
     result = shift_left( shift_right( result ) ).
 
   ENDMETHOD.
@@ -662,13 +664,13 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
 
     SELECT data
-    FROM z2ui5_t_fw_02
+      FROM z2ui5_t_fw_02
        WHERE
         uname = @uname
         AND handle = @handle
         AND handle2 = @handle2
         AND handle3 = @handle3
-     INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+      INTO CORRESPONDING FIELDS OF TABLE @lt_db.
 
     DATA(ls_db) = lt_db[ 1 ].
 
@@ -676,8 +678,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
       EXPORTING
         xml = ls_db-data
       IMPORTING
-        any = result
-    ).
+        any = result ).
 
   ENDMETHOD.
 
@@ -687,9 +688,9 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_fw_02 WITH EMPTY KEY.
 
     SELECT data
-    FROM z2ui5_t_fw_02
-    WHERE id = @id
-    INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+      FROM z2ui5_t_fw_02
+      WHERE id = @id
+      INTO CORRESPONDING FIELDS OF TABLE @lt_db.
 
     DATA(ls_db) = lt_db[ 1 ].
 
@@ -697,8 +698,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
       EXPORTING
         xml = ls_db-data
       IMPORTING
-        any = result
-    ).
+        any = result ).
 
   ENDMETHOD.
 
@@ -711,8 +711,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
         handle  = handle
         handle2 = handle2
         handle3 = handle3
-        data    = trans_xml_by_any( data )
-    ).
+        data    = trans_xml_by_any( data ) ).
 
     MODIFY z2ui5_t_fw_02 FROM @ls_db.
 
@@ -740,7 +739,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     CASE value(1).
 
       WHEN `=`.
-        result = VALUE #(  sign = `I` option = `EQ` low = value+1 ).
+        result = VALUE #( sign = `I` option = `EQ` low = value+1 ).
       WHEN `<`.
         IF value+1(1) = `=`.
           result = VALUE #( sign = `I` option = `LE` low = value+2 ).
@@ -786,17 +785,16 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
   METHOD filter_get_token_range_mapping.
 
     result = VALUE #(
-(   n = `EQ`     v = `={LOW}`    )
-(   n = `LT`     v = `<{LOW}`   )
-(   n = `LE`     v = `<={LOW}`  )
-(   n = `GT`     v = `>{LOW}`   )
-(   n = `GE`     v = `>={LOW}`  )
-(   n = `CP`     v = `*{LOW}*`  )
-(   n = `BT`     v = `{LOW}...{HIGH}` )
-(   n = `NE`     v = `!(={LOW})`    )
-(   n = `NE`     v = `!(<leer>)`    )
-(   n = `<leer>` v = `<leer>`    )
-).
+      (   n = `EQ`     v = `={LOW}` )
+      (   n = `LT`     v = `<{LOW}` )
+      (   n = `LE`     v = `<={LOW}` )
+      (   n = `GT`     v = `>{LOW}` )
+      (   n = `GE`     v = `>={LOW}` )
+      (   n = `CP`     v = `*{LOW}*` )
+      (   n = `BT`     v = `{LOW}...{HIGH}` )
+      (   n = `NE`     v = `!(={LOW})` )
+      (   n = `NE`     v = `!(<leer>)` )
+      (   n = `<leer>` v = `<leer>` ) ).
 
   ENDMETHOD.
 
@@ -844,9 +842,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
   METHOD itab_get_csv_by_itab.
 
     FIELD-SYMBOLS <tab> TYPE table.
+
     ASSIGN val TO <tab>.
 
-    DATA lr_row TYPE REF TO data.
+
 
     DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
 
@@ -858,6 +857,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     result = result && cl_abap_char_utilities=>cr_lf.
 
+    data lr_row type ref to data.
     LOOP AT <tab> REFERENCE INTO lr_row.
 
       DATA(lv_index) = 1.
@@ -877,14 +877,17 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD itab_get_itab_by_csv.
+    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+    DATA lr_row TYPE REF TO data.
 
     SPLIT val AT cl_abap_char_utilities=>newline INTO TABLE DATA(lt_rows).
     SPLIT lt_rows[ 1 ] AT ';' INTO TABLE DATA(lt_cols).
 
-    DATA lt_comp TYPE cl_abap_structdescr=>component_table.
+
     LOOP AT lt_cols REFERENCE INTO DATA(lr_col).
 
-      DATA(lv_name) =  c_trim_upper( lr_col->* ).
+      DATA(lv_name) = c_trim_upper( lr_col->* ).
       REPLACE ` ` IN lv_name WITH `_`.
 
       INSERT VALUE #( name = lv_name type = cl_abap_elemdescr=>get_c( 40 ) ) INTO TABLE lt_comp.
@@ -897,7 +900,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
           p_unique     = abap_false ).
 
     CREATE DATA result TYPE HANDLE o_table_desc.
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+
     ASSIGN result->* TO <tab>.
 
     DELETE lt_rows WHERE table_line IS INITIAL.
@@ -905,7 +908,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
 
       SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
-      DATA lr_row TYPE REF TO data.
+
       CREATE DATA lr_row TYPE HANDLE struc.
 
       LOOP AT lt_cols REFERENCE INTO lr_col.
@@ -924,10 +927,9 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     cl_abap_classdescr=>describe_by_name(
        EXPORTING
-           p_name = val
+           p_name      = val
        EXCEPTIONS
-        type_not_found = 1
-        ).
+        type_not_found = 1 ).
     IF sy-subrc = 0.
       result = abap_true.
     ENDIF.
@@ -966,17 +968,29 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD rtti_get_classes_impl_intf.
+    DATA obj TYPE REF TO object.
+    FIELD-SYMBOLS <any> TYPE any.
+    DATA lt_implementation_names TYPE string_table.
+    TYPES BEGIN OF ty_s_impl.
+    TYPES clsname TYPE c LENGTH 30.
+    TYPES refclsname TYPE c LENGTH 30.
+    TYPES END OF ty_s_impl.
+    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
+    TYPES BEGIN OF ty_s_key.
+    TYPES intkey TYPE c LENGTH 30.
+    TYPES END OF ty_s_key.
+    DATA ls_key TYPE ty_s_key.
 
     TRY.
 
-        DATA obj TYPE REF TO object.
+
         CALL METHOD ('XCO_CP_ABAP')=>interface
           EXPORTING
             iv_name      = val
           RECEIVING
             ro_interface = obj.
 
-        FIELD-SYMBOLS <any> TYPE any.
+
         ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
         IF sy-subrc <> 0.
           RAISE EXCEPTION TYPE cx_sy_dyn_call_illegal_class.
@@ -991,7 +1005,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
         CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET').
 
-        DATA lt_implementation_names TYPE string_table.
+
         CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
           RECEIVING
             rt_names = lt_implementation_names.
@@ -1000,18 +1014,11 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
       CATCH cx_sy_dyn_call_illegal_class.
 
-        TYPES:
-          BEGIN OF ty_s_impl,
-            clsname    TYPE c LENGTH 30,
-            refclsname TYPE c LENGTH 30,
-          END OF ty_s_impl.
-        DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
 
-        TYPES:
-          BEGIN OF ty_s_key,
-            intkey TYPE c LENGTH 30,
-          END OF ty_s_key.
-        DATA ls_key TYPE ty_s_key.
+
+
+
+
         ls_key-intkey = val.
 
         DATA(lv_fm) = `SEO_INTERFACE_IMPLEM_GET_ALL`.
@@ -1095,11 +1102,11 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     DATA(lv_types) = `abap, abc, actionscript, ada, apache_conf, applescript, asciidoc, assembly_x86, autohotkey, batchfile, bro, c9search, c_cpp, cirru, clojure, cobol, coffee, coldfusion, csharp, css, curly, d, dart, diff, django, dockerfile, ` &&
 `dot, drools, eiffel, yaml, ejs, elixir, elm, erlang, forth, fortran, ftl, gcode, gherkin, gitignore, glsl, gobstones, golang, groovy, haml, handlebars, haskell, haskell_cabal, haxe, hjson, html, html_elixir, html_ruby, ini, io, jack, jade, java, ja` &&
-`vascri` &&
+      `vascri` &&
 `pt, json, jsoniq, jsp, jsx, julia, kotlin, latex, lean, less, liquid, lisp, live_script, livescript, logiql, lsl, lua, luapage, lucene, makefile, markdown, mask, matlab, mavens_mate_log, maze, mel, mips_assembler, mipsassembler, mushcode, mysql, ni` &&
 `x, nsis, objectivec, ocaml, pascal, perl, pgsql, php, plain_text, powershell, praat, prolog, properties, protobuf, python, r, razor, rdoc, rhtml, rst, ruby, rust, sass, scad, scala, scheme, scss, sh, sjs, smarty, snippets, soy_template, space, sql,` &&
-` sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,` &&
-` csp, cssound_score, cssound_orchestra, cssound_document`.
+      ` sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,` &&
+      ` csp, cssound_score, cssound_orchestra, cssound_document`.
     SPLIT lv_types AT ',' INTO TABLE result.
 
   ENDMETHOD.
@@ -1111,11 +1118,13 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     DATA lt_source TYPE string_table.
     DATA lt_string TYPE string_table.
 
+
+
     TRY.
-        DATA lv_class TYPE c LENGTH 30.
-        DATA lv_method TYPE c LENGTH 61.
-        lv_class  = to_upper( iv_classname ).
-        lv_method = to_upper( iv_methodname ).
+
+
+        DATA(lv_class)  = to_upper( iv_classname ).
+        DATA(lv_method) = to_upper( iv_methodname ).
 
         CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
           EXPORTING
@@ -1228,7 +1237,8 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD time_substract_seconds.
-    result = cl_abap_tstmp=>subtractsecs( tstmp = time secs  = seconds ).
+    result = cl_abap_tstmp=>subtractsecs( tstmp = time
+                                          secs  = seconds ).
   ENDMETHOD.
 
 
@@ -1239,7 +1249,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
             json         = CONV string( val )
             assoc_arrays = abap_true
         CHANGING
-            data = data ).
+            data         = data ).
 
   ENDMETHOD.
 
@@ -1251,22 +1261,22 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
       WHEN z2ui5_if_client=>cs_compress_mode-full.
 
         result = /ui2/cl_json=>serialize(
-          data             = any
-          compress         = abap_true
-          pretty_name      = pretty_mode ).
+          data        = any
+          compress    = abap_true
+          pretty_name = pretty_mode ).
 
       WHEN z2ui5_if_client=>cs_compress_mode-none.
 
         result = /ui2/cl_json=>serialize(
-         data             = any
-         compress         = abap_false
-         pretty_name      = pretty_mode ).
+          data        = any
+          compress    = abap_false
+          pretty_name = pretty_mode ).
 
       WHEN OTHERS.
 
         DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
-        compress    = abap_true
-        pretty_name = pretty_mode ).
+          compress    = abap_true
+          pretty_name = pretty_mode ).
 
         result = lo_json->serialize_int( any ).
 
@@ -1278,6 +1288,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
   METHOD trans_ref_struc_2_struc.
 
     FIELD-SYMBOLS <ls_from> TYPE any.
+    FIELD-SYMBOLS <comp_from_deref> TYPE any.
 
     ASSIGN ir_struc_from->* TO <ls_from>.
     x_check_raise( xsdbool( sy-subrc <> 0 ) ).
@@ -1299,7 +1310,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
       IF sy-subrc <> 0.
         CONTINUE.
       ENDIF.
-      FIELD-SYMBOLS <comp_from_deref> TYPE any.
+
       ASSIGN <comp_from>->* TO <comp_from_deref>.
       DATA(lv_type_kind) = rtti_get_type_kind( <comp_to> ).
 
@@ -1311,10 +1322,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>typekind_table.
           trans_ref_tab_2_tab(
-         EXPORTING
+            EXPORTING
              ir_tab_from = <comp_from>
              pretty_name = pretty_name
-         IMPORTING
+            IMPORTING
              t_result    = <comp_to> ).
 
         WHEN cl_abap_typedescr=>typekind_struct1 OR cl_abap_typedescr=>typekind_struct2.
@@ -1323,7 +1334,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
                 ir_struc_from = <comp_from>
                 pretty_name   = pretty_name
             IMPORTING
-                r_result    = <comp_to> ).
+                r_result      = <comp_to> ).
 
         WHEN OTHERS.
           <comp_to> = <comp_from_deref>.
@@ -1338,6 +1349,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     TYPES ty_t_ref TYPE STANDARD TABLE OF REF TO data.
     FIELD-SYMBOLS <lt_from> TYPE ty_t_ref.
+    DATA lr_row TYPE REF TO data.
+    FIELD-SYMBOLS <comp> TYPE data.
+    FIELD-SYMBOLS <comp_ui5> TYPE data.
+    DATA match TYPE i.
 
     ASSIGN ir_tab_from->* TO <lt_from>.
     x_check_raise( xsdbool( sy-subrc <> 0 ) ).
@@ -1356,7 +1371,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     LOOP AT <lt_from> INTO DATA(lr_from).
 
-      DATA lr_row TYPE REF TO data.
+
       CREATE DATA lr_row TYPE HANDLE lo_struc.
       ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
 
@@ -1365,7 +1380,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
       ENDIF.
 
       ASSIGN lr_from->* TO FIELD-SYMBOL(<row_ui5>).
-      x_check_raise( when = xsdbool( sy-subrc <> 0 ) ).
+      x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
       DATA(lt_components_dissolved) = lt_components.
       CLEAR lt_components_dissolved.
@@ -1384,14 +1399,14 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
       LOOP AT lt_components_dissolved INTO ls_comp.
         TRY.
 
-            FIELD-SYMBOLS <comp> TYPE data.
+
             ASSIGN COMPONENT ls_comp-name OF STRUCTURE <row> TO <comp>.
 
             IF sy-subrc <> 0.
               CONTINUE.
             ENDIF.
 
-            FIELD-SYMBOLS <comp_ui5> TYPE data.
+
             IF pretty_name = abap_true.
               REPLACE ALL OCCURRENCES OF `_` IN ls_comp-name  WITH ``.
             ENDIF.
@@ -1416,23 +1431,23 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
                   trans_ref_struc_2_struc(
                     EXPORTING
                         ir_struc_from = <comp_ui5>
-                        pretty_name = pretty_name
+                        pretty_name   = pretty_name
                     IMPORTING
-                        r_result    = <comp> ).
+                        r_result      = <comp> ).
                 WHEN cl_abap_typedescr=>kind_elem.
                   CASE ls_comp-type->absolute_name.
                     WHEN `\TYPE=D`.
-                      DATA match TYPE i.
+
                       " support for ISO8601 => https://en.wikipedia.org/wiki/ISO_8601
                       REPLACE FIRST OCCURRENCE OF REGEX `^(\d{4})-(\d{2})-(\d{2})` IN <ls_data_ui5> WITH `$1$2$3`
-                      REPLACEMENT LENGTH match.             "#EC NOTEXT
+                        REPLACEMENT LENGTH match.             "#EC NOTEXT
                       <comp> = <ls_data_ui5>.
 
                     WHEN `\TYPE=T`.
 
                       " support for ISO8601 => https://en.wikipedia.org/wiki/ISO_8601
                       REPLACE FIRST OCCURRENCE OF REGEX `^(\d{2}):(\d{2}):(\d{2})` IN <ls_data_ui5> WITH `$1$2$3`
-                      REPLACEMENT LENGTH match.             "#EC NOTEXT
+                        REPLACEMENT LENGTH match.             "#EC NOTEXT
                       <comp> = <ls_data_ui5>.
 
                     WHEN OTHERS.
@@ -1454,8 +1469,11 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD trans_srtti_xml_2_data.
+    DATA srtti TYPE REF TO object.
+    DATA rtti_type TYPE REF TO cl_abap_typedescr.
+    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
 
-*    TRY.
+
 
     IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
 
@@ -1469,38 +1487,30 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     ENDIF.
 
-    DATA srtti TYPE REF TO object.
+
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
 
-    DATA rtti_type TYPE REF TO cl_abap_typedescr.
+
     CALL METHOD srtti->('GET_RTTI')
       RECEIVING
         rtti = rtti_type.
 
-    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
+
     lo_datadescr ?= rtti_type.
 
     CREATE DATA e_data TYPE HANDLE lo_datadescr.
     ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
 
-*      CATCH cx_root.
-*
-*        DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-*        DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` && lv_link && `" style="color:blue; font-weight:600;">(link)</a></p>`.
-*
-*        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*          EXPORTING
-*            val = lv_text.
-*
-*    ENDTRY.
+
 
   ENDMETHOD.
 
 
   METHOD trans_srtti_xml_by_data.
+    DATA srtti TYPE REF TO object.
 
-*    TRY.
+
 
     IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
 
@@ -1514,7 +1524,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     ENDIF.
 
-    DATA srtti TYPE REF TO object.
+
 
     CALL METHOD ('ZCL_SRTTI_TYPEDESCR')=>('CREATE_BY_DATA_OBJECT')
       EXPORTING
@@ -1524,11 +1534,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     CALL TRANSFORMATION id SOURCE srtti = srtti dobj = data RESULT XML result.
 
-*      CATCH cx_root.
-*
-*
-*
-*    ENDTRY.
+
 
   ENDMETHOD.
 
@@ -1557,7 +1563,8 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
     LOOP AT t_params INTO DATA(ls_param).
       result = result && ls_param-n && `=` && ls_param-v && `&`.
     ENDLOOP.
-    result = shift_right( val = result  sub = `&` ).
+    result = shift_right( val = result
+                          sub = `&` ).
 
   ENDMETHOD.
 
@@ -1573,15 +1580,20 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
   METHOD url_param_get_tab.
 
-    DATA(lv_search) = replace( val  = i_val sub  = `%3D` with = '=' occ  = 0 ).
-    lv_search = shift_left( val = lv_search sub = `?` ).
+    DATA(lv_search) = replace( val  = i_val
+                               sub  = `%3D`
+                               with = '='
+                               occ  = 0 ).
+    lv_search = shift_left( val = lv_search
+                            sub = `?` ).
     lv_search = c_trim_lower( lv_search ).
 
     DATA(lv_search2) = substring_after( val = lv_search
                                         sub = `&sap-startup-params=` ).
     lv_search = COND #( WHEN lv_search2 IS NOT INITIAL THEN lv_search2 ELSE lv_search ).
 
-    lv_search2 = substring_after( val = c_trim_lower( lv_search ) sub = `?` ).
+    lv_search2 = substring_after( val = c_trim_lower( lv_search )
+                                  sub = `?` ).
     IF lv_search2 IS NOT INITIAL.
       lv_search = lv_search2.
     ENDIF.
@@ -1620,9 +1632,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD uuid_get_c22.
+    DATA uuid TYPE c LENGTH 22.
 
     TRY.
-        DATA uuid TYPE c LENGTH 22.
+
 
         TRY.
             CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c22
@@ -1644,18 +1657,31 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
         ASSERT 1 = 0.
     ENDTRY.
 
-    result = replace( val = result sub = `}` with = `0` occ = 0 ).
-    result = replace( val = result sub = `{` with = `0` occ = 0 ).
-    result = replace( val = result sub = `"` with = `0` occ = 0 ).
-    result = replace( val = result sub = `'` with = `0` occ = 0 ).
+    result = replace( val  = result
+                      sub  = `}`
+                      with = `0`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `{`
+                      with = `0`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `"`
+                      with = `0`
+                      occ  = 0 ).
+    result = replace( val  = result
+                      sub  = `'`
+                      with = `0`
+                      occ  = 0 ).
 
   ENDMETHOD.
 
 
   METHOD uuid_get_c32.
+    DATA uuid TYPE c LENGTH 32.
 
     TRY.
-        DATA uuid TYPE c LENGTH 32.
+
 
         TRY.
             CALL METHOD (`CL_SYSTEM_UUID`)=>if_system_uuid_static~create_uuid_c32
