@@ -269,8 +269,9 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     row->title( `{NAME}` ).
     row->text( `{DESCR}` ).
     row->text( ).
-    row->checkbox( text     = `Cloud Ready`
-                   selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
+    row->checkbox( text     = `ABAP for Cloud`
+      enabled = abap_false
+                   selected = `{CHECK_ABAP_FOR_CLOUD}` ).
 
     row = item->grid( ).
 *    row = item->hbox( ).
@@ -284,10 +285,14 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                href   = `{LINK}` ).
 
     row->checkbox( text     = `Installed`
-                   selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
-    row->checkbox( text     = `On-Premise since: 7.50`
-                   selected = client->_bind_edit( ms_favrites-check_cloud_ready ) ).
-
+                   selected = `{CHECK_INSTALLED}`
+                   enabled = abap_false
+                   ).
+    row->checkbox( text     = `Standard ABAP (Min. {MIN_RELEASE})`
+                   selected = `{CHECK_STANDARD_ABAP}`
+                   enabled = abap_false
+                   ).
+     row->text( `{DESCR}` ).
 
 *     page_online
 
