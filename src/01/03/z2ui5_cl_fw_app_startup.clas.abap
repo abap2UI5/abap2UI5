@@ -166,12 +166,12 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
     simple_form2->toolbar( )->title( `Contribution` ).
     simple_form2->label( `Open an issue` ).
-    simple_form2->link( text = `You have comments, wishes or bugs?`
+    simple_form2->link( text = `You have problems, comments or wishes?`
                  target      = `_blank`
                  href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
     simple_form2->label( `Open a Pull Request` ).
-    simple_form2->link( text = `You added a new feature?`
+    simple_form2->link( text = `You added a new feature or fixed a bug?`
                target        = `_blank`
                href          = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
