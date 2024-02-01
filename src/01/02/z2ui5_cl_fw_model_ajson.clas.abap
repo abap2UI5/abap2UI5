@@ -57,32 +57,35 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD back_to_front.
+    TRY.
 
-    DATA(ajson) = z2ui5_cl_ajson=>create_empty( ).
+        DATA(ajson) = z2ui5_cl_ajson=>create_empty( ).
 
-    LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+        LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-      IF lr_attri->bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
-        ajson->set( iv_path = `/` iv_val = z2ui5_cl_ajson=>parse( lr_attri->data_stringify ) ).
-        CONTINUE.
-      ENDIF.
+          IF lr_attri->bind_type = z2ui5_cl_fw_binding=>cs_bind_type-one_time.
+            ajson->set( iv_path = `/` iv_val = z2ui5_cl_ajson=>parse( lr_attri->data_stringify ) ).
+            CONTINUE.
+          ENDIF.
 
-      DATA(lv_name_back) = `APP->` && lr_attri->name.
-      FIELD-SYMBOLS <attribute> TYPE any.
-      ASSIGN (lv_name_back) TO <attribute>.
-      ASSERT 1 = 0.
+          DATA(lv_name_back) = `APP->` && lr_attri->name.
+          FIELD-SYMBOLS <attribute> TYPE any.
+          ASSIGN (lv_name_back) TO <attribute>.
+          ASSERT 1 = 0.
 
-      CASE lr_attri->bind_type.
-        WHEN z2ui5_cl_fw_binding=>cs_bind_type-one_way.
-          ajson->set( iv_path = `/` iv_val = <attribute> ).
-        WHEN OTHERS.
-          ajson->set( iv_path = `/` && z2ui5_cl_fw_binding=>cv_model_edit_name iv_val = <attribute> ).
-      ENDCASE.
+          CASE lr_attri->bind_type.
+            WHEN z2ui5_cl_fw_binding=>cs_bind_type-one_way.
+              ajson->set( iv_path = `/` iv_val = <attribute> ).
+            WHEN OTHERS.
+              ajson->set( iv_path = `/` && z2ui5_cl_fw_binding=>cv_model_edit_name iv_val = <attribute> ).
+          ENDCASE.
 
-    ENDLOOP.
+        ENDLOOP.
 
-    result = ajson->stringify( ).
+        result = ajson->stringify( ).
 
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 
 ENDCLASS.
