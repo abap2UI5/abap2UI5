@@ -141,7 +141,9 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
 
     simple_form2->toolbar( )->title( `System Information` ).
     simple_form2->label( `abap2UI5 Version` ).
-    simple_form2->text( z2ui5_cl_fw_http_handler=>c_abap_version ).
+    simple_form2->text( z2ui5_if_app=>version ).
+    simple_form2->label( `ABAP for Cloud` ).
+    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util_func=>rtti_check_lang_version_cloud( ) ).
 
     DATA(lv_url_samples2) = z2ui5_cl_util_func=>app_get_url(
                   client    = client
