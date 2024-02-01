@@ -5,6 +5,8 @@ CLASS z2ui5_cl_fw_controller DEFINITION
 
   PUBLIC SECTION.
 
+    CONSTANTS cv_check_ajson TYPE abap_bool VALUE abap_false.
+
     TYPES:
       BEGIN OF ty_s_next2,
         BEGIN OF s_view,
@@ -454,17 +456,30 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
   METHOD app_client_begin_model.
 
-    TRY.
-        DATA(lo_model) = z2ui5_cl_fw_model=>factory(
-          viewname = ms_actual-viewname
-          app      = ms_db-app
-          attri    = ms_db-t_attri ).
+    IF cv_check_ajson = abap_false.
 
-        lo_model->main_set_backend(
-            so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual ).
+      TRY.
+          DATA(lo_model) = z2ui5_cl_fw_model=>factory(
+            viewname = ms_actual-viewname
+            app      = ms_db-app
+            attri    = ms_db-t_attri ).
 
-      CATCH cx_root.
-    ENDTRY.
+          lo_model->main_set_backend(
+              so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual ).
+
+        CATCH cx_root.
+      ENDTRY.
+
+    ELSE.
+
+      z2ui5_cl_fw_model_ajson=>front_to_back(
+         viewname    = ms_actual-viewname
+         app         = ms_db-app
+         t_attri     = ms_db-t_attri
+         json_string = z2ui5_cl_fw_controller=>ss_config-body
+     ).
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -481,12 +496,23 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
   METHOD app_client_end_model.
 
-    DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
-        viewname = ms_actual-viewname
-        app      = ms_db-app
-        attri    = ms_db-t_attri ).
+    IF cv_check_ajson  = abap_false.
 
-    rv_viewmodel  = lo_binder->main_set_frontend( ).
+      DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
+            viewname = ms_actual-viewname
+            app      = ms_db-app
+            attri    = ms_db-t_attri ).
+
+      rv_viewmodel  = lo_binder->main_set_frontend( ).
+
+    ELSE.
+
+      rv_viewmodel = z2ui5_cl_fw_model_ajson=>back_to_front(
+           app     = ms_db-app
+           t_attri = ms_db-t_attri
+       ).
+
+    ENDIF.
 
   ENDMETHOD.
 
