@@ -257,7 +257,7 @@
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
     "use_line_exists": true,
-    "use_new": true,
+    "use_new": false,
     "when_others_last": true,
     "whitespace_end": true,
     "xml_consistency": true,
