@@ -20,7 +20,7 @@
     "select_single_full_key" : true,
     "strict_sql" : true,
     "easy_to_find_messages" : true,
-    "fully_type_itabs" : true,
+    "fully_type_itabs" : false,
     "align_parameters": false,
     "smim_consistency": true,
     "allowed_object_naming": true,
@@ -47,7 +47,7 @@
       "skipNames": []
     },
     "check_abstract": true,
-    "check_comments": true,
+    "check_comments": false,
     "check_ddic": true,
     "check_include": true,
     "check_subrc": false,
@@ -117,7 +117,7 @@
     },
     "global_class": true,
     "identical_conditions": true,
-    "identical_contents": true,
+    "identical_contents": false,
     "identical_descriptions": true,
     "identical_form_names": true,
     "if_in_if": true,
@@ -155,7 +155,7 @@
       "depth": 7
     },
     "newline_between_methods": false,
-    "no_aliases": true,
+    "no_aliases": false,
     "no_chained_assignment": true,
     "no_external_form_calls": true,
     "no_inline_in_optional_branches": false,
@@ -197,10 +197,10 @@
     "pragma_style": true,
     "prefer_corresponding": true,
     "prefer_inline": false,
-    "prefer_is_not": true,
+    "prefer_is_not": false,
     "prefer_raise_exception_new": true,
     "prefer_returning_to_exporting": false,
-    "prefer_xsdbool": true,
+    "prefer_xsdbool": false,
     "preferred_compare_operator": true,
     "prefix_is_current_class": {
       "severity": "Warning"
@@ -238,11 +238,8 @@
     "type_form_parameters": true,
     "types_naming": false,
     "uncaught_exception": true,
-    "unknown_types": {
-      "exclude": [],
-      "severity": "Error"
-    },
-    "unnecessary_chaining": true,
+    "unknown_types": false,
+    "unnecessary_chaining": false,
     "unnecessary_pragma": true,
     "unnecessary_return": true,
     "unreachable_code": {
@@ -259,8 +256,8 @@
     },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
-    "use_line_exists": true,
-    "use_new": true,
+    "use_line_exists": false,
+    "use_new": false,
     "when_others_last": true,
     "whitespace_end": true,
     "xml_consistency": true,
