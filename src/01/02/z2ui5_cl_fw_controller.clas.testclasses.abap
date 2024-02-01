@@ -48,10 +48,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
 
-
     DATA(lv_resp) = lo_handler->request_end( ).
 
-    IF lv_resp NS `QUANTITY`.
+    IF lv_resp NS `NAME`.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
