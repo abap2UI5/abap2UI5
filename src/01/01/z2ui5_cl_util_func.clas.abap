@@ -414,7 +414,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
+CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
 
   METHOD app_get_url.
@@ -857,7 +857,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
     result = result && cl_abap_char_utilities=>cr_lf.
 
-    data lr_row type ref to data.
+    DATA lr_row TYPE REF TO data.
     LOOP AT <tab> REFERENCE INTO lr_row.
 
       DATA(lv_index) = 1.
@@ -1244,6 +1244,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
   METHOD trans_json_2_any.
 
+*    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_true.
+*      ASSERT 1 = 0.
+*    ENDIF.
+
     /ui2/cl_json=>deserialize(
         EXPORTING
             json         = CONV string( val )
@@ -1255,6 +1259,10 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
 
   METHOD trans_json_by_any.
+
+*    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_true.
+*      ASSERT 1 = 0.
+*    ENDIF.
 
     CASE compress_mode.
 
@@ -1440,14 +1448,14 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
                       " support for ISO8601 => https://en.wikipedia.org/wiki/ISO_8601
                       REPLACE FIRST OCCURRENCE OF REGEX `^(\d{4})-(\d{2})-(\d{2})` IN <ls_data_ui5> WITH `$1$2$3`
-                        REPLACEMENT LENGTH match.             "#EC NOTEXT
+                        REPLACEMENT LENGTH match.           "#EC NOTEXT
                       <comp> = <ls_data_ui5>.
 
                     WHEN `\TYPE=T`.
 
                       " support for ISO8601 => https://en.wikipedia.org/wiki/ISO_8601
                       REPLACE FIRST OCCURRENCE OF REGEX `^(\d{2}):(\d{2}):(\d{2})` IN <ls_data_ui5> WITH `$1$2$3`
-                        REPLACEMENT LENGTH match.             "#EC NOTEXT
+                        REPLACEMENT LENGTH match.           "#EC NOTEXT
                       <comp> = <ls_data_ui5>.
 
                     WHEN OTHERS.

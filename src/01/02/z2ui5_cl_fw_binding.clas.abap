@@ -30,6 +30,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         pretty_name     TYPE abap_bool,
         compress        TYPE string,
         depth           TYPE i,
+        ajson_local     TYPE REF TO z2ui5_if_ajson,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -174,13 +175,22 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     bind->bind_type   = mv_type.
     bind->pretty_name = mv_pretty_name.
     bind->compress    = mv_compress.
-    bind->name_front  = name_front_create( bind->name ).
     bind->viewname    = mv_view.
 
-    result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-    IF strlen( result ) > 30.
-      bind->name_front = z2ui5_cl_util_func=>uuid_get_c22( ).
+    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+
+      bind->name_front  = name_front_create( bind->name ).
       result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+      IF strlen( result ) > 30.
+        bind->name_front = z2ui5_cl_util_func=>uuid_get_c22( ).
+        result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+      ENDIF.
+
+    ELSE.
+
+      bind->name_front  = replace( val = bind->name sub = `-` with = `/` ).
+      bind->name_front = replace( val = bind->name_front sub = `>` with = `` ).
+      result = `/` && COND #( WHEN mv_type = cs_bind_type-two_way THEN cv_model_edit_name && `/` ) && bind->name_front.
     ENDIF.
 
   ENDMETHOD.
@@ -190,13 +200,29 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     FIELD-SYMBOLS <any> TYPE any.
     ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = z2ui5_cl_util_func=>uuid_get_c22( ).
+    DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
 
-    INSERT VALUE #( name           = lv_id
-                    data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any           = mr_data
-                                                                            compress_mode = me->mv_compress )
-                    bind_type      = cs_bind_type-one_time )
-           INTO TABLE mt_attri.
+    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+
+      INSERT VALUE #( name           = lv_id
+                      data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any           = mr_data
+                                                                              compress_mode = me->mv_compress )
+                      bind_type      = cs_bind_type-one_time )
+             INTO TABLE mt_attri.
+
+    ELSE.
+
+      INSERT VALUE #( name_front     = lv_id
+                      name           = lv_id
+                      ajson_local    = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/` iv_val = <any> )
+                      bind_type      = cs_bind_type-one_time
+                      pretty_name    = mv_pretty_name
+                      compress       = mv_compress
+                      )
+                INTO TABLE mt_attri.
+
+    ENDIF.
+
     result = |/{ lv_id }|.
 
   ENDMETHOD.
