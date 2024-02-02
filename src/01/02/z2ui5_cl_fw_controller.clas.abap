@@ -612,7 +612,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
         result  = so_body->get_attribute( `ID` )->get_val( ).
 
-      CATCH cx_root INTO DATA(x).
+      CATCH cx_root.
     ENDTRY.
   ENDMETHOD.
 ENDCLASS.
