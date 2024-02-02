@@ -79,7 +79,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_TREE_JSON IMPLEMENTATION.
+CLASS z2ui5_cl_util_tree_json IMPLEMENTATION.
 
 
   METHOD add_attribute.
@@ -142,6 +142,10 @@ CLASS Z2UI5_CL_UTIL_TREE_JSON IMPLEMENTATION.
 
   METHOD factory.
 
+    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_true.
+      ASSERT 1 = 0.
+    ENDIF.
+
     result = NEW #( ).
     result->mo_root = result.
 
@@ -155,6 +159,11 @@ CLASS Z2UI5_CL_UTIL_TREE_JSON IMPLEMENTATION.
 
 
   METHOD get_attribute.
+
+    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_true.
+      ASSERT 1 = 0.
+    ENDIF.
+
     FIELD-SYMBOLS <attribute> TYPE any.
 
     z2ui5_cl_util_func=>x_check_raise( xsdbool( mr_actual IS INITIAL ) ).

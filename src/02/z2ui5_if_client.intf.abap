@@ -58,12 +58,12 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_config,
-      view_model_edit_name   TYPE string,
+*      view_model_edit_name   TYPE string,
       version                TYPE string,
       origin                 TYPE string,
       pathname               TYPE string,
       search                 TYPE string,
-      body                   TYPE string,
+*      body                   TYPE string,
       check_launchpad_active TYPE abap_bool,
       t_startup_params       TYPE ty_t_name_value,
     END OF ty_s_config.

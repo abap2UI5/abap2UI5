@@ -496,6 +496,7 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `                //      VERSION: sap.ui.getVersionInfo().gav,` && |\n|  &&
                `                CHECK_LAUNCHPAD_ACTIVE: sap.ushell !== undefined,` && |\n|  &&
                `                STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
+               `                T_STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
                `            };` && |\n|  &&
                `            if (sap.z2ui5.search) {` && |\n|  &&
                `                sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search;` && |\n|  &&

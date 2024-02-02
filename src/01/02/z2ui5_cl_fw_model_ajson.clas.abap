@@ -8,17 +8,17 @@ CLASS z2ui5_cl_fw_model_ajson DEFINITION
 
     CLASS-METHODS front_to_back
       IMPORTING
-        app         TYPE REF TO object
-        viewname    TYPE string
-        t_attri     TYPE  z2ui5_cl_fw_binding=>ty_t_attri
-        json_string TYPE string ##NEEDED.
+        app      TYPE REF TO object
+        viewname TYPE string
+        t_attri  TYPE  z2ui5_cl_fw_binding=>ty_t_attri
+        ajson_in TYPE REF TO z2ui5_if_ajson ##NEEDED.
 
     CLASS-METHODS back_to_front
       IMPORTING
         app           TYPE REF TO object
         t_attri       TYPE  z2ui5_cl_fw_binding=>ty_t_attri
       RETURNING
-        VALUE(result) TYPE ref to z2ui5_if_ajson ##NEEDED.
+        VALUE(result) TYPE REF TO z2ui5_if_ajson ##NEEDED.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -149,13 +149,15 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
 
 
   METHOD front_to_back.
-    TRY.
 
-        DATA(ajson) = z2ui5_cl_ajson=>parse( json_string )->slice( `/EDIT` ).
 
-        LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
-            WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
-            AND  viewname  = viewname.
+    DATA(ajson) = ajson_in->slice( `/EDIT` ).
+
+    LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
+        WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
+        AND  viewname  = viewname.
+
+      TRY.
 
           DATA(lv_name_back) = `APP->` && lr_attri->name.
           FIELD-SYMBOLS <backend> TYPE any.
@@ -185,11 +187,12 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
             CATCH cx_root.
 
           ENDTRY.
-        ENDLOOP.
 
-      CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
-    ENDTRY.
+        CATCH cx_root INTO DATA(x).
+          ASSERT x IS BOUND.
+      ENDTRY.
+    ENDLOOP.
+
   ENDMETHOD.
 
 ENDCLASS.
