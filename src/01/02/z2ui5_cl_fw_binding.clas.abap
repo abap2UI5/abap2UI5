@@ -200,47 +200,51 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
 
   METHOD bind_local.
+    TRY.
 
-    FIELD-SYMBOLS <any> TYPE any.
-    ASSIGN mr_data->* TO <any>.
-    DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
+        FIELD-SYMBOLS <any> TYPE any.
+        ASSIGN mr_data->* TO <any>.
+        DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
 
-    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+        IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
 
-      INSERT VALUE #( name           = lv_id
-                      data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any           = mr_data
-                                                                              compress_mode = me->mv_compress )
-                      bind_type      = cs_bind_type-one_time )
-             INTO TABLE mt_attri.
+          INSERT VALUE #( name           = lv_id
+                          data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any           = mr_data
+                                                                                  compress_mode = me->mv_compress )
+                          bind_type      = cs_bind_type-one_time )
+                 INTO TABLE mt_attri.
 
-    ELSE.
+        ELSE.
 
-      "(1) set pretty mode
-      CASE mv_pretty_name.
+          "(1) set pretty mode
+          CASE mv_pretty_name.
 
-        WHEN z2ui5_if_client=>cs_pretty_mode-none.
-          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+            WHEN z2ui5_if_client=>cs_pretty_mode-none.
+              DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
-        WHEN z2ui5_if_client=>cs_pretty_mode-camel_case.
-          ajson  = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ) ).
+            WHEN z2ui5_if_client=>cs_pretty_mode-camel_case.
+              ajson  = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ) ).
 
-        WHEN OTHERS.
-          ASSERT `` = `ERROR_UNKNOWN_PRETTY_MODE`.
-      ENDCASE.
+            WHEN OTHERS.
+              ASSERT `` = `ERROR_UNKNOWN_PRETTY_MODE`.
+          ENDCASE.
 
-      INSERT VALUE #( name_front     = lv_id
-                      name           = lv_id
-                      ajson_local    = ajson->set( iv_path = `/` iv_val = <any> )
-                      bind_type      = cs_bind_type-one_time
-                      pretty_name    = mv_pretty_name
-                      compress       = mv_compress
-                      )
-                INTO TABLE mt_attri.
+          INSERT VALUE #( name_front     = lv_id
+                          name           = lv_id
+                          ajson_local    = ajson->set( iv_path = `/` iv_val = <any> )
+                          bind_type      = cs_bind_type-one_time
+                          pretty_name    = mv_pretty_name
+                          compress       = mv_compress
+                          )
+                    INTO TABLE mt_attri.
 
-    ENDIF.
+        ENDIF.
 
-    result = |/{ lv_id }|.
+        result = |/{ lv_id }|.
 
+      CATCH cx_root INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
   ENDMETHOD.
 
 
