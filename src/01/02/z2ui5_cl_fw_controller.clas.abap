@@ -168,7 +168,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
   METHOD app_client_begin_event.
     TRY.
 
-        IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+        IF cv_check_ajson = abap_false.
 
           FIELD-SYMBOLS <any> TYPE any.
           FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
@@ -227,7 +227,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+        IF cv_check_ajson = abap_false.
           result->ms_actual-viewname = so_body->get_attribute( `VIEWNAME` )->get_val( ).
         ELSE.
           result->ms_actual-viewname = so_body_ajson->get( iv_path = `/VIEWNAME` ).
@@ -261,7 +261,6 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
          app         = ms_db-app
          t_attri     = ms_db-t_attri
          ajson_in    = so_body_ajson
-
      ).
 
     ENDIF.
@@ -355,7 +354,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
   METHOD app_start_factory.
 
-    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+    IF cv_check_ajson = abap_false.
       TRY.
           DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
           lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
@@ -424,7 +423,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
   METHOD body_read_location.
 
-    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+    IF cv_check_ajson = abap_false.
 
       FIELD-SYMBOLS <struc> TYPE any.
       FIELD-SYMBOLS <val_ref> TYPE REF TO data.
@@ -536,7 +535,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     TRY.
 
 *    ss_config-body                 = body.
-        IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+        IF cv_check_ajson = abap_false.
           so_body                        = z2ui5_cl_util_tree_json=>factory( body ).
         ELSE.
           so_body_ajson = z2ui5_cl_ajson=>parse( body ).
@@ -545,7 +544,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 *    ss_config-view_model_edit_name = z2ui5_cl_fw_binding=>cv_model_edit_name.
         body_read_location( ).
 
-        IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
+        IF cv_check_ajson = abap_false.
           DATA(lv_id_prev) = _get_id( ).
         ELSE.
           lv_id_prev = so_body_ajson->get( `/ID` ).
