@@ -29,6 +29,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         viewname        TYPE string,
         pretty_name     TYPE abap_bool,
         compress        TYPE string,
+        compress_custom TYPE string,
         depth           TYPE i,
         ajson_local     TYPE REF TO z2ui5_if_ajson,
       END OF ty_s_attri.
@@ -44,6 +45,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         view            TYPE clike          OPTIONAL
         pretty_name     TYPE clike          OPTIONAL
         compress        TYPE clike          OPTIONAL
+        compress_custom TYPE clike          OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -59,6 +61,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_view TYPE string.
     DATA mv_pretty_name TYPE string.
     DATA mv_compress TYPE string.
+    DATA mv_compress_custom TYPE string.
 
     CLASS-METHODS update_attri
       IMPORTING
@@ -148,7 +151,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-
     GET REFERENCE OF <attri> INTO lr_ref.
 
     IF mr_data <> lr_ref.
@@ -176,6 +178,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     bind->pretty_name = mv_pretty_name.
     bind->compress    = mv_compress.
     bind->viewname    = mv_view.
+    bind->compress_custom    = mv_compress_custom.
 
     IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
 
@@ -212,9 +215,22 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
     ELSE.
 
+      "(1) set pretty mode
+      CASE mv_pretty_name.
+
+        WHEN z2ui5_if_client=>cs_pretty_mode-none.
+          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+
+        WHEN z2ui5_if_client=>cs_pretty_mode-camel_case.
+          ajson  = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ) ).
+
+        WHEN OTHERS.
+          ASSERT `` = `ERROR_UNKNOWN_PRETTY_MODE`.
+      ENDCASE.
+
       INSERT VALUE #( name_front     = lv_id
                       name           = lv_id
-                      ajson_local    = z2ui5_cl_ajson=>create_empty( )->set( iv_path = `/` iv_val = <any> )
+                      ajson_local    = ajson->set( iv_path = `/` iv_val = <any> )
                       bind_type      = cs_bind_type-one_time
                       pretty_name    = mv_pretty_name
                       compress       = mv_compress
@@ -301,6 +317,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mv_view = view.
     r_result->mv_pretty_name = pretty_name.
     r_result->mv_compress = compress.
+    r_result->mv_compress_custom = to_upper( compress_custom ).
 
 
     IF z2ui5_cl_util_func=>rtti_check_type_kind_dref( data ).

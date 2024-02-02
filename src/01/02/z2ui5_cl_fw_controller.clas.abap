@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_controller DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    CONSTANTS cv_check_ajson TYPE abap_bool VALUE abap_true.
+    class-data cv_check_ajson TYPE abap_bool VALUE abap_true.
 
     TYPES:
       BEGIN OF ty_s_next2,

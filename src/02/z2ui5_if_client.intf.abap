@@ -176,15 +176,16 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind
     IMPORTING
-      val           TYPE data
-      path          TYPE abap_bool DEFAULT abap_false
-      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
-      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
-      tab           TYPE STANDARD TABLE  OPTIONAL
-      tab_index     TYPE i          OPTIONAL
-      struc         TYPE data       OPTIONAL
+      val             TYPE data
+      path            TYPE abap_bool DEFAULT abap_false
+      pretty_mode     TYPE clike     DEFAULT cs_pretty_mode-none
+      compress_mode   TYPE clike     DEFAULT cs_compress_mode-standard
+      compress_custom TYPE clike     OPTIONAL
+      tab             TYPE STANDARD TABLE OPTIONAL
+      tab_index       TYPE i          OPTIONAL
+      struc           TYPE data       OPTIONAL
     RETURNING
-      VALUE(result) TYPE string.
+      VALUE(result)   TYPE string.
 
   METHODS _bind_edit
     IMPORTING
@@ -193,6 +194,7 @@ INTERFACE z2ui5_if_client
       view          TYPE string     DEFAULT cs_view-main
       pretty_mode   TYPE clike      DEFAULT cs_pretty_mode-none
       compress_mode TYPE clike      DEFAULT cs_compress_mode-standard
+      compress_custom TYPE clike     OPTIONAL
       tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
       struc         TYPE data       OPTIONAL
@@ -201,10 +203,11 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind_local
     IMPORTING
-      val           TYPE data
-      path          TYPE abap_bool DEFAULT abap_false
-      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
-      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
+      val             TYPE data
+      path            TYPE abap_bool DEFAULT abap_false
+      pretty_mode     TYPE clike     DEFAULT cs_pretty_mode-none
+      compress_custom TYPE clike     OPTIONAL
+      compress_mode   TYPE clike     DEFAULT cs_compress_mode-standard
     RETURNING
       VALUE(result) TYPE string.
 
