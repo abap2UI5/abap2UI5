@@ -4,6 +4,7 @@ CLASS z2ui5_cl_fw_model_ajson DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_filter.
 
     CLASS-METHODS front_to_back
       IMPORTING
@@ -17,7 +18,7 @@ CLASS z2ui5_cl_fw_model_ajson DEFINITION
         app           TYPE REF TO object
         t_attri       TYPE  z2ui5_cl_fw_binding=>ty_t_attri
       RETURNING
-        VALUE(result) TYPE string ##NEEDED.
+        VALUE(result) TYPE ref to z2ui5_if_ajson ##NEEDED.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -27,6 +28,40 @@ ENDCLASS.
 
 CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
 
+
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = abap_true.
+
+
+    CASE iv_visit.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
+
+        CASE is_node-type.
+          WHEN z2ui5_if_ajson_types=>node_type-boolean.
+            IF is_node-value = `false`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-number.
+            IF is_node-value = `0`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-string.
+            IF is_node-value = ``.
+              rv_keep = abap_false.
+            ENDIF.
+        ENDCASE.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
+
+        IF is_node-children = 0.
+          rv_keep = abap_false.
+        ENDIF.
+
+    ENDCASE.
+
+  ENDMETHOD.
 
   METHOD back_to_front.
     TRY.
@@ -104,7 +139,8 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
           ajson_result->set( iv_path = `/` && lv_path iv_val = ajson ).
         ENDLOOP.
 
-        result = ajson_result->stringify( ).
+*        result = ajson_result->stringify( ).
+        result = ajson_result. "->stringify( ).
 
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.

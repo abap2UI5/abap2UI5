@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_controller DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    class-data cv_check_ajson TYPE abap_bool VALUE abap_true.
+    CLASS-DATA cv_check_ajson TYPE abap_bool VALUE abap_true.
 
     TYPES:
       BEGIN OF ty_s_next2,
@@ -145,7 +145,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
 
   METHOD app_call_factory.
@@ -261,23 +261,13 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
   METHOD app_client_end_model.
 
-    IF cv_check_ajson  = abap_false.
+    DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
+          viewname = ms_actual-viewname
+          app      = ms_db-app
+          attri    = ms_db-t_attri ).
 
-      DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
-            viewname = ms_actual-viewname
-            app      = ms_db-app
-            attri    = ms_db-t_attri ).
+    rv_viewmodel  = lo_binder->main_set_frontend( ).
 
-      rv_viewmodel  = lo_binder->main_set_frontend( ).
-
-    ELSE.
-
-      rv_viewmodel = z2ui5_cl_fw_model_ajson=>back_to_front(
-           app     = ms_db-app
-           t_attri = ms_db-t_attri
-       ).
-
-    ENDIF.
 
   ENDMETHOD.
 
@@ -530,9 +520,36 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
   METHOD request_end.
 
-    DATA(lv_viewmodel) = app_client_end_model( ).
-    result = app_client_end_response( lv_viewmodel ).
-    app_client_end_db( ).
+    IF cv_check_ajson  = abap_false.
+
+      DATA(lv_viewmodel) = app_client_end_model( ).
+      result = app_client_end_response( lv_viewmodel ).
+      app_client_end_db( ).
+
+    ELSE.
+      TRY.
+
+         "todo performance - add all data directly into the target ajson
+          DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+            ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+
+          ajson_result->set( iv_path = `/PARAMS` iv_val = ms_next-s_set ).
+          ajson_result->set( iv_path = `/ID` iv_val = ms_db-id ).
+          ajson_result = ajson_result->filter( NEW z2ui5_cl_fw_model_ajson( ) ).
+
+          DATA(lo_ajson) = z2ui5_cl_fw_model_ajson=>back_to_front(
+                app     = ms_db-app
+                t_attri = ms_db-t_attri ).
+
+          ajson_result->set( iv_path = `/OVIEWMODEL` iv_val = lo_ajson ).
+          result = ajson_result->stringify( ).
+
+          z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+
+        CATCH cx_root INTO DATA(x).
+          ASSERT x IS NOT BOUND.
+      ENDTRY.
+    ENDIF.
 
   ENDMETHOD.
 
