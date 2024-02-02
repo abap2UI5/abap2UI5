@@ -7,7 +7,7 @@ CLASS z2ui5_cl_fw_http_handler DEFINITION
     CLASS-METHODS http_post
       IMPORTING
         body           TYPE string
-        check_old_json TYPE abap_bool DEFAULT abap_true
+        check_old_json TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(result)  TYPE string.
 
