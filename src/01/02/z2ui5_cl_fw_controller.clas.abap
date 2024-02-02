@@ -4,8 +4,7 @@ CLASS z2ui5_cl_fw_controller DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
-    CONSTANTS cv_check_ajson TYPE abap_bool VALUE abap_false.
+    class-data cv_check_ajson TYPE abap_bool VALUE abap_true.
 
     TYPES:
       BEGIN OF ty_s_next2,
@@ -146,63 +145,21 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
-  METHOD main.
 
-    TRY.
-        DATA(lo_handler) = request_begin( body ).
-      CATCH cx_root INTO DATA(x).
-        lo_handler = app_system_factory( x ).
-    ENDTRY.
+  METHOD app_call_factory.
 
-    DO.
-      TRY.
+    result = app_next_factory( ms_next-o_app_call ).
+    result->ms_db-id_prev_app_stack = ms_db-id.
 
-          ROLLBACK WORK.
-          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
-          ROLLBACK WORK.
+    CLEAR ms_next.
+    IF check_no_db_save = abap_false.
+      z2ui5_cl_fw_db=>create( id = ms_db-id
+                              db = ms_db ).
+    ENDIF.
 
-          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
-            lo_handler = lo_handler->app_leave_factory( ).
-            CONTINUE.
-          ENDIF.
-
-          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
-            lo_handler = lo_handler->app_call_factory( ).
-            CONTINUE.
-          ENDIF.
-
-          result = lo_handler->request_end( ).
-
-        CATCH cx_root INTO x.
-          lo_handler = app_system_factory( x ).
-          CONTINUE.
-      ENDTRY.
-
-      EXIT.
-    ENDDO.
-
-  ENDMETHOD.
-
-  METHOD app_next_factory.
-
-    app->id_draft = COND #( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( ) ELSE app->id_draft ).
-
-    r_result = NEW #( ).
-    r_result->ms_db-app         = app.
-    r_result->ms_db-id          = app->id_draft.
-    r_result->ms_db-id_prev     = ms_db-id.
-    r_result->ms_db-id_prev_app = ms_db-id.
-    r_result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
-    r_result->ms_actual-check_on_navigated = abap_true.
-    r_result->ms_next-s_set     = ms_next-s_set.
-
-    TRY.
-        DATA(ls_db_next) = z2ui5_cl_fw_db=>load_app( app->id_draft ).
-        r_result->ms_db-t_attri = ls_db_next-t_attri.
-      CATCH cx_root.
-    ENDTRY.
+    CLEAR result->ms_db-t_attri.
 
   ENDMETHOD.
 
@@ -245,6 +202,199 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
         ENDLOOP.
       CATCH cx_root.
     ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD app_client_begin_factory.
+
+    result = NEW #( ).
+    result->ms_db         = z2ui5_cl_fw_db=>load_app( id_prev ).
+    result->ms_db-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
+    result->ms_db-id_prev = id_prev.
+
+    TRY.
+        result->ms_actual-viewname = so_body->get_attribute( `VIEWNAME` )->get_val( ).
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD app_client_begin_model.
+
+    IF cv_check_ajson = abap_false.
+
+      TRY.
+          DATA(lo_model) = z2ui5_cl_fw_model=>factory(
+            viewname = ms_actual-viewname
+            app      = ms_db-app
+            attri    = ms_db-t_attri ).
+
+          lo_model->main_set_backend(
+              so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual ).
+
+        CATCH cx_root.
+      ENDTRY.
+
+    ELSE.
+
+      z2ui5_cl_fw_model_ajson=>front_to_back(
+         viewname    = ms_actual-viewname
+         app         = ms_db-app
+         t_attri     = ms_db-t_attri
+         json_string = ss_config-body
+     ).
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD app_client_end_db.
+
+    z2ui5_cl_fw_db=>create( id = ms_db-id
+                            db = ms_db ).
+
+  ENDMETHOD.
+
+
+  METHOD app_client_end_model.
+
+    IF cv_check_ajson  = abap_false.
+
+      DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
+            viewname = ms_actual-viewname
+            app      = ms_db-app
+            attri    = ms_db-t_attri ).
+
+      rv_viewmodel  = lo_binder->main_set_frontend( ).
+
+    ELSE.
+
+      rv_viewmodel = z2ui5_cl_fw_model_ajson=>back_to_front(
+           app     = ms_db-app
+           t_attri = ms_db-t_attri
+       ).
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD app_client_end_response.
+
+    DATA(lo_resp) = z2ui5_cl_util_tree_json=>factory( ).
+
+    lo_resp->add_attribute( n           = `OVIEWMODEL`
+                            v           = iv_viewmodel
+                            apos_active = abap_false ).
+
+    lo_resp->add_attribute( n           = `PARAMS`
+                            v           = z2ui5_cl_util_func=>trans_json_by_any( ms_next-s_set )
+                            apos_active = abap_false ).
+
+    lo_resp->add_attribute( n = `ID`
+                            v = ms_db-id ).
+
+    r_result = lo_resp->mo_root->stringify( ).
+
+  ENDMETHOD.
+
+
+  METHOD app_leave_factory.
+
+    result = app_next_factory( ms_next-o_app_leave ).
+
+    TRY.
+        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id             = result->ms_db-id
+                                               check_load_app = abap_false ).
+        result->ms_db-id_prev_app_stack = ls_draft-id_prev_app_stack.
+      CATCH cx_root.
+        result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
+    ENDTRY.
+
+    CLEAR ms_next.
+    IF check_no_db_save = abap_false.
+      z2ui5_cl_fw_db=>create( id = ms_db-id
+                              db = ms_db ).
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD app_next_factory.
+
+    app->id_draft = COND #( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( ) ELSE app->id_draft ).
+
+    r_result = NEW #( ).
+    r_result->ms_db-app         = app.
+    r_result->ms_db-id          = app->id_draft.
+    r_result->ms_db-id_prev     = ms_db-id.
+    r_result->ms_db-id_prev_app = ms_db-id.
+    r_result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
+    r_result->ms_actual-check_on_navigated = abap_true.
+    r_result->ms_next-s_set     = ms_next-s_set.
+
+    TRY.
+        DATA(ls_db_next) = z2ui5_cl_fw_db=>load_app( app->id_draft ).
+        r_result->ms_db-t_attri = ls_db_next-t_attri.
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD app_start_factory.
+
+    TRY.
+        DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
+        lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
+      CATCH cx_root.
+    ENDTRY.
+
+    IF lv_classname IS INITIAL.
+      lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start`
+                                                        url = ss_config-search ).
+    ENDIF.
+
+    IF lv_classname IS INITIAL.
+      result = app_system_factory( ).
+      RETURN.
+    ENDIF.
+
+    TRY.
+        result = NEW #( ).
+        result->ms_db-id = z2ui5_cl_util_func=>uuid_get_c32( ).
+
+        lv_classname = z2ui5_cl_util_func=>c_trim_upper( lv_classname ).
+        CREATE OBJECT result->ms_db-app TYPE (lv_classname).
+        result->ms_db-app->id_draft = result->ms_db-id.
+
+      CATCH cx_root.
+        result = app_system_factory( error_text = `App with name ` && lv_classname && ` not found...` ).
+    ENDTRY.
+
+  ENDMETHOD.
+
+
+  METHOD app_system_factory.
+
+    result = NEW #( ).
+    result->ms_db-id = z2ui5_cl_util_func=>uuid_get_c32( ).
+
+    IF ix IS NOT BOUND AND error_text IS NOT INITIAL.
+      ix = NEW z2ui5_cx_util_error( val = error_text ).
+    ENDIF.
+
+    IF ix IS BOUND.
+      result->ms_next-o_app_call = z2ui5_cl_fw_app_error=>factory( ix ).
+      result = result->app_call_factory( abap_true ).
+      RETURN.
+    ENDIF.
+
+    result->ms_db-app = z2ui5_cl_fw_app_startup=>factory( ).
+    result->ms_db-app->id_draft = result->ms_db-id.
 
   ENDMETHOD.
 
@@ -313,6 +463,44 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD main.
+
+    TRY.
+        DATA(lo_handler) = request_begin( body ).
+      CATCH cx_root INTO DATA(x).
+        lo_handler = app_system_factory( x ).
+    ENDTRY.
+
+    DO.
+      TRY.
+
+          ROLLBACK WORK.
+          CAST z2ui5_if_app( lo_handler->ms_db-app )->main( NEW z2ui5_cl_fw_client( lo_handler ) ).
+          ROLLBACK WORK.
+
+          IF lo_handler->ms_next-o_app_leave IS NOT INITIAL.
+            lo_handler = lo_handler->app_leave_factory( ).
+            CONTINUE.
+          ENDIF.
+
+          IF lo_handler->ms_next-o_app_call IS NOT INITIAL.
+            lo_handler = lo_handler->app_call_factory( ).
+            CONTINUE.
+          ENDIF.
+
+          result = lo_handler->request_end( ).
+
+        CATCH cx_root INTO x.
+          lo_handler = app_system_factory( x ).
+          CONTINUE.
+      ENDTRY.
+
+      EXIT.
+    ENDDO.
+
+  ENDMETHOD.
+
+
   METHOD request_begin.
 
     ss_config-body                 = body.
@@ -349,141 +537,6 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD app_call_factory.
-
-    result = app_next_factory( ms_next-o_app_call ).
-    result->ms_db-id_prev_app_stack = ms_db-id.
-
-    CLEAR ms_next.
-    IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id
-                              db = ms_db ).
-    ENDIF.
-
-    CLEAR result->ms_db-t_attri.
-
-  ENDMETHOD.
-
-
-  METHOD app_client_begin_factory.
-
-    result = NEW #( ).
-    result->ms_db         = z2ui5_cl_fw_db=>load_app( id_prev ).
-    result->ms_db-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
-    result->ms_db-id_prev = id_prev.
-
-    TRY.
-        result->ms_actual-viewname = so_body->get_attribute( `VIEWNAME` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD app_leave_factory.
-
-    result = app_next_factory( ms_next-o_app_leave ).
-
-    TRY.
-        DATA(ls_draft) = z2ui5_cl_fw_db=>read( id             = result->ms_db-id
-                                               check_load_app = abap_false ).
-        result->ms_db-id_prev_app_stack = ls_draft-id_prev_app_stack.
-      CATCH cx_root.
-        result->ms_db-id_prev_app_stack = ms_db-id_prev_app_stack.
-    ENDTRY.
-
-    CLEAR ms_next.
-    IF check_no_db_save = abap_false.
-      z2ui5_cl_fw_db=>create( id = ms_db-id
-                              db = ms_db ).
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD app_start_factory.
-
-    TRY.
-        DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
-        lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
-      CATCH cx_root.
-    ENDTRY.
-
-    IF lv_classname IS INITIAL.
-      lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start`
-                                                        url = ss_config-search ).
-    ENDIF.
-
-    IF lv_classname IS INITIAL.
-      result = app_system_factory( ).
-      RETURN.
-    ENDIF.
-
-    TRY.
-        result = NEW #( ).
-        result->ms_db-id = z2ui5_cl_util_func=>uuid_get_c32( ).
-
-        lv_classname = z2ui5_cl_util_func=>c_trim_upper( lv_classname ).
-        CREATE OBJECT result->ms_db-app TYPE (lv_classname).
-        result->ms_db-app->id_draft = result->ms_db-id.
-
-      CATCH cx_root.
-        result = app_system_factory( error_text = `App with name ` && lv_classname && ` not found...` ).
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD app_system_factory.
-
-    result = NEW #( ).
-    result->ms_db-id = z2ui5_cl_util_func=>uuid_get_c32( ).
-
-    IF ix IS NOT BOUND AND error_text IS NOT INITIAL.
-      ix = NEW z2ui5_cx_util_error( val = error_text ).
-    ENDIF.
-
-    IF ix IS BOUND.
-      result->ms_next-o_app_call = z2ui5_cl_fw_app_error=>factory( ix ).
-      result = result->app_call_factory( abap_true ).
-      RETURN.
-    ENDIF.
-
-    result->ms_db-app = z2ui5_cl_fw_app_startup=>factory( ).
-    result->ms_db-app->id_draft = result->ms_db-id.
-
-  ENDMETHOD.
-
-  METHOD app_client_begin_model.
-
-    IF cv_check_ajson = abap_false.
-
-      TRY.
-          DATA(lo_model) = z2ui5_cl_fw_model=>factory(
-            viewname = ms_actual-viewname
-            app      = ms_db-app
-            attri    = ms_db-t_attri ).
-
-          lo_model->main_set_backend(
-              so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual ).
-
-        CATCH cx_root.
-      ENDTRY.
-
-    ELSE.
-
-      z2ui5_cl_fw_model_ajson=>front_to_back(
-         viewname    = ms_actual-viewname
-         app         = ms_db-app
-         t_attri     = ms_db-t_attri
-         json_string = ss_config-body
-     ).
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD _get_id.
 
     TRY.
@@ -492,56 +545,4 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
-
-
-  METHOD app_client_end_model.
-
-    IF cv_check_ajson  = abap_false.
-
-      DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
-            viewname = ms_actual-viewname
-            app      = ms_db-app
-            attri    = ms_db-t_attri ).
-
-      rv_viewmodel  = lo_binder->main_set_frontend( ).
-
-    ELSE.
-
-      rv_viewmodel = z2ui5_cl_fw_model_ajson=>back_to_front(
-           app     = ms_db-app
-           t_attri = ms_db-t_attri
-       ).
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD app_client_end_response.
-
-    DATA(lo_resp) = z2ui5_cl_util_tree_json=>factory( ).
-
-    lo_resp->add_attribute( n           = `OVIEWMODEL`
-                            v           = iv_viewmodel
-                            apos_active = abap_false ).
-
-    lo_resp->add_attribute( n           = `PARAMS`
-                            v           = z2ui5_cl_util_func=>trans_json_by_any( ms_next-s_set )
-                            apos_active = abap_false ).
-
-    lo_resp->add_attribute( n = `ID`
-                            v = ms_db-id ).
-
-    r_result = lo_resp->mo_root->stringify( ).
-
-  ENDMETHOD.
-
-
-  METHOD app_client_end_db.
-
-    z2ui5_cl_fw_db=>create( id = ms_db-id
-                            db = ms_db ).
-
-  ENDMETHOD.
-
 ENDCLASS.

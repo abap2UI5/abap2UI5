@@ -4,6 +4,9 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+
+    INTERFACES z2ui5_if_ajson_filter.
+
     " Data
     TYPES:
       BEGIN OF ty_x_y_r_data,
@@ -428,8 +431,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         stack_weight     TYPE i,
         stack            TYPE string,
         position         TYPE string,
-        ticks            TYPE ty_ticks,
-        border           TYPE ty_border,
+        ticks  TYPE ty_ticks,
+        border TYPE ty_border,
         grid             TYPE ty_grid,
         offset           TYPE abap_bool,
         axis             TYPE string,
@@ -542,8 +545,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
 
     TYPES:
       BEGIN OF ty_options,
-        scales      TYPE ty_scales,
-        responsive  TYPE abap_bool,
+        scales     TYPE ty_scales,
+        responsive TYPE abap_bool,
         plugins     TYPE ty_plugins,
         hover       TYPE ty_hover,
         interaction TYPE ty_interaction,
@@ -551,14 +554,13 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         layout      TYPE ty_layout,
         elements    TYPE ty_elements,
         index_axis  TYPE string,
-        events      TYPE string_table,
+        events     TYPE string_table,
       END OF ty_options .
 
     "ChartJS Configuration
     TYPES:
       BEGIN OF ty_chart ##NEEDED,
         type    TYPE string,
-*        plugins TYPE string_table,
         data    TYPE ty_data,
         options TYPE ty_options,
       END OF ty_chart.
@@ -609,8 +611,41 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
+CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
 
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = abap_true.
+
+
+    CASE iv_visit.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
+
+        CASE is_node-type.
+          WHEN z2ui5_if_ajson_types=>node_type-boolean.
+            IF is_node-value = `false`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-number.
+            IF is_node-value = `0`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-string.
+            IF is_node-value = ``.
+              rv_keep = abap_false.
+            ENDIF.
+        ENDCASE.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
+
+        IF is_node-children = 0.
+          rv_keep = abap_false.
+        ENDIF.
+
+    ENDCASE.
+
+  ENDMETHOD.
 
   METHOD get_chartjs_local.
     result = ``.
