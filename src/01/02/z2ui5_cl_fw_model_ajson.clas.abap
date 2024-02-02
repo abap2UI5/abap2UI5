@@ -129,6 +129,10 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
           ELSEIF lr_attri->compress = z2ui5_if_client=>cs_compress_mode-standard.
             ajson =  ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
 
+          ELSEIF lr_attri->compress = z2ui5_if_client=>cs_compress_mode-none.
+            "obsolete - is this still needed? use compress_custom instead
+            ASSERT `` = `OBSOLET_COMPRESS_MODE_USE_CUSTOM_INSTEAD`.
+
           ELSE.
             ASSERT `` = `ERROR_UNKNOW_COMPRESS_MODE`.
           ENDIF.

@@ -21,6 +21,7 @@ CLASS z2ui5_cl_fw_app_startup DEFINITION
     DATA mv_check_initialized TYPE abap_bool.
     DATA mv_check_demo TYPE abap_bool.
 
+    DATA mv_ui5_version TYPE string.
     CLASS-METHODS factory
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app_startup.
@@ -36,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
 
 
   METHOD factory.
@@ -81,6 +82,8 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
          shownavbutton = abap_false ).
 
     page2->header_content( )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP` )->toolbar_spacer( ).
+
+    page2->_z2ui5( )->info_frontend( ui5_version = client->_bind( mv_ui5_version ) ).
 
     DATA(simple_form2) = page2->simple_form(
         editable                = abap_true
@@ -142,8 +145,12 @@ CLASS z2ui5_cl_fw_app_startup IMPLEMENTATION.
     simple_form2->toolbar( )->title( `System Information` ).
     simple_form2->label( `abap2UI5 Version` ).
     simple_form2->text( z2ui5_if_app=>version ).
+    simple_form2->label( `UI5 Version` ).
+    simple_form2->text( client->_bind( mv_ui5_version ) ).
     simple_form2->label( `ABAP for Cloud` ).
     simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util_func=>rtti_check_lang_version_cloud( ) ).
+    simple_form2->label( `Launchpad active` ).
+    simple_form2->checkbox( enabled = abap_false selected = client->get( )-check_launchpad_active ).
 
     DATA(lv_url_samples2) = z2ui5_cl_util_func=>app_get_url(
                   client    = client
