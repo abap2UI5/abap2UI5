@@ -8,6 +8,16 @@ Legend
 + : added
 - : removed
 
+
+2024-02-02 v1.117.0
+-------------------
+
++ NavContainer in Popups
++ New properties added to XML View
++ Improvements POPUP_TO_SELECT (title, sorting, descriptions
+* Fixes for ABAP for Cloud Readiness
+
+
 2024-01-26 v1.116.0
 -------------------
 
