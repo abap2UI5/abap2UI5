@@ -10,6 +10,8 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
       IMPORTING
         i_tab           TYPE STANDARD TABLE
         i_title         TYPE clike OPTIONAL
+        i_sort_field    TYPE clike OPTIONAL
+        i_descending    TYPE abap_bool OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_to_select.
 
@@ -33,6 +35,8 @@ CLASS z2ui5_cl_popup_to_select DEFINITION
     DATA check_table_line TYPE abap_bool.
     DATA client TYPE REF TO z2ui5_if_client.
     DATA title TYPE string.
+    DATA sort_field TYPE string.
+    DATA descending TYPE abap_bool.
     METHODS on_event.
     METHODS display.
     METHODS set_output_table.
@@ -51,6 +55,8 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->title = i_title.
+    r_result->sort_field = i_sort_field.
+    r_result->descending = i_descending.
     CREATE DATA r_result->mr_tab LIKE i_tab.
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
 
@@ -66,7 +72,11 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
     DATA(tab) = popup->table_select_dialog(
-              items              =  `{path:'` && client->_bind_edit( val = <tab_out> path = abap_true ) && `', sorter : { path : 'STORAGE_LOCATION', descending : false } }`
+              items              =  `{path:'`
+                                && client->_bind_edit( val = <tab_out> path = abap_true )
+                                && `', sorter : { path : '` && to_upper( sort_field ) && `', descending : `
+                                && z2ui5_cl_util_func=>boolean_abap_2_json( me->descending )
+                                && ` } }`
               cancel             = client->_event( 'CANCEL' )
               search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
               confirm            = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
