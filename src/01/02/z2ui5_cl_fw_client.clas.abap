@@ -335,7 +335,9 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         data        = val
                         pretty_name = pretty_mode
                         compress    = compress_mode
-                        compress_custom    = compress_custom
+*                        compress_custom  = compress_custom
+                        custom_mapper  = custom_mapper
+                        custom_filter   = custom_filter
                          ).
 
     result = lo_binder->main( ).
@@ -410,7 +412,10 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         view        = view
                         pretty_name = pretty_mode
                         compress    = compress_mode
-                        compress_custom = compress_custom ).
+*                        compress_custom = compress_custom
+                        custom_mapper  = custom_mapper
+                        custom_filter   = custom_filter
+                        ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.
@@ -433,7 +438,10 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         data        = val
                         pretty_name = pretty_mode
                         compress    = compress_mode
-                        compress_custom = compress_custom ).
+*                        compress_custom = compress_custom
+                         custom_mapper  = custom_mapper
+                        custom_filter   = custom_filter
+                        ).
 
     result = lo_binder->main( ).
     mo_handler->ms_db-t_attri = lo_binder->mt_attri.

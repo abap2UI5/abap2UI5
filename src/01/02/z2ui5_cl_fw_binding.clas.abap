@@ -29,9 +29,11 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         viewname        TYPE string,
         pretty_name     TYPE abap_bool,
         compress        TYPE string,
-        compress_custom TYPE string,
+*        compress_custom  TYPE string,
         depth           TYPE i,
         ajson_local     TYPE REF TO z2ui5_if_ajson,
+        custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
+        custom_mapper  TYPE REF TO z2ui5_if_ajson_mapping,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -45,7 +47,9 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         view            TYPE clike          OPTIONAL
         pretty_name     TYPE clike          OPTIONAL
         compress        TYPE clike          OPTIONAL
-        compress_custom TYPE clike          OPTIONAL
+*        compress_custom TYPE clike          OPTIONAL
+        custom_filter   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+        custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
 
@@ -61,7 +65,9 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_view TYPE string.
     DATA mv_pretty_name TYPE string.
     DATA mv_compress TYPE string.
-    DATA mv_compress_custom TYPE string.
+*    DATA mv_compress_custom TYPE string.
+    DATA mo_custom_filter TYPE REF TO z2ui5_if_ajson_filter.
+    DATA mo_custom_mapper TYPE REF TO z2ui5_if_ajson_mapping.
 
     CLASS-METHODS update_attri
       IMPORTING
@@ -178,7 +184,9 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     bind->pretty_name = mv_pretty_name.
     bind->compress    = mv_compress.
     bind->viewname    = mv_view.
-    bind->compress_custom    = mv_compress_custom.
+    bind->custom_filter = mo_custom_filter.
+    bind->custom_mapper = mo_custom_mapper.
+*    bind->compress_custom    = mv_compress_custom.
 
     IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
 
@@ -321,8 +329,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mv_view = view.
     r_result->mv_pretty_name = pretty_name.
     r_result->mv_compress = compress.
-    r_result->mv_compress_custom = to_upper( compress_custom ).
-
+    r_result->mo_custom_filter = custom_filter.
+    r_result->mo_custom_mapper = custom_mapper.
 
     IF z2ui5_cl_util_func=>rtti_check_type_kind_dref( data ).
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
