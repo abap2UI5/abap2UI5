@@ -177,6 +177,7 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `            const oFragment = await Fragment.load({` && |\n|  &&
                `                definition: xml,` && |\n|  &&
                `                controller: sap.z2ui5.oControllerPopup,` && |\n|  &&
+                `                id: "popupId"` && |\n|  &&
                `            });` && |\n|  &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
@@ -193,6 +194,7 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `            const oFragment = await Fragment.load({` && |\n|  &&
                `                definition: xml,` && |\n|  &&
                `                controller: sap.z2ui5.oControllerPopover,` && |\n|  &&
+               `                 id: "popoverId"` && |\n|  &&
                `            });` && |\n|  &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
@@ -352,6 +354,11 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `                navConTo = sap.z2ui5.oViewNest2.byId(args[2]);` && |\n|  &&
                `                navCon.to(navConTo);` && |\n|  &&
                `                break;` && |\n|  &&
+               `            case 'POPUP_NAV_CONTAINER_TO':` && |\n|  &&
+               `                navCon = Fragment.byId("popupId",args[1]);` && |\n|  &&
+               `                navConTo = Fragment.byId("popupId",args[2]);` && |\n|  &&
+               `                navCon.to(navConTo);` && |\n|  &&
+               `                break;` && |\n|  &&
                `            }` && |\n|  &&
                `        },` && |\n|  &&
                `        onEvent(...args) {` && |\n|  &&
@@ -496,6 +503,7 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `                //      VERSION: sap.ui.getVersionInfo().gav,` && |\n|  &&
                `                CHECK_LAUNCHPAD_ACTIVE: sap.ushell !== undefined,` && |\n|  &&
                `                STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
+               `                T_STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
                `            };` && |\n|  &&
                `            if (sap.z2ui5.search) {` && |\n|  &&
                `                sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search;` && |\n|  &&

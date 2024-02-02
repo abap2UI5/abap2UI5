@@ -12,6 +12,7 @@ INTERFACE z2ui5_if_client
       nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
+      POPUP_NAV_CONTAINER_TO    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
     END OF cs_event.
 
   CONSTANTS:
@@ -58,12 +59,12 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_config,
-      view_model_edit_name   TYPE string,
+*      view_model_edit_name   TYPE string,
       version                TYPE string,
       origin                 TYPE string,
       pathname               TYPE string,
       search                 TYPE string,
-      body                   TYPE string,
+*      body                   TYPE string,
       check_launchpad_active TYPE abap_bool,
       t_startup_params       TYPE ty_t_name_value,
     END OF ty_s_config.

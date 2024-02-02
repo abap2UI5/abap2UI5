@@ -4,7 +4,7 @@ CLASS z2ui5_cl_fw_controller DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    class-data cv_check_ajson TYPE abap_bool VALUE abap_true.
+    CLASS-DATA cv_check_ajson TYPE abap_bool VALUE abap_true.
 
     TYPES:
       BEGIN OF ty_s_next2,
@@ -60,6 +60,7 @@ CLASS z2ui5_cl_fw_controller DEFINITION
 
     CLASS-DATA ss_config TYPE z2ui5_if_client=>ty_s_config.
     CLASS-DATA so_body   TYPE REF TO z2ui5_cl_util_tree_json.
+    CLASS-DATA so_body_ajson   TYPE REF TO z2ui5_if_ajson.
 
     DATA ms_db     TYPE z2ui5_cl_fw_db=>ty_s_db.
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
@@ -145,7 +146,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
 
   METHOD app_call_factory.
@@ -165,44 +166,56 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
 
   METHOD app_client_begin_event.
-    FIELD-SYMBOLS <any> TYPE any.
-    FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <arg_row> TYPE any.
-    FIELD-SYMBOLS <val> TYPE any.
-
     TRY.
 
+        IF cv_check_ajson = abap_false.
 
-        ASSIGN (`SO_BODY->MR_ACTUAL`) TO <any>.
-        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
-        ASSIGN (`<ANY>->ARGUMENTS`) TO <any>.
-        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
-        ASSIGN (`<ANY>->*`) TO <any>.
-        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+          FIELD-SYMBOLS <any> TYPE any.
+          FIELD-SYMBOLS <arg> TYPE STANDARD TABLE.
+          FIELD-SYMBOLS <arg_row> TYPE any.
+          FIELD-SYMBOLS <val> TYPE any.
 
+          ASSIGN (`SO_BODY->MR_ACTUAL`) TO <any>.
+          z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+          ASSIGN (`<ANY>->ARGUMENTS`) TO <any>.
+          z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+          ASSIGN (`<ANY>->*`) TO <any>.
+          z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
-        ASSIGN <any> TO <arg>.
-        z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
+          ASSIGN <any> TO <arg>.
+          z2ui5_cl_util_func=>x_check_raise( xsdbool( sy-subrc <> 0 ) ).
 
+          LOOP AT <arg> ASSIGNING <arg_row>.
 
-        LOOP AT <arg> ASSIGNING <arg_row>.
+            IF sy-tabix = 1.
 
-          IF sy-tabix = 1.
-
-            ASSIGN (`<ARG_ROW>->EVENT->*`) TO <val>.
-            ms_actual-event = <val>.
-          ELSE.
-            ASSIGN <arg_row>->* TO <val>.
-            IF sy-subrc <> 0.
-              CONTINUE.
+              ASSIGN (`<ARG_ROW>->EVENT->*`) TO <val>.
+              ms_actual-event = <val>.
+            ELSE.
+              ASSIGN <arg_row>->* TO <val>.
+              IF sy-subrc <> 0.
+                CONTINUE.
+              ENDIF.
+              INSERT CONV string( <val> ) INTO TABLE ms_actual-t_event_arg.
             ENDIF.
-            INSERT CONV string( <val> ) INTO TABLE ms_actual-t_event_arg.
-          ENDIF.
 
-        ENDLOOP.
-      CATCH cx_root.
+          ENDLOOP.
+
+        ELSE.
+
+          DATA(ajson) = so_body_ajson->slice( `/ARGUMENTS` ).
+          ms_actual-event = ajson->get( `/1/EVENT` ).
+          ajson->delete( `/1` ).
+          ajson->to_abap(
+            IMPORTING
+              ev_container     = ms_actual-t_event_arg
+          ).
+
+        ENDIF.
+
+      CATCH cx_root INTO DATA(x).
+        ASSERT x IS NOT BOUND.
     ENDTRY.
-
   ENDMETHOD.
 
 
@@ -214,7 +227,11 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
     result->ms_db-id_prev = id_prev.
 
     TRY.
-        result->ms_actual-viewname = so_body->get_attribute( `VIEWNAME` )->get_val( ).
+        IF cv_check_ajson = abap_false.
+          result->ms_actual-viewname = so_body->get_attribute( `VIEWNAME` )->get_val( ).
+        ELSE.
+          result->ms_actual-viewname = so_body_ajson->get( iv_path = `/VIEWNAME` ).
+        ENDIF.
       CATCH cx_root.
     ENDTRY.
 
@@ -232,7 +249,7 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
             attri    = ms_db-t_attri ).
 
           lo_model->main_set_backend(
-              so_body->get_attribute( ss_config-view_model_edit_name )->mr_actual ).
+              so_body->get_attribute( z2ui5_cl_fw_binding=>cv_model_edit_name )->mr_actual ).
 
         CATCH cx_root.
       ENDTRY.
@@ -243,7 +260,7 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
          viewname    = ms_actual-viewname
          app         = ms_db-app
          t_attri     = ms_db-t_attri
-         json_string = ss_config-body
+         ajson_in    = so_body_ajson
      ).
 
     ENDIF.
@@ -261,23 +278,13 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
   METHOD app_client_end_model.
 
-    IF cv_check_ajson  = abap_false.
+    DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
+          viewname = ms_actual-viewname
+          app      = ms_db-app
+          attri    = ms_db-t_attri ).
 
-      DATA(lo_binder) = z2ui5_cl_fw_model=>factory(
-            viewname = ms_actual-viewname
-            app      = ms_db-app
-            attri    = ms_db-t_attri ).
+    rv_viewmodel  = lo_binder->main_set_frontend( ).
 
-      rv_viewmodel  = lo_binder->main_set_frontend( ).
-
-    ELSE.
-
-      rv_viewmodel = z2ui5_cl_fw_model_ajson=>back_to_front(
-           app     = ms_db-app
-           t_attri = ms_db-t_attri
-       ).
-
-    ENDIF.
 
   ENDMETHOD.
 
@@ -347,17 +354,32 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
   METHOD app_start_factory.
 
-    TRY.
-        DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
-        lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
-      CATCH cx_root.
-    ENDTRY.
+    IF cv_check_ajson = abap_false.
+      TRY.
+          DATA(lv_classname) = to_upper( so_body->get_attribute( `APP_START` )->get_val( ) ).
+          lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
+        CATCH cx_root.
+      ENDTRY.
 
-    IF lv_classname IS INITIAL.
-      lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start`
-                                                        url = ss_config-search ).
+      IF lv_classname IS INITIAL.
+        lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start`
+                                                          url = ss_config-search ).
+      ENDIF.
+
+    ELSE.
+
+      TRY.
+          lv_classname = to_upper( so_body_ajson->get( `/APP_START` ) ).
+          lv_classname = z2ui5_cl_util_func=>c_trim( lv_classname ).
+        CATCH cx_root.
+      ENDTRY.
+
+      IF lv_classname IS INITIAL.
+        lv_classname = z2ui5_cl_util_func=>url_param_get( val = `app_start`
+                                                          url = ss_config-search ).
+      ENDIF.
+
     ENDIF.
-
     IF lv_classname IS INITIAL.
       result = app_system_factory( ).
       RETURN.
@@ -400,66 +422,74 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
 
   METHOD body_read_location.
-    FIELD-SYMBOLS <struc> TYPE any.
 
-    FIELD-SYMBOLS <val_ref> TYPE REF TO data.
-    FIELD-SYMBOLS <tab> TYPE table.
-    FIELD-SYMBOLS <val2> TYPE data.
+    IF cv_check_ajson = abap_false.
 
-    TRY.
-        DATA(location)     = so_body->get_attribute( `OLOCATION` ).
-      CATCH cx_root.
-    ENDTRY.
+      FIELD-SYMBOLS <struc> TYPE any.
+      FIELD-SYMBOLS <val_ref> TYPE REF TO data.
+      FIELD-SYMBOLS <tab> TYPE table.
+      FIELD-SYMBOLS <val2> TYPE data.
 
-    TRY.
-        ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
+      TRY.
+          DATA(location)     = so_body->get_attribute( `OLOCATION` ).
+        CATCH cx_root.
+      ENDTRY.
 
-    TRY.
-        ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
+      TRY.
+          ss_config-search   = location->get_attribute( `SEARCH` )->get_val( ).
+        CATCH cx_root.
+      ENDTRY.
 
-    TRY.
-        ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
+      TRY.
+          ss_config-origin   = location->get_attribute( `ORIGIN` )->get_val( ).
+        CATCH cx_root.
+      ENDTRY.
 
-    TRY.
-        ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
+      TRY.
+          ss_config-pathname = location->get_attribute( `PATHNAME` )->get_val( ).
+        CATCH cx_root.
+      ENDTRY.
 
-    TRY.
-        ss_config-check_launchpad_active  = location->get_attribute( `CHECK_LAUNCHPAD_ACTIVE` )->get_val( ).
-      CATCH cx_root.
-    ENDTRY.
+      TRY.
+          ss_config-version  = location->get_attribute( `VERSION` )->get_val( ).
+        CATCH cx_root.
+      ENDTRY.
 
-    TRY.
+      TRY.
+          ss_config-check_launchpad_active  = location->get_attribute( `CHECK_LAUNCHPAD_ACTIVE` )->get_val( ).
+        CATCH cx_root.
+      ENDTRY.
 
+      TRY.
 
-        DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
-        ASSIGN ls_params->* TO <struc>.
+          DATA(ls_params)  = location->get_attribute( `STARTUP_PARAMETERS` )->get_val_ref( ).
+          ASSIGN ls_params->* TO <struc>.
 
-        DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <struc> ).
+          DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <struc> ).
 
-        LOOP AT lt_comp INTO DATA(ls_comp).
+          LOOP AT lt_comp INTO DATA(ls_comp).
 
+            ASSIGN COMPONENT ls_comp-name OF STRUCTURE <struc> TO <val_ref>.
+            ASSIGN <val_ref>->* TO <tab>.
+            ASSIGN <tab>[ 1 ] TO <val_ref>.
+            ASSIGN <val_ref>->* TO <val2>.
 
+            INSERT VALUE #( n = ls_comp-name v = <val2> ) INTO TABLE ss_config-t_startup_params.
 
+          ENDLOOP.
+        CATCH cx_root.
+      ENDTRY.
 
-          ASSIGN COMPONENT ls_comp-name OF STRUCTURE <struc> TO <val_ref>.
-          ASSIGN <val_ref>->* TO <tab>.
-          ASSIGN <tab>[ 1 ] TO <val_ref>.
-          ASSIGN <val_ref>->* TO <val2>.
-
-          INSERT VALUE #( n = ls_comp-name v = <val2> ) INTO TABLE ss_config-t_startup_params.
-
-        ENDLOOP.
-      CATCH cx_root.
-    ENDTRY.
-
+    ELSE.
+      TRY.
+          so_body_ajson->slice( `/OLOCATION`  )->to_abap(
+              IMPORTING
+              ev_container     = ss_config
+          ).
+        CATCH cx_root INTO DATA(x).
+          ASSERT x IS NOT BOUND.
+      ENDTRY.
+    ENDIF.
   ENDMETHOD.
 
 
@@ -502,47 +532,87 @@ CLASS Z2UI5_CL_FW_CONTROLLER IMPLEMENTATION.
 
 
   METHOD request_begin.
+    TRY.
 
-    ss_config-body                 = body.
-    so_body                        = z2ui5_cl_util_tree_json=>factory( ss_config-body ).
-    ss_config-view_model_edit_name = z2ui5_cl_fw_binding=>cv_model_edit_name.
-    body_read_location( ).
+*    ss_config-body                 = body.
+        IF cv_check_ajson = abap_false.
+          so_body                        = z2ui5_cl_util_tree_json=>factory( body ).
+        ELSE.
+          so_body_ajson = z2ui5_cl_ajson=>parse( body ).
+        ENDIF.
 
-    DATA(lv_id_prev) = _get_id( ).
-    IF lv_id_prev IS INITIAL.
-      result = app_start_factory( ).
-      result->ms_actual-check_on_navigated = abap_true.
-    ELSE.
-      result = app_client_begin_factory( lv_id_prev ).
-      result->app_client_begin_model( ).
-      result->app_client_begin_event( ).
-      result->ms_actual-check_on_navigated = abap_false.
-    ENDIF.
+*    ss_config-view_model_edit_name = z2ui5_cl_fw_binding=>cv_model_edit_name.
+        body_read_location( ).
 
-    result->ms_db-check_attri = abap_false.
+        IF cv_check_ajson = abap_false.
+          DATA(lv_id_prev) = _get_id( ).
+        ELSE.
+          lv_id_prev = so_body_ajson->get( `/ID` ).
+        ENDIF.
+        IF lv_id_prev IS INITIAL.
+          result = app_start_factory( ).
+          result->ms_actual-check_on_navigated = abap_true.
+        ELSE.
+          result = app_client_begin_factory( lv_id_prev ).
+          result->app_client_begin_model( ).
+          result->app_client_begin_event( ).
+          result->ms_actual-check_on_navigated = abap_false.
+        ENDIF.
 
-    IF ss_config-search CS `scenario=LAUNCHPAD`.
-      result->ms_actual-check_launchpad_active = abap_true.
-    ENDIF.
+        result->ms_db-check_attri = abap_false.
 
+        IF ss_config-search CS `scenario=LAUNCHPAD`.
+          result->ms_actual-check_launchpad_active = abap_true.
+        ENDIF.
+
+      CATCH cx_root INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
   ENDMETHOD.
 
 
   METHOD request_end.
 
-    DATA(lv_viewmodel) = app_client_end_model( ).
-    result = app_client_end_response( lv_viewmodel ).
-    app_client_end_db( ).
+    IF cv_check_ajson  = abap_false.
+
+      DATA(lv_viewmodel) = app_client_end_model( ).
+      result = app_client_end_response( lv_viewmodel ).
+      app_client_end_db( ).
+
+    ELSE.
+      TRY.
+
+          "todo performance - write all data directly into the target ajson
+          DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
+            ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+
+          ajson_result->set( iv_path = `/PARAMS` iv_val = ms_next-s_set ).
+          ajson_result->set( iv_path = `/ID` iv_val = ms_db-id ).
+          ajson_result = ajson_result->filter( NEW z2ui5_cl_fw_model_ajson( ) ).
+
+          DATA(lo_ajson) = z2ui5_cl_fw_model_ajson=>back_to_front(
+                app     = ms_db-app
+                t_attri = ms_db-t_attri ).
+
+          ajson_result->set( iv_path = `/OVIEWMODEL` iv_val = lo_ajson ).
+          result = ajson_result->stringify( ).
+
+          z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
+
+        CATCH cx_root INTO DATA(x).
+          ASSERT x IS NOT BOUND.
+      ENDTRY.
+    ENDIF.
 
   ENDMETHOD.
 
 
   METHOD _get_id.
-
     TRY.
+
         result  = so_body->get_attribute( `ID` )->get_val( ).
+
       CATCH cx_root.
     ENDTRY.
-
   ENDMETHOD.
 ENDCLASS.
