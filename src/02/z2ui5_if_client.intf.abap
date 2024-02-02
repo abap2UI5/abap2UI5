@@ -12,7 +12,7 @@ INTERFACE z2ui5_if_client
       nest2_nav_container_to    TYPE string VALUE `NEST2_NAV_CONTAINER_TO`,
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
-      POPUP_NAV_CONTAINER_TO    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
+      popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
     END OF cs_event.
 
   CONSTANTS:
@@ -177,16 +177,18 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind
     IMPORTING
-      val             TYPE data
-      path            TYPE abap_bool DEFAULT abap_false
-      pretty_mode     TYPE clike     DEFAULT cs_pretty_mode-none
-      compress_mode   TYPE clike     DEFAULT cs_compress_mode-standard
-      compress_custom TYPE clike     OPTIONAL
-      tab             TYPE STANDARD TABLE OPTIONAL
-      tab_index       TYPE i          OPTIONAL
-      struc           TYPE data       OPTIONAL
+      val           TYPE data
+      path          TYPE abap_bool DEFAULT abap_false
+      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
+      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
+*      compress_custom TYPE clike     OPTIONAL
+      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping optional
+      custom_filter TYPE REF TO z2ui5_if_ajson_filter optional
+      tab           TYPE STANDARD TABLE OPTIONAL
+      tab_index     TYPE i          OPTIONAL
+      struc         TYPE data       OPTIONAL
     RETURNING
-      VALUE(result)   TYPE string.
+      VALUE(result) TYPE string.
 
   METHODS _bind_edit
     IMPORTING
@@ -195,7 +197,9 @@ INTERFACE z2ui5_if_client
       view          TYPE string     DEFAULT cs_view-main
       pretty_mode   TYPE clike      DEFAULT cs_pretty_mode-none
       compress_mode TYPE clike      DEFAULT cs_compress_mode-standard
-      compress_custom TYPE clike     OPTIONAL
+*      compress_custom TYPE clike     OPTIONAL
+      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping optional
+      custom_filter TYPE REF TO z2ui5_if_ajson_filter optional
       tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
       struc         TYPE data       OPTIONAL
@@ -204,11 +208,13 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind_local
     IMPORTING
-      val             TYPE data
-      path            TYPE abap_bool DEFAULT abap_false
-      pretty_mode     TYPE clike     DEFAULT cs_pretty_mode-none
-      compress_custom TYPE clike     OPTIONAL
-      compress_mode   TYPE clike     DEFAULT cs_compress_mode-standard
+      val           TYPE data
+      path          TYPE abap_bool DEFAULT abap_false
+      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
+*      compress_custom TYPE clike     OPTIONAL
+      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
+     custom_mapper TYPE REF TO z2ui5_if_ajson_mapping optional
+      custom_filter TYPE REF TO z2ui5_if_ajson_filter optional
     RETURNING
       VALUE(result) TYPE string.
 

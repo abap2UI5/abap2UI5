@@ -126,6 +126,13 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `        async onAfterRendering() {` && |\n|  &&
                `         try{` && |\n|  &&
                `            if (!sap.z2ui5.oResponse.PARAMS) {` && |\n|  &&
+                            `            BusyIndicator.hide();` && |\n|  &&
+               `            if (sap.z2ui5.isBusy) {` && |\n|  &&
+               `                sap.z2ui5.isBusy = false;` && |\n|  &&
+               `            }` && |\n|  &&
+               `            if (sap.z2ui5.busyDialog) {` && |\n|  &&
+               `                sap.z2ui5.busyDialog.close();` && |\n|  &&
+               `            }` && |\n|  &&
                `                return;` && |\n|  &&
                `            }` && |\n|  &&
                `            const {S_POPUP, S_VIEW_NEST, S_VIEW_NEST2, S_POPOVER} = sap.z2ui5.oResponse.PARAMS;` && |\n|  &&
@@ -417,6 +424,7 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `            document.write(response);` && |\n|  &&
                `        },` && |\n|  &&
                `        updateModelIfRequired(paramKey, oView) {` && |\n|  &&
+               `            if (sap.z2ui5.oResponse.PARAMS == undefined) { return; }` && |\n|  &&
                `            if (sap.z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n|  &&
                `                let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
                `                model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
@@ -446,6 +454,7 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
 `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n|  &&
                `        },` && |\n|  &&
                `        showMessage(msgType, params) {` && |\n|  &&
+               `            if (params == undefined) { return; }` && |\n|  &&
                `            if (params[msgType]?.TEXT !== undefined) {` && |\n|  &&
                `                if (msgType === 'S_MSG_TOAST') {` && |\n|  &&
                `                    MessageToast.show(params[msgType].TEXT);` && |\n|  &&
