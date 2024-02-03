@@ -3,7 +3,7 @@
     "default": {
       "filename": "./abaplint.jsonc"
     },
-    "steampunk": {
+    "abap_cloud_readiness": {
       "filename": "./abaplint-abap_cloud_readiness.jsonc"
     }
   }
