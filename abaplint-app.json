@@ -1,7 +1,10 @@
 {
   "configurations": {
-    "default": {
+    "extended_check": {
       "filename": "./abaplint.jsonc"
+    },
+    "basic_check": {
+      "filename": "./abaplint-basic.jsonc"
     },
     "abap_cloud_readiness": {
       "filename": "./abaplint-abap_cloud_readiness.jsonc"
