@@ -238,7 +238,7 @@
     "type_form_parameters": true,
     "types_naming": false,
     "uncaught_exception": true,
-    "unknown_types": false,
+    "unknown_types": true,
     "unnecessary_chaining": false,
     "unnecessary_pragma": true,
     "unnecessary_return": true,
