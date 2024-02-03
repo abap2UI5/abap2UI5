@@ -4,7 +4,7 @@
       "filename": "./abaplint.jsonc"
     },
     "steampunk": {
-      "filename": "./abaplint-steampunk.jsonc"
+      "filename": "./abaplint-abap_cloud_readiness.jsonc"
     }
   }
 }
