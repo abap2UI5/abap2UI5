@@ -1,9 +1,9 @@
 {
   "configurations": {
-    "extended_check": {
+    "default": {
       "filename": "./abaplint.jsonc"
     },
-    "basic_check": {
+    "all_folder_min_check": {
       "filename": "./abaplint-basic.jsonc"
     },
     "abap_cloud_readiness": {
