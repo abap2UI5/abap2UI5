@@ -129,12 +129,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO ty_s_attri.
 
-    METHODS name_front_create
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
-
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -470,29 +464,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
-
-
-  METHOD name_front_create.
-
-    result = replace( val  = val
-                      sub  = `*`
-                      with = `_`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `>`
-                      with = `_`
-                      occ  = 0 ).
-    result = replace( val  = result
-                      sub  = `-`
-                      with = `_`
-                      occ  = 0 ).
-
-    IF mv_pretty_name = abap_true.
-      REPLACE ALL OCCURRENCES OF `_` IN result WITH ``.
-    ENDIF.
-
-  ENDMETHOD.
-
 
   METHOD search_binding.
 
