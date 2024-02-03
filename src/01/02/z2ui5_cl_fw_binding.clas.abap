@@ -59,8 +59,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mr_data TYPE REF TO data.
     DATA mv_check_attri TYPE abap_bool.
     DATA mv_view TYPE string.
-    DATA mv_pretty_name TYPE string.
-    DATA mv_compress TYPE string.
     DATA mo_custom_filter TYPE REF TO z2ui5_if_ajson_filter.
     DATA mo_custom_mapper TYPE REF TO z2ui5_if_ajson_mapping.
     DATA mo_custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping.
