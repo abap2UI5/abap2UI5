@@ -120,27 +120,27 @@
         RETURNING
           VALUE(result) TYPE string.
 
-    CLASS-METHODS get_js_cc
+      CLASS-METHODS get_js_cc
         RETURNING
           VALUE(result) TYPE string.
 
-    CLASS-METHODS get_js_config
-      IMPORTING
-        i_steps_config            TYPE ty_config
-        i_highlight_config        TYPE ty_config_steps
-        i_highlight_driver_config TYPE ty_config
-      RETURNING
-        VALUE(r_drive_js)         TYPE string.
+      CLASS-METHODS get_js_config
+        IMPORTING
+          i_steps_config            TYPE ty_config
+          i_highlight_config        TYPE ty_config_steps
+          i_highlight_driver_config TYPE ty_config
+        RETURNING
+          VALUE(r_drive_js)         TYPE string.
 
     PROTECTED SECTION.
     PRIVATE SECTION.
 
 
-ENDCLASS.
+  ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
+  CLASS z2ui5_cl_cc_driver_js IMPLEMENTATION.
 
 
     METHOD get_css_local.
@@ -173,7 +173,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
     ENDMETHOD.
 
 
-METHOD get_js_cc.
+    METHOD get_js_cc.
 
       result =  `sap.z2ui5.DriverJS = { };` &&
             `sap.z2ui5.DriverJS.drive = function() {` && |\n|  &&
@@ -192,148 +192,166 @@ METHOD get_js_cc.
     ENDMETHOD.
 
 
-  METHOD get_js_config.
+    METHOD get_js_config.
 
-    DATA(ls_config) = i_steps_config.
-    DATA(ls_highlight_config) = i_highlight_config.
-    DATA(ls_highlight_driver_config) = i_highlight_driver_config.
+      DATA(ls_config) = i_steps_config.
+      DATA(ls_highlight_config) = i_highlight_config.
+      DATA(ls_highlight_driver_config) = i_highlight_driver_config.
 
-    "load driver object from window object
-    r_drive_js  = `var driver = window.driver.js.driver;` && |\n| &&
-                  `var driverObj = new Object();` && |\n|.
+      "load driver object from window object
+      r_drive_js  = `var driver = window.driver.js.driver;` && |\n| &&
+                    `var driverObj = new Object();` && |\n|.
 
-    "handle tour
-    IF i_steps_config IS NOT INITIAL.
+      "handle tour
+      IF i_steps_config IS NOT INITIAL.
 
-      LOOP AT ls_config-steps ASSIGNING FIELD-SYMBOL(<step>).
-        IF <step>-popover-title IS NOT INITIAL.
-          <step>-popover-title = escape( val = <step>-popover-title format = cl_abap_format=>e_html_js_html ).
-        ENDIF.
-        IF <step>-popover-description IS NOT INITIAL.
-          <step>-popover-description = escape( val = <step>-popover-description format = cl_abap_format=>e_html_js_html ).
-        ENDIF.
-      ENDLOOP.
+        LOOP AT ls_config-steps ASSIGNING FIELD-SYMBOL(<step>).
+          IF <step>-popover-title IS NOT INITIAL.
+            <step>-popover-title = escape( val = <step>-popover-title format = cl_abap_format=>e_html_js_html ).
+          ENDIF.
+          IF <step>-popover-description IS NOT INITIAL.
+            <step>-popover-description = escape( val = <step>-popover-description format = cl_abap_format=>e_html_js_html ).
+          ENDIF.
+        ENDLOOP.
 
-      "needed for transpilation to js
-      DATA(lv_config_json) = ``.
+        "needed for transpilation to js
+        DATA(lv_config_json) = ``.
+*        lv_config_json = /ui2/cl_json=>serialize(
+*                                  data             = ls_config
+*                                  compress         = abap_true
+*                                  pretty_name      = 'X' ).
 
-      lv_config_json = /ui2/cl_json=>serialize(
-                                data             = ls_config
-                                compress         = abap_true
-                                pretty_name      = 'X' ).
+        DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+        li_ajson->set( iv_path = `/` iv_val = ls_config ).
+        li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
+        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
+        lv_config_json = li_ajson->stringify( ).
 
+        r_drive_js = r_drive_js && `var config = ` && lv_config_json && `;` && |\n| &&
+                               `var iLength = config.steps.length;` && |\n| &&
+                               `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
+                               `  switch ( config.steps[i].elementview ) {` && |\n| &&
+                               `    case 'NEST':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewNest.createId( config.steps[i].element );` && |\n| &&
+                               `    case 'NEST2':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewNest2.createId( config.steps[i].element );` && |\n| &&
+                               `    case 'POPUP':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewPopup.createId( config.steps[i].element );` && |\n| &&
+                               `    case 'POPOVER':` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oViewPopover.createId( config.steps[i].element );` && |\n| &&
+                               `    // MAIN view is default` && |\n| &&
+                               `    default:` && |\n| &&
+                               `      config.steps[i].element = '#' + sap.z2ui5.oView.createId( config.steps[i].element );` && |\n| &&
+                               `  };` && |\n| &&
+                               `};`.
 
-      r_drive_js = r_drive_js && `var config = ` && lv_config_json && `;` && |\n| &&
-                             `var iLength = config.steps.length;` && |\n| &&
-                             `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
-                             `  switch ( config.steps[i].elementview ) {` && |\n| &&
-                             `    case 'NEST':` && |\n| &&
-                             `      config.steps[i].element = '#' + sap.z2ui5.oViewNest.createId( config.steps[i].element );` && |\n| &&
-                             `    case 'NEST2':` && |\n| &&
-                             `      config.steps[i].element = '#' + sap.z2ui5.oViewNest2.createId( config.steps[i].element );` && |\n| &&
-                             `    case 'POPUP':` && |\n| &&
-                             `      config.steps[i].element = '#' + sap.z2ui5.oViewPopup.createId( config.steps[i].element );` && |\n| &&
-                             `    case 'POPOVER':` && |\n| &&
-                             `      config.steps[i].element = '#' + sap.z2ui5.oViewPopover.createId( config.steps[i].element );` && |\n| &&
-                             `    // MAIN view is default` && |\n| &&
-                             `    default:` && |\n| &&
-                             `      config.steps[i].element = '#' + sap.z2ui5.oView.createId( config.steps[i].element );` && |\n| &&
-                             `  };` && |\n| &&
-                             `};`.
+        r_drive_js = r_drive_js && |\n| &&
+                   `for (var key of Object.keys(config)) {` && |\n| &&
+                   `  if( key.startsWith('on') ) {` && |\n| &&
+                   `    config[key] = new Function( config[key] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
 
-      r_drive_js = r_drive_js && |\n| &&
-                 `for (var key of Object.keys(config)) {` && |\n| &&
-                 `  if( key.startsWith('on') ) {` && |\n| &&
-                 `    config[key] = new Function( config[key] );` && |\n| &&
-                 `  };` && |\n| &&
-                 `};` && |\n|.
+        r_drive_js = r_drive_js && |\n| &&
+                   `for (key of Object.keys(config.steps)) {` && |\n| &&
+                   `  if( key.startsWith('on') ) {` && |\n| &&
+                   `    config.steps[key] = new Function( config.steps[key] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
 
-      r_drive_js = r_drive_js && |\n| &&
-                 `for (key of Object.keys(config.steps)) {` && |\n| &&
-                 `  if( key.startsWith('on') ) {` && |\n| &&
-                 `    config.steps[key] = new Function( config.steps[key] );` && |\n| &&
-                 `  };` && |\n| &&
-                 `};` && |\n|.
-
-      r_drive_js = r_drive_js && |\n| &&
-                 `for (var j = 0; j &lt; config.steps.length; j++) {` && |\n| &&
-                 `  for (key of Object.keys(config.steps[j].popover)) {` && |\n| &&
-                 `    if( key.startsWith('on') ) {` && |\n| &&
-                 `      config.steps[j].popover[key] = new Function( config.steps[kj].popover[key] );` && |\n| &&
-                 `    };` && |\n| &&
-                 `  };` && |\n| &&
-                 `};` && |\n|.
-
-
-    ENDIF.
-
-    "handle highlight
-    IF i_highlight_config IS NOT INITIAL AND i_highlight_driver_config IS NOT INITIAL.
-
-      DATA(lv_highlight_driver_config_jn) = ``.
-      lv_highlight_driver_config_jn = /ui2/cl_json=>serialize(
-                                                 data             = ls_highlight_driver_config
-                                                 compress         = abap_true
-                                                 pretty_name      = 'X' ).
-
-      r_drive_js = r_drive_js && |\n| &&
-                 `var highlight_driver_config = ` && lv_highlight_driver_config_jn && `;` && |\n|.
+        r_drive_js = r_drive_js && |\n| &&
+                   `for (var j = 0; j &lt; config.steps.length; j++) {` && |\n| &&
+                   `  for (key of Object.keys(config.steps[j].popover)) {` && |\n| &&
+                   `    if( key.startsWith('on') ) {` && |\n| &&
+                   `      config.steps[j].popover[key] = new Function( config.steps[kj].popover[key] );` && |\n| &&
+                   `    };` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
 
 
-      IF ls_highlight_config-popover-title IS NOT INITIAL.
-        ls_highlight_config-popover-title = escape( val = ls_highlight_config-popover-title format = cl_abap_format=>e_html_js_html ).
       ENDIF.
 
-      IF ls_highlight_config-popover-description IS NOT INITIAL.
-        ls_highlight_config-popover-description = escape( val = ls_highlight_config-popover-description format = cl_abap_format=>e_html_js_html ).
+      "handle highlight
+      IF i_highlight_config IS NOT INITIAL AND i_highlight_driver_config IS NOT INITIAL.
+
+        DATA(lv_highlight_driver_config_jn) = ``.
+*        lv_highlight_driver_config_jn = /ui2/cl_json=>serialize(
+*                                                   data             = ls_highlight_driver_config
+*                                                   compress         = abap_true
+*                                                   pretty_name      = 'X' ).
+
+        li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+        li_ajson->set( iv_path = `/` iv_val = ls_config ).
+        li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
+        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
+        lv_highlight_driver_config_jn = li_ajson->stringify( ).
+
+        r_drive_js = r_drive_js && |\n| &&
+                   `var highlight_driver_config = ` && lv_highlight_driver_config_jn && `;` && |\n|.
+
+
+        IF ls_highlight_config-popover-title IS NOT INITIAL.
+          ls_highlight_config-popover-title = escape( val = ls_highlight_config-popover-title format = cl_abap_format=>e_html_js_html ).
+        ENDIF.
+
+        IF ls_highlight_config-popover-description IS NOT INITIAL.
+          ls_highlight_config-popover-description = escape( val = ls_highlight_config-popover-description format = cl_abap_format=>e_html_js_html ).
+        ENDIF.
+
+        DATA(lv_highlight_config_json) = ``.
+*        lv_highlight_config_json = /ui2/cl_json=>serialize(
+*                                            data             = ls_highlight_config
+*                                            compress         = abap_true
+*                                            pretty_name      = 'X' ).
+        li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+        li_ajson->set( iv_path = `/` iv_val = ls_config ).
+        li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
+        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
+        lv_highlight_config_json = li_ajson->stringify( ).
+
+        r_drive_js = r_drive_js && |\n| &&
+                   `var highlight_config = ` && lv_highlight_config_json && `;` && |\n| &&
+                   `switch ( highlight_config.elementview ) {` && |\n| &&
+                   `  case 'NEST':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewNest.createId( highlight_config.element );` && |\n| &&
+                   `  case 'NEST2':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewNest2.createId( highlight_config.element );` && |\n| &&
+                   `  case 'POPUP':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewPopup.createId( highlight_config.element );` && |\n| &&
+                   `  case 'POPOVER':` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oViewPopover.createId( highlight_config.element );` && |\n| &&
+                   `  // MAIN view is default` && |\n| &&
+                   `  default:` && |\n| &&
+                   `    highlight_config.element = '#' + sap.z2ui5.oView.createId( highlight_config.element );` && |\n| &&
+                   `};`.
+
+        r_drive_js = r_drive_js && |\n| &&
+                   `for (var key1 of Object.keys(highlight_config)) {` && |\n| &&
+                   `  if( key1.startsWith('on') ) {` && |\n| &&
+                   `    highlight_config[key1] = new Function( highlight_config[key1] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+        r_drive_js = r_drive_js && |\n| &&
+                   `for (var key1 of Object.keys(highlight_config.popover)) {` && |\n| &&
+                   `  if( key1.startsWith('on') ) {` && |\n| &&
+                   `    highlight_config.popover[key1] = new Function( highlight_config.popover[key1] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};` && |\n|.
+
+        r_drive_js = r_drive_js && |\n| &&
+                   `for (key1 of Object.keys(highlight_driver_config)) {` && |\n| &&
+                   `  if( key.startsWith('on') ) {` && |\n| &&
+                   `    highlight_driver_config[key] = new Function( highlight_driver_config[key] );` && |\n| &&
+                   `  };` && |\n| &&
+                   `};`.
+
       ENDIF.
 
-      DATA(lv_highlight_config_json) = ``.
-      lv_highlight_config_json = /ui2/cl_json=>serialize(
-                                          data             = ls_highlight_config
-                                          compress         = abap_true
-                                          pretty_name      = 'X' ).
-
-      r_drive_js = r_drive_js && |\n| &&
-                 `var highlight_config = ` && lv_highlight_config_json && `;` && |\n| &&
-                 `switch ( highlight_config.elementview ) {` && |\n| &&
-                 `  case 'NEST':` && |\n| &&
-                 `    highlight_config.element = '#' + sap.z2ui5.oViewNest.createId( highlight_config.element );` && |\n| &&
-                 `  case 'NEST2':` && |\n| &&
-                 `    highlight_config.element = '#' + sap.z2ui5.oViewNest2.createId( highlight_config.element );` && |\n| &&
-                 `  case 'POPUP':` && |\n| &&
-                 `    highlight_config.element = '#' + sap.z2ui5.oViewPopup.createId( highlight_config.element );` && |\n| &&
-                 `  case 'POPOVER':` && |\n| &&
-                 `    highlight_config.element = '#' + sap.z2ui5.oViewPopover.createId( highlight_config.element );` && |\n| &&
-                 `  // MAIN view is default` && |\n| &&
-                 `  default:` && |\n| &&
-                 `    highlight_config.element = '#' + sap.z2ui5.oView.createId( highlight_config.element );` && |\n| &&
-                 `};`.
-
-      r_drive_js = r_drive_js && |\n| &&
-                 `for (var key1 of Object.keys(highlight_config)) {` && |\n| &&
-                 `  if( key1.startsWith('on') ) {` && |\n| &&
-                 `    highlight_config[key1] = new Function( highlight_config[key1] );` && |\n| &&
-                 `  };` && |\n| &&
-                 `};` && |\n|.
-
-      r_drive_js = r_drive_js && |\n| &&
-                 `for (var key1 of Object.keys(highlight_config.popover)) {` && |\n| &&
-                 `  if( key1.startsWith('on') ) {` && |\n| &&
-                 `    highlight_config.popover[key1] = new Function( highlight_config.popover[key1] );` && |\n| &&
-                 `  };` && |\n| &&
-                 `};` && |\n|.
-
-      r_drive_js = r_drive_js && |\n| &&
-                 `for (key1 of Object.keys(highlight_driver_config)) {` && |\n| &&
-                 `  if( key.startsWith('on') ) {` && |\n| &&
-                 `    highlight_driver_config[key] = new Function( highlight_driver_config[key] );` && |\n| &&
-                 `  };` && |\n| &&
-                 `};`.
-
-    ENDIF.
-
-  ENDMETHOD.
+    ENDMETHOD.
 
 
     METHOD get_js_local.
@@ -469,4 +487,4 @@ METHOD get_js_cc.
 `D,Symbol.toStringTag,{value:&quot;Module&quot;}),D}({});`.
 
     ENDMETHOD.
-ENDCLASS.
+  ENDCLASS.
