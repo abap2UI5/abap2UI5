@@ -69,6 +69,14 @@ CLASS z2ui5_cl_fw_controller DEFINITION
         body          TYPE string
       RETURNING
         VALUE(result) TYPE string.
+    CLASS-METHODS map_request
+      IMPORTING
+        val TYPE string.
+    CLASS-METHODS map_response
+      IMPORTING
+        io_handler    TYPE REF TO z2ui5_cl_fw_controller
+      RETURNING
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
 
@@ -155,7 +163,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
         ajson->delete( `/1` ).
         ajson->to_abap(
           IMPORTING
-            ev_container     = ms_actual-t_event_arg
+            ev_container = ms_actual-t_event_arg
         ).
 
       CATCH cx_root INTO DATA(x).
@@ -171,8 +179,6 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
         result->ms_db         = z2ui5_cl_fw_db=>load_app( id_prev ).
         result->ms_db-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
         result->ms_db-id_prev = id_prev.
-
-
 
         result->ms_actual-viewname = so_body_ajson->get( iv_path = `/VIEWNAME` ).
 
@@ -309,6 +315,9 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
   METHOD main.
 
     TRY.
+
+        map_request( body ).
+
         DATA(lo_handler) = request_begin( body ).
       CATCH cx_root INTO DATA(x).
         lo_handler = app_system_factory( x ).
@@ -331,7 +340,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
             CONTINUE.
           ENDIF.
 
-          result = lo_handler->request_end( ).
+          result = map_response( lo_handler ).
 
         CATCH cx_root INTO x.
           lo_handler = app_system_factory( x ).
@@ -340,6 +349,11 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
 
       EXIT.
     ENDDO.
+
+  ENDMETHOD.
+
+
+  METHOD map_request.
 
   ENDMETHOD.
 
@@ -396,6 +410,12 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
     ENDTRY.
+  ENDMETHOD.
+
+  METHOD map_response.
+
+    result = io_handler->request_end( ).
+
   ENDMETHOD.
 
 ENDCLASS.
