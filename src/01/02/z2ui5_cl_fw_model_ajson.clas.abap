@@ -94,7 +94,7 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
 
             WHEN z2ui5_cl_fw_binding=>cs_bind_type-one_time.
               DATA(lv_path) = lr_attri->name_front.
-              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = lr_attri->ajson_local ).
+              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = lr_attri->json_bind_local ).
 
             WHEN z2ui5_cl_fw_binding=>cs_bind_type-one_way.
               lv_path = lr_attri->name_front.
@@ -135,9 +135,8 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
     DATA(ajson) = ajson_in->slice( `/EDIT` ).
 
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
-        AND  viewname  = viewname.
-
+    WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
+    AND  viewname  = viewname.
       TRY.
 
           DATA(lv_name_back) = `APP->` && lr_attri->name.
@@ -147,13 +146,13 @@ CLASS z2ui5_cl_fw_model_ajson IMPLEMENTATION.
 
           DATA(ajson_val) = ajson->slice( `/` && lr_attri->name_front ).
 
-          IF lr_attri->custom_mapper IS BOUND.
-            ajson_val  = ajson_val->map( lr_attri->custom_mapper ).
+          IF lr_attri->custom_mapper_back IS BOUND.
+            ajson_val = ajson_val->map( lr_attri->custom_mapper_back ).
           ENDIF.
 
           ajson_val->to_abap(
             IMPORTING
-              ev_container     = <backend> ).
+              ev_container = <backend> ).
 
         CATCH cx_root INTO DATA(x).
           ASSERT x IS BOUND.

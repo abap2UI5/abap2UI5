@@ -405,6 +405,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
                         data        = val
                         view        = view
                         custom_mapper  = custom_mapper
+                        custom_mapper_back  = custom_mapper_back
                         custom_filter   = custom_filter
                         ).
 

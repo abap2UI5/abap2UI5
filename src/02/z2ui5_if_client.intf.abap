@@ -172,16 +172,17 @@ INTERFACE z2ui5_if_client
 
   METHODS _bind_edit
     IMPORTING
-      val           TYPE data
-      path          TYPE abap_bool  DEFAULT abap_false
-      view          TYPE string     DEFAULT cs_view-main
-      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-      custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
-      tab           TYPE STANDARD TABLE OPTIONAL
-      tab_index     TYPE i          OPTIONAL
-      struc         TYPE data       OPTIONAL
+      val                TYPE data
+      path               TYPE abap_bool  DEFAULT abap_false
+      view               TYPE string     DEFAULT cs_view-main
+      custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter      TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
+      tab                TYPE STANDARD TABLE OPTIONAL
+      tab_index          TYPE i          OPTIONAL
+      struc              TYPE data       OPTIONAL
     RETURNING
-      VALUE(result) TYPE string.
+      VALUE(result)      TYPE string.
 
   METHODS _bind_local
     IMPORTING
