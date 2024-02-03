@@ -33,7 +33,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         depth           TYPE i,
         ajson_local     TYPE REF TO z2ui5_if_ajson,
         custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
-        custom_mapper  TYPE REF TO z2ui5_if_ajson_mapping,
+        custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -45,9 +45,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         data            TYPE data           OPTIONAL
         check_attri     TYPE data           OPTIONAL
         view            TYPE clike          OPTIONAL
-        pretty_name     TYPE clike          OPTIONAL
-        compress        TYPE clike          OPTIONAL
-*        compress_custom TYPE clike          OPTIONAL
         custom_filter   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
         custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       RETURNING
@@ -186,23 +183,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     bind->viewname    = mv_view.
     bind->custom_filter = mo_custom_filter.
     bind->custom_mapper = mo_custom_mapper.
-*    bind->compress_custom    = mv_compress_custom.
 
-    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
-
-      bind->name_front  = name_front_create( bind->name ).
-      result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-      IF strlen( result ) > 30.
-        bind->name_front = z2ui5_cl_util_func=>uuid_get_c22( ).
-        result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
-      ENDIF.
-
-    ELSE.
-
-      bind->name_front  = replace( val = bind->name sub = `-` with = `/` ).
-      bind->name_front = replace( val = bind->name_front sub = `>` with = `` ).
-      result = `/` && COND #( WHEN mv_type = cs_bind_type-two_way THEN cv_model_edit_name && `/` ) && bind->name_front.
-    ENDIF.
+    bind->name_front  = replace( val = bind->name sub = `-` with = `/` ).
+    bind->name_front = replace( val = bind->name_front sub = `>` with = `` ).
+    result = `/` && COND #( WHEN mv_type = cs_bind_type-two_way THEN cv_model_edit_name && `/` ) && bind->name_front.
 
   ENDMETHOD.
 
@@ -214,39 +198,26 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         ASSIGN mr_data->* TO <any>.
         DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
 
-        IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_false.
-
-          INSERT VALUE #( name           = lv_id
-                          data_stringify = z2ui5_cl_util_func=>trans_json_by_any( any           = mr_data
-                                                                                  compress_mode = me->mv_compress )
-                          bind_type      = cs_bind_type-one_time )
-                 INTO TABLE mt_attri.
-
+        IF mo_custom_mapper IS BOUND.
+          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = mo_custom_mapper ) ).
         ELSE.
-
-          "(1) set pretty mode
-          CASE mv_pretty_name.
-
-            WHEN z2ui5_if_client=>cs_pretty_mode-none.
-              DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
-
-            WHEN z2ui5_if_client=>cs_pretty_mode-camel_case.
-              ajson  = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ) ).
-
-            WHEN OTHERS.
-              ASSERT `` = `ERROR_UNKNOWN_PRETTY_MODE`.
-          ENDCASE.
-
-          INSERT VALUE #( name_front     = lv_id
-                          name           = lv_id
-                          ajson_local    = ajson->set( iv_path = `/` iv_val = <any> )
-                          bind_type      = cs_bind_type-one_time
-                          pretty_name    = mv_pretty_name
-                          compress       = mv_compress
-                          )
-                    INTO TABLE mt_attri.
-
+          ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
         ENDIF.
+
+        IF mo_custom_filter IS BOUND.
+          ajson = ajson->filter( mo_custom_filter ).
+        ELSE.
+          ajson =  ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+        ENDIF.
+
+        INSERT VALUE #( name_front     = lv_id
+                        name           = lv_id
+                        ajson_local    = ajson->set( iv_path = `/` iv_val = <any> )
+                        bind_type      = cs_bind_type-one_time
+                        pretty_name    = mv_pretty_name
+                        compress       = mv_compress
+                        )
+                  INTO TABLE mt_attri.
 
         result = |/{ lv_id }|.
 
@@ -327,8 +298,6 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mv_type = type.
     r_result->mv_check_attri = check_attri.
     r_result->mv_view = view.
-    r_result->mv_pretty_name = pretty_name.
-    r_result->mv_compress = compress.
     r_result->mo_custom_filter = custom_filter.
     r_result->mo_custom_mapper = custom_mapper.
 
