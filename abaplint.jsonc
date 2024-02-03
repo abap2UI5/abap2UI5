@@ -280,6 +280,7 @@
         "^cl_axt_dbtable$",
         "^cl_blue_wb_utility$",
         "^cl_oo_source$",
+        "^/ui2/cl_json",
         "^cl_saunit_internal_result$",
         "^cl_srvd_wb_object_data$",
         "^cl_wb_object_operator_factory$",
