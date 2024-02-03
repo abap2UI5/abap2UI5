@@ -81,8 +81,8 @@ CLASS z2ui5_cl_popup_itab_json_dl IMPLEMENTATION.
 
         ELSE.
 
-          DATA(lv_fg_name) = `Z2UI5_DBT_CL_APP_03`.
-          CALL METHOD (lv_fg_name)=>('FACTORY_POPUP_BY_ITAB')
+          DATA(lv_classname) = `Z2UI5_DBT_CL_APP_03`.
+          CALL METHOD (lv_classname)=>('FACTORY_POPUP_BY_ITAB')
             EXPORTING
               itab   = mr_itab
             RECEIVING
