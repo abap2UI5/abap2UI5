@@ -4,8 +4,7 @@
       "filename": "./abaplint.jsonc"
     },
     "steampunk": {
-      "filename": "./abaplint-steampunk.jsonc",
-      "annotations": false
+      "filename": "./abaplint-steampunk.jsonc"
     }
   }
 }
