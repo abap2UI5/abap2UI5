@@ -159,11 +159,9 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS trans_json_by_any
       IMPORTING
-        !any           TYPE any
-        !pretty_mode   TYPE clike DEFAULT z2ui5_if_client=>cs_pretty_mode-none
-        !compress_mode TYPE clike DEFAULT z2ui5_if_client=>cs_compress_mode-standard
+        !any          TYPE any
       RETURNING
-        VALUE(result)  TYPE string.
+        VALUE(result) TYPE string.
 
     CLASS-METHODS trans_xml_2_any
       IMPORTING
@@ -1243,53 +1241,27 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
 
   METHOD trans_json_2_any.
+    TRY.
 
-*    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_true.
-*      ASSERT 1 = 0.
-*    ENDIF.
+          z2ui5_cl_ajson=>parse( val )->to_abap(
+            IMPORTING
+              ev_container = data ).
 
-    /ui2/cl_json=>deserialize(
-        EXPORTING
-            json         = CONV string( val )
-            assoc_arrays = abap_true
-        CHANGING
-            data         = data ).
-
+      CATCH z2ui5_cx_ajson_error INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
   ENDMETHOD.
 
 
   METHOD trans_json_by_any.
+    TRY.
 
-*    IF z2ui5_cl_fw_controller=>cv_check_ajson = abap_true.
-*      ASSERT 1 = 0.
-*    ENDIF.
+        DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+        result = li_ajson->set( iv_path = `/` iv_val = any )->stringify( ).
 
-    CASE compress_mode.
-
-      WHEN z2ui5_if_client=>cs_compress_mode-full.
-
-        result = /ui2/cl_json=>serialize(
-          data        = any
-          compress    = abap_true
-          pretty_name = pretty_mode ).
-
-      WHEN z2ui5_if_client=>cs_compress_mode-none.
-
-        result = /ui2/cl_json=>serialize(
-          data        = any
-          compress    = abap_false
-          pretty_name = pretty_mode ).
-
-      WHEN OTHERS.
-
-        DATA(lo_json) = NEW z2ui5_cl_util_ui2_json(
-          compress    = abap_true
-          pretty_name = pretty_mode ).
-
-        result = lo_json->serialize_int( any ).
-
-    ENDCASE.
-
+      CATCH z2ui5_cx_ajson_error INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
   ENDMETHOD.
 
 

@@ -27,23 +27,6 @@ INTERFACE z2ui5_if_client
       nested2 TYPE string VALUE `NEST2`,
     END OF cs_view.
 
-  CONSTANTS:
-    BEGIN OF cs_pretty_mode,
-      none          TYPE char1  VALUE ``,
-      low_case      TYPE char1  VALUE `L`,
-      camel_case    TYPE char1  VALUE `X`,
-      extended      TYPE char1  VALUE `Y`,
-      user          TYPE char1  VALUE `U`,
-      user_low_case TYPE char1  VALUE `C`,
-    END OF  cs_pretty_mode .
-
-  CONSTANTS:
-    BEGIN OF cs_compress_mode,
-      standard TYPE string VALUE `STANDARD`,
-      full     TYPE string VALUE `FULL`,
-      none     TYPE string VALUE `NONE`,
-    END OF cs_compress_mode.
-
   TYPES:
     BEGIN OF ty_s_name_value,
       n TYPE string,
@@ -179,11 +162,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
-      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
-      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
-*      compress_custom TYPE clike     OPTIONAL
-      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping optional
-      custom_filter TYPE REF TO z2ui5_if_ajson_filter optional
+      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
       struc         TYPE data       OPTIONAL
@@ -195,11 +175,8 @@ INTERFACE z2ui5_if_client
       val           TYPE data
       path          TYPE abap_bool  DEFAULT abap_false
       view          TYPE string     DEFAULT cs_view-main
-      pretty_mode   TYPE clike      DEFAULT cs_pretty_mode-none
-      compress_mode TYPE clike      DEFAULT cs_compress_mode-standard
-*      compress_custom TYPE clike     OPTIONAL
-      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping optional
-      custom_filter TYPE REF TO z2ui5_if_ajson_filter optional
+      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
       struc         TYPE data       OPTIONAL
@@ -210,11 +187,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val           TYPE data
       path          TYPE abap_bool DEFAULT abap_false
-      pretty_mode   TYPE clike     DEFAULT cs_pretty_mode-none
-*      compress_custom TYPE clike     OPTIONAL
-      compress_mode TYPE clike     DEFAULT cs_compress_mode-standard
-     custom_mapper TYPE REF TO z2ui5_if_ajson_mapping optional
-      custom_filter TYPE REF TO z2ui5_if_ajson_filter optional
+      custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+      custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 

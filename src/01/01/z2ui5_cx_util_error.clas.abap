@@ -1,33 +1,33 @@
-class Z2UI5_CX_UTIL_ERROR definition
-  public
-  inheriting from CX_NO_CHECK
-  final
-  create public .
+CLASS z2ui5_cx_util_error DEFINITION
+  PUBLIC
+  INHERITING FROM cx_no_check
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  data:
-    BEGIN OF ms_error,
+    DATA:
+      BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
         uuid   TYPE string,
         text   TYPE string,
       END OF ms_error .
 
-  methods CONSTRUCTOR
-    importing
-      !VAL type ANY optional
-      !PREVIOUS type ref to CX_ROOT optional
-    preferred parameter VAL .
+    METHODS constructor
+      IMPORTING
+        !val      TYPE any OPTIONAL
+        !previous TYPE REF TO cx_root OPTIONAL
+          PREFERRED PARAMETER val .
 
-  methods IF_MESSAGE~GET_TEXT
-    redefinition .
+    METHODS if_message~get_text
+        REDEFINITION .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CX_UTIL_ERROR IMPLEMENTATION.
+CLASS z2ui5_cx_util_error IMPLEMENTATION.
 
 
   METHOD constructor ##ADT_SUPPRESS_GENERATION.
@@ -45,7 +45,7 @@ CLASS Z2UI5_CX_UTIL_ERROR IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD IF_MESSAGE~get_text.
+  METHOD if_message~get_text.
 
     IF ms_error-x_root IS NOT INITIAL.
       result = ms_error-x_root->get_text( ).
@@ -55,7 +55,7 @@ CLASS Z2UI5_CX_UTIL_ERROR IMPLEMENTATION.
       error = abap_true.
     ENDIF.
 
-    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` else result ).
+    result = COND #( WHEN error = abap_true AND result IS INITIAL THEN `unknown error` ELSE result ).
 
   ENDMETHOD.
 ENDCLASS.

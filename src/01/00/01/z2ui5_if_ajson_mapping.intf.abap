@@ -1,44 +1,46 @@
-interface z2ui5_if_ajson_mapping
-  public.
+INTERFACE z2ui5_if_ajson_mapping
+  PUBLIC.
 
-  types:
-    begin of ty_mapping_field, " deprecated, will be removed
-      abap type string,
-      json type string,
-    end of ty_mapping_field,
-    ty_mapping_fields type standard table of ty_mapping_field
-      with unique sorted key abap components abap
-      with unique sorted key json components json.
+  INTERFACES if_serializable_object.
 
-  types:
-    begin of ty_rename,
-      from type string,
-      to type string,
-    end of ty_rename,
-    tty_rename_map type standard table of ty_rename
-      with unique sorted key by_name components from.
+  TYPES:
+    BEGIN OF ty_mapping_field, " deprecated, will be removed
+      abap TYPE string,
+      json TYPE string,
+    END OF ty_mapping_field,
+    ty_mapping_fields TYPE STANDARD TABLE OF ty_mapping_field
+      WITH UNIQUE SORTED KEY abap COMPONENTS abap
+      WITH UNIQUE SORTED KEY json COMPONENTS json.
 
-  types:
-    ty_table_of type standard table of ref to z2ui5_if_ajson_mapping.
+  TYPES:
+    BEGIN OF ty_rename,
+      from TYPE string,
+      to   TYPE string,
+    END OF ty_rename,
+    tty_rename_map TYPE STANDARD TABLE OF ty_rename
+      WITH UNIQUE SORTED KEY by_name COMPONENTS from.
 
-  methods to_abap " deprecated, will be removed
-    importing
-      !iv_path         type string
-      !iv_name         type string
-    returning
-      value(rv_result) type string.
+  TYPES:
+    ty_table_of TYPE STANDARD TABLE OF REF TO z2ui5_if_ajson_mapping.
 
-  methods to_json " deprecated, will be removed
-    importing
-      !iv_path         type string
-      !iv_name         type string
-    returning
-      value(rv_result) type string.
+  METHODS to_abap " deprecated, will be removed
+    IMPORTING
+      !iv_path         TYPE string
+      !iv_name         TYPE string
+    RETURNING
+      VALUE(rv_result) TYPE string.
 
-  methods rename_node
-    importing
-      !is_node type z2ui5_if_ajson_types=>ty_node
-    changing
-      !cv_name type z2ui5_if_ajson_types=>ty_node-name.
+  METHODS to_json " deprecated, will be removed
+    IMPORTING
+      !iv_path         TYPE string
+      !iv_name         TYPE string
+    RETURNING
+      VALUE(rv_result) TYPE string.
 
-endinterface.
+  METHODS rename_node
+    IMPORTING
+      !is_node TYPE z2ui5_if_ajson_types=>ty_node
+    CHANGING
+      !cv_name TYPE z2ui5_if_ajson_types=>ty_node-name.
+
+ENDINTERFACE.
