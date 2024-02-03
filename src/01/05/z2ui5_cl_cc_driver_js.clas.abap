@@ -189,7 +189,6 @@ METHOD get_js_cc.
                            `                        } }};` && |\n| &&
       `       };`.
 
-
     ENDMETHOD.
 
 
