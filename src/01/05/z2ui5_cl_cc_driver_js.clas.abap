@@ -216,6 +216,7 @@ METHOD get_js_cc.
 
       "needed for transpilation to js
       DATA(lv_config_json) = ``.
+
       lv_config_json = /ui2/cl_json=>serialize(
                                 data             = ls_config
                                 compress         = abap_true
