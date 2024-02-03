@@ -224,7 +224,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
             DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
             li_ajson->set( iv_path = `/` iv_val = ls_config ).
 *            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-            li_ajson = li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
+            li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
             li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
             li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
             lv_config_json = li_ajson->stringify( ).
@@ -287,7 +287,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
             li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
             li_ajson->set( iv_path = `/` iv_val = ls_highlight_driver_config ).
 *            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-            li_ajson = li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
+            li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
             li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
             li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
             lv_highlight_driver_config_jn = li_ajson->stringify( ).
