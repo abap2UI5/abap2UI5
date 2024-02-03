@@ -1,6 +1,7 @@
 {
   "global": {
-    "files": "/src/**/*.*"
+    "files": "/src/**/*.*",
+    "noIssues": [ "/src/01/00" ]
   },
   "dependencies": [
     {
@@ -155,7 +156,7 @@
       "depth": 7
     },
     "newline_between_methods": false,
-    "no_aliases": false,
+    "no_aliases": true,
     "no_chained_assignment": true,
     "no_external_form_calls": true,
     "no_inline_in_optional_branches": false,
