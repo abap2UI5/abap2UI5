@@ -39,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POPUP_ITAB_JSON_DL IMPLEMENTATION.
+CLASS z2ui5_cl_popup_itab_json_dl IMPLEMENTATION.
 
 
   METHOD factory.
@@ -81,8 +81,8 @@ CLASS Z2UI5_CL_POPUP_ITAB_JSON_DL IMPLEMENTATION.
 
         ELSE.
 
-
-          CALL METHOD ('Z2UI5_DBT_CL_APP_03')=>('FACTORY_POPUP_BY_ITAB')
+          DATA(lv_fg_name) = `Z2UI5_DBT_CL_APP_03`.
+          CALL METHOD (lv_fg_name)=>('FACTORY_POPUP_BY_ITAB')
             EXPORTING
               itab   = mr_itab
             RECEIVING
