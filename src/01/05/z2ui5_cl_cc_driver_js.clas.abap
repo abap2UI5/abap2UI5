@@ -4,7 +4,7 @@
   CREATE PUBLIC.
 
     PUBLIC SECTION.
-
+      INTERFACES z2ui5_if_ajson_filter.
       CONSTANTS:
         BEGIN OF buttons ##NEEDED,
           all            TYPE string VALUE `['next','previous','close']`,
@@ -136,11 +136,11 @@
     PRIVATE SECTION.
 
 
-  ENDCLASS.
+ENDCLASS.
 
 
 
-  CLASS z2ui5_cl_cc_driver_js IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
 
     METHOD get_css_local.
@@ -220,16 +220,17 @@
 *                                  data             = ls_config
 *                                  compress         = abap_true
 *                                  pretty_name      = 'X' ).
-try.
-        DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
-        li_ajson->set( iv_path = `/` iv_val = ls_config ).
-        li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
-        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
-        lv_config_json = li_ajson->stringify( ).
+        TRY.
+            DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+            li_ajson->set( iv_path = `/` iv_val = ls_config ).
+*            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+            li_ajson = li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
+            li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
+            li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
+            lv_config_json = li_ajson->stringify( ).
 
-catch cx_root.
-endtry.
+          CATCH cx_root.
+        ENDTRY.
         r_drive_js = r_drive_js && `var config = ` && lv_config_json && `;` && |\n| &&
                                `var iLength = config.steps.length;` && |\n| &&
                                `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
@@ -282,15 +283,16 @@ endtry.
 *                                                   data             = ls_highlight_driver_config
 *                                                   compress         = abap_true
 *                                                   pretty_name      = 'X' ).
-try.
-        li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
-        li_ajson->set( iv_path = `/` iv_val = ls_highlight_driver_config ).
-        li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
-        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
-        lv_highlight_driver_config_jn = li_ajson->stringify( ).
-catch cx_root.
-endtry.
+        TRY.
+            li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+            li_ajson->set( iv_path = `/` iv_val = ls_highlight_driver_config ).
+*            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+            li_ajson = li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
+            li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
+            li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
+            lv_highlight_driver_config_jn = li_ajson->stringify( ).
+          CATCH cx_root.
+        ENDTRY.
         r_drive_js = r_drive_js && |\n| &&
                    `var highlight_driver_config = ` && lv_highlight_driver_config_jn && `;` && |\n|.
 
@@ -308,15 +310,16 @@ endtry.
 *                                            data             = ls_highlight_config
 *                                            compress         = abap_true
 *                                            pretty_name      = 'X' ).
-       try.
-        li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
-        li_ajson->set( iv_path = `/` iv_val = ls_highlight_config ).
-        li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
-        li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
-        lv_highlight_config_json = li_ajson->stringify( ).
-catch cx_root.
-endtry.
+        TRY.
+            li_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+            li_ajson->set( iv_path = `/` iv_val = ls_highlight_config ).
+*            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+            li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
+            li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
+            li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
+            lv_highlight_config_json = li_ajson->stringify( ).
+          CATCH cx_root.
+        ENDTRY.
         r_drive_js = r_drive_js && |\n| &&
                    `var highlight_config = ` && lv_highlight_config_json && `;` && |\n| &&
                    `switch ( highlight_config.elementview ) {` && |\n| &&
@@ -492,4 +495,44 @@ endtry.
 `D,Symbol.toStringTag,{value:&quot;Module&quot;}),D}({});`.
 
     ENDMETHOD.
-  ENDCLASS.
+
+
+    METHOD z2ui5_if_ajson_filter~keep_node.
+
+      rv_keep = abap_true.
+
+      CASE iv_visit.
+
+        WHEN  z2ui5_if_ajson_filter=>visit_type-open.
+
+          IF is_node-children = 0.
+            rv_keep = abap_false.
+          ENDIF.
+
+        WHEN  z2ui5_if_ajson_filter=>visit_type-value.
+
+          CASE is_node-type.
+            WHEN z2ui5_if_ajson_types=>node_type-boolean.
+              IF is_node-value = `false`.
+                rv_keep = abap_false.
+              ENDIF.
+            WHEN z2ui5_if_ajson_types=>node_type-number.
+              IF is_node-value = `0` OR is_node-value = `0.00`.
+                rv_keep = abap_false.
+              ENDIF.
+            WHEN z2ui5_if_ajson_types=>node_type-string.
+              IF is_node-value = ``.
+                rv_keep = abap_false.
+              ENDIF.
+          ENDCASE.
+
+        WHEN  z2ui5_if_ajson_filter=>visit_type-close.
+
+          IF is_node-children = 0.
+            rv_keep = abap_false.
+          ENDIF.
+
+      ENDCASE.
+
+    ENDMETHOD.
+ENDCLASS.
