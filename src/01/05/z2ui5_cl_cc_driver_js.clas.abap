@@ -220,7 +220,7 @@
 *                                  data             = ls_config
 *                                  compress         = abap_true
 *                                  pretty_name      = 'X' ).
-
+try.
         DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
         li_ajson->set( iv_path = `/` iv_val = ls_config ).
         li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
@@ -228,6 +228,8 @@
         li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
         lv_config_json = li_ajson->stringify( ).
 
+catch cx_root.
+endtry.
         r_drive_js = r_drive_js && `var config = ` && lv_config_json && `;` && |\n| &&
                                `var iLength = config.steps.length;` && |\n| &&
                                `for (var i = 0; i &lt; iLength; i++) {` && |\n| &&
@@ -280,14 +282,15 @@
 *                                                   data             = ls_highlight_driver_config
 *                                                   compress         = abap_true
 *                                                   pretty_name      = 'X' ).
-
+try.
         li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
         li_ajson->set( iv_path = `/` iv_val = ls_config ).
         li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
         li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
         li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
         lv_highlight_driver_config_jn = li_ajson->stringify( ).
-
+catch cx_root.
+endtry.
         r_drive_js = r_drive_js && |\n| &&
                    `var highlight_driver_config = ` && lv_highlight_driver_config_jn && `;` && |\n|.
 
@@ -305,13 +308,15 @@
 *                                            data             = ls_highlight_config
 *                                            compress         = abap_true
 *                                            pretty_name      = 'X' ).
+       try.
         li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
         li_ajson->set( iv_path = `/` iv_val = ls_config ).
         li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
         li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
         li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
         lv_highlight_config_json = li_ajson->stringify( ).
-
+catch cx_root.
+endtry.
         r_drive_js = r_drive_js && |\n| &&
                    `var highlight_config = ` && lv_highlight_config_json && `;` && |\n| &&
                    `switch ( highlight_config.elementview ) {` && |\n| &&
