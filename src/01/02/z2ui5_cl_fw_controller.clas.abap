@@ -388,7 +388,7 @@ CLASS z2ui5_cl_fw_controller IMPLEMENTATION.
               app     = ms_db-app
               t_attri = ms_db-t_attri ).
 
-        DESCRIBE TABLE ms_db-t_attri LINES DATA(lt_test).
+        DESCRIBE TABLE ms_db-t_attri LINES DATA(lt_test) ##NEEDED.
 
         ajson_result->set( iv_path = `/OVIEWMODEL` iv_val = lo_ajson ).
         result = ajson_result->stringify( ).
