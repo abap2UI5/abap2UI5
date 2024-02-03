@@ -3298,6 +3298,7 @@ CLASS z2ui5_cl_cc_imagemapster IMPLEMENTATION.
                           compress         = abap_true
                           pretty_name      = 'X'
                         ).
+
       TRY.
           DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
           li_ajson->set( iv_path = `/` iv_val = is_config ).
