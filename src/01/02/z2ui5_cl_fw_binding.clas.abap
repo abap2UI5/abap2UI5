@@ -16,39 +16,38 @@ CLASS z2ui5_cl_fw_binding DEFINITION
 
     TYPES:
       BEGIN OF ty_s_attri,
-        name            TYPE string,
-        name_front      TYPE string,
-        type_kind       TYPE string,
-        type            TYPE string,
-        bind_type       TYPE string,
-        data_stringify  TYPE string,
-        data_rtti       TYPE string,
-        check_ready     TYPE abap_bool,
-        check_dissolved TYPE abap_bool,
-        check_temp      TYPE abap_bool,
-        viewname        TYPE string,
-        pretty_name     TYPE abap_bool,
-        compress        TYPE string,
-*        compress_custom  TYPE string,
-        depth           TYPE i,
-        ajson_local     TYPE REF TO z2ui5_if_ajson,
-        custom_filter   TYPE REF TO z2ui5_if_ajson_filter,
-        custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping,
+        name               TYPE string,
+        name_front         TYPE string,
+        type_kind          TYPE string,
+        type               TYPE string,
+        bind_type          TYPE string,
+        data_stringify     TYPE string,
+        data_rtti          TYPE string,
+        check_ready        TYPE abap_bool,
+        check_dissolved    TYPE abap_bool,
+        check_temp         TYPE abap_bool,
+        viewname           TYPE string,
+        depth              TYPE i,
+        json_bind_local    TYPE REF TO z2ui5_if_ajson,
+        custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
+        custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
+        custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
       END OF ty_s_attri.
     TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
     CLASS-METHODS factory
       IMPORTING
-        app             TYPE REF TO object  OPTIONAL
-        attri           TYPE ty_t_attri     OPTIONAL
-        type            TYPE clike          OPTIONAL
-        data            TYPE data           OPTIONAL
-        check_attri     TYPE data           OPTIONAL
-        view            TYPE clike          OPTIONAL
-        custom_filter   TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
-        custom_mapper   TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        app                TYPE REF TO object  OPTIONAL
+        attri              TYPE ty_t_attri     OPTIONAL
+        type               TYPE clike          OPTIONAL
+        data               TYPE data           OPTIONAL
+        check_attri        TYPE data           OPTIONAL
+        view               TYPE clike          OPTIONAL
+        custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+        custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_cl_fw_binding.
+        VALUE(r_result)    TYPE REF TO z2ui5_cl_fw_binding.
 
     METHODS main
       RETURNING
@@ -62,9 +61,9 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_view TYPE string.
     DATA mv_pretty_name TYPE string.
     DATA mv_compress TYPE string.
-*    DATA mv_compress_custom TYPE string.
     DATA mo_custom_filter TYPE REF TO z2ui5_if_ajson_filter.
     DATA mo_custom_mapper TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA mo_custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping.
 
     CLASS-METHODS update_attri
       IMPORTING
@@ -135,7 +134,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
 
   METHOD bind.
@@ -160,10 +159,22 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
           val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
     ENDIF.
 
-    IF bind->bind_type IS NOT INITIAL AND bind->pretty_name <> mv_pretty_name.
+    IF bind->custom_mapper IS BOUND AND bind->custom_mapper <> mo_custom_mapper.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
-          val = `<p>Binding Error - Two different pretty types for same attribute used (` && bind->name && `).`.
+          val = `<p>Binding Error - Two different mapper for same attribute used (` && bind->name && `).`.
+    ENDIF.
+
+    IF bind->custom_mapper_back IS BOUND AND bind->custom_mapper_back <> mo_custom_mapper_back.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `<p>Binding Error - Two different mapper back for same attribute used (` && bind->name && `).`.
+    ENDIF.
+
+    IF bind->custom_filter IS BOUND AND bind->custom_filter <> mo_custom_filter.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `<p>Binding Error - Two different filter for same attribute used (` && bind->name && `).`.
     ENDIF.
 
     IF bind->bind_type IS NOT INITIAL.
@@ -172,11 +183,10 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     ENDIF.
 
     bind->bind_type   = mv_type.
-    bind->pretty_name = mv_pretty_name.
-    bind->compress    = mv_compress.
     bind->viewname    = mv_view.
     bind->custom_filter = mo_custom_filter.
     bind->custom_mapper = mo_custom_mapper.
+    bind->custom_mapper_back = mo_custom_mapper_back.
 
     bind->name_front  = replace( val = bind->name sub = `-` with = `/` ).
     bind->name_front = replace( val = bind->name_front sub = `>` with = `` ).
@@ -206,10 +216,8 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
         INSERT VALUE #( name_front     = lv_id
                         name           = lv_id
-                        ajson_local    = ajson->set( iv_path = `/` iv_val = <any> )
+                        json_bind_local    = ajson->set( iv_path = `/` iv_val = <any> )
                         bind_type      = cs_bind_type-one_time
-                        pretty_name    = mv_pretty_name
-                        compress       = mv_compress
                         )
                   INTO TABLE mt_attri.
 
@@ -294,6 +302,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
     r_result->mv_view = view.
     r_result->mo_custom_filter = custom_filter.
     r_result->mo_custom_mapper = custom_mapper.
+    r_result->mo_custom_mapper_back = custom_mapper_back.
 
     IF z2ui5_cl_util_func=>rtti_check_type_kind_dref( data ).
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -464,6 +473,7 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
         val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
+
 
   METHOD search_binding.
 
