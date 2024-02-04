@@ -12,8 +12,6 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         one_time TYPE string VALUE `ONE_TIME`,
       END OF cs_bind_type.
 
-    CONSTANTS cv_model_edit_name TYPE string VALUE `EDIT`.
-
     TYPES:
       BEGIN OF ty_s_attri,
         name               TYPE string,
@@ -210,6 +208,7 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD bind.
 
     FIELD-SYMBOLS <attri> TYPE any.
@@ -251,7 +250,7 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
     ENDIF.
 
     IF bind->bind_type IS NOT INITIAL.
-      result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/` && cv_model_edit_name && `/` ELSE `/` ) && bind->name_front.
+      result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/EDIT` ) && `/` && bind->name_front.
       RETURN.
     ENDIF.
 
@@ -263,7 +262,7 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
     bind->name_front  = replace( val = bind->name sub = `-` with = `/` ).
     bind->name_front = replace( val = bind->name_front sub = `>` with = `` ).
-    result = `/` && COND #( WHEN mv_type = cs_bind_type-two_way THEN cv_model_edit_name && `/` ) && bind->name_front.
+    result = COND #( WHEN mv_type = cs_bind_type-two_way THEN `/EDIT` ) && `/` && bind->name_front.
 
   ENDMETHOD.
 

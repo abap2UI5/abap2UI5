@@ -38,7 +38,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HTTP_MAPPER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_http_mapper IMPLEMENTATION.
 
 
   METHOD model_back_to_front.
@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_FW_HTTP_MAPPER IMPLEMENTATION.
               ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val =  <attribute> ).
 
             WHEN z2ui5_cl_fw_binding=>cs_bind_type-two_way.
-              lv_path =  z2ui5_cl_fw_binding=>cv_model_edit_name && `/` && lr_attri->name_front.
+              lv_path = `EDIT/` && lr_attri->name_front.
               ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val =  <attribute> ).
 
             WHEN OTHERS.
@@ -141,53 +141,35 @@ CLASS Z2UI5_CL_FW_HTTP_MAPPER IMPLEMENTATION.
 
   METHOD request_json_to_abap.
     TRY.
+
         DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
 
+        result-o_model = lo_ajson->slice( `/EDIT` ).
+        lo_ajson->delete( `/EDIT` ).
 
-        result-model = lo_ajson->slice( `/EDIT` ).
-
-        result-s_frontend-id = lo_ajson->get( `/ID` ).
-        result-s_frontend-viewname = lo_ajson->get( `/VIEWNAME` ).
-        result-s_frontend-app_start = to_upper( lo_ajson->get( `/APP_START` ) ).
-        result-s_frontend-arguments = lo_ajson->slice( `/ARGUMENTS` ).
-
-        lo_ajson = lo_ajson->slice( `/OLOCATION` ).
+        lo_ajson = lo_ajson->slice( `/S_FRONTEND`).
         lo_ajson->to_abap(
             EXPORTING
-                iv_corresponding = abap_true
+               iv_corresponding = abap_true
             IMPORTING
-                ev_container     = result-s_frontend-s_config ).
+                ev_container     = result-s_frontend ).
 
 
         """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-        result-s_control-check_launchpad = xsdbool(
-          result-s_frontend-s_config-search CS `scenario=LAUNCHPAD` ).
+        result-s_control-check_launchpad = xsdbool( result-s_frontend-search CS `scenario=LAUNCHPAD` ).
 
-        IF result-s_frontend-arguments IS BOUND.
-
-          DATA(lo_event) = result-s_frontend-arguments->clone( ).
-          result-s_control-event = lo_event->get( `/1/EVENT` ).
-          lo_event->delete( `/1` ).
-          lo_event->to_abap(
-            IMPORTING
-              ev_container = result-s_control-t_event_arg
-          ).
+        IF result-s_frontend-id IS NOT INITIAL.
+          RETURN.
         ENDIF.
 
-
-        IF result-s_frontend-id IS INITIAL.
-          TRY.
-              result-s_control-app_start = to_upper( z2ui5_cl_util_func=>c_trim( result-s_frontend-app_start ) ).
-            CATCH cx_root.
-          ENDTRY.
-
-          IF result-s_control-app_start IS INITIAL.
-            result-s_control-app_start = to_upper( z2ui5_cl_util_func=>url_param_get( val = `app_start`
-                                                              url = result-s_frontend-s_config-search ) ).
-          ENDIF.
-
+        result-s_control-app_start = z2ui5_cl_util_func=>c_trim_upper( result-s_frontend-app_start ).
+        IF result-s_control-app_start IS NOT INITIAL.
+          RETURN.
         ENDIF.
+
+        result-s_control-app_start = z2ui5_cl_util_func=>c_trim_upper(
+            z2ui5_cl_util_func=>url_param_get( val = `app_start` url = result-s_frontend-search ) ).
 
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
@@ -198,24 +180,16 @@ CLASS Z2UI5_CL_FW_HTTP_MAPPER IMPLEMENTATION.
   METHOD response_abap_to_json.
     TRY.
 
-        "todo performance - write all data directly into the target ajson
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
           ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
-*        ajson_result->set( iv_path = `/PARAMS` iv_val = ms_next-s_set ).
-*        ajson_result->set( iv_path = `/ID` iv_val = ms_db-id ).
         ajson_result->set( iv_path = `/` iv_val = val-s_frontend ).
         ajson_result = ajson_result->filter( NEW z2ui5_cl_fw_http_mapper( ) ).
 
-*        DATA(lo_ajson) = NEW z2ui5_cl_fw_http_mapper( )->model_back_to_front(
-*              app     = ms_db-app
-*              t_attri = ms_db-t_attri ).
-
-        ajson_result->set( iv_path = `/OVIEWMODEL` iv_val = val-oviewmodel ).
-        result = ajson_result->stringify( ).
-
-*        z2ui5_cl_fw_db=>create( id = ms_db-id db = ms_db ).
-
+        result = `{` &&
+            |"S_FRONTEND" : { ajson_result->stringify( ) },| &&
+            |"MODEL"      : { val-o_model->stringify( )  }| &&
+          `}`.
 
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.

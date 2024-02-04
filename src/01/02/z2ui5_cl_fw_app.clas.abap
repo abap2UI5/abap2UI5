@@ -184,11 +184,11 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
          viewname    = mo_http_post->ms_request-s_frontend-viewname
          app         = result->ms_db-app
          t_attri     = result->ms_db-t_attri
-         ajson_in    = mo_http_post->ms_request-model
+         ajson_in    = mo_http_post->ms_request-o_model
      ).
 
-    result->ms_actual-event = mo_http_post->ms_request-s_control-event.
-    result->ms_actual-t_event_arg = mo_http_post->ms_request-s_control-t_event_arg.
+    result->ms_actual-event = mo_http_post->ms_request-s_frontend-event.
+    result->ms_actual-t_event_arg = mo_http_post->ms_request-s_frontend-t_event_arg.
     result->ms_actual-check_on_navigated = abap_false.
     result->ms_db-check_attri = abap_false.
   ENDMETHOD.

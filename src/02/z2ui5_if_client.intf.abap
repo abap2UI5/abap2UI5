@@ -36,28 +36,29 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_config,
-      version                TYPE string,
-      origin                 TYPE string,
-      pathname               TYPE string,
-      search                 TYPE string,
-      t_startup_params       TYPE ty_t_name_value,
+      origin           TYPE string,
+      pathname         TYPE string,
+      search           TYPE string,
+      t_startup_params TYPE ty_t_name_value,
     END OF ty_s_config.
 
   TYPES:
     BEGIN OF ty_s_http_request_post,
-      model TYPE REF TO z2ui5_if_ajson,
+      o_model TYPE REF TO z2ui5_if_ajson,
       BEGIN OF s_frontend,
-        id       TYPE string,
-        viewname type string,
-        arguments TYPE REF TO z2ui5_if_ajson,
-        app_start type string,
-        s_config TYPE ty_s_config,
+        id               TYPE string,
+        viewname         TYPE string,
+        t_event_arg      TYPE string_table,
+        app_start        TYPE string,
+        origin           TYPE string,
+        pathname         TYPE string,
+        search           TYPE string,
+        event            TYPE string,
+        t_startup_params TYPE ty_t_name_value,
       END OF s_frontend,
       BEGIN OF s_control,
         check_launchpad TYPE abap_bool,
-        event           type string,
-        app_start       type string,
-        t_event_arg     type string_table,
+        app_start       TYPE string,
       END OF s_control,
     END OF ty_s_http_request_post.
 
@@ -67,16 +68,16 @@ INTERFACE z2ui5_if_client
         params TYPE z2ui5_cl_fw_app=>ty_s_next2,
         id     TYPE string,
       END OF s_frontend,
-      oviewmodel TYPE REF TO z2ui5_if_ajson,
+      o_model TYPE REF TO z2ui5_if_ajson,
     END OF ty_s_http_response_post.
 
-    TYPES:
-      BEGIN OF ty_s_http_request_get,
-        t_config                TYPE ty_t_name_value,
-        content_security_policy TYPE string,
-        custom_js               TYPE string,
-        json_model_limit        TYPE string,
-      END OF ty_s_http_request_get.
+  TYPES:
+    BEGIN OF ty_s_http_request_get,
+      t_config                TYPE ty_t_name_value,
+      content_security_policy TYPE string,
+      custom_js               TYPE string,
+      json_model_limit        TYPE string,
+    END OF ty_s_http_request_get.
 
   TYPES:
     BEGIN OF ty_s_draft,
@@ -100,13 +101,13 @@ INTERFACE z2ui5_if_client
 
   TYPES:
     BEGIN OF ty_s_actual,
-      event                  TYPE string,
-      t_event_arg            TYPE string_table,
+      event              TYPE string,
+      t_event_arg        TYPE string_table,
 *      check_launchpad_active TYPE abap_bool,
-      check_on_navigated     TYPE abap_bool,
-      viewname               TYPE string,
-      s_draft                TYPE ty_s_draft,
-      s_config               TYPE ty_s_config,
+      check_on_navigated TYPE abap_bool,
+      viewname           TYPE string,
+      s_draft            TYPE ty_s_draft,
+      s_config           TYPE ty_s_config,
     END OF ty_s_actual.
 
   METHODS view_destroy.

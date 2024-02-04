@@ -21,10 +21,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_client IMPLEMENTATION.
-
-
-
+CLASS Z2UI5_CL_FW_CLIENT IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -32,6 +29,17 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     mo_app = handler.
 
   ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~clear.
+
+    CASE val.
+      WHEN z2ui5_if_client~cs_clear-view.
+        CLEAR mo_app->ms_next-s_set-s_view.
+    ENDCASE.
+
+  ENDMETHOD.
+
 
   METHOD z2ui5_if_client~get.
 
@@ -41,7 +49,12 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       t_event_arg            = mo_app->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_app->ms_db )
       check_on_navigated     = mo_app->ms_actual-check_on_navigated
-      s_config               = mo_app->mo_http_post->ms_request-s_frontend-s_config
+      s_config               = value #(
+        origin = mo_app->mo_http_post->ms_request-s_frontend-origin
+        pathname = mo_app->mo_http_post->ms_request-s_frontend-pathname
+        search = mo_app->mo_http_post->ms_request-s_frontend-search
+        t_startup_params = mo_app->mo_http_post->ms_request-s_frontend-t_startup_params
+        )
     ).
 
   ENDMETHOD.
@@ -213,19 +226,6 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*    IF struc IS NOT INITIAL.
-*
-*      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val         = struc
-*                                                        path        = abap_true ).
-*      result = z2ui5_cl_fw_binding=>bind_struc_comp(
-*            iv_name = lv_name_struc
-*            i_struc = struc
-*            i_val   = val ).
-*
-*      RETURN.
-*
-*    ENDIF.
-
     DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
                         app         = mo_app->ms_db-app
                         attri       = mo_app->ms_db-t_attri
@@ -259,14 +259,6 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD z2ui5_if_client~clear.
-
-    CASE val.
-      WHEN z2ui5_if_client~cs_clear-view.
-        CLEAR mo_app->ms_next-s_set-s_view.
-    ENDCASE.
-
-  ENDMETHOD.
 
   METHOD z2ui5_if_client~_bind_edit.
 
@@ -278,14 +270,6 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
             i_tab_index = tab_index
             i_tab       = tab
             i_val       = val ).
-
-*    ELSEIF struc IS NOT INITIAL.
-
-*      DATA(lv_name_struc) = z2ui5_if_client~_bind_edit( val = struc path = abap_true ).
-*      result = z2ui5_cl_fw_binding=>bind_struc_comp(
-*            iv_name = lv_name_struc
-*            i_struc = struc
-*            i_val   = val ).
 
     ELSE.
 
