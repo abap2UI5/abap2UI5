@@ -71,8 +71,8 @@ Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/
 METHOD if_http_extension~handle_request.
 
    DATA(lv_resp) = SWITCH #( server->request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_fw_http_handler=>http_get( )
-      WHEN 'POST' THEN z2ui5_cl_fw_http_handler=>http_post( server->request->get_cdata( ) ) ).
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( server->request->get_cdata( ) ) ).
 
    server->response->set_header_field( name = `cache-control` value = `no-cache` ).
    server->response->set_cdata( lv_resp ).
@@ -88,8 +88,8 @@ ENDMETHOD.
 METHOD if_http_service_extension~handle_request.
 
    DATA(lv_resp) = SWITCH #( request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_fw_http_handler=>http_get( )
-      WHEN 'POST' THEN z2ui5_cl_fw_http_handler=>http_post( request->get_text( ) ) ).
+      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
+      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( request->get_text( ) ) ).
 
    response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
    response->set_text( lv_resp ).
