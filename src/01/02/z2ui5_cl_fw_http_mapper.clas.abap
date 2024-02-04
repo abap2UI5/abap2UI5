@@ -176,6 +176,7 @@ CLASS z2ui5_cl_fw_http_mapper IMPLEMENTATION.
         ajson_result = ajson_result->filter( NEW z2ui5_cl_fw_http_mapper( ) ).
         DATA(lv_frontend) =  ajson_result->stringify( ).
         DATA(lv_model) = val-o_model->stringify( ).
+
         result = `{` &&
             |"S_FRONTEND" : { lv_frontend },| &&
             |"MODEL"      : { COND #( WHEN lv_model IS INITIAL THEN `{}` ELSE lv_model ) }| &&
