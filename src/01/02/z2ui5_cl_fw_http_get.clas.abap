@@ -459,6 +459,11 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `   if (  sap.z2ui5.oBody?.ARGUMENTS != undefined  ) { if ( sap.z2ui5.oBody?.ARGUMENTS.length > 0 ) { sap.z2ui5.oBody?.ARGUMENTS.shift(); } }` && |\n|  &&
                `             sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
 *               `            debugger;` && |\n|  &&
+               `            delete sap.z2ui5.oBody.ID;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.OLOCATION;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.APP_START;` && |\n|  &&
+               `            debugger;` && |\n|  &&
                `           sap.z2ui5.oController.readHttp();` && |\n|  &&
                `        },` && |\n|  &&
                `    })` && |\n|  &&
