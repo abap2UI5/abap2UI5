@@ -3,8 +3,8 @@
     "default": {
       "filename": "./abaplint.jsonc"
     },
-    "all_folder_min_check": {
-      "filename": "./abaplint-basic.jsonc"
+    "abap_standard_readiness": {
+      "filename": "./abaplint-standard_abap_readiness.jsonc"
     },
     "abap_cloud_readiness": {
       "filename": "./abaplint-abap_cloud_readiness.jsonc"

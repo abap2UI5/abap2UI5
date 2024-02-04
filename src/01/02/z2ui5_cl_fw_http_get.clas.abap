@@ -1,26 +1,20 @@
-CLASS z2ui5_cl_fw_index_html DEFINITION
+CLASS z2ui5_cl_fw_http_get DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_config,
-        t_config                TYPE z2ui5_if_client=>ty_t_name_value,
-        content_security_policy TYPE string,
-        custom_js               TYPE string,
-        json_model_limit        TYPE string,
-      END OF ty_s_config.
-    DATA ms_config TYPE ty_s_config.
+    DATA ms_request TYPE z2ui5_if_client=>ty_s_http_request_get.
+    DATA mv_response TYPE string.
 
     CLASS-METHODS factory
       IMPORTING
-        i_config      TYPE ty_s_config
+        val           TYPE z2ui5_if_client=>ty_s_http_request_get
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_index_html.
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_http_get.
 
-    METHODS get
+    METHODS main
       RETURNING
         VALUE(result) TYPE string.
 
@@ -34,85 +28,13 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
 
 
   METHOD factory.
 
     result = NEW #( ).
-    result->ms_config = i_config.
-
-  ENDMETHOD.
-
-
-  METHOD get.
-
-    DATA(lt_config) = ms_config-t_config.
-    IF lt_config IS INITIAL.
-      lt_config = VALUE #(
-*          (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
-*          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-          (  n = `src`                       v = `https://ui5.sap.com/1.120.0/resources/sap-ui-core.js` )
-          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-          (  n = `data-sap-ui-async`         v = `true` )
-          (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-          (  n = `data-sap-ui-frameOptions`  v = `trusted` )
-          (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
-    ENDIF.
-
-    IF ms_config-content_security_policy IS INITIAL.
-      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
-        `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
-    ELSE.
-      lv_sec_policy = ms_config-content_security_policy.
-    ENDIF.
-
-    result = `<!DOCTYPE html>` && |\n| &&
-               `<html lang="en">` && |\n| &&
-               `<head>` && |\n| &&
-                  lv_sec_policy && |\n| &&
-               `    <meta charset="UTF-8">` && |\n| &&
-               `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
-               `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
-               `    <title>abap2UI5</title>` && |\n| &&
-               `    <style>` && |\n| &&
-               `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
-               `            height: 100%;` && |\n| &&
-               `        }` && |\n| &&
-               `        .dbg-ltr {` && |\n| &&
-               `            direction: ltr !important;` && |\n| &&
-               `        }` && |\n| &&
-               `    </style> ` &&
-               `    <script id="sap-ui-bootstrap"`.
-
-    LOOP AT lt_config REFERENCE INTO DATA(lr_config).
-      result = result && | { lr_config->n }="{ lr_config->v }"|.
-    ENDLOOP.
-
-    result = result &&
-        ` ></script></head>` && |\n| &&
-        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
-        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
-        `<abc/>` && |\n|.
-
-    DATA(lv_add_js) = z2ui5_cl_fw_cc_factory=>get_js_startup( ) && ms_config-custom_js.
-
-    result = result  &&
-               `<script> sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
-               get_js( ) && |\n| &&
-               lv_add_js && |\n| &&
-    `          sap.z2ui5.JSON_MODEL_LIMIT = ` && ms_config-json_model_limit && `;`.
-
-    result = result &&
-       z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
-    `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
-    ` });`.
-
-    result =  result && |\n| &&
-                 `</script>` && |\n| &&
-                 `<abc/></body></html>`.
-
-    z2ui5_cl_fw_db=>cleanup( ).
+    result->ms_request = val.
 
   ENDMETHOD.
 
@@ -510,8 +432,8 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `                PATHNAME: sap.z2ui5.pathname,` && |\n|  &&
                `                SEARCH: window.location.search,` && |\n|  &&
                `                //      VERSION: sap.ui.getVersionInfo().gav,` && |\n|  &&
-               `                CHECK_LAUNCHPAD_ACTIVE: sap.ushell !== undefined,` && |\n|  &&
-               `                STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
+*               `                CHECK_LAUNCHPAD_ACTIVE: sap.ushell !== undefined,` && |\n|  &&
+*               `                STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
                `                T_STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
                `            };` && |\n|  &&
                `            if (sap.z2ui5.search) {` && |\n|  &&
@@ -545,5 +467,78 @@ CLASS Z2UI5_CL_FW_INDEX_HTML IMPLEMENTATION.
                `    sap.z2ui5.onAfterRoundtrip = []; }` && |\n|  &&
                `);`.
 
+  ENDMETHOD.
+
+
+  METHOD main.
+
+    DATA(lt_config) = ms_request-t_config.
+    IF lt_config IS INITIAL.
+      lt_config = VALUE #(
+*          (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
+*          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+          (  n = `src`                       v = `https://ui5.sap.com/1.120.0/resources/sap-ui-core.js` )
+          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+          (  n = `data-sap-ui-async`         v = `true` )
+          (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+          (  n = `data-sap-ui-frameOptions`  v = `trusted` )
+          (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
+    ENDIF.
+
+    IF ms_request-content_security_policy IS INITIAL.
+      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+        `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
+    ELSE.
+      lv_sec_policy = ms_request-content_security_policy.
+    ENDIF.
+
+    mv_response = `<!DOCTYPE html>` && |\n| &&
+               `<html lang="en">` && |\n| &&
+               `<head>` && |\n| &&
+                  lv_sec_policy && |\n| &&
+               `    <meta charset="UTF-8">` && |\n| &&
+               `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
+               `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
+               `    <title>abap2UI5</title>` && |\n| &&
+               `    <style>` && |\n| &&
+               `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
+               `            height: 100%;` && |\n| &&
+               `        }` && |\n| &&
+               `        .dbg-ltr {` && |\n| &&
+               `            direction: ltr !important;` && |\n| &&
+               `        }` && |\n| &&
+               `    </style> ` &&
+               `    <script id="sap-ui-bootstrap"`.
+
+    LOOP AT lt_config REFERENCE INTO DATA(lr_config).
+      mv_response = mv_response && | { lr_config->n }="{ lr_config->v }"|.
+    ENDLOOP.
+
+    mv_response = mv_response &&
+        ` ></script></head>` && |\n| &&
+        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
+        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
+        `<abc/>` && |\n|.
+
+    DATA(lv_add_js) = z2ui5_cl_fw_cc_factory=>get_js_startup( ) && ms_request-custom_js.
+
+    mv_response = mv_response  &&
+               `<script> sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
+               get_js( ) && |\n| &&
+               lv_add_js && |\n| &&
+    `          sap.z2ui5.JSON_MODEL_LIMIT = ` && COND #( WHEN ms_request-json_model_limit IS NOT INITIAL THEN ms_request-json_model_limit ELSE 100 ) && `;`.
+
+    mv_response = mv_response &&
+       z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
+    `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
+    ` });`.
+
+    mv_response =  mv_response && |\n| &&
+                 `</script>` && |\n| &&
+                 `<abc/></body></html>`.
+
+    z2ui5_cl_fw_draft=>cleanup( ).
+
+    result = mv_response.
   ENDMETHOD.
 ENDCLASS.

@@ -392,6 +392,12 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result)       TYPE ty_data_element_texts.
 
+    CLASS-METHODS ui5_set_arg_string
+      IMPORTING
+        val           TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -400,6 +406,26 @@ ENDCLASS.
 
 CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
+  METHOD ui5_set_arg_string.
+
+    IF val IS NOT INITIAL.
+
+      LOOP AT val REFERENCE INTO DATA(lr_arg).
+        DATA(lv_new) = lr_arg->*.
+        IF lv_new IS INITIAL.
+          CONTINUE.
+        ENDIF.
+        IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
+          lv_new = `"` && lv_new && `"`.
+        ENDIF.
+        result = result && `, ` && lv_new.
+      ENDLOOP.
+
+    ENDIF.
+
+    result = result && `)`.
+
+  ENDMETHOD.
 
   METHOD app_get_url.
 
@@ -1457,7 +1483,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     TRY.
 
         TRY.
-            data(lv_classname) = `CL_SYSTEM_UUID`.
+            DATA(lv_classname) = `CL_SYSTEM_UUID`.
             CALL METHOD (lv_classname)=>if_system_uuid_static~create_uuid_c32
               RECEIVING
                 uuid = uuid.

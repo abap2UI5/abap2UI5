@@ -63,6 +63,24 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mo_custom_mapper TYPE REF TO z2ui5_if_ajson_mapping.
     DATA mo_custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping.
 
+    class-METHODS bind_tab_cell
+      IMPORTING
+        iv_name         TYPE string
+        i_tab_index     TYPE i
+        i_tab           TYPE STANDARD TABLE
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
+    class-METHODS bind_struc_comp
+      IMPORTING
+        iv_name         TYPE string
+        i_struc         TYPE data
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
+
     CLASS-METHODS update_attri
       IMPORTING
         t_attri       TYPE ty_t_attri
@@ -134,6 +152,63 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
+  METHOD bind_struc_comp.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_struc TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_struc ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
+
+  METHOD bind_tab_cell.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_tab[ i_tab_index ] TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <row> ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
 
   METHOD bind.
 
