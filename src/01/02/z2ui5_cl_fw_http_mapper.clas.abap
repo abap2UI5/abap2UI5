@@ -178,8 +178,8 @@ CLASS z2ui5_cl_fw_http_mapper IMPLEMENTATION.
         DATA(lv_model) = val-o_model->stringify( ).
 
         result = `{` &&
-            |"S_FRONTEND" : { lv_frontend },| &&
-            |"MODEL"      : { COND #( WHEN lv_model IS INITIAL THEN `{}` ELSE lv_model ) }| &&
+            |"S_FRONTEND":{ lv_frontend },| &&
+            |"MODEL":{ COND #( WHEN lv_model IS INITIAL THEN `{}` ELSE lv_model ) }| &&
           `}`.
 
       CATCH cx_root INTO DATA(x).
