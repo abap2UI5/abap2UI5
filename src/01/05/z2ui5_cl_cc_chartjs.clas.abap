@@ -90,7 +90,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         type               TYPE string,
         data               TYPE string_table,
         data_venn          TYPE ty_data_venn_t,
-        data_x_y_r         TYPE ty_x_y_r_data_t,
+        data_radial        TYPE ty_x_y_r_data_t,
         border_width       TYPE i,
         border_color       TYPE string,
         border_radius      TYPE i,
@@ -714,7 +714,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
       `         tConfig = tConfig.replace("scaleid","scaleID");` && |\n| &&
       `         tConfig = tConfig.replaceAll("xScaleid","xScaleID");` && |\n| &&
       `         tConfig = tConfig.replaceAll("yScaleid","yScaleID");` && |\n| &&
-      `         tConfig = tConfig.replaceAll("dataXYR","data");` && |\n| &&
+      `         tConfig = tConfig.replaceAll("dataRadial","data");` && |\n| &&
       `         oConfig = JSON.parse(tConfig);` && |\n| &&
       `         this.setProperty("config", oConfig );` && |\n| &&
       `         if(oConfig){ fixJsonLibs(oConfig); };` && |\n| &&
