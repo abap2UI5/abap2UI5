@@ -444,7 +444,6 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `                sap.z2ui5.oBody.OLOCATION.SEARCH = sap.z2ui5.search;` && |\n|  &&
                `            }` && |\n|  &&
                `       let event =  (args) => { if ( args != undefined  ) { return args[ 0 ].EVENT; } };` && |\n|  &&
-*               `       let args =  (args) => { if (  args != undefined  ) { if ( args.length > 1 ) { return args.shift(); } } };` && |\n|  &&
                `            sap.z2ui5.oBody.S_FRONTEND = {` && |\n|  &&
                `                ID: sap.z2ui5?.oBody?.ID,` && |\n|  &&
                `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n|  &&
@@ -458,12 +457,10 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `            };` && |\n|  &&
                `   if (  sap.z2ui5.oBody?.ARGUMENTS != undefined  ) { if ( sap.z2ui5.oBody?.ARGUMENTS.length > 0 ) { sap.z2ui5.oBody?.ARGUMENTS.shift(); } }` && |\n|  &&
                `             sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
-*               `            debugger;` && |\n|  &&
                `            delete sap.z2ui5.oBody.ID;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.OLOCATION;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.APP_START;` && |\n|  &&
-               `            debugger;` && |\n|  &&
                `           sap.z2ui5.oController.readHttp();` && |\n|  &&
                `        },` && |\n|  &&
                `    })` && |\n|  &&
