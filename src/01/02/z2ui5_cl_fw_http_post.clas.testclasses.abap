@@ -27,7 +27,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       act = lo_post->ms_request-s_frontend-pathname
       exp = `https://test-my-orgin` ).
 
-    DATA(lo_startup) = CAST z2ui5_cl_fw_app_startup( lo_post->mo_app->ms_db-app ).
+    DATA(lo_startup) = CAST z2ui5_cl_fw_app_startup( lo_post->mo_app->ms_db-app ) ##NEEDED.
 
   ENDMETHOD.
 
