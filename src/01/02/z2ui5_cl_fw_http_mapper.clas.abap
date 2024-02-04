@@ -122,6 +122,10 @@ CLASS z2ui5_cl_fw_http_mapper IMPLEMENTATION.
             lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
           ENDIF.
 
+          IF lr_attri->custom_filter_back IS BOUND.
+            lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
+          ENDIF.
+
           lo_val_front->to_abap(
             IMPORTING
               ev_container = <backend> ).

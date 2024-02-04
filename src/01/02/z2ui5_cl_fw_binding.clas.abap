@@ -28,6 +28,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         depth              TYPE i,
         json_bind_local    TYPE REF TO z2ui5_if_ajson,
         custom_filter      TYPE REF TO z2ui5_if_ajson_filter,
+        custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
         custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
         custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
       END OF ty_s_attri.
@@ -42,6 +43,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
         check_attri        TYPE data           OPTIONAL
         view               TYPE clike          OPTIONAL
         custom_filter      TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
+        custom_filter_back TYPE REF TO z2ui5_if_ajson_filter  OPTIONAL
         custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
         custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       RETURNING
@@ -58,10 +60,11 @@ CLASS z2ui5_cl_fw_binding DEFINITION
     DATA mv_check_attri TYPE abap_bool.
     DATA mv_view TYPE string.
     DATA mo_custom_filter TYPE REF TO z2ui5_if_ajson_filter.
+    DATA mo_custom_filter_back TYPE REF TO z2ui5_if_ajson_filter.
     DATA mo_custom_mapper TYPE REF TO z2ui5_if_ajson_mapping.
     DATA mo_custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-METHODS bind_tab_cell
+    CLASS-METHODS bind_tab_cell
       IMPORTING
         iv_name         TYPE string
         i_tab_index     TYPE i
@@ -70,7 +73,7 @@ CLASS z2ui5_cl_fw_binding DEFINITION
       RETURNING
         VALUE(r_result) TYPE string.
 
-    class-METHODS bind_struc_comp
+    CLASS-METHODS bind_struc_comp
       IMPORTING
         iv_name         TYPE string
         i_struc         TYPE data
@@ -148,7 +151,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
+CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
 
 
   METHOD bind.
@@ -196,9 +199,32 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
       RETURN.
     ENDIF.
 
+*    IF mo_custom_filter_back IS BOUND.
+*      TRY.
+*          DATA(li_serial) = CAST if_serializable_object( mo_custom_filter_back ) ##NEEDED.
+*        CATCH cx_root.
+*          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*            EXPORTING
+*              val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
+*
+*      ENDTRY.
+*    ENDIF.
+*
+*    IF mo_custom_filter_back IS BOUND.
+*      TRY.
+*          DATA(li_serial2) = CAST if_serializable_object( mo_custom_mapper_back ) ##NEEDED.
+*        CATCH cx_root.
+*          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*            EXPORTING
+*              val = `<p>mo_custom_mapper_back used but it is not serializable, please use if_serializable_object`.
+*
+*      ENDTRY.
+*    ENDIF.
+
     bind->bind_type   = mv_type.
     bind->viewname    = mv_view.
     bind->custom_filter = mo_custom_filter.
+    bind->custom_filter_back = mo_custom_filter_back.
     bind->custom_mapper = mo_custom_mapper.
     bind->custom_mapper_back = mo_custom_mapper_back.
 
@@ -375,6 +401,7 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
     r_result->mv_check_attri = check_attri.
     r_result->mv_view = view.
     r_result->mo_custom_filter = custom_filter.
+    r_result->mo_custom_filter_back = custom_filter_back.
     r_result->mo_custom_mapper = custom_mapper.
     r_result->mo_custom_mapper_back = custom_mapper_back.
 

@@ -213,6 +213,7 @@ INTERFACE z2ui5_if_client
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
+      custom_filter_back TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab                TYPE STANDARD TABLE OPTIONAL
       tab_index          TYPE i         OPTIONAL
     RETURNING

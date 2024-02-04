@@ -198,7 +198,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
               `            oFragmentController.oDialog.addStyleClass('dbg-ltr');` && |\n|  &&
               |\n|  &&
               `            let value = JSON.stringify(sap.z2ui5.oResponse, null, 3);` && |\n|  &&
-              `            debugger; let oData = { ` && |\n|  &&
+              `               let oData = { ` && |\n|  &&
               `                type: 'json', ` && |\n|  &&
               `                value: value,` && |\n|  &&
               `                activeNest1   : sap?.z2ui5?.oViewNest?.mProperties?.viewContent !== undefined,` && |\n|  &&
