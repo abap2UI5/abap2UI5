@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_FW_APP</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - controller</DESCRIPT>
+    <DESCRIPT>abap2UI5 - app flow</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

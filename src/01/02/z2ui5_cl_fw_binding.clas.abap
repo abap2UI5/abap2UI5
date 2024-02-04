@@ -150,64 +150,6 @@ ENDCLASS.
 
 CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
 
-  METHOD bind_struc_comp.
-
-    FIELD-SYMBOLS <ele>  TYPE any.
-    FIELD-SYMBOLS <row>  TYPE any.
-    DATA lr_ref_in TYPE REF TO data.
-    DATA lr_ref TYPE REF TO data.
-
-    ASSIGN i_struc TO <row>.
-    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_struc ).
-
-    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
-
-      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
-      lr_ref_in = REF #( <ele> ).
-
-      lr_ref = REF #( i_val ).
-      IF lr_ref = lr_ref_in.
-        r_result = `{` && iv_name && '/' && <comp>-name && `}`.
-        RETURN.
-      ENDIF.
-
-    ENDLOOP.
-
-    RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      EXPORTING
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
-
-  ENDMETHOD.
-
-  METHOD bind_tab_cell.
-
-    FIELD-SYMBOLS <ele>  TYPE any.
-    FIELD-SYMBOLS <row>  TYPE any.
-    DATA lr_ref_in TYPE REF TO data.
-    DATA lr_ref TYPE REF TO data.
-
-    ASSIGN i_tab[ i_tab_index ] TO <row>.
-    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <row> ).
-
-    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
-
-      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
-      lr_ref_in = REF #( <ele> ).
-
-      lr_ref = REF #( i_val ).
-      IF lr_ref = lr_ref_in.
-        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
-        RETURN.
-      ENDIF.
-
-    ENDLOOP.
-
-    RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      EXPORTING
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
-
-  ENDMETHOD.
-
 
   METHOD bind.
 
@@ -298,6 +240,66 @@ CLASS Z2UI5_CL_FW_BINDING IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
     ENDTRY.
+  ENDMETHOD.
+
+
+  METHOD bind_struc_comp.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_struc TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_struc ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
+
+
+  METHOD bind_tab_cell.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_tab[ i_tab_index ] TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <row> ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
   ENDMETHOD.
 
 

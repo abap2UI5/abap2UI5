@@ -6,8 +6,8 @@ CLASS z2ui5_cl_fw_http_post DEFINITION
   PUBLIC SECTION.
 
     DATA mv_request_json  TYPE string.
-    DATA ms_request        TYPE z2ui5_if_client=>ty_s_http_request_post.
-    DATA ms_response       TYPE z2ui5_if_client=>ty_s_http_response_post.
+    DATA ms_request       TYPE z2ui5_if_client=>ty_s_http_request_post.
+    DATA ms_response      TYPE z2ui5_if_client=>ty_s_http_response_post.
 
     CLASS-METHODS factory
       IMPORTING
@@ -20,16 +20,20 @@ CLASS z2ui5_cl_fw_http_post DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    CLASS-DATA mo_http_mapper TYPE REF TO z2ui5_cl_fw_http_mapper.
-    DATA mo_app        TYPE REF TO z2ui5_cl_fw_app.
+
+    DATA mo_http_mapper TYPE REF TO z2ui5_cl_fw_http_mapper.
+    DATA mo_app         TYPE REF TO z2ui5_cl_fw_app.
 
     METHODS main_begin.
+
     METHODS main_process
       RETURNING
         VALUE(check_go_frontend) TYPE abap_bool.
+
     METHODS main_end
       RETURNING
         VALUE(result) TYPE string.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -42,7 +46,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
 
     result = NEW #( ).
     result->mv_request_json = val.
-    mo_http_mapper = NEW z2ui5_cl_fw_http_mapper( ).
+    result->mo_http_mapper = NEW z2ui5_cl_fw_http_mapper( ).
     result->mo_app = NEW z2ui5_cl_fw_app( result ).
 
   ENDMETHOD.

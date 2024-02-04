@@ -58,7 +58,6 @@ CLASS z2ui5_cl_fw_app DEFINITION
       END OF ty_s_next.
 
     DATA mo_http_post TYPE REF TO z2ui5_cl_fw_http_post.
-
     DATA ms_db     TYPE z2ui5_cl_fw_draft=>ty_s_db.
     DATA ms_actual TYPE z2ui5_if_client=>ty_s_actual.
     DATA ms_next   TYPE ty_s_next.
@@ -69,7 +68,7 @@ CLASS z2ui5_cl_fw_app DEFINITION
 
     METHODS factory_system_error
       IMPORTING
-        ix     TYPE REF TO cx_root
+        ix            TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 
@@ -95,13 +94,11 @@ CLASS z2ui5_cl_fw_app DEFINITION
 
   PROTECTED SECTION.
 
-
     METHODS app_next_factory
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -116,7 +113,6 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     app->id_draft = COND #( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( ) ELSE app->id_draft ).
 
     result = NEW #( mo_http_post ).
-
     result->ms_db-app         = app.
     result->ms_db-id          = app->id_draft.
     result->ms_db-id_prev     = ms_db-id.
@@ -144,13 +140,12 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
 
     result = app_next_factory( ms_next-o_app_call ).
     result->ms_db-id_prev_app_stack = ms_db-id.
+    CLEAR result->ms_db-t_attri.
 
     CLEAR ms_next.
     IF ms_db-app IS BOUND.
       z2ui5_cl_fw_draft=>create( id = ms_db-id db = ms_db ).
     ENDIF.
-
-    CLEAR result->ms_db-t_attri.
 
   ENDMETHOD.
 
@@ -181,16 +176,16 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     result->ms_actual-viewname = mo_http_post->ms_request-s_frontend-viewname.
 
     NEW z2ui5_cl_fw_http_mapper( )->model_front_to_back(
-         viewname    = mo_http_post->ms_request-s_frontend-viewname
-         app         = result->ms_db-app
-         t_attri     = result->ms_db-t_attri
-         ajson_in    = mo_http_post->ms_request-o_model
-     ).
+         viewname = mo_http_post->ms_request-s_frontend-viewname
+         app      = result->ms_db-app
+         t_attri  = result->ms_db-t_attri
+         model    = mo_http_post->ms_request-o_model ).
 
     result->ms_actual-event = mo_http_post->ms_request-s_frontend-event.
     result->ms_actual-t_event_arg = mo_http_post->ms_request-s_frontend-t_event_arg.
     result->ms_actual-check_on_navigated = abap_false.
     result->ms_db-check_attri = abap_false.
+
   ENDMETHOD.
 
 
