@@ -73,7 +73,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
               t_attri = mo_app->ms_db-t_attri ).
         z2ui5_cl_fw_draft=>create( id = mo_app->ms_db-id db = mo_app->ms_db ).
         ms_response-s_frontend-params = mo_app->ms_next-s_set.
-        ms_response-s_frontend-id = mo_app->ms_db-id .
+        ms_response-s_frontend-id = mo_app->ms_db-id.
         ms_response-oviewmodel = lo_ajson.
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.

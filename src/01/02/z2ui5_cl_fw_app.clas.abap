@@ -69,8 +69,7 @@ CLASS z2ui5_cl_fw_app DEFINITION
 
     METHODS factory_system_error
       IMPORTING
-        VALUE(ix)     TYPE REF TO cx_root
-          PREFERRED PARAMETER ix
+        ix     TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 

@@ -32,13 +32,13 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-  TYPES:
-    BEGIN OF ty_s_name_value_int,
-      n TYPE string,
-      v TYPE i,
-    END OF ty_s_name_value_int.
+*  TYPES:
+*    BEGIN OF ty_s_name_value_int,
+*      n TYPE string,
+*      v TYPE i,
+*    END OF ty_s_name_value_int.
   TYPES ty_t_name_value TYPE TABLE OF ty_s_name_value WITH EMPTY KEY.
-  TYPES ty_t_name_value_int TYPE TABLE OF ty_s_name_value_int WITH EMPTY KEY.
+*  TYPES ty_t_name_value_int TYPE TABLE OF ty_s_name_value_int WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_config,
@@ -79,7 +79,7 @@ INTERFACE z2ui5_if_client
 
     TYPES:
       BEGIN OF ty_s_http_request_get,
-        t_config                TYPE z2ui5_if_client=>ty_t_name_value,
+        t_config                TYPE ty_t_name_value,
         content_security_policy TYPE string,
         custom_js               TYPE string,
         json_model_limit        TYPE string,
