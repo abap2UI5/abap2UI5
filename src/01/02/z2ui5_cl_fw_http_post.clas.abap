@@ -5,7 +5,7 @@ CLASS z2ui5_cl_fw_http_post DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mv_request_plain  TYPE string.
+    DATA mv_request_json  TYPE string.
     DATA ms_request        TYPE z2ui5_if_client=>ty_s_http_request_post.
     DATA ms_response       TYPE z2ui5_if_client=>ty_s_http_response_post.
 
@@ -41,7 +41,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
   METHOD factory.
 
     result = NEW #( ).
-    result->mv_request_plain = val.
+    result->mv_request_json = val.
     mo_http_mapper = NEW z2ui5_cl_fw_http_mapper( ).
     result->mo_app = NEW z2ui5_cl_fw_app( result ).
 
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
 
   METHOD main_begin.
 
-    ms_request = mo_http_mapper->request_json_to_abap( mv_request_plain ).
+    ms_request = mo_http_mapper->request_json_to_abap( mv_request_json ).
 
     TRY.
         IF ms_request-s_frontend-id IS NOT INITIAL.
@@ -68,13 +68,15 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
 
   METHOD main_end.
     TRY.
-        DATA(lo_ajson) = NEW z2ui5_cl_fw_http_mapper( )->model_back_to_front(
-                app     = mo_app->ms_db-app
-              t_attri = mo_app->ms_db-t_attri ).
         z2ui5_cl_fw_draft=>create( id = mo_app->ms_db-id db = mo_app->ms_db ).
+
+        ms_response-o_model = NEW z2ui5_cl_fw_http_mapper( )->model_back_to_front(
+                app     = mo_app->ms_db-app
+                t_attri = mo_app->ms_db-t_attri ).
+
         ms_response-s_frontend-params = mo_app->ms_next-s_set.
         ms_response-s_frontend-id = mo_app->ms_db-id.
-        ms_response-oviewmodel = lo_ajson.
+
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
     ENDTRY.
