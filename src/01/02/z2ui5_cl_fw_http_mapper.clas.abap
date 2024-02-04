@@ -165,7 +165,9 @@ CLASS z2ui5_cl_fw_http_mapper IMPLEMENTATION.
             z2ui5_cl_util_func=>url_param_get( val = `app_start` url = result-s_frontend-search ) ).
 
       CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = x.
     ENDTRY.
   ENDMETHOD.
 
