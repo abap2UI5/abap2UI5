@@ -9,11 +9,9 @@ CLASS z2ui5_cl_fw_http_post DEFINITION
     DATA ms_request       TYPE z2ui5_if_client=>ty_s_http_request_post.
     DATA ms_response      TYPE z2ui5_if_client=>ty_s_http_response_post.
 
-    CLASS-METHODS factory
+    METHODS constructor
       IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_http_post.
+        val TYPE string.
 
     METHODS main
       RETURNING
@@ -39,15 +37,27 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HTTP_POST IMPLEMENTATION.
 
 
-  METHOD factory.
+  METHOD constructor.
 
-    result = NEW #( ).
-    result->mv_request_json = val.
-    result->mo_http_mapper = NEW z2ui5_cl_fw_http_mapper( ).
-    result->mo_app = NEW z2ui5_cl_fw_app( result ).
+    mv_request_json = val.
+    mo_http_mapper = NEW z2ui5_cl_fw_http_mapper( ).
+    mo_app = NEW z2ui5_cl_fw_app( me ).
+
+  ENDMETHOD.
+
+
+  METHOD main.
+
+    main_begin( ).
+    DO.
+      IF main_process( ).
+        EXIT.
+      ENDIF.
+    ENDDO.
+    result = main_end( ).
 
   ENDMETHOD.
 
@@ -111,18 +121,5 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
         mo_app = mo_app->factory_system_error( x ).
     ENDTRY.
-  ENDMETHOD.
-
-
-  METHOD main.
-
-    main_begin( ).
-    DO.
-      IF main_process( ).
-        EXIT.
-      ENDIF.
-    ENDDO.
-    result = main_end( ).
-
   ENDMETHOD.
 ENDCLASS.
