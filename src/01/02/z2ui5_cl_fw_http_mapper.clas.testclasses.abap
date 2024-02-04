@@ -34,8 +34,12 @@ CLASS ltcl_http_json_mapper_test IMPLEMENTATION.
         exp = ls_exp-s_frontend ).
 
     cl_abap_unit_assert=>assert_equals(
-       act = ls_result-o_model->mt_json_tree[ name = `name` ]-value
+       act = ls_result-o_model->mt_json_tree[ name = `NAME` ]-value
        exp = `test` ).
+
+    cl_abap_unit_assert=>assert_equals(
+       act = lines( ls_result-o_model->mt_json_tree )
+       exp = 2 ).
 
   ENDMETHOD.
 
