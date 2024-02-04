@@ -5,12 +5,12 @@ CLASS z2ui5_cl_fw_http_get DEFINITION
 
   PUBLIC SECTION.
 
-    DATA ms_request TYPE z2ui5_if_client=>ty_s_http_request_get.
-    DATA mv_response TYPE string.
+    DATA ms_request TYPE z2ui5_if_client=>ty_s_http_request_get .
+    DATA mv_response TYPE string .
 
     CLASS-METHODS factory
       IMPORTING
-        val           TYPE z2ui5_if_client=>ty_s_http_request_get
+        !val          TYPE z2ui5_if_client=>ty_s_http_request_get OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_fw_http_get.
 
@@ -22,13 +22,17 @@ CLASS z2ui5_cl_fw_http_get DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+   METHODS get_js_cc_startup
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
+CLASS z2ui5_cl_fw_http_get IMPLEMENTATION.
 
 
   METHOD factory.
@@ -176,7 +180,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `            let oControl = sap.z2ui5.oView.byId(id);` && |\n|  &&
                `            if (!oControl) {` && |\n|  &&
                `                oControl = sap.ui.getCore().byId(id);` && |\n|  &&
-               `                debugger ;` && |\n|  &&
+*               `                debugger;` && |\n|  &&
                `            }` && |\n|  &&
                `            if (!oControl) {` && |\n|  &&
                `                oControl = sap.z2ui5.oViewNest.byId(id) || sap.z2ui5.oViewNest2.byId(id);` && |\n|  &&
@@ -416,7 +420,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `                sap.z2ui5.oController.responseError(responseText);` && |\n|  &&
                `            } else {` && |\n|  &&
                `                const responseData = await response.json();` && |\n|  &&
-               `                debugger;` && |\n|  &&
+*               `                debugger;` && |\n|  &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n|  &&
                `                   ID : responseData.S_FRONTEND.ID,` && |\n|  &&
                `                   PARAMS : responseData.S_FRONTEND.PARAMS,` && |\n|  &&
@@ -457,7 +461,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `            };` && |\n|  &&
                `   if (  sap.z2ui5.oBody?.ARGUMENTS != undefined  ) { if ( sap.z2ui5.oBody?.ARGUMENTS.length > 0 ) { sap.z2ui5.oBody?.ARGUMENTS.shift(); } }` && |\n|  &&
                `             sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
-               `            debugger;` && |\n|  &&
+*               `            debugger;` && |\n|  &&
                `           sap.z2ui5.oController.readHttp();` && |\n|  &&
                `        },` && |\n|  &&
                `    })` && |\n|  &&
@@ -539,7 +543,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
         `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
         `<abc/>` && |\n|.
 
-    DATA(lv_add_js) = z2ui5_cl_fw_cc_factory=>get_js_startup( ) && ms_request-custom_js.
+    DATA(lv_add_js) = get_js_cc_startup( ) && ms_request-custom_js.
 
     mv_response = mv_response  &&
                `<script> sap.z2ui5 = sap.z2ui5 || {};` && |\n|  &&
@@ -560,4 +564,24 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
 
     result = mv_response.
   ENDMETHOD.
+
+    METHOD get_js_cc_startup.
+
+    result = ` ` &&
+        z2ui5_cl_fw_cc_timer=>get_js( ) &&
+        z2ui5_cl_fw_cc_focus=>get_js( ) &&
+        z2ui5_cl_fw_cc_title=>get_js( ) &&
+        z2ui5_cl_fw_cc_history=>get_js( ) &&
+        z2ui5_cl_fw_cc_scrolling=>get_js( ) &&
+        z2ui5_cl_fw_cc_info_frontend=>get_js( ) &&
+        z2ui5_cl_fw_cc_geolocation=>get_js( ) &&
+        z2ui5_cl_fw_cc_file_uploader=>get_js( ) &&
+        z2ui5_cl_fw_cc_multiinput_ext=>get_js( ) &&
+        z2ui5_cl_fw_cc_uitable_ext=>get_js( ) &&
+        z2ui5_cl_fw_cc_util=>get_js( ) &&
+        z2ui5_cl_fw_cc_favicon=>get_js( ) &&
+       `  `.
+
+  ENDMETHOD.
+
 ENDCLASS.
