@@ -33,7 +33,8 @@ CLASS ltcl_http_json_mapper_test IMPLEMENTATION.
         act = ls_result-s_frontend
         exp = ls_exp-s_frontend ).
 
-    DATA(lt_tree) = ls_result-o_model->mt_json_tree.
+    DATA lt_tree TYPE z2ui5_if_ajson_types=>ty_nodes_ts.
+    lt_tree = ls_result-o_model->mt_json_tree.
 
     cl_abap_unit_assert=>assert_equals(
        act = lt_tree[ name = `NAME` ]-value
