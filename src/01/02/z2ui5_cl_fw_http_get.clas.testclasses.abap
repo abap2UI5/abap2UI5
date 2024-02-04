@@ -69,9 +69,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_fw_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ).
-    IF lv_index_html CS `SAP.UI.GETCORE`.
+*    IF lv_index_html CS `SAP.UI.GETCORE`.
 *      cl_abap_unit_assert=>fail( 'sap.ui.get.core not allowed' ).
-    ENDIF.
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -89,9 +89,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_fw_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ).
-    IF lv_index_html CS `WINDOW.`.
+*    IF lv_index_html CS `WINDOW.`.
 *      cl_abap_unit_assert=>fail( 'use of window not allowed' ).
-    ENDIF.
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -99,9 +99,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_fw_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ).
-    IF lv_index_html CS `DOCUMENT.`.
+*    IF lv_index_html CS `DOCUMENT.`.
 *      cl_abap_unit_assert=>fail( 'use of document not allowed' ).
-    ENDIF.
+*    ENDIF.
 
   ENDMETHOD.
 
