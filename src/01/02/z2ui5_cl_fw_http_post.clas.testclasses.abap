@@ -1,18 +1,18 @@
 
-CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
+CLASS ltcl_post_handler_test DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
     METHODS:
-      test_main_begin_01 FOR TESTING RAISING cx_static_check.
+      load_startup_app FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_http_post DEFINITION LOCAL FRIENDS ltcl_unit_test.
+CLASS z2ui5_cl_fw_http_post DEFINITION LOCAL FRIENDS ltcl_post_handler_test.
 
-CLASS ltcl_unit_test IMPLEMENTATION.
+CLASS ltcl_post_handler_test IMPLEMENTATION.
 
-  METHOD test_main_begin_01.
+  METHOD load_startup_app.
 
     DATA(lv_payload) = `{"S_FRONTEND":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}`.
     DATA(lo_post) = NEW z2ui5_cl_fw_http_post( lv_payload ).
