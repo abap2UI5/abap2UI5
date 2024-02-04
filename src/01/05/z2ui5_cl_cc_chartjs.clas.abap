@@ -6,6 +6,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
   PUBLIC SECTION.
 
     INTERFACES z2ui5_if_ajson_filter.
+    INTERFACES if_serializable_object.
 
     " Data
     TYPES:
@@ -611,46 +612,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
-  METHOD z2ui5_if_ajson_filter~keep_node.
-
-    rv_keep = abap_true.
-
-    CASE iv_visit.
-
-      WHEN  z2ui5_if_ajson_filter=>visit_type-open.
-
-        IF is_node-children = 0.
-          rv_keep = abap_false.
-        ENDIF.
-
-      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
-
-        CASE is_node-type.
-          WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            IF is_node-value = `false`.
-              rv_keep = abap_false.
-            ENDIF.
-          WHEN z2ui5_if_ajson_types=>node_type-number.
-            IF is_node-value = `0` or is_node-value = `0.00`.
-              rv_keep = abap_false.
-            ENDIF.
-          WHEN z2ui5_if_ajson_types=>node_type-string.
-            IF is_node-value = ``.
-              rv_keep = abap_false.
-            ENDIF.
-        ENDCASE.
-
-      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
-
-        IF is_node-children = 0.
-          rv_keep = abap_false.
-        ENDIF.
-
-    ENDCASE.
-
-  ENDMETHOD.
 
   METHOD get_chartjs_local.
     result = ``.
@@ -859,6 +822,46 @@ CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
       `` && |\n| &&
       `};` && |\n| &&
       `loadLibs();`.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = abap_true.
+
+    CASE iv_visit.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-open.
+
+        IF is_node-children = 0.
+          rv_keep = abap_false.
+        ENDIF.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
+
+        CASE is_node-type.
+          WHEN z2ui5_if_ajson_types=>node_type-boolean.
+            IF is_node-value = `false`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-number.
+            IF is_node-value = `0` or is_node-value = `0.00`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-string.
+            IF is_node-value = ``.
+              rv_keep = abap_false.
+            ENDIF.
+        ENDCASE.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
+
+        IF is_node-children = 0.
+          rv_keep = abap_false.
+        ENDIF.
+
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.
