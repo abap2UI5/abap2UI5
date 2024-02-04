@@ -103,7 +103,6 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_actual,
       event              TYPE string,
       t_event_arg        TYPE string_table,
-*      check_launchpad_active TYPE abap_bool,
       check_on_navigated TYPE abap_bool,
       viewname           TYPE string,
       s_draft            TYPE ty_s_draft,
