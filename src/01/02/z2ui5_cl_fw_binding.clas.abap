@@ -199,27 +199,27 @@ CLASS z2ui5_cl_fw_binding IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*    IF mo_custom_filter_back IS BOUND.
-*      TRY.
-*          DATA(li_serial) = CAST if_serializable_object( mo_custom_filter_back ) ##NEEDED.
-*        CATCH cx_root.
-*          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*            EXPORTING
-*              val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
-*
-*      ENDTRY.
-*    ENDIF.
-*
-*    IF mo_custom_filter_back IS BOUND.
-*      TRY.
-*          DATA(li_serial2) = CAST if_serializable_object( mo_custom_mapper_back ) ##NEEDED.
-*        CATCH cx_root.
-*          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*            EXPORTING
-*              val = `<p>mo_custom_mapper_back used but it is not serializable, please use if_serializable_object`.
-*
-*      ENDTRY.
-*    ENDIF.
+    IF mo_custom_filter_back IS BOUND.
+      TRY.
+          DATA(li_serial) = CAST if_serializable_object( mo_custom_filter_back ) ##NEEDED.
+        CATCH cx_root.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
+
+      ENDTRY.
+    ENDIF.
+
+    IF mo_custom_filter_back IS BOUND.
+      TRY.
+          DATA(li_serial2) = CAST if_serializable_object( mo_custom_mapper_back ) ##NEEDED.
+        CATCH cx_root.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `<p>mo_custom_mapper_back used but it is not serializable, please use if_serializable_object`.
+
+      ENDTRY.
+    ENDIF.
 
     bind->bind_type   = mv_type.
     bind->viewname    = mv_view.

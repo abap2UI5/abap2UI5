@@ -1,4 +1,4 @@
-CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
+CLASS ltcl_client_test DEFINITION FINAL FOR TESTING
   DURATION LONG
   RISK LEVEL DANGEROUS.
 
@@ -7,14 +7,13 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
 ENDCLASS.
 
 
-CLASS ltcl_unit_test IMPLEMENTATION.
+CLASS ltcl_client_test IMPLEMENTATION.
 
   METHOD first_test.
 
-*    DATA(lo_handler) = NEW z2ui5_cl_fw_controller( ).
-*    DATA(lo_client) = NEW z2ui5_cl_fw_client( lo_handler ).
-*
-*    DATA(li_client) = CAST z2ui5_if_client( lo_client ) ##NEEDED.
+    DATA(lo_http) = NEW z2ui5_cl_fw_http_post( `` ).
+    DATA(lo_app) = NEW z2ui5_cl_fw_app( lo_http ).
+    DATA(lo_client) = NEW z2ui5_cl_fw_client( lo_app ) ##NEEDED.
 
   ENDMETHOD.
 
