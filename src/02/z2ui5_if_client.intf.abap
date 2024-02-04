@@ -51,6 +51,41 @@ INTERFACE z2ui5_if_client
     END OF ty_s_config.
 
   TYPES:
+    BEGIN OF ty_s_http_request_post,
+      model TYPE REF TO z2ui5_if_ajson,
+      BEGIN OF s_frontend,
+        id       TYPE string,
+        viewname type string,
+        arguments TYPE REF TO z2ui5_if_ajson,
+        app_start type string,
+        s_config TYPE ty_s_config,
+      END OF s_frontend,
+      BEGIN OF s_control,
+        check_launchpad TYPE abap_bool,
+        event           type string,
+        app_start       type string,
+        t_event_arg     type string_table,
+      END OF s_control,
+    END OF ty_s_http_request_post.
+
+  TYPES:
+    BEGIN OF ty_s_http_response_post,
+      BEGIN OF s_frontend,
+        params TYPE z2ui5_cl_fw_app=>ty_s_next2,
+        id     TYPE string,
+      END OF s_frontend,
+      oviewmodel TYPE REF TO z2ui5_if_ajson,
+    END OF ty_s_http_response_post.
+
+    TYPES:
+      BEGIN OF ty_s_http_request_get,
+        t_config                TYPE z2ui5_if_client=>ty_t_name_value,
+        content_security_policy TYPE string,
+        custom_js               TYPE string,
+        json_model_limit        TYPE string,
+      END OF ty_s_http_request_get.
+
+  TYPES:
     BEGIN OF ty_s_draft,
       id                TYPE string,
       id_prev           TYPE string,
@@ -63,7 +98,7 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
-      t_scroll_pos           TYPE ty_t_name_value_int,
+*      t_scroll_pos           TYPE ty_t_name_value_int,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
       viewname               TYPE string,
@@ -164,7 +199,7 @@ INTERFACE z2ui5_if_client
       custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab           TYPE STANDARD TABLE OPTIONAL
       tab_index     TYPE i          OPTIONAL
-      struc         TYPE data       OPTIONAL
+*      struc         TYPE data       OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
@@ -178,7 +213,7 @@ INTERFACE z2ui5_if_client
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab                TYPE STANDARD TABLE OPTIONAL
       tab_index          TYPE i          OPTIONAL
-      struc              TYPE data       OPTIONAL
+*      struc              TYPE data       OPTIONAL
     RETURNING
       VALUE(result)      TYPE string.
 
