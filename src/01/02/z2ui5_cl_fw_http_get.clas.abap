@@ -433,7 +433,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `                SEARCH: window.location.search,` && |\n|  &&
                `                //      VERSION: sap.ui.getVersionInfo().gav,` && |\n|  &&
 *               `                CHECK_LAUNCHPAD_ACTIVE: sap.ushell !== undefined,` && |\n|  &&
-               `                STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
+*               `                STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
                `                T_STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n|  &&
                `            };` && |\n|  &&
                `            if (sap.z2ui5.search) {` && |\n|  &&

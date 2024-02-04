@@ -111,8 +111,6 @@ CLASS Z2UI5_CL_FW_HTTP_MAPPER IMPLEMENTATION.
 
   METHOD model_front_to_back.
 
-*    DATA(ajson) = ajson_in->slice( `/EDIT` ).
-
     LOOP AT t_attri REFERENCE INTO DATA(lr_attri)
     WHERE bind_type = z2ui5_cl_fw_binding=>cs_bind_type-two_way
     AND  viewname  = viewname.

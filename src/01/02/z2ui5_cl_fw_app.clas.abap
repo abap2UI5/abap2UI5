@@ -60,7 +60,7 @@ CLASS z2ui5_cl_fw_app DEFINITION
     DATA mo_http_post TYPE REF TO z2ui5_cl_fw_http_post.
 
     DATA ms_db     TYPE z2ui5_cl_fw_draft=>ty_s_db.
-    DATA ms_actual TYPE z2ui5_if_client=>ty_s_get.
+    DATA ms_actual TYPE z2ui5_if_client=>ty_s_actual.
     DATA ms_next   TYPE ty_s_next.
 
     METHODS factory_system_startup
@@ -103,9 +103,6 @@ CLASS z2ui5_cl_fw_app DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 
 
-
-
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -124,7 +121,6 @@ CLASS Z2UI5_CL_FW_APP IMPLEMENTATION.
     result->ms_db-id          = app->id_draft.
     result->ms_db-id_prev     = ms_db-id.
     result->ms_db-id_prev_app = ms_db-id.
-    result->ms_actual-check_launchpad_active = ms_actual-check_launchpad_active.
     result->ms_actual-check_on_navigated = abap_true.
     result->ms_next-s_set     = ms_next-s_set.
 

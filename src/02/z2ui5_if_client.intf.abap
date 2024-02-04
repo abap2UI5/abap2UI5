@@ -32,13 +32,7 @@ INTERFACE z2ui5_if_client
       n TYPE string,
       v TYPE string,
     END OF ty_s_name_value.
-*  TYPES:
-*    BEGIN OF ty_s_name_value_int,
-*      n TYPE string,
-*      v TYPE i,
-*    END OF ty_s_name_value_int.
   TYPES ty_t_name_value TYPE TABLE OF ty_s_name_value WITH EMPTY KEY.
-*  TYPES ty_t_name_value_int TYPE TABLE OF ty_s_name_value_int WITH EMPTY KEY.
 
   TYPES:
     BEGIN OF ty_s_config,
@@ -46,7 +40,6 @@ INTERFACE z2ui5_if_client
       origin                 TYPE string,
       pathname               TYPE string,
       search                 TYPE string,
-      check_launchpad_active TYPE abap_bool,
       t_startup_params       TYPE ty_t_name_value,
     END OF ty_s_config.
 
@@ -98,13 +91,23 @@ INTERFACE z2ui5_if_client
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
-*      t_scroll_pos           TYPE ty_t_name_value_int,
       check_launchpad_active TYPE abap_bool,
       check_on_navigated     TYPE abap_bool,
       viewname               TYPE string,
       s_draft                TYPE ty_s_draft,
       s_config               TYPE ty_s_config,
     END OF ty_s_get.
+
+  TYPES:
+    BEGIN OF ty_s_actual,
+      event                  TYPE string,
+      t_event_arg            TYPE string_table,
+*      check_launchpad_active TYPE abap_bool,
+      check_on_navigated     TYPE abap_bool,
+      viewname               TYPE string,
+      s_draft                TYPE ty_s_draft,
+      s_config               TYPE ty_s_config,
+    END OF ty_s_actual.
 
   METHODS view_destroy.
 
@@ -198,8 +201,7 @@ INTERFACE z2ui5_if_client
       custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab           TYPE STANDARD TABLE OPTIONAL
-      tab_index     TYPE i          OPTIONAL
-*      struc         TYPE data       OPTIONAL
+      tab_index     TYPE i OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
@@ -212,8 +214,7 @@ INTERFACE z2ui5_if_client
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
       tab                TYPE STANDARD TABLE OPTIONAL
-      tab_index          TYPE i          OPTIONAL
-*      struc              TYPE data       OPTIONAL
+      tab_index          TYPE i         OPTIONAL
     RETURNING
       VALUE(result)      TYPE string.
 

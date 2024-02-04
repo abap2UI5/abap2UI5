@@ -33,14 +33,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-
-
   METHOD z2ui5_if_client~get.
 
     result = VALUE #(
       event                  = mo_app->ms_actual-event
-      check_launchpad_active = mo_app->ms_actual-check_launchpad_active
+      check_launchpad_active = mo_app->mo_http_post->ms_request-s_control-check_launchpad
       t_event_arg            = mo_app->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_app->ms_db )
       check_on_navigated     = mo_app->ms_actual-check_on_navigated
