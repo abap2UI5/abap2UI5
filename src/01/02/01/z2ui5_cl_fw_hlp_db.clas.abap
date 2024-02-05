@@ -5,6 +5,11 @@ CLASS z2ui5_cl_fw_hlp_db DEFINITION
 
   PUBLIC SECTION.
 
+    CLASS-METHODS create2
+      IMPORTING
+        !draft    TYPE z2ui5_if_types=>ty_s_get-s_draft
+        model_xml TYPE string.
+
     CLASS-METHODS create
       IMPORTING
         !id TYPE string
@@ -15,6 +20,12 @@ CLASS z2ui5_cl_fw_hlp_db DEFINITION
         !id           TYPE clike
       RETURNING
         VALUE(result) TYPE z2ui5_if_fw_types=>ty_s_db.
+
+    CLASS-METHODS load_app2
+      IMPORTING
+        !id           TYPE clike
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_fw_types=>ty_s_db2.
 
     CLASS-METHODS read
       IMPORTING
@@ -37,7 +48,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -72,6 +83,13 @@ CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
           val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
     ENDIF.
     COMMIT WORK AND WAIT.
+
+  ENDMETHOD.
+
+  METHOD load_app2.
+
+    result = read( id ).
+
 
   ENDMETHOD.
 
@@ -196,4 +214,27 @@ CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
+  METHOD create2.
+
+    DATA(ls_db) = VALUE z2ui5_t_fw_01(
+        id                = draft-id
+        id_prev           = draft-id_prev
+        id_prev_app       = draft-id_prev_app
+        id_prev_app_stack = draft-id_prev_app_stack
+        uname             = z2ui5_cl_util_func=>user_get_tech( )
+        timestampl        = z2ui5_cl_util_func=>time_get_timestampl( )
+        data              = model_xml
+     ).
+
+    MODIFY z2ui5_t_fw_01 FROM @ls_db.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `CREATE_OF_DRAFT_ENTRY_ON_DATABASE_FAILED`.
+    ENDIF.
+    COMMIT WORK AND WAIT.
+
+  ENDMETHOD.
+
 ENDCLASS.

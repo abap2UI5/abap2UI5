@@ -184,17 +184,18 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     result->ms_draft-id = z2ui5_cl_util_func=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_model->mo_app = z2ui5_cl_fw_app_startup=>factory( ).
-    CAST z2ui5_if_app( result->mo_model->mo_app )->id_draft  = result->ms_draft-id.
+    CAST z2ui5_if_app( result->mo_model->mo_app )->id_draft = result->ms_draft-id.
 
   ENDMETHOD.
+
   METHOD db_load.
 
     result = NEW #( mo_http_post ).
-    DATA(ls_db) = z2ui5_cl_fw_hlp_db=>load_app( id ).
+
+    DATA(ls_db) = z2ui5_cl_fw_hlp_db=>load_app2( id ).
 
     result->ms_draft = CORRESPONDING #( ls_db ).
-    result->mo_model->mo_app = ls_db-app.
-    result->mo_model->mt_attri = ls_db-t_attri.
+    result->mo_model->xml_db_parse( ls_db-data ).
 
   ENDMETHOD.
 
@@ -204,6 +205,12 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     ls_db-app = CAST #( mo_model->mo_app ).
     ls_db-t_attri = mo_model->mt_attri.
     z2ui5_cl_fw_hlp_db=>create( id = ms_draft-id db = ls_db ).
+
+    CAST z2ui5_if_app( mo_model->mo_app )->id_draft = ms_draft-id.
+
+    z2ui5_cl_fw_hlp_db=>create2(
+        draft     = ms_draft
+        model_xml = mo_model->xml_db_stringify( ) ).
 
   ENDMETHOD.
 

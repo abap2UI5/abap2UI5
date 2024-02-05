@@ -92,7 +92,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
             model = mo_app->mo_model->json_client_stringify( ) ).
 
         DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
-        lo_json_mapper->response_abap_to_json( ms_response ).
+        result = lo_json_mapper->response_abap_to_json( ms_response ).
 
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
