@@ -200,7 +200,8 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
         ls_attri-name = val && `->` && ls_attri-name.
         ls_attri-check_temp = abap_true.
       ENDIF.
-      INSERT ls_attri INTO TABLE mt_attri->*.
+*      INSERT ls_attri INTO TABLE mt_attri->*.
+      INSERT ls_attri INTO TABLE result.
     ENDLOOP.
 
   ENDMETHOD.

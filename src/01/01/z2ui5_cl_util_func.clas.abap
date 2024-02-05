@@ -441,9 +441,7 @@ CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
   METHOD app_get_url_source_code.
 
-    DATA(ls_draft) = client->get( )-s_draft.
     DATA(ls_config) = client->get( )-s_config.
-
     result = ls_config-origin && `/sap/bc/adt/oo/classes/`
        && rtti_get_classname_by_ref( client->get_app( ) ) && `/source/main`.
 
