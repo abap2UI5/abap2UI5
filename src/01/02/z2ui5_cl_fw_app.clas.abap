@@ -6,7 +6,7 @@ CLASS z2ui5_cl_fw_app DEFINITION
   PUBLIC SECTION.
 
     DATA mo_http_post TYPE REF TO z2ui5_cl_fw_http_post.
-    DATA mo_model TYPE REF TO z2ui5_cl_fw_model.
+    DATA mo_model     TYPE REF TO z2ui5_cl_fw_model.
 
     DATA ms_actual TYPE z2ui5_if_fw_types=>ty_s_actual.
     DATA ms_next   TYPE z2ui5_if_fw_types=>ty_s_next.
@@ -49,6 +49,7 @@ CLASS z2ui5_cl_fw_app DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
 
     METHODS db_save.
+
   PROTECTED SECTION.
 
     METHODS app_next_factory
@@ -78,8 +79,9 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     result->ms_next-s_set     = ms_next-s_set.
 
     TRY.
-        DATA(ls_db_next) = z2ui5_cl_fw_hlp_db=>load_app( app->id_draft ).
-        result->mo_model->mt_attri = ls_db_next-t_attri.
+        DATA(lo_app) = db_load( app->id_draft ).
+        result->mo_model->mo_app = lo_app->mo_model->mo_app.
+        result->mo_model->mt_attri = lo_app->mo_model->mt_attri.
       CATCH cx_root.
     ENDTRY.
 
@@ -99,7 +101,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     result = db_load( mo_http_post->ms_request-s_frontend-id ).
 
     result->ms_draft-id         = z2ui5_cl_util_func=>uuid_get_c32( ).
-    result->ms_draft-id_prev    =  mo_http_post->ms_request-s_frontend-id.
+    result->ms_draft-id_prev    = mo_http_post->ms_request-s_frontend-id.
     result->ms_actual-viewname  = mo_http_post->ms_request-s_frontend-viewname.
 
     result->mo_model->json_client_parse(
@@ -110,7 +112,6 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     result->ms_actual-event = mo_http_post->ms_request-s_frontend-event.
     result->ms_actual-t_event_arg = mo_http_post->ms_request-s_frontend-t_event_arg.
     result->ms_actual-check_on_navigated = abap_false.
-*    result->ms_draft-check_attri = abap_false.
 
   ENDMETHOD.
 
@@ -138,13 +139,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
     result = app_next_factory( ms_next-o_app_call ).
     result->ms_draft-id_prev_app_stack = ms_draft-id.
-*    CLEAR result->ms_draft-t_attri.
-
-    CLEAR ms_next.
-    IF mo_model->mo_app IS BOUND.
-      ASSERT 1 = 0.
-*      z2ui5_cl_fw_db=>create( id = ms_draft-id db = ms_draft ).
-    ENDIF.
+    db_save( ).
 
   ENDMETHOD.
 
@@ -154,15 +149,16 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     result = app_next_factory( ms_next-o_app_leave ).
 
     TRY.
-        DATA(ls_draft) = z2ui5_cl_fw_hlp_db=>read( id = result->ms_draft-id check_load_app = abap_false ).
+        DATA(ls_draft) = NEW z2ui5_cl_fw_hlp_db( )->read(
+            id = result->ms_draft-id
+            check_load_app = abap_false ).
+
         result->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
       CATCH cx_root.
         result->ms_draft-id_prev_app_stack = ms_draft-id_prev_app_stack.
     ENDTRY.
 
-    CLEAR ms_next.
-    ASSERT 1 = 0.
-*    z2ui5_cl_fw_db=>create( id = ms_draft-id db = ms_draft ).
+    db_save( ).
 
   ENDMETHOD.
 
@@ -188,27 +184,24 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD db_load.
 
     result = NEW #( mo_http_post ).
-
-    DATA(ls_db) = z2ui5_cl_fw_hlp_db=>load_app2( id ).
-
+    DATA(ls_db) = NEW z2ui5_cl_fw_hlp_db( )->load_app( id ).
     result->ms_draft = CORRESPONDING #( ls_db ).
     result->mo_model->xml_db_parse( ls_db-data ).
 
   ENDMETHOD.
 
+
   METHOD db_save.
 
-    DATA(ls_db) = CORRESPONDING z2ui5_if_fw_types=>ty_s_db( ms_draft ).
-    ls_db-app = CAST #( mo_model->mo_app ).
-    ls_db-t_attri = mo_model->mt_attri.
-    z2ui5_cl_fw_hlp_db=>create( id = ms_draft-id db = ls_db ).
-
-    CAST z2ui5_if_app( mo_model->mo_app )->id_draft = ms_draft-id.
-
-    z2ui5_cl_fw_hlp_db=>create2(
+    CLEAR ms_next.
+    IF mo_model->mo_app IS BOUND.
+      CAST z2ui5_if_app( mo_model->mo_app )->id_draft = ms_draft-id.
+    ENDIF.
+    new z2ui5_cl_fw_hlp_db( )->create(
         draft     = ms_draft
         model_xml = mo_model->xml_db_stringify( ) ).
 

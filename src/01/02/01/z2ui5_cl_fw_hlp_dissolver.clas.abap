@@ -8,6 +8,11 @@ CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
     DATA mt_attri TYPE REF TO z2ui5_if_fw_types=>ty_t_attri.
     DATA mo_app TYPE REF TO object.
 
+    METHODS constructor
+      IMPORTING
+        attri TYPE REF TO z2ui5_if_fw_types=>ty_t_attri
+        app   TYPE REF TO object.
+
     METHODS main.
 
     METHODS get_t_attri_by_dref
@@ -42,12 +47,10 @@ CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
 
     METHODS dissolve_dref.
 
-    METHODS constructor
-      IMPORTING
-        attri TYPE REF TO z2ui5_if_fw_types=>ty_t_attri
-        app   TYPE REF TO object.
     METHODS dissolve_oref.
 
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.

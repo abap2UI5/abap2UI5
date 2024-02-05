@@ -9,7 +9,7 @@ INTERFACE z2ui5_if_fw_types
     END OF cs_bind_type.
 
   TYPES:
-    BEGIN OF ty_s_config_bind,
+    BEGIN OF ty_s_bind_config,
       path_only          TYPE abap_bool,
       view               TYPE string,
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
@@ -18,7 +18,7 @@ INTERFACE z2ui5_if_fw_types
       custom_filter_back TYPE REF TO z2ui5_if_ajson_filter,
       tab                TYPE REF TO data,
       tab_index          TYPE i,
-    END OF ty_s_config_bind.
+    END OF ty_s_bind_config.
 
   TYPES:
     BEGIN OF ty_s_attri,
@@ -118,7 +118,7 @@ INTERFACE z2ui5_if_fw_types
   TYPES:
     BEGIN OF ty_s_http_response_post,
       BEGIN OF s_frontend,
-        params TYPE z2ui5_if_fw_types=>ty_s_next_frontend,
+        params TYPE ty_s_next_frontend,
         id     TYPE string,
       END OF s_frontend,
       model TYPE string,
@@ -151,17 +151,6 @@ INTERFACE z2ui5_if_fw_types
       s_config           TYPE ty_s_config,
     END OF ty_s_actual.
 
-  TYPES ty_s_db2 TYPE z2ui5_t_fw_01.
-
-  TYPES:
-    BEGIN OF ty_s_db,
-      id                TYPE string,
-      id_prev           TYPE string,
-      id_prev_app       TYPE string,
-      id_prev_app_stack TYPE string,
-      t_attri           TYPE z2ui5_if_fw_types=>ty_t_attri,
-      check_attri       TYPE abap_bool,
-      app               TYPE REF TO z2ui5_if_app,
-    END OF ty_s_db.
+  TYPES ty_s_db TYPE z2ui5_t_fw_01.
 
 ENDINTERFACE.

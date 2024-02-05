@@ -5,45 +5,39 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_model TYPE REF TO z2ui5_cl_fw_model.
-    DATA mr_attri TYPE REF TO z2ui5_if_fw_types=>ty_s_attri.
-    DATA ms_config TYPE z2ui5_if_fw_types=>ty_s_config_bind.
-    DATA mv_type TYPE string.
+    DATA mo_model  TYPE REF TO z2ui5_cl_fw_model.
+    DATA mr_attri  TYPE REF TO z2ui5_if_fw_types=>ty_s_attri.
+    DATA ms_config TYPE z2ui5_if_fw_types=>ty_s_bind_config.
+    DATA mv_type   TYPE string.
 
     METHODS constructor
       IMPORTING
         model TYPE REF TO z2ui5_cl_fw_model.
 
-    METHODS bind_local2
+    METHODS bind_local
       IMPORTING
         val           TYPE any
-        config        TYPE z2ui5_if_fw_types=>ty_s_config_bind OPTIONAL
+        config        TYPE z2ui5_if_fw_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS bind2
+    METHODS bind
       IMPORTING
         val           TYPE any
         type          TYPE string
-        config        TYPE z2ui5_if_fw_types=>ty_s_config_bind OPTIONAL
+        config        TYPE z2ui5_if_fw_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
+
+    METHODS clear_bind
+      IMPORTING
+        val TYPE string.
 
   PROTECTED SECTION.
 
     METHODS update_attri
       RETURNING
         VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
-
-    METHODS bind_local
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS bind
-      IMPORTING
-        bind          TYPE REF TO z2ui5_if_fw_types=>ty_s_attri
-      RETURNING
-        VALUE(result) TYPE string.
 
     METHODS set_attri_ready
       IMPORTING
@@ -64,96 +58,13 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
         VALUE(result) TYPE string.
 
   PRIVATE SECTION.
-
 ENDCLASS.
 
 
 
 CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
 
-
   METHOD bind.
-
-*    FIELD-SYMBOLS <attri> TYPE any.
-*    DATA(lv_name) = `MO_APP->` && bind->name.
-*    DATA lr_ref TYPE REF TO data.
-*    ASSIGN (lv_name) TO <attri>.
-*    IF sy-subrc <> 0.
-*      RETURN.
-*    ENDIF.
-*
-*    GET REFERENCE OF <attri> INTO lr_ref.
-*
-*    IF mr_data <> lr_ref.
-*      RETURN.
-*    ENDIF.
-*
-*    IF bind->bind_type IS NOT INITIAL AND bind->bind_type <> ms_attri_new-type.
-*      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*        EXPORTING
-*          val = `<p>Binding Error - Two different binding types for same attribute used (` && bind->name && `).`.
-*    ENDIF.
-*
-*    IF bind->custom_mapper IS BOUND AND bind->custom_mapper <> ms_attri_new-custom_mapper.
-*      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*        EXPORTING
-*          val = `<p>Binding Error - Two different mapper for same attribute used (` && bind->name && `).`.
-*    ENDIF.
-*
-*    IF bind->custom_mapper_back IS BOUND AND bind->custom_mapper_back <> ms_attri_new-custom_mapper_back.
-*      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*        EXPORTING
-*          val = `<p>Binding Error - Two different mapper back for same attribute used (` && bind->name && `).`.
-*    ENDIF.
-*
-*    IF bind->custom_filter IS BOUND AND bind->custom_filter <> ms_attri_new-custom_filter.
-*      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*        EXPORTING
-*          val = `<p>Binding Error - Two different filter for same attribute used (` && bind->name && `).`.
-*    ENDIF.
-*
-*    IF bind->bind_type IS NOT INITIAL.
-*      result = COND #( WHEN ms_attri_new-type = z2ui5_if_fw_types=>cs_bind_type-two_way THEN `/EDIT` ) && `/` && bind->name_front.
-*      RETURN.
-*    ENDIF.
-*
-*    IF ms_attri_new-custom_filter_back IS BOUND.
-*      TRY.
-*          DATA(li_serial) = CAST if_serializable_object( ms_attri_new-custom_filter_back ) ##NEEDED.
-*        CATCH cx_root.
-*          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*            EXPORTING
-*              val = `<p>custom_filter_back used but it is not serializable, please use if_serializable_object`.
-*
-*      ENDTRY.
-*    ENDIF.
-*
-*    IF ms_attri_new-custom_filter_back IS BOUND.
-*      TRY.
-*          DATA(li_serial2) = CAST if_serializable_object( ms_attri_new-custom_mapper_back ) ##NEEDED.
-*        CATCH cx_root.
-*          RAISE EXCEPTION TYPE z2ui5_cx_util_error
-*            EXPORTING
-*              val = `<p>mo_custom_mapper_back used but it is not serializable, please use if_serializable_object`.
-*
-*      ENDTRY.
-*    ENDIF.
-*
-*    bind->bind_type   = ms_attri_new-type.
-*    bind->viewname    = ms_attri_new-viewname.
-*    bind->custom_filter = ms_attri_new-custom_filter.
-*    bind->custom_filter_back = ms_attri_new-custom_filter_back.
-*    bind->custom_mapper = ms_attri_new-custom_mapper.
-*    bind->custom_mapper_back = ms_attri_new-custom_mapper_back.
-*
-*    bind->name_front  = replace( val = bind->name sub = `-` with = `/` ).
-*    bind->name_front = replace( val = bind->name_front sub = `>` with = `` ).
-*    result = COND #( WHEN ms_attri_new-type = z2ui5_if_fw_types=>cs_bind_type-two_way THEN `/EDIT` ) && `/` && bind->name_front.
-
-  ENDMETHOD.
-
-
-  METHOD bind2.
 
     check_raise_val( val ).
 
@@ -178,41 +89,36 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
 
 
   METHOD bind_local.
-*    TRY.
-*
-*        FIELD-SYMBOLS <any> TYPE any.
-*        ASSIGN mr_data->* TO <any>.
-*        DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
-*
-*        IF ms_attri-custom_mapper IS BOUND.
-*          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = ms_attri_new-custom_mapper ) ).
-*        ELSE.
-*          ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
-*        ENDIF.
-*
-*        IF ms_attri_new-custom_filter IS BOUND.
-*          ajson = ajson->filter( ms_attri_new-custom_filter ).
-*        ELSE.
-*          ajson =  ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-*        ENDIF.
-*
-*        INSERT VALUE #( name_front     = lv_id
-*                        name           = lv_id
-*                        json_bind_local    = ajson->set( iv_path = `/` iv_val = <any> )
-*                        bind_type      = z2ui5_if_fw_types=>cs_bind_type-one_time
-*                        )
-*                  INTO TABLE mo_model->mt_attri.
-*
-*        result = |/{ lv_id }|.
-*
-*      CATCH cx_root INTO DATA(x).
-*        ASSERT x IS NOT BOUND.
-*    ENDTRY.
-  ENDMETHOD.
+    TRY.
 
+        IF config-custom_mapper IS BOUND.
+          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = config-custom_mapper ) ).
+        ELSE.
+          ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+        ENDIF.
 
-  METHOD bind_local2.
+        IF config-custom_filter IS BOUND.
+          ajson = ajson->filter( config-custom_filter ).
+        ELSE.
+          ajson =  ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+        ENDIF.
 
+        DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
+        INSERT VALUE #( name_client     = |/{ lv_id }|
+                        name           = lv_id
+                        json_bind_local    = ajson->set( iv_path = `/` iv_val = val )
+                        bind_type      = z2ui5_if_fw_types=>cs_bind_type-one_time  )
+                  INTO TABLE mo_model->mt_attri.
+
+        result = |/{ lv_id }|.
+
+        IF ms_config-path_only = abap_false.
+          result = `{` && result && `}`.
+        ENDIF.
+
+      CATCH cx_root INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
   ENDMETHOD.
 
   METHOD check_raise_val.
@@ -222,7 +128,6 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
         EXPORTING
           val = `BINDING_WITH_REFERENCES_NOT_ALLOWED`.
     ENDIF.
-
 
   ENDMETHOD.
 
@@ -330,6 +235,18 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
     result = replace( val = mr_attri->name sub = `-` with = `/` ).
     result = replace( val = result sub = `>` with = `*` ).
     result = COND #( WHEN mv_type = z2ui5_if_fw_types=>cs_bind_type-two_way THEN `/EDIT` ) && `/` &&  result.
+
+  ENDMETHOD.
+
+  METHOD clear_bind.
+
+    mo_model->mt_attri[ name = val ]-check_dissolved = abap_false.
+
+    LOOP AT mo_model->mt_attri REFERENCE INTO DATA(lr_bind2).
+      IF lr_bind2->name CS val && `-`.
+        DELETE mo_model->mt_attri.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 

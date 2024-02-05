@@ -84,8 +84,6 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
   METHOD main_end.
     TRY.
 
-        mo_app->db_save( ).
-
         ms_response = VALUE #(
             s_frontend-params = mo_app->ms_next-s_set
             s_frontend-id = mo_app->ms_draft-id
@@ -93,6 +91,8 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
 
         DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
         result = lo_json_mapper->response_abap_to_json( ms_response ).
+
+        mo_app->db_save( ).
 
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.

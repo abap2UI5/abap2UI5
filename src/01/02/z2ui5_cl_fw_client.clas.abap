@@ -47,12 +47,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       t_event_arg            = mo_app->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_app->ms_draft )
       check_on_navigated     = mo_app->ms_actual-check_on_navigated
-      s_config               = VALUE #(
-        origin = mo_app->mo_http_post->ms_request-s_frontend-origin
-        pathname = mo_app->mo_http_post->ms_request-s_frontend-pathname
-        search = mo_app->mo_http_post->ms_request-s_frontend-search
-        t_startup_params = mo_app->mo_http_post->ms_request-s_frontend-t_startup_params
-        )
+      s_config               = CORRESPONDING #( mo_app->mo_http_post->ms_request-s_frontend )
     ).
 
   ENDMETHOD.
@@ -60,7 +55,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_app.
     IF id IS NOT INITIAL.
-      result = CAST #( z2ui5_cl_fw_hlp_db=>load_app( id )-app ).
+      DATA(lo_app) = mo_app->db_load( id ).
+      result = CAST #( lo_app->mo_model->mo_app ).
     ELSE.
       result = CAST #( mo_app->mo_model->mo_app ).
     ENDIF.
@@ -229,10 +225,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     ENDIF.
 
     DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
-    result = lo_bind->bind2(
+    result = lo_bind->bind(
       val    = val
       type   = z2ui5_if_fw_types=>cs_bind_type-one_way
       config = VALUE #(
+         path_only = path
          custom_filter = custom_filter
          custom_mapper = custom_mapper
      ) ).
@@ -242,13 +239,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_clear.
 
-*    cntrl->ms_draft-t_attri[ name = val ]-check_dissolved = abap_false.
-*
-*    LOOP AT cntrl->ms_draft-t_attri REFERENCE INTO DATA(lr_bind2).
-*      IF lr_bind2->name CS val && `-`.
-*        DELETE cntrl->ms_draft-t_attri.
-*      ENDIF.
-*    ENDLOOP.
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    lo_bind->clear_bind( val ).
 
   ENDMETHOD.
 
@@ -269,10 +261,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
     ENDIF.
 
     DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
-    result = lo_bind->bind2(
+    result = lo_bind->bind(
       val    = val
       type   = z2ui5_if_fw_types=>cs_bind_type-two_way
       config = VALUE #(
+         path_only = path
          custom_filter = custom_filter
          custom_filter_back = custom_filter_back
          custom_mapper = custom_mapper
@@ -284,24 +277,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_local.
 
-*    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-**                app2 = mo_flow
-**                        app         = mo_flow->ms_db-app
-**                        attri       = mo_flow->ms_db-t_attri
-*                          data        = val
-*                          s_attri = VALUE #(
-*                        type        = z2ui5_if_fw_types=>cs_bind_type-one_time
-*                        custom_mapper  = custom_mapper
-*                        custom_filter   = custom_filter
-*                       ) ).
-*
-*    result = lo_binder->main( ).
-*    mo_flow->ms_db-t_attri = mo_flow->mo_dissolver->mt_attri.
-**    mo_app->ms_db-check_attri = abap_false.
-*
-*    IF path = abap_false.
-*      result = `{` && result && `}`.
-*    ENDIF.
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    result = lo_bind->bind_local(
+      val    = val
+      config = VALUE #(
+        path_only = path
+        custom_mapper = custom_mapper
+        custom_filter = custom_filter
+    ) ).
 
   ENDMETHOD.
 

@@ -5,11 +5,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
 
   PUBLIC SECTION.
 
-    TYPES:
-      BEGIN OF ty_s_test,
-        app     TYPE REF TO if_serializable_object,
-        t_attri TYPE z2ui5_if_fw_types=>ty_t_attri,
-      END OF ty_s_test.
+    INTERFACES if_serializable_object.
 
     DATA mt_attri TYPE z2ui5_if_fw_types=>ty_t_attri.
     DATA mo_app TYPE REF TO object.
@@ -23,6 +19,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
     METHODS json_client_stringify
       RETURNING
         VALUE(result) TYPE string.
+
     METHODS json_client_parse
       IMPORTING
         viewname TYPE string
@@ -52,53 +49,32 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_model IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
+
 
   METHOD attri_get_by_data.
 
     DATA(lr_data) = REF #( val ).
 
-    IF mt_attri IS INITIAL.
+    DO 3 TIMES.
+
+      LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
+          WHERE check_ready = abap_true.
+
+        IF lr_bind->r_ref IS NOT BOUND.
+          lr_bind->r_ref = attri_get_val_ref( lr_bind ).
+        ENDIF.
+
+        IF lr_data = lr_bind->r_ref.
+          result = lr_bind.
+          RETURN.
+        ENDIF.
+      ENDLOOP.
+
       DATA(lo_dissolver) =  NEW z2ui5_cl_fw_hlp_dissolver(
         attri = REF #( mt_attri )
         app = mo_app ).
       lo_dissolver->main( ).
-    ENDIF.
-
-    DO 2 TIMES.
-
-      LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
-          WHERE check_ready = abap_true
-          AND depth < 5.
-
-        IF lr_bind->r_ref IS NOT BOUND.
-          lr_bind->r_ref = attri_get_val_ref( lr_bind ).
-        ENDIF.
-
-        IF lr_data = lr_bind->r_ref.
-          result = lr_bind.
-          RETURN.
-        ENDIF.
-      ENDLOOP.
-
-      DATA(lo_dissolver_2) =  NEW z2ui5_cl_fw_hlp_dissolver(
-         attri = REF #( mt_attri )
-         app = mo_app ).
-      lo_dissolver_2->main( ).
-
-      LOOP AT mt_attri REFERENCE INTO lr_bind
-          WHERE check_ready = abap_true
-          AND depth >= 5.
-
-        IF lr_bind->r_ref IS NOT BOUND.
-          lr_bind->r_ref = attri_get_val_ref( lr_bind ).
-        ENDIF.
-
-        IF lr_data = lr_bind->r_ref.
-          result = lr_bind.
-          RETURN.
-        ENDIF.
-      ENDLOOP.
 
     ENDDO.
 
@@ -119,6 +95,16 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
     GET REFERENCE OF <attri> INTO result.
     ASSERT sy-subrc = 0.
+
+  ENDMETHOD.
+
+
+  METHOD attri_set_refs.
+
+    LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
+    WHERE bind_type IS NOT INITIAL.
+      lr_attri->r_ref = attri_get_val_ref( lr_attri ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -148,19 +134,14 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
     DATA lo_model TYPE REF TO z2ui5_cl_fw_model.
 
-  DATA(ls_db) = VALUE ty_s_test( ).
-
     z2ui5_cl_util_func=>trans_xml_2_any(
         EXPORTING
             xml = val
         IMPORTING
-            any = ls_db ).
+            any = lo_model ).
 
-
-
-
-    mo_app = ls_db-app.
-    mt_attri = ls_db-t_attri.
+    mo_app = lo_model->mo_app.
+    mt_attri = lo_model->mt_attri.
 
 *    DATA(lo_app) = CAST object( result-app ) ##NEEDED.
 *    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri)
@@ -186,23 +167,21 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD xml_db_stringify.
 
-    FIELD-SYMBOLS <attri> TYPE any.
-    FIELD-SYMBOLS <deref_attri> TYPE any.
+  METHOD xml_db_stringify.
 
     TRY.
 
-        DATA(ls_db) = VALUE ty_s_test(
-            t_attri = mt_attri
-            app = CAST #( mo_app )
-        ).
+        LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
+          CLEAR lr_attri->r_ref.
+        ENDLOOP.
 
-        result = z2ui5_cl_util_func=>trans_xml_by_any( ls_db ).
+        result = z2ui5_cl_util_func=>trans_xml_by_any( me ).
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
 *        TRY.
-*
+*     FIELD-SYMBOLS <attri> TYPE any.
+*    FIELD-SYMBOLS <deref_attri> TYPE any.
 *            DATA(ls_db) = db.
 *            DATA(lo_app) = CAST object( ls_db-app ).
 *
@@ -247,17 +226,5 @@ CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 *
 *        ENDTRY.
     ENDTRY.
-
-
   ENDMETHOD.
-
-  METHOD attri_set_refs.
-
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
-    WHERE bind_type IS NOT INITIAL.
-      lr_attri->r_ref = attri_get_val_ref( lr_attri ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
 ENDCLASS.
