@@ -11,7 +11,7 @@ CLASS z2ui5_cl_fw_client DEFINITION
 
     METHODS constructor
       IMPORTING
-        handler TYPE REF TO z2ui5_cl_fw_app.
+        flow TYPE REF TO z2ui5_cl_fw_app.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_app = handler.
+    mo_app = flow.
 
   ENDMETHOD.
 
@@ -32,7 +32,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~clear.
 
     CASE val.
-      WHEN z2ui5_if_client~cs_clear-view.
+      WHEN z2ui5_if_client=>cs_clear-view.
         CLEAR mo_app->ms_next-s_set-s_view.
     ENDCASE.
 
@@ -45,7 +45,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       event                  = mo_app->ms_actual-event
       check_launchpad_active = mo_app->mo_http_post->ms_request-s_control-check_launchpad
       t_event_arg            = mo_app->ms_actual-t_event_arg
-      s_draft                = CORRESPONDING #( mo_app->ms_db )
+      s_draft                = CORRESPONDING #( mo_app->ms_draft )
       check_on_navigated     = mo_app->ms_actual-check_on_navigated
       s_config               = VALUE #(
         origin = mo_app->mo_http_post->ms_request-s_frontend-origin
@@ -59,7 +59,11 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~get_app.
-    result = CAST #( z2ui5_cl_fw_draft=>load_app( id )-app ).
+    IF id IS NOT INITIAL.
+      result = CAST #( z2ui5_cl_fw_hlp_db=>load_app( id )-app ).
+    ELSE.
+      result = CAST #( mo_app->mo_model->mo_app ).
+    ENDIF.
   ENDMETHOD.
 
 
@@ -213,9 +217,9 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF tab IS NOT INITIAL.
 
-      DATA(lv_name) = z2ui5_if_client~_bind( val  = tab
-                                             path = abap_true ).
-      result = z2ui5_cl_fw_binding=>bind_tab_cell(
+      DATA(lv_name) = z2ui5_if_client~_bind( val  = tab path = abap_true ).
+
+      result = z2ui5_cl_util_func=>bind_tab_cell(
             iv_name     = lv_name
             i_tab_index = tab_index
             i_tab       = tab
@@ -224,36 +228,27 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app         = mo_app->ms_db-app
-                        attri       = mo_app->ms_db-t_attri
-                        check_attri = mo_app->ms_db-check_attri
-                        type        = z2ui5_cl_fw_binding=>cs_bind_type-one_way
-                        data        = val
-                        custom_mapper  = custom_mapper
-                        custom_filter   = custom_filter
-                         ).
-
-    result = lo_binder->main( ).
-    mo_app->ms_db-t_attri = lo_binder->mt_attri.
-    mo_app->ms_db-check_attri = lo_binder->mv_check_attri.
-
-    IF path = abap_false.
-      result = `{` && result && `}`.
-    ENDIF.
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    result = lo_bind->bind2(
+      val    = val
+      type   = z2ui5_if_fw_types=>cs_bind_type-one_way
+      config = VALUE #(
+         custom_filter = custom_filter
+         custom_mapper = custom_mapper
+     ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_clear.
 
-    mo_app->ms_db-t_attri[ name = val ]-check_dissolved = abap_false.
-
-    LOOP AT mo_app->ms_db-t_attri REFERENCE INTO DATA(lr_bind2).
-      IF lr_bind2->name CS val && `-`.
-        DELETE mo_app->ms_db-t_attri.
-      ENDIF.
-    ENDLOOP.
+*    cntrl->ms_draft-t_attri[ name = val ]-check_dissolved = abap_false.
+*
+*    LOOP AT cntrl->ms_draft-t_attri REFERENCE INTO DATA(lr_bind2).
+*      IF lr_bind2->name CS val && `-`.
+*        DELETE cntrl->ms_draft-t_attri.
+*      ENDIF.
+*    ENDLOOP.
 
   ENDMETHOD.
 
@@ -262,58 +257,51 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF tab IS NOT INITIAL.
 
-      DATA(lv_name) = z2ui5_if_client~_bind_edit( val = tab path = abap_true ).
-      result = z2ui5_cl_fw_binding=>bind_tab_cell(
+      DATA(lv_name) = z2ui5_if_client~_bind( val  = tab path = abap_true ).
+
+      result = z2ui5_cl_util_func=>bind_tab_cell(
             iv_name     = lv_name
             i_tab_index = tab_index
             i_tab       = tab
             i_val       = val ).
+
       RETURN.
     ENDIF.
 
-    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app         = mo_app->ms_db-app
-                        attri       = mo_app->ms_db-t_attri
-                        check_attri = mo_app->ms_db-check_attri
-                        type        = z2ui5_cl_fw_binding=>cs_bind_type-two_way
-                        data        = val
-                        view        = view
-                        custom_mapper  = custom_mapper
-                        custom_mapper_back  = custom_mapper_back
-                        custom_filter   = custom_filter
-                        custom_filter_back   = custom_filter_back
-                        ).
-
-    result = lo_binder->main( ).
-    mo_app->ms_db-t_attri = lo_binder->mt_attri.
-    mo_app->ms_db-check_attri = lo_binder->mv_check_attri.
-
-    IF path = abap_false.
-      result = `{` && result && `}`.
-    ENDIF.
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    result = lo_bind->bind2(
+      val    = val
+      type   = z2ui5_if_fw_types=>cs_bind_type-two_way
+      config = VALUE #(
+         custom_filter = custom_filter
+         custom_filter_back = custom_filter_back
+         custom_mapper = custom_mapper
+         custom_mapper_back = custom_mapper_back
+     ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_local.
 
-    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
-                        app         = mo_app->ms_db-app
-                        attri       = mo_app->ms_db-t_attri
-                        check_attri = mo_app->ms_db-check_attri
-                        type        = z2ui5_cl_fw_binding=>cs_bind_type-one_time
-                        data        = val
-                        custom_mapper  = custom_mapper
-                        custom_filter   = custom_filter
-                        ).
-
-    result = lo_binder->main( ).
-    mo_app->ms_db-t_attri = lo_binder->mt_attri.
-    mo_app->ms_db-check_attri = lo_binder->mv_check_attri.
-
-    IF path = abap_false.
-      result = `{` && result && `}`.
-    ENDIF.
+*    DATA(lo_binder) = z2ui5_cl_fw_binding=>factory(
+**                app2 = mo_flow
+**                        app         = mo_flow->ms_db-app
+**                        attri       = mo_flow->ms_db-t_attri
+*                          data        = val
+*                          s_attri = VALUE #(
+*                        type        = z2ui5_if_fw_types=>cs_bind_type-one_time
+*                        custom_mapper  = custom_mapper
+*                        custom_filter   = custom_filter
+*                       ) ).
+*
+*    result = lo_binder->main( ).
+*    mo_flow->ms_db-t_attri = mo_flow->mo_dissolver->mt_attri.
+**    mo_app->ms_db-check_attri = abap_false.
+*
+*    IF path = abap_false.
+*      result = `{` && result && `}`.
+*    ENDIF.
 
   ENDMETHOD.
 

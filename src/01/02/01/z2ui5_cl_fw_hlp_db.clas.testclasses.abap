@@ -17,7 +17,6 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_trans_xml.
 
 
-
   ENDMETHOD.
 
   METHOD z2ui5_if_app~main.

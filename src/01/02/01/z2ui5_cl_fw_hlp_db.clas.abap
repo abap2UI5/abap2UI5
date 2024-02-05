@@ -1,46 +1,33 @@
-CLASS z2ui5_cl_fw_draft DEFINITION
+CLASS z2ui5_cl_fw_hlp_db DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
 
-    TYPES ty_s_db2 TYPE z2ui5_t_fw_01.
-
-    TYPES:
-      BEGIN OF ty_s_db,
-        id                TYPE string,
-        id_prev           TYPE string,
-        id_prev_app       TYPE string,
-        id_prev_app_stack TYPE string,
-        t_attri           TYPE z2ui5_cl_fw_binding=>ty_t_attri,
-        check_attri       TYPE abap_bool,
-        app               TYPE REF TO z2ui5_if_app,
-      END OF ty_s_db .
-
     CLASS-METHODS create
       IMPORTING
         !id TYPE string
-        !db TYPE ty_s_db.
+        !db TYPE z2ui5_if_fw_types=>ty_s_db.
 
     CLASS-METHODS load_app
       IMPORTING
         !id           TYPE clike
       RETURNING
-        VALUE(result) TYPE ty_s_db .
+        VALUE(result) TYPE z2ui5_if_fw_types=>ty_s_db.
 
     CLASS-METHODS read
       IMPORTING
         !id             TYPE clike
         !check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(result)   TYPE ty_s_db2.
+        VALUE(result)   TYPE z2ui5_if_fw_types=>ty_s_db2.
 
     CLASS-METHODS cleanup.
 
     CLASS-METHODS trans_any_2_xml
       IMPORTING
-        !db           TYPE ty_s_db
+        !db           TYPE z2ui5_if_fw_types=>ty_s_db
       RETURNING
         VALUE(result) TYPE string.
 
@@ -50,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_draft IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -70,7 +57,7 @@ CLASS z2ui5_cl_fw_draft IMPLEMENTATION.
     db-app->id_draft = id.
     DATA(lv_xml) = trans_any_2_xml( db ).
 
-    DATA(ls_draft) = VALUE ty_s_db2( id                = id
+    DATA(ls_draft) = VALUE z2ui5_if_fw_types=>ty_s_db2( id                = id
                                      id_prev           = db-id_prev
                                      id_prev_app       = db-id_prev_app
                                      id_prev_app_stack = db-id_prev_app_stack
@@ -168,9 +155,10 @@ CLASS z2ui5_cl_fw_draft IMPLEMENTATION.
 
             IF NOT line_exists( ls_db-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
 
-              ls_db-t_attri = z2ui5_cl_fw_binding=>update_attri(
-                  t_attri = ls_db-t_attri
-                  app     = ls_db-app ).
+              ASSERT 1 = 0.
+*              ls_db-t_attri = z2ui5_cl_fw_binding=>update_attri(
+*                  t_attri = ls_db-t_attri
+*                  app     = ls_db-app ).
 
             ENDIF.
 

@@ -5,12 +5,12 @@ CLASS z2ui5_cl_fw_http_get DEFINITION
 
   PUBLIC SECTION.
 
-    DATA ms_request TYPE z2ui5_if_client=>ty_s_http_request_get .
+    DATA ms_request TYPE z2ui5_if_types=>ty_s_http_request_get.
     DATA mv_response TYPE string .
 
     METHODS constructor
       IMPORTING
-        val TYPE z2ui5_if_client=>ty_s_http_request_get OPTIONAL.
+        val TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL.
 
     METHODS main
       RETURNING
@@ -579,7 +579,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                  `</script>` && |\n| &&
                  `<abc/></body></html>`.
 
-    z2ui5_cl_fw_draft=>cleanup( ).
+    z2ui5_cl_fw_hlp_db=>cleanup( ).
 
     result = mv_response.
   ENDMETHOD.

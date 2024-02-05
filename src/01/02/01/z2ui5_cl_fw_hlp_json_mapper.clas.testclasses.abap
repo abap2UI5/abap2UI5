@@ -16,10 +16,10 @@ CLASS ltcl_http_json_mapper_test IMPLEMENTATION.
     DATA(lv_payload) = `{"EDIT":{"NAME":"test"},"ARGUMENTS":[],"S_FRONTEND":{"ID":"ID_NR","EDIT":{"NAME":"test"},"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":"SEARCH"` &&
             `,"VIEWNAME":"MAIN","EVENT":"BUTTON_POST","T_EVENT_ARG":[]}}`.
 
-    DATA(lo_mapper) = NEW z2ui5_cl_fw_http_mapper( ).
+    DATA(lo_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
     DATA(ls_result) = lo_mapper->request_json_to_abap( lv_payload ).
 
-    DATA(ls_exp) = VALUE z2ui5_if_client=>ty_s_http_request_post(
+    DATA(ls_exp) = VALUE z2ui5_if_fw_types=>ty_s_http_request_post(
         s_frontend = VALUE #(
         id = `ID_NR`
         viewname = `MAIN`

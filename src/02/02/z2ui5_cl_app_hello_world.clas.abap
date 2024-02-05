@@ -43,5 +43,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
         client->message_toast_display( |Your name is { name }| ).
     ENDCASE.
 
+    name = `My test`.
+
   ENDMETHOD.
 ENDCLASS.

@@ -61,6 +61,23 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS bind_tab_cell
+      IMPORTING
+        iv_name         TYPE string
+        i_tab_index     TYPE i
+        i_tab           TYPE STANDARD TABLE
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
+    CLASS-METHODS bind_struc_comp
+      IMPORTING
+        iv_name         TYPE string
+        i_struc         TYPE data
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
     CLASS-METHODS db_load_by_id
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -117,7 +134,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS url_param_create_url
       IMPORTING
-        !t_params     TYPE z2ui5_if_client=>ty_t_name_value
+        !t_params     TYPE z2ui5_if_types=>ty_t_name_value
       RETURNING
         VALUE(result) TYPE string.
 
@@ -246,7 +263,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       IMPORTING
         !i_val           TYPE clike
       RETURNING
-        VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
+        VALUE(rt_params) TYPE z2ui5_if_types=>ty_t_name_value.
 
     CLASS-METHODS rtti_get_t_attri_by_object
       IMPORTING
@@ -326,7 +343,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS filter_get_token_range_mapping
       RETURNING
-        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
+        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
 
     CLASS-METHODS itab_filter_by_val
       IMPORTING
@@ -430,7 +447,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   METHOD app_get_url.
 
     IF classname IS INITIAL.
-      classname = rtti_get_classname_by_ref( client->get( )-s_draft-app ).
+      classname = rtti_get_classname_by_ref( client->get_app( ) ).
     ENDIF.
 
     DATA(lv_url) = to_lower( client->get( )-s_config-origin && client->get( )-s_config-pathname ) && `?`.
@@ -449,10 +466,69 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     DATA(ls_config) = client->get( )-s_config.
 
     result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-       && rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
+       && rtti_get_classname_by_ref( client->get_app( ) ) && `/source/main`.
 
   ENDMETHOD.
 
+
+  METHOD bind_tab_cell.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_tab[ i_tab_index ] TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <row> ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
+
+  METHOD bind_struc_comp.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_struc TO <row>.
+    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( i_struc ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+*        r_result = `{` && iv_name && '/' && <comp>-name && `}`.
+        r_result = <comp>-name.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+*    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*      EXPORTING
+*        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
 
   METHOD boolean_abap_2_json.
 

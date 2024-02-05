@@ -27,88 +27,6 @@ INTERFACE z2ui5_if_client
       nested2 TYPE string VALUE `NEST2`,
     END OF cs_view.
 
-  TYPES:
-    BEGIN OF ty_s_name_value,
-      n TYPE string,
-      v TYPE string,
-    END OF ty_s_name_value.
-  TYPES ty_t_name_value TYPE TABLE OF ty_s_name_value WITH EMPTY KEY.
-
-  TYPES:
-    BEGIN OF ty_s_config,
-      origin           TYPE string,
-      pathname         TYPE string,
-      search           TYPE string,
-      t_startup_params TYPE ty_t_name_value,
-    END OF ty_s_config.
-
-  TYPES:
-    BEGIN OF ty_s_http_request_post,
-      o_model TYPE REF TO z2ui5_if_ajson,
-      BEGIN OF s_frontend,
-        id               TYPE string,
-        viewname         TYPE string,
-        t_event_arg      TYPE string_table,
-        app_start        TYPE string,
-        origin           TYPE string,
-        pathname         TYPE string,
-        search           TYPE string,
-        event            TYPE string,
-        t_startup_params TYPE ty_t_name_value,
-      END OF s_frontend,
-      BEGIN OF s_control,
-        check_launchpad TYPE abap_bool,
-        app_start       TYPE string,
-      END OF s_control,
-    END OF ty_s_http_request_post.
-
-  TYPES:
-    BEGIN OF ty_s_http_response_post,
-      BEGIN OF s_frontend,
-        params TYPE z2ui5_cl_fw_app=>ty_s_next2,
-        id     TYPE string,
-      END OF s_frontend,
-      o_model TYPE REF TO z2ui5_if_ajson,
-    END OF ty_s_http_response_post.
-
-  TYPES:
-    BEGIN OF ty_s_http_request_get,
-      t_config                TYPE ty_t_name_value,
-      content_security_policy TYPE string,
-      custom_js               TYPE string,
-      json_model_limit        TYPE string,
-    END OF ty_s_http_request_get.
-
-  TYPES:
-    BEGIN OF ty_s_draft,
-      id                TYPE string,
-      id_prev           TYPE string,
-      id_prev_app       TYPE string,
-      id_prev_app_stack TYPE string,
-      app               TYPE REF TO z2ui5_if_app,
-    END OF ty_s_draft.
-
-  TYPES:
-    BEGIN OF ty_s_get,
-      event                  TYPE string,
-      t_event_arg            TYPE string_table,
-      check_launchpad_active TYPE abap_bool,
-      check_on_navigated     TYPE abap_bool,
-      viewname               TYPE string,
-      s_draft                TYPE ty_s_draft,
-      s_config               TYPE ty_s_config,
-    END OF ty_s_get.
-
-  TYPES:
-    BEGIN OF ty_s_actual,
-      event              TYPE string,
-      t_event_arg        TYPE string_table,
-      check_on_navigated TYPE abap_bool,
-      viewname           TYPE string,
-      s_draft            TYPE ty_s_draft,
-      s_config           TYPE ty_s_config,
-    END OF ty_s_actual.
-
   METHODS view_destroy.
 
   METHODS view_display
@@ -156,11 +74,11 @@ INTERFACE z2ui5_if_client
 
   METHODS get
     RETURNING
-      VALUE(result) TYPE ty_s_get.
+      VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
 
   METHODS get_app
     IMPORTING
-      id            TYPE clike
+      id            TYPE clike OPTIONAL
     RETURNING
       VALUE(result) TYPE REF TO z2ui5_if_app.
 
@@ -209,7 +127,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                TYPE data
       path               TYPE abap_bool  DEFAULT abap_false
-      view               TYPE string     DEFAULT cs_view-main
+      view               TYPE string     DEFAULT z2ui5_if_client=>cs_view-main
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter      TYPE REF TO z2ui5_if_ajson_filter OPTIONAL

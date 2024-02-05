@@ -1,20 +1,20 @@
-class Z2UI5_CL_FW_APP_ERROR definition
-  public
-  final
-  create protected .
+CLASS z2ui5_cl_fw_app_error DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PROTECTED .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces Z2UI5_IF_APP .
-  interfaces IF_SERIALIZABLE_OBJECT .
+    INTERFACES z2ui5_if_app.
 
-  data MX_ERROR type ref to CX_ROOT .
+    DATA mx_error TYPE REF TO cx_root .
 
-  class-methods FACTORY
-    importing
-      !ERROR type ref to CX_ROOT
-    returning
-      value(RESULT) type ref to Z2UI5_CL_FW_APP_ERROR .
+    CLASS-METHODS factory
+      IMPORTING
+        !error        TYPE REF TO cx_root
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app_error.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
