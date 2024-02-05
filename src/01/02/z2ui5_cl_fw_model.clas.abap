@@ -31,13 +31,11 @@ CLASS z2ui5_cl_fw_model DEFINITION
 
     METHODS xml_db_parse
       IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_model.
+        val           TYPE string.
 
     METHODS attri_get_val_ref
       IMPORTING
-        i_lr_bind     TYPE REF TO z2ui5_if_fw_types=>ty_s_attri
+        ir_bind     TYPE REF TO z2ui5_if_fw_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE REF TO data.
 
@@ -88,8 +86,8 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
   METHOD attri_get_val_ref.
 
     FIELD-SYMBOLS <attri> TYPE any.
-    DATA(lv_name) = `MO_APP->` && i_lr_bind->name.
-    DATA lr_ref TYPE REF TO data.
+    DATA(lv_name) = `MO_APP->` && ir_bind->name.
+
     ASSIGN (lv_name) TO <attri>.
     ASSERT sy-subrc = 0.
 

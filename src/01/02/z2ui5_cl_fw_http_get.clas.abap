@@ -579,7 +579,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                  `</script>` && |\n| &&
                  `<abc/></body></html>`.
 
-    z2ui5_cl_fw_hlp_db=>cleanup( ).
+    new z2ui5_cl_fw_hlp_db( )->cleanup( ).
 
     result = mv_response.
   ENDMETHOD.

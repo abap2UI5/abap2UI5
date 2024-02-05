@@ -35,15 +35,7 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
 
   PROTECTED SECTION.
 
-    METHODS update_attri
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
-
-    METHODS set_attri_ready
-      IMPORTING
-        t_attri       TYPE REF TO z2ui5_if_fw_types=>ty_t_attri
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_fw_types=>ty_s_attri.
+    METHODS update_attri.
 
     METHODS check_raise_val
       IMPORTING
@@ -190,29 +182,6 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
   METHOD constructor.
 
     mo_model = model.
-
-  ENDMETHOD.
-
-  METHOD set_attri_ready.
-
-    LOOP AT t_attri->* REFERENCE INTO result
-        WHERE check_ready = abap_false AND
-            bind_type <> z2ui5_if_fw_types=>cs_bind_type-one_time.
-
-      CASE result->type_kind.
-        WHEN cl_abap_classdescr=>typekind_iref
-            OR cl_abap_classdescr=>typekind_intf.
-          DELETE t_attri->*.
-
-        WHEN cl_abap_classdescr=>typekind_oref
-            OR cl_abap_classdescr=>typekind_dref
-            OR cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-        WHEN OTHERS.
-          result->check_ready = abap_true.
-      ENDCASE.
-    ENDLOOP.
 
   ENDMETHOD.
 
