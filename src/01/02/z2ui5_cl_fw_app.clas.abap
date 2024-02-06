@@ -135,6 +135,32 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
         IMPORTING
             any = result ).
 
+*    DATA(lo_dissolver) = NEW z2ui5_cl_fw_hlp_dissolver(
+*        attri = REF #( result->mt_attri )
+*        app   = result->mo_app ).
+*    lo_dissolver->main( ).
+
+    LOOP AT result->mt_attri REFERENCE INTO DATA(lr_attri)
+        WHERE data_rtti IS NOT INITIAL
+          AND type_kind = cl_abap_classdescr=>typekind_dref.
+
+      DATA(lv_assign) = 'RESULT->MO_APP->' && lr_attri->name.
+      ASSIGN (lv_assign) TO FIELD-SYMBOL(<val>).
+      IF sy-subrc <> 0.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
+      ENDIF.
+
+      z2ui5_cl_util_func=>trans_srtti_xml_2_data(
+        EXPORTING
+          rtti_data = lr_attri->data_rtti
+         IMPORTING
+           e_data   = <val> ).
+
+      CLEAR lr_attri->data_rtti.
+    ENDLOOP.
+
 *    DATA(lo_app) = CAST object( result-app ) ##NEEDED.
 *    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri)
 *        WHERE data_rtti IS NOT INITIAL
@@ -172,11 +198,57 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
         ENDLOOP.
 
         result = z2ui5_cl_util_func=>trans_xml_by_any( me ).
+        RETURN.
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
+    ENDTRY.
+
+    TRY.
+
+*        IF NOT line_exists( mt_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
+*        DATA(lo_dissolver) = NEW z2ui5_cl_fw_hlp_dissolver(
+*           attri = REF #( mt_attri )
+*           app   = mo_app ).
+*        lo_dissolver->main( ).
+*        ENDIF.
+
+        LOOP AT mt_attri REFERENCE INTO lr_attri
+            WHERE type_kind = cl_abap_classdescr=>typekind_dref.
+
+          DATA(lv_name) = `MO_APP->` && lr_attri->name && `->*`.
+          DATA(lv_name2) = `MO_APP->` && lr_attri->name.
+          ASSIGN (lv_name) TO FIELD-SYMBOL(<val>).
+          ASSIGN (lv_name2) TO FIELD-SYMBOL(<val_ref>).
+*          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<data>).
+*          ASSIGN <data>->* TO FIELD-SYMBOL(<data2>).
+*          CHECK sy-subrc = 0.
+
+          lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <val> ).
+
+          CLEAR <val>.
+          CLEAR <val_ref>.
+        ENDLOOP.
+
+        LOOP AT mt_attri REFERENCE INTO lr_attri.
+          CLEAR lr_attri->r_ref.
+        ENDLOOP.
+
+        result = z2ui5_cl_util_func=>trans_xml_by_any( me ).
+
+      CATCH cx_root INTO DATA(x2).
+
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
+
+    ENDTRY.
+
+
+*      CATCH cx_xslt_serialization_error INTO DATA(x).
 *        TRY.
-*     FIELD-SYMBOLS <attri> TYPE any.
-*    FIELD-SYMBOLS <deref_attri> TYPE any.
+*            FIELD-SYMBOLS <attri> TYPE any.
+*            FIELD-SYMBOLS <deref_attri> TYPE any.
+*
 *            DATA(ls_db) = db.
 *            DATA(lo_app) = CAST object( ls_db-app ).
 *
@@ -220,6 +292,6 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 *                val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
 *
 *        ENDTRY.
-    ENDTRY.
+*    ENDTRY.
   ENDMETHOD.
 ENDCLASS.

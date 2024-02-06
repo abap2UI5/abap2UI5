@@ -82,7 +82,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
 
 
   METHOD main_end.
-    TRY.
+*    TRY.
 
         ms_response = VALUE #(
             s_frontend-params = mo_action->ms_next-s_set
@@ -95,9 +95,9 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
         CLEAR mo_action->ms_next.
         mo_action->mo_app->db_save( ).
 
-      CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
-    ENDTRY.
+*      CATCH cx_root INTO DATA(x).
+*        ASSERT x IS NOT BOUND.
+*    ENDTRY.
   ENDMETHOD.
 
 

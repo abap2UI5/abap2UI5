@@ -68,10 +68,14 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
     DATA(lv_name) = `MO_APP->` && ir_bind->name.
 
     ASSIGN (lv_name) TO <attri>.
-    ASSERT sy-subrc = 0.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
-    ASSERT sy-subrc = 0.
+    IF sy-subrc <> 0.
+      ASSERT 1 = 0.
+    ENDIF.
 
   ENDMETHOD.
 
