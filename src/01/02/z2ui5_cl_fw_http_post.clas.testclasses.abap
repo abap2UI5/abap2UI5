@@ -1,5 +1,5 @@
 
-CLASS ltcl_post_handler_test DEFINITION FINAL FOR TESTING
+CLASS ltcl_test_handler_post DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -8,9 +8,9 @@ CLASS ltcl_post_handler_test DEFINITION FINAL FOR TESTING
       load_startup_app FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_http_post DEFINITION LOCAL FRIENDS ltcl_post_handler_test.
+CLASS z2ui5_cl_fw_http_post DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
 
-CLASS ltcl_post_handler_test IMPLEMENTATION.
+CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD load_startup_app.
 
