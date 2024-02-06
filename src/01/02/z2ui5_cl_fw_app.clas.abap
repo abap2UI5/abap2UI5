@@ -1,48 +1,42 @@
 CLASS z2ui5_cl_fw_app DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC.
+  CREATE PUBLIC .
 
   PUBLIC SECTION.
 
-    DATA mo_http_post TYPE REF TO z2ui5_cl_fw_http_post.
-    DATA mo_model     TYPE REF TO z2ui5_cl_fw_model.
+    INTERFACES if_serializable_object.
 
-    DATA ms_actual TYPE z2ui5_if_fw_types=>ty_s_actual.
-    DATA ms_next   TYPE z2ui5_if_fw_types=>ty_s_next.
-    DATA ms_draft  TYPE z2ui5_if_types=>ty_s_get-s_draft.
+    DATA mt_attri TYPE z2ui5_if_fw_types=>ty_t_attri.
+    DATA mo_app   TYPE REF TO object.
+    DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
 
-    METHODS factory_system_startup
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
-    METHODS factory_system_error
+    METHODS attri_get_by_data
       IMPORTING
-        ix            TYPE REF TO cx_root
+        val           TYPE data
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
+        VALUE(result) TYPE REF TO z2ui5_if_fw_types=>ty_s_attri.
 
-    METHODS factory_first_start
+    METHODS model_json_stringify
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
+        VALUE(result) TYPE string.
 
-    METHODS factory_by_frontend
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
-    METHODS factory_stack_leave
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
-    METHODS factory_stack_call
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
-    METHODS constructor
+    METHODS model_json_parse
       IMPORTING
-        val TYPE REF TO z2ui5_cl_fw_http_post.
+        view          TYPE string
+        io_json_model TYPE REF TO z2ui5_if_ajson.
 
-    METHODS db_load
+    METHODS all_xml_stringify
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS all_xml_parse
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
+
+    CLASS-METHODS db_load
       IMPORTING
         id            TYPE string
       RETURNING
@@ -51,13 +45,6 @@ CLASS z2ui5_cl_fw_app DEFINITION
     METHODS db_save.
 
   PROTECTED SECTION.
-
-    METHODS factory_next
-      IMPORTING
-        app           TYPE REF TO z2ui5_if_app
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_app.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -66,142 +53,173 @@ ENDCLASS.
 CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
 
-  METHOD factory_next.
+  METHOD attri_get_by_data.
 
-    app->id_draft = COND string( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( ) ELSE app->id_draft ).
+    DATA(lr_data) = REF #( val ).
 
-    result = NEW #( mo_http_post ).
-    result->mo_model->mo_app     = app.
-    result->ms_draft-id          = app->id_draft.
-    result->ms_draft-id_prev     = ms_draft-id.
-    result->ms_draft-id_prev_app = ms_draft-id.
-    result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-s_set     = ms_next-s_set.
+    DO 3 TIMES.
 
-    TRY.
-        DATA(lo_app) = db_load( app->id_draft ).
-        result->mo_model->mo_app = lo_app->mo_model->mo_app.
-        result->mo_model->mt_attri = lo_app->mo_model->mt_attri.
-      CATCH cx_root.
-    ENDTRY.
+      TRY.
+          result = REF #( mt_attri[ r_ref = lr_data ] ).
+          RETURN.
+        CATCH cx_root.
+      ENDTRY.
 
-  ENDMETHOD.
+      DATA(lo_dissolver) = NEW z2ui5_cl_fw_hlp_dissolver(
+        attri = REF #( mt_attri )
+        app = mo_app ).
+      lo_dissolver->main( ).
 
+    ENDDO.
 
-  METHOD constructor.
-
-    mo_http_post = val.
-    mo_model = NEW #( ).
-
-  ENDMETHOD.
-
-
-  METHOD factory_by_frontend.
-
-    result = db_load( mo_http_post->ms_request-s_frontend-id ).
-
-    result->ms_draft-id         = z2ui5_cl_util_func=>uuid_get_c32( ).
-    result->ms_draft-id_prev    = mo_http_post->ms_request-s_frontend-id.
-    result->ms_actual-viewname  = mo_http_post->ms_request-s_frontend-viewname.
-
-    result->mo_model->json_client_parse(
-        viewname = mo_http_post->ms_request-s_frontend-viewname
-        o_model  = mo_http_post->ms_request-o_model
-    ).
-
-    result->ms_actual-event = mo_http_post->ms_request-s_frontend-event.
-    result->ms_actual-t_event_arg = mo_http_post->ms_request-s_frontend-t_event_arg.
-    result->ms_actual-check_on_navigated = abap_false.
-
-  ENDMETHOD.
-
-
-  METHOD factory_first_start.
-
-    TRY.
-        result = NEW #( mo_http_post ).
-        result->ms_draft-id = z2ui5_cl_util_func=>uuid_get_c32( ).
-
-        CREATE OBJECT result->mo_model->mo_app TYPE (mo_http_post->ms_request-s_control-app_start).
-        CAST z2ui5_if_app( result->mo_model->mo_app )->id_draft = result->ms_draft-id.
-        result->ms_actual-check_on_navigated = abap_true.
-
-      CATCH cx_root.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = `App with name ` && mo_http_post->ms_request-s_control-app_start && ` not found...`.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD factory_stack_call.
-
-    result = factory_next( ms_next-o_app_call ).
-    result->ms_draft-id_prev_app_stack = ms_draft-id.
-    db_save( ).
-
-  ENDMETHOD.
-
-
-  METHOD factory_stack_leave.
-
-    result = factory_next( ms_next-o_app_leave ).
-
-    TRY.
-        DATA(ls_draft) = NEW z2ui5_cl_fw_hlp_db( )->read_info( result->ms_draft-id ).
-        result->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
-      CATCH cx_root.
-        result->ms_draft-id_prev_app_stack = ms_draft-id_prev_app_stack.
-    ENDTRY.
-
-    db_save( ).
-
-  ENDMETHOD.
-
-
-  METHOD factory_system_error.
-
-    result = NEW #( mo_http_post ).
-    result->ms_draft-id = z2ui5_cl_util_func=>uuid_get_c32( ).
-    result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-o_app_call = z2ui5_cl_fw_app_error=>factory( ix ).
-    result = result->factory_stack_call(  ).
-
-  ENDMETHOD.
-
-
-  METHOD factory_system_startup.
-
-    result = NEW #( mo_http_post ).
-    result->ms_draft-id = z2ui5_cl_util_func=>uuid_get_c32( ).
-    result->ms_actual-check_on_navigated = abap_true.
-    result->mo_model->mo_app = z2ui5_cl_fw_app_startup=>factory( ).
-    CAST z2ui5_if_app( result->mo_model->mo_app )->id_draft = result->ms_draft-id.
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
 
 
   METHOD db_load.
 
-    result = NEW #( mo_http_post ).
-    DATA(ls_db) = NEW z2ui5_cl_fw_hlp_db( )->read_draft( id ).
-    result->ms_draft = CORRESPONDING #( ls_db ).
-    result->mo_model->xml_db_parse( ls_db-data ).
+    DATA(lo_db) = NEW z2ui5_cl_fw_hlp_db( ).
+    DATA(ls_db) = lo_db->read_draft( id ).
+    result = all_xml_parse( ls_db-data ).
 
   ENDMETHOD.
 
 
   METHOD db_save.
 
-    CLEAR ms_next.
-    IF mo_model->mo_app IS BOUND.
-      CAST z2ui5_if_app( mo_model->mo_app )->id_draft = ms_draft-id.
+
+    IF mo_app IS BOUND.
+      CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
     ENDIF.
-    NEW z2ui5_cl_fw_hlp_db( )->create(
+
+    DATA(lo_db) = NEW z2ui5_cl_fw_hlp_db( ).
+    lo_db->create(
         draft     = ms_draft
-        model_xml = mo_model->xml_db_stringify( ) ).
+        model_xml = all_xml_stringify( ) ).
 
   ENDMETHOD.
 
+
+  METHOD model_json_parse.
+
+    DATA(lo_dissolver) = NEW z2ui5_cl_fw_hlp_dissolver(
+        attri = REF #( mt_attri )
+        app = mo_app ).
+    lo_dissolver->set_attri_ready( ).
+
+    DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
+    lo_json_mapper->model_client_to_server(
+        view    = view
+        t_attri = REF #( mt_attri )
+        model   = io_json_model ).
+
+  ENDMETHOD.
+
+
+  METHOD model_json_stringify.
+
+    DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
+    result = lo_json_mapper->model_server_to_client( mt_attri ).
+
+  ENDMETHOD.
+
+
+  METHOD all_xml_parse.
+
+    z2ui5_cl_util_func=>trans_xml_2_any(
+        EXPORTING
+            xml = val
+        IMPORTING
+            any = result ).
+
+*    DATA(lo_app) = CAST object( result-app ) ##NEEDED.
+*    LOOP AT result-t_attri REFERENCE INTO DATA(lr_attri)
+*        WHERE data_rtti IS NOT INITIAL
+*          AND type_kind = cl_abap_classdescr=>typekind_dref.
+*
+*      DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+*      ASSIGN (lv_assign) TO <ref>.
+*      IF sy-subrc <> 0.
+*        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*          EXPORTING
+*            val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
+*      ENDIF.
+*
+*      z2ui5_cl_util_func=>trans_srtti_xml_2_data(
+*        EXPORTING
+*          rtti_data = lr_attri->data_rtti
+*         IMPORTING
+*           e_data   = <ref> ).
+*
+*      CLEAR lr_attri->data_rtti.
+*    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD all_xml_stringify.
+
+    TRY.
+
+        LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
+          CLEAR lr_attri->r_ref.
+          IF lr_attri->bind_type = z2ui5_if_fw_types=>cs_bind_type-one_time.
+            DELETE mt_attri.
+          ENDIF.
+        ENDLOOP.
+
+        result = z2ui5_cl_util_func=>trans_xml_by_any( me ).
+
+      CATCH cx_xslt_serialization_error INTO DATA(x).
+*        TRY.
+*     FIELD-SYMBOLS <attri> TYPE any.
+*    FIELD-SYMBOLS <deref_attri> TYPE any.
+*            DATA(ls_db) = db.
+*            DATA(lo_app) = CAST object( ls_db-app ).
+*
+*            IF NOT line_exists( ls_db-t_attri[ type_kind = cl_abap_classdescr=>typekind_dref ] ).
+*
+*              ASSERT 1 = 0.
+*              ls_db-t_attri = z2ui5_cl_fw_binding=>update_attri(
+*                  t_attri = ls_db-t_attri
+*                  app     = ls_db-app ).
+*
+*            ENDIF.
+*
+*            lo_app = CAST object( ls_db-app ).
+*            LOOP AT ls_db-t_attri REFERENCE INTO DATA(lr_attri) WHERE type_kind = cl_abap_classdescr=>typekind_dref.
+*
+*              DATA(lv_assign) = 'LO_APP->' && lr_attri->name.
+*
+*              UNASSIGN <deref_attri>.
+*              UNASSIGN <attri>.
+*              ASSIGN (lv_assign) TO <attri>.
+*              ASSIGN <attri>->* TO <deref_attri>.
+*              IF sy-subrc <> 0.
+*                CONTINUE.
+*              ENDIF.
+*
+*              lr_attri->data_rtti = z2ui5_cl_util_func=>trans_srtti_xml_by_data( <deref_attri> ).
+*
+*              CLEAR <deref_attri>.
+*              CLEAR <attri>.
+*            ENDLOOP.
+*
+*            result = z2ui5_cl_util_func=>trans_xml_by_any( ls_db ).
+*
+*          CATCH z2ui5_cx_util_error INTO DATA(x_util).
+*            RAISE EXCEPTION x_util.
+*
+*          CATCH cx_root INTO DATA(x2).
+*
+*            RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*              EXPORTING
+*                val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
+*
+*        ENDTRY.
+    ENDTRY.
+  ENDMETHOD.
 ENDCLASS.

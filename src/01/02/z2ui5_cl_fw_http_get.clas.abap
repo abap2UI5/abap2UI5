@@ -451,7 +451,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `                ORIGIN: sap.z2ui5.oBody.OLOCATION.ORIGIN,` && |\n|  &&
                `                PATHNAME: sap.z2ui5.oBody.OLOCATION.PATHNAME,` && |\n|  &&
                `                SEARCH: sap.z2ui5.oBody.OLOCATION.SEARCH,` && |\n|  &&
-               `                VIEWNAME: sap.z2ui5.oBody.VIEWNAME,` && |\n|  &&
+               `                VIEW: sap.z2ui5.oBody.VIEWNAME,` && |\n|  &&
                `                T_STARTUP_PARAMETERS: sap.z2ui5.oBody.OLOCATION.T_STARTUP_PARAMETERS,` && |\n|  &&
            `                   EVENT:  event(sap.z2ui5.oBody?.ARGUMENTS),` && |\n|  &&
                `            };` && |\n|  &&

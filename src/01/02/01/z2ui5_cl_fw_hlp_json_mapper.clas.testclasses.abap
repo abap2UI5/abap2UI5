@@ -22,7 +22,7 @@ CLASS ltcl_http_json_mapper_test IMPLEMENTATION.
     DATA(ls_exp) = VALUE z2ui5_if_fw_types=>ty_s_http_request_post(
         s_frontend = VALUE #(
         id = `ID_NR`
-        viewname = `MAIN`
+        view    = `MAIN`
         origin = `ORIGIN`
         pathname = `PATHNAME`
         search   = `SEARCH`

@@ -7,11 +7,11 @@ CLASS z2ui5_cl_fw_client DEFINITION
 
     INTERFACES z2ui5_if_client.
 
-    DATA mo_app TYPE REF TO z2ui5_cl_fw_app.
+    DATA mo_action TYPE REF TO z2ui5_cl_fw_action.
 
     METHODS constructor
       IMPORTING
-        flow TYPE REF TO z2ui5_cl_fw_app.
+        action TYPE REF TO z2ui5_cl_fw_action.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_app = flow.
+    mo_action = action.
 
   ENDMETHOD.
 
@@ -33,7 +33,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     CASE val.
       WHEN z2ui5_if_client=>cs_clear-view.
-        CLEAR mo_app->ms_next-s_set-s_view.
+        CLEAR mo_action->ms_next-s_set-s_view.
     ENDCASE.
 
   ENDMETHOD.
@@ -42,12 +42,12 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get.
 
     result = VALUE #(
-      event                  = mo_app->ms_actual-event
-      check_launchpad_active = mo_app->mo_http_post->ms_request-s_control-check_launchpad
-      t_event_arg            = mo_app->ms_actual-t_event_arg
-      s_draft                = CORRESPONDING #( mo_app->ms_draft )
-      check_on_navigated     = mo_app->ms_actual-check_on_navigated
-      s_config               = CORRESPONDING #( mo_app->mo_http_post->ms_request-s_frontend )
+      event                  = mo_action->ms_actual-event
+      check_launchpad_active = mo_action->mo_http_post->ms_request-s_control-check_launchpad
+      t_event_arg            = mo_action->ms_actual-t_event_arg
+      s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
+      check_on_navigated     = mo_action->ms_actual-check_on_navigated
+      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_frontend )
     ).
 
   ENDMETHOD.
@@ -55,30 +55,30 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_app.
     IF id IS NOT INITIAL.
-      DATA(lo_app) = mo_app->db_load( id ).
-      result = CAST #( lo_app->mo_model->mo_app ).
+      DATA(lo_app) = mo_action->mo_app->db_load( id ).
+      result = CAST #( lo_app->mo_app ).
     ELSE.
-      result = CAST #( mo_app->mo_model->mo_app ).
+      result = CAST #( mo_action->mo_app ).
     ENDIF.
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_box_display.
 
-    mo_app->ms_next-s_set-s_msg_box = VALUE #( text = text type = type ).
+    mo_action->ms_next-s_set-s_msg_box = VALUE #( text = text type = type ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_app->ms_next-s_set-s_msg_toast = VALUE #( text = text ).
+    mo_action->ms_next-s_set-s_msg_toast = VALUE #( text = text ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nav_app_call.
-    mo_app->ms_next-o_app_call = app.
+    mo_action->ms_next-o_app_call = app.
     IF app->id_draft IS INITIAL.
       app->id_app = z2ui5_cl_util_func=>uuid_get_c32( ).
     ENDIF.
@@ -87,7 +87,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~nav_app_leave.
-    mo_app->ms_next-o_app_leave = app.
+    mo_action->ms_next-o_app_leave = app.
     IF app->id_draft IS INITIAL.
       app->id_app = z2ui5_cl_util_func=>uuid_get_c32( ).
     ENDIF.
@@ -97,114 +97,114 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nest2_view_destroy.
 
-    mo_app->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_display.
 
-    mo_app->ms_next-s_set-s_view_nest2-xml = val.
-    mo_app->ms_next-s_set-s_view_nest2-id = id.
-    mo_app->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
-    mo_app->ms_next-s_set-s_view_nest2-method_insert = method_insert.
+    mo_action->ms_next-s_set-s_view_nest2-xml = val.
+    mo_action->ms_next-s_set-s_view_nest2-id = id.
+    mo_action->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
+    mo_action->ms_next-s_set-s_view_nest2-method_insert = method_insert.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest2_view_model_update.
 
-    mo_app->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest2-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_destroy.
 
-    mo_app->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_display.
 
-    mo_app->ms_next-s_set-s_view_nest-xml = val.
-    mo_app->ms_next-s_set-s_view_nest-id = id.
-    mo_app->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
-    mo_app->ms_next-s_set-s_view_nest-method_insert = method_insert.
+    mo_action->ms_next-s_set-s_view_nest-xml = val.
+    mo_action->ms_next-s_set-s_view_nest-id = id.
+    mo_action->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
+    mo_action->ms_next-s_set-s_view_nest-method_insert = method_insert.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nest_view_model_update.
 
-    mo_app->ms_next-s_set-s_view_nest-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view_nest-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_destroy.
 
-    mo_app->ms_next-s_set-s_popover-check_destroy = abap_true.
+    mo_action->ms_next-s_set-s_popover-check_destroy = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_display.
 
-    mo_app->ms_next-s_set-s_popover-check_destroy = abap_false.
-    mo_app->ms_next-s_set-s_popover-xml = xml.
-    mo_app->ms_next-s_set-s_popover-open_by_id = by_id.
+    mo_action->ms_next-s_set-s_popover-check_destroy = abap_false.
+    mo_action->ms_next-s_set-s_popover-xml = xml.
+    mo_action->ms_next-s_set-s_popover-open_by_id = by_id.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popover_model_update.
 
-    mo_app->ms_next-s_set-s_popover-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_popover-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_destroy.
 
-    mo_app->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
+    mo_action->ms_next-s_set-s_popup = VALUE #( check_destroy = abap_true ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_display.
 
-    mo_app->ms_next-s_set-s_popup-check_destroy = abap_false.
-    mo_app->ms_next-s_set-s_popup-xml = val.
+    mo_action->ms_next-s_set-s_popup-check_destroy = abap_false.
+    mo_action->ms_next-s_set-s_popup-xml = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~popup_model_update.
 
-    mo_app->ms_next-s_set-s_popup-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_popup-check_update_model = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_destroy.
 
-    mo_app->ms_next-s_set-s_view-check_destroy = abap_true.
+    mo_action->ms_next-s_set-s_view-check_destroy = abap_true.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_display.
 
-    mo_app->ms_next-s_set-s_view-xml = val.
+    mo_action->ms_next-s_set-s_view-xml = val.
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~view_model_update.
 
-    mo_app->ms_next-s_set-s_view-check_update_model = abap_true.
+    mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
 
   ENDMETHOD.
 
@@ -224,22 +224,21 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
     result = lo_bind->bind(
       val    = val
       type   = z2ui5_if_fw_types=>cs_bind_type-one_way
       config = VALUE #(
          path_only = path
          custom_filter = custom_filter
-         custom_mapper = custom_mapper
-     ) ).
+         custom_mapper = custom_mapper ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_clear.
 
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
     lo_bind->clear_bind( val ).
 
   ENDMETHOD.
@@ -260,7 +259,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
     result = lo_bind->bind(
       val    = val
       type   = z2ui5_if_fw_types=>cs_bind_type-two_way
@@ -277,7 +276,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind_local.
 
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_app->mo_model ).
+    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
     result = lo_bind->bind_local(
       val    = val
       config = VALUE #(

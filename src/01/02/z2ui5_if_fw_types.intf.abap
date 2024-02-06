@@ -44,26 +44,6 @@ INTERFACE z2ui5_if_fw_types
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
   TYPES:
-    BEGIN OF ty_s_http_request_post,
-      o_model TYPE REF TO z2ui5_if_ajson,
-      BEGIN OF s_frontend,
-        id               TYPE string,
-        viewname         TYPE string,
-        t_event_arg      TYPE string_table,
-        app_start        TYPE string,
-        origin           TYPE string,
-        pathname         TYPE string,
-        search           TYPE string,
-        event            TYPE string,
-        t_startup_params TYPE z2ui5_if_types=>ty_t_name_value,
-      END OF s_frontend,
-      BEGIN OF s_control,
-        check_launchpad TYPE abap_bool,
-        app_start       TYPE string,
-      END OF s_control,
-    END OF ty_s_http_request_post.
-
-  TYPES:
     BEGIN OF ty_s_next_frontend,
       BEGIN OF s_view,
         xml                TYPE string,
@@ -125,6 +105,27 @@ INTERFACE z2ui5_if_fw_types
     END OF ty_s_http_response_post.
 
   TYPES:
+    BEGIN OF ty_s_http_request_post,
+      o_model TYPE REF TO z2ui5_if_ajson,
+      BEGIN OF s_frontend,
+        id               TYPE string,
+        view             TYPE string,
+        t_event_arg      TYPE string_table,
+        app_start        TYPE string,
+        origin           TYPE string,
+        pathname         TYPE string,
+        search           TYPE string,
+        event            TYPE string,
+        t_startup_params TYPE z2ui5_if_types=>ty_t_name_value,
+      END OF s_frontend,
+      BEGIN OF s_control,
+        check_launchpad TYPE abap_bool,
+        app_start       TYPE string,
+      END OF s_control,
+    END OF ty_s_http_request_post.
+
+
+  TYPES:
     BEGIN OF ty_s_draft,
       id                TYPE string,
       id_prev           TYPE string,
@@ -146,7 +147,7 @@ INTERFACE z2ui5_if_fw_types
       event              TYPE string,
       t_event_arg        TYPE string_table,
       check_on_navigated TYPE abap_bool,
-      viewname           TYPE string,
+      view               TYPE string,
       s_draft            TYPE ty_s_draft,
       s_config           TYPE ty_s_config,
     END OF ty_s_actual.

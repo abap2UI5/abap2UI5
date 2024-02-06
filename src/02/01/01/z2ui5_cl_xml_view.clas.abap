@@ -80,7 +80,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !id              TYPE clike OPTIONAL
           PREFERRED PARAMETER content
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
     METHODS illustrated_message
       IMPORTING
         !enableverticalresponsiveness TYPE clike OPTIONAL
@@ -90,7 +90,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !description                  TYPE clike OPTIONAL
         !illustrationsize             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS additional_content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .

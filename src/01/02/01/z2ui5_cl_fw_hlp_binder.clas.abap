@@ -5,14 +5,14 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_model  TYPE REF TO z2ui5_cl_fw_model.
+    DATA mo_app    TYPE REF TO z2ui5_cl_fw_app.
     DATA mr_attri  TYPE REF TO z2ui5_if_fw_types=>ty_s_attri.
     DATA ms_config TYPE z2ui5_if_fw_types=>ty_s_bind_config.
     DATA mv_type   TYPE string.
 
     METHODS constructor
       IMPORTING
-        model TYPE REF TO z2ui5_cl_fw_model.
+        model TYPE REF TO z2ui5_cl_fw_app.
 
     METHODS bind_local
       IMPORTING
@@ -50,13 +50,14 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_HLP_BINDER IMPLEMENTATION.
+
 
   METHOD bind.
 
     ms_config = config.
     mv_type   = type.
-    mr_attri  = mo_model->attri_get_by_data( val ).
+    mr_attri  = mo_app->attri_get_by_data( val ).
 
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing_binding( ).
@@ -94,7 +95,7 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
                         name           = lv_id
                         json_bind_local    = ajson->set( iv_path = `/` iv_val = val )
                         bind_type      = z2ui5_if_fw_types=>cs_bind_type-one_time  )
-                  INTO TABLE mo_model->mt_attri.
+                  INTO TABLE mo_app->mt_attri.
 
         result = |/{ lv_id }|.
 
@@ -106,6 +107,7 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
+
 
   METHOD check_raise_existing_binding.
 
@@ -163,9 +165,31 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD clear_bind.
+
+    mo_app->mt_attri[ name = val ]-check_dissolved = abap_false.
+
+    LOOP AT mo_app->mt_attri REFERENCE INTO DATA(lr_bind2).
+      IF lr_bind2->name CS val && `-`.
+        DELETE mo_app->mt_attri.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD constructor.
 
-    mo_model = model.
+    mo_app = model.
+
+  ENDMETHOD.
+
+
+  METHOD get_client_name.
+
+    result = replace( val = mr_attri->name sub = `-` with = `/` ).
+    result = replace( val = result sub = `>` with = `*` ).
+    result = COND #( WHEN mv_type = z2ui5_if_fw_types=>cs_bind_type-two_way THEN `/EDIT` ) && `/` &&  result.
 
   ENDMETHOD.
 
@@ -182,25 +206,4 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
     mr_attri->name_client    = get_client_name( ).
 
   ENDMETHOD.
-
-  METHOD get_client_name.
-
-    result = replace( val = mr_attri->name sub = `-` with = `/` ).
-    result = replace( val = result sub = `>` with = `*` ).
-    result = COND #( WHEN mv_type = z2ui5_if_fw_types=>cs_bind_type-two_way THEN `/EDIT` ) && `/` &&  result.
-
-  ENDMETHOD.
-
-  METHOD clear_bind.
-
-    mo_model->mt_attri[ name = val ]-check_dissolved = abap_false.
-
-    LOOP AT mo_model->mt_attri REFERENCE INTO DATA(lr_bind2).
-      IF lr_bind2->name CS val && `-`.
-        DELETE mo_model->mt_attri.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
 ENDCLASS.
