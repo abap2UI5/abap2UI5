@@ -41,15 +41,7 @@ CLASS z2ui5_cl_fw_action DEFINITION
       IMPORTING
         val TYPE REF TO z2ui5_cl_fw_http_post.
 
-
   PROTECTED SECTION.
-
-    METHODS factory_next
-      IMPORTING
-        app           TYPE REF TO z2ui5_if_app
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
-
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -107,35 +99,8 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD factory_next.
-
-*    app->id_draft = COND string(
-*        WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( )
-*        ELSE app->id_draft ).
-*
-*    result = NEW #( mo_http_post ).
-*    result->mo_app->mo_app               = app.
-*    result->mo_app->ms_draft-id          = app->id_draft.
-*    result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.
-*    result->mo_app->ms_draft-id_prev_app = mo_app->ms_draft-id.
-*    result->ms_actual-check_on_navigated = abap_true.
-*    result->ms_next-s_set                = ms_next-s_set.
-*
-*    TRY.
-*        DATA(lo_app) = z2ui5_cl_fw_app=>db_load( app->id_draft ).
-*        result->mo_app->mo_app   = lo_app->mo_app.
-*        result->mo_app->mt_attri = lo_app->mt_attri.
-*
-*      CATCH cx_root.
-*    ENDTRY.
-
-  ENDMETHOD.
-
-
   METHOD factory_stack_call.
 
-*    result = factory_next( ms_next-o_app_call ).
 
     ms_next-o_app_call->id_draft = COND string(
     WHEN ms_next-o_app_call->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( )
@@ -164,8 +129,6 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
 
 
   METHOD factory_stack_leave.
-
-*    result = factory_next( ms_next-o_app_leave ).
 
     ms_next-o_app_leave->id_draft = COND string(
         WHEN ms_next-o_app_leave->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( )
