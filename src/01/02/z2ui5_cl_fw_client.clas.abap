@@ -55,7 +55,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~get_app.
     IF id IS NOT INITIAL.
-      DATA(lo_app) = mo_action->mo_app->db_load( id ).
+      DATA(lo_app) = z2ui5_cl_fw_app=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
     ELSE.
       result = CAST #( mo_action->mo_app ).

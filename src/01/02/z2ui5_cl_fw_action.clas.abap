@@ -69,7 +69,7 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
   METHOD factory_by_frontend.
 
     result = NEW #( mo_http_post ).
-    result->mo_app = mo_app->db_load( mo_http_post->ms_request-s_frontend-id ).
+    result->mo_app = z2ui5_cl_fw_app=>db_load( mo_http_post->ms_request-s_frontend-id ).
 
     result->mo_app->ms_draft-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_frontend-id.
@@ -124,7 +124,7 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
 
     TRY.
         DATA(lo_model) = NEW z2ui5_cl_fw_app(  ).
-        lo_model->db_load( app->id_draft ).
+        z2ui5_cl_fw_app=>db_load( app->id_draft ).
 
         result->mo_app->mo_app   = lo_model->mo_app.
         result->mo_app->mt_attri = lo_model->mt_attri.
