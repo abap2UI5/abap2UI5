@@ -98,8 +98,10 @@ CLASS z2ui5_cl_fw_hlp_json_mapper IMPLEMENTATION.
     AND  view  = view.
       TRY.
 
-          DATA(lo_val_front) = model->slice( shift_left( val = lr_attri->name_client sub = `/EDIT` ) ).
-          ASSERT lo_val_front IS BOUND.
+          DATA(lo_val_front) = model->slice( lr_attri->name_client ).
+          IF lo_val_front IS NOT BOUND.
+            CONTINUE.
+          ENDIF.
 
           IF lr_attri->custom_mapper_back IS BOUND.
             lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
@@ -127,7 +129,9 @@ CLASS z2ui5_cl_fw_hlp_json_mapper IMPLEMENTATION.
 
         DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
 
-        result-o_model = lo_ajson->slice( `/EDIT` ).
+        result-o_model = z2ui5_cl_ajson=>create_empty( ).
+        DATA(lo_model) = lo_ajson->slice( `/EDIT` ).
+        result-o_model->set( iv_path = `/EDIT` iv_val = lo_model ).
         lo_ajson->delete( `/EDIT` ).
 
         lo_ajson = lo_ajson->slice( `/S_FRONTEND`).

@@ -102,6 +102,7 @@ CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
     ENDIF.
 
     IF sy-subrc <> 0.
+*      ASSERT 1 = 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.

@@ -54,12 +54,14 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~get_app.
+
     IF id IS NOT INITIAL.
       DATA(lo_app) = z2ui5_cl_fw_app=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
     ELSE.
-      result = CAST #( mo_action->mo_app ).
+      result = CAST #( mo_action->mo_app->mo_app ).
     ENDIF.
+
   ENDMETHOD.
 
 
@@ -248,7 +250,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
     IF tab IS NOT INITIAL.
 
-      DATA(lv_name) = z2ui5_if_client~_bind( val  = tab path = abap_true ).
+      DATA(lv_name) = z2ui5_if_client~_bind_edit( val  = tab path = abap_true ).
 
       result = z2ui5_cl_util_func=>bind_tab_cell(
             iv_name     = lv_name
@@ -290,15 +292,21 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event.
 
-    result = `onEvent(  { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_util_func=>boolean_abap_2_json( check_view_destroy ) && ` }`.
-    result = result && z2ui5_cl_util_func=>ui5_set_arg_string( t_arg ).
+    DATA(lo_ui5) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
+    result = lo_ui5->ui5_event(
+         val                = val
+         check_view_destroy = check_view_destroy
+         t_arg              = t_arg ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_event_client.
 
-    result = `onEventFrontend( { 'EVENT' : '` && val && `' }` && z2ui5_cl_util_func=>ui5_set_arg_string( t_arg ).
+    DATA(lo_ui5) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
+    result = lo_ui5->ui5_event_client(
+         val                = val
+         t_arg              = t_arg ).
 
   ENDMETHOD.
 ENDCLASS.

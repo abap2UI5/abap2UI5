@@ -105,12 +105,19 @@ INTERFACE z2ui5_if_client
 
   METHODS _event
     IMPORTING
-      val                TYPE clike OPTIONAL
-      check_view_destroy TYPE abap_bool    DEFAULT abap_false
+      val                TYPE clike        OPTIONAL
       t_arg              TYPE string_table OPTIONAL
+      check_view_destroy TYPE abap_bool    DEFAULT abap_false
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result)      TYPE string.
+
+  METHODS _event_client
+    IMPORTING
+      val           TYPE clike
+      t_arg         TYPE string_table OPTIONAL
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS _bind
     IMPORTING
@@ -143,13 +150,6 @@ INTERFACE z2ui5_if_client
       path          TYPE abap_bool DEFAULT abap_false
       custom_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
       custom_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL
-    RETURNING
-      VALUE(result) TYPE string.
-
-  METHODS _event_client
-    IMPORTING
-      val           TYPE clike
-      t_arg         TYPE string_table OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 

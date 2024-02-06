@@ -123,14 +123,11 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
     result->ms_next-s_set                = ms_next-s_set.
 
     TRY.
-        DATA(lo_model) = NEW z2ui5_cl_fw_app(  ).
-        z2ui5_cl_fw_app=>db_load( app->id_draft ).
-
-        result->mo_app->mo_app   = lo_model->mo_app.
-        result->mo_app->mt_attri = lo_model->mt_attri.
+        DATA(lo_app) = z2ui5_cl_fw_app=>db_load( app->id_draft ).
+        result->mo_app->mo_app   = lo_app->mo_app.
+        result->mo_app->mt_attri = lo_app->mt_attri.
 
       CATCH cx_root.
-        ASSERT 1 = 0.
     ENDTRY.
 
   ENDMETHOD.

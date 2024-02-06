@@ -12,7 +12,7 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
 
     METHODS constructor
       IMPORTING
-        model TYPE REF TO z2ui5_cl_fw_app.
+        app TYPE REF TO z2ui5_cl_fw_app.
 
     METHODS bind_local
       IMPORTING
@@ -33,6 +33,27 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
       IMPORTING
         val TYPE string.
 
+    METHODS ui5_set_arg_string
+      IMPORTING
+        val           TYPE string_table
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS ui5_event
+      IMPORTING
+        val                TYPE clike OPTIONAL
+        check_view_destroy TYPE abap_bool    DEFAULT abap_false
+        t_arg              TYPE string_table OPTIONAL
+          PREFERRED PARAMETER val
+      RETURNING
+        VALUE(result)      TYPE string.
+    METHODS ui5_event_client
+      IMPORTING
+        val           TYPE clike
+        t_arg         TYPE string_table OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
     METHODS update_attri.
@@ -50,8 +71,42 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HLP_BINDER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
 
+  METHOD ui5_event.
+
+    result = `onEvent(  { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_util_func=>boolean_abap_2_json( check_view_destroy ) && ` }`.
+    result = result && ui5_set_arg_string( t_arg ).
+
+  ENDMETHOD.
+
+
+  METHOD ui5_event_client.
+
+    result = `onEventFrontend( { 'EVENT' : '` && val && `' }` && ui5_set_arg_string( t_arg ).
+
+  ENDMETHOD.
+
+  METHOD ui5_set_arg_string.
+
+    IF val IS NOT INITIAL.
+
+      LOOP AT val REFERENCE INTO DATA(lr_arg).
+        DATA(lv_new) = lr_arg->*.
+        IF lv_new IS INITIAL.
+          CONTINUE.
+        ENDIF.
+        IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
+          lv_new = `"` && lv_new && `"`.
+        ENDIF.
+        result = result && `, ` && lv_new.
+      ENDLOOP.
+
+    ENDIF.
+
+    result = result && `)`.
+
+  ENDMETHOD.
 
   METHOD bind.
 
@@ -180,7 +235,7 @@ CLASS Z2UI5_CL_FW_HLP_BINDER IMPLEMENTATION.
 
   METHOD constructor.
 
-    mo_app = model.
+    mo_app = app.
 
   ENDMETHOD.
 
