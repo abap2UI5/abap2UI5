@@ -16,14 +16,14 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
 
     METHODS bind_local
       IMPORTING
-        val           TYPE any
+        val           TYPE data
         config        TYPE z2ui5_if_fw_types=>ty_s_bind_config OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
     METHODS bind
       IMPORTING
-        val           TYPE any
+        val           TYPE data
         type          TYPE string
         config        TYPE z2ui5_if_fw_types=>ty_s_bind_config OPTIONAL
       RETURNING
@@ -36,10 +36,6 @@ CLASS z2ui5_cl_fw_hlp_binder DEFINITION
   PROTECTED SECTION.
 
     METHODS update_attri.
-
-    METHODS check_raise_val
-      IMPORTING
-        val TYPE any.
 
     METHODS check_raise_existing_binding.
 
@@ -57,8 +53,6 @@ ENDCLASS.
 CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
 
   METHOD bind.
-
-    check_raise_val( val ).
 
     ms_config = config.
     mv_type   = type.
@@ -111,16 +105,6 @@ CLASS z2ui5_cl_fw_hlp_binder IMPLEMENTATION.
       CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
     ENDTRY.
-  ENDMETHOD.
-
-  METHOD check_raise_val.
-
-    IF z2ui5_cl_util_func=>rtti_check_type_kind_dref( val ).
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `BINDING_WITH_REFERENCES_NOT_ALLOWED`.
-    ENDIF.
-
   ENDMETHOD.
 
   METHOD check_raise_existing_binding.

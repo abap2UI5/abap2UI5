@@ -14,6 +14,15 @@ CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
         app   TYPE REF TO object.
 
     METHODS main.
+    METHODS set_attri_ready.
+
+  PROTECTED SECTION.
+
+    METHODS attri_get_val_ref
+      IMPORTING
+        ir_bind       TYPE REF TO z2ui5_if_fw_types=>ty_s_attri
+      RETURNING
+        VALUE(result) TYPE REF TO data.
 
     METHODS get_t_attri_by_dref
       IMPORTING
@@ -41,19 +50,31 @@ CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
 
-    METHODS set_attri_ready.
-
     METHODS dissolve_struc.
-
     METHODS dissolve_dref.
-
     METHODS dissolve_oref.
 
-  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
+
+
 CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
+
+
+  METHOD attri_get_val_ref.
+
+    FIELD-SYMBOLS <attri> TYPE any.
+    DATA(lv_name) = `MO_APP->` && ir_bind->name.
+
+    ASSIGN (lv_name) TO <attri>.
+    ASSERT sy-subrc = 0.
+
+    GET REFERENCE OF <attri> INTO result.
+    ASSERT sy-subrc = 0.
+
+  ENDMETHOD.
+
 
   METHOD constructor.
 
@@ -62,29 +83,6 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD set_attri_ready.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(result)
-        WHERE check_ready = abap_false AND
-            bind_type <> z2ui5_if_fw_types=>cs_bind_type-one_time.
-
-      CASE result->type_kind.
-        WHEN cl_abap_classdescr=>typekind_iref
-            OR cl_abap_classdescr=>typekind_intf.
-          DELETE mt_attri->*.
-
-        WHEN cl_abap_classdescr=>typekind_oref
-            OR cl_abap_classdescr=>typekind_dref
-            OR cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
-
-        WHEN OTHERS.
-          result->check_ready = abap_true.
-      ENDCASE.
-    ENDLOOP.
-
-  ENDMETHOD.
 
   METHOD dissolve_dref.
 
@@ -200,7 +198,6 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
         ls_attri-name = val && `->` && ls_attri-name.
         ls_attri-check_temp = abap_true.
       ENDIF.
-*      INSERT ls_attri INTO TABLE mt_attri->*.
       INSERT ls_attri INTO TABLE result.
     ENDLOOP.
 
@@ -256,11 +253,13 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD main.
 
     "step 0 / MO_APP->MV_VAL
     IF mt_attri->* IS INITIAL.
-      get_t_attri_by_oref( ).
+      DATA(lt_attri) = get_t_attri_by_oref( ).
+      INSERT LINES OF lt_attri INTO TABLE mt_attri->*.
     ENDIF.
 
     "step 1 / MO_APP->MS_STRUC-COMP
@@ -282,4 +281,28 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD set_attri_ready.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+        WHERE r_ref IS NOT BOUND AND
+            bind_type <> z2ui5_if_fw_types=>cs_bind_type-one_time.
+
+      CASE lr_attri->type_kind.
+        WHEN cl_abap_classdescr=>typekind_iref
+            OR cl_abap_classdescr=>typekind_intf.
+          DELETE mt_attri->*.
+
+        WHEN cl_abap_classdescr=>typekind_oref
+            OR cl_abap_classdescr=>typekind_dref
+            OR cl_abap_classdescr=>typekind_struct2
+            OR cl_abap_classdescr=>typekind_struct1.
+
+        WHEN OTHERS.
+          lr_attri->r_ref = attri_get_val_ref( lr_attri ).
+
+      ENDCASE.
+    ENDLOOP.
+
+  ENDMETHOD.
 ENDCLASS.

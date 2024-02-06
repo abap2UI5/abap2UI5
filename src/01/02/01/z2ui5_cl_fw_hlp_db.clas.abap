@@ -7,14 +7,24 @@ CLASS z2ui5_cl_fw_hlp_db DEFINITION
 
     METHODS create
       IMPORTING
-        !draft    TYPE z2ui5_if_types=>ty_s_draft
-        model_xml TYPE string.
+        draft     TYPE z2ui5_if_types=>ty_s_draft
+        model_xml TYPE clike.
 
-    METHODS load_app
+    METHODS read_draft
       IMPORTING
-        !id           TYPE clike
+        id            TYPE clike
       RETURNING
         VALUE(result) TYPE z2ui5_if_fw_types=>ty_s_db.
+
+    METHODS read_info
+      IMPORTING
+        id            TYPE clike
+      RETURNING
+        VALUE(result) TYPE  z2ui5_if_types=>ty_s_draft.
+
+    METHODS cleanup.
+
+  PROTECTED SECTION.
 
     METHODS read
       IMPORTING
@@ -23,15 +33,12 @@ CLASS z2ui5_cl_fw_hlp_db DEFINITION
       RETURNING
         VALUE(result)   TYPE z2ui5_if_fw_types=>ty_s_db.
 
-    METHODS cleanup.
-
-  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
+CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -69,7 +76,7 @@ CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD load_app.
+  METHOD read_draft.
 
     result = read( id ).
 
@@ -99,6 +106,16 @@ CLASS Z2UI5_CL_FW_HLP_DB IMPLEMENTATION.
         EXPORTING
           val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD read_info.
+
+    data(ls_db) = read(
+      id             = id
+      check_load_app = abap_false ).
+
+    result = CORRESPONDING #( ls_db ).
 
   ENDMETHOD.
 

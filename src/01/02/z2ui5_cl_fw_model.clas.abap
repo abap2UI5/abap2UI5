@@ -8,7 +8,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
     INTERFACES if_serializable_object.
 
     DATA mt_attri TYPE z2ui5_if_fw_types=>ty_t_attri.
-    DATA mo_app TYPE REF TO object.
+    DATA mo_app   TYPE REF TO object.
 
     METHODS attri_get_by_data
       IMPORTING
@@ -31,15 +31,7 @@ CLASS z2ui5_cl_fw_model DEFINITION
 
     METHODS xml_db_parse
       IMPORTING
-        val           TYPE string.
-
-    METHODS attri_get_val_ref
-      IMPORTING
-        ir_bind     TYPE REF TO z2ui5_if_fw_types=>ty_s_attri
-      RETURNING
-        VALUE(result) TYPE REF TO data.
-
-    METHODS attri_set_refs.
+        val TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -47,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
+CLASS z2ui5_cl_fw_model IMPLEMENTATION.
 
 
   METHOD attri_get_by_data.
@@ -56,20 +48,13 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
 
     DO 3 TIMES.
 
-      LOOP AT mt_attri REFERENCE INTO DATA(lr_bind)
-          WHERE check_ready = abap_true.
-
-        IF lr_bind->r_ref IS NOT BOUND.
-          lr_bind->r_ref = attri_get_val_ref( lr_bind ).
-        ENDIF.
-
-        IF lr_data = lr_bind->r_ref.
-          result = lr_bind.
+      TRY.
+          result = REF #( mt_attri[ r_ref = lr_data ] ).
           RETURN.
-        ENDIF.
-      ENDLOOP.
+        CATCH cx_root.
+      ENDTRY.
 
-      DATA(lo_dissolver) =  NEW z2ui5_cl_fw_hlp_dissolver(
+      DATA(lo_dissolver) = NEW z2ui5_cl_fw_hlp_dissolver(
         attri = REF #( mt_attri )
         app = mo_app ).
       lo_dissolver->main( ).
@@ -83,47 +68,26 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD attri_get_val_ref.
-
-    FIELD-SYMBOLS <attri> TYPE any.
-    DATA(lv_name) = `MO_APP->` && ir_bind->name.
-
-    ASSIGN (lv_name) TO <attri>.
-    ASSERT sy-subrc = 0.
-
-    GET REFERENCE OF <attri> INTO result.
-    ASSERT sy-subrc = 0.
-
-  ENDMETHOD.
-
-
-  METHOD attri_set_refs.
-
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_attri)
-    WHERE bind_type IS NOT INITIAL.
-      lr_attri->r_ref = attri_get_val_ref( lr_attri ).
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD json_client_parse.
 
-    attri_set_refs( ).
+    DATA(lo_dissolver) = NEW z2ui5_cl_fw_hlp_dissolver(
+           attri = REF #( mt_attri )
+           app = mo_app ).
+    lo_dissolver->set_attri_ready( ).
 
-    NEW z2ui5_cl_fw_hlp_json_mapper(
-            )->model_client_to_server(
-                view    = viewname
-                t_attri = REF #( mt_attri )
-                model   = o_model ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
+    lo_json_mapper->model_client_to_server(
+               view    = viewname
+               t_attri = REF #( mt_attri )
+               model   = o_model ).
 
   ENDMETHOD.
 
 
   METHOD json_client_stringify.
 
-    result = NEW z2ui5_cl_fw_hlp_json_mapper(
-            )->model_server_to_client( mt_attri ).
+    DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
+    result = lo_json_mapper->model_server_to_client( mt_attri ).
 
   ENDMETHOD.
 
@@ -172,6 +136,9 @@ CLASS Z2UI5_CL_FW_MODEL IMPLEMENTATION.
 
         LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
           CLEAR lr_attri->r_ref.
+          IF lr_attri->bind_type = z2ui5_if_fw_types=>cs_bind_type-one_time.
+            DELETE mt_attri.
+          ENDIF.
         ENDLOOP.
 
         result = z2ui5_cl_util_func=>trans_xml_by_any( me ).

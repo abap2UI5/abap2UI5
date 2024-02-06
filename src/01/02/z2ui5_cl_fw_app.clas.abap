@@ -52,7 +52,7 @@ CLASS z2ui5_cl_fw_app DEFINITION
 
   PROTECTED SECTION.
 
-    METHODS app_next_factory
+    METHODS factory_next
       IMPORTING
         app           TYPE REF TO z2ui5_if_app
       RETURNING
@@ -66,7 +66,7 @@ ENDCLASS.
 CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
 
-  METHOD app_next_factory.
+  METHOD factory_next.
 
     app->id_draft = COND string( WHEN app->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( ) ELSE app->id_draft ).
 
@@ -137,7 +137,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD factory_stack_call.
 
-    result = app_next_factory( ms_next-o_app_call ).
+    result = factory_next( ms_next-o_app_call ).
     result->ms_draft-id_prev_app_stack = ms_draft-id.
     db_save( ).
 
@@ -146,13 +146,10 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
 
   METHOD factory_stack_leave.
 
-    result = app_next_factory( ms_next-o_app_leave ).
+    result = factory_next( ms_next-o_app_leave ).
 
     TRY.
-        DATA(ls_draft) = NEW z2ui5_cl_fw_hlp_db( )->read(
-            id = result->ms_draft-id
-            check_load_app = abap_false ).
-
+        DATA(ls_draft) = NEW z2ui5_cl_fw_hlp_db( )->read_info( result->ms_draft-id ).
         result->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
       CATCH cx_root.
         result->ms_draft-id_prev_app_stack = ms_draft-id_prev_app_stack.
@@ -188,7 +185,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
   METHOD db_load.
 
     result = NEW #( mo_http_post ).
-    DATA(ls_db) = NEW z2ui5_cl_fw_hlp_db( )->load_app( id ).
+    DATA(ls_db) = NEW z2ui5_cl_fw_hlp_db( )->read_draft( id ).
     result->ms_draft = CORRESPONDING #( ls_db ).
     result->mo_model->xml_db_parse( ls_db-data ).
 
@@ -201,7 +198,7 @@ CLASS z2ui5_cl_fw_app IMPLEMENTATION.
     IF mo_model->mo_app IS BOUND.
       CAST z2ui5_if_app( mo_model->mo_app )->id_draft = ms_draft-id.
     ENDIF.
-    new z2ui5_cl_fw_hlp_db( )->create(
+    NEW z2ui5_cl_fw_hlp_db( )->create(
         draft     = ms_draft
         model_xml = mo_model->xml_db_stringify( ) ).
 
