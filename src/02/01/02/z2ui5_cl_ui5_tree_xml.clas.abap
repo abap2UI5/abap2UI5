@@ -4,7 +4,7 @@ CLASS z2ui5_cl_ui5_tree_xml DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-    DATA mt_prop     TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA mt_prop     TYPE z2ui5_if_types=>ty_t_name_value.
     DATA mt_ns       TYPE SORTED TABLE OF string WITH UNIQUE KEY table_line.
     DATA mv_name     TYPE string.
     DATA mv_content  TYPE string.

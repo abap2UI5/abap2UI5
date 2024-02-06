@@ -12,7 +12,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS http_get
       IMPORTING
-        val           TYPE z2ui5_if_client=>ty_s_http_request_get OPTIONAL
+        val           TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 

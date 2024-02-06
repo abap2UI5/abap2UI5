@@ -5,12 +5,12 @@ CLASS z2ui5_cl_fw_http_get DEFINITION
 
   PUBLIC SECTION.
 
-    DATA ms_request TYPE z2ui5_if_client=>ty_s_http_request_get .
+    DATA ms_request TYPE z2ui5_if_types=>ty_s_http_request_get.
     DATA mv_response TYPE string .
 
     METHODS constructor
       IMPORTING
-        val TYPE z2ui5_if_client=>ty_s_http_request_get OPTIONAL.
+        val TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL.
 
     METHODS main
       RETURNING
@@ -451,7 +451,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                `                ORIGIN: sap.z2ui5.oBody.OLOCATION.ORIGIN,` && |\n|  &&
                `                PATHNAME: sap.z2ui5.oBody.OLOCATION.PATHNAME,` && |\n|  &&
                `                SEARCH: sap.z2ui5.oBody.OLOCATION.SEARCH,` && |\n|  &&
-               `                VIEWNAME: sap.z2ui5.oBody.VIEWNAME,` && |\n|  &&
+               `                VIEW: sap.z2ui5.oBody.VIEWNAME,` && |\n|  &&
                `                T_STARTUP_PARAMETERS: sap.z2ui5.oBody.OLOCATION.T_STARTUP_PARAMETERS,` && |\n|  &&
            `                   EVENT:  event(sap.z2ui5.oBody?.ARGUMENTS),` && |\n|  &&
                `            };` && |\n|  &&
@@ -579,7 +579,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                  `</script>` && |\n| &&
                  `<abc/></body></html>`.
 
-    z2ui5_cl_fw_draft=>cleanup( ).
+    new z2ui5_cl_fw_hlp_db( )->cleanup( ).
 
     result = mv_response.
   ENDMETHOD.

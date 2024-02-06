@@ -1,4 +1,4 @@
-CLASS ltcl_test_client DEFINITION FINAL FOR TESTING
+CLASS ltcl_test_binder DEFINITION FINAL FOR TESTING
   DURATION LONG
   RISK LEVEL DANGEROUS.
 
@@ -6,9 +6,9 @@ CLASS ltcl_test_client DEFINITION FINAL FOR TESTING
     METHODS first_test FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_client DEFINITION LOCAL FRIENDS ltcl_test_client.
+CLASS z2ui5_cl_fw_hlp_binder DEFINITION LOCAL FRIENDS ltcl_test_binder.
 
-CLASS ltcl_test_client IMPLEMENTATION.
+CLASS ltcl_test_binder IMPLEMENTATION.
 
   METHOD first_test.
 

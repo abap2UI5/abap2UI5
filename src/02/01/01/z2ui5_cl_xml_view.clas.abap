@@ -7,7 +7,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        !t_ns         TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -17,7 +17,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     CLASS-METHODS factory_popup
       IMPORTING
-        !t_ns         TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        !t_ns         TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -80,7 +80,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !id              TYPE clike OPTIONAL
           PREFERRED PARAMETER content
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
     METHODS illustrated_message
       IMPORTING
         !enableverticalresponsiveness TYPE clike OPTIONAL
@@ -90,7 +90,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !description                  TYPE clike OPTIONAL
         !illustrationsize             TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS additional_content
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -1488,12 +1489,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !name         TYPE clike
         !ns           TYPE clike OPTIONAL
-        !t_prop       TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+        !t_prop       TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS _generic_property
       IMPORTING
-        !val          TYPE z2ui5_if_client=>ty_s_name_value OPTIONAL
+        !val          TYPE z2ui5_if_types=>ty_s_name_value OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS xml_get
@@ -3386,7 +3387,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
-    DATA mt_prop  TYPE SORTED TABLE OF z2ui5_if_client=>ty_s_name_value WITH NON-UNIQUE KEY n.
+    DATA mt_prop  TYPE SORTED TABLE OF z2ui5_if_types=>ty_s_name_value WITH NON-UNIQUE KEY n.
 
     DATA mt_ns  TYPE SORTED TABLE OF string WITH UNIQUE KEY table_line.
     DATA mo_root   TYPE REF TO z2ui5_cl_xml_view.
@@ -7594,7 +7595,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD xml_get.
-    DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA lt_prop TYPE z2ui5_if_types=>ty_t_name_value.
 
     CASE mv_name.
       WHEN `ZZPLAIN`.

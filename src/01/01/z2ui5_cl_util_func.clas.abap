@@ -61,6 +61,22 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS bind_tab_cell
+      IMPORTING
+        iv_name         TYPE string
+        i_tab_index     TYPE i
+        i_tab           TYPE STANDARD TABLE
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
+    CLASS-METHODS bind_struc_comp
+      IMPORTING
+        i_struc         TYPE data
+        i_val           TYPE data
+      RETURNING
+        VALUE(r_result) TYPE string.
+
     CLASS-METHODS db_load_by_id
       IMPORTING
         id            TYPE clike OPTIONAL
@@ -117,7 +133,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS url_param_create_url
       IMPORTING
-        !t_params     TYPE z2ui5_if_client=>ty_t_name_value
+        !t_params     TYPE z2ui5_if_types=>ty_t_name_value
       RETURNING
         VALUE(result) TYPE string.
 
@@ -246,7 +262,7 @@ CLASS z2ui5_cl_util_func DEFINITION
       IMPORTING
         !i_val           TYPE clike
       RETURNING
-        VALUE(rt_params) TYPE z2ui5_if_client=>ty_t_name_value.
+        VALUE(rt_params) TYPE z2ui5_if_types=>ty_t_name_value.
 
     CLASS-METHODS rtti_get_t_attri_by_object
       IMPORTING
@@ -326,7 +342,7 @@ CLASS z2ui5_cl_util_func DEFINITION
 
     CLASS-METHODS filter_get_token_range_mapping
       RETURNING
-        VALUE(result) TYPE z2ui5_if_client=>ty_t_name_value.
+        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
 
     CLASS-METHODS itab_filter_by_val
       IMPORTING
@@ -392,45 +408,19 @@ CLASS z2ui5_cl_util_func DEFINITION
       RETURNING
         VALUE(result)       TYPE ty_data_element_texts.
 
-    CLASS-METHODS ui5_set_arg_string
-      IMPORTING
-        val           TYPE string_table
-      RETURNING
-        VALUE(result) TYPE string.
-
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_func IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_FUNC IMPLEMENTATION.
 
-  METHOD ui5_set_arg_string.
-
-    IF val IS NOT INITIAL.
-
-      LOOP AT val REFERENCE INTO DATA(lr_arg).
-        DATA(lv_new) = lr_arg->*.
-        IF lv_new IS INITIAL.
-          CONTINUE.
-        ENDIF.
-        IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
-          lv_new = `"` && lv_new && `"`.
-        ENDIF.
-        result = result && `, ` && lv_new.
-      ENDLOOP.
-
-    ENDIF.
-
-    result = result && `)`.
-
-  ENDMETHOD.
 
   METHOD app_get_url.
 
     IF classname IS INITIAL.
-      classname = rtti_get_classname_by_ref( client->get( )-s_draft-app ).
+      classname = rtti_get_classname_by_ref( client->get_app( ) ).
     ENDIF.
 
     DATA(lv_url) = to_lower( client->get( )-s_config-origin && client->get( )-s_config-pathname ) && `?`.
@@ -445,11 +435,70 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
 
   METHOD app_get_url_source_code.
 
-    DATA(ls_draft) = client->get( )-s_draft.
     DATA(ls_config) = client->get( )-s_config.
-
     result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-       && rtti_get_classname_by_ref( ls_draft-app ) && `/source/main`.
+       && rtti_get_classname_by_ref( client->get_app( ) ) && `/source/main`.
+
+  ENDMETHOD.
+
+
+  METHOD bind_struc_comp.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_struc TO <row>.
+    DATA(lt_attri) = rtti_get_t_comp_by_data( i_struc ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+*        r_result = `{` && iv_name && '/' && <comp>-name && `}`.
+        r_result = <comp>-name.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+*    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+*      EXPORTING
+*        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+
+  ENDMETHOD.
+
+
+  METHOD bind_tab_cell.
+
+    FIELD-SYMBOLS <ele>  TYPE any.
+    FIELD-SYMBOLS <row>  TYPE any.
+    DATA lr_ref_in TYPE REF TO data.
+    DATA lr_ref TYPE REF TO data.
+
+    ASSIGN i_tab[ i_tab_index ] TO <row>.
+    DATA(lt_attri) = rtti_get_t_comp_by_data( <row> ).
+
+    LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
+
+      ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      lr_ref_in = REF #( <ele> ).
+
+      lr_ref = REF #( i_val ).
+      IF lr_ref = lr_ref_in.
+        r_result = `{` && iv_name && '/' && shift_right( CONV string( i_tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+        RETURN.
+      ENDIF.
+
+    ENDLOOP.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 
   ENDMETHOD.
 
@@ -1059,6 +1108,91 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD rtti_get_data_element_texts.
+
+    DATA:
+      data_element_name TYPE c LENGTH 30,
+      ddic_ref          TYPE REF TO data,
+      data_element      TYPE REF TO object,
+      content           TYPE REF TO object,
+      BEGIN OF ddic,
+        reptext   TYPE string,
+        scrtext_s TYPE string,
+        scrtext_m TYPE string,
+        scrtext_l TYPE string,
+      END OF ddic,
+      exists TYPE abap_bool.
+
+    data_element_name = i_data_element_name.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_name( 'T100' ).
+
+        DATA(struct_desrc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( 'DFIES' ) ).
+
+        CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
+        ASSIGN ddic_ref->* TO FIELD-SYMBOL(<ddic>).
+        ASSERT sy-subrc = 0.
+
+        DATA(data_descr) = CAST cl_abap_datadescr( cl_abap_elemdescr=>describe_by_name( data_element_name ) ).
+
+        CALL METHOD data_descr->('GET_DDIC_FIELD')
+          RECEIVING
+            p_flddescr   = <ddic>
+          EXCEPTIONS
+            not_found    = 1
+            no_ddic_type = 2
+            OTHERS       = 3.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        ddic = CORRESPONDING #( <ddic> ).
+        result-header = ddic-reptext.
+        result-short  = ddic-scrtext_s.
+        result-medium = ddic-scrtext_m.
+        result-long   = ddic-scrtext_l.
+
+      CATCH cx_root.
+        CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATA_ELEMENT')
+          EXPORTING
+            iv_name         = data_element_name
+          RECEIVING
+            ro_data_element = data_element.
+
+        CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~EXISTS')
+          RECEIVING
+            rv_exists = exists.
+
+        IF exists = abap_false.
+          RETURN.
+        ENDIF.
+
+        CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~CONTENT')
+          RECEIVING
+            ro_content = content.
+
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL')
+          RECEIVING
+            rs_heading_field_label = result-header.
+
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL')
+          RECEIVING
+            rs_short_field_label = result-short.
+
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL')
+          RECEIVING
+            rs_medium_field_label = result-medium.
+
+        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL')
+          RECEIVING
+            rs_long_field_label = result-long.
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD rtti_get_type_kind.
 
     result = cl_abap_datadescr=>get_data_type_kind( val ).
@@ -1276,6 +1410,7 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
     ENDTRY.
   ENDMETHOD.
 
+
   METHOD trans_srtti_xml_2_data.
 
     DATA srtti TYPE REF TO object.
@@ -1355,6 +1490,8 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
          OPTIONS data_refs = `heap-or-create`.
 
   ENDMETHOD.
+
+
 
 
   METHOD url_param_create_url.
@@ -1518,91 +1655,6 @@ CLASS z2ui5_cl_util_func IMPLEMENTATION.
   METHOD x_raise.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
-
-  ENDMETHOD.
-
-
-  METHOD rtti_get_data_element_texts.
-
-    DATA:
-      data_element_name TYPE c LENGTH 30,
-      ddic_ref          TYPE REF TO data,
-      data_element      TYPE REF TO object,
-      content           TYPE REF TO object,
-      BEGIN OF ddic,
-        reptext   TYPE string,
-        scrtext_s TYPE string,
-        scrtext_m TYPE string,
-        scrtext_l TYPE string,
-      END OF ddic,
-      exists TYPE abap_bool.
-
-    data_element_name = i_data_element_name.
-
-    TRY.
-        cl_abap_typedescr=>describe_by_name( 'T100' ).
-
-        DATA(struct_desrc) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( 'DFIES' ) ).
-
-        CREATE DATA ddic_ref TYPE HANDLE struct_desrc.
-        ASSIGN ddic_ref->* TO FIELD-SYMBOL(<ddic>).
-        ASSERT sy-subrc = 0.
-
-        DATA(data_descr) = CAST cl_abap_datadescr( cl_abap_elemdescr=>describe_by_name( data_element_name ) ).
-
-        CALL METHOD data_descr->('GET_DDIC_FIELD')
-          RECEIVING
-            p_flddescr   = <ddic>
-          EXCEPTIONS
-            not_found    = 1
-            no_ddic_type = 2
-            OTHERS       = 3.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
-
-        ddic = CORRESPONDING #( <ddic> ).
-        result-header = ddic-reptext.
-        result-short  = ddic-scrtext_s.
-        result-medium = ddic-scrtext_m.
-        result-long   = ddic-scrtext_l.
-
-      CATCH cx_root.
-        CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>('DATA_ELEMENT')
-          EXPORTING
-            iv_name         = data_element_name
-          RECEIVING
-            ro_data_element = data_element.
-
-        CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~EXISTS')
-          RECEIVING
-            rv_exists = exists.
-
-        IF exists = abap_false.
-          RETURN.
-        ENDIF.
-
-        CALL METHOD data_element->('IF_XCO_AD_DATA_ELEMENT~CONTENT')
-          RECEIVING
-            ro_content = content.
-
-        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_HEADING_FIELD_LABEL')
-          RECEIVING
-            rs_heading_field_label = result-header.
-
-        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_SHORT_FIELD_LABEL')
-          RECEIVING
-            rs_short_field_label = result-short.
-
-        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_MEDIUM_FIELD_LABEL')
-          RECEIVING
-            rs_medium_field_label = result-medium.
-
-        CALL METHOD content->('IF_XCO_DTEL_CONTENT~GET_LONG_FIELD_LABEL')
-          RECEIVING
-            rs_long_field_label = result-long.
-
-    ENDTRY.
 
   ENDMETHOD.
 ENDCLASS.

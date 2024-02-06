@@ -19,7 +19,7 @@ CLASS z2ui5_cl_ui5 DEFINITION
     METHODS _add
       IMPORTING n             TYPE clike
                 ns            TYPE clike
-                t_p           TYPE z2ui5_if_client=>ty_t_name_value OPTIONAL
+                t_p           TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
     METHODS _add_p
@@ -92,7 +92,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
 
   METHOD _2xml.
 
-    DATA lt_prop TYPE z2ui5_if_client=>ty_t_name_value.
+    DATA lt_prop TYPE z2ui5_if_types=>ty_t_name_value.
     lt_prop = VALUE #( ( n = ``          v = `sap.m` )
                        ( n = `f`         v = `sap.f` )
                        ( n = `ndc`       v = `sap.ndc` )

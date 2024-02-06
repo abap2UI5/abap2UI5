@@ -1,4 +1,4 @@
-CLASS ltcl_index_html_test DEFINITION FINAL FOR TESTING
+CLASS ltcl_test_http_get DEFINITION FINAL FOR TESTING
   DURATION MEDIUM
   RISK LEVEL HARMLESS.
 
@@ -16,8 +16,9 @@ CLASS ltcl_index_html_test DEFINITION FINAL FOR TESTING
     METHODS js_no_jquery FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
+CLASS z2ui5_cl_fw_http_get DEFINITION LOCAL FRIENDS ltcl_test_http_get.
 
-CLASS ltcl_index_html_test IMPLEMENTATION.
+CLASS ltcl_test_http_get IMPLEMENTATION.
 
   METHOD file_not_initial.
 
