@@ -45,7 +45,7 @@ CLASS z2ui5_cl_popup_itab_json_dl IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->mr_itab = z2ui5_cl_util_func=>conv_copy_ref_data( itab ).
+    r_result->mr_itab = z2ui5_cl_util=>conv_copy_ref_data( itab ).
 
     r_result->title = i_title.
     r_result->icon = i_icon.
@@ -70,7 +70,7 @@ CLASS z2ui5_cl_popup_itab_json_dl IMPLEMENTATION.
 
     TRY.
 
-        IF z2ui5_cl_util_func=>rtti_check_class_exists( `z2ui5_dbt_cl_app_03` ) = abap_false.
+        IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_dbt_cl_app_03` ) = abap_false.
 
           DATA(lv_link) = `https://github.com/oblomov-dev/a2UI5-db_table_loader`.
           DATA(lv_text) = `<p>Please install the open-source project a2UI5-db_table_loader and try again: <a href="` &&

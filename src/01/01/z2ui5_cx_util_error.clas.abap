@@ -40,7 +40,7 @@ CLASS z2ui5_cx_util_error IMPLEMENTATION.
       CATCH cx_root.
         ms_error-text = val.
     ENDTRY.
-    ms_error-uuid = z2ui5_cl_util_func=>uuid_get_c32( ).
+    ms_error-uuid = z2ui5_cl_util=>uuid_get_c32( ).
 
   ENDMETHOD.
 

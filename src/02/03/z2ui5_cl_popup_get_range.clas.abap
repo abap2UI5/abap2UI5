@@ -18,13 +18,13 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        t_range         TYPE z2ui5_cl_util_func=>ty_t_range  OPTIONAL
+        t_range         TYPE z2ui5_cl_util=>ty_t_range  OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range.
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_range         TYPE z2ui5_cl_util_func=>ty_t_range,
+        t_range         TYPE z2ui5_cl_util=>ty_t_range,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result.
     DATA ms_result TYPE ty_s_result.
@@ -85,7 +85,7 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
 
     grid->combobox(
                  selectedkey = `{OPTION}`
-                 items       = client->_bind_local( z2ui5_cl_util_func=>filter_get_token_range_mapping( ) )
+                 items       = client->_bind_local( z2ui5_cl_util=>filter_get_token_range_mapping( ) )
              )->item(
                      key  = '{N}'
                      text = '{N}'
@@ -134,7 +134,7 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
                  low    = lr_product->low
                  high   = lr_product->high
                  option = lr_product->option
-                 key    = z2ui5_cl_util_func=>uuid_get_c32( )
+                 key    = z2ui5_cl_util=>uuid_get_c32( )
           ) INTO TABLE mt_filter.
       ENDLOOP.
 
@@ -167,7 +167,7 @@ CLASS z2ui5_cl_popup_get_range IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `POPUP_ADD`.
-        INSERT VALUE #( key = z2ui5_cl_util_func=>uuid_get_c32( ) ) INTO TABLE mt_filter.
+        INSERT VALUE #( key = z2ui5_cl_util=>uuid_get_c32( ) ) INTO TABLE mt_filter.
         client->popup_model_update( ).
 
       WHEN `POPUP_DELETE`.

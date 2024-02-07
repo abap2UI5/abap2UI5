@@ -7,13 +7,13 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        val             TYPE z2ui5_cl_util_func=>ty_t_filter_multi
+        val             TYPE z2ui5_cl_util=>ty_t_filter_multi
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_sql           TYPE z2ui5_cl_util_func=>ty_t_filter_multi,
+        t_sql           TYPE z2ui5_cl_util=>ty_t_filter_multi,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result.
 
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
       IF lo_popup->result( )-check_confirmed = abap_true.
         ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
         <tab>-t_range = lo_popup->result( )-t_range.
-        <tab>-t_token = z2ui5_cl_util_func=>filter_get_token_t_by_range_t( <tab>-t_range ).
+        <tab>-t_token = z2ui5_cl_util=>filter_get_token_t_by_range_t( <tab>-t_range ).
       ENDIF.
       popup_display( ).
 
