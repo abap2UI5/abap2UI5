@@ -1,45 +1,45 @@
-CLASS z2ui5_cl_fw_action DEFINITION
+CLASS z2ui5_cl_core_action DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    DATA mo_http_post TYPE REF TO z2ui5_cl_fw_http_post.
-    DATA mo_app       TYPE REF TO z2ui5_cl_fw_app.
+    DATA mo_http_post TYPE REF TO z2ui5_cl_core_http_post.
+    DATA mo_app       TYPE REF TO z2ui5_cl_core_app.
 
-    DATA ms_actual TYPE z2ui5_if_fw_types=>ty_s_actual.
-    DATA ms_next   TYPE z2ui5_if_fw_types=>ty_s_next.
+    DATA ms_actual TYPE z2ui5_if_core_types=>ty_s_actual.
+    DATA ms_next   TYPE z2ui5_if_core_types=>ty_s_next.
 
     METHODS factory_system_startup
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
     METHODS factory_system_error
       IMPORTING
         ix            TYPE REF TO cx_root
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
     METHODS factory_first_start
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
     METHODS factory_by_frontend
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
     METHODS factory_stack_leave
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
     METHODS factory_stack_call
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_fw_action.
+        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
     METHODS constructor
       IMPORTING
-        val TYPE REF TO z2ui5_cl_fw_http_post.
+        val TYPE REF TO z2ui5_cl_core_http_post.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -47,7 +47,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_action IMPLEMENTATION.
+CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -61,7 +61,7 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
   METHOD factory_by_frontend.
 
     result = NEW #( mo_http_post ).
-    result->mo_app = z2ui5_cl_fw_app=>db_load( mo_http_post->ms_request-s_frontend-id ).
+    result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_frontend-id ).
 
     result->mo_app->ms_draft-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_frontend-id.
@@ -115,7 +115,7 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
     result->ms_next-s_set                = ms_next-s_set.
 
     TRY.
-        DATA(lo_app) = z2ui5_cl_fw_app=>db_load( ms_next-o_app_call->id_draft ).
+        DATA(lo_app) = z2ui5_cl_core_app=>db_load( ms_next-o_app_call->id_draft ).
         result->mo_app->mo_app   = lo_app->mo_app.
         result->mo_app->mt_attri = lo_app->mt_attri.
 
@@ -143,7 +143,7 @@ CLASS z2ui5_cl_fw_action IMPLEMENTATION.
     result->ms_next-s_set                = ms_next-s_set.
 
     TRY.
-        DATA(lo_db) = NEW z2ui5_cl_fw_hlp_db( ).
+        DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
         DATA(ls_draft) = lo_db->read_info( result->mo_app->ms_draft-id ).
         result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
 

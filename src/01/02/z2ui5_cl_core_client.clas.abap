@@ -1,25 +1,24 @@
-CLASS z2ui5_cl_fw_client DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CORE_CLIENT definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES z2ui5_if_client.
+  interfaces Z2UI5_IF_CLIENT .
 
-    DATA mo_action TYPE REF TO z2ui5_cl_fw_action.
+  data MO_ACTION type ref to Z2UI5_CL_CORE_ACTION .
 
-    METHODS constructor
-      IMPORTING
-        action TYPE REF TO z2ui5_cl_fw_action.
-
+  methods CONSTRUCTOR
+    importing
+      !ACTION type ref to Z2UI5_CL_CORE_ACTION .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_client IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -56,7 +55,7 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
   METHOD z2ui5_if_client~get_app.
 
     IF id IS NOT INITIAL.
-      DATA(lo_app) = z2ui5_cl_fw_app=>db_load( id ).
+      DATA(lo_app) = z2ui5_cl_core_app=>db_load( id ).
       result = CAST #( lo_app->mo_app ).
     ELSE.
       result = CAST #( mo_action->mo_app->mo_app ).
@@ -80,20 +79,24 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
 
   METHOD z2ui5_if_client~nav_app_call.
+
     mo_action->ms_next-o_app_call = app.
-    IF app->id_draft IS INITIAL.
-      app->id_app = z2ui5_cl_util_func=>uuid_get_c32( ).
-    ENDIF.
-    result = app->id_app.
+
+    result = COND #( WHEN app->id_draft IS INITIAL
+        THEN z2ui5_cl_util_func=>uuid_get_c32( )
+        ELSE app->id_app ).
+
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~nav_app_leave.
+
     mo_action->ms_next-o_app_leave = app.
-    IF app->id_draft IS INITIAL.
-      app->id_app = z2ui5_cl_util_func=>uuid_get_c32( ).
-    ENDIF.
-    result = app->id_app.
+
+    result = COND #( WHEN app->id_draft IS INITIAL
+        THEN z2ui5_cl_util_func=>uuid_get_c32( )
+        ELSE app->id_app ).
+
   ENDMETHOD.
 
 
@@ -213,87 +216,63 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_bind.
 
-    IF tab IS NOT INITIAL.
-
-      DATA(lv_name) = z2ui5_if_client~_bind( val  = tab path = abap_true ).
-
-      result = z2ui5_cl_util_func=>bind_tab_cell(
-            iv_name     = lv_name
-            i_tab_index = tab_index
-            i_tab       = tab
-            i_val       = val ).
-
-      RETURN.
-    ENDIF.
-
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
-    result = lo_bind->bind(
+    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    result = lo_bind->main(
       val    = val
-      type   = z2ui5_if_fw_types=>cs_bind_type-one_way
+      type   = z2ui5_if_core_types=>cs_bind_type-one_way
       config = VALUE #(
          path_only = path
          custom_filter = custom_filter
-         custom_mapper = custom_mapper ) ).
+         custom_mapper = custom_mapper
+         tab = REF #( tab )
+         tab_index = tab_index  ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_clear.
 
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
-    lo_bind->clear_bind( val ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    lo_bind->clear( val ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_edit.
 
-    IF tab IS NOT INITIAL.
-
-      DATA(lv_name) = z2ui5_if_client~_bind_edit( val  = tab path = abap_true ).
-
-      result = z2ui5_cl_util_func=>bind_tab_cell(
-            iv_name     = lv_name
-            i_tab_index = tab_index
-            i_tab       = tab
-            i_val       = val ).
-
-      RETURN.
-    ENDIF.
-
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
-    result = lo_bind->bind(
+    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    result = lo_bind->main(
       val    = val
-      type   = z2ui5_if_fw_types=>cs_bind_type-two_way
+      type   = z2ui5_if_core_types=>cs_bind_type-two_way
       config = VALUE #(
          path_only = path
          custom_filter = custom_filter
          custom_filter_back = custom_filter_back
          custom_mapper = custom_mapper
          custom_mapper_back = custom_mapper_back
-     ) ).
+         tab = REF #( tab )
+         tab_index = tab_index  ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_bind_local.
 
-    DATA(lo_bind) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
-    result = lo_bind->bind_local(
+    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
+    result = lo_bind->main_local(
       val    = val
       config = VALUE #(
         path_only = path
         custom_mapper = custom_mapper
-        custom_filter = custom_filter
-    ) ).
+        custom_filter = custom_filter  ) ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_if_client~_event.
 
-    DATA(lo_ui5) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
-    result = lo_ui5->ui5_event(
+    DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
+    result = lo_ui5->get_event(
          val                = val
          check_view_destroy = check_view_destroy
          t_arg              = t_arg ).
@@ -303,8 +282,8 @@ CLASS z2ui5_cl_fw_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~_event_client.
 
-    DATA(lo_ui5) = NEW z2ui5_cl_fw_hlp_binder( mo_action->mo_app ).
-    result = lo_ui5->ui5_event_client(
+    DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
+    result = lo_ui5->get_event(
          val                = val
          t_arg              = t_arg ).
 

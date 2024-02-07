@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_fw_http_get DEFINITION
+CLASS z2ui5_cl_core_http_get DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -579,7 +579,7 @@ CLASS Z2UI5_CL_FW_HTTP_GET IMPLEMENTATION.
                  `</script>` && |\n| &&
                  `<abc/></body></html>`.
 
-    new z2ui5_cl_fw_hlp_db( )->cleanup( ).
+    new z2ui5_cl_core_draft_srv( )->cleanup( ).
 
     result = mv_response.
   ENDMETHOD.

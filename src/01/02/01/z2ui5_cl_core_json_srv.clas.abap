@@ -1,100 +1,45 @@
-CLASS z2ui5_cl_fw_hlp_json_mapper DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CORE_JSON_SRV definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_ajson_filter.
+public section.
 
-    METHODS request_json_to_abap
-      IMPORTING
-        val           TYPE string
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_s_http_request_post.
+  interfaces Z2UI5_IF_AJSON_FILTER .
 
-    METHODS response_abap_to_json
-      IMPORTING
-        val           TYPE z2ui5_if_fw_types=>ty_s_http_response_post
-      RETURNING
-        VALUE(result) TYPE string.
-
-    METHODS model_client_to_server
-      IMPORTING
-        view    TYPE string
-        t_attri TYPE  REF TO z2ui5_if_fw_types=>ty_t_attri
-        model   TYPE REF TO z2ui5_if_ajson.
-
-    METHODS model_server_to_client
-      IMPORTING
-        t_attri       TYPE  z2ui5_if_fw_types=>ty_t_attri
-      RETURNING
-        VALUE(result) TYPE string.
-
+  methods REQUEST_JSON_TO_ABAP
+    importing
+      !VAL type STRING
+    returning
+      value(RESULT) type Z2UI5_IF_CORE_TYPES=>TY_S_HTTP_REQUEST_POST .
+  methods RESPONSE_ABAP_TO_JSON
+    importing
+      !VAL type Z2UI5_IF_CORE_TYPES=>TY_S_HTTP_RESPONSE_POST
+    returning
+      value(RESULT) type STRING .
+  methods MODEL_CLIENT_TO_SERVER
+    importing
+      !VIEW type STRING
+      !T_ATTRI type ref to Z2UI5_IF_CORE_TYPES=>TY_T_ATTRI
+      !MODEL type ref to Z2UI5_IF_AJSON .
+  methods MODEL_SERVER_TO_CLIENT
+    importing
+      !T_ATTRI type Z2UI5_IF_CORE_TYPES=>TY_T_ATTRI
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_hlp_json_mapper IMPLEMENTATION.
-
-
-  METHOD model_server_to_client.
-    TRY.
-
-        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-
-        LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
-
-          "(1) set pretty mode
-          IF lr_attri->custom_mapper IS BOUND.
-            DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lr_attri->custom_mapper ) ).
-          ELSE.
-            ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
-          ENDIF.
-
-          "(2) read attribute of end-user app & write to json
-          CASE lr_attri->bind_type.
-            WHEN z2ui5_if_fw_types=>cs_bind_type-one_way
-            OR z2ui5_if_fw_types=>cs_bind_type-two_way.
-
-              ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
-              ASSERT sy-subrc = 0.
-              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val =  <attribute> ).
-
-            WHEN z2ui5_if_fw_types=>cs_bind_type-one_time.
-              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = lr_attri->json_bind_local ).
-
-            WHEN OTHERS.
-              ASSERT `` = `ERROR_UNKNOWN_BIND_MODE`.
-          ENDCASE.
-
-          "(4) set compress mode
-          "todo performance - add and filter in a single loop
-          IF lr_attri->custom_filter IS BOUND.
-            ajson = ajson->filter( lr_attri->custom_filter ).
-          ELSE.
-            ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-          ENDIF.
-
-          "(5) write into result
-          "todo performance - write directly into result
-          ajson_result->set( iv_path = lr_attri->name_client iv_val = ajson ).
-        ENDLOOP.
-
-        result = ajson_result->stringify( ).
-        result = COND #( WHEN result IS INITIAL THEN `{}` ELSE result ).
-
-      CATCH cx_root INTO DATA(x).
-        ASSERT x IS NOT BOUND.
-    ENDTRY.
-  ENDMETHOD.
+CLASS Z2UI5_CL_CORE_JSON_SRV IMPLEMENTATION.
 
 
   METHOD model_client_to_server.
 
     LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
-    WHERE bind_type = z2ui5_if_fw_types=>cs_bind_type-two_way
+    WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
     AND  view  = view.
       TRY.
 
@@ -121,6 +66,58 @@ CLASS z2ui5_cl_fw_hlp_json_mapper IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
+  ENDMETHOD.
+
+
+  METHOD model_server_to_client.
+    TRY.
+
+        DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+
+        LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
+
+          "(1) set pretty mode
+          IF lr_attri->custom_mapper IS BOUND.
+            DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lr_attri->custom_mapper ) ).
+          ELSE.
+            ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+          ENDIF.
+
+          "(2) read attribute of end-user app & write to json
+          CASE lr_attri->bind_type.
+            WHEN z2ui5_if_core_types=>cs_bind_type-one_way
+            OR z2ui5_if_core_types=>cs_bind_type-two_way.
+
+              ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
+              ASSERT sy-subrc = 0.
+              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val =  <attribute> ).
+
+            WHEN z2ui5_if_core_types=>cs_bind_type-one_time.
+              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = lr_attri->json_bind_local ).
+
+            WHEN OTHERS.
+              ASSERT `` = `ERROR_UNKNOWN_BIND_MODE`.
+          ENDCASE.
+
+          "(4) set compress mode
+          "todo performance - add and filter in a single loop
+          IF lr_attri->custom_filter IS BOUND.
+            ajson = ajson->filter( lr_attri->custom_filter ).
+          ELSE.
+            ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+          ENDIF.
+
+          "(5) write into result
+          "todo performance - write directly into result
+          ajson_result->set( iv_path = lr_attri->name_client iv_val = ajson ).
+        ENDLOOP.
+
+        result = ajson_result->stringify( ).
+        result = COND #( WHEN result IS INITIAL THEN `{}` ELSE result ).
+
+      CATCH cx_root INTO DATA(x).
+        ASSERT x IS NOT BOUND.
+    ENDTRY.
   ENDMETHOD.
 
 
@@ -167,7 +164,7 @@ CLASS z2ui5_cl_fw_hlp_json_mapper IMPLEMENTATION.
           ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
         ajson_result->set( iv_path = `/` iv_val = val-s_frontend ).
-        ajson_result = ajson_result->filter( NEW z2ui5_cl_fw_hlp_json_mapper( ) ).
+        ajson_result = ajson_result->filter( NEW z2ui5_cl_core_json_srv( ) ).
         DATA(lv_frontend) =  ajson_result->stringify( ).
 
         result = `{` &&

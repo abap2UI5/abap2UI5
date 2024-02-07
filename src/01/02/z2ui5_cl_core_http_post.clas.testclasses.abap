@@ -8,7 +8,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL FOR TESTING
       load_startup_app FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_http_post DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
+CLASS z2ui5_cl_core_http_post DEFINITION LOCAL FRIENDS ltcl_test_handler_post.
 
 CLASS ltcl_test_handler_post IMPLEMENTATION.
 

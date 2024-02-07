@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_FW_HLP_JSON_MAPPER</CLSNAME>
+    <CLSNAME>Z2UI5_CL_CORE_JSON_SRV</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - json mapper</DESCRIPT>
+    <DESCRIPT>abap2UI5 - front/back json mapper</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

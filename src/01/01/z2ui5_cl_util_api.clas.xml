@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_FW_HLP_DB</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UTIL_API</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - db draft</DESCRIPT>
+    <DESCRIPT>abap2UI5 - simplified abap apis</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

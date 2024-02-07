@@ -1,29 +1,25 @@
-CLASS z2ui5_cl_fw_hlp_db DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CORE_DRAFT_SRV definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    METHODS create
-      IMPORTING
-        draft     TYPE z2ui5_if_types=>ty_s_draft
-        model_xml TYPE clike.
-
-    METHODS read_draft
-      IMPORTING
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_s_db.
-
-    METHODS read_info
-      IMPORTING
-        id            TYPE clike
-      RETURNING
-        VALUE(result) TYPE  z2ui5_if_types=>ty_s_draft.
-
-    METHODS cleanup.
-
+  methods CREATE
+    importing
+      !DRAFT type Z2UI5_IF_TYPES=>TY_S_DRAFT
+      !MODEL_XML type CLIKE .
+  methods READ_DRAFT
+    importing
+      !ID type CLIKE
+    returning
+      value(RESULT) type Z2UI5_IF_CORE_TYPES=>TY_S_DB .
+  methods READ_INFO
+    importing
+      !ID type CLIKE
+    returning
+      value(RESULT) type Z2UI5_IF_TYPES=>TY_S_DRAFT .
+  methods CLEANUP .
   PROTECTED SECTION.
 
     METHODS read
@@ -31,14 +27,14 @@ CLASS z2ui5_cl_fw_hlp_db DEFINITION
         !id             TYPE clike
         !check_load_app TYPE abap_bool DEFAULT abap_true
       RETURNING
-        VALUE(result)   TYPE z2ui5_if_fw_types=>ty_s_db.
+        VALUE(result)   TYPE z2ui5_if_core_types=>ty_s_db.
 
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_DRAFT_SRV IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -76,13 +72,6 @@ CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD read_draft.
-
-    result = read( id ).
-
-  ENDMETHOD.
-
-
   METHOD read.
 
     IF check_load_app = abap_true.
@@ -110,6 +99,14 @@ CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD read_draft.
+
+    result = read( id ).
+
+  ENDMETHOD.
+
+
   METHOD read_info.
 
     data(ls_db) = read(
@@ -119,5 +116,4 @@ CLASS z2ui5_cl_fw_hlp_db IMPLEMENTATION.
     result = CORRESPONDING #( ls_db ).
 
   ENDMETHOD.
-
 ENDCLASS.

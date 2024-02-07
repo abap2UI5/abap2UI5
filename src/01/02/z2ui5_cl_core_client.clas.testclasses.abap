@@ -6,7 +6,7 @@ CLASS ltcl_test_client DEFINITION FINAL FOR TESTING
     METHODS first_test FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
-CLASS z2ui5_cl_fw_client DEFINITION LOCAL FRIENDS ltcl_test_client.
+CLASS z2ui5_cl_core_client DEFINITION LOCAL FRIENDS ltcl_test_client.
 
 CLASS ltcl_test_client IMPLEMENTATION.
 

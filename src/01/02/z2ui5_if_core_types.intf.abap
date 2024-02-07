@@ -1,4 +1,4 @@
-INTERFACE z2ui5_if_fw_types
+INTERFACE z2ui5_if_core_types
   PUBLIC.
 
   CONSTANTS:

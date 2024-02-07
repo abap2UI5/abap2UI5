@@ -1,16 +1,16 @@
-CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
+CLASS z2ui5_cl_core_model_srv DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC.
 
   PUBLIC SECTION.
 
-    DATA mt_attri TYPE REF TO z2ui5_if_fw_types=>ty_t_attri.
+    DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
     DATA mo_app TYPE REF TO object.
 
     METHODS constructor
       IMPORTING
-        attri TYPE REF TO z2ui5_if_fw_types=>ty_t_attri
+        attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
         app   TYPE REF TO object.
 
     METHODS main.
@@ -20,7 +20,7 @@ CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
 
     METHODS attri_get_val_ref
       IMPORTING
-        ir_bind       TYPE REF TO z2ui5_if_fw_types=>ty_s_attri
+        ir_bind       TYPE REF TO z2ui5_if_core_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE REF TO data.
 
@@ -28,27 +28,27 @@ CLASS z2ui5_cl_fw_hlp_dissolver DEFINITION
       IMPORTING
         val           TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
     METHODS get_t_attri_by_struc
       IMPORTING
         val           TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
     METHODS get_t_attri_by_include
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
         attri         TYPE clike
       RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
     METHODS get_t_attri_by_oref
       IMPORTING
         val           TYPE clike OPTIONAL
           PREFERRED PARAMETER val
       RETURNING
-        VALUE(result) TYPE z2ui5_if_fw_types=>ty_t_attri.
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
     METHODS dissolve_struc.
     METHODS dissolve_dref.
@@ -59,7 +59,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
 
 
   METHOD attri_get_val_ref.
@@ -153,7 +153,7 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
 
     DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
 
-    DATA(ls_new_bind) = VALUE z2ui5_if_fw_types=>ty_s_attri(
+    DATA(ls_new_bind) = VALUE z2ui5_if_core_types=>ty_s_attri(
        name        = val && `->*`
        type_kind   = lo_descr->type_kind
        type        = lo_descr->get_relative_name( )
@@ -173,7 +173,7 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
 
       DATA(lv_element) = attri && lr_comp->name.
 
-      DATA(ls_attri) = VALUE z2ui5_if_fw_types=>ty_s_attri(
+      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
         name      = lv_element
         type_kind = lr_comp->type_kind ).
       INSERT ls_attri INTO TABLE result.
@@ -197,7 +197,7 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
     LOOP AT lt_attri2 INTO DATA(ls_attri2)
         WHERE visibility = cl_abap_classdescr=>public
            AND is_interface = abap_false.
-      DATA(ls_attri) = CORRESPONDING z2ui5_if_fw_types=>ty_s_attri( ls_attri2 ).
+      DATA(ls_attri) = CORRESPONDING z2ui5_if_core_types=>ty_s_attri( ls_attri2 ).
       IF val IS NOT INITIAL.
         ls_attri-name = val && `->` && ls_attri-name.
         ls_attri-check_temp = abap_true.
@@ -239,14 +239,14 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
         DATA(lv_type_name) = substring_after( val = lr_comp->type->absolute_name sub = '\TYPE=').
         IF z2ui5_cl_util_func=>boolean_check_by_name( lv_type_name ).
 
-          DATA(ls_attri) = VALUE z2ui5_if_fw_types=>ty_s_attri(
+          DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
                 name      = lv_element
                 type      = 'ABAP_BOOL'
                 type_kind = lr_comp->type->type_kind ).
 
         ELSE.
 
-          ls_attri = VALUE z2ui5_if_fw_types=>ty_s_attri(
+          ls_attri = VALUE z2ui5_if_core_types=>ty_s_attri(
             name      = lv_element
             type_kind = lr_comp->type->type_kind ).
 
@@ -290,7 +290,7 @@ CLASS z2ui5_cl_fw_hlp_dissolver IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
         WHERE r_ref IS NOT BOUND AND
-            bind_type <> z2ui5_if_fw_types=>cs_bind_type-one_time.
+            bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       CASE lr_attri->type_kind.
         WHEN cl_abap_classdescr=>typekind_iref

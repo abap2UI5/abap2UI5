@@ -1,14 +1,14 @@
-CLASS z2ui5_cl_fw_http_post DEFINITION
+CLASS z2ui5_cl_core_http_post DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
 
-    DATA mo_action       TYPE REF TO z2ui5_cl_fw_action.
+    DATA mo_action       TYPE REF TO z2ui5_cl_core_action.
     DATA mv_request_json TYPE string.
-    DATA ms_request      TYPE z2ui5_if_fw_types=>ty_s_http_request_post.
-    DATA ms_response     TYPE z2ui5_if_fw_types=>ty_s_http_response_post.
+    DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_http_request_post.
+    DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_http_response_post.
 
     METHODS constructor
       IMPORTING
@@ -35,13 +35,13 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
+CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
 
 
   METHOD constructor.
 
     mv_request_json = val.
-    mo_action = NEW z2ui5_cl_fw_action( me ).
+    mo_action = NEW z2ui5_cl_core_action( me ).
 
   ENDMETHOD.
 
@@ -62,7 +62,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
   METHOD main_begin.
     TRY.
 
-        DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
+        DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
         ms_request = lo_json_mapper->request_json_to_abap( mv_request_json ).
 
         IF ms_request-s_frontend-id IS NOT INITIAL.
@@ -89,7 +89,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
             s_frontend-id = mo_action->mo_app->ms_draft-id
             model = mo_action->mo_app->model_json_stringify( ) ).
 
-        DATA(lo_json_mapper) = NEW z2ui5_cl_fw_hlp_json_mapper( ).
+        DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
         result = lo_json_mapper->response_abap_to_json( ms_response ).
 
         CLEAR mo_action->ms_next.
@@ -104,7 +104,7 @@ CLASS z2ui5_cl_fw_http_post IMPLEMENTATION.
   METHOD main_process.
     TRY.
 
-        DATA(li_client) = NEW z2ui5_cl_fw_client( mo_action ).
+        DATA(li_client) = NEW z2ui5_cl_core_client( mo_action ).
         DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
         ROLLBACK WORK.
