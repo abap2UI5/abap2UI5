@@ -283,7 +283,7 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   METHOD z2ui5_if_client~_event_client.
 
     DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
-    result = lo_ui5->get_event(
+    result = lo_ui5->get_event_client(
          val                = val
          t_arg              = t_arg ).
 

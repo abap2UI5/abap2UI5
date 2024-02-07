@@ -1,49 +1,53 @@
-class Z2UI5_CL_CORE_BIND_SRV definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_core_bind_srv DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  data MO_APP type ref to Z2UI5_CL_CORE_APP .
-  data MR_ATTRI type ref to Z2UI5_IF_CORE_TYPES=>TY_S_ATTRI .
-  data MS_CONFIG type Z2UI5_IF_CORE_TYPES=>TY_S_BIND_CONFIG .
-  data MV_TYPE type STRING .
+    DATA mo_app TYPE REF TO z2ui5_cl_core_app .
+    DATA mr_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
+    DATA ms_config TYPE z2ui5_if_core_types=>ty_s_bind_config .
+    DATA mv_type TYPE string .
 
-  methods CONSTRUCTOR
-    importing
-      !APP type ref to Z2UI5_CL_CORE_APP .
-  methods MAIN_LOCAL
-    importing
-      !VAL type DATA
-      !CONFIG type Z2UI5_IF_CORE_TYPES=>TY_S_BIND_CONFIG optional
-    returning
-      value(RESULT) type STRING .
-  methods MAIN
-    importing
-      !VAL type DATA
-      !TYPE type STRING
-      !CONFIG type Z2UI5_IF_CORE_TYPES=>TY_S_BIND_CONFIG optional
-    returning
-      value(RESULT) type STRING .
-  methods MAIN_CELL
-    importing
-      !VAL type DATA
-      !TYPE type STRING
-      !CONFIG type Z2UI5_IF_CORE_TYPES=>TY_S_BIND_CONFIG optional
-    returning
-      value(RESULT) type STRING .
-  methods CLEAR
-    importing
-      !VAL type STRING .
-*        i_tab_index   TYPE i
-*        i_tab         TYPE REF TO data
-  methods BIND_TAB_CELL
-    importing
-      !IV_NAME type STRING
-      !I_VAL type DATA
-    returning
-      value(RESULT) type STRING .
+    METHODS constructor
+      IMPORTING
+        !app TYPE REF TO z2ui5_cl_core_app .
+
+    METHODS main_local
+      IMPORTING
+        !val          TYPE data
+        !config       TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string .
+
+    METHODS main
+      IMPORTING
+        !val          TYPE data
+        !type         TYPE string
+        !config       TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string .
+
+    METHODS main_cell
+      IMPORTING
+        !val          TYPE data
+        !type         TYPE string
+        !config       TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string .
+
+    METHODS clear
+      IMPORTING
+        !val TYPE string.
+
+    METHODS bind_tab_cell
+      IMPORTING
+        !iv_name      TYPE string
+        !i_val        TYPE data
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
     METHODS get_client_name
@@ -62,7 +66,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_BIND_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
 
   METHOD bind_tab_cell.
@@ -84,7 +88,8 @@ CLASS Z2UI5_CL_CORE_BIND_SRV IMPLEMENTATION.
 
       lr_ref = REF #( i_val ).
       IF lr_ref = lr_ref_in.
-        result = `{` && iv_name && '/' && shift_right( CONV string( ms_config-tab_index - 1 ) ) && '/' && <comp>-name && `}`.
+        result = iv_name && '/' && shift_right( CONV string( ms_config-tab_index - 1 ) ) && '/' && <comp>-name.
+*        result = `{` && iv_name && '/' && shift_right( CONV string( ms_config-tab_index - 1 ) ) && '/' && <comp>-name && `}`.
         RETURN.
       ENDIF.
 
@@ -186,12 +191,18 @@ CLASS Z2UI5_CL_CORE_BIND_SRV IMPLEMENTATION.
 
     IF config-tab IS BOUND.
 
-      result = main_cell(
-          val    = val
-          type   = type
-          config = config ).
-      RETURN.
+      FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
+      ASSIGN config-tab->* TO <tab>.
 
+      IF <tab> IS NOT INITIAL.
+
+        result = main_cell(
+            val    = val
+            type   = type
+            config = config ).
+        RETURN.
+
+      ENDIF.
     ENDIF.
 
     ms_config = config.
@@ -221,7 +232,8 @@ CLASS Z2UI5_CL_CORE_BIND_SRV IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN config-tab->* TO <tab>.
-    result = main( val = <tab> type = type ).
+    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_app ).
+    result = lo_bind->main( val = <tab> type = type config = value #( path_only = abap_true ) ).
 
     result = bind_tab_cell(
           iv_name     = result
