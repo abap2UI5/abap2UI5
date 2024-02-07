@@ -55,7 +55,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD all_xml_parse.
 
-    z2ui5_cl_util_func=>xml_parse(
+    z2ui5_cl_util=>xml_parse(
         EXPORTING
             xml = val
         IMPORTING
@@ -73,7 +73,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
             val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
       ENDIF.
 
-      z2ui5_cl_util_func=>xml_srtti_parse(
+      z2ui5_cl_util=>xml_srtti_parse(
         EXPORTING
           rtti_data = lr_attri->data_rtti
          IMPORTING
@@ -96,7 +96,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
           ENDIF.
         ENDLOOP.
 
-        result = z2ui5_cl_util_func=>xml_stringify( me ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
         RETURN.
 
       CATCH cx_xslt_serialization_error INTO DATA(x).
@@ -112,7 +112,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
           ASSIGN (lv_name) TO FIELD-SYMBOL(<val>).
           ASSIGN (lv_name2) TO FIELD-SYMBOL(<val_ref>).
 
-          lr_attri->data_rtti = z2ui5_cl_util_func=>xml_srtti_stringify( <val> ).
+          lr_attri->data_rtti = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
 
           CLEAR <val>.
           CLEAR <val_ref>.
@@ -122,7 +122,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
           CLEAR lr_attri->r_ref.
         ENDLOOP.
 
-        result = z2ui5_cl_util_func=>xml_stringify( me ).
+        result = z2ui5_cl_util=>xml_stringify( me ).
 
       CATCH cx_root INTO DATA(x2).
 

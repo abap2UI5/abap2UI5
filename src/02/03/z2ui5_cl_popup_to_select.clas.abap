@@ -75,7 +75,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
               items              =  `{path:'`
                                 && client->_bind_edit( val = <tab_out> path = abap_true )
                                 && `', sorter : { path : '` && to_upper( sort_field ) && `', descending : `
-                                && z2ui5_cl_util_func=>boolean_abap_2_json( me->descending )
+                                && z2ui5_cl_util=>boolean_abap_2_json( me->descending )
                                 && ` } }`
               cancel             = client->_event( 'CANCEL' )
               search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
@@ -84,7 +84,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
               title   = title
             ).
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_comp_by_data( <tab_out> ).
     DELETE lt_comp WHERE name = 'ZZSELKZ'.
 
     DATA(list) = tab->column_list_item( valign   = `Top`
@@ -99,7 +99,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     LOOP AT lt_comp INTO ls_comp.
       DATA(text) = COND #(
                      LET data_element_name = substring_after( val = CAST cl_abap_elemdescr( ls_comp-type )->absolute_name sub = '\TYPE=' )
-                         medium_label = z2ui5_cl_util_func=>rtti_get_data_element_texts( data_element_name )-medium IN
+                         medium_label = z2ui5_cl_util=>rtti_get_data_element_texts( data_element_name )-medium IN
                      WHEN medium_label IS NOT INITIAL
                      THEN medium_label
                      ELSE ls_comp-name ).

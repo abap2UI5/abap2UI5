@@ -87,7 +87,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD _2bool.
-    result = z2ui5_cl_util_func=>boolean_abap_2_json( val ).
+    result = z2ui5_cl_util=>boolean_abap_2_json( val ).
   ENDMETHOD.
 
   METHOD _2xml.

@@ -75,7 +75,7 @@ CLASS Z2UI5_CL_CORE_BIND_SRV IMPLEMENTATION.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
-    DATA(lt_attri) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data(  <row> ).
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_comp_by_data(  <row> ).
 
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
@@ -251,7 +251,7 @@ CLASS Z2UI5_CL_CORE_BIND_SRV IMPLEMENTATION.
           ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
         ENDIF.
 
-        DATA(lv_id) = to_upper( z2ui5_cl_util_func=>uuid_get_c22( ) ).
+        DATA(lv_id) = to_upper( z2ui5_cl_util=>uuid_get_c22( ) ).
         INSERT VALUE #( name_client     = |/{ lv_id }|
                         name            = lv_id
                         json_bind_local = ajson

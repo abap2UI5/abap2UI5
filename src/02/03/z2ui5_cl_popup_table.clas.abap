@@ -61,7 +61,7 @@ CLASS z2ui5_cl_popup_table IMPLEMENTATION.
 *           )->button(  text = `Display Popup` press = client->_event( `BUTTON_START` ) type = `Emphasized`
 *            )->get_parent( )->get_parent( ).
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <tab_out> ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_comp_by_data( <tab_out> ).
 
     DATA(list) = tab->column_list_item( valign = `Top` ).
     DATA(cells) = list->cells( ).

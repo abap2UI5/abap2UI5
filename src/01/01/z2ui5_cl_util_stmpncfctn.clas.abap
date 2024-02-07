@@ -57,7 +57,7 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
       RETURNING
         VALUE(result) TYPE xstring.
 
-            CLASS-METHODS rtti_get_classes_impl_intf
+    CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
         !val          TYPE clike
       RETURNING
@@ -67,7 +67,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
+CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
 
   METHOD rtti_get_data_element_texts.
@@ -156,21 +156,23 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
 
 
   METHOD rtti_get_classes_impl_intf.
+
     DATA obj TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
     DATA lt_implementation_names TYPE string_table.
-    TYPES BEGIN OF ty_s_impl.
-    TYPES clsname TYPE c LENGTH 30.
-    TYPES refclsname TYPE c LENGTH 30.
-    TYPES END OF ty_s_impl.
+
+    TYPES:
+      BEGIN OF ty_s_impl,
+        clsname    TYPE c LENGTH 30,
+        refclsname TYPE c LENGTH 30,
+      END OF ty_s_impl.
     DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
-    TYPES BEGIN OF ty_s_key.
-    TYPES intkey TYPE c LENGTH 30.
-    TYPES END OF ty_s_key.
+    TYPES: BEGIN OF ty_s_key,
+             intkey TYPE c LENGTH 30,
+           END OF ty_s_key.
     DATA ls_key TYPE ty_s_key.
 
     TRY.
-
 
         CALL METHOD ('XCO_CP_ABAP')=>interface
           EXPORTING
@@ -193,7 +195,6 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
 
         CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET').
 
-
         CALL METHOD obj->('IF_XCO_INTF_IMPLEMENTATIONS~GET_NAMES')
           RECEIVING
             rt_names = lt_implementation_names.
@@ -201,11 +202,6 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
         result = lt_implementation_names.
 
       CATCH cx_sy_dyn_call_illegal_class.
-
-
-
-
-
 
         ls_key-intkey = val.
 
@@ -227,7 +223,7 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
 
   ENDMETHOD.
 
-    METHOD conv_get_string_by_xstring.
+  METHOD conv_get_string_by_xstring.
 
     DATA conv TYPE REF TO object.
 

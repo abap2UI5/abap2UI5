@@ -1,24 +1,26 @@
-class Z2UI5_CL_CORE_EVENT_SRV definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_core_event_srv DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  methods GET_EVENT
-    importing
-      !VAL type CLIKE optional
-      !CHECK_VIEW_DESTROY type ABAP_BOOL default ABAP_FALSE
-      !T_ARG type STRING_TABLE optional
-    preferred parameter VAL
-    returning
-      value(RESULT) type STRING .
-  methods GET_EVENT_CLIENT
-    importing
-      !VAL type CLIKE
-      !T_ARG type STRING_TABLE optional
-    returning
-      value(RESULT) type STRING .
+    METHODS get_event
+      IMPORTING
+        !val                TYPE clike OPTIONAL
+        !check_view_destroy TYPE abap_bool DEFAULT abap_false
+        !t_arg              TYPE string_table OPTIONAL
+          PREFERRED PARAMETER val
+      RETURNING
+        VALUE(result)       TYPE string.
+
+    METHODS get_event_client
+      IMPORTING
+        !val          TYPE clike
+        !t_arg        TYPE string_table OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
 
     METHODS get_t_arg
@@ -32,12 +34,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_EVENT_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
 
   METHOD get_event.
 
-    result = `onEvent(  { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_util_func=>boolean_abap_2_json( check_view_destroy ) && ` }`.
+    result = `onEvent(  { 'EVENT' : '` && val && `', 'METHOD' : 'UPDATE' , 'CHECK_VIEW_DESTROY' : ` && z2ui5_cl_util=>boolean_abap_2_json( check_view_destroy ) && ` }`.
     result = result && get_t_arg( t_arg ).
 
   ENDMETHOD.

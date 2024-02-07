@@ -52,7 +52,7 @@ CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
 
     TRY.
 
-        ms_home-classname = z2ui5_cl_util_func=>c_trim_upper( ms_home-classname ).
+        ms_home-classname = z2ui5_cl_util=>c_trim_upper( ms_home-classname ).
         CREATE OBJECT li_app_test TYPE (ms_home-classname).
 
         client->message_toast_display( `App is ready to start!` ).
@@ -74,7 +74,7 @@ CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
 
   METHOD view_display_start.
 
-    DATA(lv_url) = z2ui5_cl_util_func=>app_get_url(
+    DATA(lv_url) = z2ui5_cl_util=>app_get_url(
                      client    = client
                      classname = ms_home-classname ).
 
@@ -120,7 +120,7 @@ CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
 
       simple_form2->input( placeholder = `fill in the class name and press 'check'`
-                      editable         = z2ui5_cl_util_func=>boolean_abap_2_json( ms_home-class_editable )
+                      editable         = z2ui5_cl_util=>boolean_abap_2_json( ms_home-class_editable )
                       value            = client->_bind_edit( ms_home-classname )
                       submit           = client->_event( ms_home-btn_event_id )
                       valuehelprequest = client->_event( 'VALUE_HELP' )
@@ -139,7 +139,7 @@ CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
       )->link( text  = `Link to the Application`
              target  = `_blank`
              href    = lv_url
-             enabled = z2ui5_cl_util_func=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
+             enabled = z2ui5_cl_util=>boolean_abap_2_json( xsdbool( ms_home-class_editable = abap_false ) ) ).
 
 
     simple_form2->toolbar( )->title( `System Information` ).
@@ -149,11 +149,11 @@ CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
     simple_form2->label( `UI5 Version`).
     simple_form2->text( client->_bind( mv_ui5_version ) ).
     simple_form2->label( `ABAP for Cloud` ).
-    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util_func=>rtti_check_lang_version_cloud( ) ).
+    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>rtti_check_lang_version_cloud( ) ).
     simple_form2->label( `Launchpad active` ).
     simple_form2->checkbox( enabled = abap_false selected = client->get( )-check_launchpad_active ).
 
-    DATA(lv_url_samples2) = z2ui5_cl_util_func=>app_get_url(
+    DATA(lv_url_samples2) = z2ui5_cl_util=>app_get_url(
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
@@ -252,7 +252,7 @@ CLASS Z2UI5_CL_FW_APP_STARTUP IMPLEMENTATION.
         on_event_check( ).
 
       WHEN 'VALUE_HELP'.
-        mt_classes = z2ui5_cl_util_func=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` ).
+        mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` ).
         client->nav_app_call( z2ui5_cl_popup_to_select=>factory( mt_classes ) ).
 
       WHEN `DEMOS`.

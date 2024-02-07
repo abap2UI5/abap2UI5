@@ -142,12 +142,12 @@ CLASS Z2UI5_CL_CORE_JSON_SRV IMPLEMENTATION.
         IF result-s_frontend-id IS NOT INITIAL.
           RETURN.
         ENDIF.
-        result-s_control-app_start = z2ui5_cl_util_func=>c_trim_upper( result-s_frontend-app_start ).
+        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_frontend-app_start ).
         IF result-s_control-app_start IS NOT INITIAL.
           RETURN.
         ENDIF.
-        result-s_control-app_start = z2ui5_cl_util_func=>c_trim_upper(
-            z2ui5_cl_util_func=>url_param_get( val = `app_start` url = result-s_frontend-search ) ).
+        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
+            z2ui5_cl_util=>url_param_get( val = `app_start` url = result-s_frontend-search ) ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error

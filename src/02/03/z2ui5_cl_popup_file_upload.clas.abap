@@ -116,8 +116,8 @@ CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
         SPLIT mv_value AT `;` INTO DATA(lv_dummy) DATA(lv_data).
         SPLIT lv_data AT `,` INTO lv_dummy lv_data.
 
-        DATA(lv_data2) = z2ui5_cl_util_func=>conv_decode_x_base64( lv_data ).
-        ms_result-value = z2ui5_cl_util_func=>conv_get_string_by_xstring( lv_data2 ).
+        DATA(lv_data2) = z2ui5_cl_util=>conv_decode_x_base64( lv_data ).
+        ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data2 ).
 
         check_confirm_enabled = abap_true.
 

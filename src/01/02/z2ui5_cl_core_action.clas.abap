@@ -63,7 +63,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result = NEW #( mo_http_post ).
     result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_frontend-id ).
 
-    result->mo_app->ms_draft-id      = z2ui5_cl_util_func=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id      = z2ui5_cl_util=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_frontend-id.
     result->ms_actual-view           = mo_http_post->ms_request-s_frontend-view.
 
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     TRY.
         result = NEW #( mo_http_post ).
-        result->mo_app->ms_draft-id = z2ui5_cl_util_func=>uuid_get_c32( ).
+        result->mo_app->ms_draft-id = z2ui5_cl_util=>uuid_get_c32( ).
 
         CREATE OBJECT result->mo_app->mo_app TYPE (mo_http_post->ms_request-s_control-app_start).
 
@@ -103,7 +103,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
 
     ms_next-o_app_call->id_draft = COND string(
-    WHEN ms_next-o_app_call->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( )
+    WHEN ms_next-o_app_call->id_draft IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( )
     ELSE ms_next-o_app_call->id_draft ).
 
     result = NEW #( mo_http_post ).
@@ -131,7 +131,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_stack_leave.
 
     ms_next-o_app_leave->id_draft = COND string(
-        WHEN ms_next-o_app_leave->id_draft IS INITIAL THEN z2ui5_cl_util_func=>uuid_get_c32( )
+        WHEN ms_next-o_app_leave->id_draft IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( )
         ELSE ms_next-o_app_leave->id_draft ).
 
     result = NEW #( mo_http_post ).
@@ -160,7 +160,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result = NEW #( mo_http_post ).
 
-    result->mo_app->ms_draft-id          = z2ui5_cl_util_func=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->ms_next-o_app_call           = z2ui5_cl_fw_app_error=>factory( ix ).
 
@@ -173,7 +173,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result = NEW #( mo_http_post ).
 
-    result->mo_app->ms_draft-id          = z2ui5_cl_util_func=>uuid_get_c32( ).
+    result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
     result->mo_app->mo_app               = z2ui5_cl_fw_app_startup=>factory( ).
 

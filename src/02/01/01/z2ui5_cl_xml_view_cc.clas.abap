@@ -213,7 +213,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                 ( n = `value`    v = value )
                 ( n = `press`    v = press )
                 ( n = `OnPhoto`    v = onphoto )
-                ( n = `autoplay` v = z2ui5_cl_util_func=>boolean_abap_2_json( autoplay ) )
+                ( n = `autoplay` v = z2ui5_cl_util=>boolean_abap_2_json( autoplay ) )
        ) ).
 
   ENDMETHOD.
@@ -274,12 +274,12 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                                 (  n = `upload`             v = upload )
                                 (  n = `path`               v = path )
                                 (  n = `value`              v = value )
-                                (  n = `iconOnly`           v = z2ui5_cl_util_func=>boolean_abap_2_json( icononly ) )
-                                (  n = `buttonOnly`         v = z2ui5_cl_util_func=>boolean_abap_2_json( buttononly ) )
+                                (  n = `iconOnly`           v = z2ui5_cl_util=>boolean_abap_2_json( icononly ) )
+                                (  n = `buttonOnly`         v = z2ui5_cl_util=>boolean_abap_2_json( buttononly ) )
                                 (  n = `buttonText`         v = buttontext )
                                 (  n = `uploadButtonText`   v = uploadbuttontext )
                                 (  n = `fileType`           v = filetype )
-                                (  n = `checkDirectUpload`  v = z2ui5_cl_util_func=>boolean_abap_2_json( checkdirectupload ) ) ) ).
+                                (  n = `checkDirectUpload`  v = z2ui5_cl_util=>boolean_abap_2_json( checkdirectupload ) ) ) ).
 
 
   ENDMETHOD.
@@ -314,7 +314,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                     ( n = `altitudeAccuracy`  v = altitudeaccuracy )
                     ( n = `speed`  v = speed )
                     ( n = `heading`  v = heading )
-                    ( n = `enableHighAccuracy`  v = z2ui5_cl_util_func=>boolean_abap_2_json( enablehighaccuracy ) )
+                    ( n = `enableHighAccuracy`  v = z2ui5_cl_util=>boolean_abap_2_json( enablehighaccuracy ) )
                     ( n = `timeout`  v = timeout )
               ) ).
 
@@ -365,9 +365,9 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
     mo_view->_generic( name   = `MultiInput`
                        ns     = `z2ui5`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
-                                         ( n = `showClearIcon` v = z2ui5_cl_util_func=>boolean_abap_2_json( showclearicon ) )
-                                         ( n = `showValueHelp` v = z2ui5_cl_util_func=>boolean_abap_2_json( showvaluehelp ) )
-                                         ( n = `enabled` v = z2ui5_cl_util_func=>boolean_abap_2_json( enabled ) )
+                                         ( n = `showClearIcon` v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
+                                         ( n = `showValueHelp` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluehelp ) )
+                                         ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                          ( n = `suggestionItems` v = suggestionitems )
                                          ( n = `tokenUpdate` v = tokenupdate )
                                          ( n = `submit` v = submit )
@@ -429,8 +429,8 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
               ns            = `z2ui5`
               t_prop        = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
-                                ( n = `checkActive`  v = z2ui5_cl_util_func=>boolean_abap_2_json( checkactive ) )
-                                ( n = `checkRepeat`  v = z2ui5_cl_util_func=>boolean_abap_2_json( checkrepeat ) )
+                                ( n = `checkActive`  v = z2ui5_cl_util=>boolean_abap_2_json( checkactive ) )
+                                ( n = `checkRepeat`  v = z2ui5_cl_util=>boolean_abap_2_json( checkrepeat ) )
               ) ).
 
   ENDMETHOD.

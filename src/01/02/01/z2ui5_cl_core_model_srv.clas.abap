@@ -192,7 +192,7 @@ CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lt_attri2) = z2ui5_cl_util_func=>rtti_get_t_attri_by_object( <obj> ).
+    DATA(lt_attri2) = z2ui5_cl_util=>rtti_get_t_attri_by_object( <obj> ).
 
     LOOP AT lt_attri2 INTO DATA(ls_attri2)
         WHERE visibility = cl_abap_classdescr=>public
@@ -215,9 +215,9 @@ CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
     ASSIGN (lv_name) TO <attribute>.
     ASSERT sy-subrc = 0.
 
-    DATA(lt_comp) = z2ui5_cl_util_func=>rtti_get_t_comp_by_data( <attribute> ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_comp_by_data( <attribute> ).
 
-    DATA(lv_attri) = z2ui5_cl_util_func=>c_replace_assign_struc( val ).
+    DATA(lv_attri) = z2ui5_cl_util=>c_replace_assign_struc( val ).
     LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
 
       DATA(lv_element) = lv_attri && lr_comp->name.
@@ -237,7 +237,7 @@ CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
       ELSE.
 
         DATA(lv_type_name) = substring_after( val = lr_comp->type->absolute_name sub = '\TYPE=').
-        IF z2ui5_cl_util_func=>boolean_check_by_name( lv_type_name ).
+        IF z2ui5_cl_util=>boolean_check_by_name( lv_type_name ).
 
           DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
                 name      = lv_element

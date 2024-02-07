@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_util_func DEFINITION
+CLASS z2ui5_cl_util DEFINITION
   PUBLIC
   CREATE PUBLIC
   INHERITING FROM z2ui5_cl_util_api.
@@ -37,7 +37,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_func IMPLEMENTATION.
+CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD db_load_by_handle.
 
