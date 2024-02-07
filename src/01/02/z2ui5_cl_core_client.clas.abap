@@ -1,24 +1,25 @@
-class Z2UI5_CL_CORE_CLIENT definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_core_client DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces Z2UI5_IF_CLIENT .
+    INTERFACES z2ui5_if_client .
 
-  data MO_ACTION type ref to Z2UI5_CL_CORE_ACTION .
+    DATA mo_action TYPE REF TO z2ui5_cl_core_action.
 
-  methods CONSTRUCTOR
-    importing
-      !ACTION type ref to Z2UI5_CL_CORE_ACTION .
+    METHODS constructor
+      IMPORTING
+        !action TYPE REF TO z2ui5_cl_core_action.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
+CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
 
   METHOD constructor.

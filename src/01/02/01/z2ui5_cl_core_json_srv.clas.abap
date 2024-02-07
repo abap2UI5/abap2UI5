@@ -1,39 +1,43 @@
-class Z2UI5_CL_CORE_JSON_SRV definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_core_json_srv DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces Z2UI5_IF_AJSON_FILTER .
+    INTERFACES z2ui5_if_ajson_filter .
 
-  methods REQUEST_JSON_TO_ABAP
-    importing
-      !VAL type STRING
-    returning
-      value(RESULT) type Z2UI5_IF_CORE_TYPES=>TY_S_HTTP_REQUEST_POST .
-  methods RESPONSE_ABAP_TO_JSON
-    importing
-      !VAL type Z2UI5_IF_CORE_TYPES=>TY_S_HTTP_RESPONSE_POST
-    returning
-      value(RESULT) type STRING .
-  methods MODEL_CLIENT_TO_SERVER
-    importing
-      !VIEW type STRING
-      !T_ATTRI type ref to Z2UI5_IF_CORE_TYPES=>TY_T_ATTRI
-      !MODEL type ref to Z2UI5_IF_AJSON .
-  methods MODEL_SERVER_TO_CLIENT
-    importing
-      !T_ATTRI type Z2UI5_IF_CORE_TYPES=>TY_T_ATTRI
-    returning
-      value(RESULT) type STRING .
+    METHODS request_json_to_abap
+      IMPORTING
+        !val          TYPE string
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_request_post.
+
+    METHODS response_abap_to_json
+      IMPORTING
+        !val          TYPE z2ui5_if_core_types=>ty_s_http_response_post
+      RETURNING
+        VALUE(result) TYPE string.
+
+    METHODS model_client_to_server
+      IMPORTING
+        !view    TYPE string
+        !t_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
+        !model   TYPE REF TO z2ui5_if_ajson.
+
+    METHODS model_server_to_client
+      IMPORTING
+        !t_attri      TYPE z2ui5_if_core_types=>ty_t_attri
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_JSON_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
 
   METHOD model_client_to_server.

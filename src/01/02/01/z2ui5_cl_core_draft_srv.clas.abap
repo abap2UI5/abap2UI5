@@ -1,25 +1,29 @@
-class Z2UI5_CL_CORE_DRAFT_SRV definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_core_draft_srv DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  methods CREATE
-    importing
-      !DRAFT type Z2UI5_IF_TYPES=>TY_S_DRAFT
-      !MODEL_XML type CLIKE .
-  methods READ_DRAFT
-    importing
-      !ID type CLIKE
-    returning
-      value(RESULT) type Z2UI5_IF_CORE_TYPES=>TY_S_DB .
-  methods READ_INFO
-    importing
-      !ID type CLIKE
-    returning
-      value(RESULT) type Z2UI5_IF_TYPES=>TY_S_DRAFT .
-  methods CLEANUP .
+    METHODS create
+      IMPORTING
+        !draft     TYPE z2ui5_if_types=>ty_s_draft
+        !model_xml TYPE clike.
+
+    METHODS read_draft
+      IMPORTING
+        !id           TYPE clike
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_db.
+
+    METHODS read_info
+      IMPORTING
+        !id           TYPE clike
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_types=>ty_s_draft.
+
+    METHODS cleanup.
+
   PROTECTED SECTION.
 
     METHODS read
@@ -34,7 +38,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_DRAFT_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
 
 
   METHOD cleanup.
@@ -109,7 +113,7 @@ CLASS Z2UI5_CL_CORE_DRAFT_SRV IMPLEMENTATION.
 
   METHOD read_info.
 
-    data(ls_db) = read(
+    DATA(ls_db) = read(
       id             = id
       check_load_app = abap_false ).
 

@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
+CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -579,7 +579,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                  `</script>` && |\n| &&
                  `<abc/></body></html>`.
 
-    new z2ui5_cl_core_draft_srv( )->cleanup( ).
+    NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 
     result = mv_response.
   ENDMETHOD.
