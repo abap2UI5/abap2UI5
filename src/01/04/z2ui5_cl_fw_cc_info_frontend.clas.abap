@@ -7,7 +7,7 @@ CLASS z2ui5_cl_fw_cc_info_frontend DEFINITION
 
     CLASS-METHODS get_js
       RETURNING
-        VALUE(r_js) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -15,12 +15,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CC_INFO_FRONTEND IMPLEMENTATION.
+CLASS z2ui5_cl_fw_cc_info_frontend IMPLEMENTATION.
 
 
   METHOD get_js.
 
-    r_js  = `sap.ui.define("z2ui5/Info",[` && |\n| &&
+    result  = `sap.ui.define("z2ui5/Info",[` && |\n| &&
       `   "sap/ui/core/Control"` && |\n| &&
       `], (Control) => {` && |\n| &&
       `   "use strict";` && |\n| &&

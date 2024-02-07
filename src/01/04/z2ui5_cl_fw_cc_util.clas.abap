@@ -15,14 +15,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CC_UTIL IMPLEMENTATION.
-
+CLASS z2ui5_cl_fw_cc_util IMPLEMENTATION.
 
   METHOD get_js.
 
     result = `sap.ui.define("z2ui5/Util" , ["sap/ui/core/Control"], (Control)=>{` && |\n| &&
              `        "use strict";` && |\n| &&
-*             `        return Control.extend("z2ui5.Util", {` && |\n|  &&
              `        return {` && |\n| &&
              `        DateCreateObject: (s) => new Date(s),` && |\n| &&
              `        DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),` && |\n| &&
@@ -32,4 +30,5 @@ CLASS Z2UI5_CL_FW_CC_UTIL IMPLEMENTATION.
              `  });`.
 
   ENDMETHOD.
+
 ENDCLASS.

@@ -4,18 +4,18 @@ CLASS z2ui5_cl_fw_cc_multiinput_ext DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+
     CLASS-METHODS get_js
-        RETURNING
+      RETURNING
         VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_multiinput_ext IMPLEMENTATION.
-
-
+CLASS Z2UI5_CL_FW_CC_MULTIINPUT_EXT IMPLEMENTATION.
 
 
   METHOD get_js.
@@ -77,5 +77,4 @@ CLASS z2ui5_cl_fw_cc_multiinput_ext IMPLEMENTATION.
          `  });` && |\n| &&
          `});`.
   ENDMETHOD.
-
 ENDCLASS.
