@@ -117,7 +117,7 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
     ENDIF.
 
     lv_check = xsdbool( lv_index_html CS `NIGHTLY` ).
-    IF lv_check = abap_false.
+    IF lv_check = abap_true.
       cl_abap_unit_assert=>fail( 'no bootstrap with nightly version' ).
     ENDIF.
 
