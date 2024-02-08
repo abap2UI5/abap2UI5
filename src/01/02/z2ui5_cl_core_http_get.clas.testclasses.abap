@@ -90,9 +90,9 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
-*    IF lv_index_html CS `WINDOW.`.
-*      cl_abap_unit_assert=>fail( 'use of window not allowed' ).
-*    ENDIF.
+    IF lv_index_html CS `WINDOW.`.
+      cl_abap_unit_assert=>fail( 'use of window not allowed' ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -100,9 +100,9 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
-*    IF lv_index_html CS `DOCUMENT.`.
-*      cl_abap_unit_assert=>fail( 'use of document not allowed' ).
-*    ENDIF.
+    IF lv_index_html CS `DOCUMENT.`.
+      cl_abap_unit_assert=>fail( 'use of document not allowed' ).
+    ENDIF.
 
   ENDMETHOD.
 

@@ -152,6 +152,6 @@ INTERFACE z2ui5_if_core_types
       s_config           TYPE ty_s_config,
     END OF ty_s_actual.
 
-  TYPES ty_s_db TYPE z2ui5_t_fw_01.
+  TYPES ty_s_db TYPE z2ui5_t_core_01.
 
 ENDINTERFACE.
