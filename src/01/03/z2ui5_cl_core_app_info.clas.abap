@@ -26,7 +26,6 @@ CLASS z2ui5_cl_core_app_info DEFINITION
     METHODS z2ui5_on_event.
     METHODS view_display_start.
   PROTECTED SECTION.
-    DATA mt_classes TYPE string_table.
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -40,7 +39,6 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     result = NEW #( ).
 
   ENDMETHOD.
-
 
 
   METHOD view_display_start.
@@ -108,7 +106,6 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
-    FIELD-SYMBOLS <class> TYPE string.
 
     me->client = client.
 
