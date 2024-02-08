@@ -22,6 +22,15 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     DATA stringtab TYPE stringtab.
 
+    DATA test1 TYPE text1.
+    DATA test2 TYPE text10.
+    DATA test3 TYPE text11.
+    DATA test4 TYPE text12.
+    DATA test5 TYPE text120.
+    DATA test6 TYPE text128.
+    DATA test7 TYPE text132.
+*    DATA test8 TYPE text140.
+
   ENDMETHOD.
 
 ENDCLASS.
