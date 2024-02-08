@@ -38,6 +38,24 @@ CLASS  z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS check_bound_a_not_inital
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS check_unassign_inital
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS conv_get_as_data_ref
+      IMPORTING
+        val           TYPE data
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
     CLASS-METHODS source_method_to_file
       IMPORTING
         it_source     TYPE string_table
@@ -321,29 +339,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_api IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
-  METHOD source_get_method.
-
-    DATA(lt_source) =  method_get_source(
-         iv_classname  = iv_classname
-         iv_methodname = iv_methodname
-      ).
-
-    result = source_method_to_file( it_source = lt_source ).
-
-  ENDMETHOD.
-
-  METHOD source_method_to_file.
-
-    LOOP AT it_source INTO DATA(lv_source).
-      TRY.
-          result = result && lv_source+1 && cl_abap_char_utilities=>newline.
-        CATCH cx_root.
-      ENDTRY.
-    ENDLOOP.
-
-  ENDMETHOD.
 
   METHOD app_get_url.
 
@@ -368,8 +365,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
        && rtti_get_classname_by_ref( client->get_app( ) ) && `/source/main`.
 
   ENDMETHOD.
-
-
 
 
   METHOD boolean_abap_2_json.
@@ -411,6 +406,27 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD check_bound_a_not_inital.
+
+    IF val IS NOT BOUND.
+      result = abap_false.
+      RETURN.
+    ENDIF.
+    result = xsdbool( check_unassign_inital( val ) = abap_false ).
+
+  ENDMETHOD.
+
+
+  METHOD check_unassign_inital.
+
+    FIELD-SYMBOLS <any> TYPE data.
+    ASSIGN val->* TO <any>.
+
+    result = xsdbool( <any> IS INITIAL ).
+
+  ENDMETHOD.
+
+
   METHOD conv_copy_ref_data.
 
     FIELD-SYMBOLS <from> TYPE data.
@@ -429,9 +445,11 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD conv_get_as_data_ref.
 
+    GET REFERENCE OF val INTO result.
 
-
+  ENDMETHOD.
 
 
   METHOD c_replace_assign_struc.
@@ -476,6 +494,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     result = to_upper( c_trim( CONV string( val ) ) ).
 
   ENDMETHOD.
+
 
   METHOD filter_get_multi_by_data.
 
@@ -745,7 +764,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD rtti_get_classname_by_ref.
 
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
@@ -753,8 +771,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
                               sub = `\CLASS=` ).
 
   ENDMETHOD.
-
-
 
 
   METHOD rtti_get_type_kind.
@@ -816,6 +832,30 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
       ` sqlserver, stylus, svg, swift, swig, tcl, tex, text, textile, toml, tsx, twig, typescript, vala, vbscript, velocity, verilog, vhdl, wollok, xml, xquery, terraform, slim, redshift, red, puppet, php_laravel_blade, mixal, jssm, fsharp, edifact,` &&
       ` csp, cssound_score, cssound_orchestra, cssound_document`.
     SPLIT lv_types AT ',' INTO TABLE result.
+
+  ENDMETHOD.
+
+
+  METHOD source_get_method.
+
+    DATA(lt_source) =  method_get_source(
+         iv_classname  = iv_classname
+         iv_methodname = iv_methodname
+      ).
+
+    result = source_method_to_file( it_source = lt_source ).
+
+  ENDMETHOD.
+
+
+  METHOD source_method_to_file.
+
+    LOOP AT it_source INTO DATA(lv_source).
+      TRY.
+          result = result && lv_source+1 && cl_abap_char_utilities=>newline.
+        CATCH cx_root.
+      ENDTRY.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -930,7 +970,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD user_get_tech.
     result = sy-uname.
   ENDMETHOD.
-
 
 
   METHOD xml_parse.

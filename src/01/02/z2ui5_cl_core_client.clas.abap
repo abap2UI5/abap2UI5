@@ -219,13 +219,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
     result = lo_bind->main(
-      val    = val
+      val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
       type   = z2ui5_if_core_types=>cs_bind_type-one_way
       config = VALUE #(
          path_only = path
          custom_filter = custom_filter
          custom_mapper = custom_mapper
-         tab = REF #( tab )
+         tab = tab
          tab_index = tab_index  ) ).
 
   ENDMETHOD.
@@ -243,7 +243,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
     result = lo_bind->main(
-      val    = val
+      val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
       type   = z2ui5_if_core_types=>cs_bind_type-two_way
       config = VALUE #(
          path_only = path
@@ -251,7 +251,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
          custom_filter_back = custom_filter_back
          custom_mapper = custom_mapper
          custom_mapper_back = custom_mapper_back
-         tab = REF #( tab )
+         tab = tab
          tab_index = tab_index  ) ).
 
   ENDMETHOD.

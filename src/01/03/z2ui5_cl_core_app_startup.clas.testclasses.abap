@@ -12,7 +12,7 @@ CLASS ltcl_app_startup_test IMPLEMENTATION.
 
   METHOD first_test.
 
-    DATA(lo_app) = z2ui5_cl_fw_app_startup=>factory( ) ##NEEDED.
+    DATA(lo_app) = z2ui5_cl_core_app_startup=>factory( ) ##NEEDED.
 
   ENDMETHOD.
 
