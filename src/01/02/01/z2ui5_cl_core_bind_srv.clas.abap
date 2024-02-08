@@ -74,7 +74,6 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     FIELD-SYMBOLS <ele>  TYPE any.
     FIELD-SYMBOLS <row>  TYPE any.
     DATA lr_ref_in TYPE REF TO data.
-    DATA lr_ref TYPE REF TO data.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN ms_config-tab->* TO <tab>.

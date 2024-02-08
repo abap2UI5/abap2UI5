@@ -247,7 +247,6 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
 
 
   METHOD z2ui5_on_event.
-    DATA li_app TYPE REF TO z2ui5_if_app.
 
     CASE client->get( )-event.
 
