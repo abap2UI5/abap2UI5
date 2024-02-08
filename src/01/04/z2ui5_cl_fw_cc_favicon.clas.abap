@@ -1,23 +1,24 @@
-class Z2UI5_CL_FW_CC_FAVICON definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_fw_cc_favicon DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  class-methods GET_JS
-    returning
-      value(RESULT) type STRING .
+    CLASS-METHODS get_js
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CC_FAVICON IMPLEMENTATION.
+CLASS z2ui5_cl_fw_cc_favicon IMPLEMENTATION.
 
 
-  METHOD GET_JS.
+  METHOD get_js.
 
     result =  `sap.ui.define("z2ui5/Favicon" , ["sap/ui/core/Control"], (Control)=>{` && |\n|  &&
              `        "use strict";` && |\n|  &&

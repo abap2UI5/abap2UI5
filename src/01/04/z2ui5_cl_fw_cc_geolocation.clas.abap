@@ -7,7 +7,7 @@ CLASS z2ui5_cl_fw_cc_geolocation DEFINITION
 
     CLASS-METHODS get_js
       RETURNING
-        VALUE(r_js) TYPE string.
+        VALUE(result) TYPE string.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -20,7 +20,7 @@ CLASS z2ui5_cl_fw_cc_geolocation IMPLEMENTATION.
 
   METHOD get_js.
 
-    r_js  = `sap.ui.define("z2ui5/Geolocation" , [` && |\n| &&
+    result  = `sap.ui.define("z2ui5/Geolocation" , [` && |\n| &&
       `   "sap/ui/core/Control"` && |\n| &&
       `], (Control) => {` && |\n| &&
       `   "use strict";` && |\n| &&

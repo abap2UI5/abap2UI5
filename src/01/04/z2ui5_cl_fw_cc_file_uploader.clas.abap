@@ -7,7 +7,8 @@ CLASS z2ui5_cl_fw_cc_file_uploader DEFINITION
 
     CLASS-METHODS get_js
       RETURNING
-      VALUE(r_js) TYPE string .
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 
@@ -15,12 +16,12 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_FW_CC_FILE_UPLOADER IMPLEMENTATION.
+CLASS z2ui5_cl_fw_cc_file_uploader IMPLEMENTATION.
 
 
   METHOD get_js.
 
-    r_js  = ` sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
+    result  = ` sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `            "sap/m/Button",` && |\n| &&
                      `            "sap/ui/unified/FileUploader"` && |\n| &&

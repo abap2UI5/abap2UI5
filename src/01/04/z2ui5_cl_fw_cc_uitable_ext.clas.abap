@@ -4,6 +4,7 @@ CLASS z2ui5_cl_fw_cc_uitable_ext DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
+
     CLASS-METHODS get_js
       RETURNING
         VALUE(result) TYPE string.
