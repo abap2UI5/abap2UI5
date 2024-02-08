@@ -649,8 +649,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !hideonnodata TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS column_list_item
       IMPORTING
+        !id        TYPE clike OPTIONAL
         !valign        TYPE clike OPTIONAL
         !selected      TYPE clike OPTIONAL
         !type          TYPE clike OPTIONAL
@@ -3865,6 +3867,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD column_list_item.
     result = _generic( name   = `ColumnListItem`
                        t_prop = VALUE #( ( n = `vAlign`   v = valign )
+                                         ( n = `id` v = id )
                                          ( n = `selected` v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                                          ( n = `unread` v = z2ui5_cl_util=>boolean_abap_2_json( unread ) )
                                          ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )

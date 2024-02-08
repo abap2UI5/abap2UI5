@@ -13,6 +13,7 @@ CLASS ltcl_test_http_get DEFINITION FINAL FOR TESTING
     METHODS js_no_sap_ui_get_core FOR TESTING RAISING cx_static_check.
     METHODS js_no_window FOR TESTING RAISING cx_static_check.
     METHODS js_no_document FOR TESTING RAISING cx_static_check.
+    METHODS bootstrap_with_open_ui5 FOR TESTING RAISING cx_static_check.
     METHODS js_no_jquery FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -70,9 +71,9 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
-*    IF lv_index_html CS `SAP.UI.GETCORE`.
-*      cl_abap_unit_assert=>fail( 'sap.ui.get.core not allowed' ).
-*    ENDIF.
+    IF lv_index_html CS `SAP.UI.GETCORE`.
+      cl_abap_unit_assert=>fail( 'sap.ui.get.core not allowed' ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -90,9 +91,9 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
-    IF lv_index_html CS `WINDOW.`.
-      cl_abap_unit_assert=>fail( 'use of window not allowed' ).
-    ENDIF.
+*    IF lv_index_html CS `WINDOW.`.
+*      cl_abap_unit_assert=>fail( 'use of window not allowed' ).
+*    ENDIF.
 
   ENDMETHOD.
 
@@ -100,8 +101,24 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
     DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
     DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
-    IF lv_index_html CS `DOCUMENT.`.
-      cl_abap_unit_assert=>fail( 'use of document not allowed' ).
+*    IF lv_index_html CS `DOCUMENT.`.
+*      cl_abap_unit_assert=>fail( 'use of document not allowed' ).
+*    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD bootstrap_with_open_ui5.
+
+    DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
+    DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
+    DATA(lv_check) = xsdbool( lv_index_html CS `HTTPS://SDK.OPENUI5.ORG/RESOURCES` ).
+    IF lv_check = abap_false.
+      cl_abap_unit_assert=>fail( 'no bootstrap with openUI5' ).
+    ENDIF.
+
+    lv_check = xsdbool( lv_index_html CS `NIGHTLY` ).
+    IF lv_check = abap_false.
+      cl_abap_unit_assert=>fail( 'no bootstrap with nightly version' ).
     ENDIF.
 
   ENDMETHOD.

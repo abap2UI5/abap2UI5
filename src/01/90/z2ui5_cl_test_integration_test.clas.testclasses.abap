@@ -1,3 +1,32 @@
+CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
+        DURATION SHORT
+        RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS:
+      first_test FOR TESTING RAISING cx_static_check.
+ENDCLASS.
+
+
+CLASS ltcl_unit_test IMPLEMENTATION.
+
+  METHOD first_test.
+
+    DATA test TYPE  /ui2/cl_json=>bool.
+    DATA test_const TYPE string VALUE /ui2/cl_json=>pretty_mode-extended.
+
+    DATA text TYPE char10.
+    DATA text2 TYPE text100.
+    DATA text3 TYPE text10.
+    DATA text4 TYPE text10.
+
+    DATA stringtab TYPE stringtab.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
 *CLASS ltcl_integration_test DEFINITION FINAL FOR TESTING
 *  DURATION LONG
 *  RISK LEVEL HARMLESS.
