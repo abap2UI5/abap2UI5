@@ -23,7 +23,7 @@ CLASS z2ui5_cl_core_bind_srv DEFINITION
 
     METHODS main
       IMPORTING
-        !val          TYPE data
+        !val          TYPE REF TO data
         !type         TYPE string
         !config       TYPE z2ui5_if_core_types=>ty_s_bind_config OPTIONAL
       RETURNING
@@ -74,22 +74,19 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     FIELD-SYMBOLS <ele>  TYPE any.
     FIELD-SYMBOLS <row>  TYPE any.
     DATA lr_ref_in TYPE REF TO data.
-    DATA lr_ref TYPE REF TO data.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_comp_by_data(  <row> ).
 
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_comp_by_data( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
       lr_ref_in = REF #( <ele> ).
 
-      lr_ref = REF #( i_val ).
-      IF lr_ref = lr_ref_in.
+      IF i_val = lr_ref_in.
         result = iv_name && '/' && shift_right( CONV string( ms_config-tab_index - 1 ) ) && '/' && <comp>-name.
-*        result = `{` && iv_name && '/' && shift_right( CONV string( ms_config-tab_index - 1 ) ) && '/' && <comp>-name && `}`.
         RETURN.
       ENDIF.
 
@@ -97,7 +94,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
+        val = `BINDING_ERROR_TAB_CELL_LEVEL - No class attribute for binding found - Please check if the binded values are public attributes of your class`.
 
   ENDMETHOD.
 
@@ -189,20 +186,14 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
   METHOD main.
 
-    IF config-tab IS BOUND.
+    IF z2ui5_cl_util=>check_bound_a_not_inital( config-tab ).
 
-      FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-      ASSIGN config-tab->* TO <tab>.
+      result = main_cell(
+          val    = val
+          type   = type
+          config = config ).
 
-      IF <tab> IS NOT INITIAL.
-
-        result = main_cell(
-            val    = val
-            type   = type
-            config = config ).
-        RETURN.
-
-      ENDIF.
+      RETURN.
     ENDIF.
 
     ms_config = config.
@@ -230,10 +221,8 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
-    ASSIGN config-tab->* TO <tab>.
     DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_app ).
-    result = lo_bind->main( val = <tab> type = type config = value #( path_only = abap_true ) ).
+    result = lo_bind->main( val = config-tab type = type config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell(
           iv_name     = result

@@ -13,7 +13,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     METHODS attri_get_by_data
       IMPORTING
-        !val          TYPE data
+        !val          TYPE ref to data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
 
@@ -137,12 +137,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD attri_get_by_data.
 
-    DATA(lr_data) = REF #( val ).
-
     DO 3 TIMES.
 
       TRY.
-          result = REF #( mt_attri[ r_ref = lr_data ] ).
+          result = REF #( mt_attri[ r_ref = val ] ).
           RETURN.
         CATCH cx_root.
       ENDTRY.

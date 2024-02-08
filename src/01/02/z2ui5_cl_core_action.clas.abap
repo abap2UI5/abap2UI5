@@ -162,7 +162,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-o_app_call           = z2ui5_cl_fw_app_error=>factory( ix ).
+    result->ms_next-o_app_call           = z2ui5_cl_core_app_error=>factory( ix ).
 
     result = result->factory_stack_call( ).
 
@@ -175,7 +175,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
     result->ms_actual-check_on_navigated = abap_true.
-    result->mo_app->mo_app               = z2ui5_cl_fw_app_startup=>factory( ).
+    result->mo_app->mo_app               = z2ui5_cl_core_app_startup=>factory( ).
 
     DATA(li_app) = CAST z2ui5_if_app( result->mo_app->mo_app ).
     li_app->id_draft = result->mo_app->ms_draft-id.
