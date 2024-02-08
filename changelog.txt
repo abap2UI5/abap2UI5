@@ -9,6 +9,13 @@ Legend
 - : removed
 
 
+2024-02-08 v1.118.0
+-------------------
+
+! /ui2/cl_json replaced with aJson
+* Compatibility Fixes for Low Releases
+
+
 2024-02-02 v1.117.0
 -------------------
 
