@@ -11,12 +11,12 @@ CLASS z2ui5_cl_core_app_info DEFINITION
     DATA mv_check_initialized TYPE abap_bool.
 
     DATA mv_ui5_version TYPE string.
-    DATA mv_device TYPE string.
-    DATA mv_device_type TYPE string.
-    DATA mv_theme TYPE string.
-    DATA mv_device_browser TYPE string.
-    DATA mv_device_theme TYPE string.
-    DATA mv_device_gav TYPE string.
+*    DATA mv_device TYPE string.
+*    DATA mv_device_type TYPE string.
+*    DATA mv_theme TYPE string.
+*    DATA mv_device_browser TYPE string.
+*    DATA mv_device_theme TYPE string.
+*    DATA mv_device_gav TYPE string.
 
     CLASS-METHODS factory
       RETURNING
@@ -51,10 +51,10 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     page2->header_content( )->text(  )->title( `abap2UI5 - System Information` )->toolbar_spacer( ).
 
     page2->_z2ui5( )->info_frontend(
-        device_browser = client->_bind( mv_device_browser )
-        device_systemtype = client->_bind( mv_device_type )
-        ui5_gav = client->_bind( mv_device_gav )
-        ui5_theme = client->_bind( mv_device_theme )
+*        device_browser = client->_bind( mv_device_browser )
+*        device_systemtype = client->_bind( mv_device_type )
+*        ui5_gav = client->_bind( mv_device_gav )
+*        ui5_theme = client->_bind( mv_device_theme )
         ui5_version = client->_bind( mv_ui5_version ) ).
 
     DATA(simple_form2) = page2->simple_form(
