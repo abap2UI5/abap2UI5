@@ -14,7 +14,8 @@
     <item>/.gitlab-ci.yml</item>
     <item>/abaplint.json</item>
     <item>/azure-pipelines.yml</item>
-    <item>/resources</item>
+    <item>/src/01/z2ui5_cl_fw_font_awsome_icons.clas.abap</item>
+    <item>/src/01/z2ui5_cl_fw_font_awsome_icons.clas.xml</item>
    </IGNORE>
    <VERSION_CONSTANT>Z2UI5_IF_APP=&gt;VERSION</VERSION_CONSTANT>
   </DATA>

@@ -12,8 +12,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD first_test.
 
-    DATA test TYPE  /ui2/cl_json=>bool ##NEEDED.
-    DATA test_const TYPE string VALUE /ui2/cl_json=>pretty_mode-extended ##NEEDED.
+*    DATA test TYPE  /ui2/cl_json=>bool ##NEEDED.
+*    DATA test_const TYPE string VALUE /ui2/cl_json=>pretty_mode-extended ##NEEDED.
 
 *    DATA text TYPE char10.
 *    DATA text2 TYPE text100.
