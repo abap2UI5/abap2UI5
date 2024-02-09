@@ -229,7 +229,7 @@ ENDCLASS.
 * The code is primarily developed on an SAP ABAP Developer Edition 7.52 hosted by [**Nuve Platform**](https://www.nuveplatform.com/)
 * Code checked for compatibility with ABAP for Cloud on [**BTP ABAP Evironment Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html) <br>
 
-_Thanks to everyone who submits PRs or enriches my knowledge via Slack, in issues, or through other channels. abap2UI5 greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
+_Thanks to everyone who submits PRs or enriches my knowledge via Slack, in issues, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
   
 #### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
