@@ -1,33 +1,33 @@
 CLASS z2ui5_cl_util DEFINITION
   PUBLIC
-  CREATE PUBLIC
-  INHERITING FROM z2ui5_cl_util_api.
+  INHERITING FROM z2ui5_cl_util_api
+  CREATE PUBLIC .
 
   PUBLIC SECTION.
 
     CLASS-METHODS db_save
       IMPORTING
-        uname         TYPE clike OPTIONAL
-        handle        TYPE clike OPTIONAL
-        handle2       TYPE clike OPTIONAL
-        handle3       TYPE clike OPTIONAL
-        data          TYPE any
-        check_commit  TYPE abap_bool DEFAULT abap_true
+        !uname        TYPE clike OPTIONAL
+        !handle       TYPE clike OPTIONAL
+        !handle2      TYPE clike OPTIONAL
+        !handle3      TYPE clike OPTIONAL
+        !data         TYPE any
+        !check_commit TYPE abap_bool DEFAULT abap_true
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS db_load_by_id
       IMPORTING
-        id            TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
       EXPORTING
         VALUE(result) TYPE any.
 
     CLASS-METHODS db_load_by_handle
       IMPORTING
-        uname         TYPE clike OPTIONAL
-        handle        TYPE clike OPTIONAL
-        handle2       TYPE clike OPTIONAL
-        handle3       TYPE clike OPTIONAL
+        !uname        TYPE clike OPTIONAL
+        !handle       TYPE clike OPTIONAL
+        !handle2      TYPE clike OPTIONAL
+        !handle3      TYPE clike OPTIONAL
       EXPORTING
         VALUE(result) TYPE any.
 
@@ -38,6 +38,7 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util IMPLEMENTATION.
+
 
   METHOD db_load_by_handle.
 
@@ -102,5 +103,4 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = ls_db-id.
 
   ENDMETHOD.
-
 ENDCLASS.
