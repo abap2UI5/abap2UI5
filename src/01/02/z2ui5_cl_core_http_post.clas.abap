@@ -82,11 +82,12 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
 
 
   METHOD main_end.
-*    TRY.
 
     ms_response = VALUE #(
         s_frontend-params = mo_action->ms_next-s_set
         s_frontend-id = mo_action->mo_app->ms_draft-id
+        s_frontend-app = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
+        s_frontend-app_start = ms_request-s_control-app_start
         model = mo_action->mo_app->model_json_stringify( ) ).
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
@@ -95,9 +96,6 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
     CLEAR mo_action->ms_next.
     mo_action->mo_app->db_save( ).
 
-*      CATCH cx_root INTO DATA(x).
-*        ASSERT x IS NOT BOUND.
-*    ENDTRY.
   ENDMETHOD.
 
 
