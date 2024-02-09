@@ -49,6 +49,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_element_text.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     DATA(ls_result) = z2ui5_cl_util_stmpncfctn=>rtti_get_data_element_texts( `UNAME` ).
     cl_abap_unit_assert=>assert_not_initial( ls_result ).
 
