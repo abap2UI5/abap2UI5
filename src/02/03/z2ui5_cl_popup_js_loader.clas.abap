@@ -30,13 +30,21 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_JS_LOADER IMPLEMENTATION.
+
 
   METHOD factory.
 
     r_result = NEW #( ).
     r_result->js = i_js.
     r_result->user_command = i_result.
+
+  ENDMETHOD.
+
+
+  METHOD result.
+
+    result3 = user_command.
 
   ENDMETHOD.
 
@@ -70,11 +78,4 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
-
-  METHOD result.
-
-    result3 = user_command.
-
-  ENDMETHOD.
-
 ENDCLASS.
