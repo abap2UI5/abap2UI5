@@ -220,7 +220,6 @@ ENDCLASS.
 </details>
 
 #### FAQ
-* Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) for more installation & configuration guidelines
-* Still have open questions? Find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
+* Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
