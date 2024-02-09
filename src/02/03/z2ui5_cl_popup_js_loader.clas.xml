@@ -3,14 +3,13 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UTIL</CLSNAME>
+    <CLSNAME>Z2UI5_CL_POPUP_JS_LOADER</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - specfic functions</DESCRIPT>
+    <DESCRIPT>ui - popup to load js</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
     <UNICODE>X</UNICODE>
-    <WITH_UNIT_TESTS>X</WITH_UNIT_TESTS>
    </VSEOCLASS>
   </asx:values>
  </asx:abap>

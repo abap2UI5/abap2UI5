@@ -20,7 +20,8 @@ CLASS z2ui5_cx_util_error DEFINITION
           PREFERRED PARAMETER val .
 
     METHODS if_message~get_text
-        REDEFINITION .
+        REDEFINITION.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.

@@ -98,8 +98,10 @@ INTERFACE z2ui5_if_core_types
   TYPES:
     BEGIN OF ty_s_http_response_post,
       BEGIN OF s_frontend,
-        params TYPE ty_s_next_frontend,
-        id     TYPE string,
+        params    TYPE ty_s_next_frontend,
+        id        TYPE string,
+        app_start TYPE string,
+        app       TYPE string,
       END OF s_frontend,
       model TYPE string,
     END OF ty_s_http_response_post.

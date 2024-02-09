@@ -6,7 +6,7 @@ CLASS z2ui5_cl_core_http_get DEFINITION
   PUBLIC SECTION.
 
     DATA ms_request TYPE z2ui5_if_types=>ty_s_http_request_get.
-    DATA mv_response TYPE string .
+    DATA mv_response TYPE string.
 
     METHODS constructor
       IMPORTING
@@ -25,6 +25,15 @@ CLASS z2ui5_cl_core_http_get DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
+
+    METHODS get_default_config
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_types=>ty_s_http_request_get-t_config.
+
+    METHODS get_default_security_policy
+      RETURNING
+        VALUE(result) TYPE string.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -314,9 +323,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            sap.z2ui5.onBeforeRoundtrip.forEach(item=>{` && |\n|  &&
                `                if (item !== undefined) {` && |\n|  &&
                `                    item();` && |\n|  &&
-               `                }` && |\n|  &&
-               `            }` && |\n|  &&
-               `            )` && |\n|  &&
+               `                }})` && |\n|  &&
                `            if (args[0].CHECK_VIEW_DESTROY) {` && |\n|  &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
                `            }` && |\n|  &&
@@ -425,28 +432,25 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            delete sap.z2ui5.oBody.ID;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.APP_START;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.S_FRONTEND.EDIT;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
                `           sap.z2ui5.oController.readHttp();` && |\n|  &&
                `        },` && |\n|  &&
                `    })` && |\n|  &&
                `});` && |\n|  &&
-               |\n|  &&
                `sap.ui.require(["z2ui5/Controller", "sap/ui/core/BusyIndicator", "sap/ui/core/mvc/XMLView", "sap/ui/core/Fragment", "sap/m/MessageToast", "sap/m/MessageBox", "sap/ui/model/json/JSONModel"], (Controller,BusyIndicator)=>{` && |\n|  &&
-               |\n|  &&
                `    BusyIndicator.show();` && |\n|  &&
                `    sap.z2ui5.oController = new Controller();` && |\n|  &&
                `    sap.z2ui5.oControllerNest = new Controller();` && |\n|  &&
                `    sap.z2ui5.oControllerNest2 = new Controller();` && |\n|  &&
                `    sap.z2ui5.oControllerPopup = new Controller();` && |\n|  &&
                `    sap.z2ui5.oControllerPopover = new Controller();` && |\n|  &&
-               |\n|  &&
                `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n|  &&
                `    sap.z2ui5.checkNestAfter = false;` && |\n|  &&
-               |\n|  &&
                `    sap.z2ui5.oBody = {` && |\n|  &&
                `        APP_START: sap.z2ui5.APP_START` && |\n|  &&
                `    };` && |\n|  &&
                `    sap.z2ui5.oController.Roundtrip();` && |\n|  &&
-               |\n|  &&
                `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
                `    sap.z2ui5.onAfterRendering = [];` && |\n|  &&
                `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n|  &&
@@ -478,25 +482,13 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
   METHOD main.
 
-    DATA(lt_config) = ms_request-t_config.
-    IF lt_config IS INITIAL.
-      lt_config = VALUE #(
-*          (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
-          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-*          (  n = `src`                       v = `https://ui5.sap.com/1.120.0/resources/sap-ui-core.js` )
-          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-          (  n = `data-sap-ui-async`         v = `true` )
-          (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-          (  n = `data-sap-ui-frameOptions`  v = `trusted` )
-          (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
-    ENDIF.
+    DATA(lt_config) = COND #( WHEN ms_request-t_config IS INITIAL
+        THEN get_default_config( )
+        ELSE ms_request-t_config ).
 
-    IF ms_request-content_security_policy IS INITIAL.
-      DATA(lv_sec_policy) = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
-        `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
-    ELSE.
-      lv_sec_policy = ms_request-content_security_policy.
-    ENDIF.
+    DATA(lv_sec_policy) = COND #( WHEN  ms_request-content_security_policy IS INITIAL
+        THEN get_default_security_policy( )
+        ELSE ms_request-content_security_policy ).
 
     mv_response = `<!DOCTYPE html>` && |\n| &&
                `<html lang="en">` && |\n| &&
@@ -544,7 +536,28 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                  `<abc/></body></html>`.
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
-
     result = mv_response.
+
   ENDMETHOD.
+
+  METHOD get_default_config.
+
+    result = VALUE #(
+        (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+        (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+        (  n = `data-sap-ui-async`         v = `true` )
+        (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+        (  n = `data-sap-ui-frameOptions`  v = `trusted` )
+        (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD get_default_security_policy.
+
+    result  = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+   `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
+
+  ENDMETHOD.
+
 ENDCLASS.
