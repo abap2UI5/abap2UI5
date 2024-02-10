@@ -223,7 +223,7 @@ ENDCLASS.
 * Code versioning & distribution is facilitated with [**abapGit**](https://abapgit.org/) [(by these authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed using [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(by larshp)](https://github.com/larshp) 
 * JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(by sbcgua)](https://github.com/sbcgua)
-* Support for XML Serialization of dynamically typed data is handled via [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(by sandrarossi)](https://github.com/sandraros)
+* Support for Serialization of variables created at runtime is handled via [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(by sandrarossi)](https://github.com/sandraros)
 * Compatibility with older releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(by larshp)](https://github.com/larshp) 
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is done with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * The code is primarily developed on an SAP ABAP Developer Edition 7.52 hosted by [**Nuve Platform**](https://www.nuveplatform.com/)
