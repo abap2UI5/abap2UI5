@@ -220,6 +220,7 @@ ENDCLASS.
 </details>
 
 #### Credits
+* The [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) help to continously evolve this project
 * Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
@@ -228,7 +229,6 @@ ENDCLASS.
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * The code is primarily developed on an SAP ABAP Developer Edition 7.52 hosted by [**Nuve Platform**](https://www.nuveplatform.com/)
 * Checks for compatibility with "ABAP for Cloud" are done on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
-* [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) help to continously evolve this project<br>
 
 _Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
   
