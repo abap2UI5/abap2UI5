@@ -230,7 +230,7 @@ ENDCLASS.
 * Checks for compatibility with "ABAP for Cloud" are done on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
 * [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continously help evolve this project<br>
 
-_Thanks to everyone who submits PRs or enriches my knowledge via Slack, in issues, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
+_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
   
 #### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
