@@ -220,15 +220,15 @@ ENDCLASS.
 </details>
 
 #### Credits
-* Code versioning & distribution via [**abapGit**](https://abapgit.org/) [(by these authors)](https://abapgit.org/sponsor.html)
-* Static code analysis and quality assurance via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(by larshp)](https://github.com/larshp) 
-* JSON parsing for frontend-backend communication implemented with [**ajson**](https://github.com/sbcgua/ajson) [(by sbcgua)](https://github.com/sbcgua)
-* Support for Serialization of variables created at runtime via [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(by sandrarossi)](https://github.com/sandraros)
-* Compatibility with lower releases through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(by larshp)](https://github.com/larshp) 
+* Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(by these authors)](https://abapgit.org/sponsor.html)
+* Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(by larshp)](https://github.com/larshp) 
+* JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(by sbcgua)](https://github.com/sbcgua)
+* Support for Serialization of variables created at runtime is provided via [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(by sandrarossi)](https://github.com/sandraros)
+* Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(by larshp)](https://github.com/larshp) 
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * The code is primarily developed on an SAP ABAP Developer Edition 7.52 hosted by [**Nuve Platform**](https://www.nuveplatform.com/)
-* Code checked for compatibility with "ABAP for Cloud" on [**BTP ABAP Environment Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
-* And gratitude to all [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) who shared their code<br>
+* Code is checked for compatibility with "ABAP for Cloud" on [**BTP ABAP Environment Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
+* And my gratitude goes to all [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) who shared their code<br>
 
 _Thanks to everyone who submits PRs or enriches my knowledge via Slack, in issues, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
   
