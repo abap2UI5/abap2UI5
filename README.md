@@ -227,8 +227,8 @@ ENDCLASS.
 * Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(by larshp)](https://github.com/larshp) 
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * The code is primarily developed on an SAP ABAP Developer Edition 7.52 hosted by [**Nuve Platform**](https://www.nuveplatform.com/)
-* Checks for compatibility with "ABAP for Cloud" done on [**BTP ABAP Environment Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
-* These [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) help evolve this project<br>
+* Checks for compatibility with "ABAP for Cloud" are done on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
+* [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continously help evolve this project<br>
 
 _Thanks to everyone who submits PRs or enriches my knowledge via Slack, in issues, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
   
