@@ -220,7 +220,7 @@ ENDCLASS.
 </details>
 
 #### Credits
-* The [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) help to continously evolve this project
+* These [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) help to continously evolve this project
 * Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
