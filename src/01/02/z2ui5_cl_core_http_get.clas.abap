@@ -220,7 +220,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n|  &&
                `            sap.z2ui5.oView.destroy();` && |\n|  &&
                `        },` && |\n|  &&
-               `        onEventFrontend(...args) {` && |\n|  &&
+               `        eF(...args) {` && |\n|  &&
                `            sap.z2ui5.onBeforeEventFrontend.forEach(item => {` && |\n|  &&
                `                if (item !== undefined) {` && |\n|  &&
                `                    item(args);` && |\n|  &&
@@ -284,7 +284,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                break;` && |\n|  &&
                `            }` && |\n|  &&
                `        },` && |\n|  &&
-               `        onEvent(...args) {` && |\n|  &&
+               `        eB(...args) {` && |\n|  &&
                `            if (sap.z2ui5.isBusy) {` && |\n|  &&
                `                if (sap.z2ui5.isBusy == true) {` && |\n|  &&
                `                    sap.z2ui5.busyDialog = new sap.m.BusyDialog();` && |\n|  &&
@@ -301,23 +301,23 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            BusyIndicator.show();` && |\n|  &&
                `            sap.z2ui5.oBody = {};` && |\n|  &&
                `            if ( sap.z2ui5.oController == this ) {` && |\n|  &&
-               `                sap.z2ui5.oBody.EDIT = sap.z2ui5.oView.getModel().getData().EDIT;` && |\n|  &&
+               `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n|  &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
                `            }else if ` && |\n|  &&
                `               (  sap.z2ui5.oControllerPopup == this ) {` && |\n|  &&
-               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopup.getModel().getData().EDIT;` && |\n|  &&
+               `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopup.getModel().getData().XX;` && |\n|  &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
                `                }else if ( ` && |\n|  &&
                `                sap.z2ui5.oControllerPopover == this ) {` && |\n|  &&
-               `                            sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewPopover.getModel().getData().EDIT;` && |\n|  &&
+               `                            sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopover.getModel().getData().XX;` && |\n|  &&
                `                            sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
                `                }else if ( ` && |\n|  &&
                `                sap.z2ui5.oControllerNest == this ) {` && |\n|  &&
-               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest.getModel().getData().EDIT;` && |\n|  &&
+               `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewNest.getModel().getData().XX;` && |\n|  &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'NEST';` && |\n|  &&
                `                }else if (` && |\n|  &&
                `                sap.z2ui5.oControllerNest2 == this ) {` && |\n|  &&
-               `                    sap.z2ui5.oBody.EDIT = sap.z2ui5.oViewNest2.getModel().getData().EDIT;` && |\n|  &&
+               `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewNest2.getModel().getData().XX;` && |\n|  &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n|  &&
                `                }` && |\n|  &&
                `            sap.z2ui5.onBeforeRoundtrip.forEach(item=>{` && |\n|  &&
@@ -419,7 +419,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            sap.z2ui5.oBody.S_FRONTEND = {` && |\n|  &&
                `                ID: sap.z2ui5?.oBody?.ID,` && |\n|  &&
                `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n|  &&
-               `                EDIT: sap.z2ui5?.oBody?.EDIT,` && |\n|  &&
+               `                XX: sap.z2ui5?.oBody?.XX,` && |\n|  &&
                `                ORIGIN: window.location.origin,` && |\n|  &&
                `                PATHNAME: sap.z2ui5.pathname,` && |\n|  &&
                `                SEARCH: (sap.z2ui5.search) ?  sap.z2ui5.search : window.location.search,` && |\n|  &&
@@ -432,8 +432,12 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            delete sap.z2ui5.oBody.ID;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.APP_START;` && |\n|  &&
-               `            delete sap.z2ui5.oBody?.S_FRONTEND.EDIT;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.S_FRONTEND.XX;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
+              `            if  (sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG; } ` && |\n|  &&
+              `            if  (sap.z2ui5.oBody.S_FRONTEND.T_STARTUP_PARAMETERS == undefined) { delete sap.z2ui5.oBody.S_FRONTEND.T_STARTUP_PARAMETERS; } ` && |\n|  &&
+              `            if ( sap.z2ui5.oBody.S_FRONTEND.SEARCH == '' ){ delete sap.z2ui5.oBody.S_FRONTEND.SEARCH; } ` && |\n|  &&
+              `            if (!sap.z2ui5.oBody.XX){ delete sap.z2ui5.oBody.XX; } ` && |\n|  &&
                `           sap.z2ui5.oController.readHttp();` && |\n|  &&
                `        },` && |\n|  &&
                `    })` && |\n|  &&

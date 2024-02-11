@@ -130,10 +130,12 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
         DATA(lo_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>parse( val ) ).
 
+        data(lv_model_edit_name) = `/` && z2ui5_if_core_types=>cs_ui5-two_way_model.
+
         result-o_model = z2ui5_cl_ajson=>create_empty( ).
-        DATA(lo_model) = lo_ajson->slice( `/EDIT` ).
-        result-o_model->set( iv_path = `/EDIT` iv_val = lo_model ).
-        lo_ajson->delete( `/EDIT` ).
+        DATA(lo_model) = lo_ajson->slice( lv_model_edit_name ).
+        result-o_model->set( iv_path = lv_model_edit_name iv_val = lo_model ).
+        lo_ajson->delete( lv_model_edit_name ).
 
         lo_ajson = lo_ajson->slice( `/S_FRONTEND`).
         lo_ajson->to_abap(

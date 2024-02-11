@@ -50,8 +50,7 @@ CLASS ltcl_test IMPLEMENTATION.
         handle2      = `handle2`
         handle3      = `handle3`
       IMPORTING
-        result  = ls_row_result
-    ).
+        result  = ls_row_result ).
 
     cl_abap_unit_assert=>assert_equals(
        act = ls_row_result

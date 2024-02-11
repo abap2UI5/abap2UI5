@@ -2,6 +2,13 @@ INTERFACE z2ui5_if_core_types
   PUBLIC.
 
   CONSTANTS:
+    BEGIN OF cs_ui5,
+      event_backend_function  TYPE string VALUE `eB`,
+      event_frontend_function TYPE string VALUE `eF`,
+      two_way_model           TYPE string VALUE `XX`,
+    END OF cs_ui5.
+
+  CONSTANTS:
     BEGIN OF cs_bind_type,
       one_way  TYPE string VALUE `ONE_WAY`,
       two_way  TYPE string VALUE `TWO_WAY`,
@@ -40,6 +47,8 @@ INTERFACE z2ui5_if_core_types
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
       r_ref              TYPE REF TO data,
+      o_typedescr        type ref to cl_abap_typedescr,
+      s_rtti_descr       type abap_componentdescr,
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 

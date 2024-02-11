@@ -79,7 +79,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
 
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_comp_by_data( ms_config-tab ).
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
@@ -179,7 +179,9 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     result = replace( val = mr_attri->name sub = `-` with = `/` ).
     result = replace( val = result sub = `>` with = `*` ).
-    result = COND #( WHEN mv_type = z2ui5_if_core_types=>cs_bind_type-two_way THEN `/EDIT` ) && `/` &&  result.
+    result = COND #( WHEN mv_type = z2ui5_if_core_types=>cs_bind_type-two_way
+        THEN `/` && z2ui5_if_core_types=>cs_ui5-two_way_model )
+        && `/` &&  result.
 
   ENDMETHOD.
 
@@ -207,6 +209,13 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
       check_raise_new( ).
       update_model_attri( ).
       result = mr_attri->name_client.
+    ENDIF.
+
+    IF result = `/` && z2ui5_if_core_types=>cs_ui5-two_way_model.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `<p>Name of variable not allowed - x is reserved word - use anoter name for your attribute`.
+
     ENDIF.
 
     IF ms_config-path_only = abap_false.

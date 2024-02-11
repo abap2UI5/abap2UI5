@@ -7612,10 +7612,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
       lt_prop = VALUE #(
-*                      ( n = `xmlns`           v = `sap.m` )
                       ( n = `xmlns:z2ui5`     v = `z2ui5` )
-*                      ( n = `xmlns:core`      v = `sap.ui.core` )
-*                      ( n = `xmlns:mvc`       v = `sap.ui.core.mvc` )
                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
@@ -7675,9 +7672,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                                                val    = COND string( WHEN row-v = abap_true
                                                                                      THEN `true`
                                                                                      ELSE row-v )
-                                                               format = cl_abap_format=>e_xml_attr ) }" \n | ).
+                                                               format = cl_abap_format=>e_xml_attr ) }"| ).
 
-    result = |{ result } <{ lv_tmp2 }{ mv_name } \n { lv_tmp3 }|.
+    result = |{ result } <{ lv_tmp2 }{ mv_name }{ lv_tmp3 }|.
 
     IF mt_child IS INITIAL.
       result = |{ result }/>|.

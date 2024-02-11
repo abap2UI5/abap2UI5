@@ -31,6 +31,19 @@ CLASS  z2ui5_cl_util_api DEFINITION
         table TYPE string,
       END OF ty_s_sql_result.
 
+    CLASS-METHODS rtti_get_t_attri_by_dref
+      IMPORTING
+        val           TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_component_tab.
+
+    CLASS-METHODS rtti_get_t_attri_by_include
+      IMPORTING
+        type          TYPE REF TO cl_abap_datadescr
+        attri         TYPE clike
+      RETURNING
+        VALUE(result) TYPE abap_component_tab.
+
     CLASS-METHODS source_get_method
       IMPORTING
         iv_classname  TYPE clike
@@ -85,19 +98,6 @@ CLASS  z2ui5_cl_util_api DEFINITION
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE ty_s_sql_result.
-
-    CLASS-METHODS app_get_url_source_code
-      IMPORTING
-        !client       TYPE REF TO z2ui5_if_client
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS app_get_url
-      IMPORTING
-        !client          TYPE REF TO z2ui5_if_client
-        VALUE(classname) TYPE string OPTIONAL
-      RETURNING
-        VALUE(result)    TYPE string.
 
     CLASS-METHODS url_param_get
       IMPORTING
@@ -172,12 +172,6 @@ CLASS  z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS c_replace_assign_struc
-      IMPORTING
-        !iv_attri       TYPE clike
-      RETURNING
-        VALUE(rv_attri) TYPE string.
-
     CLASS-METHODS json_parse
       IMPORTING
         !val  TYPE any
@@ -231,13 +225,13 @@ CLASS  z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(rt_params) TYPE z2ui5_if_types=>ty_t_name_value.
 
-    CLASS-METHODS rtti_get_t_attri_by_object
+    CLASS-METHODS rtti_get_t_attri_by_oref
       IMPORTING
         !val          TYPE REF TO object
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
-    CLASS-METHODS rtti_get_t_comp_by_data
+    CLASS-METHODS rtti_get_t_attri_by_struc
       IMPORTING
         !val          TYPE any
       RETURNING
@@ -264,6 +258,12 @@ CLASS  z2ui5_cl_util_api DEFINITION
         !val          TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
+
+    CLASS-METHODS rtti_get_type_kind_by_descr
+      IMPORTING
+        !val          TYPE REF TO cl_abap_typedescr
+      RETURNING
+        VALUE(result) TYPE string.
 
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
@@ -339,30 +339,53 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
+CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
+  METHOD rtti_get_t_attri_by_dref.
 
-  METHOD app_get_url.
-
-    IF classname IS INITIAL.
-      classname = rtti_get_classname_by_ref( client->get_app( ) ).
-    ENDIF.
-
-    DATA(lv_url) = to_lower( client->get( )-s_config-origin && client->get( )-s_config-pathname ) && `?`.
-    DATA(lt_param) = url_param_get_tab( client->get( )-s_config-search ).
-    DELETE lt_param WHERE n = `app_start`.
-    INSERT VALUE #( n = `app_start` v = to_lower( classname ) ) INTO TABLE lt_param.
-
-    result = lv_url && url_param_create_url( lt_param ).
+    ASSERT 1 = 0.
+*    DATA(lv_name) = `MO_APP->` && val && `->*`.
+*    FIELD-SYMBOLS <data> TYPE any.
+*    ASSIGN (lv_name) TO <data>.
+*    IF <data> IS NOT ASSIGNED.
+*      RETURN.
+*    ENDIF.
+*
+*    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
+*
+*    DATA(ls_new_bind) = VALUE z2ui5_if_core_types=>ty_s_attri(
+*       name        = val && `->*`
+*       type_kind   = lo_descr->type_kind
+*       type        = lo_descr->get_relative_name( )
+*       check_ready = abap_true
+*       check_temp  = abap_true ).
+*
+*    INSERT ls_new_bind INTO TABLE result.
 
   ENDMETHOD.
 
 
-  METHOD app_get_url_source_code.
+  METHOD rtti_get_t_attri_by_include.
 
-    DATA(ls_config) = client->get( )-s_config.
-    result = ls_config-origin && `/sap/bc/adt/oo/classes/`
-       && rtti_get_classname_by_ref( client->get_app( ) ) && `/source/main`.
+    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
+
+    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
+
+      DATA(lv_element) = attri && lr_comp->name.
+
+*      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
+*        name      = lv_element
+*        type_kind = lr_comp->type_kind ).
+*
+      DATA(ls_attri) = VALUE  abap_componentdescr(
+   name      = lv_element
+*        type_kind = lr_comp->type_kind
+   ).
+      "todo type of field
+
+      INSERT ls_attri INTO TABLE result.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -452,24 +475,6 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD c_replace_assign_struc.
-
-    rv_attri  = iv_attri.
-    DATA(lv_length) = strlen( rv_attri ) - 2.
-    DATA(lv_attri_end) = rv_attri+lv_length.
-
-    IF lv_attri_end = `>*`.
-      lv_attri_end = `>`.
-      lv_length = lv_length.
-    ELSE.
-      lv_attri_end = `-`.
-      lv_length = lv_length + 2.
-    ENDIF.
-    rv_attri = rv_attri(lv_length) && lv_attri_end.
-
-  ENDMETHOD.
-
-
   METHOD c_trim.
 
     result = shift_left( shift_right( CONV string( val ) ) ).
@@ -498,7 +503,7 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
   METHOD filter_get_multi_by_data.
 
-    LOOP AT rtti_get_t_comp_by_data( val ) REFERENCE INTO DATA(lr_comp).
+    LOOP AT rtti_get_t_attri_by_struc( val ) REFERENCE INTO DATA(lr_comp).
       INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
     ENDLOOP.
 
@@ -614,11 +619,7 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
   METHOD itab_get_csv_by_itab.
 
     FIELD-SYMBOLS <tab> TYPE table.
-
     ASSIGN val TO <tab>.
-
-
-
     DATA(tab) = CAST cl_abap_tabledescr( cl_abap_typedescr=>describe_by_data( <tab> ) ).
 
     DATA(struc) = CAST cl_abap_structdescr( tab->get_table_line_type( ) ).
@@ -649,6 +650,7 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
 
   METHOD itab_get_itab_by_csv.
+
     DATA lt_comp TYPE cl_abap_structdescr=>component_table.
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     DATA lr_row TYPE REF TO data.
@@ -672,15 +674,12 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
           p_unique     = abap_false ).
 
     CREATE DATA result TYPE HANDLE o_table_desc.
-
     ASSIGN result->* TO <tab>.
-
     DELETE lt_rows WHERE table_line IS INITIAL.
 
     LOOP AT lt_rows REFERENCE INTO DATA(lr_rows) FROM 2.
 
       SPLIT lr_rows->* AT ';' INTO TABLE lt_cols.
-
       CREATE DATA lr_row TYPE HANDLE struc.
 
       LOOP AT lt_cols REFERENCE INTO lr_col.
@@ -789,15 +788,15 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rtti_get_t_attri_by_object.
+  METHOD rtti_get_t_attri_by_oref.
 
     DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
-    result   = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
+    result = CAST cl_abap_classdescr( lo_obj_ref )->attributes.
 
   ENDMETHOD.
 
 
-  METHOD rtti_get_t_comp_by_data.
+  METHOD rtti_get_t_attri_by_struc.
 
     TRY.
         DATA(lo_type) = cl_abap_typedescr=>describe_by_data( val ).
@@ -818,6 +817,16 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
     ENDTRY.
 
     result = lo_struct->get_components( ).
+
+    LOOP AT result REFERENCE INTO DATA(lr_comp)
+        WHERE as_include = abap_true.
+
+      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type
+                                               attri = lr_comp->name ).
+
+      DELETE result.
+      INSERT LINES OF lt_attri INTO TABLE result.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -1065,4 +1074,30 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
+
+  METHOD rtti_get_type_kind_by_descr.
+
+    TRY.
+        DATA(lo_test) = CAST cl_abap_structdescr( val ).
+        result = lo_test->type_kind.
+        RETURN.
+      CATCH cx_sy_move_cast_error.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_test2) = CAST cl_abap_objectdescr( val ).
+        result = lo_test2->type_kind.
+        RETURN.
+      CATCH cx_sy_move_cast_error.
+    ENDTRY.
+
+    TRY.
+        DATA(lo_test3) = CAST cl_abap_refdescr( val ).
+        result = lo_test3->type_kind.
+        RETURN.
+      CATCH cx_sy_move_cast_error.
+    ENDTRY.
+
+  ENDMETHOD.
+
 ENDCLASS.
