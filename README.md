@@ -224,11 +224,11 @@ ENDCLASS.
 * Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Support for Serialization of variables created at runtime is provided via [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* Serialization of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
-* The code is primarily developed on an SAP ABAP Developer Edition 7.52 hosted by [**Nuve Platform**](https://www.nuveplatform.com/)
-* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(by SAP)](https://www.sap.com/germany/index.html)
+* The code is primarily developed on an [**ABAP Developer Edition 7.52**](https://hub.docker.com/r/sapse/abap-platform-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
+* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(SAP)](https://www.sap.com/germany/index.html)
 
 _Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
   
