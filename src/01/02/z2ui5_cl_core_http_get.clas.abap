@@ -404,6 +404,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                sap.z2ui5.oController.responseError(responseText);` && |\n|  &&
                `            } else {` && |\n|  &&
                `                const responseData = await response.json();` && |\n|  &&
+               `                sap.z2ui5.responseData = responseData;` && |\n|  &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n|  &&
                `                   ID : responseData.S_FRONT.ID,` && |\n|  &&
                `                   PARAMS : responseData.S_FRONT.PARAMS,` && |\n|  &&
