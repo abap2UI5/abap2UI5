@@ -131,7 +131,7 @@
     "keyword_case": false,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
-    "line_length": true,
+    "line_length": false,
     "line_only_punc": false,
     "local_class_naming": false,
     "local_testclass_consistency": true,
