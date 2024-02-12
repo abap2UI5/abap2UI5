@@ -234,8 +234,9 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
         WHERE visibility = cl_abap_objectdescr=>public.
 
+      DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ) && lr_attri->name.
       DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
-      ls_attri2-name  = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ) && lr_attri->name.
+      ls_attri2-name  = lv_name.
       ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
       ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
       ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr( ls_attri2-o_typedescr ).

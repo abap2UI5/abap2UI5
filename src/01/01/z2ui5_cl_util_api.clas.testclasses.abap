@@ -310,7 +310,6 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD conv_copy_ref_data.
 
     DATA(lv_test) = `test`.
-    DATA(lr_test) = REF #( lv_test ).
 
     DATA(lr_test2) = z2ui5_cl_util_api=>conv_copy_ref_data( from = lv_test ).
 

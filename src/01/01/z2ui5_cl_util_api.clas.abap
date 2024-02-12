@@ -31,12 +31,6 @@ CLASS  z2ui5_cl_util_api DEFINITION
         table TYPE string,
       END OF ty_s_sql_result.
 
-    CLASS-METHODS rtti_get_t_attri_by_dref
-      IMPORTING
-        val           TYPE clike
-      RETURNING
-        VALUE(result) TYPE abap_component_tab.
-
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
@@ -352,29 +346,6 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_util_api IMPLEMENTATION.
-
-  METHOD rtti_get_t_attri_by_dref.
-
-    ASSERT 1 = 0.
-*    DATA(lv_name) = `MO_APP->` && val && `->*`.
-*    FIELD-SYMBOLS <data> TYPE any.
-*    ASSIGN (lv_name) TO <data>.
-*    IF <data> IS NOT ASSIGNED.
-*      RETURN.
-*    ENDIF.
-*
-*    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
-*
-*    DATA(ls_new_bind) = VALUE z2ui5_if_core_types=>ty_s_attri(
-*       name        = val && `->*`
-*       type_kind   = lo_descr->type_kind
-*       type        = lo_descr->get_relative_name( )
-*       check_ready = abap_true
-*       check_temp  = abap_true ).
-*
-*    INSERT ls_new_bind INTO TABLE result.
-
-  ENDMETHOD.
 
 
   METHOD rtti_get_t_attri_by_include.

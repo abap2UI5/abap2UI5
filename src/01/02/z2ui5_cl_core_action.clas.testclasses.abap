@@ -13,7 +13,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD first_test.
 
     DATA(lo_http) = NEW z2ui5_cl_core_http_post( `` ).
-    DATA(lo_action) = NEW z2ui5_cl_core_action( lo_http ).
+    DATA(lo_action) = NEW z2ui5_cl_core_action( lo_http ) ##NEEDED.
 
   ENDMETHOD.
 
