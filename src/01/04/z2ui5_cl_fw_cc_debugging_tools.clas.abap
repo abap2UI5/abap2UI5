@@ -196,7 +196,6 @@ CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
 `91cmNlX3Zpc2libGV9IiBpZD0idGVzdDIiPgogICAgICAgICAgICAgICAgICAgICAgICA8Y29yZTpIVE1MLz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9WQm94PjxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJ7L3R5cGV9IgogICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT0ney` &&
 `92YWx1ZX0nCiAgICAgICAgICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgdmlzaWJsZT0iey9lZGl0b3JfdmlzaWJsZX0iLz4gPC9IQm94PgogICAgICAgICAgICAgICAgICAgPGZvb3Rlcj48VG9vbGJhcj48VG9vbGJhclNwYWNlci8+PEJ1dHRvbiB0ZXh0PSJDbG9zZSIgcHJlc3M9Im9uQ2xvc2UiLz` &&
 `48L1Rvb2xiYXI+PC9mb290ZXI+CiAgICAgICAgICAgICAgICAgICA8L0RpYWxvZz4KICAgICAgICAgICAgICAgIDwvY29yZTpGcmFnbWVudERlZmluaXRpb24+';` &&
-
              `  XMLDef = atob(  XMLDef  );     ` && |\n|  &&
              `        if(this.oFragment) {` && |\n|  &&
              `                    this.oFragment.close();` && |\n|  &&
