@@ -56,7 +56,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
     TRY.
-        DATA(lv_bind) = lo_bind->main(
+        lo_bind->main(
             val    = REF #( lo_app_client->xx )
             type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
 
@@ -99,12 +99,12 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
-    DATA(lv_bind) = lo_bind->main(
+     lo_bind->main(
         val    = REF #( lo_app_client->mv_value )
         type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
 
     TRY.
-        DATA(lv_bind2) = lo_bind->main(
+      lo_bind->main(
              val    = REF #( lo_app_client->mv_value )
              type   = z2ui5_if_core_types=>cs_bind_type-two_way ).
 
