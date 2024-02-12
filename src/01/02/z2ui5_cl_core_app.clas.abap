@@ -94,18 +94,25 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD attri_get_by_data.
 
-    DO 3 TIMES.
+    TRY.
+        result = REF #( mt_attri[ r_ref = val ] ).
+        RETURN.
+      CATCH cx_root.
+    ENDTRY.
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+      attri = REF #( mt_attri )
+      app = mo_app ).
+
+    DO 5 TIMES.
+
+      lo_model->dissolve( ).
 
       TRY.
           result = REF #( mt_attri[ r_ref = val ] ).
           RETURN.
         CATCH cx_root.
       ENDTRY.
-
-      DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-        attri = REF #( mt_attri )
-        app = mo_app ).
-      lo_model->dissolve( ).
 
     ENDDO.
 

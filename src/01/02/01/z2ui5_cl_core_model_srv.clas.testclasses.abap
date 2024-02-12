@@ -50,6 +50,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
       app   = lo_app ).
 
     lo_bind->dissolve( ).
+    lo_bind->dissolve( ).
+    lo_bind->dissolve( ).
+    lo_bind->dissolve( ).
 
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_VALUE` ] OPTIONAL ) ).
@@ -69,6 +72,9 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
       attri = REF #( lt_attri )
       app   = lo_app ).
 
+    lo_bind->dissolve( ).
+    lo_bind->dissolve( ).
+    lo_bind->dissolve( ).
     lo_bind->dissolve( ).
     lo_bind->dissolve( ).
 
@@ -91,6 +97,8 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
       attri = REF #( lt_attri )
       app   = lo_app2 ).
 
+    lo_bind->dissolve( ).
+    lo_bind->dissolve( ).
     lo_bind->dissolve( ).
     lo_bind->dissolve( ).
 

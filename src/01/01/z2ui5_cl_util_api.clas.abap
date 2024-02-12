@@ -63,6 +63,18 @@ CLASS  z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
+    CLASS-METHODS unassign_object
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE REF TO object.
+
+    CLASS-METHODS unassign_data
+      IMPORTING
+        val           TYPE any
+      RETURNING
+        VALUE(result) TYPE REF TO object.
+
     CLASS-METHODS conv_get_as_data_ref
       IMPORTING
         val           TYPE data
@@ -227,7 +239,7 @@ CLASS  z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS rtti_get_t_attri_by_oref
       IMPORTING
-        !val          TYPE REF TO object
+        !val          TYPE any
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
@@ -1097,6 +1109,22 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         RETURN.
       CATCH cx_sy_move_cast_error.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD unassign_object.
+
+    FIELD-SYMBOLS <unassign> TYPE any.
+    ASSIGN val->* TO <unassign>.
+    result =  <unassign>.
+
+  ENDMETHOD.
+
+  METHOD unassign_data.
+
+    FIELD-SYMBOLS <unassign> TYPE any.
+    ASSIGN val->* TO <unassign>.
+    result =  <unassign>.
 
   ENDMETHOD.
 

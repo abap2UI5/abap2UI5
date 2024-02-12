@@ -45,8 +45,9 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS dissolve_init.
     METHODS dissolve_main.
+
+    METHODS dissolve_init.
 
   PRIVATE SECTION.
 
@@ -145,29 +146,11 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
   METHOD dissolve.
 
     IF mt_attri->* IS INITIAL.
-      dissolve_init(  ).
+      dissolve_init( ).
       RETURN.
     ENDIF.
 
     dissolve_main( ).
-
-  ENDMETHOD.
-
-
-  METHOD dissolve_init.
-
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( mo_app ).
-    LOOP AT lt_attri INTO DATA(ls_attri)
-        WHERE visibility = cl_abap_objectdescr=>public.
-
-      DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
-      ls_attri2-name  = ls_attri-name.
-      ls_attri2-r_ref = attri_get_val_ref( ls_attri-name ).
-      ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
-      ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr(  ls_attri2-o_typedescr ).
-      INSERT ls_attri2 INTO TABLE mt_attri->*.
-
-    ENDLOOP.
 
   ENDMETHOD.
 
@@ -181,19 +164,20 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
       lr_attri->check_dissolved = abap_true.
 
-      CASE z2ui5_cl_util=>rtti_get_type_kind_by_descr( lr_attri->o_typedescr ).
+      CASE lr_attri->type_kind.
 
         WHEN cl_abap_typedescr=>typekind_struct1
         OR cl_abap_typedescr=>typekind_struct2.
-          DATA(lt_attri_tmp) = diss_struc( lr_attri ).
-          INSERT LINES OF lt_attri_tmp INTO TABLE lt_attri_new.
+          DATA(lt_attri_struc) = diss_struc( lr_attri ).
+          INSERT LINES OF lt_attri_struc INTO TABLE lt_attri_new.
 
         WHEN cl_abap_typedescr=>typekind_oref.
-*         lt_attri_new = diss_oref( lr_attri ).
+          DATA(lt_attri_oref) = diss_oref( lr_attri ).
+          INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
 
         WHEN cl_abap_typedescr=>typekind_dref.
-          lt_attri_tmp = diss_dref( lr_attri ).
-          INSERT LINES OF lt_attri_tmp INTO TABLE lt_attri_new.
+          DATA(lt_attri_dref) = diss_dref( lr_attri ).
+          INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
 
         WHEN OTHERS.
 
@@ -239,7 +223,26 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
 
   METHOD diss_oref.
-    ASSERT 1 = 0.
+
+    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
+      RETURN.
+    ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref(
+         z2ui5_cl_util=>unassign_object( ir_attri->r_ref ) ).
+
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
+        WHERE visibility = cl_abap_objectdescr=>public.
+
+      DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+      ls_attri2-name  = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ) && lr_attri->name.
+      ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
+      ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
+      ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr( ls_attri2-o_typedescr ).
+      INSERT ls_attri2 INTO TABLE result.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
 
@@ -272,4 +275,13 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
+  METHOD dissolve_init.
+
+    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
+
+  ENDMETHOD.
+
 ENDCLASS.
