@@ -89,8 +89,9 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
      )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP`
      )->toolbar_spacer(
      )->button( text = `System` icon = `sap-icon://information`
-        press  = client->_event_client( val = client->cs_event-open_new_tab
-                                     t_arg = VALUE #( ( lv_url_info ) ) ) ).
+        press = client->_event( `OPEN_INFO` ) ).
+*        press  = client->_event_client( val = client->cs_event-open_new_tab
+*                                     t_arg = VALUE #( ( lv_url_info ) ) ) ).
 
     DATA(simple_form2) = page2->simple_form(
         editable                = abap_true
@@ -237,6 +238,10 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
   METHOD z2ui5_on_event.
 
     CASE client->get( )-event.
+
+      WHEN `OPEN_INFO`.
+        client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
+        RETURN.
 
       WHEN `BUTTON_CHECK`.
         IF ms_home-class_editable = abap_false.

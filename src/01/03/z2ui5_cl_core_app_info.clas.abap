@@ -43,10 +43,14 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
   METHOD view_display_start.
 
-    DATA(page2) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
-         shownavbutton = abap_false ).
+    DATA(page2) = z2ui5_cl_xml_view=>factory_popup(
+         )->dialog(
+            stretch = abap_true
+            title = `abap2UI5 - System Information`
+            afterclose = client->_event( `CLOSE` )
+        ).
 
-    page2->header_content( )->text(  )->title( `abap2UI5 - System Information` )->toolbar_spacer( ).
+*    page2->header_content( )->text(  )->title( `abap2UI5 - System Information` )->toolbar_spacer( ).
 
     page2->_z2ui5( )->info_frontend(
 *        device_browser = client->_bind( mv_device_browser )
@@ -93,14 +97,21 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     simple_form2->label( `ABAP for Cloud` ).
     simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>rtti_check_lang_version_cloud( ) ).
 
-    data(lv_count) = conv string( new z2ui5_cl_core_draft_srv( )->count( ) ).
+    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_draft_srv( )->count( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
     simple_form2->label( `Version ` ).
     simple_form2->text( z2ui5_if_app=>version ).
     simple_form2->label( `Draft Entries ` ).
     simple_form2->text( lv_count ).
 
-    client->view_display( page2->stringify( ) ).
+  page2->footer( )->overflow_toolbar(
+                )->toolbar_spacer(
+                )->button(
+                    text  = 'close'
+                    press = client->_event( 'CLOSE' )
+                    type  = 'Emphasized' ).
+
+    client->popup_display( page2->stringify( ) ).
 
   ENDMETHOD.
 
@@ -122,13 +133,20 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     ENDIF.
 
     z2ui5_on_event( ).
-    view_display_start( ).
+*    view_display_start( ).
 
   ENDMETHOD.
 
 
   METHOD z2ui5_on_event.
 
+    CASE client->get( )-event.
+
+      WHEN `CLOSE`.
+        client->popup_destroy( ).
+        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
+    ENDCASE.
 
   ENDMETHOD.
 

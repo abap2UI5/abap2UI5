@@ -7,9 +7,9 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     INTERFACES if_serializable_object .
 
-    DATA mt_attri TYPE z2ui5_if_core_types=>ty_t_attri .
-    DATA mo_app TYPE REF TO object .
-    DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft .
+    DATA mt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA mo_app TYPE REF TO object.
+    DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
 
     METHODS attri_get_by_data
       IMPORTING
@@ -49,9 +49,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_core_app IMPLEMENTATION.
-
 
   METHOD all_xml_parse.
 
@@ -133,7 +131,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
 
   METHOD db_save.
-
 
     IF mo_app IS BOUND.
       CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
