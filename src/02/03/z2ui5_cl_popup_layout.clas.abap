@@ -59,7 +59,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
     DATA(tab) = popup->table(
        items = client->_bind_edit( ms_result-t_layout ) ).
 
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_comp_by_data( ms_result-t_layout ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ms_result-t_layout ).
 
     DATA(list) = tab->column_list_item( valign = `Top` ).
     DATA(cells) = list->cells( ).
@@ -97,7 +97,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT IMPLEMENTATION.
 
     IF t_layout IS INITIAL.
 
-      DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_comp_by_data( i_tab ).
+      DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( i_tab ).
       LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
         INSERT VALUE #( name = lr_comp->name visible = abap_true mergeduplicates = abap_false )
           INTO TABLE r_result->ms_result-t_layout.

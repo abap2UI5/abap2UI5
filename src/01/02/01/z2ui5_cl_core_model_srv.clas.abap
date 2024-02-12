@@ -13,69 +13,126 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
         attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
         app   TYPE REF TO object.
 
-    METHODS main.
-    METHODS set_attri_ready.
+
+    METHODS dissolve.
+    METHODS attri_refs_update.
+    METHODS attri_before_save.
+    METHODS attri_after_load.
 
   PROTECTED SECTION.
 
     METHODS attri_get_val_ref
       IMPORTING
-        ir_bind       TYPE REF TO z2ui5_if_core_types=>ty_s_attri
+        iv_path       TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    METHODS get_t_attri_by_dref
+    METHODS diss_struc
       IMPORTING
-        val           TYPE clike
+        ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS get_t_attri_by_struc
+    METHODS diss_dref
       IMPORTING
-        val           TYPE clike
+        ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS get_t_attri_by_include
+    METHODS diss_oref
       IMPORTING
-        type          TYPE REF TO cl_abap_datadescr
-        attri         TYPE clike
+        ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS get_t_attri_by_oref
-      IMPORTING
-        val           TYPE clike OPTIONAL
-          PREFERRED PARAMETER val
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
+    METHODS dissolve_main.
 
-    METHODS dissolve_struc.
-    METHODS dissolve_dref.
-    METHODS dissolve_oref.
+    METHODS dissolve_init.
 
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
+
+
+  METHOD attri_after_load.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+        WHERE data_rtti IS NOT INITIAL
+          AND type_kind = cl_abap_classdescr=>typekind_dref.
+
+      lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
+
+      ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+      z2ui5_cl_util=>xml_srtti_parse(
+        EXPORTING
+          rtti_data = lr_attri->data_rtti
+         IMPORTING
+           e_data   = <val> ).
+
+      CLEAR lr_attri->data_rtti.
+    ENDLOOP.
+
+    attri_refs_update( ).
+
+  ENDMETHOD.
+
+
+  METHOD attri_before_save.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+
+      IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-one_time.
+        DELETE mt_attri->*.
+        CONTINUE.
+      ENDIF.
+
+      IF lr_attri->type_kind <> cl_abap_classdescr=>typekind_dref.
+        CLEAR lr_attri->r_ref.
+        CONTINUE.
+      ENDIF.
+
+      ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
+      ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
+
+      lr_attri->data_rtti = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
+
+      CLEAR <val>.
+      CLEAR <val_ref>.
+      CLEAR lr_attri->r_ref.
+    ENDLOOP.
+
+  ENDMETHOD.
 
 
   METHOD attri_get_val_ref.
 
     FIELD-SYMBOLS <attri> TYPE any.
-    DATA(lv_name) = `MO_APP->` && ir_bind->name.
-
-    ASSIGN (lv_name) TO <attri>.
+    ASSIGN mo_app->(iv_path) TO <attri>.
     IF sy-subrc <> 0.
-      ASSERT 1 = 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `DEREF_FAILED_TARGET_INITIAL`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
     IF sy-subrc <> 0.
       ASSERT 1 = 0.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD attri_refs_update.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
+        WHERE bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
+
+      lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -88,225 +145,152 @@ CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD dissolve_dref.
+  METHOD dissolve.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bind)
-        WHERE type_kind = cl_abap_classdescr=>typekind_dref
-        AND check_dissolved = abap_false.
+    IF mt_attri->* IS INITIAL.
+      dissolve_init( ).
+      RETURN.
+    ENDIF.
 
-      DATA(lt_attri) = get_t_attri_by_dref( lr_bind->name ).
-      IF lt_attri IS INITIAL.
-        CONTINUE.
-      ENDIF.
-      lr_bind->check_dissolved = abap_true.
-      INSERT LINES OF lt_attri INTO TABLE mt_attri->*.
-    ENDLOOP.
+    dissolve_main( ).
 
   ENDMETHOD.
 
 
-  METHOD dissolve_oref.
+  METHOD dissolve_main.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_bind)
-        WHERE type_kind = cl_abap_classdescr=>typekind_oref
-        AND check_dissolved = abap_false
-        AND depth < 5.
-
-      DATA(lt_attri) = get_t_attri_by_oref( lr_bind->name ).
-      IF lt_attri IS INITIAL.
-        CONTINUE.
-      ENDIF.
-      lr_bind->check_dissolved = abap_true.
-      LOOP AT lt_attri REFERENCE INTO DATA(lr_attri).
-        lr_attri->depth = lr_bind->depth + 1.
-      ENDLOOP.
-      INSERT LINES OF lt_attri INTO TABLE mt_attri->*.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD dissolve_struc.
+    DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-        WHERE ( type_kind = cl_abap_classdescr=>typekind_struct1
-        OR type_kind = cl_abap_classdescr=>typekind_struct2 )
-        AND check_dissolved = abap_false.
+        WHERE check_dissolved = abap_false.
 
       lr_attri->check_dissolved = abap_true.
-      lr_attri->check_ready     = abap_true.
-      DATA(lt_attri) = get_t_attri_by_struc( lr_attri->name ).
-      INSERT LINES OF lt_attri INTO TABLE mt_attri->*.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD get_t_attri_by_dref.
-
-    DATA(lv_name) = `MO_APP->` && val && `->*`.
-    FIELD-SYMBOLS <data> TYPE any.
-    ASSIGN (lv_name) TO <data>.
-    IF <data> IS NOT ASSIGNED.
-      RETURN.
-    ENDIF.
-
-    DATA(lo_descr) = cl_abap_datadescr=>describe_by_data( <data> ).
-
-    DATA(ls_new_bind) = VALUE z2ui5_if_core_types=>ty_s_attri(
-       name        = val && `->*`
-       type_kind   = lo_descr->type_kind
-       type        = lo_descr->get_relative_name( )
-       check_ready = abap_true
-       check_temp  = abap_true ).
-
-    INSERT ls_new_bind INTO TABLE result.
-
-  ENDMETHOD.
-
-
-  METHOD get_t_attri_by_include.
-
-    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
-
-    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
-
-      DATA(lv_element) = attri && lr_comp->name.
-
-      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
-        name      = lv_element
-        type_kind = lr_comp->type_kind ).
-      INSERT ls_attri INTO TABLE result.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD get_t_attri_by_oref.
-
-    DATA(lv_name) = COND #( WHEN val IS NOT INITIAL THEN `MO_APP` && `->` && val ELSE `MO_APP` ).
-    FIELD-SYMBOLS <obj> TYPE any.
-    ASSIGN (lv_name) TO <obj>.
-    IF sy-subrc <> 0 OR <obj> IS NOT BOUND.
-      RETURN.
-    ENDIF.
-
-    DATA(lt_attri2) = z2ui5_cl_util=>rtti_get_t_attri_by_object( <obj> ).
-
-    LOOP AT lt_attri2 INTO DATA(ls_attri2)
-        WHERE visibility = cl_abap_classdescr=>public
-           AND is_interface = abap_false.
-      DATA(ls_attri) = CORRESPONDING z2ui5_if_core_types=>ty_s_attri( ls_attri2 ).
-      IF val IS NOT INITIAL.
-        ls_attri-name = val && `->` && ls_attri-name.
-        ls_attri-check_temp = abap_true.
-      ENDIF.
-      INSERT ls_attri INTO TABLE result.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD get_t_attri_by_struc.
-
-    DATA(lv_name) = `MO_APP->` && val.
-    FIELD-SYMBOLS <attribute> TYPE any.
-    ASSIGN (lv_name) TO <attribute>.
-    ASSERT sy-subrc = 0.
-
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_comp_by_data( <attribute> ).
-
-    DATA(lv_attri) = z2ui5_cl_util=>c_replace_assign_struc( val ).
-    LOOP AT lt_comp REFERENCE INTO DATA(lr_comp).
-
-      DATA(lv_element) = lv_attri && lr_comp->name.
-
-      IF lr_comp->as_include = abap_true
-          OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct2
-          OR lr_comp->type->type_kind = cl_abap_classdescr=>typekind_struct1.
-
-        IF lr_comp->name IS INITIAL.
-          DATA(lt_attri) = me->get_t_attri_by_include( type  = lr_comp->type
-                                                       attri = lv_attri ).
-        ELSE.
-          lt_attri = get_t_attri_by_struc( lv_element ).
-        ENDIF.
-        INSERT LINES OF lt_attri INTO TABLE result.
-
-      ELSE.
-
-        DATA(lv_type_name) = substring_after( val = lr_comp->type->absolute_name sub = '\TYPE=').
-        IF z2ui5_cl_util=>boolean_check_by_name( lv_type_name ).
-
-          DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
-                name      = lv_element
-                type      = 'ABAP_BOOL'
-                type_kind = lr_comp->type->type_kind ).
-
-        ELSE.
-
-          ls_attri = VALUE z2ui5_if_core_types=>ty_s_attri(
-            name      = lv_element
-            type_kind = lr_comp->type->type_kind ).
-
-        ENDIF.
-        INSERT ls_attri INTO TABLE result.
-      ENDIF.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
-  METHOD main.
-
-    "step 0 / MO_APP->MV_VAL
-    IF mt_attri->* IS INITIAL.
-      DATA(lt_attri) = get_t_attri_by_oref( ).
-      INSERT LINES OF lt_attri INTO TABLE mt_attri->*.
-    ENDIF.
-
-    "step 1 / MO_APP->MS_STRUC-COMP
-    dissolve_struc( ).
-    "step 2 / MO_APP->MR_DATA->*
-    dissolve_dref( ).
-    "step 3 / MO_APP->MR_STRUC->COMP
-    dissolve_struc( ).
-    "step 4 / MO_APP->MO_OBJ->MV_VAL
-    dissolve_oref( ).
-    "step 5 / MO_APP->MO_OBJ->MR_STRUC-COMP
-    dissolve_struc( ).
-    "step 6 / MO_APP->MO_OBJ->MR_VAL->*
-    dissolve_dref( ).
-    "step 7 / MO_APP->MO_OBJ->MR_STRUC->COMP
-    dissolve_struc( ).
-
-    set_attri_ready( ).
-
-  ENDMETHOD.
-
-
-  METHOD set_attri_ready.
-
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-        WHERE r_ref IS NOT BOUND AND
-            bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       CASE lr_attri->type_kind.
-        WHEN cl_abap_classdescr=>typekind_iref
-            OR cl_abap_classdescr=>typekind_intf.
-          DELETE mt_attri->*.
 
-        WHEN cl_abap_classdescr=>typekind_oref
-            OR cl_abap_classdescr=>typekind_dref
-            OR cl_abap_classdescr=>typekind_struct2
-            OR cl_abap_classdescr=>typekind_struct1.
+        WHEN cl_abap_typedescr=>typekind_struct1
+        OR cl_abap_typedescr=>typekind_struct2.
+          DATA(lt_attri_struc) = diss_struc( lr_attri ).
+          INSERT LINES OF lt_attri_struc INTO TABLE lt_attri_new.
+
+        WHEN cl_abap_typedescr=>typekind_oref.
+          DATA(lt_attri_oref) = diss_oref( lr_attri ).
+          INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
+
+        WHEN cl_abap_typedescr=>typekind_dref.
+          DATA(lt_attri_dref) = diss_dref( lr_attri ).
+          INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
 
         WHEN OTHERS.
-          lr_attri->r_ref = attri_get_val_ref( lr_attri ).
 
       ENDCASE.
+
+    ENDLOOP.
+
+    INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
+
+  ENDMETHOD.
+
+
+  METHOD diss_dref.
+
+    FIELD-SYMBOLS <deref> TYPE any.
+    ASSIGN ir_attri->r_ref->* TO <deref>.
+
+    IF <deref> IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+    ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <deref> ).
+    ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr( ls_attri2-o_typedescr ).
+
+    CASE ls_attri2-o_typedescr->type_kind.
+
+      WHEN cl_abap_datadescr=>typekind_struct1 OR
+        cl_abap_datadescr=>typekind_struct2.
+
+        DATA(lt_attri) = diss_struc( ir_attri ).
+        INSERT LINES OF lt_attri INTO TABLE result.
+
+      WHEN OTHERS.
+        ls_attri2-name = ir_attri->name && `->*`.
+        ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
+
+        INSERT ls_attri2 INTO TABLE result.
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+
+  METHOD diss_oref.
+
+    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
+      RETURN.
+    ENDIF.
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref(
+         z2ui5_cl_util=>unassign_object( ir_attri->r_ref ) ).
+
+    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
+        WHERE visibility = cl_abap_objectdescr=>public
+        AND is_interface = abap_false
+        AND is_constant  = abap_false.
+      TRY.
+
+          DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ).
+          lv_name = lv_name && lr_attri->name.
+          DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+          ls_attri2-name  = lv_name.
+          ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
+          ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
+          ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr( ls_attri2-o_typedescr ).
+          INSERT ls_attri2 INTO TABLE result.
+
+        CATCH cx_root.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.
+
+
+  METHOD diss_struc.
+
+    FIELD-SYMBOLS <any> TYPE any.
+
+    CASE ir_attri->type_kind.
+      WHEN cl_abap_typedescr=>typekind_struct1
+      OR cl_abap_typedescr=>typekind_struct2.
+        DATA(lv_name) = ir_attri->name && `-`.
+        ASSIGN ir_attri->r_ref TO <any>.
+      WHEN cl_abap_typedescr=>typekind_dref.
+        lv_name = ir_attri->name && `->`.
+        ASSIGN ir_attri->r_ref->* TO <any>.
+    ENDCASE.
+
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( <any> ).
+
+    LOOP AT lt_attri INTO DATA(ls_attri).
+
+      DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+      ls_attri2-name  = lv_name && ls_attri-name.
+      ls_attri2-r_ref = attri_get_val_ref( lv_name && ls_attri-name ).
+      ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
+      ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr(  ls_attri2-o_typedescr ).
+      INSERT ls_attri2 INTO TABLE result.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD dissolve_init.
+
+    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
+
+  ENDMETHOD.
+
 ENDCLASS.

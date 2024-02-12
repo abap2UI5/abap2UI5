@@ -2,6 +2,13 @@ INTERFACE z2ui5_if_core_types
   PUBLIC.
 
   CONSTANTS:
+    BEGIN OF cs_ui5,
+      event_backend_function  TYPE string VALUE `eB`,
+      event_frontend_function TYPE string VALUE `eF`,
+      two_way_model           TYPE string VALUE `XX`,
+    END OF cs_ui5.
+
+  CONSTANTS:
     BEGIN OF cs_bind_type,
       one_way  TYPE string VALUE `ONE_WAY`,
       two_way  TYPE string VALUE `TWO_WAY`,
@@ -40,6 +47,8 @@ INTERFACE z2ui5_if_core_types
       custom_mapper      TYPE REF TO z2ui5_if_ajson_mapping,
       custom_mapper_back TYPE REF TO z2ui5_if_ajson_mapping,
       r_ref              TYPE REF TO data,
+      o_typedescr        type ref to cl_abap_typedescr,
+      s_rtti_descr       type abap_componentdescr,
     END OF ty_s_attri.
   TYPES ty_t_attri TYPE SORTED TABLE OF ty_s_attri WITH UNIQUE KEY name.
 
@@ -97,19 +106,19 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_http_response_post,
-      BEGIN OF s_frontend,
+      BEGIN OF s_front,
         params    TYPE ty_s_next_frontend,
         id        TYPE string,
         app_start TYPE string,
         app       TYPE string,
-      END OF s_frontend,
+      END OF s_front,
       model TYPE string,
     END OF ty_s_http_response_post.
 
   TYPES:
     BEGIN OF ty_s_http_request_post,
       o_model TYPE REF TO z2ui5_if_ajson,
-      BEGIN OF s_frontend,
+      BEGIN OF s_front,
         id               TYPE string,
         view             TYPE string,
         t_event_arg      TYPE string_table,
@@ -119,7 +128,7 @@ INTERFACE z2ui5_if_core_types
         search           TYPE string,
         event            TYPE string,
         t_startup_params TYPE z2ui5_if_types=>ty_t_name_value,
-      END OF s_frontend,
+      END OF s_front,
       BEGIN OF s_control,
         check_launchpad TYPE abap_bool,
         app_start       TYPE string,

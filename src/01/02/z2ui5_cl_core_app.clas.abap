@@ -13,7 +13,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     METHODS attri_get_by_data
       IMPORTING
-        !val          TYPE ref to data
+        !val          TYPE REF TO data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
 
@@ -61,26 +61,11 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         IMPORTING
             any = result ).
 
-    LOOP AT result->mt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE data_rtti IS NOT INITIAL
-          AND type_kind = cl_abap_classdescr=>typekind_dref.
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+       attri = REF #( result->mt_attri )
+       app   = result->mo_app ).
 
-      DATA(lv_assign) = 'RESULT->MO_APP->' && lr_attri->name.
-      ASSIGN (lv_assign) TO FIELD-SYMBOL(<val>).
-      IF sy-subrc <> 0.
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = `LOAD_DRAFT_FROM_DATABASE_FAILED / ATTRI_NOT_FOUND ` && lr_attri->name.
-      ENDIF.
-
-      z2ui5_cl_util=>xml_srtti_parse(
-        EXPORTING
-          rtti_data = lr_attri->data_rtti
-         IMPORTING
-           e_data   = <val> ).
-
-      CLEAR lr_attri->data_rtti.
-    ENDLOOP.
+    lo_model->attri_after_load( ).
 
   ENDMETHOD.
 
@@ -89,38 +74,10 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     TRY.
 
-        LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
-          CLEAR lr_attri->r_ref.
-          IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-one_time.
-            DELETE mt_attri.
-          ENDIF.
-        ENDLOOP.
-
-        result = z2ui5_cl_util=>xml_stringify( me ).
-        RETURN.
-
-      CATCH cx_xslt_serialization_error INTO DATA(x).
-    ENDTRY.
-
-    TRY.
-
-        LOOP AT mt_attri REFERENCE INTO lr_attri
-            WHERE type_kind = cl_abap_classdescr=>typekind_dref.
-
-          DATA(lv_name) = `MO_APP->` && lr_attri->name && `->*`.
-          DATA(lv_name2) = `MO_APP->` && lr_attri->name.
-          ASSIGN (lv_name) TO FIELD-SYMBOL(<val>).
-          ASSIGN (lv_name2) TO FIELD-SYMBOL(<val_ref>).
-
-          lr_attri->data_rtti = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
-
-          CLEAR <val>.
-          CLEAR <val_ref>.
-        ENDLOOP.
-
-        LOOP AT mt_attri REFERENCE INTO lr_attri.
-          CLEAR lr_attri->r_ref.
-        ENDLOOP.
+        DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+          attri = REF #( mt_attri )
+          app   = me->mo_app ).
+        lo_model->attri_before_save( ).
 
         result = z2ui5_cl_util=>xml_stringify( me ).
 
@@ -128,7 +85,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
-            val = `<p>` && x->previous->get_text( ) && `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
+            val = `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
 
     ENDTRY.
 
@@ -137,18 +94,25 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
   METHOD attri_get_by_data.
 
-    DO 3 TIMES.
+    TRY.
+        result = REF #( mt_attri[ r_ref = val ] ).
+        RETURN.
+      CATCH cx_root.
+    ENDTRY.
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+      attri = REF #( mt_attri )
+      app = mo_app ).
+
+    DO 5 TIMES.
+
+      lo_model->dissolve( ).
 
       TRY.
           result = REF #( mt_attri[ r_ref = val ] ).
           RETURN.
         CATCH cx_root.
       ENDTRY.
-
-      DATA(lo_dissolver) = NEW z2ui5_cl_core_model_srv(
-        attri = REF #( mt_attri )
-        app = mo_app ).
-      lo_dissolver->main( ).
 
     ENDDO.
 
@@ -184,11 +148,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
 
   METHOD model_json_parse.
-
-    DATA(lo_dissolver) = NEW z2ui5_cl_core_model_srv(
-        attri = REF #( mt_attri )
-        app = mo_app ).
-    lo_dissolver->set_attri_ready( ).
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
     lo_json_mapper->model_client_to_server(

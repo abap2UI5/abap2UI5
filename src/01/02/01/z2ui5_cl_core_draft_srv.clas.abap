@@ -66,8 +66,7 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
         id_prev_app_stack = draft-id_prev_app_stack
         uname             = z2ui5_cl_util=>user_get_tech( )
         timestampl        = z2ui5_cl_util=>time_get_timestampl( )
-        data              = model_xml
-     ).
+        data              = model_xml ).
 
     MODIFY z2ui5_t_core_01 FROM @ls_db.
     IF sy-subrc <> 0.
