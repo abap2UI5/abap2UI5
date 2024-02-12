@@ -86,6 +86,7 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
       IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-one_time.
         DELETE mt_attri->*.
+        CONTINUE.
       ENDIF.
 
       IF lr_attri->type_kind <> cl_abap_classdescr=>typekind_dref.
@@ -184,13 +185,15 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>typekind_struct1
         OR cl_abap_typedescr=>typekind_struct2.
-          lt_attri_new = diss_struc( lr_attri ).
+          DATA(lt_attri_tmp) = diss_struc( lr_attri ).
+          INSERT LINES OF lt_attri_tmp INTO TABLE lt_attri_new.
 
         WHEN cl_abap_typedescr=>typekind_oref.
 *         lt_attri_new = diss_oref( lr_attri ).
 
         WHEN cl_abap_typedescr=>typekind_dref.
-          lt_attri_new = diss_dref( lr_attri ).
+          lt_attri_tmp = diss_dref( lr_attri ).
+          INSERT LINES OF lt_attri_tmp INTO TABLE lt_attri_new.
 
         WHEN OTHERS.
 
@@ -207,6 +210,10 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
     FIELD-SYMBOLS <deref> TYPE any.
     ASSIGN ir_attri->r_ref->* TO <deref>.
+
+    IF <deref> IS INITIAL.
+      RETURN.
+    ENDIF.
 
     DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
     ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( <deref> ).
@@ -238,14 +245,20 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
   METHOD diss_struc.
 
-    DATA(lv_name) = ir_attri->name && SWITCH #( ir_attri->type_kind
-        WHEN cl_abap_typedescr=>typekind_struct1
-        OR cl_abap_typedescr=>typekind_struct2
-            THEN `-`
-        WHEN cl_abap_typedescr=>typekind_dref
-            THEN `->` ).
+    FIELD-SYMBOLS <any> TYPE any.
 
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ir_attri->r_ref ).
+    CASE ir_attri->type_kind.
+      WHEN cl_abap_typedescr=>typekind_struct1
+      OR cl_abap_typedescr=>typekind_struct2.
+        DATA(lv_name) = ir_attri->name && `-`.
+        ASSIGN ir_attri->r_ref TO <any>.
+      WHEN cl_abap_typedescr=>typekind_dref.
+        lv_name = ir_attri->name && `->`.
+        ASSIGN ir_attri->r_ref->* TO <any>.
+    ENDCASE.
+
+
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( <any> ).
 
     LOOP AT lt_attri INTO DATA(ls_attri).
 

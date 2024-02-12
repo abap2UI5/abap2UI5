@@ -434,7 +434,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            delete sap.z2ui5.oBody?.APP_START;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.S_FRONTEND.XX;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
-              `            if  (sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG; } ` && |\n|  &&
+              `            if  (!sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG; } ` && |\n|  &&
               `            if  (sap.z2ui5.oBody.S_FRONTEND.T_STARTUP_PARAMETERS == undefined) { delete sap.z2ui5.oBody.S_FRONTEND.T_STARTUP_PARAMETERS; } ` && |\n|  &&
               `            if ( sap.z2ui5.oBody.S_FRONTEND.SEARCH == '' ){ delete sap.z2ui5.oBody.S_FRONTEND.SEARCH; } ` && |\n|  &&
               `            if (!sap.z2ui5.oBody.XX){ delete sap.z2ui5.oBody.XX; } ` && |\n|  &&
