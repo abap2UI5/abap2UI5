@@ -121,7 +121,6 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         DATA(lo_app) = z2ui5_cl_core_app=>db_load( ms_next-o_app_call->id_draft ).
         result->mo_app = lo_app.
         result->mo_app->mo_app = ms_next-o_app_leave.
-
       CATCH cx_root.
     ENDTRY.
 
@@ -139,6 +138,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         ELSE ms_next-o_app_leave->id_draft ).
 
     result = NEW #( mo_http_post ).
+    result->mo_app->mo_app = ms_next-o_app_leave.
 
     TRY.
 
@@ -153,20 +153,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
         lo_model->attri_refs_update( ).
 
       CATCH cx_root.
-        result->mo_app->mo_app = ms_next-o_app_leave.
     ENDTRY.
 
-
-*    result = NEW #( mo_http_post ).
-*
     result->mo_app->ms_draft-id          = ms_next-o_app_leave->id_draft.
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.
     result->mo_app->ms_draft-id_prev_app = mo_app->ms_draft-id.
     result->ms_actual-check_on_navigated = abap_true.
     result->ms_next-s_set                = ms_next-s_set.
-
-
-*    result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
 
   ENDMETHOD.
 

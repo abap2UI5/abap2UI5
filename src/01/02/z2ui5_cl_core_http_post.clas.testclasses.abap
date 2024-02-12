@@ -14,7 +14,7 @@ CLASS ltcl_test_handler_post IMPLEMENTATION.
 
   METHOD load_startup_app.
 
-    DATA(lv_payload) = `{"S_FRONTEND":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}`.
+    DATA(lv_payload) = `{"S_FRONT":{"ORIGIN":"ORIGIN","PATHNAME":"PATHNAME","SEARCH":""}}`.
     DATA(lo_post) = NEW z2ui5_cl_core_http_post( lv_payload ).
     lo_post->main_begin( ).
 
