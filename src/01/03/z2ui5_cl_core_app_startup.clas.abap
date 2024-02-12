@@ -80,9 +80,9 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
          shownavbutton = abap_false ).
 
 
-    DATA(lv_url_info) = z2ui5_cl_util=>app_get_url(
-                  client    = client
-                  classname = 'z2ui5_cl_core_app_info' ).
+*    DATA(lv_url_info) = z2ui5_cl_util=>app_get_url(
+*                  client    = client
+*                  classname = 'z2ui5_cl_core_app_info' ).
 
     page2->header_content(
     )->text(
