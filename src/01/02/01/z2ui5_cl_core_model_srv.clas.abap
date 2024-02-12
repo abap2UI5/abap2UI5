@@ -113,7 +113,9 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
     FIELD-SYMBOLS <attri> TYPE any.
     ASSIGN mo_app->(iv_path) TO <attri>.
     IF sy-subrc <> 0.
-      RETURN.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `DEREF_FAILED_TARGET_INITIAL`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
@@ -232,17 +234,22 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
          z2ui5_cl_util=>unassign_object( ir_attri->r_ref ) ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE visibility = cl_abap_objectdescr=>public.
+        WHERE visibility = cl_abap_objectdescr=>public
+        AND is_interface = abap_false
+        AND is_constant  = abap_false.
+      TRY.
 
-      DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ).
-      lv_name = lv_name && lr_attri->name.
-      DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
-      ls_attri2-name  = lv_name.
-      ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
-      ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
-      ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr( ls_attri2-o_typedescr ).
-      INSERT ls_attri2 INTO TABLE result.
+          DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ).
+          lv_name = lv_name && lr_attri->name.
+          DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
+          ls_attri2-name  = lv_name.
+          ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
+          ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( ls_attri2-r_ref ).
+          ls_attri2-type_kind = z2ui5_cl_util=>rtti_get_type_kind_by_descr( ls_attri2-o_typedescr ).
+          INSERT ls_attri2 INTO TABLE result.
 
+        CATCH cx_root.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.

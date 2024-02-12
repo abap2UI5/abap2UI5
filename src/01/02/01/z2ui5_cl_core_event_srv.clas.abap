@@ -37,7 +37,7 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
   METHOD get_event.
 
-    result = z2ui5_if_core_types=>cs_ui5-event_backend_function && `({'EVENT':'` && val && `','METHOD':'TEST','CHECK_VIEW_DESTROY':` && z2ui5_cl_util=>boolean_abap_2_json( check_view_destroy ) && `}`.
+    result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'{ COND #( WHEN check_view_destroy = abap_true THEN `,true`) }]|.
     result = result && get_t_arg( t_arg ).
 
   ENDMETHOD.
@@ -45,7 +45,8 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
   METHOD get_event_client.
 
-    result = z2ui5_if_core_types=>cs_ui5-event_frontend_function && `({'EVENT':'` && val && `'}` && get_t_arg( t_arg ).
+    result = |{ z2ui5_if_core_types=>cs_ui5-event_frontend_function }('{ val }'|.
+    result = result && get_t_arg( t_arg ).
 
   ENDMETHOD.
 

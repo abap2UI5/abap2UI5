@@ -61,18 +61,18 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_by_frontend.
 
     result = NEW #( mo_http_post ).
-    result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_frontend-id ).
+    result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_front-id ).
 
     result->mo_app->ms_draft-id      = z2ui5_cl_util=>uuid_get_c32( ).
-    result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_frontend-id.
-    result->ms_actual-view           = mo_http_post->ms_request-s_frontend-view.
+    result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.
+    result->ms_actual-view           = mo_http_post->ms_request-s_front-view.
 
     result->mo_app->model_json_parse(
-        view          = mo_http_post->ms_request-s_frontend-view
+        view          = mo_http_post->ms_request-s_front-view
         io_json_model = mo_http_post->ms_request-o_model ).
 
-    result->ms_actual-event              = mo_http_post->ms_request-s_frontend-event.
-    result->ms_actual-t_event_arg        = mo_http_post->ms_request-s_frontend-t_event_arg.
+    result->ms_actual-event              = mo_http_post->ms_request-s_front-event.
+    result->ms_actual-t_event_arg        = mo_http_post->ms_request-s_front-t_event_arg.
     result->ms_actual-check_on_navigated = abap_false.
 
   ENDMETHOD.
@@ -91,17 +91,19 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
         result->ms_actual-check_on_navigated = abap_true.
 
-      CATCH cx_root into data(x).
+      CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
           EXPORTING
-            val = `App with name ` && mo_http_post->ms_request-s_control-app_start && ` not found...`
+            val      = `App with name ` && mo_http_post->ms_request-s_control-app_start && ` not found...`
             previous = x.
     ENDTRY.
 
   ENDMETHOD.
 
+
   METHOD factory_stack_call.
 
+    mo_app->db_save( ).
 
     ms_next-o_app_call->id_draft = COND string(
     WHEN ms_next-o_app_call->id_draft IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( )
@@ -117,42 +119,54 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
     TRY.
         DATA(lo_app) = z2ui5_cl_core_app=>db_load( ms_next-o_app_call->id_draft ).
-        result->mo_app->mo_app   = lo_app->mo_app.
-        result->mo_app->mt_attri = lo_app->mt_attri.
+        result->mo_app = lo_app.
+        result->mo_app->mo_app = ms_next-o_app_leave.
 
       CATCH cx_root.
     ENDTRY.
 
     result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id.
-    mo_app->db_save( ).
 
   ENDMETHOD.
 
 
   METHOD factory_stack_leave.
 
+    mo_app->db_save( ).
+
     ms_next-o_app_leave->id_draft = COND string(
         WHEN ms_next-o_app_leave->id_draft IS INITIAL THEN z2ui5_cl_util=>uuid_get_c32( )
         ELSE ms_next-o_app_leave->id_draft ).
 
     result = NEW #( mo_http_post ).
-    result->mo_app->mo_app               = ms_next-o_app_leave.
+
+    TRY.
+
+        DATA(lo_app) = z2ui5_cl_core_app=>db_load( ms_next-o_app_leave->id_draft ).
+        result->mo_app = lo_app.
+        result->mo_app->mo_app = ms_next-o_app_leave.
+
+        DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+            attri = REF #( result->mo_app->mt_attri )
+            app   = result->mo_app->mo_app ).
+
+        lo_model->attri_refs_update( ).
+
+      CATCH cx_root.
+        result->mo_app->mo_app = ms_next-o_app_leave.
+    ENDTRY.
+
+
+*    result = NEW #( mo_http_post ).
+*
     result->mo_app->ms_draft-id          = ms_next-o_app_leave->id_draft.
     result->mo_app->ms_draft-id_prev     = mo_app->ms_draft-id.
     result->mo_app->ms_draft-id_prev_app = mo_app->ms_draft-id.
     result->ms_actual-check_on_navigated = abap_true.
     result->ms_next-s_set                = ms_next-s_set.
 
-    TRY.
-        DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
-        DATA(ls_draft) = lo_db->read_info( result->mo_app->ms_draft-id ).
-        result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
 
-      CATCH cx_root.
-        result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
-    ENDTRY.
-
-    mo_app->db_save( ).
+*    result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
 
   ENDMETHOD.
 

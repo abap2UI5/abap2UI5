@@ -228,7 +228,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `              }` && |\n|  &&
                `            )` && |\n|  &&
                `            let oCrossAppNavigator;` && |\n|  &&
-               `            switch (args[0].EVENT) {` && |\n|  &&
+               `            switch (args[0]) {` && |\n|  &&
                `            case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n|  &&
                `                oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n|  &&
                `                oCrossAppNavigator.backToPreviousApp();` && |\n|  &&
@@ -324,7 +324,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                if (item !== undefined) {` && |\n|  &&
                `                    item();` && |\n|  &&
                `                }})` && |\n|  &&
-               `            if (args[0].CHECK_VIEW_DESTROY) {` && |\n|  &&
+               `            if (args[0][1]) {` && |\n|  &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n|  &&
                `            }` && |\n|  &&
                `            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n|  &&
@@ -405,8 +405,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            } else {` && |\n|  &&
                `                const responseData = await response.json();` && |\n|  &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n|  &&
-               `                   ID : responseData.S_FRONTEND.ID,` && |\n|  &&
-               `                   PARAMS : responseData.S_FRONTEND.PARAMS,` && |\n|  &&
+               `                   ID : responseData.S_FRONT.ID,` && |\n|  &&
+               `                   PARAMS : responseData.S_FRONT.PARAMS,` && |\n|  &&
                `                   OVIEWMODEL : responseData.MODEL,` && |\n|  &&
                `                 });` && |\n|  &&
                `            }` && |\n|  &&
@@ -415,8 +415,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            sap.z2ui5.checkTimerActive = false;` && |\n|  &&
                `            sap.z2ui5.checkNestAfter = false;` && |\n|  &&
                `            sap.z2ui5.checkNestAfter2 = false;` && |\n|  &&
-               `       let event =  (args) => { if ( args != undefined  ) { return args[ 0 ].EVENT; } };` && |\n|  &&
-               `            sap.z2ui5.oBody.S_FRONTEND = {` && |\n|  &&
+               `       let event =  (args) => { if ( args != undefined  ) { return args[0][0]; } };` && |\n|  &&
+               `            sap.z2ui5.oBody.S_FRONT = {` && |\n|  &&
                `                ID: sap.z2ui5?.oBody?.ID,` && |\n|  &&
                `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n|  &&
                `                XX: sap.z2ui5?.oBody?.XX,` && |\n|  &&
@@ -428,15 +428,16 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
            `                   EVENT:  event(sap.z2ui5.oBody?.ARGUMENTS),` && |\n|  &&
                `            };` && |\n|  &&
                `   if (  sap.z2ui5.oBody?.ARGUMENTS != undefined  ) { if ( sap.z2ui5.oBody?.ARGUMENTS.length > 0 ) { sap.z2ui5.oBody?.ARGUMENTS.shift(); } }` && |\n|  &&
-               `             sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
+               `             sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
                `            delete sap.z2ui5.oBody.ID;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.APP_START;` && |\n|  &&
-               `            delete sap.z2ui5.oBody?.S_FRONTEND.XX;` && |\n|  &&
+               `            delete sap.z2ui5.oBody?.S_FRONT.XX;` && |\n|  &&
                `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
-              `            if  (!sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONTEND.T_EVENT_ARG; } ` && |\n|  &&
-              `            if  (sap.z2ui5.oBody.S_FRONTEND.T_STARTUP_PARAMETERS == undefined) { delete sap.z2ui5.oBody.S_FRONTEND.T_STARTUP_PARAMETERS; } ` && |\n|  &&
-              `            if ( sap.z2ui5.oBody.S_FRONTEND.SEARCH == '' ){ delete sap.z2ui5.oBody.S_FRONTEND.SEARCH; } ` && |\n|  &&
+              `            if  (!sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } ` && |\n|  &&
+              `            if  (sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { if (sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0 ) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } }` && |\n|  &&
+              `            if  (sap.z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) { delete sap.z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS; } ` && |\n|  &&
+              `            if ( sap.z2ui5.oBody.S_FRONT.SEARCH == '' ){ delete sap.z2ui5.oBody.S_FRONT.SEARCH; } ` && |\n|  &&
               `            if (!sap.z2ui5.oBody.XX){ delete sap.z2ui5.oBody.XX; } ` && |\n|  &&
                `           sap.z2ui5.oController.readHttp();` && |\n|  &&
                `        },` && |\n|  &&

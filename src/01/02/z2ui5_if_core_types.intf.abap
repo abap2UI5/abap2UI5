@@ -106,19 +106,19 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_http_response_post,
-      BEGIN OF s_frontend,
+      BEGIN OF s_front,
         params    TYPE ty_s_next_frontend,
         id        TYPE string,
         app_start TYPE string,
         app       TYPE string,
-      END OF s_frontend,
+      END OF s_front,
       model TYPE string,
     END OF ty_s_http_response_post.
 
   TYPES:
     BEGIN OF ty_s_http_request_post,
       o_model TYPE REF TO z2ui5_if_ajson,
-      BEGIN OF s_frontend,
+      BEGIN OF s_front,
         id               TYPE string,
         view             TYPE string,
         t_event_arg      TYPE string_table,
@@ -128,7 +128,7 @@ INTERFACE z2ui5_if_core_types
         search           TYPE string,
         event            TYPE string,
         t_startup_params TYPE z2ui5_if_types=>ty_t_name_value,
-      END OF s_frontend,
+      END OF s_front,
       BEGIN OF s_control,
         check_launchpad TYPE abap_bool,
         app_start       TYPE string,

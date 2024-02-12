@@ -207,8 +207,8 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
         id      = lr_app->name
         class   = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
         press   = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/header}` ) ( `${$source>/id}` ) ) )
-        header  = client->_bind( val = lr_app->name    tab = ref #( mt_apps ) tab_index = lv_tabix )
-        visible = client->_bind( val = lr_app->visible tab = ref #( mt_apps ) tab_index = lv_tabix ) ).
+        header  = client->_bind( val = lr_app->name    tab = mt_apps tab_index = lv_tabix )
+        visible = client->_bind( val = lr_app->visible tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.
 
 

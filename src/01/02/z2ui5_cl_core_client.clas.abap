@@ -47,7 +47,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       t_event_arg            = mo_action->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
       check_on_navigated     = mo_action->ms_actual-check_on_navigated
-      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_frontend )
+      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
     ).
 
   ENDMETHOD.

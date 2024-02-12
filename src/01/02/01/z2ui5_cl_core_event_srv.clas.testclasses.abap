@@ -1,4 +1,4 @@
-CLASS ltcl_test_db DEFINITION FINAL FOR TESTING
+CLASS ltcl_test DEFINITION FINAL FOR TESTING
   DURATION LONG
   RISK LEVEL HARMLESS.
 
@@ -10,7 +10,7 @@ CLASS ltcl_test_db DEFINITION FINAL FOR TESTING
 ENDCLASS.
 
 
-CLASS ltcl_test_db IMPLEMENTATION.
+CLASS ltcl_test IMPLEMENTATION.
 
   METHOD event.
 
@@ -19,7 +19,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_event
-      exp = `onEvent({'EVENT':'POST','METHOD':'TEST','CHECK_VIEW_DESTROY':false})` ).
+      exp = `eB({'EVENT':'POST','METHOD':'TEST','CHECK_VIEW_DESTROY':false})` ).
 
   ENDMETHOD.
 
@@ -30,7 +30,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_event
-      exp = `onEventFrontend({'EVENT':'POPOVER_CLOSE'})` ).
+      exp = `eF({'EVENT':'POPOVER_CLOSE'})` ).
 
   ENDMETHOD.
 ENDCLASS.

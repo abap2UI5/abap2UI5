@@ -55,11 +55,8 @@ CLASS z2ui5_cl_core_bind_srv DEFINITION
         VALUE(result) TYPE string.
 
     METHODS update_model_attri.
-
     METHODS check_raise_existing.
-
     METHODS check_raise_new.
-
 
   PRIVATE SECTION.
 ENDCLASS.

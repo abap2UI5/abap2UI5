@@ -137,23 +137,23 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
         result-o_model->set( iv_path = lv_model_edit_name iv_val = lo_model ).
         lo_ajson->delete( lv_model_edit_name ).
 
-        lo_ajson = lo_ajson->slice( `/S_FRONTEND`).
+        lo_ajson = lo_ajson->slice( `/S_FRONT`).
         lo_ajson->to_abap(
             EXPORTING
                iv_corresponding = abap_true
             IMPORTING
-                ev_container     = result-s_frontend ).
+                ev_container     = result-s_front ).
 
-        result-s_control-check_launchpad = xsdbool( result-s_frontend-search CS `scenario=LAUNCHPAD` ).
-        IF result-s_frontend-id IS NOT INITIAL.
+        result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD` ).
+        IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.
-        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_frontend-app_start ).
+        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_front-app_start ).
         IF result-s_control-app_start IS NOT INITIAL.
           RETURN.
         ENDIF.
         result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
-            z2ui5_cl_util=>url_param_get( val = `app_start` url = result-s_frontend-search ) ).
+            z2ui5_cl_util=>url_param_get( val = `app_start` url = result-s_front-search ) ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -169,12 +169,12 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty(
           ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
 
-        ajson_result->set( iv_path = `/` iv_val = val-s_frontend ).
+        ajson_result->set( iv_path = `/` iv_val = val-s_front ).
         ajson_result = ajson_result->filter( NEW z2ui5_cl_core_json_srv( ) ).
         DATA(lv_frontend) =  ajson_result->stringify( ).
 
         result = `{` &&
-            |"S_FRONTEND":{ lv_frontend },| &&
+            |"S_FRONT":{ lv_frontend },| &&
             |"MODEL":{ val-model }| &&
           `}`.
 
