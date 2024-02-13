@@ -58,41 +58,41 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   METHOD test_one_way_w_x_error.
 
-*    DATA(lo_app_client) = NEW ltcl_test_app( ).
-*    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-*    lo_app->mo_app = lo_app_client.
-*
-*    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
-*
-*    TRY.
-*        lo_bind->main(
-*            val    = REF #( lo_app_client->xx )
-*            type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
-*
-*        cl_abap_unit_assert=>abort( ).
-*
-*      CATCH cx_root.
-*    ENDTRY.
+    DATA(lo_app_client) = NEW ltcl_test_app( ).
+    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    lo_app->mo_app = lo_app_client.
+
+    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+
+    TRY.
+        lo_bind->main(
+            val    = REF #( lo_app_client->xx )
+            type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+
+        cl_abap_unit_assert=>abort( ).
+
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
   METHOD test_one_way.
 
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-*    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-*    lo_app->mo_app = lo_app_client.
-*
-*    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    lo_app->mo_app = lo_app_client.
 
-*    DATA(lv_bind) = lo_bind->main(
-*        val    = REF #( lo_app_client->mv_value )
-*        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
-*
-*    cl_abap_unit_assert=>assert_equals(
-*       act = lv_bind
-*       exp = `{/MV_VALUE}` ).
-*
-*    cl_abap_unit_assert=>assert_not_initial( lv_bind ).
+    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+
+    DATA(lv_bind) = lo_bind->main(
+        val    = REF #( lo_app_client->mv_value )
+        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+
+    cl_abap_unit_assert=>assert_equals(
+       act = lv_bind
+       exp = `{/MV_VALUE}` ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_bind ).
 
   ENDMETHOD.
 
