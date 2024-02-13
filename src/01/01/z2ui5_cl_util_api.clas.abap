@@ -730,7 +730,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD rtti_check_ref_data.
 
     TRY.
-        cl_abap_typedescr=>describe_by_data_ref( val ).
+        DATA(lo_typdescr) = cl_abap_typedescr=>describe_by_data( val ).
+        DATA(lo_ref) = CAST cl_abap_refdescr( lo_typdescr ).
         result = abap_true.
       CATCH cx_root.
     ENDTRY.
