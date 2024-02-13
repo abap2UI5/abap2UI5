@@ -70,10 +70,10 @@ CLASS ltcl_test_bind IMPLEMENTATION.
   METHOD test_one_way.
 
     DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mo_app = lo_app_client.
-
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+*    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+*    lo_app->mo_app = lo_app_client.
+*
+*    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
 *    DATA(lv_bind) = lo_bind->main(
 *        val    = REF #( lo_app_client->mv_value )
