@@ -16,7 +16,7 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
     METHODS attri_before_save.
     METHODS attri_after_load.
 
-    METHODS search_attribute
+    METHODS search_a_dissolve_attribute
       IMPORTING
         val           TYPE REF TO data
       RETURNING
@@ -50,7 +50,7 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
       IMPORTING ir_attri      TYPE REF TO z2ui5_if_core_types=>ty_s_attri
       RETURNING VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS read_attri_by_ref
+    METHODS search_attribute
       IMPORTING
         val           TYPE REF TO data
       RETURNING
@@ -110,16 +110,16 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD search_attribute.
+  METHOD search_a_dissolve_attribute.
 
-    result = read_attri_by_ref( val ).
+    result = search_attribute( val ).
     IF result IS BOUND.
       RETURN.
     ENDIF.
 
     DO 5 TIMES.
       dissolve( ).
-      result = read_attri_by_ref( val ).
+      result = search_attribute( val ).
       IF result IS BOUND.
         RETURN.
       ENDIF.
@@ -308,7 +308,7 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD read_attri_by_ref.
+  METHOD search_attribute.
 
     LOOP AT mt_attri->* REFERENCE INTO result
          WHERE type_kind <> cl_abap_typedescr=>typekind_dref

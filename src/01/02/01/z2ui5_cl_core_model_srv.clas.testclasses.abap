@@ -203,7 +203,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
-    DATA(lr_attri) = lo_model->search_attribute( REF #( lo_app_client->mv_value ) ).
+    DATA(lr_attri) = lo_model->search_a_dissolve_attribute( REF #( lo_app_client->mv_value ) ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
@@ -223,7 +223,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
-    DATA(lr_attri) = lo_model->search_attribute( REF #( lo_app_client->mv_value ) ).
+    DATA(lr_attri) = lo_model->search_a_dissolve_attribute( REF #( lo_app_client->mv_value ) ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
