@@ -109,6 +109,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_x_raise              FOR TESTING RAISING cx_static_check.
     METHODS test_check_unassign_inital FOR TESTING RAISING cx_static_check.
     METHODS conv_copy_ref_data FOR TESTING RAISING cx_static_check.
+    METHODS rtti_check_ref_data FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -307,49 +308,36 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD conv_copy_ref_data.
-
-*    DATA(lv_value) = `my test string`.
-*    DATA lr_data TYPE REF TO data.
-*    DATA lr_result TYPE REF TO data.
-*
-*    GET REFERENCE OF lv_value INTO lr_data.
-*
-*
-*   TRY.
-*        cl_abap_typedescr=>describe_by_data_ref( lr_data ).
-*        result = abap_true.
-*      CATCH cx_root.
-*    ENDTRY.
+  METHOD rtti_check_ref_data.
 
     DATA(lv_test) = `test`.
     DATA lr_data TYPE REF TO data.
     GET REFERENCE OF lv_test INTO lr_data.
+
+    cl_abap_unit_assert=>assert_equals(
+    act = z2ui5_cl_util_api=>rtti_check_ref_data( lr_data )
+    exp = abap_true ).
+
+    cl_abap_unit_assert=>assert_equals(
+    act = z2ui5_cl_util_api=>rtti_check_ref_data( lv_test )
+    exp = abap_false ).
+
+  ENDMETHOD.
+
+  METHOD conv_copy_ref_data.
+
+    DATA(lv_test) = `test`.
+    DATA lr_data TYPE REF TO data.
+    GET REFERENCE OF lv_test INTO lr_data.
+
     DATA(lr_test2) = z2ui5_cl_util_api=>conv_copy_ref_data( lr_data ).
+
     FIELD-SYMBOLS <result> TYPE data.
     ASSIGN lr_test2->* TO <result>.
 
     cl_abap_unit_assert=>assert_equals(
        act = <result>
        exp = lv_test ).
-
-*    """"""""""""""""""" method_begin """""""""""""""""""""""""""""""""
-*    FIELD-SYMBOLS <from> TYPE data.
-*    FIELD-SYMBOLS <result> TYPE data.
-*
-*    ASSIGN lr_data->* TO <from>.
-*
-*    CREATE DATA lr_result LIKE <from>.
-*    ASSIGN lr_result->* TO <result>.
-*
-*    <result> = <from>.
-*
-*    """"""""""""""""""""" method_end """""""""""""""""""""""""""""""""""
-*
-*    ASSIGN lr_result->* TO FIELD-SYMBOL(<data>).
-*    cl_abap_unit_assert=>assert_equals(
-*       act = <data>
-*       exp = lv_value ).
 
   ENDMETHOD.
 

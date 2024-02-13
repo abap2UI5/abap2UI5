@@ -432,7 +432,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD conv_copy_ref_data.
 
     FIELD-SYMBOLS <from> TYPE data.
