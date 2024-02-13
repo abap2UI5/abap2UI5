@@ -322,8 +322,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 *      CATCH cx_root.
 *    ENDTRY.
 
-    data(lv_test) = `test`.
-    DATA(lr_test2) = z2ui5_cl_util_api=>conv_copy_ref_data( lv_test ).
+    DATA(lv_test) = `test`.
+    DATA lr_data TYPE REF TO data.
+    GET REFERENCE OF lv_test INTO lr_data.
+    DATA(lr_test2) = z2ui5_cl_util_api=>conv_copy_ref_data( lr_data ).
     FIELD-SYMBOLS <result> TYPE data.
     ASSIGN lr_test2->* TO <result>.
 
