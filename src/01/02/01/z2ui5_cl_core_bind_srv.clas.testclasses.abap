@@ -28,7 +28,7 @@ CLASS ltcl_test_app DEFINITION FINAL FOR TESTING
     DATA mr_struc TYPE REF TO s_01 ##NEEDED.
     DATA mo_app TYPE REF TO ltcl_test_bind ##NEEDED.
 
-    DATA xx TYPE string.
+    DATA xx TYPE string ##NEEDED.
     METHODS constructor.
 ENDCLASS.
 
