@@ -53,6 +53,11 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
+    METHODS read_attri_by_ref
+      IMPORTING
+        val           TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
   PRIVATE SECTION.
 
 ENDCLASS.
@@ -114,27 +119,17 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
   METHOD search_attribute.
 
-    LOOP AT mt_attri->* REFERENCE INTO data(lr_attri)
-     WHERE type_kind <> `r` AND type_kind <> `I`.
-      IF lr_attri->r_ref = val.
-        result = lr_attri.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
-
+    result = read_attri_by_ref( val ).
+    IF result IS BOUND.
+      RETURN.
+    ENDIF.
 
     DO 5 TIMES.
-
       dissolve( ).
-
-      LOOP AT mt_attri->* REFERENCE INTO lr_attri
-        WHERE type_kind <> `r` AND type_kind <> `I`.
-        IF lr_attri->r_ref = val.
-          result = lr_attri.
-          RETURN.
-        ENDIF.
-      ENDLOOP.
-
+      result = read_attri_by_ref( val ).
+      IF result IS BOUND.
+        RETURN.
+      ENDIF.
     ENDDO.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -329,4 +324,18 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
+  METHOD read_attri_by_ref.
+
+    LOOP AT mt_attri->* REFERENCE INTO result
+     WHERE type_kind <> `r`
+     AND type_kind <> `I`.
+
+      IF result->r_ref = val.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+  ENDMETHOD.
+
 ENDCLASS.
