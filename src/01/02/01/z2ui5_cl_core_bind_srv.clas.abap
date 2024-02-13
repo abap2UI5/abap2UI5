@@ -244,24 +244,25 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
   METHOD main_local.
     TRY.
 
+        DATA(lo_json) =  CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
+        lo_json->set( iv_path = `/` iv_val = val ).
+
         IF config-custom_mapper IS BOUND.
-          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = config-custom_mapper ) ).
+          lo_json = lo_json->map( config-custom_mapper ).
         ELSE.
-          ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+          lo_json = lo_json->map( z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
         ENDIF.
 
-        ajson->set( iv_path = `/` iv_val = val ).
-
         IF config-custom_filter IS BOUND.
-          ajson = ajson->filter( config-custom_filter ).
+          lo_json = lo_json->filter( config-custom_filter ).
         ELSE.
-          ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+          lo_json = lo_json->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
         ENDIF.
 
         DATA(lv_id) = to_upper( z2ui5_cl_util=>uuid_get_c22( ) ).
         INSERT VALUE #( name_client     = |/{ lv_id }|
                         name            = lv_id
-                        json_bind_local = ajson
+                        json_bind_local = lo_json
                         bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time  )
         INTO TABLE mo_app->mt_attri.
 
