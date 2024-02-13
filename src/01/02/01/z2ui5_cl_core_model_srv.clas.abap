@@ -60,16 +60,21 @@ ENDCLASS.
 
 
 CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
+
   METHOD attri_after_load.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE     data_rtti IS NOT INITIAL
-               AND type_kind  = cl_abap_classdescr=>typekind_dref.
+         AND type_kind  = cl_abap_classdescr=>typekind_dref.
 
       lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
-
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
-      z2ui5_cl_util=>xml_srtti_parse( EXPORTING rtti_data = lr_attri->data_rtti
-                                      IMPORTING e_data    = <val> ).
+
+      z2ui5_cl_util=>xml_srtti_parse(
+        EXPORTING
+            rtti_data = lr_attri->data_rtti
+        IMPORTING
+            e_data    = <val> ).
 
       CLEAR lr_attri->data_rtti.
     ENDLOOP.
@@ -100,6 +105,7 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
       CLEAR <val>.
       CLEAR <val_ref>.
       CLEAR lr_attri->r_ref.
+
     ENDLOOP.
 
   ENDMETHOD.
@@ -119,54 +125,68 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
       ENDIF.
     ENDDO.
 
-    RAISE EXCEPTION NEW z2ui5_cx_util_error(
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local` ).
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
 
   METHOD attri_get_val_ref.
+
     FIELD-SYMBOLS <attri> TYPE any.
 
     ASSIGN mo_app->(iv_path) TO <attri>.
+
     IF sy-subrc <> 0.
-      RAISE EXCEPTION NEW z2ui5_cx_util_error( val = `DEREF_FAILED_TARGET_INITIAL` ).
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `DEREF_FAILED_TARGET_INITIAL`.
     ENDIF.
 
     GET REFERENCE OF <attri> INTO result.
+
     IF sy-subrc <> 0.
       ASSERT 1 = 0.
     ENDIF.
+
   ENDMETHOD.
 
   METHOD attri_refs_update.
+
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
-
       lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
     ENDLOOP.
+
   ENDMETHOD.
 
   METHOD constructor.
+
     mt_attri = attri.
     mo_app = app.
+
   ENDMETHOD.
 
   METHOD dissolve.
+
     IF mt_attri->* IS INITIAL.
       dissolve_init( ).
       RETURN.
     ENDIF.
-
     dissolve_main( ).
+
   ENDMETHOD.
 
   METHOD dissolve_init.
+
     DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
     DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
     INSERT LINES OF lt_init INTO TABLE mt_attri->*.
+
   ENDMETHOD.
 
   METHOD dissolve_main.
+
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
@@ -194,11 +214,12 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
       ENDCASE.
 
     ENDLOOP.
-
     INSERT LINES OF lt_attri_new INTO TABLE mt_attri->*.
+
   ENDMETHOD.
 
   METHOD diss_dref.
+
     FIELD-SYMBOLS <deref> TYPE any.
 
     ASSIGN ir_attri->r_ref->* TO <deref>.
@@ -222,10 +243,10 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
       WHEN OTHERS.
         ls_attri2-name  = ir_attri->name && `->*`.
         ls_attri2-r_ref = attri_get_val_ref( ls_attri2-name ).
-
         INSERT ls_attri2 INTO TABLE result.
 
     ENDCASE.
+
   ENDMETHOD.
 
   METHOD diss_oref.
@@ -253,9 +274,11 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
         CATCH cx_root.
       ENDTRY.
     ENDLOOP.
+
   ENDMETHOD.
 
   METHOD diss_struc.
+
     FIELD-SYMBOLS <any> TYPE any.
 
     CASE ir_attri->type_kind.
@@ -263,9 +286,11 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
       OR cl_abap_typedescr=>typekind_struct2.
         DATA(lv_name) = ir_attri->name && `-`.
         ASSIGN ir_attri->r_ref TO <any>.
+
       WHEN cl_abap_typedescr=>typekind_dref.
         lv_name = ir_attri->name && `->`.
         ASSIGN ir_attri->r_ref->* TO <any>.
+
     ENDCASE.
 
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( <any> ).
@@ -280,6 +305,7 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
       INSERT ls_attri2 INTO TABLE result.
 
     ENDLOOP.
+
   ENDMETHOD.
 
   METHOD read_attri_by_ref.
