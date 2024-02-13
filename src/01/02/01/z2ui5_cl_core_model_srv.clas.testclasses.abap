@@ -34,11 +34,32 @@ CLASS ltcl_test_dissolve DEFINITION FINAL FOR TESTING
     METHODS test_dissolve_struc FOR TESTING RAISING cx_static_check.
     METHODS test_dissolve_dref  FOR TESTING RAISING cx_static_check.
     METHODS test_dissolve_oref  FOR TESTING RAISING cx_static_check.
+    METHODS test_ref FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
 CLASS ltcl_test_dissolve IMPLEMENTATION.
 
+
+  METHOD test_ref.
+
+    DATA(lo_app)  = NEW ltcl_test_dissolve( ).
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app ).
+
+    lo_model->dissolve( ).
+
+    DATA(ls_attri) = lt_attri[ name = `MV_VALUE` ].
+    GET REFERENCE OF lo_app->mv_value INTO DATA(lr_ref).
+
+    IF ls_attri-r_ref <> lr_ref.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+
+  ENDMETHOD.
 
   METHOD test_dissolve_init.
 
@@ -58,12 +79,6 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_VALUE` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MV_VALUE` ] OPTIONAL ) ).
-
-    DATA(ls_attri) = lt_attri[ name = `MV_VALUE` ].
-    GET REFERENCE OF lo_app->mv_value INTO DATA(lr_ref).
-    IF ls_attri-r_ref <> lr_ref.
-      cl_abap_unit_assert=>abort( ).
-    ENDIF.
 
   ENDMETHOD.
 
