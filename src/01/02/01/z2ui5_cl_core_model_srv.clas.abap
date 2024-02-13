@@ -17,7 +17,7 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
     METHODS attri_before_save.
     METHODS attri_after_load.
 
-    METHODS attri_get_by_data
+    METHODS search_attribute
       IMPORTING
         !val          TYPE REF TO data
       RETURNING
@@ -59,7 +59,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
 
   METHOD attri_after_load.
@@ -112,9 +112,10 @@ CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD attri_get_by_data.
+  METHOD search_attribute.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+    LOOP AT mt_attri->* REFERENCE INTO data(lr_attri)
+     WHERE type_kind <> `r` AND type_kind <> `I`.
       IF lr_attri->r_ref = val.
         result = lr_attri.
         RETURN.
@@ -122,19 +123,12 @@ CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
     ENDLOOP.
 
 
-*    DATA ltr_attri TYPE REF TO  z2ui5_if_core_types=>ty_t_attri.
-*    GET REFERENCE OF mt_attri INTO ltr_attri.
-
-*    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-*      attri = ltr_attri
-*      app = mo_app ).
-
     DO 5 TIMES.
 
       dissolve( ).
 
-
-      LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+      LOOP AT mt_attri->* REFERENCE INTO lr_attri
+        WHERE type_kind <> `r` AND type_kind <> `I`.
         IF lr_attri->r_ref = val.
           result = lr_attri.
           RETURN.

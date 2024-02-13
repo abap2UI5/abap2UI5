@@ -25,6 +25,7 @@ CLASS ltcl_test_attri DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
     METHODS first_test FOR TESTING RAISING cx_static_check.
     METHODS second_test FOR TESTING RAISING cx_static_check.
+    METHODS third_test FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -38,14 +39,13 @@ CLASS ltcl_test_attri IMPLEMENTATION.
     DATA lr_value TYPE REF TO data.
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ( r_ref = lr_value ) ).
 
     DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
-    DATA(lr_attri) = lo_model->attri_get_by_data( REF #( lo_app_client->mv_value ) ).
+    DATA(lr_attri) = lo_model->search_attribute( REF #( lo_app_client->mv_value ) ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
@@ -65,11 +65,16 @@ CLASS ltcl_test_attri IMPLEMENTATION.
       attri = REF #( lt_attri )
       app   = lo_app_client ).
 
-    DATA(lr_attri) = lo_model->attri_get_by_data( REF #( lo_app_client->mv_value ) ).
+    DATA(lr_attri) = lo_model->search_attribute( REF #( lo_app_client->mv_value ) ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD third_test.
+
 
   ENDMETHOD.
 

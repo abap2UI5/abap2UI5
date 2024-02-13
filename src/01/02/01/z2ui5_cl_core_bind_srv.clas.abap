@@ -202,7 +202,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
         attri = REF #( mo_app->mt_attri )
         app = mo_app->mo_app ).
 
-    mr_attri  = lo_model->attri_get_by_data( val ).
+    mr_attri = lo_model->search_attribute( val ).
 
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing( ).
