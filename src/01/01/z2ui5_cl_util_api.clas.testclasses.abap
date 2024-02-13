@@ -110,6 +110,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_check_unassign_inital FOR TESTING RAISING cx_static_check.
     METHODS conv_copy_ref_data FOR TESTING RAISING cx_static_check.
     METHODS rtti_check_ref_data FOR TESTING RAISING cx_static_check.
+    METHODS test_check_bound_a_not_inital FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -293,6 +294,19 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( lo_test2 ).
     cl_abap_unit_assert=>assert_equals( exp = `LTCL_TEST_APP`
                                         act = lv_name2 ).
+
+  ENDMETHOD.
+
+  METHOD test_check_bound_a_not_inital.
+
+    DATA(lv_test) = `test`.
+    DATA(lr_test) = REF #( lv_test ).
+
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util_api=>check_bound_a_not_inital( lr_test ) ).
+    CLEAR lv_test.
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util_api=>check_bound_a_not_inital( lr_test ) ).
+    CLEAR lr_test.
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util_api=>check_bound_a_not_inital( lr_test ) ).
 
   ENDMETHOD.
 
