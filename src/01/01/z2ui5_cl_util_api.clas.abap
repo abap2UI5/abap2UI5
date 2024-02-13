@@ -735,6 +735,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         result = abap_true.
       CATCH cx_root.
     ENDTRY.
+
   ENDMETHOD.
 
 
