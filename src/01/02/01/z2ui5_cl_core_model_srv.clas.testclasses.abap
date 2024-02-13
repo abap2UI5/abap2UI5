@@ -45,19 +45,25 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     DATA(lo_app)  = NEW ltcl_test_dissolve( ).
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_bind) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
 
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_VALUE` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MV_VALUE` ] OPTIONAL ) ).
+
+    DATA(ls_attri) = lt_attri[ name = `MV_VALUE` ].
+    GET REFERENCE OF lo_app->mv_value INTO DATA(lr_ref).
+    IF ls_attri-r_ref <> lr_ref.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -68,15 +74,15 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_bind) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
 
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_VALUE->*` ] OPTIONAL ) ).
 
@@ -93,14 +99,14 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     CREATE DATA lo_app->mo_app->mr_value TYPE string.
 
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_bind) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
       attri = REF #( lt_attri )
       app   = lo_app2 ).
 
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
 
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MV_VALUE` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC` ] OPTIONAL ) ).
@@ -113,15 +119,15 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
     DATA(lo_app)    = NEW ltcl_test_dissolve( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA(lo_bind) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
       attri = REF #( lt_attri )
       app   = lo_app ).
 
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
-    lo_bind->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
+    lo_model->dissolve( ).
 
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC-INPUT` ] OPTIONAL ) ).
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC-S_02-INPUT` ] OPTIONAL ) ).
