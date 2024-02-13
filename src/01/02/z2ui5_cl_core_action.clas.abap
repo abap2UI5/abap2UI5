@@ -118,9 +118,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->ms_next-s_set                = ms_next-s_set.
 
     TRY.
-        DATA(lo_app) = z2ui5_cl_core_app=>db_load( ms_next-o_app_call->id_draft ).
-        result->mo_app = lo_app.
-        result->mo_app->mo_app = ms_next-o_app_leave.
+        result->mo_app = z2ui5_cl_core_app=>db_load_by_app( ms_next-o_app_call ).
       CATCH cx_root.
     ENDTRY.
 
@@ -141,18 +139,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->mo_app->mo_app = ms_next-o_app_leave.
 
     TRY.
-
-        DATA(lo_app) = z2ui5_cl_core_app=>db_load( ms_next-o_app_leave->id_draft ).
-        result->mo_app = lo_app.
-        result->mo_app->mo_app = ms_next-o_app_leave.
-
-        DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-            attri = REF #( result->mo_app->mt_attri )
-            app   = result->mo_app->mo_app ).
-
-        lo_model->attri_refs_update( ).
-
+        result->mo_app = z2ui5_cl_core_app=>db_load_by_app( ms_next-o_app_leave  ).
       CATCH cx_root.
+        result->mo_app->mo_app = ms_next-o_app_leave.
     ENDTRY.
 
     result->mo_app->ms_draft-id          = ms_next-o_app_leave->id_draft.

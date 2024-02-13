@@ -36,6 +36,12 @@ CLASS z2ui5_cl_core_app DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
+    CLASS-METHODS db_load_by_app
+      IMPORTING
+        app           TYPE REF TO z2ui5_if_app
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
+
     METHODS db_save.
 
   PROTECTED SECTION.
@@ -43,7 +49,9 @@ CLASS z2ui5_cl_core_app DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_core_app IMPLEMENTATION.
+
+CLASS Z2UI5_CL_CORE_APP IMPLEMENTATION.
+
 
   METHOD all_xml_parse.
 
@@ -52,12 +60,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
             xml = val
         IMPORTING
             any = result ).
-
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-       attri = REF #( result->mt_attri )
-       app   = result->mo_app ).
-
-    lo_model->attri_after_load( ).
 
   ENDMETHOD.
 
@@ -68,7 +70,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
         DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
           attri = REF #( mt_attri )
-          app   = me->mo_app ).
+          app   = mo_app ).
         lo_model->attri_before_save( ).
 
         result = z2ui5_cl_util=>xml_stringify( me ).
@@ -89,6 +91,29 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+       attri = REF #( result->mt_attri )
+       app   = result->mo_app ).
+
+    lo_model->attri_after_load( ).
+
+  ENDMETHOD.
+
+
+  METHOD db_load_by_app.
+
+    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
+    result = all_xml_parse( ls_db-data ).
+
+    result->mo_app = app.
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+        attri = REF #( result->mt_attri )
+        app   = result->mo_app ).
+
+    lo_model->attri_refs_update( ).
 
   ENDMETHOD.
 
