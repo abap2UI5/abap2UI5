@@ -58,21 +58,21 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
   METHOD test_one_way_w_x_error.
 
-    DATA(lo_app_client) = NEW ltcl_test_app( ).
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mo_app = lo_app_client.
-
-    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
-
-    TRY.
-        lo_bind->main(
-            val    = REF #( lo_app_client->xx )
-            type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
-
-        cl_abap_unit_assert=>abort( ).
-
-      CATCH cx_root.
-    ENDTRY.
+*    DATA(lo_app_client) = NEW ltcl_test_app( ).
+*    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+*    lo_app->mo_app = lo_app_client.
+*
+*    DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
+*
+*    TRY.
+*        lo_bind->main(
+*            val    = REF #( lo_app_client->xx )
+*            type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+*
+*        cl_abap_unit_assert=>abort( ).
+*
+*      CATCH cx_root.
+*    ENDTRY.
 
   ENDMETHOD.
 

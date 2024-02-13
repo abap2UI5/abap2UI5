@@ -93,7 +93,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD attri_get_by_data.
 
     TRY.
-        result = REF #( mt_attri[ r_ref = val ] ).
+        DATA(ls_attri) = mt_attri[ r_ref = val ].
+        result = REF #( ls_attri ).
         RETURN.
       CATCH cx_root.
     ENDTRY.
@@ -107,7 +108,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       lo_model->dissolve( ).
 
       TRY.
-          result = REF #( mt_attri[ r_ref = val ] ).
+          ls_attri = mt_attri[ r_ref = val ].
+          result = REF #( ls_attri ).
           RETURN.
         CATCH cx_root.
       ENDTRY.
