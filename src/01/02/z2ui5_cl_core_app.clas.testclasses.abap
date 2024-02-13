@@ -18,7 +18,7 @@ CLASS ltcl_test_app IMPLEMENTATION.
 
 ENDCLASS.
 
-CLASS ltcl_test DEFINITION FINAL FOR TESTING
+CLASS ltcl_test_attri DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
 
@@ -28,9 +28,9 @@ CLASS ltcl_test DEFINITION FINAL FOR TESTING
 
 ENDCLASS.
 
-CLASS z2ui5_cl_core_app DEFINITION LOCAL FRIENDS ltcl_test.
+CLASS z2ui5_cl_core_app DEFINITION LOCAL FRIENDS ltcl_test_attri.
 
-CLASS ltcl_test IMPLEMENTATION.
+CLASS ltcl_test_attri IMPLEMENTATION.
 
   METHOD first_test.
 
@@ -38,10 +38,14 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lr_value TYPE REF TO data.
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mt_attri = VALUE #( ( r_ref = lr_value ) ).
 
-    DATA(lr_attri) = lo_app->attri_get_by_data( REF #( lo_app_client->mv_value ) ).
+    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ( r_ref = lr_value ) ).
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app_client ).
+
+    DATA(lr_attri) = lo_model->attri_get_by_data( REF #( lo_app_client->mv_value ) ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
@@ -55,10 +59,13 @@ CLASS ltcl_test IMPLEMENTATION.
     DATA lr_value TYPE REF TO data.
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
-    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
-    lo_app->mt_attri = VALUE #( ( r_ref = ref #( lo_app_client->mv_value ) ) ).
+    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ( r_ref = REF #( lo_app_client->mv_value ) ) ).
 
-    DATA(lr_attri) = lo_app->attri_get_by_data( REF #( lo_app_client->mv_value ) ).
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app_client ).
+
+    DATA(lr_attri) = lo_model->attri_get_by_data( REF #( lo_app_client->mv_value ) ).
 
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).

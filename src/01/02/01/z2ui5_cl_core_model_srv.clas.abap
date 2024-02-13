@@ -13,13 +13,21 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
         attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
         app   TYPE REF TO object.
 
-
-    METHODS dissolve.
     METHODS attri_refs_update.
     METHODS attri_before_save.
     METHODS attri_after_load.
 
+    METHODS attri_get_by_data
+      IMPORTING
+        !val          TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
+
   PROTECTED SECTION.
+
+    METHODS dissolve.
+    METHODS dissolve_main.
+    METHODS dissolve_init.
 
     METHODS attri_get_val_ref
       IMPORTING
@@ -45,17 +53,13 @@ CLASS z2ui5_cl_core_model_srv DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_t_attri.
 
-    METHODS dissolve_main.
-
-    METHODS dissolve_init.
-
   PRIVATE SECTION.
 
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_MODEL_SRV IMPLEMENTATION.
 
 
   METHOD attri_after_load.
@@ -108,6 +112,44 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD attri_get_by_data.
+
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+      IF lr_attri->r_ref = val.
+        result = lr_attri.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
+
+
+*    DATA ltr_attri TYPE REF TO  z2ui5_if_core_types=>ty_t_attri.
+*    GET REFERENCE OF mt_attri INTO ltr_attri.
+
+*    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+*      attri = ltr_attri
+*      app = mo_app ).
+
+    DO 5 TIMES.
+
+      dissolve( ).
+
+
+      LOOP AT mt_attri->* REFERENCE INTO lr_attri.
+        IF lr_attri->r_ref = val.
+          result = lr_attri.
+          RETURN.
+        ENDIF.
+      ENDLOOP.
+
+    ENDDO.
+
+    RAISE EXCEPTION TYPE z2ui5_cx_util_error
+      EXPORTING
+        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
+
+  ENDMETHOD.
+
+
   METHOD attri_get_val_ref.
 
     FIELD-SYMBOLS <attri> TYPE any.
@@ -153,6 +195,15 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
     ENDIF.
 
     dissolve_main( ).
+
+  ENDMETHOD.
+
+
+  METHOD dissolve_init.
+
+    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
 
   ENDMETHOD.
 
@@ -284,13 +335,4 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
-
-  METHOD dissolve_init.
-
-    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
-    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
-    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
-
-  ENDMETHOD.
-
 ENDCLASS.

@@ -5,17 +5,11 @@ CLASS z2ui5_cl_core_app DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES if_serializable_object .
+    INTERFACES if_serializable_object.
 
-    DATA mt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
-    DATA mo_app TYPE REF TO object.
-    DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft.
-
-    METHODS attri_get_by_data
-      IMPORTING
-        !val          TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
+    DATA mt_attri   TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA mo_app     TYPE REF TO object.
+    DATA ms_draft   TYPE z2ui5_if_types=>ty_s_get-s_draft.
 
     METHODS model_json_stringify
       RETURNING
@@ -24,7 +18,7 @@ CLASS z2ui5_cl_core_app DEFINITION
     METHODS model_json_parse
       IMPORTING
         !view          TYPE string
-        !io_json_model TYPE REF TO z2ui5_if_ajson .
+        !io_json_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
       RETURNING
@@ -34,13 +28,13 @@ CLASS z2ui5_cl_core_app DEFINITION
       IMPORTING
         !val          TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app .
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     CLASS-METHODS db_load
       IMPORTING
         !id           TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app .
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     METHODS db_save.
 
@@ -86,44 +80,6 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
             val = `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
 
     ENDTRY.
-
-  ENDMETHOD.
-
-
-  METHOD attri_get_by_data.
-
-    LOOP AT mt_attri REFERENCE INTO DATA(lr_attri).
-      IF lr_attri->r_ref = val.
-        result = lr_attri.
-        RETURN.
-      ENDIF.
-    ENDLOOP.
-
-
-    DATA ltr_attri TYPE REF TO  z2ui5_if_core_types=>ty_t_attri.
-    GET REFERENCE OF mt_attri INTO ltr_attri.
-
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-      attri = ltr_attri
-      app = mo_app ).
-
-    DO 5 TIMES.
-
-      lo_model->dissolve( ).
-
-
-      LOOP AT mt_attri REFERENCE INTO lr_attri.
-        IF lr_attri->r_ref = val.
-          result = lr_attri.
-          RETURN.
-        ENDIF.
-      ENDLOOP.
-
-    ENDDO.
-
-    RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      EXPORTING
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
 
   ENDMETHOD.
 

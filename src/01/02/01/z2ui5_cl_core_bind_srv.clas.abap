@@ -197,7 +197,12 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     ms_config = config.
     mv_type   = type.
-    mr_attri  = mo_app->attri_get_by_data( val ).
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+        attri = REF #( mo_app->mt_attri )
+        app = mo_app->mo_app ).
+
+    mr_attri  = lo_model->attri_get_by_data( val ).
 
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing( ).
