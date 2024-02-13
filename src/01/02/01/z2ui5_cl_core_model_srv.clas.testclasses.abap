@@ -246,10 +246,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
        ( name = `3` r_ref = REF #( lo_app_client->mv_value ) )
         ).
 
-    LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE r_ref = lr_value.
-    ENDLOOP.
-
+    DATA(lr_attri) = REF #( lt_attri[ r_ref = lr_value ] ).
     IF lr_attri->r_ref <> lr_value.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
