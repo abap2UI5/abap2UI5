@@ -67,7 +67,7 @@ CLASS  z2ui5_cl_util_api DEFINITION
       IMPORTING
         val           TYPE any
       RETURNING
-        VALUE(result) TYPE REF TO object.
+        VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS conv_get_as_data_ref
       IMPORTING

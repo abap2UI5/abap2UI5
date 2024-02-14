@@ -17,8 +17,8 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     METHODS model_json_parse
       IMPORTING
-        !view          TYPE string
-        !io_json_model TYPE REF TO z2ui5_if_ajson.
+        !iv_view  TYPE string
+        !io_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
       RETURNING
@@ -26,7 +26,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     CLASS-METHODS all_xml_parse
       IMPORTING
-        !val          TYPE string
+        !xml          TYPE string
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
@@ -50,14 +50,14 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_APP IMPLEMENTATION.
+CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
 
   METHOD all_xml_parse.
 
     z2ui5_cl_util=>xml_parse(
         EXPORTING
-            xml = val
+            xml = xml
         IMPORTING
             any = result ).
 
@@ -136,9 +136,9 @@ CLASS Z2UI5_CL_CORE_APP IMPLEMENTATION.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
     lo_json_mapper->model_client_to_server(
-        view    = view
+        view    = iv_view
         t_attri = REF #( mt_attri )
-        model   = io_json_model ).
+        model   = io_model ).
 
   ENDMETHOD.
 

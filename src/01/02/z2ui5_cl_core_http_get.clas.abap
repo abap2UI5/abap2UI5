@@ -299,7 +299,9 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                return;` && |\n|  &&
                `            }` && |\n|  &&
                `            BusyIndicator.show();` && |\n|  &&
+               `            let appStart = sap.z2ui5.oBody.APP_START;` && |\n|  &&
                `            sap.z2ui5.oBody = {};` && |\n|  &&
+               `            sap.z2ui5.oBody.APP_START = appStart;` && |\n|  &&
                `            if ( sap.z2ui5.oController == this ) {` && |\n|  &&
                `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n|  &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n|  &&
@@ -405,6 +407,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            } else {` && |\n|  &&
                `                const responseData = await response.json();` && |\n|  &&
                `                sap.z2ui5.responseData = responseData;` && |\n|  &&
+               `              if( !sap.z2ui5.oBody.APP_START ) { sap.z2ui5.oBody.APP_START = sap.z2ui5.responseData.S_FRONT.APP; }` && |\n|  &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n|  &&
                `                   ID : responseData.S_FRONT.ID,` && |\n|  &&
                `                   PARAMS : responseData.S_FRONT.PARAMS,` && |\n|  &&
