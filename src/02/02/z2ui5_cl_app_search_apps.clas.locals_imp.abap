@@ -60,8 +60,8 @@ CLASS lcl_github IMPLEMENTATION.
         ) )
          (
         name                 = `The Quest`
-        descr                = `A wizard's adventure game based on a fork of the AXAGE game engine (ABAP teXt Adventure Game Engine) and abap2UI5. The game is set in a fantasy world, where the player takes on the role of a wizard's apprentice. The play` &
-`er explores the wizard's house, interacts with various objects and explores. The Quest is work in progress...`
+        descr                = `A wizard's adventure game based on a fork of the AXAGE game engine (ABAP teXt Adventure Game Engine) and abap2UI5. The game is set in a fantasy world, where the player ` &&
+        `takes on the role of a wizard's apprentice. The player explores the wizard's house, interacts with various objects and explores. The Quest is work in progress...`
         check_abap_for_cloud = abap_true
         min_release          = `750`
         link                 = `https://github.com/nomssi/axage`

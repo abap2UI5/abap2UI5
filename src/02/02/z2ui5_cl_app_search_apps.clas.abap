@@ -44,65 +44,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
 
-
-  METHOD z2ui5_if_app~main.
-
-    me->client = client.
-
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
-
-      z2ui5_cl_util=>db_load_by_handle(
-        EXPORTING
-          uname  = sy-uname
-          handle = 'z2ui5_cl_app_search_apps'
-        IMPORTING
-          result = mt_favs ).
-
-      mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` )
-        ( name  = row ) ).
-      search( ).
-      view_display( client ).
-      RETURN.
-    ENDIF.
-
-    IF client->get( )-check_on_navigated = abap_true.
-      view_display( client ).
-    ENDIF.
-
-    CASE client->get( )-event.
-
-      WHEN `ON_PRESS`.
-
-        DATA(lt_arg) = client->get( )-t_event_arg.
-        DATA(lv_app) = lt_arg[ 1 ].
-
-
-
-        INSERT VALUE #( name = lv_app ) INTO TABLE mt_favs.
-
-
-        z2ui5_cl_util=>db_save(
-            uname  = sy-uname
-            handle = 'z2ui5_cl_app_search_apps'
-            data   = mt_favs ).
-
-        view_action_sheet( lv_app ).
-
-        view_nest_display( client ).
-
-      WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-
-      WHEN 'ON_SEARCH'.
-        search( ).
-        client->view_model_update( ).
-        client->message_toast_display( |backend search done| ).
-    ENDCASE.
-
-  ENDMETHOD.
 
   METHOD search.
 
@@ -117,6 +60,39 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
         lr_app->visible = abap_true.
       ENDIF.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD view_action_sheet.
+
+    DATA(action_sheet_view) = z2ui5_cl_xml_view=>factory_popup( ).
+
+    action_sheet_view->_generic_property( VALUE #( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` ) ).
+
+    action_sheet_view->action_sheet( placement        = `Botton`
+                                     showcancelbutton = abap_true
+                                     title            = `Choose Your Action`
+      )->button( text  = `Accept`
+                 icon  = `sap-icon://accept`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Reject`
+                 icon  = `sap-icon://decline`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Email`
+                 icon  = `sap-icon://email`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Forward`
+                 icon  = `sap-icon://forward`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Delete`
+                 icon  = `sap-icon://delete`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
+      )->button( text  = `Other`
+                 press = `MessageToast.show('selected action is ' + ${$source>/text})` ).
+
+    client->popover_display( xml   = action_sheet_view->stringify( )
+                             by_id = val ).
 
   ENDMETHOD.
 
@@ -290,46 +266,12 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     row->checkbox( text     = `Standard ABAP (Min. {MIN_RELEASE})`
                    selected = `{CHECK_STANDARD_ABAP}`
                    enabled  = abap_false ).
-     row->text( `{DESCR}` ).
-
-*     page_online
-
+    row->text( `{DESCR}` ).
 
     client->view_display( page->stringify( ) ).
 
   ENDMETHOD.
 
-  METHOD view_action_sheet.
-
-    DATA(action_sheet_view) = z2ui5_cl_xml_view=>factory_popup( ).
-
-    action_sheet_view->_generic_property( VALUE #( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` ) ).
-
-    action_sheet_view->action_sheet( placement        = `Botton`
-                                     showcancelbutton = abap_true
-                                     title            = `Choose Your Action`
-      )->button( text  = `Accept`
-                 icon  = `sap-icon://accept`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text  = `Reject`
-                 icon  = `sap-icon://decline`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text  = `Email`
-                 icon  = `sap-icon://email`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text  = `Forward`
-                 icon  = `sap-icon://forward`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text  = `Delete`
-                 icon  = `sap-icon://delete`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-      )->button( text  = `Other`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})` ).
-
-    client->popover_display( xml   = action_sheet_view->stringify( )
-                             by_id = val ).
-
-  ENDMETHOD.
 
   METHOD view_nest_display.
 
@@ -352,4 +294,61 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD z2ui5_if_app~main.
+
+    me->client = client.
+
+    IF check_initialized = abap_false.
+      check_initialized = abap_true.
+
+      z2ui5_cl_util=>db_load_by_handle(
+        EXPORTING
+          uname  = sy-uname
+          handle = 'z2ui5_cl_app_search_apps'
+        IMPORTING
+          result = mt_favs ).
+
+      mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` )
+        ( name  = row ) ).
+      search( ).
+      view_display( client ).
+      RETURN.
+    ENDIF.
+
+    IF client->get( )-check_on_navigated = abap_true.
+      view_display( client ).
+    ENDIF.
+
+    CASE client->get( )-event.
+
+      WHEN `ON_PRESS`.
+
+        DATA(lt_arg) = client->get( )-t_event_arg.
+        DATA(lv_app) = lt_arg[ 1 ].
+
+
+
+        INSERT VALUE #( name = lv_app ) INTO TABLE mt_favs.
+
+
+        z2ui5_cl_util=>db_save(
+            uname  = sy-uname
+            handle = 'z2ui5_cl_app_search_apps'
+            data   = mt_favs ).
+
+        view_action_sheet( lv_app ).
+
+        view_nest_display( client ).
+
+      WHEN 'BACK'.
+        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
+      WHEN 'ON_SEARCH'.
+        search( ).
+        client->view_model_update( ).
+        client->message_toast_display( |backend search done| ).
+    ENDCASE.
+
+  ENDMETHOD.
 ENDCLASS.
