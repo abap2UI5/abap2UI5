@@ -127,7 +127,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     IF ms_home-class_editable = abap_true.
 
       simple_form2->input( placeholder = `fill in the class name and press 'check'`
-                      enabled         = client->_bind( ms_home-class_editable )
+                      enabled          = client->_bind( ms_home-class_editable )
                       value            = client->_bind_edit( ms_home-classname )
                       submit           = client->_event( ms_home-btn_event_id )
                       valuehelprequest = client->_event( 'VALUE_HELP' )
@@ -138,7 +138,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     ENDIF.
 
     simple_form2->label( ).
-    simple_form2->button( press = client->_event(  ms_home-btn_event_id )
+    simple_form2->button( press = client->_event( ms_home-btn_event_id )
                      text       = client->_bind( ms_home-btn_text )
                      icon       = client->_bind( ms_home-btn_icon )
                      width      = `70%` ).
@@ -146,7 +146,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
       )->link( text  = `Link to the Application`
              target  = `_blank`
              href    = lv_url
-             enabled = `{= $` && client->_bind( val = ms_home-class_editable ) && ` === false }`   ).
+             enabled = `{= $` && client->_bind( val = ms_home-class_editable ) && ` === false }` ).
 
 
     DATA(lv_url_samples2) = z2ui5_cl_util=>app_get_url(
@@ -159,15 +159,15 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
       simple_form2->label( `Start Developing` ).
       simple_form2->button(
         text      = `Check out the samples`
-        press     = client->_event_client( val = client->cs_event-open_new_tab
+        press     = client->_event_client( val   = client->cs_event-open_new_tab
                                            t_arg = VALUE #( ( lv_url_samples2 ) ) )
             width = `70%` ).
 
     ELSE.
       simple_form2->label( `Install the sample repository` ).
       simple_form2->link( text = `And explore more than 100 demo apps...`
-              target      = `_blank`
-              href        = `https://github.com/abap2UI5/abap2UI5-samples` ).
+              target           = `_blank`
+              href             = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
     simple_form2->label( `` ).

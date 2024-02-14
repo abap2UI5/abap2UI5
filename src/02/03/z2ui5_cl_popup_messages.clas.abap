@@ -58,7 +58,7 @@ CLASS z2ui5_cl_popup_messages IMPLEMENTATION.
         afterclose = client->_event( 'BUTTON_CONTINUE' )
             )->table(
 *                mode = 'SingleSelectLeft'
-                items = client->_bind_edit( mt_msg )
+                client->_bind_edit( mt_msg )
                 )->columns(
                     )->column( )->text( 'Title' )->get_parent(
                     )->column( )->text( 'Color' )->get_parent(

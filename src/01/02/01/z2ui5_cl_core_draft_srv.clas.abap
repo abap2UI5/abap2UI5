@@ -48,7 +48,7 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
   METHOD cleanup.
 
     DATA(lv_four_hours_ago) = z2ui5_cl_util=>time_substract_seconds(
-        time = z2ui5_cl_util=>time_get_timestampl( )
+        time    = z2ui5_cl_util=>time_get_timestampl( )
         seconds = 60 * 60 * 4 ).
 
     DELETE FROM z2ui5_t_core_01 WHERE timestampl < @lv_four_hours_ago.
@@ -127,7 +127,7 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
 
     SELECT
     COUNT( * )
-    FROM  z2ui5_t_core_01
+    FROM z2ui5_t_core_01
     INTO @result.
 
   ENDMETHOD.

@@ -70,8 +70,8 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     TRY.
         lo_bind->main(
-            val    = REF #( lo_app_client->xx )
-            type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+            val  = REF #( lo_app_client->xx )
+            type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
         cl_abap_unit_assert=>abort( ).
 
@@ -93,8 +93,8 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
     DATA(lv_bind) = lo_bind->main(
-        val    = REF #( lo_app_client->mv_value )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_app_client->mv_value )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
        act = lv_bind
@@ -115,13 +115,13 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
     lo_bind->main(
-       val    = REF #( lo_app_client->mv_value )
-       type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+       val  = REF #( lo_app_client->mv_value )
+       type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     TRY.
         lo_bind->main(
-               val    = REF #( lo_app_client->mv_value )
-               type   = z2ui5_if_core_types=>cs_bind_type-two_way ).
+               val  = REF #( lo_app_client->mv_value )
+               type = z2ui5_if_core_types=>cs_bind_type-two_way ).
 
         cl_abap_unit_assert=>abort( ).
 
@@ -144,12 +144,12 @@ CLASS ltcl_test_bind IMPLEMENTATION.
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
     DATA(lv_bind) = lo_bind->main(
-        val    = REF #( lo_app_client->mv_value )
-        type   = z2ui5_if_core_types=>cs_bind_type-two_way  ).
+        val  = REF #( lo_app_client->mv_value )
+        type = z2ui5_if_core_types=>cs_bind_type-two_way ).
 
     DATA(lv_bind2) = lo_bind->main(
-         val    = REF #( lo_app_client->mv_value )
-         type   = z2ui5_if_core_types=>cs_bind_type-two_way  ).
+         val  = REF #( lo_app_client->mv_value )
+         type = z2ui5_if_core_types=>cs_bind_type-two_way ).
 
     cl_abap_unit_assert=>assert_equals(
        act = lv_bind
@@ -201,14 +201,14 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_test_app) =  NEW ltcl_test_main_structure( ).
+    DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
     DATA(lv_result) = lo_bind->main(
-        val    = REF #( lo_test_app->ms_struc-input )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_test_app->ms_struc-input )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
         act = lv_result
@@ -217,7 +217,7 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
     lv_result = lo_bind->main(
         val    = REF #( lo_test_app->ms_struc-input )
         config = VALUE #( path_only = abap_true )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        type   = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
         act = lv_result
@@ -231,14 +231,14 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_test_app) =  NEW ltcl_test_main_structure( ).
+    DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
     DATA(lv_result) = lo_bind->main(
-        val    = REF #( lo_test_app->ms_struc-s_02-input )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_test_app->ms_struc-s_02-input )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
         act = lv_result
@@ -252,14 +252,14 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_test_app) =  NEW ltcl_test_main_structure( ).
+    DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
     DATA(lv_result) = lo_bind->main(
-        val    = REF #( lo_test_app->ms_struc-s_02-s_03-input )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_test_app->ms_struc-s_02-s_03-input )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_result
@@ -273,14 +273,14 @@ CLASS ltcl_test_main_structure IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_test_app) =  NEW ltcl_test_main_structure( ).
+    DATA(lo_test_app) = NEW ltcl_test_main_structure( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
     DATA(lv_result) = lo_bind->main(
-        val    = REF #( lo_test_app->ms_struc-s_02-s_03-s_04-input )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_test_app->ms_struc-s_02-s_03-s_04-input )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_result
@@ -332,7 +332,7 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_test_app) =  NEW ltcl_test_main_object( ).
+    DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
     lo_test_app->mo_obj->mv_value = `test`.
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
@@ -340,8 +340,8 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
     DATA(lv_result) = lo_bind->main(
-        val    = REF #( lo_test_app->mo_obj->mv_value )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_test_app->mo_obj->mv_value )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_result
@@ -355,15 +355,15 @@ CLASS ltcl_test_main_object IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_test_app) =  NEW ltcl_test_main_object( ).
+    DATA(lo_test_app) = NEW ltcl_test_main_object( ).
     lo_test_app->mo_obj = NEW #( ).
     DATA(lo_app) = NEW z2ui5_cl_core_app( ).
     lo_app->mo_app = lo_test_app.
 
     DATA(lo_bind)  = NEW z2ui5_cl_core_bind_srv( lo_app ).
     DATA(lv_result) = lo_bind->main(
-        val    = REF #( lo_test_app->mo_obj->ms_struc-input )
-        type   = z2ui5_if_core_types=>cs_bind_type-one_way  ).
+        val  = REF #( lo_test_app->mo_obj->ms_struc-input )
+        type = z2ui5_if_core_types=>cs_bind_type-one_way ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_result

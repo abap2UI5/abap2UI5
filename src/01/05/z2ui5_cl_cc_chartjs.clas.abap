@@ -832,13 +832,13 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
     CASE iv_visit.
 
-      WHEN  z2ui5_if_ajson_filter=>visit_type-open.
+      WHEN z2ui5_if_ajson_filter=>visit_type-open.
 
         IF is_node-children = 0.
           rv_keep = abap_false.
         ENDIF.
 
-      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
+      WHEN z2ui5_if_ajson_filter=>visit_type-value.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
@@ -846,7 +846,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
               rv_keep = abap_false.
             ENDIF.
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            IF is_node-value = `0` or is_node-value = `0.00`.
+            IF is_node-value = `0` OR is_node-value = `0.00`.
               rv_keep = abap_false.
             ENDIF.
           WHEN z2ui5_if_ajson_types=>node_type-string.
@@ -855,7 +855,7 @@ CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
             ENDIF.
         ENDCASE.
 
-      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
+      WHEN z2ui5_if_ajson_filter=>visit_type-close.
 
         IF is_node-children = 0.
           rv_keep = abap_false.

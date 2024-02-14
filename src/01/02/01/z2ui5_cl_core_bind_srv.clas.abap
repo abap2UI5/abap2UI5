@@ -178,7 +178,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     result = replace( val = result sub = `>` with = `` ).
     result = COND #( WHEN mv_type = z2ui5_if_core_types=>cs_bind_type-two_way
         THEN `/` && z2ui5_if_core_types=>cs_ui5-two_way_model )
-        && `/` &&  result.
+        && `/` && result.
 
   ENDMETHOD.
 
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
         attri = REF #( mo_app->mt_attri )
-        app = mo_app->mo_app ).
+        app   = mo_app->mo_app ).
 
     mr_attri = lo_model->attri_search_a_dissolve( val ).
 
@@ -236,8 +236,8 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     result = lo_bind->main( val = config-tab type = type config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell(
-          iv_name     = result
-          i_val       = val ).
+          iv_name = result
+          i_val   = val ).
 
     IF ms_config-path_only = abap_false.
       result = `{` && result && `}`.
@@ -249,7 +249,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
   METHOD main_local.
     TRY.
 
-        DATA(lo_json) =  CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
+        DATA(lo_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
         lo_json->set( iv_path = `/` iv_val = val ).
 
         IF config-custom_mapper IS BOUND.
@@ -268,7 +268,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
         INSERT VALUE #( name_client     = |/{ lv_id }|
                         name            = lv_id
                         json_bind_local = lo_json
-                        bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time  )
+                        bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time )
         INTO TABLE mo_app->mt_attri.
 
         result = |/{ lv_id }|.

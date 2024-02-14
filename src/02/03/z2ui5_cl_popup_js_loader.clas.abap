@@ -51,7 +51,7 @@ CLASS Z2UI5_CL_POPUP_JS_LOADER IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title = `load library`
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `load library`
         )->content(
         )->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )
         )->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).

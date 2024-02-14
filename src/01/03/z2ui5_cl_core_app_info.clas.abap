@@ -45,10 +45,9 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
     DATA(page2) = z2ui5_cl_xml_view=>factory_popup(
          )->dialog(
-            stretch = abap_true
-            title = `abap2UI5 - System Information`
-            afterclose = client->_event( `CLOSE` )
-        ).
+            stretch    = abap_true
+            title      = `abap2UI5 - System Information`
+            afterclose = client->_event( `CLOSE` ) ).
 
 *    page2->header_content( )->text(  )->title( `abap2UI5 - System Information` )->toolbar_spacer( ).
 

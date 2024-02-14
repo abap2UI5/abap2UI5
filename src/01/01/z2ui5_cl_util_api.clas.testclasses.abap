@@ -507,7 +507,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
           exp = `100` ).
 
     cl_abap_unit_assert=>assert_equals(
-       act =  lt_param[ n = `app_start` ]-v
+       act = lt_param[ n = `app_start` ]-v
        exp = `z2ui5_cl_app_hello_world` ).
 
   ENDMETHOD.

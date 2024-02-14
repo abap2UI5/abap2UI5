@@ -1,4 +1,4 @@
-CLASS  z2ui5_cl_util_api DEFINITION
+CLASS z2ui5_cl_util_api DEFINITION
   PUBLIC
   CREATE PUBLIC
   INHERITING FROM z2ui5_cl_util_stmpncfctn.
@@ -354,10 +354,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *        name      = lv_element
 *        type_kind = lr_comp->type_kind ).
 *
-      DATA(ls_attri) = VALUE  abap_componentdescr(
+      DATA(ls_attri) = VALUE abap_componentdescr(
    name      = lv_element
-*        type_kind = lr_comp->type_kind
-   ).
+*        type_kind = lr_comp->type_kind ).
       "todo type of field
 
       INSERT ls_attri INTO TABLE result.
@@ -686,7 +685,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD json_stringify.
     TRY.
 
-        DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         result = li_ajson->set( iv_path = `/` iv_val = any )->stringify( ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(x).
@@ -799,8 +798,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     LOOP AT result REFERENCE INTO DATA(lr_comp)
         WHERE as_include = abap_true.
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type
-                                               attri = lr_comp->name ).
+      DATA(lt_attri) = rtti_get_t_attri_by_include( type = lr_comp->type
+                                               attri     = lr_comp->name ).
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
@@ -825,12 +824,11 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD source_get_method.
 
-    DATA(lt_source) =  method_get_source(
+    DATA(lt_source) = method_get_source(
          iv_classname  = iv_classname
-         iv_methodname = iv_methodname
-      ).
+         iv_methodname = iv_methodname ).
 
-    result = source_method_to_file( it_source = lt_source ).
+    result = source_method_to_file( lt_source ).
 
   ENDMETHOD.
 
@@ -1057,7 +1055,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     FIELD-SYMBOLS <unassign> TYPE any.
     ASSIGN val->* TO <unassign>.
-    result =  <unassign>.
+    result = <unassign>.
 
   ENDMETHOD.
 
@@ -1065,7 +1063,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     FIELD-SYMBOLS <unassign> TYPE any.
     ASSIGN val->* TO <unassign>.
-    result =  <unassign>.
+    result = <unassign>.
 
   ENDMETHOD.
 

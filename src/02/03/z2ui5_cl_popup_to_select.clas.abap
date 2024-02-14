@@ -72,17 +72,16 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
     DATA(tab) = popup->table_select_dialog(
-              items              =  `{path:'`
+              items   = `{path:'`
                                 && client->_bind_edit( val = <tab_out> path = abap_true )
                                 && `', sorter : { path : '` && to_upper( sort_field ) && `', descending : `
                                 && z2ui5_cl_util=>boolean_abap_2_json( me->descending )
                                 && ` } }`
-              cancel             = client->_event( 'CANCEL' )
-              search             = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
-              confirm            = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
+              cancel  = client->_event( 'CANCEL' )
+              search  = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
+              confirm = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
               growing = abap_true
-              title   = title
-            ).
+              title   = title ).
 
     DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( <tab_out> ).
     DELETE lt_comp WHERE name = 'ZZSELKZ'.
@@ -92,7 +91,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     DATA(cells) = list->cells( ).
 
     LOOP AT lt_comp INTO DATA(ls_comp).
-      cells->text( text = `{` && ls_comp-name && `}` ).
+      cells->text( `{` && ls_comp-name && `}` ).
     ENDLOOP.
 
     DATA(columns) = tab->columns( ).
@@ -103,7 +102,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
                      WHEN medium_label IS NOT INITIAL
                      THEN medium_label
                      ELSE ls_comp-name ).
-      columns->column( width = '8rem' )->header( ns = `` )->text( text = text ).
+      columns->column( '8rem' )->header( `` )->text( text ).
     ENDLOOP.
 
     client->popup_display( popup->stringify( ) ).
@@ -253,7 +252,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     DATA(lt_arg) = client->get( )-t_event_arg.
     READ TABLE lt_arg INTO DATA(ls_arg) INDEX 1.
-    assert sy-subrc = 0.
+    ASSERT sy-subrc = 0.
 
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out_backup>.

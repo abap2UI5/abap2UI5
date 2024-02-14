@@ -44,7 +44,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
     LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
     WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
-    AND  view  = view.
+    AND view  = view.
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -88,7 +88,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
               ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
               ASSERT sy-subrc = 0.
-              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val =  <attribute> ).
+              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = <attribute> ).
 
             WHEN z2ui5_if_core_types=>cs_bind_type-one_time.
               ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = lr_attri->json_bind_local ).
@@ -138,7 +138,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
             EXPORTING
                iv_corresponding = abap_true
             IMPORTING
-                ev_container     = result-s_front ).
+                ev_container    = result-s_front ).
 
         result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD` ).
         IF result-s_front-id IS NOT INITIAL.
@@ -167,7 +167,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
         ajson_result->set( iv_path = `/` iv_val = val-s_front ).
         ajson_result = ajson_result->filter( NEW z2ui5_cl_core_json_srv( ) ).
-        DATA(lv_frontend) =  ajson_result->stringify( ).
+        DATA(lv_frontend) = ajson_result->stringify( ).
 
         result = `{` &&
             |"S_FRONT":{ lv_frontend },| &&

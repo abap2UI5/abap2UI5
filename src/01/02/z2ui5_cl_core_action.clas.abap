@@ -73,7 +73,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->ms_actual-view           = mo_http_post->ms_request-s_front-view.
 
     result->mo_app->model_json_parse(
-        iv_view          = mo_http_post->ms_request-s_front-view
+        iv_view  = mo_http_post->ms_request-s_front-view
         io_model = mo_http_post->ms_request-o_model ).
 
     result->ms_actual-event              = mo_http_post->ms_request-s_front-event.

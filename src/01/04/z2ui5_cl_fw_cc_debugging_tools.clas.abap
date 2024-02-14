@@ -20,125 +20,125 @@ CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `` && |\n|  &&
-             `sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n|  &&
-              `    "sap/ui/core/Control",` && |\n|  &&
-              `     "sap/ui/core/Fragment",` && |\n|  &&
-              `     "sap/ui/model/json/JSONModel"` && |\n|  &&
-              `], (Control, Fragment, JSONModel) => {` && |\n|  &&
-              `    "use strict";` && |\n|  &&
-              |\n|  &&
-              `    return Control.extend("project1.control.DebuggingTools", {` && |\n|  &&
-              `        metadata: {` && |\n|  &&
-              `            properties: {` && |\n|  &&
-              `                checkLoggingActive: {` && |\n|  &&
-              `                    type: "boolean",` && |\n|  &&
-              `                    defaultValue: ""` && |\n|  &&
-              `                }` && |\n|  &&
-              `            },` && |\n|  &&
-              `            events: {` && |\n|  &&
-              `                "finished": {` && |\n|  &&
-              `                    allowPreventDefault: true,` && |\n|  &&
-              `                    parameters: {},` && |\n|  &&
-              `                }` && |\n|  &&
-              `            }` && |\n|  &&
-              `        },` && |\n|  &&
-              |\n|  &&
-              `        async show() {` && |\n|  &&
-              |\n|  &&
-              `            var oFragmentController = {` && |\n|  &&
-                `   prettifyXml: function (sourceXml) { ` && |\n|  &&
-             `                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n|  &&
-`                        // describes how we want to modify the XML - indent everything` && |\n|  &&
+    result = `` && |\n| &&
+             `sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n| &&
+              `    "sap/ui/core/Control",` && |\n| &&
+              `     "sap/ui/core/Fragment",` && |\n| &&
+              `     "sap/ui/model/json/JSONModel"` && |\n| &&
+              `], (Control, Fragment, JSONModel) => {` && |\n| &&
+              `    "use strict";` && |\n| &&
+              |\n| &&
+              `    return Control.extend("project1.control.DebuggingTools", {` && |\n| &&
+              `        metadata: {` && |\n| &&
+              `            properties: {` && |\n| &&
+              `                checkLoggingActive: {` && |\n| &&
+              `                    type: "boolean",` && |\n| &&
+              `                    defaultValue: ""` && |\n| &&
+              `                }` && |\n| &&
+              `            },` && |\n| &&
+              `            events: {` && |\n| &&
+              `                "finished": {` && |\n| &&
+              `                    allowPreventDefault: true,` && |\n| &&
+              `                    parameters: {},` && |\n| &&
+              `                }` && |\n| &&
+              `            }` && |\n| &&
+              `        },` && |\n| &&
+              |\n| &&
+              `        async show() {` && |\n| &&
+              |\n| &&
+              `            var oFragmentController = {` && |\n| &&
+                `   prettifyXml: function (sourceXml) { ` && |\n| &&
+             `                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n| &&
+`                        // describes how we want to modify the XML - indent everything` && |\n| &&
 `                     var sParse =   unescape( '%3Cxsl%3Astylesheet%20xmlns%3Axsl%3D%22http%3A//www.w3.org/1999/XSL/Transform%22%3E%0A%20%20%3Cxsl%3Astrip-space%20elements%3D%22*%22/%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22para%5Bconten` &&
 `t-style%5D%5Bnot%28text%28%29%29%5` &&
 `D%22%3E%0A%20%20%20%20%3Cxsl%3Avalue-of%20select%3D%22normalize-space%28.%29%22/%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22node%28%29%7C@*%22%3E%0A%20%20%20%20%3Cxsl%3Acopy%3E%3Cxsl%3Aapply-templates%20select%3D%22node` &&
-`%28%29%7C@*%22/%3E%3C/xsl%3Acopy%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Aoutput%20indent%3D%22yes%22/%3E%0A%3C/xsl%3Astylesheet%3E' )` && |\n|  &&
-             `                    var xsltDoc = new DOMParser().parseFromString(sParse , 'application/xml');` && |\n|  &&
-             `                ` && |\n|  &&
-             `                    var xsltProcessor = new XSLTProcessor();    ` && |\n|  &&
-             `                    xsltProcessor.importStylesheet(xsltDoc);` && |\n|  &&
-             `                    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);` && |\n|  &&
-             `                    var resultXml = new XMLSerializer().serializeToString(resultDoc);` && |\n|  &&
-             `                    return resultXml;` && |\n|  &&
-             `                },` && |\n|  &&
-             `              onItemSelect: function (oEvent) {` && |\n|  &&
-             `                        let selItem = oEvent.getSource().getSelectedItem();` && |\n|  &&
-             `    ` && |\n|  &&
-             `                        if (selItem == 'MODEL') {` && |\n|  &&
-             `                           this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oView?.getModel()?.getData(), null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'VIEW') {` && |\n|  &&
-             `                           this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'PLAIN') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify(sap.z2ui5.responseData, null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'REQUEST') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify(sap.z2ui5.oBody, null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'POPUP') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, this.prettifyXml( sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML ) , 'xml' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'POPUP_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap.z2ui5.oViewPopup.getModel().getData(), null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'POPOVER') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent,  sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML  , 'xml' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'POPOVER_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewPopover?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'NEST1') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, sap?.z2ui5?.oViewNest?.mProperties?.viewContent  , 'xml' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'NEST1_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'NEST2') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, sap?.z2ui5?.oViewNest2?.mProperties?.viewContent  , 'xml' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'NEST2_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                        if (selItem == 'SOURCE') {` && |\n|  &&
-             `                            let content= oEvent.getSource().getParent().getItems()[1].getItems()[0].getProperty( "content");` && |\n|  &&
+`%28%29%7C@*%22/%3E%3C/xsl%3Acopy%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Aoutput%20indent%3D%22yes%22/%3E%0A%3C/xsl%3Astylesheet%3E' )` && |\n| &&
+             `                    var xsltDoc = new DOMParser().parseFromString(sParse , 'application/xml');` && |\n| &&
+             `                ` && |\n| &&
+             `                    var xsltProcessor = new XSLTProcessor();    ` && |\n| &&
+             `                    xsltProcessor.importStylesheet(xsltDoc);` && |\n| &&
+             `                    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);` && |\n| &&
+             `                    var resultXml = new XMLSerializer().serializeToString(resultDoc);` && |\n| &&
+             `                    return resultXml;` && |\n| &&
+             `                },` && |\n| &&
+             `              onItemSelect: function (oEvent) {` && |\n| &&
+             `                        let selItem = oEvent.getSource().getSelectedItem();` && |\n| &&
+             `    ` && |\n| &&
+             `                        if (selItem == 'MODEL') {` && |\n| &&
+             `                           this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oView?.getModel()?.getData(), null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'VIEW') {` && |\n| &&
+             `                           this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'PLAIN') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, JSON.stringify(sap.z2ui5.responseData, null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'REQUEST') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, JSON.stringify(sap.z2ui5.oBody, null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'POPUP') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, this.prettifyXml( sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML ) , 'xml' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'POPUP_MODEL') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, JSON.stringify( sap.z2ui5.oViewPopup.getModel().getData(), null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'POPOVER') {` && |\n| &&
+             `                            this.displayEditor(  oEvent,  sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML  , 'xml' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'POPOVER_MODEL') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewPopover?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'NEST1') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, sap?.z2ui5?.oViewNest?.mProperties?.viewContent  , 'xml' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'NEST1_MODEL') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'NEST2') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, sap?.z2ui5?.oViewNest2?.mProperties?.viewContent  , 'xml' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'NEST2_MODEL') {` && |\n| &&
+             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `                        if (selItem == 'SOURCE') {` && |\n| &&
+             `                            let content= oEvent.getSource().getParent().getItems()[1].getItems()[0].getProperty( "content");` && |\n| &&
 *             `                            let link = "https://www.sport.de";` && |\n|  &&
-             `                            let url = window.location.origin + "/sap/bc/adt/oo/classes/" + sap.z2ui5.responseData.S_FRONT.APP + "/source/main";` && |\n|  &&
-             `                            content = '<iframe id="test" src="' + url + '" height="800px" width="1200px" >'` && |\n|  &&
-             `                            oEvent.getSource().getParent().getItems()[1].getItems()[0].setProperty( "content" , content );` && |\n|  &&
-             `                            oEvent.getSource().getModel().oData.editor_visible = false;` && |\n|  &&
-             `                            oEvent.getSource().getModel().oData.source_visible = true;` && |\n|  &&
-             `                            oEvent.getSource().getModel().refresh();` && |\n|  &&
-             `                           // this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `    ` && |\n|  &&
-             `                    },` && |\n|  &&
-             `                    displayEditor (oEvent, content, type) {` && |\n|  &&
-             `                        oEvent.getSource().getModel().oData.editor_visible = true;` && |\n|  &&
-             `                        oEvent.getSource().getModel().oData.source_visible = false;` && |\n|  &&
-             `                        oEvent.getSource().getModel().oData.value = content;` && |\n|  &&
-             `                        oEvent.getSource().getModel().oData.type = type;` && |\n|  &&
-             `                        oEvent.getSource().getModel().refresh();` && |\n|  &&
-             `                    },` && |\n|  &&
-             `                    onClose: function () {` && |\n|  &&
-             `                        this.oDialog.close();` && |\n|  &&
-             `    ` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                };` && |\n|  &&
+             `                            let url = window.location.origin + "/sap/bc/adt/oo/classes/" + sap.z2ui5.responseData.S_FRONT.APP + "/source/main";` && |\n| &&
+             `                            content = '<iframe id="test" src="' + url + '" height="800px" width="1200px" >'` && |\n| &&
+             `                            oEvent.getSource().getParent().getItems()[1].getItems()[0].setProperty( "content" , content );` && |\n| &&
+             `                            oEvent.getSource().getModel().oData.editor_visible = false;` && |\n| &&
+             `                            oEvent.getSource().getModel().oData.source_visible = true;` && |\n| &&
+             `                            oEvent.getSource().getModel().refresh();` && |\n| &&
+             `                           // this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n| &&
+             `                            return;` && |\n| &&
+             `                        }` && |\n| &&
+             `    ` && |\n| &&
+             `                    },` && |\n| &&
+             `                    displayEditor (oEvent, content, type) {` && |\n| &&
+             `                        oEvent.getSource().getModel().oData.editor_visible = true;` && |\n| &&
+             `                        oEvent.getSource().getModel().oData.source_visible = false;` && |\n| &&
+             `                        oEvent.getSource().getModel().oData.value = content;` && |\n| &&
+             `                        oEvent.getSource().getModel().oData.type = type;` && |\n| &&
+             `                        oEvent.getSource().getModel().refresh();` && |\n| &&
+             `                    },` && |\n| &&
+             `                    onClose: function () {` && |\n| &&
+             `                        this.oDialog.close();` && |\n| &&
+             `    ` && |\n| &&
+             `                    }` && |\n| &&
+             `                };` && |\n| &&
 *             `                let XMLDef = ``<core:FragmentDefinition` && |\n|  &&
 *             `                xmlns="sap.m"` && |\n|  &&
 *             `                    xmlns:mvc="sap.ui.core.mvc"` && |\n|  &&
@@ -196,50 +196,50 @@ CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
 `91cmNlX3Zpc2libGV9IiBpZD0idGVzdDIiPgogICAgICAgICAgICAgICAgICAgICAgICA8Y29yZTpIVE1MLz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9WQm94PjxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJ7L3R5cGV9IgogICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT0ney` &&
 `92YWx1ZX0nCiAgICAgICAgICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgdmlzaWJsZT0iey9lZGl0b3JfdmlzaWJsZX0iLz4gPC9IQm94PgogICAgICAgICAgICAgICAgICAgPGZvb3Rlcj48VG9vbGJhcj48VG9vbGJhclNwYWNlci8+PEJ1dHRvbiB0ZXh0PSJDbG9zZSIgcHJlc3M9Im9uQ2xvc2UiLz` &&
 `48L1Rvb2xiYXI+PC9mb290ZXI+CiAgICAgICAgICAgICAgICAgICA8L0RpYWxvZz4KICAgICAgICAgICAgICAgIDwvY29yZTpGcmFnbWVudERlZmluaXRpb24+';` &&
-             `  XMLDef = atob(  XMLDef  );     ` && |\n|  &&
-             `        if(this.oFragment) {` && |\n|  &&
-             `                    this.oFragment.close();` && |\n|  &&
-             `                    this.oFragment.destroy();` && |\n|  &&
-             `                }` && |\n|  &&
-             `                this.oFragment = await Fragment.load({` && |\n|  &&
-             `                    definition: XMLDef,` && |\n|  &&
-             `                    controller: oFragmentController,` && |\n|  &&
-             `                 //   id : "debugId"` && |\n|  &&
-             `                });` && |\n|  &&
-             `    ` && |\n|  &&
-             `                oFragmentController.oDialog = this.oFragment;` && |\n|  &&
-             `                oFragmentController.oDialog.addStyleClass('dbg-ltr');` && |\n|  &&
-             `    ` && |\n|  &&
-             `                let value = JSON.stringify(sap.z2ui5.responseData, null, 3);` && |\n|  &&
-             `                   let oData = { ` && |\n|  &&
-             `                    type: 'json', ` && |\n|  &&
-             `                    source_visible : false,` && |\n|  &&
-             `                    editor_visible : true,` && |\n|  &&
-             `                    value: value,` && |\n|  &&
-             `                    activeNest1   : sap?.z2ui5?.oViewNest?.mProperties?.viewContent !== undefined,` && |\n|  &&
-             `                    activeNest2   : sap?.z2ui5?.oViewNest2?.mProperties?.viewContent !== undefined,` && |\n|  &&
-             `                    activePopup   : sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML !== undefined,` && |\n|  &&
-             `                    activePopover : sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML !== undefined,` && |\n|  &&
-             `                };` && |\n|  &&
-             `                var oModel = new JSONModel(oData);` && |\n|  &&
-             `                this.oFragment.setModel(oModel);` && |\n|  &&
-             `                this.oFragment.open();` && |\n|  &&
-             `    ` && |\n|  &&
-             `            },` && |\n|  &&
-             `    ` && |\n|  &&
-             `            async init() {` && |\n|  &&
-             `    ` && |\n|  &&
-             `                document.addEventListener("keydown", function (zEvent) {` && |\n|  &&
-             `                    if (zEvent.ctrlKey ) { if ( zEvent.key === "F12") {  // case sensitive` && |\n|  &&
-             `                        sap.z2ui5.DebuggingTools.show();` && |\n|  &&
-             `                    } }` && |\n|  &&
-             `                });` && |\n|  &&
-             `    ` && |\n|  &&
-             `            },` && |\n|  &&
-             `    ` && |\n|  &&
-             `            renderer(oRm, oControl) {` && |\n|  &&
-             `            }, ` && |\n|  &&
-             `        });` && |\n|  &&
+             `  XMLDef = atob(  XMLDef  );     ` && |\n| &&
+             `        if(this.oFragment) {` && |\n| &&
+             `                    this.oFragment.close();` && |\n| &&
+             `                    this.oFragment.destroy();` && |\n| &&
+             `                }` && |\n| &&
+             `                this.oFragment = await Fragment.load({` && |\n| &&
+             `                    definition: XMLDef,` && |\n| &&
+             `                    controller: oFragmentController,` && |\n| &&
+             `                 //   id : "debugId"` && |\n| &&
+             `                });` && |\n| &&
+             `    ` && |\n| &&
+             `                oFragmentController.oDialog = this.oFragment;` && |\n| &&
+             `                oFragmentController.oDialog.addStyleClass('dbg-ltr');` && |\n| &&
+             `    ` && |\n| &&
+             `                let value = JSON.stringify(sap.z2ui5.responseData, null, 3);` && |\n| &&
+             `                   let oData = { ` && |\n| &&
+             `                    type: 'json', ` && |\n| &&
+             `                    source_visible : false,` && |\n| &&
+             `                    editor_visible : true,` && |\n| &&
+             `                    value: value,` && |\n| &&
+             `                    activeNest1   : sap?.z2ui5?.oViewNest?.mProperties?.viewContent !== undefined,` && |\n| &&
+             `                    activeNest2   : sap?.z2ui5?.oViewNest2?.mProperties?.viewContent !== undefined,` && |\n| &&
+             `                    activePopup   : sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML !== undefined,` && |\n| &&
+             `                    activePopover : sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML !== undefined,` && |\n| &&
+             `                };` && |\n| &&
+             `                var oModel = new JSONModel(oData);` && |\n| &&
+             `                this.oFragment.setModel(oModel);` && |\n| &&
+             `                this.oFragment.open();` && |\n| &&
+             `    ` && |\n| &&
+             `            },` && |\n| &&
+             `    ` && |\n| &&
+             `            async init() {` && |\n| &&
+             `    ` && |\n| &&
+             `                document.addEventListener("keydown", function (zEvent) {` && |\n| &&
+             `                    if (zEvent.ctrlKey ) { if ( zEvent.key === "F12") {  // case sensitive` && |\n| &&
+             `                        sap.z2ui5.DebuggingTools.show();` && |\n| &&
+             `                    } }` && |\n| &&
+             `                });` && |\n| &&
+             `    ` && |\n| &&
+             `            },` && |\n| &&
+             `    ` && |\n| &&
+             `            renderer(oRm, oControl) {` && |\n| &&
+             `            }, ` && |\n| &&
+             `        });` && |\n| &&
              `    }); `.
 
   ENDMETHOD.

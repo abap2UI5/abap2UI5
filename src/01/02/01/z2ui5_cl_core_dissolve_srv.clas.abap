@@ -64,8 +64,7 @@ CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
     result-name        = name.
     DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
       attri = mt_attri
-      app   = mo_app
-    ).
+      app   = mo_app ).
     result-r_ref       = lo_model->attri_get_val_ref( name ).
     result-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( result-r_ref ).
 
@@ -95,8 +94,7 @@ CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
         ls_attri2-name  = ir_attri->name && `->*`.
         DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
             attri = mt_attri
-            app   = mo_app
-        ).
+            app   = mo_app ).
         ls_attri2-r_ref = lo_model->attri_get_val_ref( ls_attri2-name ).
         INSERT ls_attri2 INTO TABLE result.
 
@@ -118,8 +116,8 @@ CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
         WHERE visibility   = cl_abap_objectdescr=>public
-        AND   is_interface = abap_false
-        AND   is_constant  = abap_false.
+        AND is_interface = abap_false
+        AND is_constant  = abap_false.
       TRY.
 
           DATA(ls_new) = create_new_entry( lv_name && lr_attri->name ).

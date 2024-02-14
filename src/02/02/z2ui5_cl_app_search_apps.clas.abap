@@ -270,7 +270,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     row->text( `{DESCR}` ).
     row->text( ).
     row->checkbox( text     = `ABAP for Cloud`
-      enabled = abap_false
+      enabled               = abap_false
                    selected = `{CHECK_ABAP_FOR_CLOUD}` ).
 
     row = item->grid( ).
@@ -286,12 +286,10 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
     row->checkbox( text     = `Installed`
                    selected = `{CHECK_INSTALLED}`
-                   enabled = abap_false
-                   ).
+                   enabled  = abap_false ).
     row->checkbox( text     = `Standard ABAP (Min. {MIN_RELEASE})`
                    selected = `{CHECK_STANDARD_ABAP}`
-                   enabled = abap_false
-                   ).
+                   enabled  = abap_false ).
      row->text( `{DESCR}` ).
 
 *     page_online
@@ -344,7 +342,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *      page_favs->generic_tile(
         class  = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
         press  = client->_event( val = `ON_PRESS` t_arg = VALUE #( ( `${$source>/header}` ) ) )
-        header = client->_bind( val = lr_app->name    tab = ref #( mt_favs ) tab_index = lv_tabix ) ).
+        header = client->_bind( val = lr_app->name    tab = REF #( mt_favs ) tab_index = lv_tabix ) ).
 *        visible = client->_bind( val = lr_app->check_fav tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.
 

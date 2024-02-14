@@ -100,8 +100,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
     DO 5 TIMES.
       DATA(lo_dissolve) = NEW z2ui5_cl_core_dissolve_srv(
          attri = mt_attri
-         app   = mo_app
-       ).
+         app   = mo_app ).
       lo_dissolve->main( ).
       result = attri_search( val ).
       IF result IS BOUND.

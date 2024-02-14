@@ -47,8 +47,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       t_event_arg            = mo_action->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
       check_on_navigated     = mo_action->ms_actual-check_on_navigated
-      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
-    ).
+      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front ) ).
 
   ENDMETHOD.
 
@@ -222,11 +221,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
       type   = z2ui5_if_core_types=>cs_bind_type-one_way
       config = VALUE #(
-         path_only = path
+         path_only     = path
          custom_filter = custom_filter
          custom_mapper = custom_mapper
-         tab = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-         tab_index = tab_index  ) ).
+         tab           = z2ui5_cl_util=>conv_get_as_data_ref( tab )
+         tab_index     = tab_index ) ).
 
   ENDMETHOD.
 
@@ -246,13 +245,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       val    = z2ui5_cl_util=>conv_get_as_data_ref( val )
       type   = z2ui5_if_core_types=>cs_bind_type-two_way
       config = VALUE #(
-         path_only = path
-         custom_filter = custom_filter
+         path_only          = path
+         custom_filter      = custom_filter
          custom_filter_back = custom_filter_back
-         custom_mapper = custom_mapper
+         custom_mapper      = custom_mapper
          custom_mapper_back = custom_mapper_back
-         tab = z2ui5_cl_util=>conv_get_as_data_ref( tab )
-         tab_index = tab_index  ) ).
+         tab                = z2ui5_cl_util=>conv_get_as_data_ref( tab )
+         tab_index          = tab_index ) ).
 
   ENDMETHOD.
 
@@ -263,9 +262,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     result = lo_bind->main_local(
       val    = val
       config = VALUE #(
-        path_only = path
+        path_only     = path
         custom_mapper = custom_mapper
-        custom_filter = custom_filter  ) ).
+        custom_filter = custom_filter ) ).
 
   ENDMETHOD.
 
@@ -285,8 +284,8 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
     result = lo_ui5->get_event_client(
-         val                = val
-         t_arg              = t_arg ).
+         val   = val
+         t_arg = t_arg ).
 
   ENDMETHOD.
 ENDCLASS.
