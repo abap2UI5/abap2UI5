@@ -650,9 +650,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
       LOOP AT lt_cols REFERENCE INTO lr_col.
         ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
         ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        ASSERT sy-subrc = 0.
         <field> = lr_col->*.
       ENDLOOP.
-      ASSERT sy-subrc = 0.
 
       INSERT <row> INTO TABLE <tab>.
     ENDLOOP.

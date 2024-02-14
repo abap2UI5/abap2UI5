@@ -360,7 +360,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
        act = z2ui5_cl_util=>boolean_abap_2_json( `{ABCD}` )
-       exp = `{ABCD}`).
+       exp = `{ABCD}` ).
 
   ENDMETHOD.
 
