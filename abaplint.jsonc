@@ -21,7 +21,7 @@
     "select_single_full_key" : true,
     "strict_sql" : true,
     "easy_to_find_messages" : true,
-    "fully_type_itabs" : false,
+    "fully_type_itabs" : true,
     "align_parameters": false,
     "smim_consistency": true,
     "allowed_object_naming": true,
