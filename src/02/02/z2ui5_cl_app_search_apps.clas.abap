@@ -131,8 +131,8 @@ CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
 *              action = 'NAV_TO'
 *              t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
                                                  select = client->_event_client(
-                                                    val = client->cs_event-nav_container_to
-                                                    t_arg  = VALUE #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
+                                                    val   = client->cs_event-nav_container_to
+                                                    t_arg = VALUE #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
                                                  mode   = `Inline`
                                  )->items(
                                    )->icon_tab_filter( key  = `page_favs`

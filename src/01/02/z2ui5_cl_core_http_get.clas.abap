@@ -52,7 +52,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
   METHOD get_js.
 
     result = `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment"], function(Control` &&
-  `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment) {` && |\n| &&
+      `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment) {` && |\n| &&
                `    "use strict";` && |\n| &&
                `    return Controller.extend("z2ui5.Controller", {` && |\n| &&
                `        async onAfterRendering() {` && |\n| &&
@@ -108,8 +108,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                }` && |\n| &&
                `            }` && |\n| &&
                `            )` && |\n| &&
-`           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new sap.m.BusyDialog({ text : "Please Restart t` &&
-`he App" }).open();  } } ) }` && |\n| &&
+      `           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new sap.m.BusyDialog({ text : "Please Restart t` &&
+      `he App" }).open();  } } ) }` && |\n| &&
                `        },` && |\n| &&
                |\n| &&
                `        async displayFragment(xml, viewProp, openById) {` && |\n| &&
@@ -533,12 +533,12 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `<script> sap.z2ui5 = sap.z2ui5 || {};` && |\n| &&
                get_js( ) && |\n| &&
                lv_add_js && |\n| &&
-    `          sap.z2ui5.JSON_MODEL_LIMIT = ` && COND #( WHEN ms_request-json_model_limit IS NOT INITIAL THEN ms_request-json_model_limit ELSE 100 ) && `;`.
+      `          sap.z2ui5.JSON_MODEL_LIMIT = ` && COND #( WHEN ms_request-json_model_limit IS NOT INITIAL THEN ms_request-json_model_limit ELSE 100 ) && `;`.
 
     mv_response = mv_response &&
        z2ui5_cl_fw_cc_debugging_tools=>get_js( ) &&
-    `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
-    ` });`.
+      `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
+      ` });`.
 
     mv_response = mv_response && |\n| &&
                  `</script>` && |\n| &&
@@ -565,7 +565,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
   METHOD get_default_security_policy.
 
     result  = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
-   `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
+      `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com"/>`.
 
   ENDMETHOD.
 
