@@ -3,7 +3,7 @@ CLASS ltcl_test DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    METHODS:
+    METHODS
       first_test FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
@@ -20,17 +20,17 @@ CLASS ltcl_test IMPLEMENTATION.
       END OF ty_row.
 
     DATA(ls_row) = VALUE ty_row(
-        title = `test`
-        value = `val`
+        title    = `test`
+        value    = `val`
         selected = abap_true ).
     DATA(ls_row_result) = VALUE ty_row( ).
 
     DATA(lv_id) = z2ui5_cl_util=>db_save(
-        uname        = `name`
-        handle       = `handle1`
-        handle2      = `handle2`
-        handle3      = `handle3`
-        data         = ls_row ).
+        uname   = `name`
+        handle  = `handle1`
+        handle2 = `handle2`
+        handle3 = `handle3`
+        data    = ls_row ).
 
     z2ui5_cl_util=>db_load_by_id(
       EXPORTING
@@ -45,10 +45,10 @@ CLASS ltcl_test IMPLEMENTATION.
     CLEAR ls_row_result.
     z2ui5_cl_util=>db_load_by_handle(
       EXPORTING
-        uname        = `name`
-        handle       = `handle1`
-        handle2      = `handle2`
-        handle3      = `handle3`
+        uname   = `name`
+        handle  = `handle1`
+        handle2 = `handle2`
+        handle3 = `handle3`
       IMPORTING
         result  = ls_row_result ).
 

@@ -652,7 +652,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column_list_item
       IMPORTING
-        !id        TYPE clike OPTIONAL
+        !id            TYPE clike OPTIONAL
         !valign        TYPE clike OPTIONAL
         !selected      TYPE clike OPTIONAL
         !type          TYPE clike OPTIONAL
@@ -1516,8 +1516,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !selectionbehavior      TYPE clike DEFAULT 'RowSelector'
         !selectedindex          TYPE clike OPTIONAL
         !id                     TYPE clike OPTIONAL
-        !VISIBLEROWCOUNT        type CLIKE optional
-        !VISIBLEROWCOUNTMODE    type CLIKE optional
+        !visiblerowcount        TYPE clike OPTIONAL
+        !visiblerowcountmode    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_columns
@@ -3404,7 +3404,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -4132,20 +4132,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `icon`  v = icon )
                                          ( n = `stretch`  v = stretch )
                                          ( n = `state`  v = state )
-                                         ( n = `titleAlignment`  v = titleAlignment )
+                                         ( n = `titleAlignment`  v = titlealignment )
                                          ( n = `type`  v = type )
                                          ( n = `showHeader`  v = showheader )
                                          ( n = `contentWidth`  v = contentwidth )
                                          ( n = `contentHeight`  v = contentheight )
-                                         ( n = `escapeHandler`  v = escapeHandler )
+                                         ( n = `escapeHandler`  v = escapehandler )
                                          ( n = `closeOnNavigation`  v = z2ui5_cl_util=>boolean_abap_2_json( closeonnavigation ) )
                                          ( n = `draggable`  v = z2ui5_cl_util=>boolean_abap_2_json( draggable ) )
                                          ( n = `resizable`  v = z2ui5_cl_util=>boolean_abap_2_json( resizable ) )
                                          ( n = `horizontalScrolling`  v = z2ui5_cl_util=>boolean_abap_2_json( horizontalscrolling ) )
                                          ( n = `verticalScrolling`  v = z2ui5_cl_util=>boolean_abap_2_json( verticalscrolling ) )
-                                         ( n = `afterOpen`  v = afterOpen )
-                                         ( n = `beforeClose`  v = beforeClose )
-                                         ( n = `beforeOpen`  v = beforeOpen )
+                                         ( n = `afterOpen`  v = afteropen )
+                                         ( n = `beforeClose`  v = beforeclose )
+                                         ( n = `beforeOpen`  v = beforeopen )
                                          ( n = `afterClose` v = afterclose ) ) ).
   ENDMETHOD.
 
@@ -7237,8 +7237,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                         ( n = `selectionBehavior`       v = selectionbehavior )
                                         ( n = `id`                      v = id )
                                         ( n = `selectedIndex`           v = selectedindex )
-                                        ( n = `visibleRowCount`         v = visibleRowCount )
-                                        ( n = `visibleRowCountMode`     v = visibleRowCountMode ) ) ).
+                                        ( n = `visibleRowCount`         v = visiblerowcount )
+                                        ( n = `visibleRowCountMode`     v = visiblerowcountmode ) ) ).
   ENDMETHOD.
 
 
@@ -7608,12 +7608,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
       WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
         RETURN.
+      WHEN OTHERS.
     ENDCASE.
 
     IF me = mo_root.
-
-
-
 
       lt_prop = VALUE #(
                       ( n = `xmlns:z2ui5`     v = `z2ui5` )

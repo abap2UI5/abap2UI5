@@ -42,11 +42,13 @@ CLASS z2ui5_cl_core_action DEFINITION
         val TYPE REF TO z2ui5_cl_core_http_post.
 
   PROTECTED SECTION.
+
     METHODS prepare_app_stack
       IMPORTING
         val           TYPE z2ui5_if_core_types=>ty_s_next-o_app_leave
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -73,7 +75,7 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     result->ms_actual-view           = mo_http_post->ms_request-s_front-view.
 
     result->mo_app->model_json_parse(
-        iv_view          = mo_http_post->ms_request-s_front-view
+        iv_view  = mo_http_post->ms_request-s_front-view
         io_model = mo_http_post->ms_request-o_model ).
 
     result->ms_actual-event              = mo_http_post->ms_request-s_front-event.

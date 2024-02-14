@@ -50,6 +50,7 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD get_t_arg.
 
     IF val IS NOT INITIAL.

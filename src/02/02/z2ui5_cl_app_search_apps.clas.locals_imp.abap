@@ -39,14 +39,14 @@ CLASS lcl_github IMPLEMENTATION.
 
     result = VALUE #(
         (
-        name              = `Table Loader`
-        descr             = `Upload, Edit & Download Table Content (CSV, JSON)`
-        author_link       = `https://github.com/oblomov-dev`
-        author_name       = `oblomov`
+        name                 = `Table Loader`
+        descr                = `Upload, Edit & Download Table Content (CSV, JSON)`
+        author_link          = `https://github.com/oblomov-dev`
+        author_name          = `oblomov`
         check_abap_for_cloud = abap_true
-        min_release       = `750`
-        link              = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
-        t_app             = VALUE #(
+        min_release          = `750`
+        link                 = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
+        t_app                = VALUE #(
           (
             name      = `Upload JSON`
             descr     = `Modify DB Table with JSON Data`
@@ -59,15 +59,15 @@ CLASS lcl_github IMPLEMENTATION.
           )
         ) )
          (
-        name              = `The Quest`
-        descr             = `A wizard's adventure game based on a fork of the AXAGE game engine (ABAP teXt Adventure Game Engine) and abap2UI5. The game is set in a fantasy world, where the player takes on the role of a wizard's apprentice. The play` &&
-`er explores the wizard's house, interacts with various objects and explores. The Quest is work in progress...`
+        name                 = `The Quest`
+        descr                = `A wizard's adventure game based on a fork of the AXAGE game engine (ABAP teXt Adventure Game Engine) and abap2UI5. The game is set in a fantasy world, where the player ` &&
+        `takes on the role of a wizard's apprentice. The player explores the wizard's house, interacts with various objects and explores. The Quest is work in progress...`
         check_abap_for_cloud = abap_true
-        min_release       = `750`
-        link              = `https://github.com/nomssi/axage`
-        author_link       = `https://github.com/nomssi`
-        author_name       = `Nomssi`
-        t_app             = VALUE #(
+        min_release          = `750`
+        link                 = `https://github.com/nomssi/axage`
+        author_link          = `https://github.com/nomssi`
+        author_name          = `Nomssi`
+        t_app                = VALUE #(
           (
             name      = `The Quest - Start the Adventure`
             descr     = `Adventure Game: The Wizard&amp;apos;s Aspirant Quest`
@@ -75,17 +75,17 @@ CLASS lcl_github IMPLEMENTATION.
           )
         ) )
        (
-        name              = `Advent of Code`
-        descr             = `Advent of Code 2023 in ABAP`
-        author_link       = `https://github.com/joltdx`
-        author_name       = `joltdx`
-        link              = `https://github.com/joltdx/abap-advent-2023`
+        name                 = `Advent of Code`
+        descr                = `Advent of Code 2023 in ABAP`
+        author_link          = `https://github.com/joltdx`
+        author_name          = `joltdx`
+        link                 = `https://github.com/joltdx/abap-advent-2023`
         check_abap_for_cloud = abap_true
-        min_release       = `750`
-        t_app             = VALUE #(
+        min_release          = `750`
+        t_app                = VALUE #(
           (
             name      = `Advent of Code 2023 in ABAP`
-            descr       = `Advent of Code 2023 - ABAP2UI5 app`
+            descr     = `Advent of Code 2023 - ABAP2UI5 app`
             classname = `zcl_advent_2023_a2ui5.clas.abap`
           )
         ) ) ).

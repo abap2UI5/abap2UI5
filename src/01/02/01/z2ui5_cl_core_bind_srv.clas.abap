@@ -80,6 +80,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      ASSERT sy-subrc = 0.
       lr_ref_in = REF #( <ele> ).
 
       IF i_val = lr_ref_in.
@@ -178,7 +179,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     result = replace( val = result sub = `>` with = `` ).
     result = COND #( WHEN mv_type = z2ui5_if_core_types=>cs_bind_type-two_way
         THEN `/` && z2ui5_if_core_types=>cs_ui5-two_way_model )
-        && `/` &&  result.
+        && `/` && result.
 
   ENDMETHOD.
 
@@ -198,22 +199,21 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
         attri = REF #( mo_app->mt_attri )
-        app = mo_app->mo_app ).
+        app   = mo_app->mo_app ).
 
-    mr_attri = lo_model->search_a_dissolve_attribute( val ).
+    mr_attri = lo_model->attri_search_a_dissolve( val ).
 
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing( ).
-      result = mr_attri->name_client.
     ELSE.
       check_raise_new( ).
       update_model_attri( ).
-      result = mr_attri->name_client.
     ENDIF.
+    result = mr_attri->name_client.
 
-    IF result = `/` && z2ui5_if_core_types=>cs_ui5-two_way_model.
+    IF `/` && z2ui5_if_core_types=>cs_ui5-two_way_model = result.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `<p>Name of variable not allowed - x is reserved word - use anoter name for your attribute`.
@@ -236,8 +236,8 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     result = lo_bind->main( val = config-tab type = type config = VALUE #( path_only = abap_true ) ).
 
     result = bind_tab_cell(
-          iv_name     = result
-          i_val       = val ).
+          iv_name = result
+          i_val   = val ).
 
     IF ms_config-path_only = abap_false.
       result = `{` && result && `}`.
@@ -249,7 +249,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
   METHOD main_local.
     TRY.
 
-        DATA(lo_json) =  CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
+        DATA(lo_json) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
         lo_json->set( iv_path = `/` iv_val = val ).
 
         IF config-custom_mapper IS BOUND.
@@ -268,8 +268,8 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
         INSERT VALUE #( name_client     = |/{ lv_id }|
                         name            = lv_id
                         json_bind_local = lo_json
-                        bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time  )
-        INTO TABLE mo_app->mt_attri.
+                        bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time )
+          INTO TABLE mo_app->mt_attri.
 
         result = |/{ lv_id }|.
 
@@ -291,8 +291,9 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper = ms_config-custom_mapper.
     mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    mr_attri->view         = COND #( WHEN ms_config-view IS INITIAL THEN z2ui5_if_client=>cs_view-main ELSE ms_config-view ).
-    mr_attri->name_client    = get_client_name( ).
+    mr_attri->view          = COND #( WHEN ms_config-view IS INITIAL THEN z2ui5_if_client=>cs_view-main ELSE ms_config-view ).
+    mr_attri->name_client   = get_client_name( ).
 
   ENDMETHOD.
+
 ENDCLASS.

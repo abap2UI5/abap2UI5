@@ -205,6 +205,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
             ro_class = object.
 
         ASSIGN ('OBJECT->IF_XCO_AO_CLASS~IMPLEMENTATION') TO <any>.
+        ASSERT sy-subrc = 0.
         object = <any>.
 
         CALL METHOD object->('IF_XCO_CLAS_IMPLEMENTATION~METHOD')
@@ -275,7 +276,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
         clsname    TYPE c LENGTH 30,
         refclsname TYPE c LENGTH 30,
       END OF ty_s_impl.
-    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
+    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH EMPTY KEY.
     TYPES: BEGIN OF ty_s_key,
              intkey TYPE c LENGTH 30,
            END OF ty_s_key.
@@ -336,10 +337,9 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
   METHOD rtti_get_data_element_texts.
 
     DATA:
-      data_element_name TYPE c LENGTH 30,
-      ddic_ref          TYPE REF TO data,
-      data_element      TYPE REF TO object,
-      content           TYPE REF TO object,
+      ddic_ref     TYPE REF TO data,
+      data_element TYPE REF TO object,
+      content      TYPE REF TO object,
       BEGIN OF ddic,
         reptext   TYPE string,
         scrtext_s TYPE string,
@@ -348,7 +348,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
       END OF ddic,
       exists TYPE abap_bool.
 
-    data_element_name = i_data_element_name.
+    DATA(data_element_name) = i_data_element_name.
 
     TRY.
         cl_abap_typedescr=>describe_by_name( 'T100' ).
@@ -361,11 +361,11 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
         cl_abap_elemdescr=>describe_by_name(
            EXPORTING
-             p_name         = data_element_name
+             p_name      = data_element_name
            RECEIVING
-             p_descr_ref    = DATA(lo_typedescr)
+             p_descr_ref = DATA(lo_typedescr)
            EXCEPTIONS
-             OTHERS         = 1 ).
+             OTHERS      = 1 ).
         IF sy-subrc <> 0.
           RETURN.
         ENDIF.

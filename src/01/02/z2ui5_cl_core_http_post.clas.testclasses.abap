@@ -4,7 +4,7 @@ CLASS ltcl_test_handler_post DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    METHODS:
+    METHODS
       load_startup_app FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 

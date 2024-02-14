@@ -15,7 +15,7 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD event.
 
     DATA(lo_event) = NEW z2ui5_cl_core_event_srv( ).
-    DATA(lv_event) = lo_event->get_event( `POST`).
+    DATA(lv_event) = lo_event->get_event( `POST` ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_event

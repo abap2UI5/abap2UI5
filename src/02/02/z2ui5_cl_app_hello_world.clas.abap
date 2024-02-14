@@ -41,6 +41,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
         client->message_toast_display( |Your name is { name }| ).
+      WHEN OTHERS.
     ENDCASE.
 
   ENDMETHOD.

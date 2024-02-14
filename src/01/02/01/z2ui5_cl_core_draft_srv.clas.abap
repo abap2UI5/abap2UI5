@@ -5,7 +5,7 @@ CLASS z2ui5_cl_core_draft_srv DEFINITION
 
   PUBLIC SECTION.
 
-    METHODS count
+    METHODS count_entries
       RETURNING
         VALUE(result) TYPE i.
 
@@ -48,7 +48,7 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
   METHOD cleanup.
 
     DATA(lv_four_hours_ago) = z2ui5_cl_util=>time_substract_seconds(
-        time = z2ui5_cl_util=>time_get_timestampl( )
+        time    = z2ui5_cl_util=>time_get_timestampl( )
         seconds = 60 * 60 * 4 ).
 
     DELETE FROM z2ui5_t_core_01 WHERE timestampl < @lv_four_hours_ago.
@@ -86,19 +86,18 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
       SELECT SINGLE *
         FROM z2ui5_t_core_01
         WHERE id = @id
-        INTO @result.
+        INTO @result ##SUBRC_OK.
 
     ELSE.
 
       SELECT SINGLE id, id_prev, id_prev_app, id_prev_app_stack
         FROM z2ui5_t_core_01
         WHERE id = @id
-        INTO CORRESPONDING FIELDS OF @result.
+        INTO CORRESPONDING FIELDS OF @result ##SUBRC_OK.
 
     ENDIF.
 
     IF sy-subrc <> 0.
-*      ASSERT 1 = 0.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `NO_DRAFT_ENTRY_OF_PREVIOUS_REQUEST_FOUND`.
@@ -123,12 +122,14 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
     result = CORRESPONDING #( ls_db ).
 
   ENDMETHOD.
-  METHOD count.
+
+
+  METHOD count_entries.
 
     SELECT
-    COUNT( * )
-    FROM  z2ui5_t_core_01
-    INTO @result.
+      COUNT( * )
+      FROM z2ui5_t_core_01
+      INTO @result.
 
   ENDMETHOD.
 

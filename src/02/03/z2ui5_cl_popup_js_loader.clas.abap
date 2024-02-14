@@ -30,7 +30,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POPUP_JS_LOADER IMPLEMENTATION.
+CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
 
 
   METHOD factory.
@@ -51,7 +51,7 @@ CLASS Z2UI5_CL_POPUP_JS_LOADER IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( title = `load library`
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `load library`
         )->content(
         )->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )
         )->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
@@ -75,6 +75,7 @@ CLASS Z2UI5_CL_POPUP_JS_LOADER IMPLEMENTATION.
       WHEN `TIMER_FINISHED`.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+      WHEN OTHERS.
     ENDCASE.
 
   ENDMETHOD.

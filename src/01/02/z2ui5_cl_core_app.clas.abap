@@ -68,7 +68,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     TRY.
 
-        DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+        DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
           attri = REF #( mt_attri )
           app   = mo_app ).
         lo_model->attri_before_save( ).
@@ -92,7 +92,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
        attri = REF #( result->mt_attri )
        app   = result->mo_app ).
 
@@ -109,7 +109,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     result->mo_app = app.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
         attri = REF #( result->mt_attri )
         app   = result->mo_app ).
 
@@ -135,7 +135,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD model_json_parse.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
-    lo_json_mapper->model_client_to_server(
+    lo_json_mapper->model_front_to_back(
         view    = iv_view
         t_attri = REF #( mt_attri )
         model   = io_model ).
@@ -146,7 +146,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   METHOD model_json_stringify.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
-    result = lo_json_mapper->model_server_to_client( mt_attri ).
+    result = lo_json_mapper->model_back_to_front( mt_attri ).
 
   ENDMETHOD.
 ENDCLASS.

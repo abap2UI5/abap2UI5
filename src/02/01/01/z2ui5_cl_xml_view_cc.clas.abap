@@ -258,9 +258,9 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
   METHOD favicon.
 
     result = mo_view.
-    mo_view->_generic( name   = `Favicon`
-              ns     = `z2ui5`
-              t_prop = VALUE #( ( n = `favicon`  v = favicon ) ) ).
+    mo_view->_generic( name = `Favicon`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `favicon`  v = favicon ) ) ).
 
   ENDMETHOD.
 

@@ -1,4 +1,4 @@
-CLASS  z2ui5_cl_util_api DEFINITION
+CLASS z2ui5_cl_util_api DEFINITION
   PUBLIC
   CREATE PUBLIC
   INHERITING FROM z2ui5_cl_util_stmpncfctn.
@@ -198,9 +198,9 @@ CLASS  z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS xml_srtti_parse
       IMPORTING
-        !rtti_data TYPE clike
-      EXPORTING
-        !e_data    TYPE REF TO data.
+        !rtti_data    TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS time_get_timestampl
       RETURNING
@@ -264,12 +264,6 @@ CLASS  z2ui5_cl_util_api DEFINITION
         !val          TYPE any
       RETURNING
         VALUE(result) TYPE abap_bool.
-
-    CLASS-METHODS rtti_get_type_kind_by_descr
-      IMPORTING
-        !val          TYPE REF TO cl_abap_typedescr
-      RETURNING
-        VALUE(result) TYPE string.
 
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
@@ -354,18 +348,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
 
-      DATA(lv_element) = attri && lr_comp->name.
-
-*      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
-*        name      = lv_element
-*        type_kind = lr_comp->type_kind ).
-*
-      DATA(ls_attri) = VALUE  abap_componentdescr(
-   name      = lv_element
-*        type_kind = lr_comp->type_kind
-   ).
-      "todo type of field
-
+      DATA(ls_attri) = VALUE abap_componentdescr( name = attri && lr_comp->name ).
       INSERT ls_attri INTO TABLE result.
 
     ENDLOOP.
@@ -667,6 +650,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
       LOOP AT lt_cols REFERENCE INTO lr_col.
         ASSIGN lr_row->* TO FIELD-SYMBOL(<row>).
         ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
+        ASSERT sy-subrc = 0.
         <field> = lr_col->*.
       ENDLOOP.
 
@@ -692,7 +676,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD json_stringify.
     TRY.
 
-        DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
+        DATA(li_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         result = li_ajson->set( iv_path = `/` iv_val = any )->stringify( ).
 
       CATCH z2ui5_cx_ajson_error INTO DATA(x).
@@ -805,8 +789,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     LOOP AT result REFERENCE INTO DATA(lr_comp)
         WHERE as_include = abap_true.
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type
-                                               attri = lr_comp->name ).
+      DATA(lt_attri) = rtti_get_t_attri_by_include( type = lr_comp->type
+                                               attri     = lr_comp->name ).
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
@@ -831,12 +815,11 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD source_get_method.
 
-    DATA(lt_source) =  method_get_source(
+    DATA(lt_source) = method_get_source(
          iv_classname  = iv_classname
-         iv_methodname = iv_methodname
-      ).
+         iv_methodname = iv_methodname ).
 
-    result = source_method_to_file( it_source = lt_source ).
+    result = source_method_to_file( lt_source ).
 
   ENDMETHOD.
 
@@ -1000,8 +983,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     lo_datadescr ?= rtti_type.
 
-    CREATE DATA e_data TYPE HANDLE lo_datadescr.
-    ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
+    CREATE DATA result TYPE HANDLE lo_datadescr.
+    ASSIGN result->* TO FIELD-SYMBOL(<variable>).
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
 
   ENDMETHOD.
@@ -1059,36 +1042,11 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD rtti_get_type_kind_by_descr.
-
-    TRY.
-        DATA(lo_test) = CAST cl_abap_structdescr( val ).
-        result = lo_test->type_kind.
-        RETURN.
-      CATCH cx_sy_move_cast_error.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_test2) = CAST cl_abap_objectdescr( val ).
-        result = lo_test2->type_kind.
-        RETURN.
-      CATCH cx_sy_move_cast_error.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_test3) = CAST cl_abap_refdescr( val ).
-        result = lo_test3->type_kind.
-        RETURN.
-      CATCH cx_sy_move_cast_error.
-    ENDTRY.
-
-  ENDMETHOD.
-
   METHOD unassign_object.
 
     FIELD-SYMBOLS <unassign> TYPE any.
     ASSIGN val->* TO <unassign>.
-    result =  <unassign>.
+    result = <unassign>.
 
   ENDMETHOD.
 
@@ -1096,7 +1054,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     FIELD-SYMBOLS <unassign> TYPE any.
     ASSIGN val->* TO <unassign>.
-    result =  <unassign>.
+    result = <unassign>.
 
   ENDMETHOD.
 

@@ -126,6 +126,7 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
     ASSIGN (lv_assign) TO <any>.
+    ASSERT sy-subrc = 0.
 
     cl_abap_unit_assert=>assert_equals(
         act = <any>
@@ -329,12 +330,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     GET REFERENCE OF lv_test INTO lr_data.
 
     cl_abap_unit_assert=>assert_equals(
-    act = z2ui5_cl_util_api=>rtti_check_ref_data( lr_data )
-    exp = abap_true ).
+      act = z2ui5_cl_util_api=>rtti_check_ref_data( lr_data )
+      exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-    act = z2ui5_cl_util_api=>rtti_check_ref_data( lv_test )
-    exp = abap_false ).
+      act = z2ui5_cl_util_api=>rtti_check_ref_data( lv_test )
+      exp = abap_false ).
 
   ENDMETHOD.
 
@@ -359,7 +360,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
        act = z2ui5_cl_util=>boolean_abap_2_json( `{ABCD}` )
-       exp = `{ABCD}`).
+       exp = `{ABCD}` ).
 
   ENDMETHOD.
 
@@ -423,8 +424,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_func_get_user_tech.
 
     cl_abap_unit_assert=>assert_equals(
-    act = sy-uname
-    exp = z2ui5_cl_util=>user_get_tech( ) ).
+      act = sy-uname
+      exp = z2ui5_cl_util=>user_get_tech( ) ).
 
     cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util=>user_get_tech( ) ).
 
@@ -507,7 +508,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
           exp = `100` ).
 
     cl_abap_unit_assert=>assert_equals(
-       act =  lt_param[ n = `app_start` ]-v
+       act = lt_param[ n = `app_start` ]-v
        exp = `z2ui5_cl_app_hello_world` ).
 
   ENDMETHOD.

@@ -56,13 +56,13 @@ CLASS z2ui5_cl_ui5 DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
 
     METHODS constructor
-      IMPORTING node TYPE REF TO z2ui5_cl_UI5_tree_xml OPTIONAL.
+      IMPORTING node TYPE REF TO z2ui5_cl_ui5_tree_xml OPTIONAL.
 
     METHODS _stringify
       RETURNING VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA _node TYPE REF TO z2ui5_cl_UI5_tree_xml.
+    DATA _node TYPE REF TO z2ui5_cl_ui5_tree_xml.
 
     CLASS-METHODS _2xml
       IMPORTING obj           TYPE REF TO z2ui5_cl_ui5
@@ -192,7 +192,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    DATA(lo_node) = NEW z2ui5_cl_UI5_tree_xml( ).
+    DATA(lo_node) = NEW z2ui5_cl_ui5_tree_xml( ).
     DATA(result2) = NEW z2ui5_cl_ui5( lo_node ).
     result2->_node->mv_name = n.
     result2->_node->mv_ns   = ns.

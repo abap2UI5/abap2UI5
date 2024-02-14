@@ -25,7 +25,7 @@ CLASS ltcl_test IMPLEMENTATION.
         origin   = `ORIGIN`
         pathname = `PATHNAME`
         search   = `SEARCH`
-        event    = `BUTTON_POST`  ) ).
+        event    = `BUTTON_POST` ) ).
 
     cl_abap_unit_assert=>assert_equals(
         act = ls_result-s_front
@@ -43,6 +43,5 @@ CLASS ltcl_test IMPLEMENTATION.
        exp = 3 ).
 
   ENDMETHOD.
-
 
 ENDCLASS.
