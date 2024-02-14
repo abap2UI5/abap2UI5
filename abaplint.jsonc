@@ -42,11 +42,7 @@
     "cds_legacy_view": true,
     "cds_parser_error": true,
     "chain_mainly_declarations": true,
-    "change_if_to_case": {
-      "exclude": [],
-      "severity": "Error",
-      "skipNames": []
-    },
+    "change_if_to_case": true,
     "check_abstract": true,
     "check_comments": true,
     "check_ddic": true,
@@ -60,11 +56,7 @@
     "cloud_types": true,
     "colon_missing_space": true,
     "commented_code": false,
-    "constant_classes": {
-      "exclude": [],
-      "severity": "Error",
-      "mapping": []
-    },
+    "constant_classes": true,
     "constructor_visibility_public": true,
     "contains_tab": {
       "exclude": [],
@@ -75,7 +67,7 @@
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
-      "max": 25
+      "max": 20
     },
     "dangerous_statement": true,
     "db_operation_in_loop": true,
@@ -131,7 +123,9 @@
     "keyword_case": false,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
-    "line_length": false,
+    "line_length":  {
+      "exclude": ["z2ui5_cl_core_http_get.abap"]
+    },
     "line_only_punc": false,
     "local_class_naming": false,
     "local_testclass_consistency": true,
@@ -189,7 +183,7 @@
       "shlp": "^Z"
     },
     "obsolete_statement": true,
-    "omit_parameter_name": false,
+    "omit_parameter_name": true,
     "omit_preceding_zeros": true,
     "omit_receiving": true,
     "parser_702_chaining": true,
