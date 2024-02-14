@@ -300,11 +300,12 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
 *    result = REF #( mt_attri->*[ r_ref = val ] OPTIONAL ).
 
-    LOOP AT mt_attri->* REFERENCE INTO result
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE type_kind <> cl_abap_typedescr=>typekind_dref
            AND type_kind <> cl_abap_typedescr=>typekind_oref.
 
-      IF result->r_ref = val.
+      IF lr_attri->r_ref = val.
+        result = lr_attri.
         RETURN.
       ENDIF.
     ENDLOOP.
