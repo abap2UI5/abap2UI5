@@ -51,8 +51,8 @@
 
 #### Extensions & Apps
 * Integrate your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
-* Connect with the SAP Business Technology Platform [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
-* Enhance functionality with Custom Controls & External Libraries [(custom controls)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
+* Connect with SAP BTP & SAP Mobile Start [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
+* Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md)
   
 #### More
@@ -220,7 +220,7 @@ ENDCLASS.
 </details>
 
 #### Credits
-* These [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) help to continously evolve this project
+* These [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
 * Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
