@@ -123,10 +123,7 @@
     "keyword_case": true,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
-    "line_length":  {
-      "severity": "Error",
-      "exclude": ["z2ui5_cl_core_http_get.abap"]
-    },
+    "line_length": false,
     "line_only_punc": true,
     "local_class_naming": false,
     "local_testclass_consistency": true,
@@ -192,7 +189,7 @@
     "parser_missing_space": true,
     "pragma_style": true,
     "prefer_corresponding": true,
-    "prefer_inline": true,
+    "prefer_inline": false,
     "prefer_is_not": true,
     "prefer_raise_exception_new": true,
     "prefer_returning_to_exporting": true,
