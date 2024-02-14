@@ -128,7 +128,7 @@
     "line_break_style": true,
     "line_length": {
       "exclude": ["z2ui5_cl_core_http_get.clas.abap"],
-      "severity": "Error"
+      "severity": "Error",
       "length" : "120"
     },
     "line_only_punc": true,
