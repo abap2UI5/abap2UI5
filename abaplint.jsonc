@@ -139,7 +139,7 @@
     "method_implemented_twice": true,
     "method_length": false,
     "method_overwrites_builtin": true,
-    "method_parameter_names": true,
+    "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
       "reportDynamic": true,
