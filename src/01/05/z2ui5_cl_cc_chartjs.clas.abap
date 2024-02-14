@@ -16,8 +16,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         r TYPE string,
       END OF ty_x_y_r_data.
 
-    TYPES ty_x_y_r_data_t TYPE STANDARD TABLE OF ty_x_y_r_data WITH EMPTY KEY.
-    TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH EMPTY KEY.
+    TYPES ty_x_y_r_data_t TYPE STANDARD TABLE OF ty_x_y_r_data WITH DEFAULT KEY.
+    TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_padding,
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         values TYPE string_table,
       END OF ty_data_venn .
 
-    TYPES ty_data_venn_t TYPE STANDARD TABLE OF ty_data_venn WITH EMPTY KEY.
+    TYPES ty_data_venn_t TYPE STANDARD TABLE OF ty_data_venn WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_dataset,
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         tension            TYPE string,
       END OF ty_dataset.
 
-    TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH EMPTY KEY.
+    TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH DEFAULT KEY.
 
     TYPES:
       BEGIN OF ty_data,
@@ -612,7 +612,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
   METHOD get_chartjs_local.
@@ -832,13 +832,13 @@ CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
 
     CASE iv_visit.
 
-      WHEN z2ui5_if_ajson_filter=>visit_type-open.
+      WHEN  z2ui5_if_ajson_filter=>visit_type-open.
 
         IF is_node-children = 0.
           rv_keep = abap_false.
         ENDIF.
 
-      WHEN z2ui5_if_ajson_filter=>visit_type-value.
+      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
@@ -846,7 +846,7 @@ CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
               rv_keep = abap_false.
             ENDIF.
           WHEN z2ui5_if_ajson_types=>node_type-number.
-            IF is_node-value = `0` OR is_node-value = `0.00`.
+            IF is_node-value = `0` or is_node-value = `0.00`.
               rv_keep = abap_false.
             ENDIF.
           WHEN z2ui5_if_ajson_types=>node_type-string.
@@ -855,7 +855,7 @@ CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
             ENDIF.
         ENDCASE.
 
-      WHEN z2ui5_if_ajson_filter=>visit_type-close.
+      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
 
         IF is_node-children = 0.
           rv_keep = abap_false.

@@ -43,14 +43,19 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
 
   METHOD attri_after_load.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE srtti_data IS NOT INITIAL
-         AND o_typedescr->type_kind  = cl_abap_classdescr=>typekind_dref.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+
+*         WHERE srtti_data IS NOT INITIAL
+*         AND o_typedescr->type_kind  = cl_abap_classdescr=>typekind_dref.
 
       lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
+      lr_attri->o_typedescr =  cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
 
-      <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
+      IF lr_attri->srtti_data IS NOT INITIAL.
+        <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
+        CLEAR lr_attri->srtti_data .
+      ENDIF.
 
 *      z2ui5_cl_util=>xml_srtti_parse(
 *        EXPORTING
@@ -135,9 +140,11 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
 
   METHOD attri_refs_update.
 
-    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
+    LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+
       lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
+      lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+
     ENDLOOP.
 
   ENDMETHOD.

@@ -199,7 +199,6 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
               ASSERT 1 = 0.
           ENDCASE.
         WHEN OTHERS.
-          ASSERT 1 = 0.
       ENDCASE.
 
     ENDLOOP.
