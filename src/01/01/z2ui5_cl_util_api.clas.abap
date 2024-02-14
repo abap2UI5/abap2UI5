@@ -67,7 +67,7 @@ CLASS  z2ui5_cl_util_api DEFINITION
       IMPORTING
         val           TYPE any
       RETURNING
-        VALUE(result) TYPE REF TO object.
+        VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS conv_get_as_data_ref
       IMPORTING
@@ -432,7 +432,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD conv_copy_ref_data.
 
     FIELD-SYMBOLS <from> TYPE data.
@@ -731,10 +730,12 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD rtti_check_ref_data.
 
     TRY.
-        cl_abap_typedescr=>describe_by_data_ref( val ).
+        DATA(lo_typdescr) = cl_abap_typedescr=>describe_by_data( val ).
+        DATA(lo_ref) = CAST cl_abap_refdescr( lo_typdescr ) ##NEEDED.
         result = abap_true.
       CATCH cx_root.
     ENDTRY.
+
   ENDMETHOD.
 
 

@@ -54,7 +54,7 @@ CLASS Z2UI5_CL_POPUP_FILE_DOWNLOAD IMPLEMENTATION.
     r_result->button_text_confirm = i_button_text_confirm.
     r_result->button_text_cancel = i_button_text_cancel.
     r_result->mv_value = i_file.
-    r_result->mv_size = CONV i( strlen( i_file ) / 1000 ).
+    r_result->mv_size = strlen( i_file ) / 1000.
 
   ENDMETHOD.
 

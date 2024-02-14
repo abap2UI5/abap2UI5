@@ -5,17 +5,11 @@ CLASS z2ui5_cl_core_app DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES if_serializable_object .
+    INTERFACES if_serializable_object.
 
-    DATA mt_attri TYPE z2ui5_if_core_types=>ty_t_attri .
-    DATA mo_app TYPE REF TO object .
-    DATA ms_draft TYPE z2ui5_if_types=>ty_s_get-s_draft .
-
-    METHODS attri_get_by_data
-      IMPORTING
-        !val          TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
+    DATA mt_attri   TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA mo_app     TYPE REF TO object.
+    DATA ms_draft   TYPE z2ui5_if_types=>ty_s_get-s_draft.
 
     METHODS model_json_stringify
       RETURNING
@@ -23,24 +17,30 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     METHODS model_json_parse
       IMPORTING
-        !view          TYPE string
-        !io_json_model TYPE REF TO z2ui5_if_ajson .
+        !iv_view  TYPE string
+        !io_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
       RETURNING
-        VALUE(result) TYPE string .
+        VALUE(result) TYPE string.
 
     CLASS-METHODS all_xml_parse
       IMPORTING
-        !val          TYPE string
+        !xml          TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app .
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     CLASS-METHODS db_load
       IMPORTING
         !id           TYPE string
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app .
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
+
+    CLASS-METHODS db_load_by_app
+      IMPORTING
+        app           TYPE REF TO z2ui5_if_app
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     METHODS db_save.
 
@@ -57,15 +57,9 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     z2ui5_cl_util=>xml_parse(
         EXPORTING
-            xml = val
+            xml = xml
         IMPORTING
             any = result ).
-
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-       attri = REF #( result->mt_attri )
-       app   = result->mo_app ).
-
-    lo_model->attri_after_load( ).
 
   ENDMETHOD.
 
@@ -76,7 +70,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
         DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
           attri = REF #( mt_attri )
-          app   = me->mo_app ).
+          app   = mo_app ).
         lo_model->attri_before_save( ).
 
         result = z2ui5_cl_util=>xml_stringify( me ).
@@ -92,48 +86,39 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD attri_get_by_data.
-
-    TRY.
-        result = REF #( mt_attri[ r_ref = val ] ).
-        RETURN.
-      CATCH cx_root.
-    ENDTRY.
-
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
-      attri = REF #( mt_attri )
-      app = mo_app ).
-
-    DO 5 TIMES.
-
-      lo_model->dissolve( ).
-
-      TRY.
-          result = REF #( mt_attri[ r_ref = val ] ).
-          RETURN.
-        CATCH cx_root.
-      ENDTRY.
-
-    ENDDO.
-
-    RAISE EXCEPTION TYPE z2ui5_cx_util_error
-      EXPORTING
-        val = `BINDING_ERROR - No class attribute for binding found - Please check if the binded values are public attributes of your class or switch to bind_local`.
-
-  ENDMETHOD.
-
-
   METHOD db_load.
 
     DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
     DATA(ls_db) = lo_db->read_draft( id ).
     result = all_xml_parse( ls_db-data ).
 
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+       attri = REF #( result->mt_attri )
+       app   = result->mo_app ).
+
+    lo_model->attri_after_load( ).
+
+  ENDMETHOD.
+
+
+  METHOD db_load_by_app.
+
+    DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
+    DATA(ls_db) = lo_db->read_draft( app->id_draft ).
+    result = all_xml_parse( ls_db-data ).
+
+    result->mo_app = app.
+
+    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+        attri = REF #( result->mt_attri )
+        app   = result->mo_app ).
+
+    lo_model->attri_refs_update( ).
+
   ENDMETHOD.
 
 
   METHOD db_save.
-
 
     IF mo_app IS BOUND.
       CAST z2ui5_if_app( mo_app )->id_draft = ms_draft-id.
@@ -151,9 +136,9 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
     lo_json_mapper->model_client_to_server(
-        view    = view
+        view    = iv_view
         t_attri = REF #( mt_attri )
-        model   = io_json_model ).
+        model   = io_model ).
 
   ENDMETHOD.
 
