@@ -298,7 +298,16 @@ CLASS z2ui5_cl_core_model_srv IMPLEMENTATION.
 
   METHOD search_attribute.
 
-    result = REF #( mt_attri->*[ r_ref = val ] OPTIONAL ).
+*    result = REF #( mt_attri->*[ r_ref = val ] OPTIONAL ).
+
+    LOOP AT mt_attri->* REFERENCE INTO result
+         WHERE type_kind <> cl_abap_typedescr=>typekind_dref
+           AND type_kind <> cl_abap_typedescr=>typekind_oref.
+
+      IF result->r_ref = val.
+        RETURN.
+      ENDIF.
+    ENDLOOP.
 
   ENDMETHOD.
 
