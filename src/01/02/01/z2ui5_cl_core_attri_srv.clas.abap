@@ -50,11 +50,13 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
 
-      z2ui5_cl_util=>xml_srtti_parse(
-        EXPORTING
-            rtti_data = lr_attri->srtti_data
-        IMPORTING
-            e_data    = <val> ).
+      <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
+
+*      z2ui5_cl_util=>xml_srtti_parse(
+*        EXPORTING
+*            rtti_data = lr_attri->srtti_data
+*        IMPORTING
+*            e_data    = <val> ).
 
       CLEAR lr_attri->srtti_data.
     ENDLOOP.

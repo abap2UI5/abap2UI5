@@ -198,9 +198,9 @@ CLASS z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS xml_srtti_parse
       IMPORTING
-        !rtti_data TYPE clike
-      EXPORTING
-        !e_data    TYPE REF TO data.
+        !rtti_data    TYPE clike
+      RETURNING
+        VALUE(result) TYPE REF TO data.
 
     CLASS-METHODS time_get_timestampl
       RETURNING
@@ -983,8 +983,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     lo_datadescr ?= rtti_type.
 
-    CREATE DATA e_data TYPE HANDLE lo_datadescr.
-    ASSIGN e_data->* TO FIELD-SYMBOL(<variable>).
+    CREATE DATA result TYPE HANDLE lo_datadescr.
+    ASSIGN result->* TO FIELD-SYMBOL(<variable>).
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT dobj = <variable>.
 
   ENDMETHOD.
