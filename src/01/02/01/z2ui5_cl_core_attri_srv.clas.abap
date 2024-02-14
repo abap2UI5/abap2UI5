@@ -45,28 +45,15 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
 
-*         WHERE srtti_data IS NOT INITIAL
-*         AND o_typedescr->type_kind  = cl_abap_classdescr=>typekind_dref.
-
       lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
       lr_attri->o_typedescr =  cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
-      ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
 
       IF lr_attri->srtti_data IS NOT INITIAL.
+        ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
         <val> = z2ui5_cl_util=>xml_srtti_parse( lr_attri->srtti_data ).
-        CLEAR lr_attri->srtti_data .
+        CLEAR lr_attri->srtti_data.
       ENDIF.
-
-*      z2ui5_cl_util=>xml_srtti_parse(
-*        EXPORTING
-*            rtti_data = lr_attri->srtti_data
-*        IMPORTING
-*            e_data    = <val> ).
-
-      CLEAR lr_attri->srtti_data.
     ENDLOOP.
-
-    attri_refs_update( ).
 
   ENDMETHOD.
 
@@ -157,8 +144,6 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD attri_search.
-
-*    result = REF #( mt_attri->*[ r_ref = val ] OPTIONAL ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
          WHERE o_typedescr->kind = cl_abap_typedescr=>kind_elem
