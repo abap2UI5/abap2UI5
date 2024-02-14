@@ -129,6 +129,7 @@
     "line_length": {
       "exclude": ["z2ui5_cl_core_http_get.clas.abap"],
       "severity": "Error"
+      "length" : "120"
     },
     "line_only_punc": true,
     "local_class_naming": false,
@@ -151,7 +152,7 @@
     "msag_consistency": true,
     "names_no_dash": true,
     "nesting": {
-      "depth": 7
+      "depth": 6
     },
     "newline_between_methods": true,
     "no_aliases": true,
