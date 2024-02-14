@@ -128,8 +128,8 @@ CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
     DATA(pages) = page->icon_tab_header( selectedkey    = client->_bind_edit( mv_selected_key )
 *                                                  select = client->_event( `OnSelectIconTabBar` )
 *                                                  select = client->_event_client(
-              action = 'NAV_TO'
-              t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
+*              action = 'NAV_TO'
+*              t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
                                                  select = client->_event_client(
                                                     val = client->cs_event-nav_container_to
                                                     t_arg  = VALUE #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
