@@ -85,10 +85,10 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 *                  classname = 'z2ui5_cl_core_app_info' ).
 
     page2->header_content(
-    )->text(
-     )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP`
-     )->toolbar_spacer(
-     )->button( text = `System` icon = `sap-icon://information`
+      )->text(
+      )->title( `abap2UI5 - Developing UI5 Apps Purely in ABAP`
+      )->toolbar_spacer(
+      )->button( text = `System` icon = `sap-icon://information`
         press = client->_event( `OPEN_INFO` ) ).
 *        press  = client->_event_client( val = client->cs_event-open_new_tab
 *                                     t_arg = VALUE #( ( lv_url_info ) ) ) ).

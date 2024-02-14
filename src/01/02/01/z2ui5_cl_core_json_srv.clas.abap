@@ -43,8 +43,8 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
   METHOD model_front_to_back.
 
     LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
-    WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
-    AND view  = view.
+        WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
+        AND view  = view.
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -84,7 +84,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
           CASE lr_attri->bind_type.
             WHEN z2ui5_if_core_types=>cs_bind_type-one_way
-            OR z2ui5_if_core_types=>cs_bind_type-two_way.
+                OR z2ui5_if_core_types=>cs_bind_type-two_way.
 
               ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
               ASSERT sy-subrc = 0.

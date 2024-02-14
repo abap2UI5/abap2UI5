@@ -15,7 +15,7 @@
     "errorNamespace": "."
   },
   "rules": {
-    "7bit_ascii": false,
+    "7bit_ascii": true,
     "abapdoc": false,
     "sql_value_conversion" : true,
     "select_single_full_key" : true,
@@ -67,20 +67,13 @@
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
-      "max": 20
+      "max": 10
     },
     "dangerous_statement": true,
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
-    "double_space": {
-      "exclude": ["z2ui5_cl_cc_driver_js.abap"],
-      "severity": "Error",
-      "keywords": true,
-      "startParen": true,
-      "endParen": true,
-      "afterColon": true
-    },
+    "double_space": true,
     "downport": true,
     "empty_line_in_statement": true,
     "empty_statement": true,
@@ -122,7 +115,7 @@
     "identical_form_names": true,
     "if_in_if": true,
     "implement_methods": true,
-    "in_statement_indentation": false,
+    "in_statement_indentation": true,
     "indentation": false,
     "inline_data_old_versions": true,
     "intf_referencing_clas": false,
@@ -131,9 +124,9 @@
     "line_break_multiple_parameters": false,
     "line_break_style": true,
     "line_length": {
-      "exclude": ["z2ui5_cl_core_http_get.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap","z2ui5_cl_cc_animatecss.clas.abap","z2ui5_cl_cc_bwipjs.clas.abap","z2ui5_cl_cc_camera_picture.clas.abap","z2ui5_cl_cc_chartjs.clas.abap","z2ui5_cl_cc_driver_js.clas.abap"],
+      "exclude": ["z2ui5_cl_cc_imagemapster.clas.abap","z2ui5_cl_core_http_get.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap","z2ui5_cl_cc_animatecss.clas.abap","z2ui5_cl_cc_bwipjs.clas.abap","z2ui5_cl_cc_camera_picture.clas.abap","z2ui5_cl_cc_chartjs.clas.abap","z2ui5_cl_cc_driver_js.clas.abap"],
       "severity": "Error",
-      "length" : "120"
+      "length" : "180"
     },
     "line_only_punc": true,
     "local_class_naming": false,
@@ -156,7 +149,7 @@
     "msag_consistency": true,
     "names_no_dash": true,
     "nesting": {
-      "depth": 6
+      "depth": 5
     },
     "newline_between_methods": true,
     "no_aliases": true,

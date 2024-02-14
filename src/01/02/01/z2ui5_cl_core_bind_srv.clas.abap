@@ -269,7 +269,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
                         name            = lv_id
                         json_bind_local = lo_json
                         bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time )
-        INTO TABLE mo_app->mt_attri.
+          INTO TABLE mo_app->mt_attri.
 
         result = |/{ lv_id }|.
 

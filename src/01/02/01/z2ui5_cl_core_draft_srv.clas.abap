@@ -127,9 +127,9 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
   METHOD count_entries.
 
     SELECT
-    COUNT( * )
-    FROM z2ui5_t_core_01
-    INTO @result.
+      COUNT( * )
+      FROM z2ui5_t_core_01
+      INTO @result.
 
   ENDMETHOD.
 

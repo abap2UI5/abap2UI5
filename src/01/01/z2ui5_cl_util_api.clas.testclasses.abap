@@ -330,12 +330,12 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     GET REFERENCE OF lv_test INTO lr_data.
 
     cl_abap_unit_assert=>assert_equals(
-    act = z2ui5_cl_util_api=>rtti_check_ref_data( lr_data )
-    exp = abap_true ).
+      act = z2ui5_cl_util_api=>rtti_check_ref_data( lr_data )
+      exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-    act = z2ui5_cl_util_api=>rtti_check_ref_data( lv_test )
-    exp = abap_false ).
+      act = z2ui5_cl_util_api=>rtti_check_ref_data( lv_test )
+      exp = abap_false ).
 
   ENDMETHOD.
 
@@ -424,8 +424,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_func_get_user_tech.
 
     cl_abap_unit_assert=>assert_equals(
-    act = sy-uname
-    exp = z2ui5_cl_util=>user_get_tech( ) ).
+      act = sy-uname
+      exp = z2ui5_cl_util=>user_get_tech( ) ).
 
     cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util=>user_get_tech( ) ).
 

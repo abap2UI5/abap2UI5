@@ -192,7 +192,7 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
             WHEN cl_abap_typedescr=>typekind_oref.
               DATA(lt_attri_oref) = diss_oref( lr_attri ).
               INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
-            WHEN  cl_abap_typedescr=>typekind_dref.
+            WHEN cl_abap_typedescr=>typekind_dref.
               DATA(lt_attri_dref) = diss_dref( lr_attri ).
               INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
             WHEN OTHERS.
