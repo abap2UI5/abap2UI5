@@ -240,7 +240,10 @@
     "unused_ddic": true,
     "unused_methods": true,
     "unused_types": true,
-    "unused_variables": true,
+    "unused_variables": {
+      "severity": "Error",
+      "skipNames": ["lv_dummy"]
+    },
     "use_bool_expression": true,
     "use_class_based_exceptions": true,
     "use_line_exists": true,
