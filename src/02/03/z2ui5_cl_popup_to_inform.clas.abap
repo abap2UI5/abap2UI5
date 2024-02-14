@@ -78,7 +78,7 @@ CLASS z2ui5_cl_popup_to_inform IMPLEMENTATION.
       WHEN `BUTTON_CONFIRM`.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-         WHEN OTHERS.
+      WHEN OTHERS.
     ENDCASE.
 
   ENDMETHOD.
