@@ -1,8 +1,7 @@
 CLASS z2ui5_cl_core_dissolve_srv DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC .
-
+  CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -43,6 +42,7 @@ CLASS z2ui5_cl_core_dissolve_srv DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_attri.
 
+  PRIVATE SECTION.
 ENDCLASS.
 
 
@@ -80,8 +80,6 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
     DATA(ls_attri2) = VALUE z2ui5_if_core_types=>ty_s_attri( ).
     ls_attri2-o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_ref ).
-*    ls_attri2-kind     = ls_attri2-o_typedescr->kind.
-*    ls_attri2-type_kind = ls_attri2-o_typedescr->type_kind.
 
     CASE ls_attri2-o_typedescr->kind.
 

@@ -36,6 +36,7 @@ CLASS z2ui5_cl_core_attri_srv DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_if_core_types=>ty_s_attri.
 
+  PRIVATE SECTION.
 ENDCLASS.
 
 
