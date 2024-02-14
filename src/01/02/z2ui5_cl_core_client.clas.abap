@@ -31,10 +31,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~clear.
 
-    CASE val.
-      WHEN z2ui5_if_client=>cs_clear-view.
-        CLEAR mo_action->ms_next-s_set-s_view.
-    ENDCASE.
+    IF val = z2ui5_if_client=>cs_clear-view.
+      CLEAR mo_action->ms_next-s_set-s_view.
+    ENDIF.
 
   ENDMETHOD.
 

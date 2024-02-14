@@ -133,7 +133,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
         result-o_model->set( iv_path = lv_model_edit_name iv_val = lo_model ).
         lo_ajson->delete( lv_model_edit_name ).
 
-        lo_ajson = lo_ajson->slice( `/S_FRONT`).
+        lo_ajson = lo_ajson->slice( `/S_FRONT` ).
         lo_ajson->to_abap(
             EXPORTING
                iv_corresponding = abap_true

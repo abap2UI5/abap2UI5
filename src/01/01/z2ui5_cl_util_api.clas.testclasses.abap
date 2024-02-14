@@ -126,6 +126,7 @@ CLASS ltcl_unit_test_abap_api IMPLEMENTATION.
 
     DATA(lv_assign) = `LO_APP->` && 'MV_VAL'.
     ASSIGN (lv_assign) TO <any>.
+    ASSERT sy-subrc = 0.
 
     cl_abap_unit_assert=>assert_equals(
         act = <any>

@@ -80,6 +80,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.
+      ASSERT sy-subrc = 0.
       lr_ref_in = REF #( <ele> ).
 
       IF i_val = lr_ref_in.
@@ -206,14 +207,13 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing( ).
-      result = mr_attri->name_client.
     ELSE.
       check_raise_new( ).
       update_model_attri( ).
-      result = mr_attri->name_client.
     ENDIF.
+    result = mr_attri->name_client.
 
-    IF result = `/` && z2ui5_if_core_types=>cs_ui5-two_way_model.
+    IF `/` && z2ui5_if_core_types=>cs_ui5-two_way_model = result.
       RAISE EXCEPTION TYPE z2ui5_cx_util_error
         EXPORTING
           val = `<p>Name of variable not allowed - x is reserved word - use anoter name for your attribute`.

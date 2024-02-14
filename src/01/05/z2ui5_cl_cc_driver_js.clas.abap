@@ -144,7 +144,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
 
     METHOD get_css_local.
-      result = `` && |\n| &&
+      result = `` && |\n|  &&
   `.driver-active .driver-overlay,.driver-active *{pointer-events:none}.driver-active .driver-active-element,.driver-active .driver-active-element *,.driver-popover,.driver-popover *{pointer-events:auto}` &&
   `@keyframes animate-fade-in{0%{opacity:0}to{opacity:1}}.driver-fade .driver-overlay{animation:animate-fade-in .2s ease-in-out}` &&
   `.driver-fade .driver-popover{animation:animate-fade-in .2s}` &&
@@ -175,14 +175,14 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
     METHOD get_js_cc.
 
-      result = `sap.z2ui5.DriverJS = { };` &&
-            `sap.z2ui5.DriverJS.drive = function() {` && |\n| &&
+      result =  `sap.z2ui5.DriverJS = { };` &&
+            `sap.z2ui5.DriverJS.drive = function() {` && |\n|  &&
       `   if( driver !== undefined ) { if( config !== undefined ) {` && |\n| &&
       `           driverObj = driver(config);` && |\n| &&
       `           driverObj.drive();` && |\n| &&
       `       } };` && |\n| &&
-      `       };` && |\n| &&
-      `    sap.z2ui5.DriverJS.highlight = function() {` && |\n| &&
+      `       };` && |\n|  &&
+      `    sap.z2ui5.DriverJS.highlight = function() {` && |\n|  &&
                   `                        if( driver !== undefined ) { if ( highlight_driver_config !== undefined ) { if (highlight_config !== undefined ) {` && |\n| &&
                            `                          driverObj = driver(highlight_driver_config);` && |\n| &&
                            `                          driverObj.highlight(highlight_config);` && |\n| &&
@@ -221,7 +221,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 *                                  compress         = abap_true
 *                                  pretty_name      = 'X' ).
         TRY.
-            DATA(li_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+            DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
             li_ajson->set( iv_path = `/` iv_val = ls_config ).
 *            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
             li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
@@ -284,7 +284,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 *                                                   compress         = abap_true
 *                                                   pretty_name      = 'X' ).
         TRY.
-            li_ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+            li_ajson = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
             li_ajson->set( iv_path = `/` iv_val = ls_highlight_driver_config ).
 *            li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
             li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_driver_js( ) ).
@@ -363,7 +363,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
 
     METHOD get_js_local.
-      result = `` && |\n| &&
+      result = `` && |\n|  &&
 `this.driver=this.driver||{};this.driver.js=function(D){&quot;use strict&quot;;let F={};function z(e={}){F={animate:!0,allowClose:!0,overlayOpacity:.7,smoothScroll:!1,disableActiveInteraction:!1,showProgress:!1,stagePadding:10,stageRadius:5,` &&
 `popoverOffset:10,showButtons:[&quot;next&quot;,&quot;previous&quot;,&quot;close&quot;],disableButtons:[],overlayColor:&quot;#000&quot;,...e}}function a(e){return e?F[e]:F}function W(e,o,t,i){return(e/=i/2)&lt;1?t/2*e*e+o:-t/2*(--e*(e-2)-1)+o}` &&
 `function q(` &&
@@ -503,13 +503,13 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
 
       CASE iv_visit.
 
-        WHEN z2ui5_if_ajson_filter=>visit_type-open.
+        WHEN  z2ui5_if_ajson_filter=>visit_type-open.
 
           IF is_node-children = 0.
             rv_keep = abap_false.
           ENDIF.
 
-        WHEN z2ui5_if_ajson_filter=>visit_type-value.
+        WHEN  z2ui5_if_ajson_filter=>visit_type-value.
 
           CASE is_node-type.
             WHEN z2ui5_if_ajson_types=>node_type-boolean.
@@ -526,7 +526,7 @@ CLASS Z2UI5_CL_CC_DRIVER_JS IMPLEMENTATION.
               ENDIF.
           ENDCASE.
 
-        WHEN z2ui5_if_ajson_filter=>visit_type-close.
+        WHEN  z2ui5_if_ajson_filter=>visit_type-close.
 
           IF is_node-children = 0.
             rv_keep = abap_false.

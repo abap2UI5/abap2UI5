@@ -47,7 +47,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -187,16 +187,17 @@ CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
 
         WHEN cl_abap_typedescr=>kind_ref.
 
-          IF lr_attri->o_typedescr->type_kind = cl_abap_typedescr=>typekind_oref.
-            DATA(lt_attri_oref) = diss_oref( lr_attri ).
-            INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
-          ELSEIF lr_attri->o_typedescr->type_kind = cl_abap_typedescr=>typekind_dref.
-            DATA(lt_attri_dref) = diss_dref( lr_attri ).
-            INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
+          CASE lr_attri->o_typedescr->type_kind.
 
-          ELSE.
-            ASSERT 1 = 0.
-          ENDIF.
+            WHEN cl_abap_typedescr=>typekind_oref.
+              DATA(lt_attri_oref) = diss_oref( lr_attri ).
+              INSERT LINES OF lt_attri_oref INTO TABLE lt_attri_new.
+            WHEN  cl_abap_typedescr=>typekind_dref.
+              DATA(lt_attri_dref) = diss_dref( lr_attri ).
+              INSERT LINES OF lt_attri_dref INTO TABLE lt_attri_new.
+            WHEN OTHERS.
+              ASSERT 1 = 0.
+          ENDCASE.
         WHEN OTHERS.
           ASSERT 1 = 0.
       ENDCASE.

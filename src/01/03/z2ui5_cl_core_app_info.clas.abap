@@ -78,7 +78,7 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
     simple_form2->toolbar( )->title( `Frontend` ).
 
-    simple_form2->label( `UI5 Version`).
+    simple_form2->label( `UI5 Version` ).
     simple_form2->text( client->_bind( mv_ui5_version ) ).
     simple_form2->label( `Launchpad active` ).
     simple_form2->checkbox( enabled = abap_false selected = client->get( )-check_launchpad_active ).
@@ -96,19 +96,19 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     simple_form2->label( `ABAP for Cloud` ).
     simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>rtti_check_lang_version_cloud( ) ).
 
-    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_draft_srv( )->count( ) ).
+    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_draft_srv( )->count_entries( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
     simple_form2->label( `Version ` ).
     simple_form2->text( z2ui5_if_app=>version ).
     simple_form2->label( `Draft Entries ` ).
     simple_form2->text( lv_count ).
 
-  page2->footer( )->overflow_toolbar(
-                )->toolbar_spacer(
-                )->button(
-                    text  = 'close'
-                    press = client->_event( 'CLOSE' )
-                    type  = 'Emphasized' ).
+    page2->footer( )->overflow_toolbar(
+                  )->toolbar_spacer(
+                  )->button(
+                      text  = 'close'
+                      press = client->_event( 'CLOSE' )
+                      type  = 'Emphasized' ).
 
     client->popup_display( page2->stringify( ) ).
 
@@ -145,6 +145,7 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
+      WHEN OTHERS.
     ENDCASE.
 
   ENDMETHOD.

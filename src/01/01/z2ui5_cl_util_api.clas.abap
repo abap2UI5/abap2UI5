@@ -348,17 +348,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
 
-      DATA(lv_element) = attri && lr_comp->name.
-
-*      DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri(
-*        name      = lv_element
-*        type_kind = lr_comp->type_kind ).
-*
-      DATA(ls_attri) = VALUE abap_componentdescr(
-   name      = lv_element
-*        type_kind = lr_comp->type_kind ).
-      "todo type of field
-
+      DATA(ls_attri) = VALUE abap_componentdescr( name = attri && lr_comp->name ).
       INSERT ls_attri INTO TABLE result.
 
     ENDLOOP.
@@ -662,6 +652,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
         ASSIGN COMPONENT sy-tabix OF STRUCTURE <row> TO FIELD-SYMBOL(<field>).
         <field> = lr_col->*.
       ENDLOOP.
+      ASSERT sy-subrc = 0.
 
       INSERT <row> INTO TABLE <tab>.
     ENDLOOP.

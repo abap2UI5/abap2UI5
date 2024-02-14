@@ -84,7 +84,7 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
 
   METHOD get_js_local.
-    result = `` && |\n| &&
+    result = `` && |\n|  &&
 `!function(a){&quot;function&quot;==typeof define&amp;&amp;define.amd?define([&quot;jquery&quot;],a):&quot;object&quot;==typeof module&amp;&amp;module.exports?module.exports=function(e,t){return void 0===t&amp;&amp;(t=&quot;undefined&quot;!=typeof win` &&
 `dow?require(&quot;jquery&quot;):require(&quot;jquery&quot;)(e)),a(t),t}:a(jQuery)}(function(jQuery){!function(a){&quot;use strict&quot;;a.event&amp;&amp;a.event.special&amp;&amp;function(){var i,e=!1;try{var t=Object.defineProperty({},&quot;passive&q` &&
 `uot;,{get:function(){return e=!0}});window.addEventListener(&quot;testPassive.mapster&quot;,function(){},t),window.removeEventListener(&quot;testPassive.mapster&quot;,function(){},t)}catch(e){}e&amp;&amp;(i=function(e,t,a){if(!e.includes(&quot;noPrev` &&
@@ -277,7 +277,7 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
 
   METHOD load_editor.
-    result = `` && |\n| &&
+    result = `` && |\n|  &&
     `loadJsEditor("` && base64_data_uri && `","` && filename && `");`.
   ENDMETHOD.
 
@@ -3300,9 +3300,9 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 *                        ).
 
       TRY.
-          DATA(li_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
+          DATA(li_ajson) = CAST z2ui5_if_ajson(  z2ui5_cl_ajson=>create_empty( ) ).
           li_ajson->set( iv_path = `/` iv_val = is_config ).
-          li_ajson = li_ajson->filter( NEW z2ui5_cl_cc_imagemapster( ) ).
+          li_ajson = li_ajson->filter( NEW Z2UI5_CL_CC_IMAGEMAPSTER( ) ).
 *          li_ajson = li_ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
           li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_to_camel_case( ) ).
 *          li_ajson = li_ajson->map( z2ui5_cl_ajson_mapping=>create_lower_case( ) ).
@@ -3389,13 +3389,13 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
       CASE iv_visit.
 
-        WHEN z2ui5_if_ajson_filter=>visit_type-open.
+        WHEN  z2ui5_if_ajson_filter=>visit_type-open.
 
           IF is_node-children = 0.
             rv_keep = abap_false.
           ENDIF.
 
-        WHEN z2ui5_if_ajson_filter=>visit_type-value.
+        WHEN  z2ui5_if_ajson_filter=>visit_type-value.
 
           CASE is_node-type.
             WHEN z2ui5_if_ajson_types=>node_type-boolean.
@@ -3415,7 +3415,7 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
               ENDIF.
           ENDCASE.
 
-        WHEN z2ui5_if_ajson_filter=>visit_type-close.
+        WHEN  z2ui5_if_ajson_filter=>visit_type-close.
 
           IF is_node-children = 0.
             rv_keep = abap_false.
