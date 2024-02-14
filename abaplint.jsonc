@@ -123,11 +123,7 @@
     "keyword_case": true,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
-    "line_length": {
-      "exclude": ["z2ui5_cl_cc_imagemapster.clas.abap","z2ui5_cl_core_http_get.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap","z2ui5_cl_cc_animatecss.clas.abap","z2ui5_cl_cc_bwipjs.clas.abap","z2ui5_cl_cc_camera_picture.clas.abap","z2ui5_cl_cc_chartjs.clas.abap","z2ui5_cl_cc_driver_js.clas.abap"],
-      "severity": "Error",
-      "length" : "180"
-    },
+    "line_length": false
     "line_only_punc": true,
     "local_class_naming": false,
     "local_testclass_consistency": true,
