@@ -198,11 +198,11 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ms_config = config.
     mv_type   = type.
 
-    DATA(lo_model) = NEW z2ui5_cl_core_model_srv(
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
         attri = REF #( mo_app->mt_attri )
         app = mo_app->mo_app ).
 
-    mr_attri = lo_model->search_a_dissolve_attribute( val ).
+    mr_attri = lo_model->attri_search_a_dissolve( val ).
 
     IF mr_attri->bind_type IS NOT INITIAL.
       check_raise_existing( ).
@@ -291,8 +291,9 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     mr_attri->custom_filter_back = ms_config-custom_filter_back.
     mr_attri->custom_mapper = ms_config-custom_mapper.
     mr_attri->custom_mapper_back = ms_config-custom_mapper_back.
-    mr_attri->view         = COND #( WHEN ms_config-view IS INITIAL THEN z2ui5_if_client=>cs_view-main ELSE ms_config-view ).
-    mr_attri->name_client    = get_client_name( ).
+    mr_attri->view          = COND #( WHEN ms_config-view IS INITIAL THEN z2ui5_if_client=>cs_view-main ELSE ms_config-view ).
+    mr_attri->name_client   = get_client_name( ).
 
   ENDMETHOD.
+
 ENDCLASS.

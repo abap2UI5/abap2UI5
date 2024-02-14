@@ -265,12 +265,6 @@ CLASS  z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE abap_bool.
 
-    CLASS-METHODS rtti_get_type_kind_by_descr
-      IMPORTING
-        !val          TYPE REF TO cl_abap_typedescr
-      RETURNING
-        VALUE(result) TYPE string.
-
     CLASS-METHODS rtti_get_type_kind
       IMPORTING
         !val          TYPE any
@@ -1056,31 +1050,6 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD x_raise.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
-
-  ENDMETHOD.
-
-  METHOD rtti_get_type_kind_by_descr.
-
-    TRY.
-        DATA(lo_test) = CAST cl_abap_structdescr( val ).
-        result = lo_test->type_kind.
-        RETURN.
-      CATCH cx_sy_move_cast_error.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_test2) = CAST cl_abap_objectdescr( val ).
-        result = lo_test2->type_kind.
-        RETURN.
-      CATCH cx_sy_move_cast_error.
-    ENDTRY.
-
-    TRY.
-        DATA(lo_test3) = CAST cl_abap_refdescr( val ).
-        result = lo_test3->type_kind.
-        RETURN.
-      CATCH cx_sy_move_cast_error.
-    ENDTRY.
 
   ENDMETHOD.
 
