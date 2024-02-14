@@ -652,7 +652,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS column_list_item
       IMPORTING
-        !id        TYPE clike OPTIONAL
+        !id            TYPE clike OPTIONAL
         !valign        TYPE clike OPTIONAL
         !selected      TYPE clike OPTIONAL
         !type          TYPE clike OPTIONAL
@@ -3404,7 +3404,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.
@@ -7608,12 +7608,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
       WHEN `ZZPLAIN`.
         result = mt_prop[ n = `VALUE` ]-v.
         RETURN.
+      WHEN OTHERS.
     ENDCASE.
 
     IF me = mo_root.
-
-
-
 
       lt_prop = VALUE #(
                       ( n = `xmlns:z2ui5`     v = `z2ui5` )

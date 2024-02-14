@@ -155,7 +155,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     simple_form2->toolbar( )->title( `What's next?` ).
 
-    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000`).
+    IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
       simple_form2->label( `Start Developing` ).
       simple_form2->button(
         text      = `Check out the samples`

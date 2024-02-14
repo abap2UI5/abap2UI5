@@ -27,6 +27,7 @@ CLASS z2ui5_cl_test_app_hello_world IMPLEMENTATION.
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
         client->message_toast_display( |{ product } { quantity } - send to the server| ).
+      WHEN OTHERS.
     ENDCASE.
 
     client->view_display( z2ui5_cl_ui5=>_factory( )->_ns_m(

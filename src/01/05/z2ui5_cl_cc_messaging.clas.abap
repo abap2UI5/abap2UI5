@@ -16,18 +16,18 @@ CLASS z2ui5_cl_cc_messaging DEFINITION
         descriptionurl TYPE string,
         persistent     TYPE string,
       END OF ty_s_item .
-    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH DEFAULT KEY  ##NEEDED.
+    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
 
     CLASS-METHODS get_js
       RETURNING
-      VALUE(result) TYPE string .
+        VALUE(result) TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
+CLASS z2ui5_cl_cc_messaging IMPLEMENTATION.
 
 
   METHOD get_js.
