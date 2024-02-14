@@ -127,7 +127,7 @@
     "line_break_multiple_parameters": false,
     "line_break_style": true,
     "line_length": {
-      "exclude": ["z2ui5_cl_core_http_get.clas.abap"],
+      "exclude": ["z2ui5_cl_core_http_get.clas.abap","z2ui5_cl_fw_cc_debugging_tools.clas.abap"],
       "severity": "Error",
       "length" : "120"
     },
