@@ -127,7 +127,7 @@
     "keyword_case": true,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
-    "line_length": false,
+    "line_length": true,
     "line_only_punc": true,
     "local_class_naming": false,
     "local_testclass_consistency": true,
