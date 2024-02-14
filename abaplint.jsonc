@@ -34,7 +34,7 @@
       ]
     },
     "ambiguous_statement": true,
-    "avoid_use": false,
+    "avoid_use": true,
     "begin_end_names": true,
     "begin_single_include": true,
     "call_transaction_authority_check": true,
@@ -48,10 +48,10 @@
       "skipNames": []
     },
     "check_abstract": true,
-    "check_comments": false,
+    "check_comments": true,
     "check_ddic": true,
     "check_include": true,
-    "check_subrc": false,
+    "check_subrc": true,
     "check_syntax": true,
     "check_text_elements": true,
     "check_transformation_exists": true,
