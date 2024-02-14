@@ -127,7 +127,10 @@
     "keyword_case": true,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
-    "line_length": true,
+    "line_length": {
+      "exclude": ["z2ui5_cl_core_http_get.clas.abap"],
+      "severity": "Error"
+    },
     "line_only_punc": true,
     "local_class_naming": false,
     "local_testclass_consistency": true,
