@@ -75,8 +75,7 @@
     "description_empty": true,
     "double_space": {
       "exclude": ["z2ui5_cl_cc_driver_js.abap"],
-      "severity": "Error",
-      "max": 20
+      "severity": "Error"
     },
     "downport": true,
     "empty_line_in_statement": true,
