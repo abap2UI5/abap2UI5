@@ -4,7 +4,7 @@
   "version": "1.0.0",
   "description": "Developing UI5 Apps in pure ABAP.",
   "scripts": {
-    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./linter/abaplint-downport.jsonc",
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix /linter/abaplint-downport.jsonc",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit"
