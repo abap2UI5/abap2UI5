@@ -52,19 +52,13 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD factory.
 
-    FIELD-SYMBOLS <tab> TYPE any.
-
     r_result = NEW #( ).
     r_result->title = i_title.
     r_result->sort_field = i_sort_field.
     r_result->descending = i_descending.
 
     r_result->mr_tab = z2ui5_cl_util=>conv_copy_ref_data( i_tab ).
-*    CREATE DATA r_result->mr_tab LIKE i_tab.
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
-
-*    ASSIGN r_result->mr_tab->* TO <tab>.
-*    <tab> = i_tab.
 
   ENDMETHOD.
 

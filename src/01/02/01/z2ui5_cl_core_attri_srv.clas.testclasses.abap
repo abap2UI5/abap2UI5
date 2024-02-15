@@ -95,8 +95,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
        ( name = `1` r_ref = REF #( lo_app_client->mr_value ) )
        ( name = `4` r_ref = REF #( lo_app_client->mr_value2 ) )
        ( name = `2` r_ref = REF #( lo_app_client->mo_app  ) )
-       ( name = `3` r_ref = REF #( lo_app_client->mv_value ) )
-        ).
+       ( name = `3` r_ref = REF #( lo_app_client->mv_value ) ) ).
 
     DATA(lr_attri) = REF #( lt_attri[ r_ref = lr_value ] ).
     IF lr_attri->r_ref <> lr_value.

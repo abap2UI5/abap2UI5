@@ -62,4 +62,8 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_app~main.
+
+  ENDMETHOD.
+
 ENDCLASS.

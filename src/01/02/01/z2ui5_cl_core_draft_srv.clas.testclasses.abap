@@ -4,9 +4,7 @@ CLASS ltcl_test DEFINITION FINAL FOR TESTING
 
   PUBLIC SECTION.
 
-    DATA mv_value TYPE string.
     METHODS constructor.
-
     METHODS test_create FOR TESTING.
 
   PROTECTED SECTION.
