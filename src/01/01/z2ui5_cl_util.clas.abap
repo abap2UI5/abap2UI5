@@ -89,7 +89,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         AND handle2 = @handle2
         AND handle3 = @handle3
       INTO CORRESPONDING FIELDS OF TABLE @lt_db.
-    ASSERT sy-subrc = 0.
+    IF sy-subrc <> 0.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `No entry for handle exists`.
+    ENDIF.
 
     DATA(ls_db) = lt_db[ 1 ].
 
