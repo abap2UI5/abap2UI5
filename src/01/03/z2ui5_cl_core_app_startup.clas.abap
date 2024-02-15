@@ -146,12 +146,16 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
+  DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
+                  client    = client
+                  classname = 'z2ui5_cl_app_search_apps' ).
+
     simple_form2->toolbar( )->title( `What's next?` ).
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
       simple_form2->label( `Start Developing` ).
       simple_form2->button(
-        text      = `Check out the samples`
+        text      = `Check Out the Samples`
         press     = client->_event_client( val   = client->cs_event-open_new_tab
                                            t_arg = VALUE #( ( lv_url_samples2 ) ) )
             width = `70%` ).
@@ -163,8 +167,15 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
               href             = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
-    simple_form2->label( `` ).
-    simple_form2->text( `` ).
+    simple_form2->label( `App Finder` ).
+    simple_form2->button(
+        text      = `Start & Install App`
+        press     = client->_event_client( val   = client->cs_event-open_new_tab
+                                           t_arg = VALUE #( ( lv_url_samples3 ) ) )
+            width = `70%` ).
+
+ simple_form2->label( `` ).
+ simple_form2->text( `` ).
     simple_form2->label( `Open an issue` ).
     simple_form2->link( text = `You have problems, comments or wishes?`
                  target      = `_blank`
@@ -242,8 +253,6 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
           ms_home-btn_event_id   = `BUTTON_CHECK`.
           ms_home-btn_icon       = `sap-icon://validate`.
           ms_home-class_editable = abap_true.
-
-
 
         ELSE.
           on_event_check( ).

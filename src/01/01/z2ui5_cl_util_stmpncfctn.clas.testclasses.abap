@@ -7,6 +7,7 @@ CLASS ltcl_test DEFINITION FINAL FOR TESTING
     METHODS test_func_get_uuid_22 FOR TESTING RAISING cx_static_check.
     METHODS test_encoding         FOR TESTING RAISING cx_static_check.
     METHODS test_element_text     FOR TESTING RAISING cx_static_check.
+    METHODS test_classes_impl_intf  FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -55,6 +56,17 @@ CLASS ltcl_test IMPLEMENTATION.
 
     DATA(ls_result) = z2ui5_cl_util_stmpncfctn=>rtti_get_data_element_texts( `UNAME` ).
     cl_abap_unit_assert=>assert_not_initial( ls_result ).
+
+  ENDMETHOD.
+
+  METHOD test_classes_impl_intf.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
+    DATA(mt_classes) = z2ui5_cl_util_stmpncfctn=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
+    cl_abap_unit_assert=>assert_not_initial( mt_classes ).
 
   ENDMETHOD.
 
