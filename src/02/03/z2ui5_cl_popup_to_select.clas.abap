@@ -51,17 +51,20 @@ ENDCLASS.
 CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
   METHOD factory.
+
     FIELD-SYMBOLS <tab> TYPE any.
 
     r_result = NEW #( ).
     r_result->title = i_title.
     r_result->sort_field = i_sort_field.
     r_result->descending = i_descending.
-    CREATE DATA r_result->mr_tab LIKE i_tab.
+
+    r_result->mr_tab = z2ui5_cl_util=>conv_copy_ref_data( i_tab ).
+*    CREATE DATA r_result->mr_tab LIKE i_tab.
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
 
-    ASSIGN r_result->mr_tab->* TO <tab>.
-    <tab> = i_tab.
+*    ASSIGN r_result->mr_tab->* TO <tab>.
+*    <tab> = i_tab.
 
   ENDMETHOD.
 
@@ -181,9 +184,6 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
     CREATE DATA mr_tab_popup TYPE HANDLE lo_tab_type.
     CREATE DATA mr_tab_popup_backup TYPE HANDLE lo_tab_type.
 
-
-
-
     ASSIGN mr_tab_popup->* TO <tab_out>.
     ASSIGN mr_tab_popup_backup->* TO <tab_out2>.
     LOOP AT <tab> ASSIGNING <row>.
@@ -223,9 +223,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-
       ASSIGN ms_result-row->* TO <row_result>.
-
       IF check_table_line = abap_true.
 
         ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
@@ -259,10 +257,7 @@ CLASS z2ui5_cl_popup_to_select IMPLEMENTATION.
 
     <tab_out> = <tab_out_backup>.
 
-    DATA(lo_type) = cl_abap_structdescr=>describe_by_data( <tab_out> ).
-    DATA(lo_table) = CAST cl_abap_tabledescr( lo_type ).
-    DATA(lo_struct) = CAST cl_abap_structdescr( lo_table->get_table_line_type( ) ).
-    DATA(lt_comp) = lo_struct->get_components( ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( <tab_out> ).
     LOOP AT <tab_out> ASSIGNING <row2>.
       DATA(lv_check_continue) = abap_false.
       LOOP AT lt_comp INTO DATA(ls_comp).

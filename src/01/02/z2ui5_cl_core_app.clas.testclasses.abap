@@ -18,3 +18,48 @@ CLASS ltcl_test IMPLEMENTATION.
   ENDMETHOD.
 
 ENDCLASS.
+
+CLASS ltcl_test_db DEFINITION FINAL FOR TESTING
+  DURATION LONG
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    DATA mv_value TYPE string.
+    INTERFACES z2ui5_if_app.
+    METHODS constructor.
+
+    METHODS test_db_save FOR TESTING.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
+ENDCLASS.
+
+
+CLASS ltcl_test_db IMPLEMENTATION.
+
+  METHOD constructor.
+
+  ENDMETHOD.
+
+  METHOD test_db_save.
+
+    DATA(lo_app_user) = NEW ltcl_test_db( ).
+    lo_app_user->mv_value = `my value`.
+
+    DATA(lo_app) = NEW z2ui5_cl_core_app( ).
+    lo_app->ms_draft-id = `TEST_ID`.
+    lo_app->mo_app = lo_app_user.
+
+    lo_app->db_save( ).
+
+    DATA(lo_app_db) = z2ui5_cl_core_app=>db_load( `TEST_ID` ).
+    DATA(lo_app_user_db) = CAST ltcl_test_db( lo_app_db->mo_app ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act = lo_app_user_db->mv_value
+        exp = lo_app_user->mv_value  ).
+
+  ENDMETHOD.
+
+ENDCLASS.
