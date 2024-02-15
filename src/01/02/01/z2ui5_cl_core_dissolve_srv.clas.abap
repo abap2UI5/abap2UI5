@@ -1,17 +1,16 @@
 CLASS z2ui5_cl_core_dissolve_srv DEFINITION
   PUBLIC
   FINAL
-  CREATE PUBLIC.
+  CREATE PUBLIC .
 
   PUBLIC SECTION.
 
     METHODS constructor
       IMPORTING
-        attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
-        app   TYPE REF TO object.
+        !attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri
+        !app   TYPE REF TO object.
 
-    METHODS main.
-
+    METHODS main .
   PROTECTED SECTION.
 
     DATA mt_attri TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
@@ -47,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
 
 
   METHOD constructor.

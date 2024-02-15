@@ -59,6 +59,8 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
 
   METHOD create.
 
+    ASSERT draft-id IS NOT INITIAL.
+
     DATA(ls_db) = VALUE z2ui5_if_core_types=>ty_s_db(
         id                = draft-id
         id_prev           = draft-id_prev

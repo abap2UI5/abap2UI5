@@ -22,7 +22,6 @@ CLASS z2ui5_cl_core_app_info DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app_info.
 
-    METHODS z2ui5_on_init.
     METHODS z2ui5_on_event.
     METHODS view_display_start.
   PROTECTED SECTION.
@@ -121,7 +120,6 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
     IF mv_check_initialized = abap_false.
       mv_check_initialized = abap_true.
-      z2ui5_on_init( ).
       view_display_start( ).
       RETURN.
     ENDIF.
@@ -132,7 +130,6 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     ENDIF.
 
     z2ui5_on_event( ).
-*    view_display_start( ).
 
   ENDMETHOD.
 
@@ -147,11 +144,6 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
       WHEN OTHERS.
     ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD z2ui5_on_init.
 
   ENDMETHOD.
 
