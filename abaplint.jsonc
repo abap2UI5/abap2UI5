@@ -34,7 +34,19 @@
       ]
     },
     "ambiguous_statement": true,
-    "avoid_use": true,
+    "avoid_use": {
+  "exclude": ["z2ui5_cl_util_stmpncfctn.clas.abap"],
+  "severity": "Error",
+  "skipQuickFix": false,
+  "define": true,
+  "statics": true,
+  "defaultKey": true,
+  "break": true,
+  "testSeams": true,
+  "describeLines": true,
+  "exportToMemory": true,
+  "exportToDatabase": true
+},
     "begin_end_names": true,
     "begin_single_include": true,
     "call_transaction_authority_check": true,
