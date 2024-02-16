@@ -352,7 +352,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
+CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
 
   METHOD boolean_abap_2_json.
@@ -1100,8 +1100,18 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
   METHOD x_get_last_t100.
 
-    ASSERT 1 = 0.
-*        DATA(exception_message) = cl_message_helper=>get_latest_t100_exception( exception )->if_message~get_longtext( ).
+    DATA(x) = val.
+    DO.
+
+      IF x->previous IS BOUND.
+        x = x->previous.
+        CONTINUE.
+      ENDIF.
+
+      EXIT.
+    ENDDO.
+
+    result = x->get_text( ).
 
   ENDMETHOD.
 
