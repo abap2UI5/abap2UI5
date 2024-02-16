@@ -156,9 +156,13 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
   METHOD attri_search.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE o_typedescr->kind = cl_abap_typedescr=>kind_elem
-            OR o_typedescr->kind = cl_abap_typedescr=>kind_struct
-            OR o_typedescr->kind = cl_abap_typedescr=>kind_table.
+         WHERE o_typedescr IS BOUND.
+
+      IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
+         AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
+         AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_table.
+        CONTINUE.
+      ENDIF.
 
       IF lr_attri->r_ref = val.
         result = lr_attri.
