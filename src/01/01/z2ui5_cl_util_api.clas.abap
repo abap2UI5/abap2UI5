@@ -841,7 +841,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *    ENDLOOP.
 
     ASSERT 1 = 0.
-    result = VALUE #( ( n = val ) ).
+    result = VALUE #( ( n = val v = langu ) ).
 
   ENDMETHOD.
 
