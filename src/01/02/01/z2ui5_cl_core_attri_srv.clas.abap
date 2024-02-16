@@ -92,15 +92,24 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DO 5 TIMES.
-      DATA(lo_dissolve) = NEW z2ui5_cl_core_dissolve_srv(
-         attri = mt_attri
-         app   = mo_app ).
+    DATA(lo_dissolve) = NEW z2ui5_cl_core_dissolve_srv(
+       attri = mt_attri
+       app   = mo_app ).
+
+    DO 10 TIMES.
+
       lo_dissolve->main( ).
+
       result = attri_search( val ).
       IF result IS BOUND.
         RETURN.
       ENDIF.
+
+      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+        CONTINUE.
+      ENDIF.
+
+      EXIT.
     ENDDO.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
