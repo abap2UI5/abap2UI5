@@ -12,6 +12,10 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD first_test.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     TYPES:
       BEGIN OF ty_row,
         title    TYPE string,
