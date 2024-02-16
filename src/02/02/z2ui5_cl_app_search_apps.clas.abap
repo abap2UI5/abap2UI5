@@ -64,13 +64,13 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
       lr_app->visible = abap_false.
 
-      IF ms_search-check_hide_samples = abap_true.
-        IF lr_app->name CS 'Z2UI5_CL_DEMO'.
-          CONTINUE.
-        ENDIF.
+      IF ms_search-check_hide_samples = abap_true
+      AND lr_app->name CS 'Z2UI5_CL_DEMO'.
+        CONTINUE.
       ENDIF.
       IF ms_search-check_hide_system = abap_true
-        and lr_app->name cs `Z2UI5_CL_` and lr_app->name ns `Z2UI5_CL_DEMO`.
+        AND lr_app->name CS `Z2UI5_CL_`
+        AND lr_app->name NS `Z2UI5_CL_DEMO`.
         CONTINUE.
       ENDIF.
 
