@@ -139,6 +139,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         AND handle2 = @handle2
         AND handle3 = @handle3
       INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+    ASSERT sy-subrc = 0.
 
     TRY.
         DATA(lv_id) = lt_db[ 1 ]-id.

@@ -12,7 +12,7 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
         visible TYPE abap_bool,
 *        check_fav TYPE abap_bool,
       END OF ty_app.
-    DATA mt_apps_backup TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
+*    DATA mt_apps_backup TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA mt_apps TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA mt_favs TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA ms_app_sel TYPE ty_app.
