@@ -92,15 +92,24 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DO 5 TIMES.
-      DATA(lo_dissolve) = NEW z2ui5_cl_core_dissolve_srv(
-         attri = mt_attri
-         app   = mo_app ).
+    DATA(lo_dissolve) = NEW z2ui5_cl_core_dissolve_srv(
+       attri = mt_attri
+       app   = mo_app ).
+
+    DO 10 TIMES.
+
       lo_dissolve->main( ).
+
       result = attri_search( val ).
       IF result IS BOUND.
         RETURN.
       ENDIF.
+
+      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+        CONTINUE.
+      ENDIF.
+
+      EXIT.
     ENDDO.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
@@ -147,9 +156,13 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
   METHOD attri_search.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE o_typedescr->kind = cl_abap_typedescr=>kind_elem
-            OR o_typedescr->kind = cl_abap_typedescr=>kind_struct
-            OR o_typedescr->kind = cl_abap_typedescr=>kind_table.
+         WHERE o_typedescr IS BOUND.
+
+      IF lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_elem
+         AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_struct
+         AND lr_attri->o_typedescr->kind <> cl_abap_typedescr=>kind_table.
+        CONTINUE.
+      ENDIF.
 
       IF lr_attri->r_ref = val.
         result = lr_attri.

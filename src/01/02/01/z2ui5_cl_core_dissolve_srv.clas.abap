@@ -46,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
+CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -153,7 +153,10 @@ CLASS Z2UI5_CL_CORE_DISSOLVE_SRV IMPLEMENTATION.
       main_init( ).
       RETURN.
     ENDIF.
-    main_run( ).
+
+    IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+      main_run( ).
+    ENDIF.
 
   ENDMETHOD.
 

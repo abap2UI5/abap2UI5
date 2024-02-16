@@ -28,11 +28,14 @@ CLASS ltcl_test_dissolve DEFINITION FINAL FOR TESTING
     DATA mo_app TYPE REF TO ltcl_test_dissolve.
 
   PRIVATE SECTION.
-    METHODS test_dissolve_init  FOR TESTING RAISING cx_static_check.
-    METHODS test_dissolve_struc FOR TESTING RAISING cx_static_check.
-    METHODS test_dissolve_dref  FOR TESTING RAISING cx_static_check.
-    METHODS test_dissolve_oref  FOR TESTING RAISING cx_static_check.
-    METHODS test_ref FOR TESTING RAISING cx_static_check.
+    METHODS test_init  FOR TESTING RAISING cx_static_check.
+    METHODS test_struc FOR TESTING RAISING cx_static_check.
+    METHODS test_dref  FOR TESTING RAISING cx_static_check.
+    METHODS test_oref  FOR TESTING RAISING cx_static_check.
+    METHODS test_ref   FOR TESTING RAISING cx_static_check.
+    METHODS test_oref_dref_struc   FOR TESTING RAISING cx_static_check.
+    METHODS test_oref_dref   FOR TESTING RAISING cx_static_check.
+    METHODS test_dref_struc   FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -59,7 +62,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_dissolve_init.
+  METHOD test_init.
 
     DATA(lo_app)  = NEW ltcl_test_dissolve( ).
 
@@ -79,7 +82,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_dissolve_dref.
+  METHOD test_dref.
 
     DATA(lo_app)    = NEW ltcl_test_dissolve( ).
     CREATE DATA lo_app->mr_struc.
@@ -97,7 +100,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_dissolve_oref.
+  METHOD test_oref.
 
     DATA(lo_app)    = NEW ltcl_test_dissolve( ).
     lo_app->mo_app = NEW #( ).
@@ -123,7 +126,7 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD test_dissolve_struc.
+  METHOD test_struc.
 
     DATA(lo_app)    = NEW ltcl_test_dissolve( ).
     DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
@@ -142,5 +145,77 @@ CLASS ltcl_test_dissolve IMPLEMENTATION.
     cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MS_STRUC-S_02-S_03-S_04-INPUT` ] OPTIONAL ) ).
 
   ENDMETHOD.
+
+  METHOD test_dref_struc.
+
+    DATA(lo_app)    = NEW ltcl_test_dissolve( ).
+    lo_app->mo_app = NEW #( ).
+    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    lo_app2->mo_app = lo_app.
+
+    CREATE DATA lo_app->mr_struc.
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_dissolve_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app ).
+
+    lo_model->main( ).
+    lo_model->main( ).
+    lo_model->main( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC->INPUT` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MR_STRUC->S_02-INPUT` ] OPTIONAL ) ).
+
+  ENDMETHOD.
+
+  METHOD test_oref_dref.
+
+    DATA(lo_app)    = NEW ltcl_test_dissolve( ).
+    lo_app->mo_app = NEW #( ).
+    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    lo_app->mo_app = lo_app2.
+
+    CREATE DATA lo_app2->mr_value TYPE string.
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_dissolve_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app ).
+
+    lo_model->main( ).
+    lo_model->main( ).
+    lo_model->main( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_VALUE->*` ] OPTIONAL ) ).
+
+  ENDMETHOD.
+
+  METHOD test_oref_dref_struc.
+
+    DATA(lo_app)    = NEW ltcl_test_dissolve( ).
+    lo_app->mo_app = NEW #( ).
+    DATA(lo_app2) = NEW ltcl_test_dissolve( ).
+    lo_app->mo_app = lo_app2.
+
+    CREATE DATA lo_app->mo_app->mr_struc.
+
+    DATA lt_attri TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA(lo_model) = NEW z2ui5_cl_core_dissolve_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app ).
+
+    lo_model->main( ).
+    lo_model->main( ).
+    lo_model->main( ).
+    lo_model->main( ).
+
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC->INPUT` ] OPTIONAL ) ).
+    cl_abap_unit_assert=>assert_not_initial( VALUE #( lt_attri[ name = `MO_APP->MR_STRUC->S_02-INPUT` ] OPTIONAL ) ).
+
+  ENDMETHOD.
+
 
 ENDCLASS.
