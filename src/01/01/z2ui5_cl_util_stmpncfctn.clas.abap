@@ -69,7 +69,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
 
 
   METHOD conv_decode_x_base64.
@@ -282,13 +282,11 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
     TRY.
 
-
         CALL METHOD ('XCO_CP_ABAP')=>interface
           EXPORTING
             iv_name      = val
           RECEIVING
             ro_interface = obj.
-
 
         ASSIGN obj->('IF_XCO_AO_INTERFACE~IMPLEMENTATIONS') TO <any>.
         IF sy-subrc <> 0.
@@ -327,7 +325,6 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
         ENDLOOP.
 
     ENDTRY.
-
 
   ENDMETHOD.
 
