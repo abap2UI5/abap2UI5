@@ -69,10 +69,9 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
           CONTINUE.
         ENDIF.
       ENDIF.
-      IF ms_search-check_hide_system = abap_true.
-        IF lr_app->name CS `Z2UI5_CL_` AND lr_app->name NS `Z2UI5_CL_DEMO`.
-          CONTINUE.
-        ENDIF.
+      IF ms_search-check_hide_system = abap_true
+        and lr_app->name cs `Z2UI5_CL_` and lr_app->name ns `Z2UI5_CL_DEMO`.
+        CONTINUE.
       ENDIF.
 
       IF lr_app->name CS mv_search_value.
