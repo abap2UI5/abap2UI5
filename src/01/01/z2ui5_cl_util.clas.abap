@@ -141,19 +141,19 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
       INTO CORRESPONDING FIELDS OF TABLE @lt_db.
     ASSERT sy-subrc = 0.
 
-    TRY.
-        DATA(lv_id) = lt_db[ 1 ]-id.
-      CATCH cx_root.
-        lv_id = uuid_get_c32( ).
-    ENDTRY.
-
     DATA(ls_db) = VALUE z2ui5_t_fw_02(
-        id      = lv_id
+*        id      = lv_id
         uname   = uname
         handle  = handle
         handle2 = handle2
         handle3 = handle3
         data    = xml_stringify( data ) ).
+
+    TRY.
+        ls_db-id = lt_db[ 1 ]-id.
+      CATCH cx_root.
+        ls_db-id = uuid_get_c32( ).
+    ENDTRY.
 
     MODIFY z2ui5_t_fw_02 FROM @ls_db.
     ASSERT sy-subrc = 0.
