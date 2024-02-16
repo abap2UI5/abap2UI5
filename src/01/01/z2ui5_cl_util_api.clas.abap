@@ -815,30 +815,33 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD rtti_get_t_ddic_fixed_values.
 
-    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_typedescr=>describe_by_data( val ) ).
+*    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_typedescr=>describe_by_data( val ) ).
+*
+*    DATA lv_langu TYPE c LENGTH 1.
+*
+*    lv_langu = langu.
+*
+*    lo_ele->get_ddic_fixed_values(
+*      EXPORTING
+*        p_langu        = lv_langu
+*      RECEIVING
+*        p_fixed_values = DATA(lt_values)
+*      EXCEPTIONS
+*        not_found      = 1
+*        no_ddic_type   = 2
+*        OTHERS         = 3 ).
+*
+*    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
+*
+*      INSERT VALUE #(
+*          n = lr_fix->low
+*          v = lr_fix->ddtext
+*          ) INTO TABLE result.
+*
+*    ENDLOOP.
 
-    DATA lv_langu TYPE c LENGTH 1.
-
-    lv_langu = langu.
-
-    lo_ele->get_ddic_fixed_values(
-      EXPORTING
-        p_langu        = lv_langu
-      RECEIVING
-        p_fixed_values = DATA(lt_values)
-      EXCEPTIONS
-        not_found      = 1
-        no_ddic_type   = 2
-        OTHERS         = 3 ).
-
-    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
-
-      INSERT VALUE #(
-          n = lr_fix->low
-          v = lr_fix->ddtext
-          ) INTO TABLE result.
-
-    ENDLOOP.
+    ASSERT 1 = 0.
+    result = VALUE #( ( n = val ) ).
 
   ENDMETHOD.
 
