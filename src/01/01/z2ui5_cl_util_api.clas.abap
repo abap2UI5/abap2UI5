@@ -38,6 +38,13 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
+    CLASS-METHODS rtti_get_t_ddic_fixed_values
+      IMPORTING
+        val           TYPE data
+        langu         TYPE clike DEFAULT sy-langu
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
+
     CLASS-METHODS source_get_method
       IMPORTING
         iv_classname  TYPE clike
@@ -129,6 +136,12 @@ CLASS z2ui5_cl_util_api DEFINITION
     CLASS-METHODS rtti_get_classname_by_ref
       IMPORTING
         !in           TYPE REF TO object
+      RETURNING
+        VALUE(result) TYPE string.
+
+    CLASS-METHODS x_get_last_t100
+      IMPORTING
+        val           TYPE REF TO cx_root
       RETURNING
         VALUE(result) TYPE string.
 
@@ -342,20 +355,6 @@ ENDCLASS.
 CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
 
-  METHOD rtti_get_t_attri_by_include.
-
-    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
-
-    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
-
-      DATA(ls_attri) = VALUE abap_componentdescr( name = attri && lr_comp->name ).
-      INSERT ls_attri INTO TABLE result.
-
-    ENDLOOP.
-
-  ENDMETHOD.
-
-
   METHOD boolean_abap_2_json.
 
     IF boolean_check_by_data( val ).
@@ -414,6 +413,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     result = xsdbool( <any> IS INITIAL ).
 
   ENDMETHOD.
+
 
   METHOD conv_copy_ref_data.
 
@@ -756,6 +756,20 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD rtti_get_t_attri_by_include.
+
+    DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
+
+    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
+
+      DATA(ls_attri) = VALUE abap_componentdescr( name = attri && lr_comp->name ).
+      INSERT ls_attri INTO TABLE result.
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+
   METHOD rtti_get_t_attri_by_oref.
 
     DATA(lo_obj_ref) = cl_abap_objectdescr=>describe_by_object_ref( val ).
@@ -795,6 +809,39 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
     ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_get_t_ddic_fixed_values.
+
+*    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_typedescr=>describe_by_data( val ) ).
+*
+*    DATA lv_langu TYPE c LENGTH 1.
+*
+*    lv_langu = langu.
+*
+*    lo_ele->get_ddic_fixed_values(
+*      EXPORTING
+*        p_langu        = lv_langu
+*      RECEIVING
+*        p_fixed_values = DATA(lt_values)
+*      EXCEPTIONS
+*        not_found      = 1
+*        no_ddic_type   = 2
+*        OTHERS         = 3 ).
+*
+*    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
+*
+*      INSERT VALUE #(
+*          n = lr_fix->low
+*          v = lr_fix->ddtext
+*          ) INTO TABLE result.
+*
+*    ENDLOOP.
+
+    ASSERT 1 = 0.
+    result = VALUE #( ( n = val v = langu ) ).
 
   ENDMETHOD.
 
@@ -872,6 +919,24 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     result = cl_abap_tstmp=>subtractsecs( tstmp = time
                                           secs  = seconds ).
+  ENDMETHOD.
+
+
+  METHOD unassign_data.
+
+    FIELD-SYMBOLS <unassign> TYPE any.
+    ASSIGN val->* TO <unassign>.
+    result = <unassign>.
+
+  ENDMETHOD.
+
+
+  METHOD unassign_object.
+
+    FIELD-SYMBOLS <unassign> TYPE any.
+    ASSIGN val->* TO <unassign>.
+    result = <unassign>.
+
   ENDMETHOD.
 
 
@@ -1036,26 +1101,27 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD x_get_last_t100.
+
+    DATA(x) = val.
+    DO.
+
+      IF x->previous IS BOUND.
+        x = x->previous.
+        CONTINUE.
+      ENDIF.
+
+      EXIT.
+    ENDDO.
+
+    result = x->get_text( ).
+
+  ENDMETHOD.
+
+
   METHOD x_raise.
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
-
-  METHOD unassign_object.
-
-    FIELD-SYMBOLS <unassign> TYPE any.
-    ASSIGN val->* TO <unassign>.
-    result = <unassign>.
-
-  ENDMETHOD.
-
-  METHOD unassign_data.
-
-    FIELD-SYMBOLS <unassign> TYPE any.
-    ASSIGN val->* TO <unassign>.
-    result = <unassign>.
-
-  ENDMETHOD.
-
 ENDCLASS.
