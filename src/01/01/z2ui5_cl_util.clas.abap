@@ -162,7 +162,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         AND handle = @handle
         AND handle2 = @handle2
         AND handle3 = @handle3
-      INTO CORRESPONDING FIELDS OF TABLE @lt_db.
+      INTO CORRESPONDING FIELDS OF TABLE @lt_db ##SUBRC_OK.
 
     DATA(ls_db) = VALUE z2ui5_t_core_02(
         uname   = uname

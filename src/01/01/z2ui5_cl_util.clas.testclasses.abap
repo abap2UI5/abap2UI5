@@ -79,7 +79,6 @@ CLASS ltcl_test IMPLEMENTATION.
         title    = `test`
         value    = `val`
         selected = abap_true ).
-    DATA(ls_row_result) = VALUE ty_row( ).
 
     DATA(lv_id) = z2ui5_cl_util=>db_save(
         uname   = `name`

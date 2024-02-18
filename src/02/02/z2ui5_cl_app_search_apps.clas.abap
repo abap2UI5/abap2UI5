@@ -34,16 +34,8 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
         number              TYPE string,
       END OF ms_favorites.
 
-    DATA:
-      BEGIN OF   ms_git,
-        search_field        TYPE string,
-        check_premise_ready TYPE string,
-        check_cloud_ready   TYPE string,
-      END OF ms_git.
-
   PROTECTED SECTION.
     METHODS search.
-    METHODS search_git.
     METHODS view_display
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -58,35 +50,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
 
-  METHOD search_git.
-
-*    DATA lv_counter TYPE i.
-*
-*    LOOP AT mt_favs REFERENCE INTO DATA(lr_app).
-*
-*      lr_app->visible = abap_false.
-*
-*      IF ms_git-check_cloud_ready = abap_false.
-*      if lr_app->
-*      AND lr_app->name CS 'Z2UI5_CL_DEMO'.
-*        CONTINUE.
-*      ENDIF.
-*      IF ms_search-check_hide_system = abap_true
-*        AND lr_app->name CS `Z2UI5_CL_`
-*        AND lr_app->name NS `Z2UI5_CL_DEMO`.
-*        CONTINUE.
-*      ENDIF.
-*
-*      IF lr_app->name CS mv_search_value.
-*        lr_app->visible = abap_true.
-*        lv_counter = lv_counter + 1.
-*      ENDIF.
-*    ENDLOOP.
-*    ms_search-number = `Result: ` && CONV string( lv_counter ).
-
-  ENDMETHOD.
 
   METHOD search.
 
@@ -426,7 +391,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                uname  = sy-uname
               handle = 'z2ui5_cl_app_search_apps'
             ).
-            clear mt_favs.
+        CLEAR mt_favs.
 
         client->message_box_display( `Favorites deleted.` ).
         view_nest_display( ).

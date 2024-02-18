@@ -168,8 +168,7 @@ CLASS ltcl_test_bind IMPLEMENTATION.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( lo_app ).
 
-    DATA(lv_bind) = lo_bind->main_local(
-        val  = lo_app_client->mv_value ).
+    DATA(lv_bind) = lo_bind->main_local( lo_app_client->mv_value ).
 
     cl_abap_unit_assert=>assert_not_initial( lv_bind ).
 
