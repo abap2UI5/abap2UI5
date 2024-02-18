@@ -146,9 +146,9 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
-*    DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
-*                    client    = client
-*                    classname = 'z2ui5_cl_app_search_apps' ).
+    DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
+                    client    = client
+                    classname = 'z2ui5_cl_app_search_apps' ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
 
@@ -167,12 +167,12 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
               href             = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
-*    simple_form2->label( `App Finder` ).
-*    simple_form2->button(
-*        text      = `Start & Install App`
-*        press     = client->_event_client( val   = client->cs_event-open_new_tab
-*                                           t_arg = VALUE #( ( lv_url_samples3 ) ) )
-*            width = `70%` ).
+    simple_form2->label( `App Finder` ).
+    simple_form2->button(
+        text      = `Start & Install App`
+        press     = client->_event_client( val   = client->cs_event-open_new_tab
+                                           t_arg = VALUE #( ( lv_url_samples3 ) ) )
+            width = `70%` ).
 
     simple_form2->label( `` ).
     simple_form2->text( `` ).

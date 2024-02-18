@@ -19,7 +19,6 @@ CLASS lcl_github DEFINITION.
         author_name          TYPE string,
         check_abap_for_cloud TYPE abap_bool,
         check_standard_abap  TYPE abap_bool,
-        min_release          TYPE string,
         link                 TYPE string,
         t_app                TYPE ty_t_app,
         check_installed      TYPE abap_bool,
@@ -43,8 +42,8 @@ CLASS lcl_github IMPLEMENTATION.
         descr                = `Upload, Edit & Download Table Content (CSV, JSON)`
         author_link          = `https://github.com/oblomov-dev`
         author_name          = `oblomov`
+        check_standard_abap  = abap_true
         check_abap_for_cloud = abap_true
-        min_release          = `750`
         link                 = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
         t_app                = VALUE #(
           (
@@ -62,7 +61,7 @@ CLASS lcl_github IMPLEMENTATION.
         name                 = `The Quest`
         descr                = `A wizard's adventure game based on a fork of the AXAGE game engine (ABAP teXt Adventure Game Engine) and abap2UI5.`
         check_abap_for_cloud = abap_true
-        min_release          = `750`
+        check_standard_abap  = abap_true
         link                 = `https://github.com/nomssi/axage`
         author_link          = `https://github.com/nomssi`
         author_name          = `Nomssi`
@@ -80,7 +79,7 @@ CLASS lcl_github IMPLEMENTATION.
         author_name          = `joltdx`
         link                 = `https://github.com/joltdx/abap-advent-2023-template`
         check_abap_for_cloud = abap_true
-        min_release          = `750`
+        check_standard_abap  = abap_true
         t_app                = VALUE #(
           (
             name      = `Advent of Code 2023 in ABAP`

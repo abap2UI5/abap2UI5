@@ -10,15 +10,12 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
       BEGIN OF ty_app,
         name    TYPE string,
         visible TYPE abap_bool,
-*        check_fav TYPE abap_bool,
       END OF ty_app.
-*    DATA mt_apps_backup TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA mt_apps TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA mt_favs TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA ms_app_sel TYPE ty_app.
 
     DATA check_initialized TYPE abap_bool.
-    DATA mv_search_value TYPE string.
     DATA mv_selected_key TYPE string.
 
     DATA:
@@ -37,8 +34,16 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
         number              TYPE string,
       END OF ms_favorites.
 
+    DATA:
+      BEGIN OF   ms_git,
+        search_field        TYPE string,
+        check_premise_ready TYPE string,
+        check_cloud_ready   TYPE string,
+      END OF ms_git.
+
   PROTECTED SECTION.
     METHODS search.
+    METHODS search_git.
     METHODS view_display
       IMPORTING
         client TYPE REF TO z2ui5_if_client.
@@ -55,6 +60,33 @@ ENDCLASS.
 
 CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
+  METHOD search_git.
+
+*    DATA lv_counter TYPE i.
+*
+*    LOOP AT mt_favs REFERENCE INTO DATA(lr_app).
+*
+*      lr_app->visible = abap_false.
+*
+*      IF ms_git-check_cloud_ready = abap_false.
+*      if lr_app->
+*      AND lr_app->name CS 'Z2UI5_CL_DEMO'.
+*        CONTINUE.
+*      ENDIF.
+*      IF ms_search-check_hide_system = abap_true
+*        AND lr_app->name CS `Z2UI5_CL_`
+*        AND lr_app->name NS `Z2UI5_CL_DEMO`.
+*        CONTINUE.
+*      ENDIF.
+*
+*      IF lr_app->name CS mv_search_value.
+*        lr_app->visible = abap_true.
+*        lv_counter = lv_counter + 1.
+*      ENDIF.
+*    ENDLOOP.
+*    ms_search-number = `Result: ` && CONV string( lv_counter ).
+
+  ENDMETHOD.
 
   METHOD search.
 
@@ -74,7 +106,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      IF lr_app->name CS mv_search_value.
+      IF lr_app->name CS ms_search-search_field.
         lr_app->visible = abap_true.
         lv_counter = lv_counter + 1.
       ENDIF.
@@ -96,19 +128,8 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
       )->button( text  = `Add to Favorite`
 *                 icon  = `sap-icon://accept`
                  press = client->_event( `ADD_TO_FAVS` )
-      )->button( text  = `Add to Favorite as external Link`
-*                 icon  = `sap-icon://decline`
-                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-*      )->button( text  = `Email`
-*                 icon  = `sap-icon://email`
-*                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-*      )->button( text  = `Forward`
-*                 icon  = `sap-icon://forward`
-*                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-*      )->button( text  = `Delete`
-*                 icon  = `sap-icon://delete`
-*                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
-*      )->button( text  = `Other`
+*      )->button( text  = `Add to Favorite as external Link`
+**                 icon  = `sap-icon://decline`
 *                 press = `MessageToast.show('selected action is ' + ${$source>/text})`
                   ).
 
@@ -180,12 +201,12 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                            title = `Result: ` && client->_bind( ms_favorites-number )
             id                   = `page_favs`
                 )->header_content(
-                )->button( text = `Edit`
-      )->search_field(
-      value  = client->_bind_edit( mv_search_value )
-      search = client->_event( 'ON_SEARCH' )
-      change = client->_event( 'ON_SEARCH' )
-      width  = `17.5rem`
+                )->button( text = `Clear` press = client->_event( `ON_FAVS_CLEAR` )
+*      )->search_field(
+*      value  = client->_bind_edit( ms_favorites-search_field )
+*      search = client->_event( 'ON_SEARCH_FAVS' )
+*      change = client->_event( 'ON_SEARCH_FAVS' )
+*      width  = `17.5rem`
 *id     = `SEARCH`
       )->get_parent( ).
 
@@ -195,14 +216,14 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                  )->header_content(
                              )->checkbox( text     = `Hide Samples`
                                   selected = client->_bind_edit( ms_search-check_hide_samples )
-                                  select = client->_event( `ON_SEARCH` )
+                                  select = client->_event( `ON_SEARCH_ALL` )
                               )->checkbox( text     = `Hide System`
                                   selected = client->_bind_edit( ms_search-check_hide_system )
-                                   select = client->_event( `ON_SEARCH` )
+                                   select = client->_event( `ON_SEARCH_ALL` )
       )->search_field(
-      value  = client->_bind_edit( mv_search_value )
-      search = client->_event( 'ON_SEARCH' )
-      change = client->_event( 'ON_SEARCH' )
+      value  = client->_bind_edit( ms_search-search_field )
+      search = client->_event( 'ON_SEARCH_ALL' )
+      change = client->_event( 'ON_SEARCH_ALL' )
       width  = `17.5rem`
       id     = `SEARCH`
       )->get_parent( ).
@@ -224,19 +245,25 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 *            title = `Your app is not listed here? Fell free to send a PR and extend this page`
                    id = `page_online`
                     )->header_content(
+                    )->text(
                     )->link( text = `Install with abapGit` href = `https://abapgit.org/` target = `blank`
-                      )->link( text = `More Open Source on dotabap.org` href = `https://dotabap.org/`  target = `blank`
+                    )->toolbar_spacer(
+                      )->link( text = `More Open Source on dotabap.org...` href = `https://dotabap.org/`  target = `blank`
                      )->toolbar_spacer(
-                     )->checkbox( text     = `Cloud`
-                                  selected = client->_bind_edit( ms_favorites-check_cloud_ready )
-                     )->checkbox( text     = `On-Premise`
-                                  selected = client->_bind_edit( ms_favorites-check_premise_ready )
-                     )->button( text = `sort`
-      )->search_field(
-      value  = client->_bind_edit( mv_search_value )
-      search = client->_event( 'ON_SEARCH' )
-      change = client->_event( 'ON_SEARCH' )
-      width  = `17.5rem`
+                     )->text(
+                     )->toolbar_spacer(
+                     )->text(
+*                     )->checkbox( text     = `Cloud`
+*                                  selected = client->_bind_edit( ms_git-check_cloud_ready )
+*                     )->checkbox( text     = `On-Premise`
+*                                  selected = client->_bind_edit( ms_git-check_premise_ready )
+*                                  select   = client->_event( `ON_SEARCH_GIT` )
+*                     )->button( text = `sort`
+*      )->search_field(
+*      value  = client->_bind_edit( ms_git-search_field )
+*      search = client->_event( 'ON_SEARCH_GIT' )
+*      change = client->_event( 'ON_SEARCH_GIT' )
+*      width  = `17.5rem`
       )->get_parent(
 *           )->sub_header(
 *            )->overflow_toolbar(
@@ -294,7 +321,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     row->checkbox( text     = `Installed`
                    selected = `{CHECK_INSTALLED}`
                    enabled  = abap_false ).
-    row->checkbox( text     = `Standard ABAP (Min. {MIN_RELEASE})`
+    row->checkbox( text     = `Standard ABAP`
                    selected = `{CHECK_STANDARD_ABAP}`
                    enabled  = abap_false ).
 *    row->text( `{DESCR}` ).
@@ -393,10 +420,29 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
-      WHEN 'ON_SEARCH'.
+      WHEN `ON_FAVS_CLEAR`.
+
+        z2ui5_cl_util=>db_delete_by_handle(
+               uname  = sy-uname
+              handle = 'z2ui5_cl_app_search_apps'
+            ).
+            clear mt_favs.
+
+        client->message_box_display( `Favorites deleted.` ).
+        view_nest_display( ).
+
+      WHEN 'ON_SEARCH_ALL'.
         search( ).
         client->view_model_update( ).
         client->message_toast_display( |backend search done| ).
+
+      WHEN 'ON_SEARCH_GIT'.
+
+
+        search( ).
+        client->view_model_update( ).
+        client->message_toast_display( |backend search done| ).
+
     ENDCASE.
 
   ENDMETHOD.
