@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "description": "Developing UI5 Apps in pure ABAP.",
   "scripts": {
-    "downport": "rm -rf downport && cp -r src downport && abaplint --fix abaplint-downport.jsonc",
+    "syfixes": "sed 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0./ig' ",
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix abaplint-downport.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit"
