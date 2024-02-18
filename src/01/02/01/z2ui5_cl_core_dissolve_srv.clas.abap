@@ -106,8 +106,6 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-*    DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ).
-
     DATA(lr_ref) = z2ui5_cl_util=>unassign_object( ir_attri->r_ref ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
