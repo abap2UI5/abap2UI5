@@ -24,7 +24,7 @@ jobs:
         external_repository: abap2UI5/abap2UI5-downport
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        publish_branch: v_740
+        publish_branch: main
         publish_dir: ./downport
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
         destination_dir: src
