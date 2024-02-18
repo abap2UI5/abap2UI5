@@ -3,14 +3,14 @@ CLASS ltcl_test DEFINITION FINAL FOR TESTING
   RISK LEVEL HARMLESS.
 
   PRIVATE SECTION.
-    METHODS
-      first_test FOR TESTING RAISING cx_static_check.
+    METHODS  test_db_handle FOR TESTING RAISING cx_static_check.
+    METHODS  test_db_handle_read_id FOR TESTING RAISING cx_static_check.
 ENDCLASS.
 
 
 CLASS ltcl_test IMPLEMENTATION.
 
-  METHOD first_test.
+  METHOD test_db_handle.
 
     IF sy-sysid = 'ABC'.
       RETURN.
@@ -59,6 +59,46 @@ CLASS ltcl_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
        act = ls_row_result
        exp = ls_row ).
+
+  ENDMETHOD.
+
+  METHOD test_db_handle_read_id.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
+    TYPES:
+      BEGIN OF ty_row,
+        title    TYPE string,
+        value    TYPE string,
+        selected TYPE abap_bool,
+      END OF ty_row.
+
+    DATA(ls_row) = VALUE ty_row(
+        title    = `test`
+        value    = `val`
+        selected = abap_true ).
+
+    DATA(lv_id) = z2ui5_cl_util=>db_save(
+        uname   = `name`
+        handle  = `handle1`
+        handle2 = `handle2`
+        handle3 = `handle3`
+        data    = ls_row ).
+
+    cl_abap_unit_assert=>assert_not_initial( lv_id ).
+
+    DATA(lv_id2) = z2ui5_cl_util=>db_save(
+        uname   = `name`
+        handle  = `handle1`
+        handle2 = `handle2`
+        handle3 = `handle3`
+        data    = ls_row ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act = lv_id
+        exp = lv_id2 ).
 
   ENDMETHOD.
 
