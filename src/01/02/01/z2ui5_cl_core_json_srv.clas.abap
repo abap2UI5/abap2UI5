@@ -43,8 +43,8 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
   METHOD model_front_to_back.
 
     LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
-        WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
-        AND view  = view.
+      WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
+      AND  view  = view.
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -70,6 +70,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
       ENDTRY.
     ENDLOOP.
 
+
   ENDMETHOD.
 
 
@@ -80,15 +81,21 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
         LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-          DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>new( ) ).
+          "(1) set pretty mode
+          IF lr_attri->custom_mapper IS BOUND.
+            DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lr_attri->custom_mapper ) ).
+          ELSE.
+            ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
+          ENDIF.
 
+          "(2) read attribute of end-user app & write to json
           CASE lr_attri->bind_type.
             WHEN z2ui5_if_core_types=>cs_bind_type-one_way
-                OR z2ui5_if_core_types=>cs_bind_type-two_way.
+            OR z2ui5_if_core_types=>cs_bind_type-two_way.
 
               ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
               ASSERT sy-subrc = 0.
-              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = <attribute> ).
+              ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val =  <attribute> ).
 
             WHEN z2ui5_if_core_types=>cs_bind_type-one_time.
               ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = lr_attri->json_bind_local ).
@@ -97,18 +104,16 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
               ASSERT `` = `ERROR_UNKNOWN_BIND_MODE`.
           ENDCASE.
 
-          IF lr_attri->custom_mapper IS BOUND.
-            ajson = ajson->map( lr_attri->custom_mapper ).
-          ELSE.
-            ajson = ajson->map( z2ui5_cl_ajson_mapping=>create_upper_case( ) ).
-          ENDIF.
-
+          "(4) set compress mode
+          "todo performance - add and filter in a single loop
           IF lr_attri->custom_filter IS BOUND.
             ajson = ajson->filter( lr_attri->custom_filter ).
           ELSE.
             ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
           ENDIF.
 
+          "(5) write into result
+          "todo performance - write directly into result
           ajson_result->set( iv_path = lr_attri->name_client iv_val = ajson ).
         ENDLOOP.
 
