@@ -32,8 +32,7 @@ PUBLIC SECTION.
          END OF ty_s_layout.
 
   DATA ms_layout TYPE ty_s_layout.
-
-
+  
   TYPES:
     BEGIN OF ty_s_layo.
       INCLUDE TYPE z2UI5_t001.
@@ -61,7 +60,6 @@ PUBLIC SECTION.
               layout        TYPE ty_s_layout
     RETURNING VALUE(result) TYPE REF TO z2ui5_if_client.
 
-
   CLASS-METHODS render_layout_function
     IMPORTING
       !xml          TYPE REF TO z2ui5_cl_xml_view
@@ -85,7 +83,6 @@ PUBLIC SECTION.
     RETURNING
       VALUE(result)    TYPE REF TO Z2UI5_CL_POPUP_LAYOUT_V2.
 
-
 PROTECTED SECTION.
 
   DATA client        TYPE REF TO z2ui5_if_client.
@@ -102,34 +99,23 @@ PROTECTED SECTION.
     RETURNING
       VALUE(result) TYPE ty_t_t001.
 
-
-
-
-
-
-
   METHODS render_save.
-
   METHODS save_layout.
   METHODS render_open.
   METHODS get_selected_layout.
-
-
-
   METHODS get_layouts.
-
   METHODS init_edit.
-
   METHODS render_delete.
 
 PRIVATE SECTION.
+
   METHODS delete_selected_layout.
 
-    class-METHODS get_comps_by_data
+    CLASS-METHODS get_comps_by_data
       IMPORTING !table        TYPE ref to data
       RETURNING VALUE(result) TYPE abap_component_tab .
 
-    class-METHODS get_comps_by_table
+    CLASS-METHODS get_comps_by_table
       IMPORTING !table        TYPE STANDARD TABLE
       RETURNING VALUE(result) TYPE abap_component_tab.
 
@@ -148,7 +134,6 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
-
 
   METHOD z2ui5_if_app~main.
 
@@ -191,27 +176,27 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
   METHOD on_init.
 
-    MT_halign     = VALUE #(
-( low = 'Begin'     DDTEXT = 'Locale-specific positioning at the beginning of the line' )
-( low = 'Center'    DDTEXT = 'Centered text alignment'                                  )
-( low = 'End'       DDTEXT = 'Locale-specific positioning at the end of the line'       )
-( low = 'Initial'   DDTEXT = 'Sets no text align, so the browser default is used'       )
-( low = 'Left'      DDTEXT = 'Hard option for left alignment'                           )
-( low = 'Right'     DDTEXT = 'Hard option for right alignment'                          )
+    mt_halign     = VALUE #(
+( low = 'Begin'     ddtext = 'Locale-specific positioning at the beginning of the line' )
+( low = 'Center'    ddtext = 'Centered text alignment'                                  )
+( low = 'End'       ddtext = 'Locale-specific positioning at the end of the line'       )
+( low = 'Initial'   ddtext = 'Sets no text align, so the browser default is used'       )
+( low = 'Left'      ddtext = 'Hard option for left alignment'                           )
+( low = 'Right'     ddtext = 'Hard option for right alignment'                          )
  ).
 
-    MT_importance = VALUE #(
-( LOW = 'High'   DDTEXT = 'High priority'         )
-( LOW = 'Low'    DDTEXT = 'Low priority'          )
-( LOW = 'Medium' DDTEXT = 'Medium priority'       )
-( LOW = 'None'   DDTEXT = 'Default, none priority') ).
+    mt_importance = VALUE #(
+( low = 'High'   ddtext = 'High priority'         )
+( low = 'Low'    ddtext = 'Low priority'          )
+( low = 'Medium' ddtext = 'Medium priority'       )
+( low = 'None'   ddtext = 'Default, none priority') ).
 
   ENDMETHOD.
 
 
   METHOD render_edit.
 
-    DATA(popup) = Z2UI5_cl_xml_view=>factory_popup(  ).
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
     DATA(dialog) = popup->dialog( title        = 'Layout'
                                   contentWidth = '50%'
@@ -746,7 +731,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
   METHOD get_layouts.
 
-      mt_t001 = select_layouts(
+    mt_t001 = select_layouts(
       class = CONV #( ms_layout-s_head-class )
       tab   = CONV #( ms_layout-s_head-tab ) ).
 
