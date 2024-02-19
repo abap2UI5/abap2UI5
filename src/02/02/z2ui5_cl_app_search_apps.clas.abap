@@ -34,6 +34,32 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
         number              TYPE string,
       END OF ms_favorites.
 
+    TYPES:
+      BEGIN OF ty_s_app,
+        name       TYPE string,
+        descr      TYPE string,
+        classname  TYPE string,
+        check_hide TYPE abap_bool,
+      END OF ty_s_app.
+    TYPES ty_t_app TYPE STANDARD TABLE OF ty_s_app WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_s_repo,
+        name                 TYPE string,
+        descr                TYPE string,
+        author_link          TYPE string,
+        author_name          TYPE string,
+        check_abap_for_cloud TYPE abap_bool,
+        check_standard_abap  TYPE abap_bool,
+        link                 TYPE string,
+        t_app                TYPE ty_t_app,
+        check_installed      TYPE abap_bool,
+        number_of_app        TYPE i,
+      END OF ty_s_repo.
+    TYPES ty_t_repo TYPE STANDARD TABLE OF ty_s_repo WITH EMPTY KEY.
+
+    DATA mt_git_repos TYPE ty_t_repo.
+
   PROTECTED SECTION.
     METHODS search.
     METHODS view_display
@@ -50,7 +76,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
+CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
 
   METHOD search.
@@ -244,13 +270,13 @@ CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
                                      target = `blank`
                                      href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/02/z2ui5_cl_app_search_apps.clas.locals_imp.abap` ).
 
-    DATA(lt_repos) = NEW lcl_github( )->get_repositories( ).
+    mt_git_repos = NEW lcl_github( )->get_repositories( ).
 
 
     DATA(item) = page_online->list(
              "   headertext = `Product`
                 nodata         = `no conditions defined`
-               items           = client->_bind_local( lt_repos )
+               items           = client->_bind( mt_git_repos )
                selectionchange = client->_event( 'SELCHANGE' )
                   )->custom_list_item( ).
 
@@ -402,8 +428,6 @@ CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
         client->message_toast_display( |backend search done| ).
 
       WHEN 'ON_SEARCH_GIT'.
-
-
         search( ).
         client->view_model_update( ).
         client->message_toast_display( |backend search done| ).
