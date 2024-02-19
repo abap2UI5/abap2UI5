@@ -272,6 +272,22 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
     mt_git_repos = NEW lcl_github( )->get_repositories( ).
 
+    LOOP AT mt_git_repos REFERENCE INTO DATA(lr_repo).
+
+      LOOP AT lr_repo->t_app REFERENCE INTO DATA(lr_app2).
+
+        IF z2ui5_cl_util=>rtti_check_class_exists( lr_app2->classname ).
+          lr_repo->check_installed = abap_true.
+        ENDIF.
+        EXIT.
+      ENDLOOP.
+
+      lr_repo->number_of_app = lines( lr_repo->t_app ).
+      lr_repo->author_name = shift_left( val = lr_repo->author_link
+                                         sub = `https://github.com/` ).
+    ENDLOOP.
+
+
 
     DATA(item) = page_online->list(
              "   headertext = `Product`
