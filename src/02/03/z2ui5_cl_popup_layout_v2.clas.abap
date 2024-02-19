@@ -1,28 +1,28 @@
-class Z2UI5_CL_POPUP_LAYOUT_V2 definition
-  public
-  final
-  create public .
+CLASS Z2UI5_CL_POPUP_LAYOUT_V2 DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
 PUBLIC SECTION.
 
   INTERFACES if_serializable_object .
   INTERFACES z2ui5_if_app .
 
-    TYPES:
-      BEGIN OF fixvalue,
-        low        TYPE string,
-        high       TYPE string,
-        option     TYPE string,
-        ddlanguage TYPE string,
-        ddtext     TYPE string,
-      END OF fixvalue .
-    TYPES:
-      fixvalues TYPE STANDARD TABLE OF fixvalue WITH DEFAULT KEY .
+  TYPES:
+    BEGIN OF fixvalue,
+      low        TYPE string,
+      high       TYPE string,
+      option     TYPE string,
+      ddlanguage TYPE string,
+      ddtext     TYPE string,
+    END OF fixvalue .
+  TYPES:
+    fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
 
-  TYPES ty_s_t001 TYPE z2UI5_t001.
+  TYPES ty_s_t001 TYPE z2ui5_t001.
   TYPES ty_t_t001 TYPE STANDARD TABLE OF ty_s_t001 WITH EMPTY KEY.
 
-  TYPES ty_s_t002 TYPE z2UI5_t002.
+  TYPES ty_s_t002 TYPE z2ui5_t002.
 
   TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
 
@@ -32,10 +32,10 @@ PUBLIC SECTION.
          END OF ty_s_layout.
 
   DATA ms_layout TYPE ty_s_layout.
-  
+
   TYPES:
     BEGIN OF ty_s_layo.
-      INCLUDE TYPE z2UI5_t001.
+      INCLUDE TYPE z2ui5_t001.
   TYPES: selkz TYPE abap_bool,
     END OF ty_s_layo .
   TYPES:
@@ -49,7 +49,7 @@ PUBLIC SECTION.
   DATA mv_usr    TYPE abap_bool.
 
   DATA mv_open   TYPE abap_bool.
-  DATA MV_delete TYPE abap_bool.
+  DATA mv_delete TYPE abap_bool.
   DATA mv_extended_layout TYPE abap_bool.
 
   DATA mt_halign     TYPE fixvalues.
@@ -78,10 +78,10 @@ PUBLIC SECTION.
     IMPORTING
       !layout          TYPE ty_s_layout
       !open_layout     TYPE abap_bool OPTIONAL
-      !delete_LAYOUT   TYPE abap_bool OPTIONAL
-      !extended_LAYOUT TYPE abap_bool OPTIONAL
+      !delete_layout   TYPE abap_bool OPTIONAL
+      !extended_layout TYPE abap_bool OPTIONAL
     RETURNING
-      VALUE(result)    TYPE REF TO Z2UI5_CL_POPUP_LAYOUT_V2.
+      VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
 
 PROTECTED SECTION.
 
@@ -112,7 +112,7 @@ PRIVATE SECTION.
   METHODS delete_selected_layout.
 
     CLASS-METHODS get_comps_by_data
-      IMPORTING !table        TYPE ref to data
+      IMPORTING !table        TYPE REF TO DATA
       RETURNING VALUE(result) TYPE abap_component_tab .
 
     CLASS-METHODS get_comps_by_table
@@ -127,7 +127,7 @@ PRIVATE SECTION.
     IMPORTING
       type      TYPE REF TO cl_abap_datadescr
     RETURNING
-      value(result)  type abap_component_tab.
+      value(result)  TYPE abap_component_tab.
 
 ENDCLASS.
 
@@ -199,7 +199,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
     DATA(dialog) = popup->dialog( title        = 'Layout'
-                                  contentWidth = '50%'
+                                  contentwidth = '50%'
                                   afterclose   = client->_event( 'CLOSE' ) )->content( ).
 
     DATA(tab) = dialog->table( growing = abap_true
@@ -283,7 +283,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
     dialog->get_parent(
            )->footer( )->overflow_toolbar(
                )->toolbar_spacer(
-               )->Button(
+               )->button(
                    text  = 'Back'
                    icon  = 'sap-icon://nav-back'
                    press = client->_event( 'CLOSE' )
@@ -314,7 +314,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
       WHEN 'EDIT_SAVE'.
 
-        render_SAVE( ).
+        render_save( ).
 
       WHEN 'SAVE_CLOSE'.
 
@@ -444,7 +444,7 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
   METHOD save_layout.
 
-    DATA t002 TYPE STANDARD TABLE OF Z2UI5_t002.
+    DATA t002 TYPE STANDARD TABLE OF Z2UI5_t002 with EMPTY KEY.
 
     IF mv_layout IS INITIAL.
       client->message_toast_display( 'Layoutname missing.').
@@ -501,17 +501,20 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
 
     MODIFY Z2UI5_t001 FROM @t001.
-    MODIFY Z2UI5_t002 FROM TABLE @t002.
-
     IF sy-subrc = 0.
 
-      COMMIT WORK AND WAIT.
+      MODIFY Z2UI5_t002 FROM TABLE @t002.
 
-      client->message_toast_display( 'Data saved.' ).
+      IF sy-subrc = 0.
 
-    ms_layout-s_head = t001.
-    ms_layout-t_layout = t002.
+        COMMIT WORK AND WAIT.
 
+        client->message_toast_display( 'Data saved.' ).
+
+        ms_layout-s_head = t001.
+        ms_layout-t_layout = t002.
+
+      ENDIF.
     ENDIF.
 
   ENDMETHOD.
@@ -531,7 +534,6 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
                 )->columns(
                     )->column( )->text( 'Layout' )->get_parent(
                     )->column( )->text( 'Description'
-
                     )->get_parent( )->get_parent(
                 )->items(
                     )->column_list_item( selected = '{SELKZ}'
@@ -612,19 +614,19 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
     DATA(t001) = VALUE #( mt_t001[ selkz = abaP_true ] OPTIONAL ).
 
-    CHECK t001 IS NOT INITIAL.
+    IF t001 IS NOT INITIAL.
 
-    SELECT SINGLE * FROM Z2UI5_t001
-    WHERE layout = @t001-layout
-    AND   tab    = @t001-tab
-    INTO CORRESPONDING FIELDS OF @ms_layout-s_head.
+      SELECT SINGLE * FROM Z2UI5_t001
+      WHERE layout = @t001-layout
+      AND   tab    = @t001-tab
+      INTO CORRESPONDING FIELDS OF @ms_layout-s_head.
 
-    SELECT * FROM Z2UI5_t002
-    WHERE layout = @t001-layout
-    AND   tab    = @t001-tab
-    INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout.
+      SELECT * FROM Z2UI5_t002
+      WHERE layout = @t001-layout
+      AND   tab    = @t001-tab
+      INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout.
 
-
+    ENDIF.
 
   ENDMETHOD.
 
@@ -735,15 +737,17 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
       class = CONV #( ms_layout-s_head-class )
       tab   = CONV #( ms_layout-s_head-tab ) ).
 
-    CHECK mt_t001 IS NOT INITIAL.
+    IF mt_t001 IS NOT INITIAL.
 
-    DATA(t001) = REF #( mt_t001[  layout = ms_layout-s_head-layout ] OPTIONAL ).
-    IF t001 is bound.
-      t001->selkz = abaP_true.
-      RETURN.
-    ELSE.
-      t001 = REF #( mt_t001[ 1 ] OPTIONAL ).
-      t001->selkz = abaP_true.
+      DATA(t001) = REF #( mt_t001[  layout = ms_layout-s_head-layout ] OPTIONAL ).
+      IF t001 IS BOUND.
+        t001->selkz = abaP_true.
+        RETURN.
+      ELSE.
+        t001 = REF #( mt_t001[ 1 ] OPTIONAL ).
+        t001->selkz = abaP_true.
+      ENDIF.
+
     ENDIF.
 
   ENDMETHOD.
