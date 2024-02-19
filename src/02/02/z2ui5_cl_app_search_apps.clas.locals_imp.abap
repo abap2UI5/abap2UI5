@@ -1,34 +1,20 @@
-
 CLASS lcl_github DEFINITION.
 
-  PUBLIC SECTION.
-    TYPES:
-      BEGIN OF ty_s_app,
-        name       TYPE string,
-        descr      TYPE string,
-        classname  TYPE string,
-        check_hide TYPE abap_bool,
-      END OF ty_s_app.
-    TYPES ty_t_app TYPE STANDARD TABLE OF ty_s_app WITH EMPTY KEY.
+  """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
+  "
+  " this file lists all github repositories using abap2UI5
+  " they are displayed in the start app of abap2UI5
+  "
+  " your app is not listed her?
+  " feel free to send a PR and extend this file
+  "
+  """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
-    TYPES:
-      BEGIN OF ty_s_repo,
-        name                 TYPE string,
-        descr                TYPE string,
-        author_link          TYPE string,
-        author_name          TYPE string,
-        check_abap_for_cloud TYPE abap_bool,
-        check_standard_abap  TYPE abap_bool,
-        link                 TYPE string,
-        t_app                TYPE ty_t_app,
-        check_installed      TYPE abap_bool,
-        number_of_app        TYPE i,
-      END OF ty_s_repo.
-    TYPES ty_t_repo TYPE STANDARD TABLE OF ty_s_repo WITH EMPTY KEY.
+  PUBLIC SECTION.
 
     METHODS get_repositories
       RETURNING
-        VALUE(result) TYPE ty_t_repo.
+        VALUE(result) TYPE z2ui5_cl_app_search_apps=>ty_t_repo.
 
 ENDCLASS.
 
