@@ -524,8 +524,8 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
       client->message_toast_display( 'Data saved.' ).
 
-    MOVE-CORRESPONDING t001 to ms_layout-s_head.
-    move-CORRESPONDING t002 to ms_layout-t_layout.
+    ms_layout-s_head = t001.
+    ms_layout-t_layout = t002.
 
     ENDIF.
 
