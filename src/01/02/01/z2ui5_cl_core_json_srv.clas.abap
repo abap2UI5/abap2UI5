@@ -42,9 +42,9 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
   METHOD model_front_to_back.
 
-  LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
-    WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
-    AND  view  = view.
+    LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
+      WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
+      AND  view  = view.
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -75,7 +75,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
 
   METHOD model_back_to_front.
-       TRY.
+    TRY.
 
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
 
