@@ -746,20 +746,20 @@ CLASS Z2UI5_CL_POPUP_LAYOUT_V2 IMPLEMENTATION.
 
   METHOD get_layouts.
 
-    mt_t001 = select_layouts(
+      mt_t001 = select_layouts(
       class = CONV #( ms_layout-s_head-class )
       tab   = CONV #( ms_layout-s_head-tab ) ).
 
     CHECK mt_t001 IS NOT INITIAL.
 
-    DATA(selkz) = REF #( mt_t001[  layout = ms_layout-s_head-layout ]-selkz OPTIONAL ).
-    IF sy-subrc = 0.
-      selkz->* = abaP_true.
+    DATA(t001) = REF #( mt_t001[  layout = ms_layout-s_head-layout ] OPTIONAL ).
+    IF t001 is bound.
+      t001->selkz = abaP_true.
       RETURN.
+    ELSE.
+      t001 = REF #( mt_t001[ 1 ] OPTIONAL ).
+      t001->selkz = abaP_true.
     ENDIF.
-
-    selkz = REF #( mt_t001[ 1 ]-selkz OPTIONAL ).
-    selkz->* = abaP_true.
 
   ENDMETHOD.
 
