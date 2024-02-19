@@ -11,7 +11,6 @@ CLASS lcl_github DEFINITION.
   """"""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""""
 
   PUBLIC SECTION.
-
     METHODS get_repositories
       RETURNING
         VALUE(result) TYPE z2ui5_cl_app_search_apps=>ty_t_repo.
@@ -23,7 +22,7 @@ CLASS lcl_github IMPLEMENTATION.
   METHOD get_repositories.
 
     result = VALUE #(
-         (
+        (
         name                 = `The Quest`
         descr                = `A wizard's adventure game based on a fork of the AXAGE game engine (ABAP teXt Adventure Game Engine) and abap2UI5.`
         check_abap_for_cloud = abap_true
@@ -36,9 +35,8 @@ CLASS lcl_github IMPLEMENTATION.
             name      = `The Quest - Start the Adventure`
             descr     = `Adventure Game: The Wizard&amp;apos;s Aspirant Quest`
             classname = `zcl_axage_wizard_ui.clas.abap`
-          )
-        ) )
-       (
+        ) ) )
+        (
         name                 = `Advent of Code`
         descr                = `Template for the Advent of Code 2023 in ABAP`
         author_link          = `https://github.com/joltdx`
@@ -51,9 +49,8 @@ CLASS lcl_github IMPLEMENTATION.
             name      = `Advent of Code 2023 in ABAP`
             descr     = `Advent of Code 2023 - ABAP2UI5 app`
             classname = `zcl_advent_2023_a2ui5.clas.abap`
-          )
-        ) )
-                (
+        ) ) )
+        (
         name                 = `Table Loader`
         descr                = `Upload, Edit & Download Table Content (CSV, JSON)`
         author_link          = `https://github.com/oblomov-dev`
@@ -71,8 +68,7 @@ CLASS lcl_github IMPLEMENTATION.
             name      = `Download (CSV, JSON)`
             descr     = `Download DB Table as JSON and CSV`
             classname = `z2ui5_dbl_cl_app_01`
-          )
-        ) )
+        ) ) )
         ).
 
   ENDMETHOD.
