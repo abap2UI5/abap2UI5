@@ -1,133 +1,133 @@
-CLASS Z2UI5_CL_POPUP_LAYOUT_V2 DEFINITION
+CLASS z2ui5_cl_popup_layout_v2 DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
 
-PUBLIC SECTION.
+  PUBLIC SECTION.
 
-  INTERFACES if_serializable_object .
-  INTERFACES z2ui5_if_app .
+    INTERFACES if_serializable_object .
+    INTERFACES z2ui5_if_app .
 
-  TYPES:
-    BEGIN OF fixvalue,
-      low        TYPE string,
-      high       TYPE string,
-      option     TYPE string,
-      ddlanguage TYPE string,
-      ddtext     TYPE string,
-    END OF fixvalue .
-  TYPES:
-    fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF fixvalue,
+        low        TYPE string,
+        high       TYPE string,
+        option     TYPE string,
+        ddlanguage TYPE string,
+        ddtext     TYPE string,
+      END OF fixvalue .
+    TYPES:
+      fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
 
-  TYPES ty_s_t001 TYPE z2ui5_t001.
-  TYPES ty_t_t001 TYPE STANDARD TABLE OF ty_s_t001 WITH EMPTY KEY.
+    TYPES ty_s_t001 TYPE z2ui5_t001.
+    TYPES ty_t_t001 TYPE STANDARD TABLE OF ty_s_t001 WITH EMPTY KEY.
 
-  TYPES ty_s_t002 TYPE z2ui5_t002.
+    TYPES ty_s_t002 TYPE z2ui5_t002.
 
-  TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
+    TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
 
-  TYPES: BEGIN OF ty_s_layout,
-           s_head   TYPE ty_s_t001,
-           t_layout TYPE ty_t_t002,
-         END OF ty_s_layout.
+    TYPES: BEGIN OF ty_s_layout,
+             s_head   TYPE ty_s_t001,
+             t_layout TYPE ty_t_t002,
+           END OF ty_s_layout.
 
-  DATA ms_layout TYPE ty_s_layout.
+    DATA ms_layout TYPE ty_s_layout.
 
-  TYPES:
-    BEGIN OF ty_s_layo.
-      INCLUDE TYPE z2ui5_t001.
-  TYPES: selkz TYPE abap_bool,
-    END OF ty_s_layo .
-  TYPES:
-    ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
+    TYPES:
+      BEGIN OF ty_s_layo.
+        INCLUDE TYPE z2ui5_t001.
+    TYPES: selkz TYPE abap_bool,
+      END OF ty_s_layo .
+    TYPES:
+      ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
 
-  DATA mt_t001 TYPE ty_t_layo.
+    DATA mt_t001 TYPE ty_t_layo.
 
-  DATA mv_descr  TYPE string.
-  DATA mv_layout TYPE string.
-  DATA mv_def    TYPE abap_bool.
-  DATA mv_usr    TYPE abap_bool.
+    DATA mv_descr  TYPE string.
+    DATA mv_layout TYPE string.
+    DATA mv_def    TYPE abap_bool.
+    DATA mv_usr    TYPE abap_bool.
 
-  DATA mv_open   TYPE abap_bool.
-  DATA mv_delete TYPE abap_bool.
-  DATA mv_extended_layout TYPE abap_bool.
+    DATA mv_open   TYPE abap_bool.
+    DATA mv_delete TYPE abap_bool.
+    DATA mv_extended_layout TYPE abap_bool.
 
-  DATA mt_halign     TYPE fixvalues.
-  DATA mt_importance TYPE fixvalues.
+    DATA mt_halign     TYPE fixvalues.
+    DATA mt_importance TYPE fixvalues.
 
-  CLASS-METHODS on_event_layout
-    IMPORTING client        TYPE REF TO z2ui5_if_client
-              layout        TYPE ty_s_layout
-    RETURNING VALUE(result) TYPE REF TO z2ui5_if_client.
+    CLASS-METHODS on_event_layout
+      IMPORTING client        TYPE REF TO z2ui5_if_client
+                layout        TYPE ty_s_layout
+      RETURNING VALUE(result) TYPE REF TO z2ui5_if_client.
 
-  CLASS-METHODS render_layout_function
-    IMPORTING
-      !xml          TYPE REF TO z2ui5_cl_xml_view
-      !client       TYPE REF TO z2ui5_if_client
-    RETURNING
-      VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+    CLASS-METHODS render_layout_function
+      IMPORTING
+        !xml          TYPE REF TO z2ui5_cl_xml_view
+        !client       TYPE REF TO z2ui5_if_client
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-  CLASS-METHODS init_layout
-    IMPORTING
-      !tab          TYPE REF TO data
-      !class        TYPE string
-    RETURNING
-      VALUE(result) TYPE ty_s_layout.
+    CLASS-METHODS init_layout
+      IMPORTING
+        !tab          TYPE REF TO data
+        !class        TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_s_layout.
 
-  CLASS-METHODS factory
-    IMPORTING
-      !layout          TYPE ty_s_layout
-      !open_layout     TYPE abap_bool OPTIONAL
-      !delete_layout   TYPE abap_bool OPTIONAL
-      !extended_layout TYPE abap_bool OPTIONAL
-    RETURNING
-      VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
+    CLASS-METHODS factory
+      IMPORTING
+        !layout          TYPE ty_s_layout
+        !open_layout     TYPE abap_bool OPTIONAL
+        !delete_layout   TYPE abap_bool OPTIONAL
+        !extended_layout TYPE abap_bool OPTIONAL
+      RETURNING
+        VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
 
-PROTECTED SECTION.
+  PROTECTED SECTION.
 
-  DATA client        TYPE REF TO z2ui5_if_client.
-  DATA mv_init       TYPE abap_bool.
+    DATA client        TYPE REF TO z2ui5_if_client.
+    DATA mv_init       TYPE abap_bool.
 
-  METHODS on_init.
-  METHODS render_edit.
-  METHODS on_event.
+    METHODS on_init.
+    METHODS render_edit.
+    METHODS on_event.
 
-  METHODS select_layouts
-    IMPORTING
-      !class        TYPE string
-      !tab          TYPE string
-    RETURNING
-      VALUE(result) TYPE ty_t_t001.
+    METHODS select_layouts
+      IMPORTING
+        !class        TYPE string
+        !tab          TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_t_t001.
 
-  METHODS render_save.
-  METHODS save_layout.
-  METHODS render_open.
-  METHODS get_selected_layout.
-  METHODS get_layouts.
-  METHODS init_edit.
-  METHODS render_delete.
+    METHODS render_save.
+    METHODS save_layout.
+    METHODS render_open.
+    METHODS get_selected_layout.
+    METHODS get_layouts.
+    METHODS init_edit.
+    METHODS render_delete.
 
-PRIVATE SECTION.
+  PRIVATE SECTION.
 
-  METHODS delete_selected_layout.
+    METHODS delete_selected_layout.
 
-  CLASS-METHODS get_comps_by_data
-    IMPORTING !table        TYPE REF TO data
-    RETURNING VALUE(result) TYPE abap_component_tab .
+    CLASS-METHODS get_comps_by_data
+      IMPORTING !table        TYPE REF TO data
+      RETURNING VALUE(result) TYPE abap_component_tab .
 
-  CLASS-METHODS get_comps_by_table
-    IMPORTING !table        TYPE STANDARD TABLE
-    RETURNING VALUE(result) TYPE abap_component_tab.
+    CLASS-METHODS get_comps_by_table
+      IMPORTING !table        TYPE STANDARD TABLE
+      RETURNING VALUE(result) TYPE abap_component_tab.
 
-  CLASS-METHODS get_relative_name_of_table
-    IMPORTING !table        TYPE any
-    RETURNING VALUE(result) TYPE string.
+    CLASS-METHODS get_relative_name_of_table
+      IMPORTING !table        TYPE any
+      RETURNING VALUE(result) TYPE string.
 
-  CLASS-METHODS get_comp_by_struc
-    IMPORTING
-      type          TYPE REF TO cl_abap_datadescr
-    RETURNING
-      VALUE(result) TYPE abap_component_tab.
+    CLASS-METHODS get_comp_by_struc
+      IMPORTING
+        type          TYPE REF TO cl_abap_datadescr
+      RETURNING
+        VALUE(result) TYPE abap_component_tab.
 
 ENDCLASS.
 
