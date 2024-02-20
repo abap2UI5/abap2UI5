@@ -656,15 +656,15 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ASSERT sy-subrc = 0.
 
 * DEFAULT USER
-    DATA(default) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
+    DATA(def) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
 
-    IF default IS INITIAL.
+    IF def IS INITIAL.
 * DEFAULT
-      default  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
+      def  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
     ENDIF.
 
 
-    IF default-layout IS NOT INITIAL.
+    IF def-layout IS NOT INITIAL.
 
       SELECT    mandt,
                 layout,
@@ -678,8 +678,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                 width,
                 text
        FROM z2ui5_t002
-      WHERE layout = @default-layout
-      AND   tab    = @default-tab
+      WHERE layout = @def-layout
+      AND   tab    = @def-tab
       INTO TABLE @DATA(t_t002).
       ASSERT sy-subrc = 0.
 
@@ -699,7 +699,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       ENDLOOP.
 
-      result-s_head = default.
+      result-s_head = def.
       RETURN.
 
     ENDIF.
