@@ -8,13 +8,14 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     INTERFACES if_serializable_object .
     INTERFACES z2ui5_if_app .
 
-    TYPES BEGIN OF fixvalue.
-    TYPES     low        TYPE string.
-    TYPES     high       TYPE string.
-    TYPES     option     TYPE string.
-    TYPES     ddlanguage TYPE string.
-    TYPES     ddtext     TYPE string.
-    TYPES   END OF fixvalue.
+    TYPES:
+      BEGIN OF fixvalue,
+        low        TYPE string,
+        high       TYPE string,
+        option     TYPE string,
+        ddlanguage TYPE string,
+        ddtext     TYPE string,
+      END OF fixvalue.
     TYPES  fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
 
     TYPES ty_s_t001 TYPE z2ui5_t001.
@@ -24,10 +25,11 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
 
     TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
 
-    TYPES BEGIN OF ty_s_layout.
-    TYPES s_head   TYPE ty_s_t001.
-    TYPES t_layout TYPE ty_t_t002.
-    TYPES  END OF ty_s_layout.
+    TYPES:
+      BEGIN OF ty_s_layout,
+        s_head   TYPE ty_s_t001,
+        t_layout TYPE ty_t_t002,
+      END OF ty_s_layout.
 
     TYPES BEGIN OF ty_s_layo.
     INCLUDE TYPE z2ui5_t001.
@@ -76,7 +78,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
 
-PROTECTED SECTION.
+  PROTECTED SECTION.
 
     DATA client        TYPE REF TO z2ui5_if_client.
     DATA mv_init       TYPE abap_bool.
@@ -105,8 +107,10 @@ PROTECTED SECTION.
     METHODS delete_selected_layout.
 
     CLASS-METHODS get_comps_by_data
-      IMPORTING !table        TYPE REF TO data
-      RETURNING VALUE(result) TYPE abap_component_tab .
+      IMPORTING
+        !table        TYPE REF TO data
+      RETURNING
+        VALUE(result) TYPE abap_component_tab .
 
     CLASS-METHODS get_comps_by_table
       IMPORTING !table        TYPE STANDARD TABLE
@@ -451,7 +455,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     LOOP AT ms_layout-t_layout INTO DATA(layout).
 
-      insert VALUE #( layout   = mv_layout
+      INSERT VALUE #( layout   = mv_layout
                                    tab        = ms_layout-s_head-tab
                                    fname      = layout-fname
                                    rollname   = layout-rollname
@@ -459,7 +463,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                                    halign     = layout-halign
                                    importance = layout-importance
                                    merge      = layout-merge
-                                   width      = layout-width  ) into table t002.
+                                   width      = layout-width  ) INTO TABLE t002.
 
     ENDLOOP.
 
@@ -640,10 +644,10 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
 
     LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
-       insert VALUE #(
-                      tab      = tab_name
-                      fname    = lr_comp->name
-                      rollname = lr_comp->type->get_relative_name( ) ) into table result-t_layout.
+      INSERT VALUE #(
+                     tab      = tab_name
+                     fname    = lr_comp->name
+                     rollname = lr_comp->type->get_relative_name( ) ) INTO TABLE result-t_layout.
     ENDLOOP.
 
 * Select Layouts
@@ -689,19 +693,17 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
-     "   READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
-try.
-      data(t002) = ref #( t_t002[ fname = layout->fname ] ).
-    layout->* = t002->*.
-catch cx_root.
-          layout->layout     = 'Default'.
-          layout->halign     = 'Initial'.
-          layout->importance = 'None'.
-          layout->rollname   = layout->rollname.
-          layout->fname      = layout->fname.
-          layout->tab        = tab_name.
-endtry.
-
+        TRY.
+            DATA(t002) = REF #( t_t002[ fname = layout->fname ] ).
+            layout->* = t002->*.
+          CATCH cx_root.
+            layout->layout     = 'Default'.
+            layout->halign     = 'Initial'.
+            layout->importance = 'None'.
+            layout->rollname   = layout->rollname.
+            layout->fname      = layout->fname.
+            layout->tab        = tab_name.
+        ENDTRY.
 
       ENDLOOP.
 
@@ -739,7 +741,6 @@ endtry.
     result-s_head-class  = class.
     result-s_head-tab    = tab_name.
 
-
   ENDMETHOD.
 
 
@@ -751,7 +752,7 @@ endtry.
 
     IF mt_t001 IS NOT INITIAL.
 
-      DATA(t001) = REF #( mt_t001[  layout = ms_layout-s_head-layout ] OPTIONAL ).
+      DATA(t001) = REF #( mt_t001[ layout = ms_layout-s_head-layout ] OPTIONAL ).
       IF t001 IS BOUND.
         t001->selkz = abap_true.
         RETURN.
@@ -817,7 +818,9 @@ endtry.
   METHOD get_comps_by_data.
 
     TRY.
-        result = get_comps_by_table( table->* ).
+        FIELD-SYMBOLS <deref> TYPE any.
+        ASSIGN table->* TO <deref>.
+        result = get_comps_by_table( <deref> ).
       CATCH cx_root.
     ENDTRY.
 
