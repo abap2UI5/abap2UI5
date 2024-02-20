@@ -108,9 +108,10 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
           "todo performance - add and filter in a single loop
           IF lr_attri->custom_filter IS BOUND.
             ajson = ajson->filter( lr_attri->custom_filter ).
-          ELSE.
-            ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
           ENDIF.
+*          ELSE.
+*            ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
+*          ENDIF.
 
           "(5) write into result
           "todo performance - write directly into result
