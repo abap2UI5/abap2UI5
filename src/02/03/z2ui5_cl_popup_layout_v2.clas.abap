@@ -8,14 +8,13 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     INTERFACES if_serializable_object .
     INTERFACES z2ui5_if_app .
 
-    TYPES:
-      BEGIN OF fixvalue,
-        low        TYPE string,
-        high       TYPE string,
-        option     TYPE string,
-        ddlanguage TYPE string,
-        ddtext     TYPE string,
-      END OF fixvalue.
+    TYPES BEGIN OF fixvalue.
+    TYPES     low        TYPE string.
+    TYPES     high       TYPE string.
+    TYPES     option     TYPE string.
+    TYPES     ddlanguage TYPE string.
+    TYPES     ddtext     TYPE string.
+    TYPES   END OF fixvalue.
     TYPES  fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
 
     TYPES ty_s_t001 TYPE z2ui5_t001.
@@ -25,14 +24,19 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
 
     TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
 
-    TYPES:
-      BEGIN OF ty_s_layout,
-        s_head   TYPE ty_s_t001,
-        t_layout TYPE ty_t_t002,
-      END OF ty_s_layout.
+    TYPES BEGIN OF ty_s_layout.
+    TYPES s_head   TYPE ty_s_t001.
+    TYPES t_layout TYPE ty_t_t002.
+    TYPES  END OF ty_s_layout.
 
     TYPES BEGIN OF ty_s_layo.
-    INCLUDE TYPE z2ui5_t001.
+*    INCLUDE TYPE z2ui5_t001.
+    TYPES layout TYPE c LENGTH 12.
+    TYPES tab    TYPE c LENGTH 30.
+    TYPES descr  TYPE c LENGTH 50.
+    TYPES class  TYPE c LENGTH 30.
+    TYPES def    TYPE c LENGTH 1.
+    TYPES uname  TYPE c LENGTH 12.
     TYPES selkz TYPE abap_bool.
     TYPES END OF ty_s_layo .
     TYPES ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
@@ -78,7 +82,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
 
-  PROTECTED SECTION.
+PROTECTED SECTION.
 
     DATA client        TYPE REF TO z2ui5_if_client.
     DATA mv_init       TYPE abap_bool.
@@ -106,10 +110,23 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
 
     METHODS delete_selected_layout.
 
+    CLASS-METHODS get_comps_by_data
+      IMPORTING !table        TYPE REF TO data
+      RETURNING VALUE(result) TYPE abap_component_tab .
+
+    CLASS-METHODS get_comps_by_table
+      IMPORTING !table        TYPE STANDARD TABLE
+      RETURNING VALUE(result) TYPE abap_component_tab.
 
     CLASS-METHODS get_relative_name_of_table
       IMPORTING !table        TYPE any
       RETURNING VALUE(result) TYPE string.
+
+    CLASS-METHODS get_comp_by_struc
+      IMPORTING
+        type          TYPE REF TO cl_abap_datadescr
+      RETURNING
+        VALUE(result) TYPE abap_component_tab.
 
 ENDCLASS.
 
@@ -193,7 +210,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(columns) = tab->columns( ).
 
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ms_layout-t_layout ).
+    DATA(lt_comp) = get_comps_by_table( ms_layout-t_layout ).
 
     LOOP AT lt_comp REFERENCE INTO DATA(comp).
 
@@ -440,7 +457,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     LOOP AT ms_layout-t_layout INTO DATA(layout).
 
-      INSERT VALUE #( layout   = mv_layout
+      t002  = VALUE #( BASE t002 ( layout   = mv_layout
                                    tab        = ms_layout-s_head-tab
                                    fname      = layout-fname
                                    rollname   = layout-rollname
@@ -448,7 +465,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                                    halign     = layout-halign
                                    importance = layout-importance
                                    merge      = layout-merge
-                                   width      = layout-width  ) INTO TABLE t002.
+                                   width      = layout-width  ) ).
 
     ENDLOOP.
 
@@ -620,8 +637,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     " create the tab first if the db fields were added/deleted
 
-*    DATA(t_comp)   = get_comps_by_data( tab ).
-    DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_struc( tab ).
+    DATA(t_comp)   = get_comps_by_data( tab ).
 
     DATA(tab_name) = get_relative_name_of_table(  tab ).
     IF tab_name IS INITIAL.
@@ -630,10 +646,10 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
 
     LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
-      INSERT VALUE #(
-                     tab      = tab_name
-                     fname    = lr_comp->name
-                     rollname = lr_comp->type->get_relative_name( ) ) INTO TABLE result-t_layout.
+      result-t_layout = VALUE ty_t_t002( BASE result-t_layout (
+                      tab      = tab_name
+                      fname    = lr_comp->name
+                      rollname = lr_comp->type->get_relative_name( ) ) ).
     ENDLOOP.
 
 * Select Layouts
@@ -679,17 +695,18 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
-        TRY.
-            DATA(t002) = REF #( t_t002[ fname = layout->fname ] ).
-            layout->* = t002->*.
-          CATCH cx_root.
-            layout->layout     = 'Default'.
-            layout->halign     = 'Initial'.
-            layout->importance = 'None'.
-            layout->rollname   = layout->rollname.
-            layout->fname      = layout->fname.
-            layout->tab        = tab_name.
-        ENDTRY.
+        READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
+
+        IF sy-subrc = 0.
+          layout->* = t002->*.
+        ELSE.
+          layout->layout     = 'Default'.
+          layout->halign     = 'Initial'.
+          layout->importance = 'None'.
+          layout->rollname   = layout->rollname.
+          layout->fname      = layout->fname.
+          layout->tab        = tab_name.
+        ENDIF.
 
       ENDLOOP.
 
@@ -727,6 +744,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     result-s_head-class  = class.
     result-s_head-tab    = tab_name.
 
+
   ENDMETHOD.
 
 
@@ -738,7 +756,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     IF mt_t001 IS NOT INITIAL.
 
-      DATA(t001) = REF #( mt_t001[ layout = ms_layout-s_head-layout ] OPTIONAL ).
+      DATA(t001) = REF #( mt_t001[  layout = ms_layout-s_head-layout ] OPTIONAL ).
       IF t001 IS BOUND.
         t001->selkz = abap_true.
         RETURN.
@@ -800,6 +818,56 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
   ENDMETHOD.
 
+
+  METHOD get_comps_by_data.
+
+    TRY.
+        result = get_comps_by_table( table->* ).
+      CATCH cx_root.
+    ENDTRY.
+
+
+  ENDMETHOD.
+
+
+  METHOD get_comps_by_table.
+
+    TRY.
+        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( table ).
+
+        CASE typedesc->kind.
+
+          WHEN cl_abap_typedescr=>kind_table.
+            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
+            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
+
+            DATA(comp) = structdesc->get_components( ).
+
+            LOOP AT comp INTO DATA(com).
+
+
+              IF com-as_include = abap_true.
+
+                APPEND LINES OF  get_comp_by_struc( com-type ) TO result.
+
+              ELSE.
+
+                APPEND com TO result.
+
+              ENDIF.
+
+            ENDLOOP.
+
+
+          WHEN OTHERS.
+        ENDCASE.
+
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+
   METHOD get_relative_name_of_table.
 
     FIELD-SYMBOLS <table> TYPE any.
@@ -823,6 +891,31 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root.
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD get_comp_by_struc.
+
+    DATA struc TYPE REF TO cl_abap_structdescr.
+
+    struc ?= type.
+
+    DATA(comp) = struc->get_components( ).
+
+    LOOP AT comp INTO DATA(com).
+
+
+      IF com-as_include = abap_true.
+
+        APPEND LINES OF  get_comp_by_struc( com-type ) TO result.
+
+      ELSE.
+
+        APPEND com TO result.
+
+      ENDIF.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
