@@ -783,18 +783,18 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       WHEN 'LAYOUT_OPEN'.
         client->view_destroy( ).
-        result->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout      = layout
-                                                       open_layout = abap_true   ) ).
+        result->nav_app_call( factory( layout      = layout
+                                       open_layout = abap_true   ) ).
 
       WHEN 'LAYOUT_EDIT'.
         client->view_destroy( ).
-        result->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = layout
-                                                       extended_layout = abap_true   ) ).
+        result->nav_app_call( factory( layout = layout
+                                       extended_layout = abap_true   ) ).
 
       WHEN 'LAYOUT_DELETE'.
         client->view_destroy( ).
-        result->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = layout
-                                                       delete_layout = abap_true ) ).
+        result->nav_app_call( factory( layout = layout
+                                       delete_layout = abap_true ) ).
 
     ENDCASE.
 
