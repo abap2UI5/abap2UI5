@@ -689,18 +689,19 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
-        READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
-
-        IF sy-subrc = 0.
-          layout->* = t002->*.
-        ELSE.
+     "   READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
+try.
+      data(t002) = ref #( t_t002[ fname = layout->fname ] ).
+    layout->* = t002->*.
+catch cx_root.
           layout->layout     = 'Default'.
           layout->halign     = 'Initial'.
           layout->importance = 'None'.
           layout->rollname   = layout->rollname.
           layout->fname      = layout->fname.
           layout->tab        = tab_name.
-        ENDIF.
+endtry.
+
 
       ENDLOOP.
 
