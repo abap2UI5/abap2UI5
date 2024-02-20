@@ -205,26 +205,26 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       CASE comp->name.
         WHEN 'FNAME'.
-          DATA(col) = columns->column( )->header( ns = `` ).
+          DATA(col) = columns->column( )->header(  `` ).
           col->text( 'Row' ).
         WHEN 'VISIBLE'.
-          col = columns->column( )->header( ns = `` ).
+          col = columns->column( )->header( `` ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ns = `` ).
+          col = columns->column( )->header(  `` ).
           col->text( 'Merge duplicates' ).
         WHEN 'HALIGN'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ns = `` ).
+          col = columns->column( )->header(  `` ).
           col->text( 'Align' ).
         WHEN 'IMPORTANCE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ns = `` ).
+          col = columns->column( )->header(  `` ).
           col->text( 'Importance' ).
 *        WHEN 'WIDTH'.
 *          CHECK mv_extended_layout = abap_true.
-*          col = columns->column( )->header( ns = ` ` ).
+*          col = columns->column( )->header( `` ).
 *          col->text( 'Width in px' ).
       ENDCASE.
 
@@ -462,7 +462,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     SELECT SINGLE layout FROM z2ui5_t001
     WHERE layout = @t001-layout
     AND   tab    = @t001-tab
-    INTO @t001-layout ##SUBRC_OK.
+    INTO @t001-layout.
 
     IF sy-subrc = 0.
 
@@ -479,7 +479,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
        FROM z2ui5_t002
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
-      INTO TABLE @DATA(del) ##SUBRC_OK.
+      INTO TABLE @DATA(del).
 
       IF sy-subrc = 0.
         DELETE z2ui5_t002 FROM TABLE @del.
