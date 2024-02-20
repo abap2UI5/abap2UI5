@@ -231,7 +231,7 @@
     "space_before_colon": true,
     "space_before_dot": true,
     "sql_escape_host_variables": true,
-    "start_at_tab": true,
+    "start_at_tab": false,
     "static_call_via_instance": {
       "allowInTestclassIncludes": false
     },
