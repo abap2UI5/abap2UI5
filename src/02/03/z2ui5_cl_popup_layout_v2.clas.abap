@@ -211,33 +211,33 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(columns) = tab->columns( ).
 
-    DATA(lt_comp) = get_comps_by_table( table = ms_layout-t_layout ).
+    DATA(lt_comp) = get_comps_by_table( ms_layout-t_layout ).
 
     LOOP AT lt_comp REFERENCE INTO DATA(comp).
 
       CASE comp->name.
         WHEN 'FNAME'.
-          DATA(col) = columns->column( )->header( ns = `` ).
-          col->text( text = 'Row' ).
+          DATA(col) = columns->column( )->header(  ).
+          col->text( 'Row' ).
         WHEN 'VISIBLE'.
-          col = columns->column( )->header( ns = `` ).
-          col->text( text = 'Visible' ).
+          col = columns->column( )->header(  ).
+          col->text( 'Visible' ).
         WHEN 'MERGE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ns = `` ).
-          col->text( text = 'Merge duplicates' ).
+          col = columns->column( )->header(  ).
+          col->text( 'Merge duplicates' ).
         WHEN 'HALIGN'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ns = `` ).
-          col->text( text = 'Align' ).
+          col = columns->column( )->header(  ).
+          col->text( 'Align' ).
         WHEN 'IMPORTANCE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ns = `` ).
-          col->text( text = 'Importance' ).
+          col = columns->column( )->header(  ).
+          col->text( 'Importance' ).
 *        WHEN 'WIDTH'.
 *          CHECK mv_extended_layout = abap_true.
-*          col = columns->column( )->header( ns = `` ).
-*          col->text( text = 'Width in px' ).
+*          col = columns->column( )->header(  ).
+*          col->text( 'Width in px' ).
       ENDCASE.
 
     ENDLOOP.
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
       CASE comp->name.
         WHEN 'FNAME'.
 
-          cells->text( text = `{` && comp->name && `}` ).
+          cells->text( `{` && comp->name && `}` ).
 
         WHEN 'VISIBLE' OR 'MERGE'.
 
@@ -301,8 +301,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
 
   METHOD on_event.
-
-    DATA(event) = client->get( )-event.
 
     CASE client->get( )-event.
 
@@ -368,7 +366,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
-
   METHOD render_layout_function.
 
     result = xml.
@@ -386,18 +383,15 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                            icon = 'sap-icon://delete'
                            press = client->_event( val = 'LAYOUT_DELETE' ) ).
 
-
   ENDMETHOD.
 
 
   METHOD render_save.
 
-
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
     DATA(dialog) = popup->dialog( title      = 'Save'
                                   afterclose = client->_event( 'SAVE_CLOSE' ) ).
-
 
     DATA(form) = dialog->simple_form( title           = 'Layout'
                                       editable        = abap_true
@@ -408,7 +402,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                                       adjustlabelspan = abap_false
                                       ).
 
-    form->toolbar( )->title( text = 'Layout' ).
+    form->toolbar( )->title( 'Layout' ).
 
     form->content(  ns = 'form'
                            )->label( 'Layout'
@@ -416,7 +410,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                            )->label( 'Description'
                            )->input( value = client->_bind_edit( mv_descr ) ).
 
-    form->toolbar( )->title( text = `` ).
+    form->toolbar( )->title( `` ).
 
     form->content(  ns = 'form'
                            )->label( 'Default Layout'
@@ -447,7 +441,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     DATA t002 TYPE STANDARD TABLE OF z2ui5_t002 WITH EMPTY KEY.
 
     IF mv_layout IS INITIAL.
-      client->message_toast_display( 'Layoutname missing.').
+      client->message_toast_display( 'Layoutname missing.' ).
       RETURN.
     ENDIF.
 
@@ -476,8 +470,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     ENDLOOP.
 
-
-
     " gibt es das Layyout schon?
     SELECT SINGLE layout FROM z2ui5_t001
     WHERE layout = @t001-layout
@@ -498,7 +490,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
       ENDIF.
 
     ENDIF.
-
 
     MODIFY z2ui5_t001 FROM @t001.
     IF sy-subrc = 0.
@@ -579,7 +570,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                         )->cells(
                             )->text( '{LAYOUT}'
                             )->text( '{DESCR}'
-                            )->text( '{DEF}').
+                            )->text( '{DEF}' ).
 
     dialog->footer( )->overflow_toolbar(
           )->toolbar_spacer(
@@ -677,7 +668,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
 
         IF sy-subrc = 0.
-          MOVE-CORRESPONDING t002->* TO layout->*.
+           layout->* = t002->*.
         ELSE.
           layout->layout     = 'Default'.
           layout->halign     = 'Initial'.
@@ -695,7 +686,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ENDIF.
 
     " Default Layout
-
     DATA(index) = 0.
 
     LOOP AT result-t_layout REFERENCE INTO layout.
@@ -728,9 +718,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
-
-
-
   METHOD get_layouts.
 
     mt_t001 = select_layouts(
@@ -759,7 +746,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     mv_descr  = ms_layout-s_head-descr.
     mv_def    = ms_layout-s_head-def.
 
-    mv_usr    = COND #( WHEN ms_layout-s_head-uname IS NOT INITIAL THEN abap_true ).
+    mv_usr    = xsdbool( ms_layout-s_head-uname IS NOT INITIAL ).
 
   ENDMETHOD.
 
@@ -778,9 +765,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
       WHEN 'LAYOUT_EDIT'.
         client->view_destroy( ).
         result->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = layout
-                                                       extended_layout = abap_true
-                                                               ) ).
-
+                                                       extended_layout = abap_true   ) ).
 
       WHEN 'LAYOUT_DELETE'.
         client->view_destroy( ).
@@ -790,6 +775,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
+
 
   METHOD delete_selected_layout.
 
@@ -801,6 +787,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
+
 
   METHOD get_comps_by_data.
 
