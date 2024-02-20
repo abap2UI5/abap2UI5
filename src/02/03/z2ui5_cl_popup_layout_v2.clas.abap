@@ -8,15 +8,14 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     INTERFACES if_serializable_object .
     INTERFACES z2ui5_if_app .
 
-    TYPES:
-      BEGIN OF fixvalue,
-        low        TYPE string,
-        high       TYPE string,
-        option     TYPE string,
-        ddlanguage TYPE string,
-        ddtext     TYPE string,
-      END OF fixvalue,
-      fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
+    TYPES BEGIN OF fixvalue.
+    TYPES     low        TYPE string.
+    TYPES     high       TYPE string.
+    TYPES     option     TYPE string.
+    TYPES     ddlanguage TYPE string.
+    TYPES     ddtext     TYPE string.
+    TYPES   END OF fixvalue.
+    TYPES  fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
 
     TYPES ty_s_t001 TYPE z2ui5_t001.
     TYPES ty_t_t001 TYPE STANDARD TABLE OF ty_s_t001 WITH EMPTY KEY.
@@ -26,17 +25,15 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
 
     TYPES BEGIN OF ty_s_layout.
-    types s_head   TYPE ty_s_t001.
-    types t_layout TYPE ty_t_t002.
-    types  END OF ty_s_layout.
+    TYPES s_head   TYPE ty_s_t001.
+    TYPES t_layout TYPE ty_t_t002.
+    TYPES  END OF ty_s_layout.
 
-    TYPES:
-      BEGIN OF ty_s_layo.
-        INCLUDE TYPE z2ui5_t001.
-    TYPES: selkz TYPE abap_bool,
-      END OF ty_s_layo .
-    TYPES:
-      ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
+    TYPES BEGIN OF ty_s_layo.
+    INCLUDE TYPE z2ui5_t001.
+    TYPES selkz TYPE abap_bool.
+    TYPES END OF ty_s_layo .
+    TYPES ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
 
 
     DATA mt_t001 TYPE ty_t_layo.
@@ -79,7 +76,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
 
-  PROTECTED SECTION.
+PROTECTED SECTION.
 
     DATA client        TYPE REF TO z2ui5_if_client.
     DATA mv_init       TYPE abap_bool.
