@@ -640,10 +640,10 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
 
     LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
-      result-t_layout = VALUE ty_t_t002( BASE result-t_layout (
+       insert VALUE #(
                       tab      = tab_name
                       fname    = lr_comp->name
-                      rollname = lr_comp->type->get_relative_name( ) ) ).
+                      rollname = lr_comp->type->get_relative_name( ) ) into table result-t_layout.
     ENDLOOP.
 
 * Select Layouts
