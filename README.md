@@ -17,7 +17,7 @@
 * **User-Friendly:** Implement just a single interface for a standalone UI5 application
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
-* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP 2311)
+* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP 2402)
 * **Easy Installation:** abapGit project, no additional app deployment required
 
 #### Compatibility
