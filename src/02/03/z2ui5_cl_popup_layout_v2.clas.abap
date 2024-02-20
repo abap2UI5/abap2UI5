@@ -186,10 +186,10 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
  ).
 
     mt_importance = VALUE #(
-( low = 'High'   ddtext = 'High priority'         )
-( low = 'Low'    ddtext = 'Low priority'          )
-( low = 'Medium' ddtext = 'Medium priority'       )
-( low = 'None'   ddtext = 'Default, none priority') ).
+( low = 'High'   ddtext = 'High priority'          )
+( low = 'Low'    ddtext = 'Low priority'           )
+( low = 'Medium' ddtext = 'Medium priority'        )
+( low = 'None'   ddtext = 'Default, none priority' ) ).
 
   ENDMETHOD.
 
@@ -217,22 +217,22 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       CASE comp->name.
         WHEN 'FNAME'.
-          DATA(col) = columns->column( )->header(  ).
+          DATA(col) = columns->column( )->header( ).
           col->text( 'Row' ).
         WHEN 'VISIBLE'.
-          col = columns->column( )->header(  ).
+          col = columns->column( )->header( ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header(  ).
+          col = columns->column( )->header( ).
           col->text( 'Merge duplicates' ).
         WHEN 'HALIGN'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header(  ).
+          col = columns->column( )->header( ).
           col->text( 'Align' ).
         WHEN 'IMPORTANCE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header(  ).
+          col = columns->column( )->header( ).
           col->text( 'Importance' ).
 *        WHEN 'WIDTH'.
 *          CHECK mv_extended_layout = abap_true.
@@ -404,15 +404,15 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     form->toolbar( )->title( 'Layout' ).
 
-    form->content(  ns = 'form'
+    form->content( 'form'
                            )->label( 'Layout'
-                           )->input( value = client->_bind_edit( mv_layout )
+                           )->input( client->_bind_edit( mv_layout )
                            )->label( 'Description'
-                           )->input( value = client->_bind_edit( mv_descr ) ).
+                           )->input( client->_bind_edit( mv_descr ) ).
 
     form->toolbar( )->title( `` ).
 
-    form->content(  ns = 'form'
+    form->content( 'form'
                            )->label( 'Default Layout'
                            )->switch( type = 'AcceptReject' state = client->_bind_edit( mv_def )
                            )->label( 'User specific'
@@ -478,7 +478,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     IF sy-subrc = 0.
 
-      " postionen lesen und löschen
+* postionen lesen und löschen
       SELECT * FROM z2ui5_t002
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
@@ -595,7 +595,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     WHERE class   = @class
     AND   tab     = @tab
     INTO CORRESPONDING FIELDS OF TABLE @result.
-    " User?!
+*    User?!
+    ASSERT sy-subrc = 0.
 
   ENDMETHOD.
 
@@ -611,11 +612,13 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
       INTO CORRESPONDING FIELDS OF @ms_layout-s_head.
+      ASSERT sy-subrc = 0.
 
       SELECT * FROM z2ui5_t002
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
       INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout.
+      ASSERT sy-subrc = 0.
 
     ENDIF.
 
@@ -626,9 +629,9 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     " create the tab first if the db fields were added/deleted
 
-    DATA(t_comp)   = get_comps_by_data( table = tab ).
+    DATA(t_comp)   = get_comps_by_data( tab ).
 
-    DATA(tab_name) = get_relative_name_of_table( table = tab ).
+    DATA(tab_name) = get_relative_name_of_table(  tab ).
     IF tab_name IS INITIAL.
       tab_name = class.
     ENDIF.
@@ -641,17 +644,18 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                       rollname = lr_comp->type->get_relative_name( ) ) ).
     ENDLOOP.
 
-    " Select Layouts
+* Select Layouts
     SELECT  * FROM z2ui5_t001
     WHERE class   = @class
     AND   tab     = @tab_name
     INTO TABLE @DATA(t_t001).
+    ASSERT sy-subrc = 0.
 
-    " DEFAULT USER
+* DEFAULT USER
     DATA(default) = VALUE #( t_t001[  class = class tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
 
     IF default IS INITIAL.
-      " DEFAULT
+* DEFAULT
       default  = VALUE #( t_t001[ class = class tab = tab_name def = abap_true ] OPTIONAL ).
     ENDIF.
 
@@ -662,13 +666,14 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
       WHERE layout = @default-layout
       AND   tab    = @default-tab
       INTO TABLE @DATA(t_t002).
+      ASSERT sy-subrc = 0.
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
         READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
 
         IF sy-subrc = 0.
-           layout->* = t002->*.
+          layout->* = t002->*.
         ELSE.
           layout->layout     = 'Default'.
           layout->halign     = 'Initial'.
@@ -685,14 +690,14 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     ENDIF.
 
-    " Default Layout
+*  Default Layout
     DATA(index) = 0.
 
     LOOP AT result-t_layout REFERENCE INTO layout.
 
       index = index + 1.
 
-      " Default ony 10 rows
+* Default ony 10 rows
       IF index <= 10.
         layout->visible = abap_true.
       ENDIF.
@@ -792,7 +797,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   METHOD get_comps_by_data.
 
     TRY.
-        result = get_comps_by_table( table = table->* ).
+        result = get_comps_by_table( table->* ).
       CATCH cx_root.
     ENDTRY.
 
