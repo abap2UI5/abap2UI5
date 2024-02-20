@@ -14,15 +14,27 @@ CLASS z2ui5_cl_popup_js_loader DEFINITION
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_js_loader.
 
+    CLASS-METHODS factory_check_open_ui5
+      IMPORTING
+        i_result        TYPE string DEFAULT `CHECK_UI5`
+      RETURNING
+        VALUE(r_result) TYPE REF TO z2ui5_cl_popup_js_loader.
+
     METHODS result
       RETURNING
         VALUE(result3) TYPE string.
+
+    DATA mv_is_open_ui5 TYPE abap_bool.
+  DATA ui5_gav TYPE string.
 
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
     DATA client TYPE REF TO z2ui5_if_client.
     DATA js TYPE string.
     DATA user_command TYPE string.
+    DATA check_open_ui5 TYPE abap_bool.
+
+
     METHODS view_display.
 
   PRIVATE SECTION.
@@ -41,6 +53,10 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD factory_check_open_ui5.
+    r_result = NEW #( ).
+    r_result->check_open_ui5 = abap_true.
+  ENDMETHOD.
 
   METHOD result.
 
@@ -51,10 +67,20 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
 
   METHOD view_display.
 
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `load library`
-        )->content(
-        )->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )
-        )->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
+
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog( `Setup UI...`
+        )->content( ).
+
+    IF js IS NOT INITIAL.
+      popup->_z2ui5( )->timer( client->_event( 'TIMER_FINISHED' )
+      )->_generic( ns = `html` name = `script` )->_cc_plain_xml( js ).
+    ENDIF.
+
+    IF check_open_ui5 = abap_true.
+      popup->_z2ui5( )->info_frontend(
+        finished = client->_event( `INFO_FINISHED` )
+        ui5_gav = client->_bind_edit( ui5_gav ) ).
+    ENDIF.
 
     client->popup_display( popup->stringify( ) ).
 
@@ -62,6 +88,7 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
+data(lo_app2) = client->get_app( client->get( )-s_draft-id_prev_app_stack ) .
 
     me->client = client.
 
@@ -72,6 +99,13 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
     ENDIF.
 
     CASE client->get( )-event.
+      WHEN `INFO_FINISHED`.
+        IF to_upper( ui5_gav ) CS `OPEN`.
+          mv_is_open_ui5 = abap_true.
+        ENDIF.
+        client->popup_destroy( ).
+        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
       WHEN `TIMER_FINISHED`.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).

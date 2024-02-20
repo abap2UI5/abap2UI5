@@ -223,9 +223,8 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     LOOP AT mt_apps REFERENCE INTO DATA(lr_app).
       DATA(lv_tabix) = sy-tabix.
       page_all->generic_tile(
-        id      = lr_app->name
         class   = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
-        press   = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/header}` ) ( `${$source>/id}` ) ) )
+        press   = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/header}` ) ( `${$source>/header}` ) ) )
         header  = client->_bind( val = lr_app->name    tab = mt_apps tab_index = lv_tabix )
         visible = client->_bind( val = lr_app->visible tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.

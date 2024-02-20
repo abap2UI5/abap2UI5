@@ -260,9 +260,12 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
         client->view_model_update( ).
 
       WHEN 'VALUE_HELP'.
-        mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` ).
-        client->nav_app_call( z2ui5_cl_popup_to_select=>factory( mt_classes ) ).
-
+        TRY.
+            mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` ).
+            client->nav_app_call( z2ui5_cl_popup_to_select=>factory( mt_classes ) ).
+          CATCH cx_root.
+            client->message_box_display( `The value help is not available on your system, upgrade to a higher release first` ).
+        ENDTRY.
     ENDCASE.
 
   ENDMETHOD.

@@ -62,7 +62,7 @@ CLASS z2ui5_cl_fw_cc_info_frontend IMPLEMENTATION.
       `       onAfterRendering() {` && |\n| &&
       |\n| &&
       `       },` && |\n| &&
-      `       ` && |\n| &&
+      `      onEvent(oControl) { oControl.fireFinished( );  }, ` && |\n| &&
       `       renderer(oRm, oControl) {` && |\n| &&
       |\n| &&
       `            oControl.setProperty( "ui5_version" ,  sap.ui.version );` && |\n| &&
@@ -70,7 +70,7 @@ CLASS z2ui5_cl_fw_cc_info_frontend IMPLEMENTATION.
       `            oControl.setProperty( "device_os" ,  sap.ui.Device.os.name );` && |\n| &&
       `          //  this.setProperty( "device_systemtype" ,  sap.ui.getVersionInfo().gav );` && |\n| &&
       `          oControl.setProperty( "device_browser" ,  sap.ui.Device.browser.name );` && |\n| &&
-      `          oControl.fireFinished();` && |\n| &&
+      `          setTimeout( oControl.onEvent , 1000 , oControl );` && |\n| &&
       `            ` && |\n| &&
       `        }` && |\n| &&
       `   });` && |\n| &&

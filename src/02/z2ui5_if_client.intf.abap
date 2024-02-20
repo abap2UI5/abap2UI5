@@ -84,7 +84,7 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_app_leave
     IMPORTING
-      app           TYPE REF TO z2ui5_if_app
+      value(app)           TYPE REF TO z2ui5_if_app OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 

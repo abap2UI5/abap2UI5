@@ -119,6 +119,9 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_stack_leave.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
+    IF result->mo_app->ms_draft-id_prev_app_stack IS INITIAL.
+      result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
+    ENDIF.
 
   ENDMETHOD.
 
