@@ -36,7 +36,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
 TYPES layout TYPE c length 12.
 TYPES tab    TYPE c length 30.
 TYPES descr  TYPE c length 50.
-TYPES class  TYPE c length 30.
+TYPES classname  TYPE c length 30.
 TYPES def    TYPE c length 1.
 TYPES uname  TYPE c length 12.
     TYPES selkz TYPE abap_bool.
@@ -71,7 +71,7 @@ TYPES uname  TYPE c length 12.
     CLASS-METHODS init_layout
       IMPORTING
         !tab          TYPE REF TO data
-        !class        TYPE string
+        !classname    TYPE string
       RETURNING
         VALUE(result) TYPE ty_s_layout.
 
@@ -95,7 +95,7 @@ TYPES uname  TYPE c length 12.
 
     METHODS select_layouts
       IMPORTING
-        !class        TYPE string
+        !classname        TYPE string
         !tab          TYPE string
       RETURNING
         VALUE(result) TYPE ty_t_t001.
@@ -331,7 +331,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         delete_selected_layout( ).
 
 *        ms_layout = init_layout( tab   = ms_layout-s_head-tab
-*                                 class = ms_layout-s_head-class ).
+*                                 classname = ms_layout-s_head-class ).
 
         client->popup_destroy( ).
 
@@ -438,7 +438,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ENDIF.
 
     DATA(t001) = VALUE z2ui5_t001(      layout  = mv_layout
-                                        class   = ms_layout-s_head-class
+                                        classname   = ms_layout-s_head-classname
                                         descr   = mv_descr
                                         def     = mv_def
                                         uname   = user
@@ -589,7 +589,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   METHOD select_layouts.
 
     SELECT  * FROM z2ui5_t001
-    WHERE class   = @class
+    WHERE classname   = @classname
     AND   tab     = @tab
     INTO CORRESPONDING FIELDS OF TABLE @result.
 *    User?!
@@ -629,9 +629,9 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 *    DATA(t_comp)   = get_comps_by_data( tab ).
     DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_struc( tab ).
 
-    DATA(tab_name) = get_relative_name_of_table(  tab ).
+    DATA(tab_name) = get_relative_name_of_table( tab ).
     IF tab_name IS INITIAL.
-      tab_name = class.
+      tab_name = classname.
     ENDIF.
 
 
@@ -646,21 +646,21 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     SELECT  layout,
             tab,
             descr,
-            class,
+            classname,
             def,
             uname
      FROM z2ui5_t001
-    WHERE class   = @class
+    WHERE classname   = @classname
     AND   tab     = @tab_name
     INTO TABLE @DATA(t_t001).
     ASSERT sy-subrc = 0.
 
 * DEFAULT USER
-    DATA(default) = VALUE #( t_t001[  class = class tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
+    DATA(default) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
 
     IF default IS INITIAL.
 * DEFAULT
-      default  = VALUE #( t_t001[ class = class tab = tab_name def = abap_true ] OPTIONAL ).
+      default  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
     ENDIF.
 
 
@@ -730,7 +730,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     result-s_head-layout = 'Default'.
     result-s_head-descr  = 'System generated Layout'.
     result-s_head-def    = abap_true.
-    result-s_head-class  = class.
+    result-s_head-classname  = classname.
     result-s_head-tab    = tab_name.
 
   ENDMETHOD.
@@ -739,8 +739,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   METHOD get_layouts.
 
     mt_t001 = select_layouts(
-      class = CONV #( ms_layout-s_head-class )
-      tab   = CONV #( ms_layout-s_head-tab ) ).
+      classname = CONV #( ms_layout-s_head-classname )
+      tab       = CONV #( ms_layout-s_head-tab ) ).
 
     IF mt_t001 IS NOT INITIAL.
 
