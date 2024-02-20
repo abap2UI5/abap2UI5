@@ -15,8 +15,6 @@ CLASS z2ui5_cl_popup_js_loader DEFINITION
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_js_loader.
 
     CLASS-METHODS factory_check_open_ui5
-      IMPORTING
-        i_result        TYPE string DEFAULT `CHECK_UI5`
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_js_loader.
 
@@ -42,7 +40,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_JS_LOADER IMPLEMENTATION.
 
 
   METHOD factory.
@@ -53,10 +51,12 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD factory_check_open_ui5.
     r_result = NEW #( ).
     r_result->check_open_ui5 = abap_true.
   ENDMETHOD.
+
 
   METHOD result.
 
@@ -88,7 +88,6 @@ CLASS z2ui5_cl_popup_js_loader IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
-data(lo_app2) = client->get_app( client->get( )-s_draft-id_prev_app_stack ) .
 
     me->client = client.
 
