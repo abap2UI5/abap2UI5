@@ -90,6 +90,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_leave.
 
+    if app is not bound.
+     app = z2ui5_if_client~get_app( z2ui5_if_client~get( )-s_draft-id_prev_app_stack ).
+    endif.
+
     mo_action->ms_next-o_app_leave = app.
 
     result = COND #( WHEN app->id_draft IS INITIAL

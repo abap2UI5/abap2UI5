@@ -9,6 +9,7 @@ CLASS z2ui5_cl_core_http_post DEFINITION
     DATA mv_request_json TYPE string.
     DATA ms_request      TYPE z2ui5_if_core_types=>ty_s_http_request_post.
     DATA ms_response     TYPE z2ui5_if_core_types=>ty_s_http_response_post.
+    DATA mv_response    TYPE string.
 
     METHODS constructor
       IMPORTING
@@ -26,9 +27,7 @@ CLASS z2ui5_cl_core_http_post DEFINITION
       RETURNING
         VALUE(check_go_client) TYPE abap_bool.
 
-    METHODS main_end
-      RETURNING
-        VALUE(result) TYPE string.
+    METHODS main_end.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -54,7 +53,8 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         EXIT.
       ENDIF.
     ENDDO.
-    result = main_end( ).
+*    result = main_end( ).
+    result = mv_response.
 
   ENDMETHOD.
 
@@ -91,7 +91,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         model             = mo_action->mo_app->model_json_stringify( ) ).
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
-    result = lo_json_mapper->response_abap_to_json( ms_response ).
+    mv_response = lo_json_mapper->response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.
     mo_action->mo_app->db_save( ).
@@ -116,6 +116,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
           mo_action = mo_action->factory_stack_call( ).
 
         ELSE.
+          main_end( ).
           check_go_client = abap_true.
         ENDIF.
 

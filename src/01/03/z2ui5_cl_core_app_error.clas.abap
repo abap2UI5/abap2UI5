@@ -60,6 +60,7 @@ CLASS Z2UI5_CL_CORE_APP_ERROR IMPLEMENTATION.
             press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
     client->view_display( view->_stringify( ) ).
+    client->popup_destroy( ).
 
   ENDMETHOD.
 ENDCLASS.

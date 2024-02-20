@@ -307,7 +307,9 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `            }else if ` && |\n| &&
                `               (  sap.z2ui5.oControllerPopup == this ) {` && |\n| &&
+               `                    if (sap.z2ui5.oViewPopup){` && |\n| &&
                `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopup.getModel().getData().XX;` && |\n| &&
+               `                   }` && |\n| &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `                }else if ( ` && |\n| &&
                `                sap.z2ui5.oControllerPopover == this ) {` && |\n| &&
