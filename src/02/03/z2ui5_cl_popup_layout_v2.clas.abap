@@ -695,9 +695,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
-        READ TABLE t_t002 REFERENCE INTO DATA(t002) WITH KEY fname = layout->fname.
-
-        IF sy-subrc = 0.
+DATA(t002) = ref #( t_002[ fname = layout->fname ]  optional ).
+        IF t002 is bound.
           layout->* = t002->*.
         ELSE.
           layout->layout     = 'Default'.
