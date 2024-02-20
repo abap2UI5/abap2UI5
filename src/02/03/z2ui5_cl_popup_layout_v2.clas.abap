@@ -106,25 +106,10 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
 
     METHODS delete_selected_layout.
 
-    CLASS-METHODS get_comps_by_data
-      IMPORTING
-        !table        TYPE REF TO data
-      RETURNING
-        VALUE(result) TYPE abap_component_tab .
-
-    CLASS-METHODS get_comps_by_table
-      IMPORTING !table        TYPE STANDARD TABLE
-      RETURNING VALUE(result) TYPE abap_component_tab.
 
     CLASS-METHODS get_relative_name_of_table
       IMPORTING !table        TYPE any
       RETURNING VALUE(result) TYPE string.
-
-    CLASS-METHODS get_comp_by_struc
-      IMPORTING
-        type          TYPE REF TO cl_abap_datadescr
-      RETURNING
-        VALUE(result) TYPE abap_component_tab.
 
 ENDCLASS.
 
@@ -208,7 +193,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(columns) = tab->columns( ).
 
-    DATA(lt_comp) = get_comps_by_table( ms_layout-t_layout ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ms_layout-t_layout ).
 
     LOOP AT lt_comp REFERENCE INTO DATA(comp).
 
@@ -635,7 +620,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     " create the tab first if the db fields were added/deleted
 
-    DATA(t_comp)   = get_comps_by_data( tab ).
+*    DATA(t_comp)   = get_comps_by_data( tab ).
+    DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_struc( tab ).
 
     DATA(tab_name) = get_relative_name_of_table(  tab ).
     IF tab_name IS INITIAL.
@@ -814,58 +800,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD get_comps_by_data.
-
-    TRY.
-        FIELD-SYMBOLS <deref> TYPE any.
-        ASSIGN table->* TO <deref>.
-        result = get_comps_by_table( <deref> ).
-      CATCH cx_root.
-    ENDTRY.
-
-
-  ENDMETHOD.
-
-
-  METHOD get_comps_by_table.
-
-    TRY.
-        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( table ).
-
-        CASE typedesc->kind.
-
-          WHEN cl_abap_typedescr=>kind_table.
-            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
-            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
-
-            DATA(comp) = structdesc->get_components( ).
-
-            LOOP AT comp INTO DATA(com).
-
-
-              IF com-as_include = abap_true.
-
-                APPEND LINES OF  get_comp_by_struc( com-type ) TO result.
-
-              ELSE.
-
-                APPEND com TO result.
-
-              ENDIF.
-
-            ENDLOOP.
-
-
-          WHEN OTHERS.
-        ENDCASE.
-
-      CATCH cx_root.
-    ENDTRY.
-
-  ENDMETHOD.
-
-
   METHOD get_relative_name_of_table.
 
     FIELD-SYMBOLS <table> TYPE any.
@@ -889,31 +823,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         ENDCASE.
       CATCH cx_root.
     ENDTRY.
-
-  ENDMETHOD.
-
-  METHOD get_comp_by_struc.
-
-    DATA struc TYPE REF TO cl_abap_structdescr.
-
-    struc ?= type.
-
-    DATA(comp) = struc->get_components( ).
-
-    LOOP AT comp INTO DATA(com).
-
-
-      IF com-as_include = abap_true.
-
-        APPEND LINES OF  get_comp_by_struc( com-type ) TO result.
-
-      ELSE.
-
-        APPEND com TO result.
-
-      ENDIF.
-
-    ENDLOOP.
 
   ENDMETHOD.
 
