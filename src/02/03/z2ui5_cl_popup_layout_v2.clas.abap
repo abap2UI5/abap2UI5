@@ -462,7 +462,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     SELECT SINGLE layout FROM z2ui5_t001
     WHERE layout = @t001-layout
     AND   tab    = @t001-tab
-    INTO @t001-layout.
+    INTO @t001-layout ##SUBRC_OK.
 
     IF sy-subrc = 0.
 
@@ -479,7 +479,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
        FROM z2ui5_t002
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
-      INTO TABLE @DATA(del).
+      INTO TABLE @DATA(del) ##SUBRC_OK.
 
       IF sy-subrc = 0.
         DELETE z2ui5_t002 FROM TABLE @del.
@@ -591,9 +591,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     SELECT  * FROM z2ui5_t001
     WHERE classname   = @classname
     AND   tab     = @tab
-    INTO CORRESPONDING FIELDS OF TABLE @result.
-*    User?!
-    ASSERT sy-subrc = 0.
+    INTO CORRESPONDING FIELDS OF TABLE @result ##SUBRC_OK.
+
 
   ENDMETHOD.
 
@@ -608,14 +607,14 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
       SELECT SINGLE * FROM z2ui5_t001
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
-      INTO CORRESPONDING FIELDS OF @ms_layout-s_head.
-      ASSERT sy-subrc = 0.
+      INTO CORRESPONDING FIELDS OF @ms_layout-s_head ##SUBRC_OK.
+
 
       SELECT * FROM z2ui5_t002
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
-      INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout.
-      ASSERT sy-subrc = 0.
+      INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout ##SUBRC_OK.
+
 
     ENDIF.
 
@@ -652,16 +651,15 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
      FROM z2ui5_t001
     WHERE classname   = @classname
     AND   tab     = @tab_name
-    INTO TABLE @DATA(t_t001).
-    ASSERT sy-subrc = 0.
+    INTO TABLE @DATA(t_t001) ##SUBRC_OK.
 
 * DEFAULT USER
-    DATA(def) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
+      DATA(def) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
 
-    IF def IS INITIAL.
+      IF def IS INITIAL.
 * DEFAULT
-      def  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
-    ENDIF.
+        def  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
+      ENDIF.
 
 
     IF def-layout IS NOT INITIAL.
@@ -680,8 +678,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
        FROM z2ui5_t002
       WHERE layout = @def-layout
       AND   tab    = @def-tab
-      INTO TABLE @DATA(t_t002).
-      ASSERT sy-subrc = 0.
+      INTO TABLE @DATA(t_t002) ##SUBRC_OK.
+
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
