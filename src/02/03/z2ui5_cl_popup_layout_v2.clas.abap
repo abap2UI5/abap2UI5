@@ -205,26 +205,26 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       CASE comp->name.
         WHEN 'FNAME'.
-          DATA(col) = columns->column( )->header( ).
+          DATA(col) = columns->column( )->header( ns = `` ).
           col->text( 'Row' ).
         WHEN 'VISIBLE'.
-          col = columns->column( )->header( ).
+          col = columns->column( )->header( ns = `` ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ).
+          col = columns->column( )->header( ns = `` ).
           col->text( 'Merge duplicates' ).
         WHEN 'HALIGN'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ).
+          col = columns->column( )->header( ns = `` ).
           col->text( 'Align' ).
         WHEN 'IMPORTANCE'.
           CHECK mv_extended_layout = abap_true.
-          col = columns->column( )->header( ).
+          col = columns->column( )->header( ns = `` ).
           col->text( 'Importance' ).
 *        WHEN 'WIDTH'.
 *          CHECK mv_extended_layout = abap_true.
-*          col = columns->column( )->header(  ).
+*          col = columns->column( )->header( ns = ` ` ).
 *          col->text( 'Width in px' ).
       ENDCASE.
 
