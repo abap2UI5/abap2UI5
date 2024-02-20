@@ -451,7 +451,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     LOOP AT ms_layout-t_layout INTO DATA(layout).
 
-      t002  = VALUE #( BASE t002 ( layout   = mv_layout
+  insert value #( layout   = mv_layout
                                    tab        = ms_layout-s_head-tab
                                    fname      = layout-fname
                                    rollname   = layout-rollname
@@ -459,7 +459,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                                    halign     = layout-halign
                                    importance = layout-importance
                                    merge      = layout-merge
-                                   width      = layout-width  ) ).
+                                   width      = layout-width  ) into table t002.
 
     ENDLOOP.
 
