@@ -15,8 +15,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
         option     TYPE string,
         ddlanguage TYPE string,
         ddtext     TYPE string,
-      END OF fixvalue .
-    TYPES:
+      END OF fixvalue,
       fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
 
     TYPES ty_s_t001 TYPE z2ui5_t001.
@@ -26,12 +25,10 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
 
     TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
 
-    TYPES: BEGIN OF ty_s_layout,
-             s_head   TYPE ty_s_t001,
-             t_layout TYPE ty_t_t002,
-           END OF ty_s_layout.
-
-    DATA ms_layout TYPE ty_s_layout.
+    TYPES BEGIN OF ty_s_layout.
+    types s_head   TYPE ty_s_t001.
+    types t_layout TYPE ty_t_t002.
+    types  END OF ty_s_layout.
 
     TYPES:
       BEGIN OF ty_s_layo.
@@ -41,17 +38,16 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     TYPES:
       ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
 
-    DATA mt_t001 TYPE ty_t_layo.
 
+    DATA mt_t001 TYPE ty_t_layo.
+    DATA ms_layout TYPE ty_s_layout.
     DATA mv_descr  TYPE string.
     DATA mv_layout TYPE string.
     DATA mv_def    TYPE abap_bool.
     DATA mv_usr    TYPE abap_bool.
-
     DATA mv_open   TYPE abap_bool.
     DATA mv_delete TYPE abap_bool.
     DATA mv_extended_layout TYPE abap_bool.
-
     DATA mt_halign     TYPE fixvalues.
     DATA mt_importance TYPE fixvalues.
 
@@ -478,8 +474,17 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     IF sy-subrc = 0.
 
-* postionen lesen und löschen
-      SELECT * FROM z2ui5_t002
+* postionen lesen und loeschen
+      SELECT    layout,
+                tab,
+                fname,
+                rollname,
+                visible,
+                halign,
+                importance,
+                merge,
+                width
+       FROM z2ui5_t002
       WHERE layout = @t001-layout
       AND   tab    = @t001-tab
       INTO TABLE @DATA(del).
@@ -645,7 +650,13 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ENDLOOP.
 
 * Select Layouts
-    SELECT  * FROM z2ui5_t001
+    SELECT  layout,
+            tab,
+            descr,
+            class,
+            def,
+            uname
+     FROM z2ui5_t001
     WHERE class   = @class
     AND   tab     = @tab_name
     INTO TABLE @DATA(t_t001).
@@ -662,7 +673,18 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     IF default-layout IS NOT INITIAL.
 
-      SELECT * FROM z2ui5_t002
+      SELECT    mandt,
+                layout,
+                tab,
+                fname,
+                rollname,
+                visible,
+                halign,
+                importance,
+                merge,
+                width,
+                text
+       FROM z2ui5_t002
       WHERE layout = @default-layout
       AND   tab    = @default-tab
       INTO TABLE @DATA(t_t002).
