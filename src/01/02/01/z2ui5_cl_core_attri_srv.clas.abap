@@ -73,12 +73,12 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       ENDIF.
 
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
-      ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
+      IF <val_ref> IS NOT INITIAL.
+        ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
+        lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
+        CLEAR <val>.
+      ENDIF.
 
-
-      lr_attri->srtti_data = z2ui5_cl_util=>xml_srtti_stringify( <val> ).
-
-      CLEAR <val>.
       CLEAR <val_ref>.
       CLEAR lr_attri->r_ref.
 

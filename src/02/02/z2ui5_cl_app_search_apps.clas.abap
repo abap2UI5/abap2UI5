@@ -59,6 +59,7 @@ CLASS z2ui5_cl_app_search_apps DEFINITION
     TYPES ty_t_repo TYPE STANDARD TABLE OF ty_s_repo WITH EMPTY KEY.
 
     DATA mt_git_repos TYPE ty_t_repo.
+    DATA mt_git_addons TYPE ty_t_repo.
 
   PROTECTED SECTION.
     METHODS search.
@@ -76,7 +77,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
+CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
 
 
   METHOD search.
@@ -135,34 +136,15 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
     DATA(page) = z2ui5_cl_xml_view=>factory(
           )->shell(
-*          )->page(
-*                title = 'abap2UI5 - Search Apps'
-*                navbuttonpress = client->_event( 'BACK' )
-*                shownavbutton = xsdbool( client->get( )-s_draft-id_prev_app_stack is not initial )
-*           )->header_content(
-*                )->search_field(
-*          value  = client->_bind_edit( mv_search_value )
-*          search = client->_event( 'ON_SEARCH' )
-*          change = client->_event( 'ON_SEARCH' )
-*          width  = `17.5rem`
-*          id     = `SEARCH`
-*           )->get_parent( ).
       )->tool_page(
-                          )->header( `tnt`
+          )->header( `tnt`
                             )->tool_header(
                             )->title( `abap2UI5 - App Finder`
-*                            )->text( width = `10%`
-*                                  )->link( text = `Visit the abap2UI5 Project`
-*                            )->button( text = `Bak` press = client->_event( 'BACK' )
                               )->get_parent(
                             )->get_parent( )->sub_header( `tnt`
                             )->tool_header( ).
 
     DATA(pages) = page->icon_tab_header( selectedkey    = client->_bind_edit( mv_selected_key )
-*                                                  select = client->_event( `OnSelectIconTabBar` )
-*                                                  select = client->_event_client(
-*              action = 'NAV_TO'
-*              t_arg  = value #( ( `NavCon` ) ( `${$parameters}` ) ) )
                                                  select = client->_event_client(
                                                     val   = client->cs_event-nav_container_to
                                                     t_arg = VALUE #( ( `NavCon` ) ( `${$parameters>/selectedKey}` ) ) )
@@ -173,16 +155,11 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                                    )->icon_tab_filter( key  = `page_all`
                                                        text = `Local` )->get_parent(
                                    )->icon_tab_filter( key  = `page_online`
-                                                       text = `GitHub`
-*                                      )->items(
-*                                         )->icon_tab_filter( key = `page11` text = `User 1` )->get_parent(
-*                                         )->icon_tab_filter( key = `page32` text = `User 2` )->get_parent(
-*                                         )->icon_tab_filter( key = `page33` text = `User 3`
+                                                       text = `Apps on GitHub` )->get_parent(
+                                   )->icon_tab_filter( key  = `page_addon`
+                                                       text = `Addons`
                                  )->get_parent( )->get_parent( )->get_parent( )->get_parent( )->get_parent(
                                )->main_contents(
-*                                )->button( text = `page1` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page1` ) ) )
-*                                )->button( text = `page2` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page2` ) ) )
-*                                )->button( text = `page3` press = client->_event_client( action = 'NAV_TO' t_arg  = VALUE #( ( `NavCon` ) ( `page3` ) ) )
                                  )->nav_container( id                    = `NavCon`
                                                    initialpage           = `page_favs`
                                                    defaulttransitionname = `flip`
@@ -193,12 +170,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
             id                   = `page_favs`
                 )->header_content(
                 )->button( text = `Clear` press = client->_event( `ON_FAVS_CLEAR` )
-*      )->search_field(
-*      value  = client->_bind_edit( ms_favorites-search_field )
-*      search = client->_event( 'ON_SEARCH_FAVS' )
-*      change = client->_event( 'ON_SEARCH_FAVS' )
-*      width  = `17.5rem`
-*id     = `SEARCH`
       )->get_parent( ).
 
     DATA(page_all) = pages->page(
@@ -231,9 +202,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
     view_nest_display( ).
 
-    DATA(page_online) = pages->page(
-*            title = `Your app is not listed here? Fell free to send a PR and extend this page`
-                   id = `page_online`
+    DATA(page_online) = pages->page( id = `page_online`
                     )->header_content(
                     )->text(
                     )->link( text = `Install with abapGit` href = `https://abapgit.org/` target = `blank`
@@ -243,23 +212,7 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                      )->text(
                      )->toolbar_spacer(
                      )->text(
-*                     )->checkbox( text     = `Cloud`
-*                                  selected = client->_bind_edit( ms_git-check_cloud_ready )
-*                     )->checkbox( text     = `On-Premise`
-*                                  selected = client->_bind_edit( ms_git-check_premise_ready )
-*                                  select   = client->_event( `ON_SEARCH_GIT` )
-*                     )->button( text = `sort`
-*      )->search_field(
-*      value  = client->_bind_edit( ms_git-search_field )
-*      search = client->_event( 'ON_SEARCH_GIT' )
-*      change = client->_event( 'ON_SEARCH_GIT' )
-*      width  = `17.5rem`
-      )->get_parent(
-*           )->sub_header(
-*            )->overflow_toolbar(
-*             )->text( `Your open-source app is not listed here? Feel free to send a PR and extend this page`
-*             )->link( target = `_blank` text = `HERE` href = `{AUTHOR_LINK}`
-*            )->get_parent( )->get_parent(
+                     )->get_parent(
             )->content( ).
 
     page_online->message_strip( type = `Warning`
@@ -297,13 +250,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
 
     item = item->vbox( ).
 
-*    grid->combobox(
-*                 selectedkey = `{OPTION}`
-*                 items       = client->_bind_local( value string_table( ( `OFFLINE` ) ( `ONLINE` ) ) )
-*             )->item(
-*                     key = '{}'
-*                     text = '{}'
-*             )->get_parent(
     item->text( ).
     DATA(row) = item->grid( ).
     row->title( `{NAME}` ).
@@ -314,8 +260,6 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
                    selected = `{CHECK_ABAP_FOR_CLOUD}` ).
 
     row = item->grid( ).
-*    row = item->hbox( ).
-*    item->text( text = `{DESCR}`
     row->link( target = `_blank`
                text   = `{AUTHOR_NAME}`
                href   = `{AUTHOR_LINK}` ).
@@ -330,7 +274,83 @@ CLASS z2ui5_cl_app_search_apps IMPLEMENTATION.
     row->checkbox( text     = `Standard ABAP`
                    selected = `{CHECK_STANDARD_ABAP}`
                    enabled  = abap_false ).
-*    row->text( `{DESCR}` ).
+
+
+
+
+ DATA(page_addon) = pages->page( id = `page_addon`
+                    )->header_content(
+                    )->text(
+                    )->link( text = `Install with abapGit` href = `https://abapgit.org/` target = `blank`
+                    )->toolbar_spacer(
+                      )->link( text = `More Open Source on dotabap.org...` href = `https://dotabap.org/`  target = `blank`
+                     )->toolbar_spacer(
+                     )->text(
+                     )->toolbar_spacer(
+                     )->text(
+                     )->get_parent(
+            )->content( ).
+
+    page_addon->message_strip( type = `Warning`
+                                text = `Your open-source addon is not listed here? Feel free to send a PR and extend this page`
+                                )->get( )->link(
+                                     text = `here`
+                                     target = `blank`
+                                     href = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/02/z2ui5_cl_app_search_apps.clas.locals_imp.abap` ).
+
+    mt_git_addons = NEW lcl_github( )->get_repositories_addons( ).
+
+    LOOP AT mt_git_addons REFERENCE INTO lr_repo.
+
+      LOOP AT lr_repo->t_app REFERENCE INTO lr_app2.
+
+        IF z2ui5_cl_util=>rtti_check_class_exists( lr_app2->classname ).
+          lr_repo->check_installed = abap_true.
+        ENDIF.
+        EXIT.
+      ENDLOOP.
+
+      lr_repo->number_of_app = lines( lr_repo->t_app ).
+      lr_repo->author_name = shift_left( val = lr_repo->author_link
+                                         sub = `https://github.com/` ).
+    ENDLOOP.
+
+
+
+    item = page_addon->list(
+             "   headertext = `Product`
+                nodata         = `no conditions defined`
+               items           = client->_bind( mt_git_addons )
+               selectionchange = client->_event( 'SELCHANGE' )
+                  )->custom_list_item( ).
+
+    item = item->vbox( ).
+
+    item->text( ).
+    row = item->grid( ).
+    row->title( `{NAME}` ).
+    row->text( `{DESCR}` ).
+    row->text( ).
+*    row->checkbox( text     = `ABAP for Cloud`
+*      enabled               = abap_false
+*                   selected = `{CHECK_ABAP_FOR_CLOUD}` ).
+
+    row = item->grid( ).
+*    row->link( target = `_blank`
+*               text   = `{AUTHOR_NAME}`
+*               href   = `{AUTHOR_LINK}` ).
+
+    row->link( target = `_blank`
+               text   = `{LINK}`
+               href   = `{LINK}` ).
+
+*    row->checkbox( text     = `Installed`
+*                   selected = `{CHECK_INSTALLED}`
+*                   enabled  = abap_false ).
+*    row->checkbox( text     = `Standard ABAP`
+*                   selected = `{CHECK_STANDARD_ABAP}`
+*                   enabled  = abap_false ).
+
 
     client->view_display( page->stringify( ) ).
 
