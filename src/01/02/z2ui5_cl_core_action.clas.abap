@@ -119,8 +119,20 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_stack_leave.
 
     result = prepare_app_stack( ms_next-o_app_leave ).
-    IF result->mo_app->ms_draft-id_prev_app_stack IS INITIAL.
-      result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
+
+    "check for new app?
+    TRY.
+        DATA(lo_draft) = NEW z2ui5_cl_core_draft_srv( ).
+        DATA(ls_draft) = lo_draft->read_info( ms_next-o_app_leave->id_draft ).
+      CATCH cx_root.
+        result->mo_app->ms_draft-id_prev_app_stack = mo_app->ms_draft-id_prev_app_stack.
+        RETURN.
+    ENDTRY.
+
+    "check for already existing app?
+    IF mo_app->ms_draft-id_prev_app_stack IS NOT INITIAL.
+      ls_draft = lo_draft->read_info( mo_app->ms_draft-id_prev_app_stack ).
+      result->mo_app->ms_draft-id_prev_app_stack = ls_draft-id_prev_app_stack.
     ENDIF.
 
   ENDMETHOD.
