@@ -53,7 +53,7 @@
 * Integrate your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
 * Connect with SAP BTP & SAP Mobile Start [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
-* Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5/blob/main/src/02/02/z2ui5_cl_app_search_apps.clas.locals_imp.abap)
+* Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
   
 #### More
 * Experiment with abap2UI5 compiled to JS on open-abap under Node.js [(abap2UI5-web)](https://twitter.com/LarsHvam/status/1648575595897405446)
