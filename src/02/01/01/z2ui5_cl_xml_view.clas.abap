@@ -3388,6 +3388,46 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
 
+methods WIZARD
+    importing
+      !ID type CLIKE optional
+      !CLASS type CLIKE optional
+      !BACKGROUNDDESIGN type CLIKE optional
+      !BUSY type CLIKE optional
+      !BUSYINDICATORDELAY type CLIKE optional
+      !BUSYINDICATORSIZE type CLIKE optional
+      !ENABLEBRANCHING type CLIKE optional
+      !FIELDGROUPIDS type CLIKE optional
+      !FINISHBUTTONTEXT type CLIKE optional
+      !HEIGHT type CLIKE optional
+      !RENDERMODE type CLIKE optional
+      !SHOWNEXTBUTTON type CLIKE optional
+      !STEPTITLELEVEL type CLIKE optional
+      !VISIBLE type CLIKE optional
+      !WIDTH type CLIKE optional
+      !COMPLETE type CLIKE optional
+      !NAVIGATIONCHANGE type CLIKE optional
+      !STEPACTIVATE type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods WIZARD_STEP
+    importing
+      !ID type CLIKE optional
+      !BUSY type CLIKE optional
+      !BUSYINDICATORDELAY type CLIKE optional
+      !BUSYINDICATORSIZE type CLIKE optional
+      !FIELDGROUPIDS type CLIKE optional
+      !ICON type CLIKE optional
+      !OPTIONAL type CLIKE optional
+      !TITLE type CLIKE optional
+      !VALIDATED type CLIKE optional
+      !VISIBLE type CLIKE optional
+      !ACTIVATE type CLIKE optional
+      !COMPLETE type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -7737,5 +7777,49 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = NEW #( me ).
 
+  ENDMETHOD.
+
+METHOD wizard.
+    result = _generic( name   = `Wizard`
+                       t_prop = VALUE #(
+                          ( n = `id`                   v = id )
+                          ( n = `class`                v = class )
+                          ( n = `backgroundDesign`     v = backgrounddesign )
+                          ( n = `busy`                 v = z2ui5_cl_util_func=>boolean_abap_2_json( busy ) )
+                          ( n = `busyIndicatorDelay`   v = busyindicatordelay )
+                          ( n = `busyIndicatorSize`    v = busyindicatorsize )
+                          ( n = `enableBranching`      v = z2ui5_cl_util_func=>boolean_abap_2_json( enablebranching ) )
+                          ( n = `fieldGroupIds`        v = fieldgroupids )
+                          ( n = `finishButtonText`     v = finishbuttontext )
+                          ( n = `height`               v = height )
+                          ( n = `renderMode`           v = rendermode )
+                          ( n = `showNextButton`       v = z2ui5_cl_util_func=>boolean_abap_2_json( shownextbutton ) )
+                          ( n = `stepTitleLevel`       v = steptitlelevel )
+                          ( n = `visible`              v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                          ( n = `width`                v = width )
+                          ( n = `complete`             v = complete )
+                          ( n = `navigationChange`     v = navigationchange )
+                          ( n = `stepActivate`         v = stepactivate ) ) ).
+
+
+  ENDMETHOD.
+
+
+  METHOD wizard_step.
+
+    result = _generic( name   = `WizardStep`
+                       t_prop = VALUE #(
+                          (  n = `id`                   v = id )
+                          (  n = `busy`                 v = z2ui5_cl_util_func=>boolean_abap_2_json( busy ) )
+                          (  n = `busyIndicatorDelay`   v = busyindicatordelay )
+                          (  n = `busyIndicatorSize`    v = busyindicatorsize )
+                          (  n = `fieldGroupIds`        v = fieldgroupids )
+                          (  n = `icon`                 v = icon )
+                          (  n = `optional`             v = z2ui5_cl_util_func=>boolean_abap_2_json( optional ) )
+                          (  n = `title`                v = title )
+                          (  n = `validated`            v = z2ui5_cl_util_func=>boolean_abap_2_json( validated ) )
+                          (  n = `visible`              v = z2ui5_cl_util_func=>boolean_abap_2_json( visible ) )
+                          (  n = `activate`             v = activate )
+                          (  n = `complete`             v = complete ) ) ).
   ENDMETHOD.
 ENDCLASS.
