@@ -380,21 +380,20 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `        },` && |\n| &&
                `        async createView(xml, viewModel) {` && |\n| &&
                `            let oview_model = new JSONModel(viewModel);` && |\n| &&
-               `            const oView = await XMLView.create({` && |\n| &&
+               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
+               `          sap.z2ui5.oView = await XMLView.create({` && |\n| &&
                `                definition: xml,` && |\n| &&
+               `                models: oview_model,` && |\n| &&
                `                controller: sap.z2ui5.oController,` && |\n| &&
                `                id: 'mainView',` && |\n| &&
-               `                preprocessor: { xml : { models: { meta : oview_model } } },` && |\n| &&
+               `              preprocessor: { xml : { models: { meta : oview_model } } }` && |\n| &&
                `            });` && |\n| &&
-`            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
-               `            oView.setModel(oview_model);` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
-               `                sap.z2ui5.oParent.insertPage(oView);` && |\n| &&
+               `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
                `            } else {` && |\n| &&
-               `                oView.placeAt("content");` && |\n| &&
+               `                sap.z2ui5.oView.placeAt("content");` && |\n| &&
                `            }` && |\n| &&
-               `            sap.z2ui5.oView = oView;` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
                `            const response = await fetch(sap.z2ui5.pathname, {` && |\n| &&
