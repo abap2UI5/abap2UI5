@@ -4389,9 +4389,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result->mo_root   = result.
     result->mo_parent = result.
 
-    INSERT VALUE #( n = `xmlns`           v = `sap.m` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:mvc`       v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:core`       v = `sap.ui.core` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns`         v = `sap.m` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:mvc`     v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:core`    v = `sap.ui.core` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:table`   v = `sap.ui.table` ) INTO TABLE result->mt_prop.
 
   ENDMETHOD.
 
