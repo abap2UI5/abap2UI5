@@ -2464,6 +2464,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !numberunit          TYPE clike OPTIONAL
         !title               TYPE clike OPTIONAL
         !titletextdirection  TYPE clike OPTIONAL
+        !press               TYPE clike OPTIONAL
+        !selected            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
     METHODS detail_box
@@ -5902,7 +5904,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `numberUnit`          v = numberunit )
                                          ( n = `title`               v = title )
                                          ( n = `titleTextDirection`  v = titletextdirection )
-                                         ( n = `iconDensityAware`    v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) ) ) ).
+                                         ( n = `iconDensityAware`    v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) )
+                                         ( n = `press`               v = press )
+                                         ( n = `selected`            v = z2ui5_cl_util=>boolean_abap_2_json( selected ) ) ) ).
   ENDMETHOD.
 
 
