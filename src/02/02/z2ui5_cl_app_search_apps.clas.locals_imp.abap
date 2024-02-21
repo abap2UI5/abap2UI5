@@ -15,6 +15,10 @@ CLASS lcl_github DEFINITION.
       RETURNING
         VALUE(result) TYPE z2ui5_cl_app_search_apps=>ty_t_repo.
 
+    METHODS get_repositories_addons
+      RETURNING
+        VALUE(result) TYPE z2ui5_cl_app_search_apps=>ty_t_repo.
+
 ENDCLASS.
 
 CLASS lcl_github IMPLEMENTATION.
@@ -69,6 +73,33 @@ CLASS lcl_github IMPLEMENTATION.
             descr     = `Download DB Table as JSON and CSV`
             classname = `z2ui5_dbl_cl_app_01`
         ) ) )
+        ).
+
+  ENDMETHOD.
+
+  METHOD get_repositories_addons.
+
+result = VALUE #(
+        (
+        name                 = `Launchpad Proxy App`
+        descr                = `Integrate your apps to the on-premise fiori launchpad`
+        link                 = `https://github.com/abap2UI5/abap2UI5-launchpad_proxy_app`
+        )
+        (
+        name                 = `BTP Proxy App`
+        descr                = `Integrate your apps with Business Technology Platform & SAP Mobile Start`
+        link                 = `https://github.com/abap2UI5/abap2UI5-btp_proxy_app`
+        )
+        (
+         name                 = `S-RTTI`
+        descr                = `Install this repository to use dynamically types variables and tables in your abap2UI5 apps`
+        link                 = `https://github.com/sandraros/S-RTTI`
+        )
+                (
+         name                 = `abap2UI5-web`
+        descr                = `Run abap2UI5 with open-abap on Node.js`
+        link                 = `https://github.com/abap2UI5/abap2UI5-web`
+        )
         ).
 
   ENDMETHOD.
