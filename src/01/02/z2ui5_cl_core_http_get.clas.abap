@@ -287,8 +287,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `        eB(...args) {` && |\n| &&
                `            if (sap.z2ui5.isBusy) {` && |\n| &&
                `                if (sap.z2ui5.isBusy == true) {` && |\n| &&
-               `                    sap.z2ui5.busyDialog = new sap.m.BusyDialog();` && |\n| &&
-               `                    sap.z2ui5.busyDialog.open();` && |\n| &&
+               `                   sap.z2ui5.busyDialog = new sap.m.BusyDialog();` && |\n| &&
+               `                   sap.z2ui5.busyDialog.open();` && |\n| &&
                `                    return;` && |\n| &&
                `                }` && |\n| &&
                `            }` && |\n| &&
@@ -379,13 +379,14 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async createView(xml, viewModel) {` && |\n| &&
+               `            let oview_model = new JSONModel(viewModel);` && |\n| &&
                `            const oView = await XMLView.create({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oController,` && |\n| &&
                `                id: 'mainView',` && |\n| &&
+               `                preprocessor: { xml : { models: { meta : oview_model } } },` && |\n| &&
                `            });` && |\n| &&
-               `            let oview_model = new JSONModel(viewModel);` && |\n| &&
-               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
+`            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `            oView.setModel(oview_model);` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
