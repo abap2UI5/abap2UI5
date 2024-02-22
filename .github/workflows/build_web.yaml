@@ -28,4 +28,4 @@ jobs:
         publish_branch: main
         publish_dir: ./output
         deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY_WEB }}
-        destination_dir: output
+        destination_dir: src
