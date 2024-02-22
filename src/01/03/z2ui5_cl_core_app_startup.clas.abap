@@ -150,7 +150,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
                     client    = client
-                    classname = 'z2ui5_cl_app_search_apps' ).
+                    classname = 'z2ui5_cl_core_app_search' ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
 
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     CASE client->get( )-event.
 
       when `OPEN_DEBUG`.
-      client->message_box_display( `Press ctrl+F12 to open the debugging tools` ).
+      client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
       WHEN `OPEN_INFO`.
         client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
         RETURN.

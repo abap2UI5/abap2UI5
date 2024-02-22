@@ -13,11 +13,11 @@ CLASS lcl_github DEFINITION.
   PUBLIC SECTION.
     METHODS get_repositories
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_app_search_apps=>ty_t_repo.
+        VALUE(result) TYPE z2ui5_cl_core_app_search=>ty_t_repo.
 
     METHODS get_repositories_addons
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_app_search_apps=>ty_t_repo.
+        VALUE(result) TYPE z2ui5_cl_core_app_search=>ty_t_repo.
 
 ENDCLASS.
 

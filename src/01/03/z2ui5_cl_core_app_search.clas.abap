@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_search_apps DEFINITION
+CLASS z2ui5_cl_core_app_search DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -76,7 +76,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
 
 
   METHOD search.
@@ -150,7 +150,7 @@ CLASS Z2UI5_CL_APP_SEARCH_APPS IMPLEMENTATION.
                                    )->icon_tab_filter( key  = `page_online`
                                                        text = `Apps on GitHub` )->get_parent(
                                    )->icon_tab_filter( key  = `page_addon`
-                                                       text = `Addons`
+                                                       text = `Addons on GitHub`
                                  )->get_parent( )->get_parent( )->get_parent( )->get_parent( )->get_parent(
                                )->main_contents(
                                  )->nav_container( id                    = `NavCon`
