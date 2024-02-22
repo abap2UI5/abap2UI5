@@ -39,12 +39,34 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
 
   METHOD constructor.
 
     ms_request = val.
+
+  ENDMETHOD.
+
+
+  METHOD get_default_config.
+
+    result = VALUE #(
+        (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+        (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+        (  n = `data-sap-ui-async`         v = `true` )
+        (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+        (  n = `data-sap-ui-frameOptions`  v = `trusted` )
+        (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
+
+  ENDMETHOD.
+
+
+  METHOD get_default_security_policy.
+
+    result  = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+   `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
+   `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
 
   ENDMETHOD.
 
@@ -386,9 +408,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                models: oview_model,` && |\n| &&
                `                controller: sap.z2ui5.oController,` && |\n| &&
                `                id: 'mainView',` && |\n| &&
-               `              preprocessor: { xml : { models: { meta : oview_model } } }` && |\n| &&
+               `                preprocessors: { xml: { models: { meta: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
-                 `            sap.ui.getCore().getMessageManager().registerObject( sap.z2ui5.oView, true);` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
@@ -551,26 +572,4 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
     result = mv_response.
 
   ENDMETHOD.
-
-  METHOD get_default_config.
-
-    result = VALUE #(
-        (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-        (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-        (  n = `data-sap-ui-async`         v = `true` )
-        (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-        (  n = `data-sap-ui-frameOptions`  v = `trusted` )
-        (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
-
-  ENDMETHOD.
-
-
-  METHOD get_default_security_policy.
-
-    result  = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
-   `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
-   `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
-
-  ENDMETHOD.
-
 ENDCLASS.
