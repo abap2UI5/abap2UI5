@@ -72,15 +72,29 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
           attri = REF #( mt_attri )
           app   = mo_app ).
         lo_model->attri_before_save( ).
-
         result = z2ui5_cl_util=>xml_stringify( me ).
 
       CATCH cx_root INTO DATA(x2).
+        TRY.
 
-        RAISE EXCEPTION TYPE z2ui5_cx_util_error
-          EXPORTING
-            val = `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
+            DATA(lo_dissolver) = NEW z2ui5_cl_core_dissolve_srv(
+              attri = REF #( mt_attri )
+              app   = mo_app ).
 
+            lo_dissolver->main( ).
+            lo_dissolver->main( ).
+            lo_model = NEW z2ui5_cl_core_attri_srv(
+              attri = REF #( mt_attri )
+              app   = mo_app ).
+            lo_model->attri_before_save( ).
+
+            result = z2ui5_cl_util=>xml_stringify( me ).
+
+          CATCH cx_root.
+            RAISE EXCEPTION TYPE z2ui5_cx_util_error
+              EXPORTING
+                val = `<p>` && x2->get_text( ) && `<p> Please check if all generic data references are public attributes of your class`.
+        ENDTRY.
     ENDTRY.
 
   ENDMETHOD.
