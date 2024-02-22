@@ -616,8 +616,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     ENDLOOP.
 
 * Select Layouts
-    DATA t_t001 TYPE STANDARD TABLE OF z2ui5_t001.
-    t_t001 = db_read_layout_multi(
+    data(t_t001) = db_read_layout_multi(
           i_classname = classname
           i_tab_name  = tab_name ).
 
@@ -632,8 +631,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     IF def-layout IS NOT INITIAL.
 
-      DATA t_t002 TYPE STANDARD TABLE OF z2ui5_t002.
-      t_t002 = db_read_layout_info( def ).
+      data(t_t002) = db_read_layout_info( def ).
 
       LOOP AT result-t_layout REFERENCE INTO DATA(layout).
 
