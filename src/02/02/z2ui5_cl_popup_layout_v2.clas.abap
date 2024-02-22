@@ -15,6 +15,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
         ddlanguage TYPE string,
         ddtext     TYPE string,
       END OF fixvalue.
+
     TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
     TYPES ty_s_t001 TYPE z2ui5_t001.
     TYPES ty_t_t001 TYPE STANDARD TABLE OF ty_s_t001 WITH EMPTY KEY.

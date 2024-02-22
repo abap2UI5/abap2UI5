@@ -31,6 +31,14 @@ CLASS z2ui5_cl_util_api DEFINITION
         table TYPE string,
       END OF ty_s_sql_result.
 
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH EMPTY KEY.
+
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
@@ -43,7 +51,7 @@ CLASS z2ui5_cl_util_api DEFINITION
         val           TYPE data
         langu         TYPE clike DEFAULT sy-langu
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
+        VALUE(result) TYPE ty_t_fix_val.
 
     CLASS-METHODS source_get_method
       IMPORTING
@@ -846,33 +854,30 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD rtti_get_t_ddic_fixed_values.
 
-*    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_typedescr=>describe_by_data( val ) ).
-*
-*    DATA lv_langu TYPE c LENGTH 1.
-*
-*    lv_langu = langu.
-*
-*    lo_ele->get_ddic_fixed_values(
-*      EXPORTING
-*        p_langu        = lv_langu
-*      RECEIVING
-*        p_fixed_values = DATA(lt_values)
-*      EXCEPTIONS
-*        not_found      = 1
-*        no_ddic_type   = 2
-*        OTHERS         = 3 ).
-*
-*    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
-*
-*      INSERT VALUE #(
-*          n = lr_fix->low
-*          v = lr_fix->ddtext
-*          ) INTO TABLE result.
-*
-*    ENDLOOP.
+    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_typedescr=>describe_by_data( val ) ).
 
-    ASSERT 1 = 0.
-    result = VALUE #( ( n = val v = langu ) ).
+    DATA lv_langu TYPE c LENGTH 1.
+    lv_langu = langu.
+
+    lo_ele->get_ddic_fixed_values(
+      EXPORTING
+        p_langu        = lv_langu
+      RECEIVING
+        p_fixed_values = DATA(lt_values)
+      EXCEPTIONS
+        not_found      = 1
+        no_ddic_type   = 2
+        OTHERS         = 3 ).
+
+    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
+
+      INSERT VALUE #(
+          low = lr_fix->low
+          high = lr_fix->high
+          descr = lr_fix->ddtext
+          ) INTO TABLE result.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
