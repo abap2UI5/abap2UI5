@@ -1,0 +1,31 @@
+name: build_web
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  build_downport:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20
+    - run: npm ci
+    - run: npm run downport
+    - run: npm run transpile
+    - name: send to downport repository
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        external_repository: abap2UI5/abap2UI5-web
+        user_name: 'github-actions[bot]'
+        user_email: 'github-actions[bot]@users.noreply.github.com'
+        publish_branch: main
+        publish_dir: ./output
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY_WEB }}
+        destination_dir: output
