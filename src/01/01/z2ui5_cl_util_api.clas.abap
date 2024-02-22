@@ -346,6 +346,12 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE string_table.
 
+    CLASS-METHODS rtti_tab_get_relative_name
+      IMPORTING
+        !table        TYPE any
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -354,6 +360,31 @@ ENDCLASS.
 
 CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
+  METHOD rtti_tab_get_relative_name.
+
+    FIELD-SYMBOLS <table> TYPE any.
+
+    TRY.
+        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( table ).
+
+        CASE typedesc->kind.
+
+          WHEN cl_abap_typedescr=>kind_table.
+            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
+            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
+            result = structdesc->get_relative_name( ).
+            RETURN.
+
+          WHEN typedesc->kind_ref.
+
+            ASSIGN table->* TO <table>.
+            result = rtti_tab_get_relative_name( <table> ).
+
+        ENDCASE.
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD boolean_abap_2_json.
 
