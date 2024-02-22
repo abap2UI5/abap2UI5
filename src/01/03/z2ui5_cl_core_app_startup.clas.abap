@@ -150,7 +150,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
                     client    = client
-                    classname = 'z2ui5_cl_app_search_apps' ).
+                    classname = 'z2ui5_cl_core_app_search' ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
 
