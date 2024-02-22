@@ -16,8 +16,8 @@ public section.
         descriptionurl TYPE string,
         persistent     TYPE string,
       END OF ty_s_item .
-  types:
-    ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
+
+  types ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
 
   class-methods GET_JS
     returning
@@ -108,7 +108,7 @@ CLASS Z2UI5_CL_CC_MESSAGE_MANAGER IMPLEMENTATION.
       `               }, 50 , oControl );` && |\n| &&
       `       }` && |\n| &&
       `   });` && |\n| &&
-      `});`." } "catch (e) { }`.
+      `});`.
 
   ENDMETHOD.
 ENDCLASS.
