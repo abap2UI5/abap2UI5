@@ -51,7 +51,7 @@ CLASS z2ui5_cl_util_api DEFINITION
         val           TYPE data
         langu         TYPE clike DEFAULT sy-langu
       RETURNING
-        VALUE(result) TYPE ty_t_fix_val.
+        VALUE(result) TYPE ty_t_fix_val ##NEEDED.
 
     CLASS-METHODS source_get_method
       IMPORTING
@@ -366,33 +366,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_api IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
-  METHOD rtti_tab_get_relative_name.
-
-    FIELD-SYMBOLS <table> TYPE any.
-
-    TRY.
-        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( table ).
-
-        CASE typedesc->kind.
-
-          WHEN cl_abap_typedescr=>kind_table.
-            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
-            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
-            result = structdesc->get_relative_name( ).
-            RETURN.
-
-          WHEN typedesc->kind_ref.
-
-            ASSIGN table->* TO <table>.
-            result = rtti_tab_get_relative_name( <table> ).
-
-        ENDCASE.
-      CATCH cx_root.
-    ENDTRY.
-
-  ENDMETHOD.
 
   METHOD boolean_abap_2_json.
 
@@ -878,6 +853,33 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *          ) INTO TABLE result.
 *
 *    ENDLOOP.
+
+  ENDMETHOD.
+
+
+  METHOD rtti_tab_get_relative_name.
+
+    FIELD-SYMBOLS <table> TYPE any.
+
+    TRY.
+        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( table ).
+
+        CASE typedesc->kind.
+
+          WHEN cl_abap_typedescr=>kind_table.
+            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
+            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
+            result = structdesc->get_relative_name( ).
+            RETURN.
+
+          WHEN typedesc->kind_ref.
+
+            ASSIGN table->* TO <table>.
+            result = rtti_tab_get_relative_name( <table> ).
+
+        ENDCASE.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 
