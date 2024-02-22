@@ -183,11 +183,81 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
     METHODS object_page_layout
       IMPORTING
-        !showtitleinheadercontent TYPE clike OPTIONAL
-        !showeditheaderbutton     TYPE clike OPTIONAL
-        !editheaderbuttonpress    TYPE clike OPTIONAL
-        !uppercaseanchorbar       TYPE clike OPTIONAL
-        !showfooter               TYPE clike OPTIONAL
+        !showtitleinheadercontent    TYPE clike OPTIONAL
+        !showeditheaderbutton        TYPE clike OPTIONAL
+        !editheaderbuttonpress       TYPE clike OPTIONAL
+        !uppercaseanchorbar          TYPE clike OPTIONAL
+        !showfooter                  TYPE clike OPTIONAL
+        !alwaysshowcontentheader     TYPE clike OPTIONAL
+        !enablelazyloading           TYPE clike OPTIONAL
+        !flexenabled                 TYPE clike OPTIONAL
+        !headercontentpinnable       TYPE clike OPTIONAL
+        !headercontentpinned         TYPE clike OPTIONAL
+        !ischildpage                 TYPE clike OPTIONAL
+        !preserveheaderstateonscroll TYPE clike OPTIONAL
+        !showanchorbar               TYPE clike OPTIONAL
+        !showanchorbarpopover        TYPE clike OPTIONAL
+        !showheadercontent           TYPE clike OPTIONAL
+        !showonlyhighimportance      TYPE clike OPTIONAL
+        !subsectionlayout            TYPE clike OPTIONAL
+        !toggleheaderontitleclick    TYPE clike OPTIONAL
+        !useicontabbar               TYPE clike OPTIONAL
+        !usetwocolumnsforlargescreen TYPE clike OPTIONAL
+        !visible                     TYPE clike OPTIONAL
+        !backgrounddesignanchorbar   TYPE clike OPTIONAL
+        !height                      TYPE clike OPTIONAL
+        !sectiontitlelevel              TYPE clike OPTIONAL
+        !beforenavigate              TYPE clike OPTIONAL
+        !headercontentpinnedstatechange  TYPE clike OPTIONAL
+        !navigate                        TYPE clike OPTIONAL
+        !sectionchange                   TYPE clike OPTIONAL
+        !subsectionvisibilitychange      TYPE clike OPTIONAL
+        !toggleanchorbar                 TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
+    METHODS object_page_header
+      IMPORTING
+        !isActionAreaAlwaysVisible    TYPE clike OPTIONAL
+        !isObjectIconAlwaysVisible        TYPE clike OPTIONAL
+        !isObjectSubtitleAlwaysVisible       TYPE clike OPTIONAL
+        !isObjectTitleAlwaysVisible          TYPE clike OPTIONAL
+        !markChanges                  TYPE clike OPTIONAL
+        !markFavorite     TYPE clike OPTIONAL
+        !markFlagged           TYPE clike OPTIONAL
+        !markLocked                 TYPE clike OPTIONAL
+        !objectImageAlt       TYPE clike OPTIONAL
+        !objectImageBackgroundColor         TYPE clike OPTIONAL
+        !objectImageDensityAware                 TYPE clike OPTIONAL
+        !objectImageShape TYPE clike OPTIONAL
+        !objectImageURI               TYPE clike OPTIONAL
+        !objectSubtitle        TYPE clike OPTIONAL
+        !objectTitle           TYPE clike OPTIONAL
+        !showMarkers      TYPE clike OPTIONAL
+        !showPlaceholder            TYPE clike OPTIONAL
+        !showTitleSelector    TYPE clike OPTIONAL
+        !visible               TYPE clike OPTIONAL
+        !markchangespress               TYPE clike OPTIONAL
+        !marklockedpress               TYPE clike OPTIONAL
+        !titleselectorpress               TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
+    METHODS object_page_header_action_btn
+      IMPORTING
+        !activeIcon    TYPE clike OPTIONAL
+        !ariaHasPopup    TYPE clike OPTIONAL
+        !enabled    TYPE clike OPTIONAL
+        !hideIcon    TYPE clike OPTIONAL
+        !hideText    TYPE clike OPTIONAL
+        !icon    TYPE clike OPTIONAL
+        !iconDensityAware    TYPE clike OPTIONAL
+        !iconFirst    TYPE clike OPTIONAL
+        !importance    TYPE clike OPTIONAL
+        !text    TYPE clike OPTIONAL
+        !textDirection    TYPE clike OPTIONAL
+        !visible    TYPE clike OPTIONAL
+        !width    TYPE clike OPTIONAL
+        !type    TYPE clike OPTIONAL
+        !press    TYPE clike OPTIONAL
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
     METHODS object_page_dyn_header_title
@@ -346,6 +416,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !title          TYPE clike OPTIONAL
         !importance     TYPE clike OPTIONAL
         !id             TYPE clike OPTIONAL
+        !titlelevel     TYPE clike OPTIONAL
+        !showtitle      TYPE clike OPTIONAL
+        !visible        TYPE clike OPTIONAL
+        !wrapTitle      TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS sub_sections
@@ -355,6 +429,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !id           TYPE clike OPTIONAL
         !title        TYPE clike OPTIONAL
+        !mode        TYPE clike OPTIONAL
+        !importance   TYPE clike OPTIONAL
+        !titlelevel  TYPE clike OPTIONAL
+        !showtitle   TYPE clike OPTIONAL
+        !titleuppercase TYPE clike OPTIONAL
+        !visible      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS shell
@@ -875,6 +955,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !horizontal   TYPE clike OPTIONAL
         !id           TYPE clike OPTIONAL
         !focusable    TYPE clike OPTIONAL
+        !visible      TYPE clike OPTIONAL
           PREFERRED PARAMETER height
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -3446,7 +3527,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -5946,6 +6027,57 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD object_page_header.
+    result = me.
+    _generic( name   = `ObjectPageHeader`
+              ns     = `uxap`
+              t_prop = VALUE #( ( n = `isActionAreaAlwaysVisible`  v = z2ui5_cl_util=>boolean_abap_2_json( isActionAreaAlwaysVisible ) )
+                                ( n = `isObjectIconAlwaysVisible`       v = z2ui5_cl_util=>boolean_abap_2_json( isObjectIconAlwaysVisible ) )
+                                ( n = `isObjectSubtitleAlwaysVisible`       v = z2ui5_cl_util=>boolean_abap_2_json( isObjectSubtitleAlwaysVisible ) )
+                                ( n = `isObjectTitleAlwaysVisible`       v = z2ui5_cl_util=>boolean_abap_2_json( isObjectTitleAlwaysVisible ) )
+                                ( n = `markChanges`       v = z2ui5_cl_util=>boolean_abap_2_json( markChanges ) )
+                                ( n = `markFavorite`       v = z2ui5_cl_util=>boolean_abap_2_json( markFavorite ) )
+                                ( n = `markFlagged`       v = z2ui5_cl_util=>boolean_abap_2_json( markFlagged ) )
+                                ( n = `markLocked`       v = z2ui5_cl_util=>boolean_abap_2_json( markLocked ) )
+                                ( n = `objectImageDensityAware`       v = z2ui5_cl_util=>boolean_abap_2_json( objectImageDensityAware ) )
+                                ( n = `showMarkers`       v = z2ui5_cl_util=>boolean_abap_2_json( showMarkers ) )
+                                ( n = `showPlaceholder`       v = z2ui5_cl_util=>boolean_abap_2_json( showPlaceholder ) )
+                                ( n = `showTitleSelector`       v = z2ui5_cl_util=>boolean_abap_2_json( showTitleSelector ) )
+                                ( n = `visible`       v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                ( n = `objectImageAlt`        v = objectImageAlt )
+                                ( n = `objectImageBackgroundColor`      v = objectImageBackgroundColor )
+                                ( n = `objectImageURI`      v = objectImageURI )
+                                ( n = `objectSubtitle`      v = objectSubtitle )
+                                ( n = `objectTitle`      v = objectTitle )
+                                ( n = `markChangesPress`      v = markChangesPress )
+                                ( n = `markLockedPress`      v = markLockedPress )
+                                ( n = `titleSelectorPress`      v = titleSelectorPress )
+                                ( n = `objectImageShape`  v = objectImageShape ) ) ).
+  ENDMETHOD.
+
+
+  METHOD object_page_header_action_btn.
+    result = me.
+    _generic( name   = `ObjectPageHeaderActionButton`
+              ns     = `uxap`
+              t_prop = VALUE #( ( n = `activeIcon`  v = activeIcon )
+                                ( n = `ariaHasPopup`       v = ariaHasPopup )
+                                ( n = `icon`        v = icon )
+                                ( n = `importance`      v = importance )
+                                ( n = `text`      v = text )
+                                ( n = `textDirection`      v = textDirection )
+                                ( n = `type`      v = type )
+                                ( n = `width`      v = width )
+                                ( n = `enabled`    v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                ( n = `hideIcon`    v = z2ui5_cl_util=>boolean_abap_2_json( hideIcon ) )
+                                ( n = `hideText`    v = z2ui5_cl_util=>boolean_abap_2_json( hideText ) )
+                                ( n = `iconDensityAware`    v = z2ui5_cl_util=>boolean_abap_2_json( iconDensityAware ) )
+                                ( n = `iconFirst`    v = z2ui5_cl_util=>boolean_abap_2_json( iconFirst ) )
+                                ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                ( n = `press`  v = press ) ) ).
+  ENDMETHOD.
+
+
   METHOD object_page_layout.
     result = _generic(
                  name   = `ObjectPageLayout`
@@ -5953,8 +6085,33 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                  t_prop = VALUE #(
                      ( n = `showTitleInHeaderContent` v = z2ui5_cl_util=>boolean_abap_2_json( showtitleinheadercontent ) )
                      ( n = `showEditHeaderButton`     v = z2ui5_cl_util=>boolean_abap_2_json( showeditheaderbutton ) )
+                     ( n = `alwaysShowContentHeader`     v = z2ui5_cl_util=>boolean_abap_2_json( alwaysShowContentHeader ) )
+                     ( n = `enableLazyLoading`     v = z2ui5_cl_util=>boolean_abap_2_json( enableLazyLoading ) )
+                     ( n = `flexEnabled`     v = z2ui5_cl_util=>boolean_abap_2_json( flexEnabled ) )
+                     ( n = `headerContentPinnable`     v = z2ui5_cl_util=>boolean_abap_2_json( headerContentPinnable ) )
+                     ( n = `headerContentPinned`     v = z2ui5_cl_util=>boolean_abap_2_json( headerContentPinned ) )
+                     ( n = `isChildPage`     v = z2ui5_cl_util=>boolean_abap_2_json( isChildPage ) )
+                     ( n = `preserveHeaderStateOnScroll`     v = z2ui5_cl_util=>boolean_abap_2_json( preserveHeaderStateOnScroll ) )
+                     ( n = `showAnchorBar`     v = z2ui5_cl_util=>boolean_abap_2_json( showAnchorBar ) )
+                     ( n = `showAnchorBarPopover`     v = z2ui5_cl_util=>boolean_abap_2_json( showAnchorBarPopover ) )
+                     ( n = `showHeaderContent`     v = z2ui5_cl_util=>boolean_abap_2_json( showHeaderContent ) )
+                     ( n = `showOnlyHighImportance`     v = z2ui5_cl_util=>boolean_abap_2_json( showOnlyHighImportance ) )
+                     ( n = `subSectionLayout`     v = subSectionLayout )
+                     ( n = `toggleHeaderOnTitleClick`     v = z2ui5_cl_util=>boolean_abap_2_json( toggleHeaderOnTitleClick ) )
+                     ( n = `useIconTabBar`     v = z2ui5_cl_util=>boolean_abap_2_json( useIconTabBar ) )
+                     ( n = `useTwoColumnsForLargeScreen`     v = z2ui5_cl_util=>boolean_abap_2_json( useTwoColumnsForLargeScreen ) )
+                     ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                     ( n = `backgroundDesignAnchorBar`    v = backgroundDesignAnchorBar )
+                     ( n = `height`                     v = height )
+                     ( n = `sectionTitleLevel`                     v = sectionTitleLevel )
                      ( n = `editHeaderButtonPress`    v = editheaderbuttonpress )
                      ( n = `upperCaseAnchorBar`       v = uppercaseanchorbar )
+                     ( n = `beforeNavigate`       v = beforeNavigate )
+                     ( n = `headerContentPinnedStateChange`       v = headerContentPinnedStateChange )
+                     ( n = `navigate`       v = navigate )
+                     ( n = `sectionChange`       v = sectionChange )
+                     ( n = `subSectionVisibilityChange`       v = subSectionVisibilityChange )
+                     ( n = `toggleAnchorBar`       v = toggleAnchorBar )
                      ( n = `showFooter`               v = z2ui5_cl_util=>boolean_abap_2_json( showfooter ) ) ) ).
   ENDMETHOD.
 
@@ -5965,6 +6122,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `titleUppercase`  v = z2ui5_cl_util=>boolean_abap_2_json( titleuppercase ) )
                                          ( n = `title`           v = title )
                                          ( n = `id`              v = id )
+                                         ( n = `titleLevel`      v = titleLevel )
+                                         ( n = `showTitle`       v = z2ui5_cl_util=>boolean_abap_2_json( showTitle ) )
+                                         ( n = `visible`       v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `wrapTitle`       v = z2ui5_cl_util=>boolean_abap_2_json( wrapTitle ) )
                                          ( n = `importance`      v = importance ) ) ).
   ENDMETHOD.
 
@@ -5973,6 +6134,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `ObjectPageSubSection`
                        ns     = `uxap`
                        t_prop = VALUE #( ( n = `id`    v = id )
+                                         ( n = `mode`    v = mode )
+                                         ( n = `importance`    v = importance )
+                                         ( n = `titleLevel`    v = titleLevel )
+                                         ( n = `showTitle`    v = z2ui5_cl_util=>boolean_abap_2_json( showTitle ) )
+                                         ( n = `titleUppercase`    v = z2ui5_cl_util=>boolean_abap_2_json( titleUppercase ) )
+                                         ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                          ( n = `title` v = title ) ) ).
   ENDMETHOD.
 
@@ -6434,7 +6601,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `ScrollContainer`
                        t_prop = VALUE #( ( n = `height`      v = height )
                                          ( n = `width`       v = width )
-                                         ( n = `id`       v = id )
+                                         ( n = `id`          v = id )
+                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                          ( n = `vertical`    v = z2ui5_cl_util=>boolean_abap_2_json( vertical ) )
                                          ( n = `horizontal`  v = z2ui5_cl_util=>boolean_abap_2_json( horizontal ) )
                                          ( n = `focusable`   v = z2ui5_cl_util=>boolean_abap_2_json( focusable ) ) ) ).
@@ -7646,6 +7814,51 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+METHOD wizard.
+    result = _generic( name   = `Wizard`
+                       t_prop = VALUE #(
+                          ( n = `id`                   v = id )
+                          ( n = `class`                v = class )
+                          ( n = `backgroundDesign`     v = backgrounddesign )
+                          ( n = `busy`                 v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
+                          ( n = `busyIndicatorDelay`   v = busyindicatordelay )
+                          ( n = `busyIndicatorSize`    v = busyindicatorsize )
+                          ( n = `enableBranching`      v = z2ui5_cl_util=>boolean_abap_2_json( enablebranching ) )
+                          ( n = `fieldGroupIds`        v = fieldgroupids )
+                          ( n = `finishButtonText`     v = finishbuttontext )
+                          ( n = `height`               v = height )
+                          ( n = `renderMode`           v = rendermode )
+                          ( n = `showNextButton`       v = z2ui5_cl_util=>boolean_abap_2_json( shownextbutton ) )
+                          ( n = `stepTitleLevel`       v = steptitlelevel )
+                          ( n = `visible`              v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                          ( n = `width`                v = width )
+                          ( n = `complete`             v = complete )
+                          ( n = `navigationChange`     v = navigationchange )
+                          ( n = `stepActivate`         v = stepactivate ) ) ).
+
+
+  ENDMETHOD.
+
+
+  METHOD wizard_step.
+
+    result = _generic( name   = `WizardStep`
+                       t_prop = VALUE #(
+                          (  n = `id`                   v = id )
+                          (  n = `busy`                 v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
+                          (  n = `busyIndicatorDelay`   v = busyindicatordelay )
+                          (  n = `busyIndicatorSize`    v = busyindicatorsize )
+                          (  n = `fieldGroupIds`        v = fieldgroupids )
+                          (  n = `icon`                 v = icon )
+                          (  n = `optional`             v = z2ui5_cl_util=>boolean_abap_2_json( optional ) )
+                          (  n = `title`                v = title )
+                          (  n = `validated`            v = z2ui5_cl_util=>boolean_abap_2_json( validated ) )
+                          (  n = `visible`              v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                          (  n = `activate`             v = activate )
+                          (  n = `complete`             v = complete ) ) ).
+  ENDMETHOD.
+
+
   METHOD xml_get.
     DATA lt_prop TYPE z2ui5_if_types=>ty_t_name_value.
 
@@ -7782,49 +7995,5 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = NEW #( me ).
 
-  ENDMETHOD.
-
-METHOD wizard.
-    result = _generic( name   = `Wizard`
-                       t_prop = VALUE #(
-                          ( n = `id`                   v = id )
-                          ( n = `class`                v = class )
-                          ( n = `backgroundDesign`     v = backgrounddesign )
-                          ( n = `busy`                 v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
-                          ( n = `busyIndicatorDelay`   v = busyindicatordelay )
-                          ( n = `busyIndicatorSize`    v = busyindicatorsize )
-                          ( n = `enableBranching`      v = z2ui5_cl_util=>boolean_abap_2_json( enablebranching ) )
-                          ( n = `fieldGroupIds`        v = fieldgroupids )
-                          ( n = `finishButtonText`     v = finishbuttontext )
-                          ( n = `height`               v = height )
-                          ( n = `renderMode`           v = rendermode )
-                          ( n = `showNextButton`       v = z2ui5_cl_util=>boolean_abap_2_json( shownextbutton ) )
-                          ( n = `stepTitleLevel`       v = steptitlelevel )
-                          ( n = `visible`              v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                          ( n = `width`                v = width )
-                          ( n = `complete`             v = complete )
-                          ( n = `navigationChange`     v = navigationchange )
-                          ( n = `stepActivate`         v = stepactivate ) ) ).
-
-
-  ENDMETHOD.
-
-
-  METHOD wizard_step.
-
-    result = _generic( name   = `WizardStep`
-                       t_prop = VALUE #(
-                          (  n = `id`                   v = id )
-                          (  n = `busy`                 v = z2ui5_cl_util=>boolean_abap_2_json( busy ) )
-                          (  n = `busyIndicatorDelay`   v = busyindicatordelay )
-                          (  n = `busyIndicatorSize`    v = busyindicatorsize )
-                          (  n = `fieldGroupIds`        v = fieldgroupids )
-                          (  n = `icon`                 v = icon )
-                          (  n = `optional`             v = z2ui5_cl_util=>boolean_abap_2_json( optional ) )
-                          (  n = `title`                v = title )
-                          (  n = `validated`            v = z2ui5_cl_util=>boolean_abap_2_json( validated ) )
-                          (  n = `visible`              v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                          (  n = `activate`             v = activate )
-                          (  n = `complete`             v = complete ) ) ).
   ENDMETHOD.
 ENDCLASS.

@@ -1,12 +1,12 @@
-CLASS z2ui5_cl_cc_messaging DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_MESSAGE_MANAGER definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    TYPES:
-      BEGIN OF ty_s_item,
+  types:
+    BEGIN OF ty_s_item,
         message        TYPE string,
         description    TYPE string,
         type           TYPE string,
@@ -16,42 +16,39 @@ CLASS z2ui5_cl_cc_messaging DEFINITION
         descriptionurl TYPE string,
         persistent     TYPE string,
       END OF ty_s_item .
-    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
 
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(result) TYPE string .
+  types ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
+
+  class-methods GET_JS
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_MESSAGE_MANAGER IMPLEMENTATION.
 
 
-  METHOD get_js.
+  METHOD GET_JS.
 
-    result = `try { jQuery.sap.require("sap.ui.core.Messaging"); jQuery.sap.declare("z2ui5.Messaging");` && |\n| &&
-      `sap.ui.require([` && |\n| &&
+    result = `` && |\n| &&
+      `sap.ui.define("z2ui5/MessageManager", [` && |\n| &&
       `   "sap/ui/core/Control",` && |\n| &&
-      `   "sap/ui/core/Messaging",` && |\n| &&
-      `], (Control, Messaging) => {` && |\n| &&
+      `], function (Control) {` && |\n| &&
       `   "use strict";` && |\n| &&
       |\n| &&
-      `   return Control.extend("z2ui5.Messaging", {` && |\n| &&
+      `   return Control.extend("z2ui5.MessageManager", {` && |\n| &&
       `       metadata: {` && |\n| &&
       `           properties: {` && |\n| &&
       `               items: { type: "Array" }` && |\n| &&
       `           }` && |\n| &&
       `       },` && |\n| &&
       `       init() {` && |\n| &&
-      `         if (!sap.z2ui5.oMessaging){` && |\n| &&
-      `         sap.z2ui5.oMessaging = {};` && |\n| &&
-      `         sap.z2ui5.oMessaging.oMessageProcessor = new sap.ui.core.message.ControlMessageProcessor();` && |\n| &&
-      `          sap.z2ui5.oMessaging.oMessageManager = Messaging;` && |\n| &&
-*      `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n| &&
-      `          sap.z2ui5.oMessaging.oMessageManager.registerMessageProcessor(sap.z2ui5.oMessaging.oMessageProcessor);` && |\n| &&
+      `         if (!sap.z2ui5.oMessageManager){` && |\n| &&
+      `           sap.z2ui5.oMessageManager = {};` && |\n| &&
+      `           sap.z2ui5.oMessageManager = new sap.ui.core.message.MessageManager();` && |\n| &&
       `        }` && |\n| &&
       `       },` && |\n| &&
       |\n| &&
@@ -60,7 +57,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `       },` && |\n| &&
       |\n| &&
       `       Messaging2Model( ){` && |\n| &&
-      `           var oData = Messaging.getMessageModel().getData();` && |\n| &&
+      `           var oData = sap.z2ui5.oMessageManager.getMessageModel().getData();` && |\n| &&
       `           var Model = [];` && |\n| &&
       `           oData.forEach(element => {` && |\n| &&
       `               Model.push( { ` && |\n| &&
@@ -94,16 +91,16 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `                   persistent : element.PERSISTENT,` && |\n| &&
       `                   processor : this.oMessageProcessor` && |\n| &&
       `                 });` && |\n| &&
-      `                Messaging.addMessages(oMessage) ;` && |\n| &&
+      `                sap.z2ui5.oMessageManager.addMessages(oMessage) ;` && |\n| &&
       `           });` && |\n| &&
-      `           var resBinding = new sap.ui.model.ListBinding(Messaging.getMessageModel(), "/" );` && |\n| &&
+      `           var resBinding = new sap.ui.model.ListBinding(sap.z2ui5.oMessageManager.getMessageModel(), "/" );` && |\n| &&
       `           resBinding.attachChange(this.onModelChange.bind(this));` && |\n| &&
       `       },` && |\n| &&
       |\n| &&
       `       renderer(oRm, oControl) {` && |\n| &&
       `           if(oControl.isInitialized) { return; }` && |\n| &&
       `               oControl.Model2Messaging();` && |\n| &&
-      `                Messaging.registerObject(sap.z2ui5.oView, true);` && |\n| &&
+      `               sap.z2ui5.oMessageManager.registerObject(sap.z2ui5.oView, true);` && |\n| &&
       `           oControl.isInitialized = true;` && |\n| &&
         `           setTimeout( (oControl) => { ` && |\n| &&
       `                   ` && |\n| &&
@@ -111,7 +108,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `               }, 50 , oControl );` && |\n| &&
       `       }` && |\n| &&
       `   });` && |\n| &&
-      `}); } catch (e) { }`.
+      `});`.
 
   ENDMETHOD.
 ENDCLASS.
