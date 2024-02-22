@@ -65,7 +65,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POPUP_GET_VARIANT IMPLEMENTATION.
+CLASS z2ui5_cl_popup_get_variant IMPLEMENTATION.
 
 
   METHOD db_read_multi.
@@ -95,6 +95,10 @@ CLASS Z2UI5_CL_POPUP_GET_VARIANT IMPLEMENTATION.
 
 
   METHOD popup_display.
+
+    render_delete( ).
+    render_open( ).
+    render_save( ).
 
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
     lo_popup = lo_popup->dialog( afterclose    = client->_event( 'BUTTON_CANCEL' )
