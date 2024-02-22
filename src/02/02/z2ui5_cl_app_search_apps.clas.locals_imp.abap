@@ -34,12 +34,7 @@ CLASS lcl_github IMPLEMENTATION.
         link                 = `https://github.com/nomssi/axage`
         author_link          = `https://github.com/nomssi`
         author_name          = `Nomssi`
-        t_app                = VALUE #(
-          (
-            name      = `The Quest - Start the Adventure`
-            descr     = `Adventure Game: The Wizard&amp;apos;s Aspirant Quest`
-            classname = `zcl_axage_wizard_ui.clas.abap`
-        ) ) )
+        )
         (
         name                 = `Advent of Code`
         descr                = `Template for the Advent of Code 2023 in ABAP`
@@ -48,59 +43,53 @@ CLASS lcl_github IMPLEMENTATION.
         link                 = `https://github.com/joltdx/abap-advent-2023-template`
         check_abap_for_cloud = abap_true
         check_standard_abap  = abap_true
-        t_app                = VALUE #(
-          (
-            name      = `Advent of Code 2023 in ABAP`
-            descr     = `Advent of Code 2023 - ABAP2UI5 app`
-            classname = `zcl_advent_2023_a2ui5.clas.abap`
-        ) ) )
+        )
         (
         name                 = `Table Loader`
         descr                = `Upload, Edit & Download Table Content (CSV, JSON)`
         author_link          = `https://github.com/oblomov-dev`
         author_name          = `oblomov`
         check_standard_abap  = abap_true
-        check_abap_for_cloud = abap_true
+        check_abap_for_cloud = abap_false
         link                 = `https://github.com/oblomov-dev/a2UI5-db_table_loader`
-        t_app                = VALUE #(
-          (
-            name      = `Upload JSON`
-            descr     = `Modify DB Table with JSON Data`
-            classname = `z2ui5_dbl_cl_app_01`
-          )
-          (
-            name      = `Download (CSV, JSON)`
-            descr     = `Download DB Table as JSON and CSV`
-            classname = `z2ui5_dbl_cl_app_01`
-        ) ) )
+        )
+        (
+        name                 = `Generic Search Help`
+        descr                = `Popups with Search Helps, dynamically created based on imported values.`
+        author_link          = `https://github.com/oblomov-dev`
+        author_name          = `oblomov`
+        check_standard_abap  = abap_true
+        check_abap_for_cloud = abap_true
+        link                 = `https://github.com/oblomov-dev/a2UI5-generic_search_help`
+        )
         ).
 
   ENDMETHOD.
 
   METHOD get_repositories_addons.
 
-result = VALUE #(
-        (
-        name                 = `Launchpad Proxy App`
-        descr                = `Integrate your apps to the on-premise fiori launchpad`
-        link                 = `https://github.com/abap2UI5/abap2UI5-launchpad_proxy_app`
-        )
-        (
-        name                 = `BTP Proxy App`
-        descr                = `Integrate your apps with Business Technology Platform & SAP Mobile Start`
-        link                 = `https://github.com/abap2UI5/abap2UI5-btp_proxy_app`
-        )
-        (
-         name                 = `S-RTTI`
-        descr                = `Install this repository to use dynamically types variables and tables in your abap2UI5 apps`
-        link                 = `https://github.com/sandraros/S-RTTI`
-        )
-                (
-         name                 = `abap2UI5-web`
-        descr                = `Run abap2UI5 with open-abap on Node.js`
-        link                 = `https://github.com/abap2UI5/abap2UI5-web`
-        )
-        ).
+    result = VALUE #(
+            (
+            name           = `Launchpad Proxy App`
+            descr          = `Integrate your apps to the on-premise fiori launchpad`
+            link           = `https://github.com/abap2UI5/abap2UI5-launchpad_proxy_app`
+            )
+            (
+            name           = `BTP Proxy App`
+            descr          = `Integrate your apps with Business Technology Platform & SAP Mobile Start`
+            link           = `https://github.com/abap2UI5/abap2UI5-btp_proxy_app`
+            )
+            (
+             name          = `S-RTTI`
+            descr          = `Install this repository to use dynamically types variables and tables in your abap2UI5 apps`
+            link           = `https://github.com/sandraros/S-RTTI`
+            )
+            (
+             name          = `abap2UI5-web`
+            descr          = `Run abap2UI5 with open-abap on Node.js`
+            link           = `https://github.com/abap2UI5/abap2UI5-web`
+            )
+            ).
 
   ENDMETHOD.
 

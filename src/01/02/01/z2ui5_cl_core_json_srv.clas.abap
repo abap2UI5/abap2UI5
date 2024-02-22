@@ -78,17 +78,14 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
     TRY.
 
         DATA(ajson_result) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
-
         LOOP AT t_attri REFERENCE INTO DATA(lr_attri) WHERE bind_type <> ``.
 
-          "(1) set pretty mode
           IF lr_attri->custom_mapper IS BOUND.
             DATA(ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = lr_attri->custom_mapper ) ).
           ELSE.
             ajson = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ) ) ).
           ENDIF.
 
-          "(2) read attribute of end-user app & write to json
           CASE lr_attri->bind_type.
             WHEN z2ui5_if_core_types=>cs_bind_type-one_way
             OR z2ui5_if_core_types=>cs_bind_type-two_way.
@@ -104,17 +101,10 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
               ASSERT `` = `ERROR_UNKNOWN_BIND_MODE`.
           ENDCASE.
 
-          "(4) set compress mode
-          "todo performance - add and filter in a single loop
           IF lr_attri->custom_filter IS BOUND.
             ajson = ajson->filter( lr_attri->custom_filter ).
           ENDIF.
-*          ELSE.
-*            ajson = ajson->filter( z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) ).
-*          ENDIF.
 
-          "(5) write into result
-          "todo performance - write directly into result
           ajson_result->set( iv_path = lr_attri->name_client iv_val = ajson ).
         ENDLOOP.
 
