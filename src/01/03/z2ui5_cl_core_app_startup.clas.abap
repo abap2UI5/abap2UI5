@@ -247,7 +247,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     CASE client->get( )-event.
 
       when `OPEN_DEBUG`.
-      client->message_box_display( `Press ctrl+F12 to open the debugging tools` ).
+      client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
       WHEN `OPEN_INFO`.
         client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
         RETURN.

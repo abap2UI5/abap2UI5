@@ -12,7 +12,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
   METHOD first_test.
 
-    DATA(lo_app) = NEW z2ui5_cl_app_search_apps( ) ##NEEDED.
+    DATA(lo_app) = NEW z2ui5_cl_core_app_search( ) ##NEEDED.
 
   ENDMETHOD.
 
