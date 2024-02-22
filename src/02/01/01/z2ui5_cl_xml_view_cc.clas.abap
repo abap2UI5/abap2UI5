@@ -130,6 +130,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS message_manager
+      IMPORTING
+        !items        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS title
       IMPORTING
         !title        TYPE clike OPTIONAL
@@ -343,6 +349,17 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                                 ( n = `device_os`  v = device_os )
                                 ( n = `device_systemtype`  v = device_systemtype )
                                 ( n = `device_browser`  v = device_browser )
+              ) ).
+
+  ENDMETHOD.
+
+
+  METHOD message_manager.
+
+    result = mo_view.
+    mo_view->_generic( name = `MessageManager`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `items`  v = items )
               ) ).
 
   ENDMETHOD.
