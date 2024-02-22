@@ -388,6 +388,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                id: 'mainView',` && |\n| &&
                `              preprocessor: { xml : { models: { meta : oview_model } } }` && |\n| &&
                `            });` && |\n| &&
+                 `            sap.ui.getCore().getMessageManager().registerObject( sap.z2ui5.oView, true);` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
