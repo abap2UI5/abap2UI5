@@ -8,6 +8,7 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
     CLASS-METHODS factory
       IMPORTING
         val             TYPE z2ui5_cl_util=>ty_t_filter_multi
+        o_variant       TYPE REF TO z2ui5_cl_popup_get_variant
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
 
@@ -23,6 +24,7 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
       RETURNING VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
+    DATA o_variant TYPE REF TO z2ui5_cl_popup_get_variant.
     DATA client                 TYPE REF TO z2ui5_if_client.
     DATA check_initialized      TYPE abap_bool.
     DATA mv_popup_name TYPE LINE OF string_table.
@@ -38,6 +40,7 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->ms_result-t_sql = val.
+    r_result->o_variant = o_variant.
 
   ENDMETHOD.
 

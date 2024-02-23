@@ -748,8 +748,7 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
   METHOD rtti_get_classname_by_ref.
 
     DATA(lv_classname) = cl_abap_classdescr=>get_class_name( in ).
-    result = substring_after( val = lv_classname
-                              sub = `\CLASS=` ).
+    result = substring_after( val = lv_classname sub = `\CLASS=` ).
 
   ENDMETHOD.
 
