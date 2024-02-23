@@ -53,13 +53,6 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     DATA mt_halign     TYPE fixvalues.
     DATA mt_importance TYPE fixvalues.
 
-    CLASS-METHODS render_layout_function
-      IMPORTING
-        !xml          TYPE REF TO z2ui5_cl_xml_view
-        !client       TYPE REF TO z2ui5_if_client
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-
     CLASS-METHODS init_layout
       IMPORTING
         !tab          TYPE REF TO data
@@ -76,10 +69,24 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
       RETURNING
         VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
 
-PROTECTED SECTION.
+    TYPES:
+      BEGIN OF ty_s_result,
+        check_cancel TYPE abap_bool,
+        s_layout     TYPE ty_s_layout,
+      END OF ty_s_result.
+
+    DATA ms_result TYPE ty_s_result.
+
+    METHODS result
+      RETURNING
+        VALUE(result) TYPE ty_s_result.
+
+  PROTECTED SECTION.
 
     DATA client        TYPE REF TO z2ui5_if_client.
     DATA mv_init       TYPE abap_bool.
+
+
 
     METHODS on_init.
     METHODS render_edit.
@@ -96,7 +103,7 @@ PROTECTED SECTION.
     METHODS save_layout.
     METHODS render_open.
     METHODS get_selected_layout
-    RETURNING VALUE(result) TYPE ty_s_layout.
+      RETURNING VALUE(result) TYPE ty_s_layout.
     METHODS get_layouts.
     METHODS init_edit.
     METHODS render_delete.
@@ -133,36 +140,288 @@ PROTECTED SECTION.
 ENDCLASS.
 
 
+
 CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
-  METHOD z2ui5_if_app~main.
 
-    me->client = client.
+  METHOD db_delete_layout.
 
-    IF mv_init = abap_false.
-      mv_init = abap_true.
-      on_init( ).
+    DATA(layout) = get_selected_layout( ).
 
-      CASE abap_true.
-        WHEN mv_open.
-          get_layouts( ).
-          render_open( ).
+    DELETE  z2ui5_t001 FROM @layout-s_head.
+    DELETE  z2ui5_t002 FROM TABLE @layout-t_layout.
 
-        WHEN mv_delete.
-          get_layouts( ).
-          render_delete( ).
+    IF sy-subrc = 0.
+      COMMIT WORK AND WAIT.
+    ENDIF.
 
-        WHEN OTHERS.
-          init_edit( ).
-          render_edit( ).
+  ENDMETHOD.
 
-      ENDCASE.
 
-      client->view_model_update(  ).
+  METHOD db_read_head.
+
+    SELECT  * FROM z2ui5_t001
+    WHERE classname  = @i_classname
+    AND   tab        = @i_tab
+    INTO CORRESPONDING FIELDS OF TABLE @r_result ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
+  METHOD db_read_layout.
+
+    SELECT SINGLE * FROM z2ui5_t001
+    WHERE layout = @layout
+    AND   tab    = @tab
+    INTO CORRESPONDING FIELDS OF @result-s_head ##SUBRC_OK.
+
+    SELECT * FROM z2ui5_t002
+    WHERE layout = @layout
+    AND   tab    = @tab
+    INTO CORRESPONDING FIELDS OF TABLE @result-t_layout ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
+  METHOD db_read_layout_info.
+
+    SELECT    layout,
+              tab,
+              fname,
+              rollname,
+              visible,
+              halign,
+              importance,
+              merge,
+              width,
+              text
+     FROM z2ui5_t002
+    WHERE layout = @i_def-layout
+    AND   tab    = @i_def-tab
+    INTO CORRESPONDING FIELDS OF TABLE @r_t002 ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
+  METHOD db_read_layout_multi.
+
+    SELECT  layout,
+            tab,
+            descr,
+            classname,
+            def,
+            uname
+     FROM z2ui5_t001
+    WHERE classname   = @i_classname
+    AND   tab     = @i_tab_name
+    INTO CORRESPONDING FIELDS OF TABLE @r_t001 ##SUBRC_OK.
+
+  ENDMETHOD.
+
+
+  METHOD factory.
+
+    result = NEW #( ).
+
+    result->ms_layout          = layout.
+    result->mv_open            = open_layout.
+    result->mv_delete          = delete_layout.
+    result->mv_extended_layout = extended_layout.
+
+  ENDMETHOD.
+
+
+  METHOD get_layouts.
+
+    mt_t001 = select_layouts(
+      classname = CONV #( ms_layout-s_head-classname )
+      tab       = CONV #( ms_layout-s_head-tab ) ).
+
+    IF mt_t001 IS NOT INITIAL.
+
+      DATA(t001) = REF #( mt_t001[ layout = ms_layout-s_head-layout ] OPTIONAL ).
+      IF t001 IS BOUND.
+        t001->selkz = abap_true.
+        RETURN.
+      ELSE.
+        t001 = REF #( mt_t001[ 1 ] OPTIONAL ).
+        t001->selkz = abap_true.
+      ENDIF.
 
     ENDIF.
 
-    on_event( ).
+  ENDMETHOD.
+
+
+  METHOD get_selected_layout.
+
+    DATA(t001) = VALUE #( mt_t001[ selkz = abap_true ] OPTIONAL ).
+    IF t001 IS NOT INITIAL.
+
+      result = db_read_layout(
+           layout = t001-layout
+           tab    = t001-tab ).
+
+    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD init_edit.
+
+    mv_layout = ms_layout-s_head-layout.
+    mv_descr  = ms_layout-s_head-descr.
+    mv_def    = ms_layout-s_head-def.
+
+    mv_usr    = xsdbool( ms_layout-s_head-uname IS NOT INITIAL ).
+
+  ENDMETHOD.
+
+
+  METHOD init_layout.
+
+    " create the tab first if the db fields were added/deleted
+
+    DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_struc( tab ).
+    DATA(tab_name) = z2ui5_cl_util=>rtti_tab_get_relative_name( tab ).
+    IF tab_name IS INITIAL.
+      tab_name = classname.
+    ENDIF.
+
+
+    LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
+      INSERT VALUE #(
+                     tab      = tab_name
+                     fname    = lr_comp->name
+                     rollname = lr_comp->type->get_relative_name( ) ) INTO TABLE result-t_layout.
+    ENDLOOP.
+
+* Select Layouts
+    DATA(t_t001) = db_read_layout_multi(
+          i_classname = classname
+          i_tab_name  = tab_name ).
+
+* DEFAULT USER
+    DATA(def) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
+
+    IF def IS INITIAL.
+* DEFAULT
+      def  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
+    ENDIF.
+
+
+    IF def-layout IS NOT INITIAL.
+
+      DATA(t_t002) = db_read_layout_info( def ).
+
+      LOOP AT result-t_layout REFERENCE INTO DATA(layout).
+
+        TRY.
+            DATA(t002) = REF #( t_t002[ fname = layout->fname ] ).
+            layout->* = t002->*.
+          CATCH cx_root.
+            layout->layout     = 'Default'.
+            layout->halign     = 'Initial'.
+            layout->importance = 'None'.
+            layout->rollname   = layout->rollname.
+            layout->fname      = layout->fname.
+            layout->tab        = tab_name.
+        ENDTRY.
+
+      ENDLOOP.
+
+      result-s_head = def.
+
+    ELSE.
+
+*  Default Layout
+      DATA(index) = 0.
+
+      LOOP AT result-t_layout REFERENCE INTO layout.
+
+        index = index + 1.
+
+* Default ony 10 rows
+        IF index <= 10.
+          layout->visible = abap_true.
+        ENDIF.
+
+        IF layout->fname = 'MANDT' OR  layout->fname = 'ROW_ID'.
+          layout->visible = abap_false.
+        ENDIF.
+
+        layout->layout     = 'Default'.
+        layout->halign     = 'Initial'.
+        layout->importance = 'None'.
+        layout->tab        = tab_name.
+
+      ENDLOOP.
+
+      result-s_head-layout = 'Default'.
+      result-s_head-descr  = 'System generated Layout'.
+      result-s_head-def    = abap_true.
+      result-s_head-classname  = classname.
+      result-s_head-tab    = tab_name.
+
+    ENDIF.
+  ENDMETHOD.
+
+
+  METHOD on_event.
+
+    CASE client->get( )-event.
+
+      WHEN 'CANCEL'.
+        ms_result-check_cancel = abap_true.
+        client->popup_destroy( ).
+        client->nav_app_leave( ).
+
+      WHEN 'OK'.
+        client->popup_destroy( ).
+        client->nav_app_leave( ).
+
+      WHEN 'LAYOUT_SAVE'.
+        render_save( ).
+
+      WHEN 'CLOSE'.
+        client->nav_app_leave( ).
+
+      WHEN 'SAVE_CLOSE'.
+*        client->popup_destroy( ).
+        render_edit(  ).
+
+      WHEN 'SAVE_SAVE'.
+        save_layout( ).
+        render_edit(  ).
+*        client->popup_destroy( ).
+*        client->nav_app_leave( ).
+
+      WHEN 'OPEN_SELECT'.
+        ms_layout = get_selected_layout( ).
+        client->popup_destroy( ).
+        client->nav_app_leave( ).
+
+      WHEN 'DELETE_SELECT'.
+        db_delete_layout( ).
+        client->popup_destroy( ).
+        client->nav_app_leave( ).
+
+      WHEN 'LAYOUT_LOAD'.
+*        client->view_destroy( ).
+        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+                                       open_layout = abap_true   ) ).
+
+*      WHEN 'LAYOUT_EDIT'.
+*        client->view_destroy( ).
+*        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+*                                       extended_layout = abap_true   ) ).
+
+      WHEN 'LAYOUT_DELETE'.
+*        client->view_destroy( ).
+        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+                                       delete_layout = abap_true ) ).
+
+    ENDCASE.
 
   ENDMETHOD.
 
@@ -188,12 +447,50 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD render_delete.
+
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
+
+    DATA(dialog) = popup->dialog( title      = 'Layout'
+                                  afterclose = client->_event( 'CLOSE' ) ).
+
+    dialog->table(
+                headertext = 'Layout'
+                mode = 'SingleSelectLeft'
+                items = client->_bind_edit( mt_t001 )
+                )->columns(
+                    )->column( )->text( 'Layout' )->get_parent(
+                    )->column( )->text( 'Description'
+                    )->get_parent( )->get_parent(
+                )->items(
+                    )->column_list_item( selected = '{SELKZ}'
+                        )->cells(
+                            )->text( '{LAYOUT}'
+                            )->text( '{DESCR}' ).
+
+    dialog->footer( )->overflow_toolbar(
+          )->toolbar_spacer(
+          )->button(
+                text  = 'Back'
+                icon  = 'sap-icon://nav-back'
+                press = client->_event( 'CLOSE' )
+          )->button(
+                text  = 'Delete'
+                press = client->_event( 'DELETE_SELECT' )
+                type  = 'Reject'
+                icon  = 'sap-icon://delete' ).
+
+    client->popup_display( popup->stringify( ) ).
+
+  ENDMETHOD.
+
+
   METHOD render_edit.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
     DATA(dialog) = popup->dialog( title        = 'Layout'
                                   contentwidth = '50%'
-                                  afterclose   = client->_event( 'CLOSE' ) )->content( ).
+                                  afterclose   = client->_event( 'CANCEL' ) )->content( ).
 
     DATA(tab) = dialog->table( growing = abap_true
                                items   = client->_bind_edit( ms_layout-t_layout ) ).
@@ -274,14 +571,28 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
            )->footer( )->overflow_toolbar(
                )->toolbar_spacer(
                )->button(
-                   text  = 'Back'
-                   icon  = 'sap-icon://nav-back'
-                   press = client->_event( 'CLOSE' )
+                   text  = 'Cancel'
+                   icon  = 'sap-icon://sys-cancel-2'
+                   press = client->_event( 'CANCEL' )
+              )->button(
+                   text  = 'DB Delete'
+                   press = client->_event( 'LAYOUT_DELETE' )
+                   icon  = 'sap-icon://delete'
+              )->button(
+                   text  = 'DB Read'
+                   press = client->_event( 'LAYOUT_LOAD' )
+                   icon  = 'sap-icon://download-from-cloud'
              )->button(
-                   text  = 'Save'
-                   press = client->_event( 'EDIT_SAVE' )
+                   text  = 'DB Save'
+                   press = client->_event( 'LAYOUT_SAVE' )
                    icon  = 'sap-icon://save'
-                   type  = 'Emphasized' ).
+
+             )->button(
+                   text  = 'OK'
+                   icon  = 'sap-icon://accept'
+                   press = client->_event( 'OK' )
+                   type  = 'Emphasized'
+                   ).
 
     client->popup_display( popup->get_root( )->xml_get( ) ).
 
@@ -289,69 +600,42 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD on_event.
+  METHOD render_open.
 
-    CASE client->get( )-event.
+    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
-      WHEN 'CLOSE'.
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
+    DATA(dialog) = popup->dialog( title      = 'Layout'
+                                  afterclose = client->_event( 'CLOSE' ) ).
 
-      WHEN 'EDIT_SAVE'.
-        render_save( ).
+    dialog->table(
+                headertext = 'Layout'
+                mode = 'SingleSelectLeft'
+                items = client->_bind_edit( mt_t001 )
+                )->columns(
+                    )->column( )->text( 'Layout' )->get_parent(
+                    )->column( )->text( 'Description' )->get_parent(
+                    )->column( )->text( 'Default' )->get_parent(
+                    )->get_parent(
+                )->items(
+                    )->column_list_item( selected = '{SELKZ}'
+                        )->cells(
+                            )->text( '{LAYOUT}'
+                            )->text( '{DESCR}'
+                            )->text( '{DEF}' ).
 
-      WHEN 'SAVE_CLOSE'.
-        client->popup_destroy( ).
-        render_edit(  ).
+    dialog->footer( )->overflow_toolbar(
+          )->toolbar_spacer(
+          )->button(
+                text  = 'Back'
+                icon  = 'sap-icon://nav-back'
+                press = client->_event( 'CLOSE' )
+          )->button(
+                text  = 'Open'
+                icon  = 'sap-icon://accept'
+                press = client->_event( 'OPEN_SELECT' )
+                type  = 'Emphasized' ).
 
-      WHEN 'SAVE_SAVE'.
-        save_layout( ).
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-
-      WHEN 'OPEN_SELECT'.
-        ms_layout = get_selected_layout( ).
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-
-      WHEN 'DELETE_SELECT'.
-        db_delete_layout( ).
-        client->popup_destroy( ).
-        client->nav_app_leave( ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
-
-  METHOD factory.
-
-    result = NEW #( ).
-
-    result->ms_layout          = layout.
-    result->mv_open            = open_layout.
-    result->mv_delete          = delete_layout.
-    result->mv_extended_layout = extended_layout.
-
-  ENDMETHOD.
-
-
-  METHOD render_layout_function.
-
-    result = xml.
-
-    result->overflow_toolbar_menu_button( tooltip = 'Export' icon = 'sap-icon://action-settings'
-       )->_generic( `menu`
-          )->_generic( `Menu`
-             )->menu_item( text =  'Change Layout'
-                           icon = 'sap-icon://edit'
-                           press = client->_event( val = 'LAYOUT_EDIT' )
-             )->menu_item( text =  'Choose Layout'
-                           icon = 'sap-icon://open-folder'
-                           press = client->_event( val = 'LAYOUT_OPEN' )
-             )->menu_item( text = 'Manage Layouts'
-                           icon = 'sap-icon://delete'
-                           press = client->_event( val = 'LAYOUT_DELETE' ) ).
+    client->popup_display( popup->stringify( ) ).
 
   ENDMETHOD.
 
@@ -402,6 +686,14 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                 icon  = 'sap-icon://save' ).
 
     client->popup_display( popup->get_root( )->xml_get( ) ).
+
+  ENDMETHOD.
+
+
+  METHOD result.
+
+    ms_result-s_layout = ms_layout.
+    result = ms_result.
 
   ENDMETHOD.
 
@@ -490,84 +782,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD render_delete.
-
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
-
-    DATA(dialog) = popup->dialog( title      = 'Layout'
-                                  afterclose = client->_event( 'CLOSE' ) ).
-
-    dialog->table(
-                headertext = 'Layout'
-                mode = 'SingleSelectLeft'
-                items = client->_bind_edit( mt_t001 )
-                )->columns(
-                    )->column( )->text( 'Layout' )->get_parent(
-                    )->column( )->text( 'Description'
-                    )->get_parent( )->get_parent(
-                )->items(
-                    )->column_list_item( selected = '{SELKZ}'
-                        )->cells(
-                            )->text( '{LAYOUT}'
-                            )->text( '{DESCR}' ).
-
-    dialog->footer( )->overflow_toolbar(
-          )->toolbar_spacer(
-          )->button(
-                text  = 'Back'
-                icon  = 'sap-icon://nav-back'
-                press = client->_event( 'CLOSE' )
-          )->button(
-                text  = 'Delete'
-                press = client->_event( 'DELETE_SELECT' )
-                type  = 'Reject'
-                icon  = 'sap-icon://delete' ).
-
-    client->popup_display( popup->stringify( ) ).
-
-  ENDMETHOD.
-
-
-  METHOD render_open.
-
-    DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
-
-    DATA(dialog) = popup->dialog( title      = 'Layout'
-                                  afterclose = client->_event( 'CLOSE' ) ).
-
-    dialog->table(
-                headertext = 'Layout'
-                mode = 'SingleSelectLeft'
-                items = client->_bind_edit( mt_t001 )
-                )->columns(
-                    )->column( )->text( 'Layout' )->get_parent(
-                    )->column( )->text( 'Description' )->get_parent(
-                    )->column( )->text( 'Default' )->get_parent(
-                    )->get_parent(
-                )->items(
-                    )->column_list_item( selected = '{SELKZ}'
-                        )->cells(
-                            )->text( '{LAYOUT}'
-                            )->text( '{DESCR}'
-                            )->text( '{DEF}' ).
-
-    dialog->footer( )->overflow_toolbar(
-          )->toolbar_spacer(
-          )->button(
-                text  = 'Back'
-                icon  = 'sap-icon://nav-back'
-                press = client->_event( 'CLOSE' )
-          )->button(
-                text  = 'Open'
-                icon  = 'sap-icon://accept'
-                press = client->_event( 'OPEN_SELECT' )
-                type  = 'Emphasized' ).
-
-    client->popup_display( popup->stringify( ) ).
-
-  ENDMETHOD.
-
-
   METHOD select_layouts.
 
     result = db_read_head(
@@ -578,213 +792,51 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_selected_layout.
+  METHOD z2ui5_if_app~main.
 
-    DATA(t001) = VALUE #( mt_t001[ selkz = abap_true ] OPTIONAL ).
-    IF t001 IS NOT INITIAL.
+    me->client = client.
 
-      result = db_read_layout(
-           layout = t001-layout
-           tab    = t001-tab ).
+    IF mv_init = abap_false.
+      mv_init = abap_true.
+      on_init( ).
 
+      CASE abap_true.
+        WHEN mv_open.
+          get_layouts( ).
+          render_open( ).
+
+        WHEN mv_delete.
+          get_layouts( ).
+          render_delete( ).
+
+        WHEN OTHERS.
+          init_edit( ).
+          render_edit( ).
+
+      ENDCASE.
+
+*      client->view_model_update(  ).
+      RETURN.
     ENDIF.
 
-  ENDMETHOD.
+    IF client->get( )-check_on_navigated = abap_true.
 
+      TRY.
+          DATA(app) = CAST z2ui5_cl_popup_layout_v2( client->get_app( client->get( )-s_draft-id_prev_app ) ).
+          DATA(ls_result) = app->result( ).
+          IF ls_result-check_cancel = abap_true.
+            RETURN.
+          ENDIF.
+          ms_layout = app->ms_layout.
 
-  METHOD init_layout.
+        CATCH cx_root.
+      ENDTRY.
 
-    " create the tab first if the db fields were added/deleted
-
-    DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_struc( tab ).
-    DATA(tab_name) = z2ui5_cl_util=>rtti_tab_get_relative_name( tab ).
-    IF tab_name IS INITIAL.
-      tab_name = classname.
+      render_edit( ).
+      RETURN.
     ENDIF.
 
-
-    LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
-      INSERT VALUE #(
-                     tab      = tab_name
-                     fname    = lr_comp->name
-                     rollname = lr_comp->type->get_relative_name( ) ) INTO TABLE result-t_layout.
-    ENDLOOP.
-
-* Select Layouts
-    data(t_t001) = db_read_layout_multi(
-          i_classname = classname
-          i_tab_name  = tab_name ).
-
-* DEFAULT USER
-    DATA(def) = VALUE #( t_t001[  classname = classname tab = tab_name def = abap_true uname = sy-uname ] OPTIONAL ).
-
-    IF def IS INITIAL.
-* DEFAULT
-      def  = VALUE #( t_t001[ classname = classname tab = tab_name def = abap_true ] OPTIONAL ).
-    ENDIF.
-
-
-    IF def-layout IS NOT INITIAL.
-
-      data(t_t002) = db_read_layout_info( def ).
-
-      LOOP AT result-t_layout REFERENCE INTO DATA(layout).
-
-        TRY.
-            DATA(t002) = REF #( t_t002[ fname = layout->fname ] ).
-            layout->* = t002->*.
-          CATCH cx_root.
-            layout->layout     = 'Default'.
-            layout->halign     = 'Initial'.
-            layout->importance = 'None'.
-            layout->rollname   = layout->rollname.
-            layout->fname      = layout->fname.
-            layout->tab        = tab_name.
-        ENDTRY.
-
-      ENDLOOP.
-
-      result-s_head = def.
-
-    ELSE.
-
-*  Default Layout
-      DATA(index) = 0.
-
-      LOOP AT result-t_layout REFERENCE INTO layout.
-
-        index = index + 1.
-
-* Default ony 10 rows
-        IF index <= 10.
-          layout->visible = abap_true.
-        ENDIF.
-
-        IF layout->fname = 'MANDT' OR  layout->fname = 'ROW_ID'.
-          layout->visible = abap_false.
-        ENDIF.
-
-        layout->layout     = 'Default'.
-        layout->halign     = 'Initial'.
-        layout->importance = 'None'.
-        layout->tab        = tab_name.
-
-      ENDLOOP.
-
-      result-s_head-layout = 'Default'.
-      result-s_head-descr  = 'System generated Layout'.
-      result-s_head-def    = abap_true.
-      result-s_head-classname  = classname.
-      result-s_head-tab    = tab_name.
-
-    ENDIF.
-  ENDMETHOD.
-
-
-  METHOD get_layouts.
-
-    mt_t001 = select_layouts(
-      classname = CONV #( ms_layout-s_head-classname )
-      tab       = CONV #( ms_layout-s_head-tab ) ).
-
-    IF mt_t001 IS NOT INITIAL.
-
-      DATA(t001) = REF #( mt_t001[ layout = ms_layout-s_head-layout ] OPTIONAL ).
-      IF t001 IS BOUND.
-        t001->selkz = abap_true.
-        RETURN.
-      ELSE.
-        t001 = REF #( mt_t001[ 1 ] OPTIONAL ).
-        t001->selkz = abap_true.
-      ENDIF.
-
-    ENDIF.
+    on_event( ).
 
   ENDMETHOD.
-
-
-  METHOD init_edit.
-
-    mv_layout = ms_layout-s_head-layout.
-    mv_descr  = ms_layout-s_head-descr.
-    mv_def    = ms_layout-s_head-def.
-
-    mv_usr    = xsdbool( ms_layout-s_head-uname IS NOT INITIAL ).
-
-  ENDMETHOD.
-
-  METHOD db_delete_layout.
-
-    DATA(layout) = get_selected_layout( ).
-
-    DELETE  z2ui5_t001 FROM @layout-s_head.
-    DELETE  z2ui5_t002 FROM TABLE @layout-t_layout.
-
-    IF sy-subrc = 0.
-      COMMIT WORK AND WAIT.
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD db_read_layout.
-
-    SELECT SINGLE * FROM z2ui5_t001
-    WHERE layout = @layout
-    AND   tab    = @tab
-    INTO CORRESPONDING FIELDS OF @result-s_head ##SUBRC_OK.
-
-    SELECT * FROM z2ui5_t002
-    WHERE layout = @layout
-    AND   tab    = @tab
-    INTO CORRESPONDING FIELDS OF TABLE @result-t_layout ##SUBRC_OK.
-
-  ENDMETHOD.
-
-
-  METHOD db_read_head.
-
-    SELECT  * FROM z2ui5_t001
-    WHERE classname  = @i_classname
-    AND   tab        = @i_tab
-    INTO CORRESPONDING FIELDS OF TABLE @r_result ##SUBRC_OK.
-
-  ENDMETHOD.
-
-
-  METHOD db_read_layout_multi.
-
-    SELECT  layout,
-            tab,
-            descr,
-            classname,
-            def,
-            uname
-     FROM z2ui5_t001
-    WHERE classname   = @i_classname
-    AND   tab     = @i_tab_name
-    INTO CORRESPONDING FIELDS OF TABLE @r_t001 ##SUBRC_OK.
-
-  ENDMETHOD.
-
-
-  METHOD db_read_layout_info.
-
-    SELECT    layout,
-              tab,
-              fname,
-              rollname,
-              visible,
-              halign,
-              importance,
-              merge,
-              width,
-              text
-     FROM z2ui5_t002
-    WHERE layout = @i_def-layout
-    AND   tab    = @i_def-tab
-    INTO CORRESPONDING FIELDS OF TABLE @r_t002 ##SUBRC_OK.
-
-  ENDMETHOD.
-
 ENDCLASS.
