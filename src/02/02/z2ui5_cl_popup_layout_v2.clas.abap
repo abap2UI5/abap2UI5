@@ -586,7 +586,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                    text  = 'DB Save'
                    press = client->_event( 'LAYOUT_SAVE' )
                    icon  = 'sap-icon://save'
-
              )->button(
                    text  = 'OK'
                    icon  = 'sap-icon://accept'
@@ -815,7 +814,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
       ENDCASE.
 
-*      client->view_model_update(  ).
       RETURN.
     ENDIF.
 
