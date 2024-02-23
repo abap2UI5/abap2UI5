@@ -8,6 +8,7 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
     CLASS-METHODS factory
       IMPORTING
         val             TYPE z2ui5_cl_util=>ty_t_filter_multi
+        o_variant       TYPE REF TO z2ui5_cl_popup_get_variant
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
 

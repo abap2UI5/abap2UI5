@@ -53,13 +53,6 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
     DATA mt_halign     TYPE fixvalues.
     DATA mt_importance TYPE fixvalues.
 
-    CLASS-METHODS on_event_layout
-      IMPORTING
-        client        TYPE REF TO z2ui5_if_client
-        layout        TYPE ty_s_layout
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_if_client.
-
     CLASS-METHODS render_layout_function
       IMPORTING
         !xml          TYPE REF TO z2ui5_cl_xml_view
@@ -719,33 +712,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     mv_usr    = xsdbool( ms_layout-s_head-uname IS NOT INITIAL ).
 
   ENDMETHOD.
-
-
-  METHOD on_event_layout.
-
-    result = client.
-
-    CASE result->get( )-event.
-
-      WHEN 'LAYOUT_OPEN'.
-        client->view_destroy( ).
-        result->nav_app_call( factory( layout      = layout
-                                       open_layout = abap_true   ) ).
-
-      WHEN 'LAYOUT_EDIT'.
-        client->view_destroy( ).
-        result->nav_app_call( factory( layout = layout
-                                       extended_layout = abap_true   ) ).
-
-      WHEN 'LAYOUT_DELETE'.
-        client->view_destroy( ).
-        result->nav_app_call( factory( layout = layout
-                                       delete_layout = abap_true ) ).
-
-    ENDCASE.
-
-  ENDMETHOD.
-
 
   METHOD db_delete_layout.
 
