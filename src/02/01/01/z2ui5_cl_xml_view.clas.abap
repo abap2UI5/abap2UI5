@@ -3511,6 +3511,41 @@ methods WIZARD
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
 
+  methods template_repeat
+    importing
+      !list type CLIKE optional
+      !var type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods template_with
+    importing
+      !path type CLIKE optional
+      !helper type CLIKE optional
+      !var type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods template_if
+    importing
+      !test type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods template_then
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods template_else
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+  methods template_elseif
+    importing
+      !test type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -7125,6 +7160,71 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD template_else.
+
+    result = _generic( name  = `else`
+                      ns     = `template`
+                      ).
+
+  ENDMETHOD.
+
+
+  METHOD template_elseif.
+
+    result = _generic( name  = `elseif`
+                      ns     = `template`
+                      t_prop = VALUE #(
+                            ( n = `test`  v = test )
+                        ) ).
+
+  ENDMETHOD.
+
+
+    METHOD template_if.
+
+    result = _generic( name  = `if`
+                      ns     = `template`
+                      t_prop = VALUE #(
+                            ( n = `test`  v = test )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD template_repeat.
+
+    result = _generic( name  = `repeat`
+                      ns     = `template`
+                      t_prop = VALUE #(
+                            ( n = `list`  v = list )
+                            ( n = `var`  v = var )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD template_then.
+
+    result = _generic( name  = `then`
+                      ns     = `template`
+                      ).
+
+  ENDMETHOD.
+
+
+    METHOD template_with.
+
+    result = _generic( name  = `with`
+                      ns     = `template`
+                      t_prop = VALUE #(
+                            ( n = `path`  v = path )
+                            ( n = `helper`  v = helper )
+                            ( n = `var`  v = var )
+                        ) ).
+
+  ENDMETHOD.
+
+
   METHOD text.
     result = me.
     _generic( name   = `Text`
@@ -7877,6 +7977,7 @@ METHOD wizard.
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
                       ( n = `xmlns:table`    v = `sap.ui.table` )
+                      ( n = `xmlns:template`  v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
                       ( n = `xmlns:f`         v = `sap.f` )
                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
