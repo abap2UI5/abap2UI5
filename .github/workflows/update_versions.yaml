@@ -17,8 +17,8 @@ jobs:
     - run: npx npm-check-updates -u
     - run: npm i
     - name: Commit and create PR 🔀
-        uses: peter-evans/create-pull-request@v3
-        with:
-          title: 'build(deps): Upgrade NPM packages (automated)'
-          branch: 'build-deps-upgrade-npm-packages-automated'
-          commit-message: 'build(deps): upgrade NPM packages (automated)'
+      uses: peter-evans/create-pull-request@v3
+      with:
+        title: 'build(deps): Upgrade NPM packages (automated)'
+        branch: 'build-deps-upgrade-npm-packages-automated'
+        commit-message: 'build(deps): upgrade NPM packages (automated)'
