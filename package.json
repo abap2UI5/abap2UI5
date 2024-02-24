@@ -24,5 +24,8 @@
     "@abaplint/database-sqlite": "^2.7.144",
     "@abaplint/runtime": "^2.7.158",
     "@abaplint/transpiler-cli": "^2.7.158"
+  },
+  "dependencies": {
+    "npm-check-updates": "^16.14.15"
   }
 }
