@@ -387,14 +387,11 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN 'SAVE_CLOSE'.
-*        client->popup_destroy( ).
         render_edit(  ).
 
       WHEN 'SAVE_SAVE'.
         save_layout( ).
         render_edit(  ).
-*        client->popup_destroy( ).
-*        client->nav_app_leave( ).
 
       WHEN 'OPEN_SELECT'.
         ms_layout = get_selected_layout( ).
@@ -407,18 +404,11 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN 'LAYOUT_LOAD'.
-*        client->view_destroy( ).
-        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+        client->nav_app_call( factory( layout = ms_layout
                                        open_layout = abap_true   ) ).
 
-*      WHEN 'LAYOUT_EDIT'.
-*        client->view_destroy( ).
-*        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
-*                                       extended_layout = abap_true   ) ).
-
       WHEN 'LAYOUT_DELETE'.
-*        client->view_destroy( ).
-        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+        client->nav_app_call( factory( layout = ms_layout
                                        delete_layout = abap_true ) ).
 
     ENDCASE.

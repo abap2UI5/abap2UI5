@@ -11,7 +11,6 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
         handle1 TYPE string,
         handle2 TYPE string,
         handle3 TYPE string,
-        handle4 TYPE string,
       END OF ty_s_variant.
     DATA ms_variant TYPE ty_s_variant.
 
@@ -38,7 +37,6 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
         var_handle1     TYPE clike DEFAULT sy-repid
         var_handle2     TYPE clike OPTIONAL
         var_handle3     TYPE clike OPTIONAL
-        var_handle4     TYPE clike OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
 
@@ -73,7 +71,63 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
+CLASS Z2UI5_CL_POPUP_GET_RANGE_MULTI IMPLEMENTATION.
+
+
+  METHOD db_read.
+    TRY.
+
+        CLEAR mt_variant.
+
+        DATA lt_variant_user TYPE ty_t_variant_out.
+        z2ui5_cl_util=>db_load_by_handle(
+            EXPORTING
+                uname   = ms_variant-uname
+                handle  = ms_variant-handle1
+                handle2 = ms_variant-handle2
+                handle3 = ms_variant-handle3
+            IMPORTING
+                result  = lt_variant_user ).
+        INSERT LINES OF lt_variant_user INTO TABLE mt_variant.
+
+        DATA lt_variant TYPE ty_t_variant_out.
+        z2ui5_cl_util=>db_load_by_handle(
+            EXPORTING
+                handle  = ms_variant-handle1
+                handle2 = ms_variant-handle2
+                handle3 = ms_variant-handle3
+            IMPORTING
+                result  = lt_variant
+         ).
+        INSERT LINES OF lt_variant INTO TABLE mt_variant.
+
+      CATCH cx_root.
+    ENDTRY.
+  ENDMETHOD.
+
+
+  METHOD db_save.
+
+    DATA(lt_variant_user) = mt_variant.
+    DELETE lt_variant_user WHERE s_variant-uname IS INITIAL.
+    z2ui5_cl_util=>db_save(
+        uname   = ms_variant-uname
+        handle  = ms_variant-handle1
+        handle2 = ms_variant-handle2
+        handle3 = ms_variant-handle3
+        data    = lt_variant_user
+    ).
+
+    DATA(lt_variant) = mt_variant.
+    DELETE lt_variant WHERE s_variant-uname IS NOT INITIAL.
+    z2ui5_cl_util=>db_save(
+        handle  = ms_variant-handle1
+        handle2 = ms_variant-handle2
+        handle3 = ms_variant-handle3
+        data    = lt_variant
+    ).
+
+  ENDMETHOD.
 
 
   METHOD factory.
@@ -257,6 +311,19 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD save_variant.
+
+    db_read( ).
+    ms_variant_save-t_filter = ms_result-t_sql.
+    INSERT  ms_variant_save INTO TABLE mt_variant.
+    db_save( ).
+    db_read( ).
+    popup_display( ).
+    client->message_toast_display( `Variant saved` ).
+
+  ENDMETHOD.
+
+
   METHOD z2ui5_if_app~main.
     me->client = client.
 
@@ -331,72 +398,4 @@ CLASS z2ui5_cl_popup_get_range_multi IMPLEMENTATION.
 
     ENDCASE.
   ENDMETHOD.
-
-  METHOD db_read.
-    TRY.
-
-        CLEAR mt_variant.
-
-        DATA lt_variant_user TYPE ty_t_variant_out.
-        z2ui5_cl_util=>db_load_by_handle(
-            EXPORTING
-                uname   = ms_variant-uname
-                handle  = ms_variant-handle1
-                handle2 = ms_variant-handle2
-                handle3 = ms_variant-handle3
-            IMPORTING
-                result  = lt_variant_user ).
-        INSERT LINES OF lt_variant_user INTO TABLE mt_variant.
-
-        DATA lt_variant TYPE ty_t_variant_out.
-        z2ui5_cl_util=>db_load_by_handle(
-            EXPORTING
-                handle  = ms_variant-handle1
-                handle2 = ms_variant-handle2
-                handle3 = ms_variant-handle3
-            IMPORTING
-                result  = lt_variant
-         ).
-        INSERT LINES OF lt_variant INTO TABLE mt_variant.
-
-      CATCH cx_root.
-    ENDTRY.
-  ENDMETHOD.
-
-  METHOD db_save.
-
-    DATA(lt_variant_user) = mt_variant.
-    DELETE lt_variant_user WHERE s_variant-uname IS INITIAL.
-    z2ui5_cl_util=>db_save(
-        uname   = ms_variant-uname
-        handle  = ms_variant-handle1
-        handle2 = ms_variant-handle2
-        handle3 = ms_variant-handle3
-        data    = lt_variant_user
-    ).
-
-    DATA(lt_variant) = mt_variant.
-    DELETE lt_variant WHERE s_variant-uname IS NOT INITIAL.
-    z2ui5_cl_util=>db_save(
-        handle  = ms_variant-handle1
-        handle2 = ms_variant-handle2
-        handle3 = ms_variant-handle3
-        data    = lt_variant
-    ).
-
-  ENDMETHOD.
-
-
-  METHOD save_variant.
-
-    db_read( ).
-    ms_variant_save-t_filter = ms_result-t_sql.
-    INSERT  ms_variant_save INTO TABLE mt_variant.
-    db_save( ).
-    db_read( ).
-    popup_display( ).
-    client->message_toast_display( `Variant saved` ).
-
-  ENDMETHOD.
-
 ENDCLASS.
