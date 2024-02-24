@@ -15,7 +15,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
+CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 
 
   METHOD get_js.
@@ -70,31 +70,35 @@ CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'VIEW') {` && |\n|  &&
-             `                           this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n|  &&
-             `                            return;` && |\n|  &&
+             `                           if( !sap?.z2ui5?.oView?.mProperties?.viewContent === 'undefined' ) {` && |\n|  &&
+             `                              this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n|  &&
+             `                           } else {` && |\n|  &&
+             `                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml' );` && |\n|  &&
+             `                           }` && |\n|  &&
+             `                           return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'PLAIN') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify(sap.z2ui5.responseData, null, 3) , 'json' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, JSON.stringify(sap.z2ui5.responseData, null, 3) , 'json' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'REQUEST') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify(sap.z2ui5.oBody, null, 3) , 'json' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, JSON.stringify(sap.z2ui5.oBody, null, 3) , 'json' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'POPUP') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, this.prettifyXml( sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML ) , 'xml' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML ) , 'xml' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'POPUP_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap.z2ui5.oViewPopup.getModel().getData(), null, 3) , 'json' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, JSON.stringify( sap.z2ui5.oViewPopup.getModel().getData(), null, 3) , 'json' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'POPOVER') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent,  sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML  , 'xml' );` && |\n|  &&
+             `                            this.displayEditor( oEvent,  sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML  , 'xml' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'POPOVER_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewPopover?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oViewPopover?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST1') {` && |\n|  &&
@@ -102,15 +106,15 @@ CLASS z2ui5_cl_fw_cc_debugging_tools IMPLEMENTATION.
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST1_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oViewNest?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST2') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, sap?.z2ui5?.oViewNest2?.mProperties?.viewContent  , 'xml' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, sap?.z2ui5?.oViewNest2?.mProperties?.viewContent  , 'xml' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST2_MODEL') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, JSON.stringify( sap?.z2ui5?.oViewNest2?.getModel( )?.getData( ) , null, 3) , 'json' );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'SOURCE') {` && |\n|  &&
