@@ -387,14 +387,11 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN 'SAVE_CLOSE'.
-*        client->popup_destroy( ).
         render_edit(  ).
 
       WHEN 'SAVE_SAVE'.
         save_layout( ).
         render_edit(  ).
-*        client->popup_destroy( ).
-*        client->nav_app_leave( ).
 
       WHEN 'OPEN_SELECT'.
         ms_layout = get_selected_layout( ).
@@ -407,18 +404,11 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
         client->nav_app_leave( ).
 
       WHEN 'LAYOUT_LOAD'.
-*        client->view_destroy( ).
-        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+        client->nav_app_call( factory( layout = ms_layout
                                        open_layout = abap_true   ) ).
 
-*      WHEN 'LAYOUT_EDIT'.
-*        client->view_destroy( ).
-*        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
-*                                       extended_layout = abap_true   ) ).
-
       WHEN 'LAYOUT_DELETE'.
-*        client->view_destroy( ).
-        client->nav_app_call( z2ui5_cl_popup_layout_v2=>factory( layout = ms_layout
+        client->nav_app_call( factory( layout = ms_layout
                                        delete_layout = abap_true ) ).
 
     ENDCASE.
@@ -451,11 +441,13 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
-    DATA(dialog) = popup->dialog( title      = 'Layout'
+    DATA(dialog) = popup->dialog( title      = 'Layout - Delete'
+            contentheight = `50%`
+                                 contentwidth  = `50%`
                                   afterclose = client->_event( 'CLOSE' ) ).
 
     dialog->table(
-                headertext = 'Layout'
+*                headertext = 'Layout'
                 mode = 'SingleSelectLeft'
                 items = client->_bind_edit( mt_t001 )
                 )->columns(
@@ -489,7 +481,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
     DATA(dialog) = popup->dialog( title        = 'Layout'
-                                  contentwidth = '50%'
+                                        contentheight = `50%`
+                                 contentwidth  = `50%`
                                   afterclose   = client->_event( 'CANCEL' ) )->content( ).
 
     DATA(tab) = dialog->table( growing = abap_true
@@ -569,11 +562,6 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     dialog->get_parent(
            )->footer( )->overflow_toolbar(
-               )->toolbar_spacer(
-               )->button(
-                   text  = 'Cancel'
-                   icon  = 'sap-icon://sys-cancel-2'
-                   press = client->_event( 'CANCEL' )
               )->button(
                    text  = 'DB Delete'
                    press = client->_event( 'LAYOUT_DELETE' )
@@ -586,6 +574,11 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                    text  = 'DB Save'
                    press = client->_event( 'LAYOUT_SAVE' )
                    icon  = 'sap-icon://save'
+                     )->toolbar_spacer(
+                                  )->button(
+                   text  = 'Cancel'
+                   icon  = 'sap-icon://sys-cancel-2'
+                   press = client->_event( 'CANCEL' )
              )->button(
                    text  = 'OK'
                    icon  = 'sap-icon://accept'
@@ -603,11 +596,13 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
-    DATA(dialog) = popup->dialog( title      = 'Layout'
+    DATA(dialog) = popup->dialog( title      = 'Layout - Open'
+            contentheight = `50%`
+                                 contentwidth  = `50%`
                                   afterclose = client->_event( 'CLOSE' ) ).
 
     dialog->table(
-                headertext = 'Layout'
+*                headertext = 'Layout'
                 mode = 'SingleSelectLeft'
                 items = client->_bind_edit( mt_t001 )
                 )->columns(
@@ -643,10 +638,13 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup(  ).
 
-    DATA(dialog) = popup->dialog( title      = 'Save'
+    DATA(dialog) = popup->dialog( title      = 'Layout - Save'
+            contentheight = `50%`
+                                 contentwidth  = `50%`
                                   afterclose = client->_event( 'SAVE_CLOSE' ) ).
 
-    DATA(form) = dialog->simple_form( title           = 'Layout'
+    DATA(form) = dialog->simple_form(
+*    title           = 'Layout'
                                       editable        = abap_true
                                       labelspanxl     = `4`
                                       labelspanl      = `4`
@@ -655,7 +653,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
                                       adjustlabelspan = abap_false
                                       ).
 
-    form->toolbar( )->title( 'Layout' ).
+*    form->toolbar( )->title( 'Layout' ).
 
     form->content( 'form'
                            )->label( 'Layout'
