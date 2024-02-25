@@ -155,11 +155,11 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
   METHOD clear.
 
-    mo_app->mt_attri[ name = val ]-check_dissolved = abap_false.
+    mo_app->mt_attri->*[ name = val ]-check_dissolved = abap_false.
 
-    LOOP AT mo_app->mt_attri REFERENCE INTO DATA(lr_bind2).
+    LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2).
       IF lr_bind2->name CS val && `-`.
-        DELETE mo_app->mt_attri.
+        DELETE mo_app->mt_attri->*.
       ENDIF.
     ENDLOOP.
 
@@ -200,7 +200,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     mv_type   = type.
 
     DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
-        attri = REF #( mo_app->mt_attri )
+        attri = mo_app->mt_attri
         app   = mo_app->mo_app ).
 
     mr_attri = lo_model->attri_search_a_dissolve( val ).
@@ -269,7 +269,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
                         name            = lv_id
                         json_bind_local = lo_json
                         bind_type       = z2ui5_if_core_types=>cs_bind_type-one_time )
-          INTO TABLE mo_app->mt_attri.
+          INTO TABLE mo_app->mt_attri->*.
 
         result = |/{ lv_id }|.
 
