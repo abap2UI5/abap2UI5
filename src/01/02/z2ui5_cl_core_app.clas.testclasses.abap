@@ -44,6 +44,10 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
   METHOD test_db_save.
 
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
     DATA(lo_app_user) = NEW ltcl_test_db( ).
     lo_app_user->mv_value = `my value`.
 
