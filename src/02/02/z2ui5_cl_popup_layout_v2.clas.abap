@@ -737,6 +737,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     SELECT SINGLE layout FROM z2ui5_t001
     WHERE layout = @t001-layout
     AND   tab    = @t001-tab
+    AND   handle1 = ``
+    AND   handle2 = ``
     INTO @t001-layout.
 
     IF sy-subrc = 0.
