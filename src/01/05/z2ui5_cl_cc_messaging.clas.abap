@@ -95,8 +95,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `                 });` && |\n| &&
       `                Messaging.addMessages(oMessage) ;` && |\n| &&
       `           });` && |\n| &&
-
-      `       },` && |\n| &&
+`       },` && |\n| &&
       |\n| &&
       `       renderer(oRm, oControl) {` && |\n| &&
       `         if(oControl.isInitialized) { return; }` && |\n| &&
