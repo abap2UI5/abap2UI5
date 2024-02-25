@@ -7,7 +7,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     INTERFACES if_serializable_object.
 
-    DATA mt_attri   TYPE z2ui5_if_core_types=>ty_t_attri.
+    DATA mt_attri   TYPE REF TO z2ui5_if_core_types=>ty_t_attri.
     DATA mo_app     TYPE REF TO object.
     DATA ms_draft   TYPE z2ui5_if_types=>ty_s_get-s_draft.
 
@@ -42,6 +42,7 @@ CLASS z2ui5_cl_core_app DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
+    METHODS constructor.
     METHODS db_save.
 
   PROTECTED SECTION.
@@ -50,7 +51,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_app IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_APP IMPLEMENTATION.
 
 
   METHOD all_xml_parse.
@@ -69,7 +70,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     TRY.
 
         DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
-          attri = REF #( mt_attri )
+          attri = mt_attri
           app   = mo_app ).
         lo_model->attri_before_save( ).
         result = z2ui5_cl_util=>xml_stringify( me ).
@@ -78,13 +79,13 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
         TRY.
 
             DATA(lo_dissolver) = NEW z2ui5_cl_core_dissolve_srv(
-              attri = REF #( mt_attri )
+              attri = mt_attri
               app   = mo_app ).
 
             lo_dissolver->main( ).
             lo_dissolver->main( ).
             lo_model = NEW z2ui5_cl_core_attri_srv(
-              attri = REF #( mt_attri )
+              attri = mt_attri
               app   = mo_app ).
             lo_model->attri_before_save( ).
 
@@ -100,6 +101,13 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD constructor.
+
+    CREATE DATA mt_attri.
+
+  ENDMETHOD.
+
+
   METHOD db_load.
 
     DATA(lo_db) = NEW z2ui5_cl_core_draft_srv( ).
@@ -107,7 +115,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result = all_xml_parse( ls_db-data ).
 
     DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
-       attri = REF #( result->mt_attri )
+       attri = result->mt_attri
        app   = result->mo_app ).
 
     lo_model->attri_after_load( ).
@@ -124,7 +132,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     result->mo_app = app.
 
     DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
-        attri = REF #( result->mt_attri )
+        attri = result->mt_attri
         app   = result->mo_app ).
 
     lo_model->attri_refs_update( ).
@@ -151,7 +159,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
     lo_json_mapper->model_front_to_back(
         view    = iv_view
-        t_attri = REF #( mt_attri )
+        t_attri = mt_attri
         model   = io_model ).
 
   ENDMETHOD.

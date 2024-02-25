@@ -171,13 +171,17 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
   METHOD db_read_layout.
 
     SELECT SINGLE * FROM z2ui5_t001
-    WHERE layout = @layout
-    AND   tab    = @tab
+    WHERE layout  = @layout
+    AND   tab     = @tab
+    AND   handle1 = ``
+    AND   handle2 = ``
     INTO CORRESPONDING FIELDS OF @result-s_head ##SUBRC_OK.
 
     SELECT * FROM z2ui5_t002
     WHERE layout = @layout
     AND   tab    = @tab
+    AND   handle1 = ``
+    AND   handle2 = ``
     INTO CORRESPONDING FIELDS OF TABLE @result-t_layout ##SUBRC_OK.
 
   ENDMETHOD.
@@ -733,6 +737,8 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     SELECT SINGLE layout FROM z2ui5_t001
     WHERE layout = @t001-layout
     AND   tab    = @t001-tab
+    AND   handle1 = ``
+    AND   handle2 = ``
     INTO @t001-layout.
 
     IF sy-subrc = 0.
