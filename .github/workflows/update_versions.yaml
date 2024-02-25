@@ -19,7 +19,9 @@ jobs:
     - name: Commit and create PR 🔀
       uses: peter-evans/create-pull-request@v3
       with:
-        token: test
+        token: ${{ secrets.test }}
+        commit-message: 'build(deps): upgrade NPM packages (automated)'
+        committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+        author: ${{ github.actor }} <${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com>
         title: 'build(deps): Upgrade NPM packages (automated)'
         branch: 'build-deps-upgrade-npm-packages-automated'
-        commit-message: 'build(deps): upgrade NPM packages (automated)'
