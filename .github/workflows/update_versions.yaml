@@ -22,3 +22,4 @@ jobs:
         title: 'build(deps): Upgrade NPM packages (automated)'
         branch: 'build-deps-upgrade-npm-packages-automated'
         commit-message: 'build(deps): upgrade NPM packages (automated)'
+        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
