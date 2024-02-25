@@ -9,13 +9,21 @@ Legend
 - : removed
 
 
+2024-02-25 v1.120.0
+-------------------
+
++ Templating
++ Popup & Layout Functionality
+* Debugging Tools XML Output
+* Messaging
+
+
 2024-02-16 v1.119.0
 -------------------
 
 + Source Code View for Debugging Tools
 + New Parameters for the UI5 Tree Control
 ! New Design for Start Page
-
 
 
 2024-02-08 v1.118.0
