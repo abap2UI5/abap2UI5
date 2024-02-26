@@ -126,7 +126,8 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                       value            = client->_bind_edit( ms_home-classname )
                       submit           = client->_event( ms_home-btn_event_id )
                       valuehelprequest = client->_event( 'VALUE_HELP' )
-                      showvaluehelp    = abap_true ).
+                      showvaluehelp    = abap_true
+                      width            = `70%` ).
 
     ELSE.
       simple_form2->text( ms_home-classname ).
