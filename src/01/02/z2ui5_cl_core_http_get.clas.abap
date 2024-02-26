@@ -169,11 +169,12 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `        },` && |\n| &&
                `        async displayNestedView(xml, viewProp, viewNestId) {` && |\n| &&
+               `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            const oView = await XMLView.create({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oControllerNest,` && |\n| &&
+               `                preprocessors: { xml: { models: { meta: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
-               `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `            oView.setModel(oview_model);` && |\n| &&
                `            let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n| &&
