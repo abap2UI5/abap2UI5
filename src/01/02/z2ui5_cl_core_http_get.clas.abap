@@ -139,7 +139,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            const oFragment = await Fragment.load({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oControllerPopup,` && |\n| &&
-               `                preprocessors: { xml: { models: { meta: oview_model } } },` && |\n| &&
                `                id: "popupId"` && |\n| &&
                `            });` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
