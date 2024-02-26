@@ -126,7 +126,6 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
   METHOD debugging_tools.
 
-    DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
     DATA(lv_index_html) = to_upper( z2ui5_cl_fw_cc_debugging_tools=>get_js( ) ) ##NEEDED.
     IF lv_index_html CS `<`.
       cl_abap_unit_assert=>fail( 'use of < not allowed - launchpad compatibility' ).
