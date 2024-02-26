@@ -52,10 +52,6 @@ CLASS Z2UI5_CL_CC_MESSAGE_MANAGER IMPLEMENTATION.
       `        }` && |\n| &&
       `       },` && |\n| &&
       |\n| &&
-      `       onModelChange(oEvent) {` && |\n| &&
-      `           this.Messaging2Model();` && |\n| &&
-      `       },` && |\n| &&
-      |\n| &&
       `       Messaging2Model( ){` && |\n| &&
       `           var oData = sap.z2ui5.oMessageManager.getMessageModel().getData();` && |\n| &&
       `           var Model = [];` && |\n| &&
@@ -70,10 +66,11 @@ CLASS Z2UI5_CL_CC_MESSAGE_MANAGER IMPLEMENTATION.
       `                       DESCRIPTIONURL : element.descriptionUrl, ` && |\n| &&
       `                       PERSISTENT : element.persistent } );` && |\n| &&
       `           });` && |\n| &&
-      `           this.setProperty("items", Model );` && |\n| &&
+      `           this.setProperty("items", Model, true );` && |\n| &&
       `       },` && |\n| &&
       |\n| &&
       `       Model2Messaging( ){` && |\n| &&
+      `               debugger;` && |\n| &&
       `           var Model = this.getProperty("items");` && |\n| &&
       `           if(!Model) { return; }` && |\n| &&
       |\n| &&
@@ -93,19 +90,19 @@ CLASS Z2UI5_CL_CC_MESSAGE_MANAGER IMPLEMENTATION.
       `                 });` && |\n| &&
       `                sap.z2ui5.oMessageManager.addMessages(oMessage) ;` && |\n| &&
       `           });` && |\n| &&
-      `           var resBinding = new sap.ui.model.ListBinding(sap.z2ui5.oMessageManager.getMessageModel(), "/" );` && |\n| &&
-      `           resBinding.attachChange(this.onModelChange.bind(this));` && |\n| &&
       `       },` && |\n| &&
       |\n| &&
       `       renderer(oRm, oControl) {` && |\n| &&
       `           if(oControl.isInitialized) { return; }` && |\n| &&
-      `               oControl.Model2Messaging();` && |\n| &&
+      `               debugger;` && |\n| &&
+      `               var resBinding = new sap.ui.model.ListBinding(sap.z2ui5.oMessageManager.getMessageModel(), "/" );` && |\n| &&
+      `               resBinding.attachChange(oControl.Messaging2Model.bind(oControl));` && |\n| &&
       `               sap.z2ui5.oMessageManager.registerObject(sap.z2ui5.oView, true);` && |\n| &&
       `           oControl.isInitialized = true;` && |\n| &&
-        `           setTimeout( (oControl) => { ` && |\n| &&
-      `                   ` && |\n| &&
-      `   ` && |\n| &&
-      `               }, 50 , oControl );` && |\n| &&
+*        `           setTimeout( (oControl) => { ` && |\n| &&
+*      `                   ` && |\n| &&
+*      `   ` && |\n| &&
+*      `               }, 50 , oControl );` && |\n| &&
       `       }` && |\n| &&
       `   });` && |\n| &&
       `});`.
