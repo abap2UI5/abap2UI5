@@ -46,10 +46,12 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `           }` && |\n| &&
       `       },` && |\n| &&
       `       init() {` && |\n| &&
-      `        debugger; if (!sap.z2ui5.oMessaging){` && |\n| &&
+      `         if (!sap.z2ui5.oMessaging){` && |\n| &&
       `         sap.z2ui5.oMessaging = {};` && |\n| &&
       `         sap.z2ui5.oMessaging.oMessageProcessor = new sap.ui.core.message.ControlMessageProcessor();` && |\n| &&
+      `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n| &&
       `          sap.z2ui5.oMessaging.oMessageManager = Messaging;` && |\n| &&
+*      `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n| &&
       `          sap.z2ui5.oMessaging.oMessageManager.registerMessageProcessor(sap.z2ui5.oMessaging.oMessageProcessor);` && |\n| &&
       `        }` && |\n| &&
       `       },` && |\n| &&
@@ -59,7 +61,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `       },` && |\n| &&
       |\n| &&
       `       Messaging2Model( ){` && |\n| &&
-      `         debugger;  var oData = Messaging.getMessageModel().getData();` && |\n| &&
+      `           var oData = Messaging.getMessageModel().getData();` && |\n| &&
       `           var Model = [];` && |\n| &&
       `           oData.forEach(element => {` && |\n| &&
       `               Model.push( { ` && |\n| &&
@@ -72,7 +74,7 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `                       DESCRIPTIONURL : element.descriptionUrl, ` && |\n| &&
       `                       PERSISTENT : element.persistent } );` && |\n| &&
       `           });` && |\n| &&
-      `           this.setProperty("items", Model );` && |\n| &&
+      `           this.setProperty("items", Model, true );` && |\n| &&
       `       },` && |\n| &&
       |\n| &&
       `       Model2Messaging( ){` && |\n| &&
@@ -95,19 +97,21 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `                 });` && |\n| &&
       `                Messaging.addMessages(oMessage) ;` && |\n| &&
       `           });` && |\n| &&
-`       },` && |\n| &&
+      `           var resBinding = new sap.ui.model.ListBinding(Messaging.getMessageModel(), "/" );` && |\n| &&
+      `           resBinding.attachChange(this.onModelChange.bind(this));` && |\n| &&
+      `       },` && |\n| &&
       |\n| &&
       `       renderer(oRm, oControl) {` && |\n| &&
-      `         if(oControl.isInitialized) { return; }` && |\n| &&
-      `         oControl.Model2Messaging();` && |\n| &&
-      `         Messaging.registerObject(sap.z2ui5.oView, true);` && |\n| &&
-      `      //   var resBinding = new sap.ui.model.ListBinding(Messaging.getMessageModel(), "/" );` && |\n| &&
-      `      //   resBinding.attachChange(oControl.onModelChange.bind(oControl));` && |\n| &&
-      `         sap.z2ui5.onBeforeRoundtrip.push( oControl.onModelChange.bind(oControl) ); ` && |\n| &&
-      `         oControl.isInitialized = true;` && |\n| &&
+      `           if(oControl.isInitialized) { return; }` && |\n| &&
+      `               oControl.Model2Messaging();` && |\n| &&
+      `                Messaging.registerObject(sap.z2ui5.oView, true);` && |\n| &&
+      `           oControl.isInitialized = true;` && |\n| &&
+        `           setTimeout( (oControl) => { ` && |\n| &&
+      `                   ` && |\n| &&
+      `   ` && |\n| &&
+      `               }, 50 , oControl );` && |\n| &&
       `       }` && |\n| &&
       `   });` && |\n| &&
       `}); } catch (e) { }`.
-
   ENDMETHOD.
 ENDCLASS.
