@@ -73,7 +73,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                           if( !sap?.z2ui5?.oView?.mProperties?.viewContent === 'undefined' ) {` && |\n|  &&
              `                              this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );` && |\n|  &&
              `                           } else {` && |\n|  &&
-             `                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml' );` && |\n|  &&
+             `                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );` && |\n|  &&
              `                           }` && |\n|  &&
              `                           return;` && |\n|  &&
              `                        }` && |\n|  &&
@@ -143,7 +143,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                        oEvent.getSource().getModel().oData.type = type;` && |\n|  &&
              `                        oEvent.getSource().getModel().refresh();` && |\n|  &&
              `                    },` && |\n|  &&
-             `                    onTemplatingPress: function (oEvent) {debugger;` && |\n|  &&
+             `                    onTemplatingPress: function (oEvent) {` && |\n|  &&
              `                      if (oEvent.getSource().getPressed()) {` && |\n|  &&
              `                          oEvent.getSource().getModel().oData.value = oEvent.getSource().getModel().oData.xContent;` && |\n|  &&
              `                          oEvent.getSource().getModel().refresh();` && |\n|  &&
