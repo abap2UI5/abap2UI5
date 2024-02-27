@@ -87,8 +87,22 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         s_front-params    = mo_action->ms_next-s_set
         s_front-id        = mo_action->mo_app->ms_draft-id
         s_front-app       = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
-        s_front-app_start = ms_request-s_control-app_start
-        model             = mo_action->mo_app->model_json_stringify( ) ).
+        s_front-app_start = ms_request-s_control-app_start ).
+
+    IF ms_response-s_front-params-s_view-check_update_model = abap_true
+    OR ms_response-s_front-params-s_view_nest-check_update_model = abap_true
+    OR ms_response-s_front-params-s_view_nest2-check_update_model = abap_true
+    OR ms_response-s_front-params-s_popup-check_update_model = abap_true
+    OR ms_response-s_front-params-s_popover-check_update_model = abap_true
+    OR ms_response-s_front-params-s_view-xml IS NOT INITIAL
+    OR ms_response-s_front-params-s_view_nest-xml IS NOT INITIAL
+    OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
+    OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
+    OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL.
+      ms_response-model = mo_action->mo_app->model_json_stringify( ).
+    ELSE.
+      ms_response-model = `{}`.
+    ENDIF.
 
     DATA(lo_json_mapper) = NEW z2ui5_cl_core_json_srv( ).
     mv_response = lo_json_mapper->response_abap_to_json( ms_response ).

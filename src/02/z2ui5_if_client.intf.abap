@@ -33,7 +33,9 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
-  METHODS view_model_update.
+  METHODS view_model_update
+    IMPORTING
+      path TYPE data OPTIONAL.
 
   METHODS nest_view_display
     IMPORTING
@@ -84,7 +86,7 @@ INTERFACE z2ui5_if_client
 
   METHODS nav_app_leave
     IMPORTING
-      value(app)           TYPE REF TO z2ui5_if_app OPTIONAL
+      VALUE(app)    TYPE REF TO z2ui5_if_app OPTIONAL
     RETURNING
       VALUE(result) TYPE string.
 
