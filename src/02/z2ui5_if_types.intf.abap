@@ -43,4 +43,10 @@ INTERFACE z2ui5_if_types
       s_config               TYPE ty_s_config,
     END OF ty_s_get.
 
+  TYPES:
+    BEGIN OF ty_s_event_control,
+      check_view_destroy          TYPE abap_bool,
+      check_allow_parallel_events TYPE abap_bool,
+    END OF ty_s_event_control.
+
 ENDINTERFACE.

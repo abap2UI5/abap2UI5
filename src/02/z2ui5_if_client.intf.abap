@@ -109,7 +109,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val                TYPE clike        OPTIONAL
       t_arg              TYPE string_table OPTIONAL
-      check_view_destroy TYPE abap_bool    DEFAULT abap_false
+      check_view_destroy TYPE abap_bool OPTIONAL
+      s_cnt              TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
       VALUE(result)      TYPE string.
