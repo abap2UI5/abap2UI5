@@ -73,8 +73,9 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment"], function(Control` &&
-  `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment) {` && |\n| &&
+    result = `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
+`" ], function(Control` &&
+  `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog ) {` && |\n| &&
                `    "use strict";` && |\n| &&
                `    return Controller.extend("z2ui5.Controller", {` && |\n| &&
                `        async onAfterRendering() {` && |\n| &&
@@ -299,19 +300,22 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        eB(...args) {` && |\n| &&
-               `                if (sap.z2ui5.isBusy == true) {` && |\n| &&
-               `                   let oBusyDialog = new sap.m.BusyDialog();` && |\n| &&
+               `            if (!window.navigator.onLine) {` && |\n| &&
+               `                MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
+               `                return;` && |\n| &&
+               `            }` && |\n| &&
+               `              if (sap.z2ui5.isBusy == true) {` && |\n| &&
+*               `             if (args[0][2]) { setTimeout( (args , oControl) => { oControl.eB(args[0], args[1], args[2] ); } , 1000 , args , this );` && |\n| &&
+*               `                    return; } else {` && |\n| &&
+               `                   let oBusyDialog = new mBusyDialog();` && |\n| &&
                `                   oBusyDialog.open();` && |\n| &&
                `                setTimeout( (oBusyDialog) => { oBusyDialog.close() } , 100 , oBusyDialog );` && |\n| &&
                `                    return;` && |\n| &&
+*               `                 }` && |\n| &&
                `                }` && |\n| &&
                `            sap.z2ui5.isBusy = true;` && |\n| &&
-               `            if (!window.navigator.onLine) {` && |\n| &&
-               `                sap.m.MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
-               `                sap.z2ui5.isBusy = false;` && |\n| &&
-               `                return;` && |\n| &&
-               `            }` && |\n| &&
-               `            BusyIndicator.show();` && |\n| &&
+*               `             BusyIndicator.show();` && |\n| &&
+*               `            sap.z2ui5.counter += 1; ` && |\n| &&
                `            let appStart = sap.z2ui5.oBody.APP_START;` && |\n| &&
                `            sap.z2ui5.oBody = {};` && |\n| &&
                `            sap.z2ui5.oBody.APP_START = appStart;` && |\n| &&
@@ -414,6 +418,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
+*               `            let counter = sap.z2ui5.counter;` && |\n| &&
                `            const response = await fetch(sap.z2ui5.pathname, {` && |\n| &&
                `                method: 'POST',` && |\n| &&
                `                headers: {` && |\n| &&
@@ -426,6 +431,9 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                sap.z2ui5.oController.responseError(responseText);` && |\n| &&
                `            } else {` && |\n| &&
                `                const responseData = await response.json();` && |\n| &&
+*               `            if ( counter < sap.z2ui5.counter ) {` && |\n| &&
+*               `            if ( counter > 2 ) {` && |\n| &&
+*               `            return };` && |\n| &&
                `                sap.z2ui5.responseData = responseData;` && |\n| &&
                `              if( !sap.z2ui5.oBody.APP_START ) { sap.z2ui5.oBody.APP_START = sap.z2ui5.responseData.S_FRONT.APP; }` && |\n| &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n| &&
@@ -483,7 +491,9 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
                `    sap.z2ui5.onAfterRendering = [];` && |\n| &&
                `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
-               `    sap.z2ui5.onAfterRoundtrip = []; }` && |\n| &&
+               `    sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
+*               `    sap.z2ui5.counter = 0; ` && |\n| &&
+               `    }` && |\n| &&
                `);`.
 
   ENDMETHOD.

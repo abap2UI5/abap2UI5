@@ -53,7 +53,6 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         EXIT.
       ENDIF.
     ENDDO.
-*    result = main_end( ).
     result = mv_response.
 
   ENDMETHOD.
