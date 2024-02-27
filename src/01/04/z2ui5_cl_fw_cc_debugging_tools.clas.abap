@@ -47,7 +47,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
               `        async show() {` && |\n|  &&
               |\n|  &&
               `            var oFragmentController = {` && |\n|  &&
-                `   prettifyXml: function (sourceXml) { ` && |\n|  &&
+                `   prettifyXml: function (sourceXml) {` && |\n|  &&
              `                    var xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n|  &&
 `                        // describes how we want to modify the XML - indent everything` && |\n|  &&
 `                     var sParse =   unescape( '%3Cxsl%3Astylesheet%20xmlns%3Axsl%3D%22http%3A//www.w3.org/1999/XSL/Transform%22%3E%0A%20%20%3Cxsl%3Astrip-space%20elements%3D%22*%22/%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22para%5Bconten` &&
@@ -60,7 +60,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                    xsltProcessor.importStylesheet(xsltDoc);` && |\n|  &&
              `                    var resultDoc = xsltProcessor.transformToDocument(xmlDoc);` && |\n|  &&
              `                    var resultXml = new XMLSerializer().serializeToString(resultDoc);` && |\n|  &&
-             `                    return resultXml;` && |\n|  &&
+             `                    return resultXml.replace(/&gt;/g, ">");` && |\n|  &&
              `                },` && |\n|  &&
              `              onItemSelect: function (oEvent) {` && |\n|  &&
              `                        let selItem = oEvent.getSource().getSelectedItem();` && |\n|  &&
@@ -71,9 +71,9 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                        }` && |\n|  &&
              `                        if (selItem == 'VIEW') {` && |\n|  &&
              `                           if( !sap?.z2ui5?.oView?.mProperties?.viewContent === 'undefined' ) {` && |\n|  &&
-             `                              this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml' );` && |\n|  &&
+             `                              this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );` && |\n|  &&
              `                           } else {` && |\n|  &&
-             `                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml' );` && |\n|  &&
+             `                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );` && |\n|  &&
              `                           }` && |\n|  &&
              `                           return;` && |\n|  &&
              `                        }` && |\n|  &&
@@ -102,7 +102,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST1') {` && |\n|  &&
-             `                            this.displayEditor(  oEvent, sap?.z2ui5?.oViewNest?.mProperties?.viewContent  , 'xml' );` && |\n|  &&
+             `                            this.displayEditor(  oEvent, this.prettifyXml( sap?.z2ui5?.oViewNest?.mProperties?.viewContent ) , 'xml' , this.prettifyXml( sap?.z2ui5?.oViewNest?._xContent.outerHTML) );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST1_MODEL') {` && |\n|  &&
@@ -110,7 +110,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST2') {` && |\n|  &&
-             `                            this.displayEditor( oEvent, sap?.z2ui5?.oViewNest2?.mProperties?.viewContent  , 'xml' );` && |\n|  &&
+             `                            this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oViewNest2?.mProperties?.viewContent ) , 'xml' , this.prettifyXml( sap?.z2ui5?.oViewNest2?._xContent.outerHTML) );` && |\n|  &&
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'NEST2_MODEL') {` && |\n|  &&
@@ -133,12 +133,24 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                        }` && |\n|  &&
              `    ` && |\n|  &&
              `                    },` && |\n|  &&
-             `                    displayEditor (oEvent, content, type) {` && |\n|  &&
+             `                    displayEditor (oEvent, content, type, xcontent = "") {` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.editor_visible = true;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.source_visible = false;` && |\n|  &&
+             `                        oEvent.getSource().getModel().oData.isTemplating = content.includes("xmlns:template") ? true : false;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.value = content;` && |\n|  &&
+             `                        oEvent.getSource().getModel().oData.previousValue = content;` && |\n|  &&
+             `                        oEvent.getSource().getModel().oData.xContent = xcontent;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.type = type;` && |\n|  &&
              `                        oEvent.getSource().getModel().refresh();` && |\n|  &&
+             `                    },` && |\n|  &&
+             `                    onTemplatingPress: function (oEvent) {` && |\n|  &&
+             `                      if (oEvent.getSource().getPressed()) {` && |\n|  &&
+             `                          oEvent.getSource().getModel().oData.value = oEvent.getSource().getModel().oData.xContent;` && |\n|  &&
+             `                          oEvent.getSource().getModel().refresh();` && |\n|  &&
+             `                      } else {` && |\n|  &&
+             `                          oEvent.getSource().getModel().oData.value = oEvent.getSource().getModel().oData.previousValue;` && |\n|  &&
+             `                          oEvent.getSource().getModel().refresh();` && |\n|  &&
+             `                      }` && |\n|  &&
              `                    },` && |\n|  &&
              `                    onClose: function () {` && |\n|  &&
              `                        this.oDialog.close();` && |\n|  &&
@@ -183,25 +195,55 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 *             `                   <footer><Toolbar><ToolbarSpacer/><Button text="Close" press="onClose"/></Toolbar></footer>` && |\n|  &&
 *             `                   </Dialog>` && |\n|  &&
 *             `                </core:FragmentDefinition>``;` && |\n|  &&
-             `              let  XMLDef = 'PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgICAgICB4bWxucz0ic2FwLm0iCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6bXZjPSJzYXAudWkuY29yZS5tdmMiCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgIC` &&
-`AgICAgICAgICAgICAgeG1sbnM6dG` &&
-`50PSJzYXAudG50IgogICAgICAgICAgICAgICAgICAgIHhtbG5zOmh0bWw9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6ZWRpdG9yPSJzYXAudWkuY29kZWVkaXRvciI+CiAgICAgICAgICAgICAgICAgICAgICA8RGlhbG9nIHRpdGxlPSJhYmFwMlVJNSAtIERlYnVnZ2luZy` &&
-`BUb29scyIgc3RyZXRjaD0idHJ1ZSI+CiAgICAgICAgICAgICAgICAgICAgICA8SEJveD4KICAgICAgICAgICAgICAgICAgICA8dG50OlNpZGVOYXZpZ2F0aW9uIGlkPSJzaWRlTmF2aWdhdGlvbiIgc2VsZWN0ZWRLZXk9IlBMQUlOIiBpdGVtU2VsZWN0PSJvbkl0ZW1TZWxlY3QiPgogICAgICAgICAgICAgICAgICAgICAgICA8dG` &&
-`50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWNhdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUHJldm` &&
-`lvdXMgUmVxdWVzdCIgaWQ9IlJFUVVFU1QiIGtleT0iUkVRVUVTVCIgLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJSZXNwb25zZSIgICAgICAgICAgICAgICAgaWQ9IlBMQUlOIiAgICAgICAgIGtleT0iUExBSU4iLz4KICAgICAgICAgICAgICAgICAgICAgIC` &&
-`AgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJTb3VyY2UgQ29kZSAoQUJBUCkiICAgICAgICAgICAgICBpZD0iU09VUkNFIiAgICAgICAgIGtleT0iU09VUkNFIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgIC` &&
-`AgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IiBpY29uPSJzYXAtaWNvbjovL2VtcGxveWVlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IChYTUwpIiAgICAgICAgICAgaWQ9IlZJRVciICAgICAgICAgIGtleT0iVklFVyIvPgogIC` &&
-`AgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlZpZXcgTW9kZWwgKEpTT04pIiAgICBpZD0iTU9ERUwiICAgICAgICAga2V5PSJNT0RFTCIgIC8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUG9wdXAgKF` &&
-`hNTCkiICAgICAgICAgIGlkPSJQT1BVUCIgICAgICAgICBrZXk9IlBPUFVQIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZVBvcHVwfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIE1vZGVsIChKU09OKSIgICBpZD0iUE9QVVBfTU9ERUwiICAga2` &&
-`V5PSJQT1BVUF9NT0RFTCIgICAgZW5hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIChYTUwpIiAgICAgICAgaWQ9IlBPUE9WRVIiICAgICAgIGtleT0iUE9QT1ZFUiIgICAgICAgIGVuYWJsZWQ9InsvYWN0aX` &&
-`ZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIE1vZGVsIChKU09OKSIgaWQ9IlBPUE9WRVJfTU9ERUwiIGtleT0iUE9QT1ZFUl9NT0RFTCIgIGVuYWJsZWQ9InsvYWN0aXZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgIC` &&
-`AgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1QxIiAgICAgICAgIGtleT0iTkVTVDEiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW` &&
-`0gdGV4dD0iTmVzdDEgTW9kZWwgKEpTT04pIiAgIGlkPSJORVNUMV9NT0RFTCIgICBrZXk9Ik5FU1QxX01PREVMIiAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QxfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9Ik5lc3QyIChYTUwpIiAgICAgICAgICBpZD0iTk` &&
-`VTVDIiICAgICAgICAga2V5PSJORVNUMiIgICAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVOZXN0Mn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QyX01PREVMIiAgIGtleT0iTkVTVDJfTU9ERUwiICAgIG` &&
-`VuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgIDwvdG50OlNpZGVOYXZpZ2F0aW9uPjxWQm94IHZpc2libGU9Insvc2` &&
-`91cmNlX3Zpc2libGV9IiBpZD0idGVzdDIiPgogICAgICAgICAgICAgICAgICAgICAgICA8Y29yZTpIVE1MLz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9WQm94PjxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJ7L3R5cGV9IgogICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT0ney` &&
-`92YWx1ZX0nCiAgICAgICAgICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgdmlzaWJsZT0iey9lZGl0b3JfdmlzaWJsZX0iLz4gPC9IQm94PgogICAgICAgICAgICAgICAgICAgPGZvb3Rlcj48VG9vbGJhcj48VG9vbGJhclNwYWNlci8+PEJ1dHRvbiB0ZXh0PSJDbG9zZSIgcHJlc3M9Im9uQ2xvc2UiLz` &&
-`48L1Rvb2xiYXI+PC9mb290ZXI+CiAgICAgICAgICAgICAgICAgICA8L0RpYWxvZz4KICAgICAgICAgICAgICAgIDwvY29yZTpGcmFnbWVudERlZmluaXRpb24+';` &&
+*             `              let  XMLDef = 'PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgICAgICB4bWxucz0ic2FwLm0iCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6bXZjPSJzYXAudWkuY29yZS5tdmMiCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgIC` &&
+*`AgICAgICAgICAgICAgeG1sbnM6dG` &&
+*`50PSJzYXAudG50IgogICAgICAgICAgICAgICAgICAgIHhtbG5zOmh0bWw9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6ZWRpdG9yPSJzYXAudWkuY29kZWVkaXRvciI+CiAgICAgICAgICAgICAgICAgICAgICA8RGlhbG9nIHRpdGxlPSJhYmFwMlVJNSAtIERlYnVnZ2luZy` &&
+*`BUb29scyIgc3RyZXRjaD0idHJ1ZSI+CiAgICAgICAgICAgICAgICAgICAgICA8SEJveD4KICAgICAgICAgICAgICAgICAgICA8dG50OlNpZGVOYXZpZ2F0aW9uIGlkPSJzaWRlTmF2aWdhdGlvbiIgc2VsZWN0ZWRLZXk9IlBMQUlOIiBpdGVtU2VsZWN0PSJvbkl0ZW1TZWxlY3QiPgogICAgICAgICAgICAgICAgICAgICAgICA8dG` &&
+*`50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWNhdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUHJldm` &&
+*`lvdXMgUmVxdWVzdCIgaWQ9IlJFUVVFU1QiIGtleT0iUkVRVUVTVCIgLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJSZXNwb25zZSIgICAgICAgICAgICAgICAgaWQ9IlBMQUlOIiAgICAgICAgIGtleT0iUExBSU4iLz4KICAgICAgICAgICAgICAgICAgICAgIC` &&
+*`AgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJTb3VyY2UgQ29kZSAoQUJBUCkiICAgICAgICAgICAgICBpZD0iU09VUkNFIiAgICAgICAgIGtleT0iU09VUkNFIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgIC` &&
+*`AgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IiBpY29uPSJzYXAtaWNvbjovL2VtcGxveWVlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IChYTUwpIiAgICAgICAgICAgaWQ9IlZJRVciICAgICAgICAgIGtleT0iVklFVyIvPgogIC` &&
+*`AgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlZpZXcgTW9kZWwgKEpTT04pIiAgICBpZD0iTU9ERUwiICAgICAgICAga2V5PSJNT0RFTCIgIC8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUG9wdXAgKF` &&
+*`hNTCkiICAgICAgICAgIGlkPSJQT1BVUCIgICAgICAgICBrZXk9IlBPUFVQIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZVBvcHVwfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIE1vZGVsIChKU09OKSIgICBpZD0iUE9QVVBfTU9ERUwiICAga2` &&
+*`V5PSJQT1BVUF9NT0RFTCIgICAgZW5hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIChYTUwpIiAgICAgICAgaWQ9IlBPUE9WRVIiICAgICAgIGtleT0iUE9QT1ZFUiIgICAgICAgIGVuYWJsZWQ9InsvYWN0aX` &&
+*`ZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIE1vZGVsIChKU09OKSIgaWQ9IlBPUE9WRVJfTU9ERUwiIGtleT0iUE9QT1ZFUl9NT0RFTCIgIGVuYWJsZWQ9InsvYWN0aXZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgIC` &&
+*`AgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1QxIiAgICAgICAgIGtleT0iTkVTVDEiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW` &&
+*`0gdGV4dD0iTmVzdDEgTW9kZWwgKEpTT04pIiAgIGlkPSJORVNUMV9NT0RFTCIgICBrZXk9Ik5FU1QxX01PREVMIiAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QxfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9Ik5lc3QyIChYTUwpIiAgICAgICAgICBpZD0iTk` &&
+*`VTVDIiICAgICAgICAga2V5PSJORVNUMiIgICAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVOZXN0Mn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QyX01PREVMIiAgIGtleT0iTkVTVDJfTU9ERUwiICAgIG` &&
+*`VuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgIDwvdG50OlNpZGVOYXZpZ2F0aW9uPjxWQm94IHZpc2libGU9Insvc2` &&
+*`91cmNlX3Zpc2libGV9IiBpZD0idGVzdDIiPgogICAgICAgICAgICAgICAgICAgICAgICA8Y29yZTpIVE1MLz4KICAgICAgICAgICAgICAgICAgICAgICAgPC9WQm94PjxlZGl0b3I6Q29kZUVkaXRvcgogICAgICAgICAgICAgICAgICAgICAgICB0eXBlPSJ7L3R5cGV9IgogICAgICAgICAgICAgICAgICAgICAgICB2YWx1ZT0ney` &&
+*`92YWx1ZX0nCiAgICAgICAgICAgICAgICAgICAgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgdmlzaWJsZT0iey9lZGl0b3JfdmlzaWJsZX0iLz4gPC9IQm94PgogICAgICAgICAgICAgICAgICAgPGZvb3Rlcj48VG9vbGJhcj48VG9vbGJhclNwYWNlci8+PEJ1dHRvbiB0ZXh0PSJDbG9zZSIgcHJlc3M9Im9uQ2xvc2UiLz` &&
+*`48L1Rvb2xiYXI+PC9mb290ZXI+CiAgICAgICAgICAgICAgICAgICA8L0RpYWxvZz4KICAgICAgICAgICAgICAgIDwvY29yZTpGcmFnbWVudERlZmluaXRpb24+';` &&
+`let  XMLDef = 'PGNvcmU6RnJhZ21lbnREZWZpbml0aW9uCiAgICAgICAgICAgICAgICB4bWxucz0ic2FwLm0iCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6bXZjPSJzYXAudWkuY29yZS5tdmMiC` &&
+`iAgICAgICAgICAgICAgICAgICAgeG1sbnM6Y29yZT0ic2FwLnVpLmNvcmUiCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6dG50PSJzYXAudG50IgogICAgICAgICAgICAgICAgICAgIHhtbG5zOmh0bW` &&
+`w9Imh0dHA6Ly93d3cudzMub3JnLzE5OTkveGh0bWwiCiAgICAgICAgICAgICAgICAgICAgeG1sbnM6ZWRpdG9yPSJzYXAudWkuY29kZWVkaXRvciI+CiAgICAgICAgICAgICAgICAgICAgICA8RGlhbG9` &&
+`nIHRpdGxlPSJhYmFwMlVJNSAtIERlYnVnZ2luZyBUb29scyIgc3RyZXRjaD0idHJ1ZSI+CiAgICAgICAgICAgICAgICAgICAgICA8SEJveD4KICAgICAgICAgICAgICAgICAgICA8dG50OlNpZGVOYXZp` &&
+`Z2F0aW9uIGlkPSJzaWRlTmF2aWdhdGlvbiIgc2VsZWN0ZWRLZXk9IlBMQUlOIiBpdGVtU2VsZWN0PSJvbkl0ZW1TZWxlY3QiPgogICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25Ma` &&
+`XN0PgogICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iQ29tbXVuaWNhdGlvbiIgaWNvbj0ic2FwLWljb246Ly9lbXBsb3llZSI+CiAgICAgICAgIC` &&
+`AgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUHJldmlvdXMgUmVxdWVzdCIgaWQ9IlJFUVVFU1QiIGtleT0iUkVRVUVTVCIgLz4KICAgICAgICAgICAgICA` &&
+`gICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJSZXNwb25zZSIgICAgICAgICAgICAgICAgaWQ9IlBMQUlOIiAgICAgICAgIGtleT0iUExBSU4iLz4KICAgICAgICAg` &&
+`ICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJTb3VyY2UgQ29kZSAoQUJBUCkiICAgICAgICAgICAgICBpZD0iU09VUkNFIiAgICAgICAgIGtleT0iU09VU` &&
+`kNFIi8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZX` &&
+`h0PSJWaWV3IiBpY29uPSJzYXAtaWNvbjovL2VtcGxveWVlIj4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJWaWV3IChYTUwpIiAgICA` &&
+`gICAgICAgaWQ9IlZJRVciICAgICAgICAgIGtleT0iVklFVyIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlZpZXcgTW9kZWwgKEpT` &&
+`T04pIiAgICBpZD0iTU9ERUwiICAgICAgICAga2V5PSJNT0RFTCIgIC8+CiAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iUG9wdXAgKFhNT` &&
+`CkiICAgICAgICAgIGlkPSJQT1BVUCIgICAgICAgICBrZXk9IlBPUFVQIiAgICAgICAgICBlbmFibGVkPSJ7L2FjdGl2ZVBvcHVwfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bn` &&
+`Q6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9IlBvcHVwIE1vZGVsIChKU09OKSIgICBpZD0iUE9QVVBfTU9ERUwiICAga2V5PSJQT1BVUF9NT0RFTCIgICAgZW5hYmxlZD0iey9hY3RpdmVQb3B1cH0iLz4` &&
+`KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIChYTUwpIiAgICAgICAgaWQ9IlBPUE9WRVIiICAgICAgIGtleT0iUE9QT1ZF` &&
+`UiIgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJQb3BvdmVyIE1vZGVsI` &&
+`ChKU09OKSIgaWQ9IlBPUE9WRVJfTU9ERUwiIGtleT0iUE9QT1ZFUl9NT0RFTCIgIGVuYWJsZWQ9InsvYWN0aXZlUG9wb3Zlcn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok` &&
+`5hdmlnYXRpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MSAoWE1MKSIgICAgICAgICAgaWQ9Ik5FU1QxIiAgICAgICAgIGtleT0iTkVTVDEiICAgICAgICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDF9Ii8+CiA` &&
+`gICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgPHRudDpOYXZpZ2F0aW9uTGlzdEl0ZW0gdGV4dD0iTmVzdDEgTW9kZWwgKEpTT04pIiAgIGlkPSJORVNUMV9NT0RFTCIgICBrZXk9Ik5FU1QxX01P` &&
+`REVMIiAgICBlbmFibGVkPSJ7L2FjdGl2ZU5lc3QxfSIvPgogICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDx0bnQ6TmF2aWdhdGlvbkxpc3RJdGVtIHRleHQ9Ik5lc3QyIChYTUwpIiAgICAgI` &&
+`CAgICBpZD0iTkVTVDIiICAgICAgICAga2V5PSJORVNUMiIgICAgICAgICAgZW5hYmxlZD0iey9hY3RpdmVOZXN0Mn0iLz4KICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICA8dG50Ok5hdmlnYX` &&
+`Rpb25MaXN0SXRlbSB0ZXh0PSJOZXN0MiBNb2RlbCAoSlNPTikiICAgaWQ9Ik5FU1QyX01PREVMIiAgIGtleT0iTkVTVDJfTU9ERUwiICAgIGVuYWJsZWQ9InsvYWN0aXZlTmVzdDJ9Ii8+CiAgICAgICA` &&
+`gICAgICAgICAgICAgICAgICAgICA8L3RudDpOYXZpZ2F0aW9uTGlzdEl0ZW0+CiAgICAgICAgICAgICAgICAgICAgICAgIDwvdG50Ok5hdmlnYXRpb25MaXN0PgogICAgICAgICAgICAgICAgICAgIDwv` &&
+`dG50OlNpZGVOYXZpZ2F0aW9uPjxWQm94IHZpc2libGU9Insvc291cmNlX3Zpc2libGV9IiBpZD0idGVzdDIiPgogICAgICAgICAgICAgICAgICAgICAgICA8Y29yZTpIVE1MLz4KICAgICAgICAgICAgI` &&
+`CAgICAgICAgICAgPC9WQm94PjxWQm94PjxUb2dnbGVCdXR0b24gdGV4dD0iU291cmNlIFhNTCBhZnRlciBUZW1wbGF0aW5nIiB2aXNpYmxlPSJ7L2lzVGVtcGxhdGluZ30iIHByZXNzZWQ9InsvdGVtcG` &&
+`xhdGluZ1NvdXJjZX0iIHByZXNzPSJvblRlbXBsYXRpbmdQcmVzcyIgLz48ZWRpdG9yOkNvZGVFZGl0b3IKICAgICAgICAgICAgICAgICAgICAgICAgdHlwZT0iey90eXBlfSIKICAgICAgICAgICAgICA` &&
+`gICAgICAgICAgdmFsdWU9J3svdmFsdWV9JwogICAgICAgICAgICAgICAgICAgIGhlaWdodD0iODAwcHgiIHdpZHRoPSIxMjAwcHgiIHZpc2libGU9InsvZWRpdG9yX3Zpc2libGV9Ii8+IDwvVkJveD48` &&
+`L0hCb3g+CiAgICAgICAgICAgICAgICAgICA8Zm9vdGVyPjxUb29sYmFyPjxUb29sYmFyU3BhY2VyLz48QnV0dG9uIHRleHQ9IkNsb3NlIiBwcmVzcz0ib25DbG9zZSIvPjwvVG9vbGJhcj48L2Zvb3Rlc` &&
+`j4KICAgICAgICAgICAgICAgICAgIDwvRGlhbG9nPgogICAgICAgICAgICAgICAgPC9jb3JlOkZyYWdtZW50RGVmaW5pdGlvbj4=';` &&
              `  XMLDef = atob(  XMLDef  );     ` && |\n|  &&
              `        if(this.oFragment) {` && |\n|  &&
              `                    this.oFragment.close();` && |\n|  &&
@@ -217,19 +259,23 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                oFragmentController.oDialog.addStyleClass('dbg-ltr');` && |\n|  &&
              `    ` && |\n|  &&
              `                let value = JSON.stringify(sap.z2ui5.responseData, null, 3);` && |\n|  &&
-             `                   let oData = { ` && |\n|  &&
-             `                    type: 'json', ` && |\n|  &&
+             `                   let oData = { ` && |\n| &&
+             `                    type: 'json', ` && |\n| &&
              `                    source_visible : false,` && |\n|  &&
              `                    editor_visible : true,` && |\n|  &&
-             `                    value: value,` && |\n|  &&
-             `                    activeNest1   : sap?.z2ui5?.oViewNest?.mProperties?.viewContent !== undefined,` && |\n|  &&
-             `                    activeNest2   : sap?.z2ui5?.oViewNest2?.mProperties?.viewContent !== undefined,` && |\n|  &&
-             `                    activePopup   : sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML !== undefined,` && |\n|  &&
-             `                    activePopover : sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML !== undefined,` && |\n|  &&
+             `                    value: value,` && |\n| &&
+             `                    xContent: '',` && |\n| &&
+             `                    previousValue: value,` && |\n| &&
+             `                    isTemplating  : false,` && |\n| &&
+             `                    templatingSource : false,` && |\n| &&
+             `                    activeNest1   : sap?.z2ui5?.oViewNest?.mProperties?.viewContent !== undefined,` && |\n| &&
+             `                    activeNest2   : sap?.z2ui5?.oViewNest2?.mProperties?.viewContent !== undefined,` && |\n| &&
+             `                    activePopup   : sap?.z2ui5?.oResponse?.PARAMS?.S_POPUP?.XML !== undefined,` && |\n| &&
+             `                    activePopover : sap?.z2ui5?.oResponse?.PARAMS?.S_POPOVER?.XML !== undefined,` && |\n| &&
              `                };` && |\n|  &&
-             `                var oModel = new JSONModel(oData);` && |\n|  &&
-             `                this.oFragment.setModel(oModel);` && |\n|  &&
-             `                this.oFragment.open();` && |\n|  &&
+             `                var oModel = new JSONModel(oData);` && |\n| &&
+             `                this.oFragment.setModel(oModel);` && |\n| &&
+             `                this.oFragment.open();` && |\n| &&
              `    ` && |\n|  &&
              `            },` && |\n|  &&
              `    ` && |\n|  &&

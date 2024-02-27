@@ -612,7 +612,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_CHARTJS IMPLEMENTATION.
 
 
   METHOD get_chartjs_local.
@@ -716,7 +716,7 @@ CLASS z2ui5_cl_cc_chartjs IMPLEMENTATION.
       `         tConfig = tConfig.replaceAll("yScaleid","yScaleID");` && |\n| &&
       `         tConfig = tConfig.replaceAll("dataRadial","data");` && |\n| &&
       `         oConfig = JSON.parse(tConfig);` && |\n| &&
-      `         this.setProperty("config", oConfig );` && |\n| &&
+      `         this.setProperty("config", oConfig, true );` && |\n| &&
       `         if(oConfig){ fixJsonLibs(oConfig); };` && |\n| &&
       `         if(window[cVar]?.data) { window[cVar].data = oConfig.data; }` && |\n| &&
       `         if(window[cVar]?.options) { window[cVar].options = oConfig.options; }` && |\n| &&
