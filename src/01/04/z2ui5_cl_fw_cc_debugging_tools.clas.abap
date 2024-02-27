@@ -120,7 +120,10 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                        if (selItem == 'SOURCE') {` && |\n|  &&
              `                            let content= oEvent.getSource().getParent().getItems()[1].getItems()[0].getProperty( "content");` && |\n|  &&
              `                            let url = window.location.origin + "/sap/bc/adt/oo/classes/" + sap.z2ui5.responseData.S_FRONT.APP + "/source/main";` && |\n|  &&
-             `                            content = '&lt;iframe id="test" src="' + url + '" height="800px" width="1200px" /&gt;'` && |\n|  &&
+*             `                            content = '<iframe id="test" src="' + url + '" height="800px" width="1200px" />'` && |\n|  &&
+             `                            content = atob( 'PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=' );` && |\n|  &&
+*             `                            content = '&lt;iframe id="test" src="' + url + '" height="800px" width="1200px" /&gt;'` && |\n|  &&
+             `                            content = content.replace( "' + url + '" , url );` && |\n|  &&
              `                            oEvent.getSource().getParent().getItems()[1].getItems()[0].setProperty( "content" , content );` && |\n|  &&
              `                            oEvent.getSource().getModel().oData.editor_visible = false;` && |\n|  &&
              `                            oEvent.getSource().getModel().oData.source_visible = true;` && |\n|  &&
