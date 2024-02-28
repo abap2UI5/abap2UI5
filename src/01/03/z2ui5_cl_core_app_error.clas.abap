@@ -45,12 +45,29 @@ CLASS Z2UI5_CL_CORE_APP_ERROR IMPLEMENTATION.
       lx_error = lx_error->previous.
     ENDWHILE.
 
-    DATA(view) = z2ui5_cl_ui5=>_factory( )->_ns_m( )->shell( )->illustratedmessage(
-        enableformattedtext = abap_true
-        illustrationtype    = `sapIllus-ErrorScreen`
-        title               = `500 Internal Server Error`
-        description         = lv_text
-      )->additionalcontent(
+*    DATA(view) = z2ui5_cl_ui5=>_factory( )->_ns_m( )->shell( )->illustratedmessage(
+*        enableformattedtext = abap_true
+*        illustrationtype    = `sapIllus-ErrorScreen`
+*        title               = `500 Internal Server Error`
+*        description         = lv_text
+*      )->additionalcontent(
+*        )->button(
+*            text  = `Home`
+*            type  = `Emphasized`
+*            press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url ) ) )
+*        )->button(
+*            text  = `Restart`
+*            press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
+
+    DATA(view) = z2ui5_cl_xml_view=>factory( ).
+
+    data(vbox) = view->shell( )->vbox( alignItems = `Center` ).
+
+    vbox->text(  ).
+    vbox->title( `500 Internal Server Error` ).
+     vbox->icon( src = `sap-icon://status-error` ).
+    vbox->formatted_text( lv_text ).
+    vbox->hbox(
         )->button(
             text  = `Home`
             type  = `Emphasized`
@@ -59,7 +76,8 @@ CLASS Z2UI5_CL_CORE_APP_ERROR IMPLEMENTATION.
             text  = `Restart`
             press = client->_event_client( val = client->cs_event-location_reload t_arg  = VALUE #( ( lv_url_app ) ) ) ).
 
-    client->view_display( view->_stringify( ) ).
+
+    client->view_display( view->stringify( ) ).
     client->popup_destroy( ).
 
   ENDMETHOD.
