@@ -156,10 +156,9 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     simple_form2->label( `App Finder` ).
     simple_form2->button(
-        text      = `Start & Install Apps`
-        press     = client->_event_client( val   = client->cs_event-open_new_tab
-                                           t_arg = VALUE #( ( lv_url_samples3 ) ) )
-            width = `70%` ).
+        text  = `Start & Install Apps`
+        press = client->_event_client( val   = client->cs_event-open_new_tab t_arg = VALUE #( ( lv_url_samples3 ) ) )
+        width = `70%` ).
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
       simple_form2->label( `Start Developing` ).
