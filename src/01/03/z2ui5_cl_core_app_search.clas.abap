@@ -8,6 +8,7 @@ CLASS z2ui5_cl_core_app_search DEFINITION
 
     TYPES:
       BEGIN OF ty_app,
+        id      TYPE string,
         name    TYPE string,
         visible TYPE abap_bool,
       END OF ty_app.
@@ -36,6 +37,7 @@ CLASS z2ui5_cl_core_app_search DEFINITION
 
     TYPES:
       BEGIN OF ty_s_app,
+        id         TYPE string,
         name       TYPE string,
         descr      TYPE string,
         classname  TYPE string,
@@ -76,7 +78,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
+CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
 
 
   METHOD search.
@@ -84,7 +86,7 @@ CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
     DATA lv_counter TYPE i.
 
     LOOP AT mt_apps REFERENCE INTO DATA(lr_app).
-
+      lr_app->id = `ID` && sy-tabix.
       lr_app->visible = abap_false.
 
       IF ms_search-check_hide_samples = abap_true
@@ -187,8 +189,9 @@ CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
     LOOP AT mt_apps REFERENCE INTO DATA(lr_app).
       DATA(lv_tabix) = sy-tabix.
       page_all->generic_tile(
+        id      = lr_app->id
         class   = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
-        press   = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/header}` ) ( `${$source>/header}` ) ) )
+        press   = client->_event( val = `ON_PRESS`   t_arg = VALUE #( ( `${$source>/id}` ) ) )
         header  = client->_bind( val = lr_app->name    tab = mt_apps tab_index = lv_tabix )
         visible = client->_bind( val = lr_app->visible tab = mt_apps tab_index = lv_tabix ) ).
     ENDLOOP.
@@ -255,18 +258,18 @@ CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
                    selected = `{CHECK_STANDARD_ABAP}`
                    enabled  = abap_false ).
 
- DATA(page_addon) = pages->page( id = `page_addon`
-                    )->header_content(
-                    )->text(
-                    )->link( text = `Install with abapGit` href = `https://abapgit.org/` target = `blank`
-                    )->toolbar_spacer(
-                      )->link( text = `More Open Source on dotabap.org...` href = `https://dotabap.org/`  target = `blank`
-                     )->toolbar_spacer(
-                     )->text(
-                     )->toolbar_spacer(
-                     )->text(
-                     )->get_parent(
-            )->content( ).
+    DATA(page_addon) = pages->page( id = `page_addon`
+                       )->header_content(
+                       )->text(
+                       )->link( text = `Install with abapGit` href = `https://abapgit.org/` target = `blank`
+                       )->toolbar_spacer(
+                         )->link( text = `More Open Source on dotabap.org...` href = `https://dotabap.org/`  target = `blank`
+                        )->toolbar_spacer(
+                        )->text(
+                        )->toolbar_spacer(
+                        )->text(
+                        )->get_parent(
+               )->content( ).
 
     page_addon->message_strip( type = `Warning`
                                 text = `Your open-source addon is not listed here? Feel free to send a PR and extend this page`
@@ -319,7 +322,9 @@ CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
       lo_view_nested->generic_tile(
         class  = 'sapUiTinyMarginBegin sapUiTinyMarginTop tileLayout'
         press  = client->_event( val = `ON_START`  t_arg = VALUE #( ( `${$source>/header}` ) ) )
-        header = client->_bind( val = lr_app->name tab = mt_favs tab_index = lv_tabix ) ).
+*        header = `test`
+        header = client->_bind( val = lr_app->name tab = mt_favs tab_index = lv_tabix )
+        ).
     ENDLOOP.
 
     client->nest_view_display( val           = lo_view_nested->stringify( )
@@ -361,7 +366,8 @@ CLASS Z2UI5_CL_CORE_APP_SEARCH IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN `ADD_TO_FAVS`.
-
+        SPLIT ms_app_sel-name AT `--` INTO DATA(lv_dummy) ms_app_sel-name.
+        ms_app_sel-name = mt_apps[ id = ms_app_sel-name ]-name.
         INSERT  ms_app_sel INTO TABLE mt_favs.
         z2ui5_cl_util=>db_save(
             uname  = sy-uname

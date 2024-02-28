@@ -121,7 +121,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                }` && |\n| &&
                `            }` && |\n| &&
                `            )` && |\n| &&
-`           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new sap.m.BusyDialog({ text : "Please Restart t` &&
+`           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new mBusyDialog({ text : "Please Restart t` &&
 `he App" }).open();  } } ) }` && |\n| &&
                `        },` && |\n| &&
                |\n| &&
