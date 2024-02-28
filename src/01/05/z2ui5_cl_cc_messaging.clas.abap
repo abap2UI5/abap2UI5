@@ -32,8 +32,8 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `try { jQuery.sap.require("sap.ui.core.Messaging"); jQuery.sap.declare("z2ui5.Messaging");` && |\n| &&
-      `sap.ui.require([` && |\n| &&
+    result = `try { ` && |\n| &&
+      `sap.ui.define("z2ui5/Messaging",[` && |\n| &&
       `   "sap/ui/core/Control",` && |\n| &&
       `   "sap/ui/core/Messaging",` && |\n| &&
       `], (Control, Messaging) => {` && |\n| &&
@@ -51,7 +51,6 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `         sap.z2ui5.oMessaging.oMessageProcessor = new sap.ui.core.message.ControlMessageProcessor();` && |\n| &&
       `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n| &&
       `          sap.z2ui5.oMessaging.oMessageManager = Messaging;` && |\n| &&
-*      `          sap.z2ui5.oMessaging.oMessageManager = sap.ui.getCore().getMessageManager();` && |\n| &&
       `          sap.z2ui5.oMessaging.oMessageManager.registerMessageProcessor(sap.z2ui5.oMessaging.oMessageProcessor);` && |\n| &&
       `        }` && |\n| &&
       `       },` && |\n| &&
@@ -112,6 +111,6 @@ CLASS Z2UI5_CL_CC_MESSAGING IMPLEMENTATION.
       `               }, 50 , oControl );` && |\n| &&
       `       }` && |\n| &&
       `   });` && |\n| &&
-      `}); } catch (e) { }`.
+      `}); } catch (e) { debugger; }`.
   ENDMETHOD.
 ENDCLASS.
