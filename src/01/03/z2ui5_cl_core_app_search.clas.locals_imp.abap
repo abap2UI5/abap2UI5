@@ -56,11 +56,11 @@ CLASS lcl_github IMPLEMENTATION.
         (
         name                 = `Generic Search Help`
         descr                = `Popups with Search Helps, dynamically created based on imported values.`
-        author_link          = `https://github.com/oblomov-dev`
-        author_name          = `oblomov`
+        author_link          = `https://github.com/axelmohnen`
+        author_name          = `axelmohnen`
         check_standard_abap  = abap_true
         check_abap_for_cloud = abap_true
-        link                 = `https://github.com/oblomov-dev/a2UI5-generic_search_help`
+        link                 = `https://github.com/axelmohnen/a2UI5-generic_search_hlp`
         )
         ).
 
