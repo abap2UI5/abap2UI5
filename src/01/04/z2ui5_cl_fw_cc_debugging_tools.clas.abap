@@ -20,6 +20,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 
   METHOD get_js.
 
+
     result = `` && |\n|  &&
              `sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n|  &&
               `    "sap/ui/core/Control",` && |\n|  &&
@@ -136,7 +137,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                    displayEditor (oEvent, content, type, xcontent = "") {` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.editor_visible = true;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.source_visible = false;` && |\n|  &&
-             `                        oEvent.getSource().getModel().oData.isTemplating = content.includes("xmlns:template") ? true : false;` && |\n|  &&
+             `                        oEvent.getSource().getModel().oData.isTemplating = content?.includes("xmlns:template") ? true : false;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.value = content;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.previousValue = content;` && |\n|  &&
              `                        oEvent.getSource().getModel().oData.xContent = xcontent;` && |\n|  &&

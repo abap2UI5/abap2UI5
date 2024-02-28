@@ -147,11 +147,12 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
   METHOD main.
 
-    IF mt_attri->* IS INITIAL.
-      main_init( ).
-      RETURN.
-    ENDIF.
+*    IF mt_attri->* IS INITIAL.
+*      main_init( ).
+*      RETURN.
+*    ENDIF.
 
+    main_init( ).
     IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
       main_run( ).
     ENDIF.
@@ -160,11 +161,13 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
 
   METHOD main_init.
+    TRY.
+        DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+        DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+        INSERT LINES OF lt_init INTO TABLE mt_attri->*.
 
-    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
-    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
-    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
-
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 
 
@@ -173,7 +176,8 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
     DATA(lt_attri_new) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri)
-         WHERE check_dissolved = abap_false.
+         WHERE check_dissolved = abap_false
+         AND bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       lr_attri->check_dissolved = abap_true.
 
