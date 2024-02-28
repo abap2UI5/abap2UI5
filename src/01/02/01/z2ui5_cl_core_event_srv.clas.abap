@@ -39,7 +39,7 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'|.
 
-    IF s_cnt-check_allow_parallel_events = abap_true.
+    IF s_cnt-check_allow_multi_req = abap_true.
       IF s_cnt-check_view_destroy = abap_true.
         result = result && `,true,true`.
       ELSE.

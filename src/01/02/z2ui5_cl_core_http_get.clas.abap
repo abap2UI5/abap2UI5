@@ -164,7 +164,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            const oView = await XMLView.create({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oControllerNest,` && |\n| &&
-               `                preprocessors: { xml: { models: { undefined: oview_model } } }` && |\n| &&
+               `                preprocessors: { xml: { models: { meta: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `            oView.setModel(oview_model);` && |\n| &&
@@ -182,7 +182,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            const oView = await XMLView.create({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oControllerNest2,` && |\n| &&
-               `                preprocessors: { xml: { models: { undefined: oview_model } } }` && |\n| &&
+               `                preprocessors: { xml: { models: { meta: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `            oView.setModel(oview_model);` && |\n| &&
@@ -304,18 +304,16 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                MessageBox.alert('No internet connection! Please reconnect to the server and try again.');` && |\n| &&
                `                return;` && |\n| &&
                `            }` && |\n| &&
-               `              if (sap.z2ui5.isBusy == true) {` && |\n| &&
-*               `             if (args[0][2]) { setTimeout( (args , oControl) => { oControl.eB(args[0], args[1], args[2] ); } , 1000 , args , this );` && |\n| &&
-*               `                    return; } else {` && |\n| &&
+               `           if (sap.z2ui5.isBusy == true) {` && |\n| &&
+               `             if (!args[0][2]) { ` && |\n| &&
                `                   let oBusyDialog = new mBusyDialog();` && |\n| &&
                `                   oBusyDialog.open();` && |\n| &&
                `                setTimeout( (oBusyDialog) => { oBusyDialog.close() } , 100 , oBusyDialog );` && |\n| &&
                `                    return;` && |\n| &&
-*               `                 }` && |\n| &&
+               `                 }` && |\n| &&
                `                }` && |\n| &&
                `            sap.z2ui5.isBusy = true;` && |\n| &&
-*               `             BusyIndicator.show();` && |\n| &&
-*               `            sap.z2ui5.counter += 1; ` && |\n| &&
+               `             BusyIndicator.show();` && |\n| &&
                `            let appStart = sap.z2ui5.oBody.APP_START;` && |\n| &&
                `            sap.z2ui5.oBody = {};` && |\n| &&
                `            sap.z2ui5.oBody.APP_START = appStart;` && |\n| &&
@@ -351,7 +349,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
                `            sap.z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
                `            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n| &&
-               `            sap.z2ui5.oResponse = {};` && |\n| &&
                `            sap.z2ui5.oController.Roundtrip();` && |\n| &&
                `        },` && |\n| &&
                `        responseError(response) {` && |\n| &&
@@ -360,12 +357,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `        updateModelIfRequired(paramKey, oView) {` && |\n| &&
                `            if (sap.z2ui5.oResponse.PARAMS == undefined) { return; }` && |\n| &&
                `            if (sap.z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n| &&
-               `               var data = sap.z2ui5.oView.getModel().getData();` && |\n| &&
-               `       if (sap.z2ui5.oResponse.PARAMS.S_VIEW.UPDATE_PATH ) { ` && |\n| &&
-               `                data[ sap.z2ui5.oResponse.PARAMS.S_VIEW.UPDATE_PATH[ 0 ] ] = sap.z2ui5.oResponse.OVIEWMODEL[ sap.z2ui5.oResponse.PARAMS.S_VIEW.UPDATE_PATH[ 0 ] ] } ` && |\n| &&
-               `           else { data = sap.z2ui5.oResponse.OVIEWMODEL; }       ` && |\n| &&
-               `                let model = new JSONModel(data);` && |\n| &&
-               `              //  let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
+               `                let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `                model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `                oView.setModel(model);` && |\n| &&
                `            }` && |\n| &&
@@ -408,7 +400,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                models: oview_model,` && |\n| &&
                `                controller: sap.z2ui5.oController,` && |\n| &&
                `                id: 'mainView',` && |\n| &&
-               `                preprocessors: { xml: { models: { undefined: oview_model } } }` && |\n| &&
+               `                preprocessors: { xml: { models: { meta: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
@@ -418,7 +410,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
-*               `            let counter = sap.z2ui5.counter;` && |\n| &&
                `            const response = await fetch(sap.z2ui5.pathname, {` && |\n| &&
                `                method: 'POST',` && |\n| &&
                `                headers: {` && |\n| &&
@@ -431,9 +422,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                sap.z2ui5.oController.responseError(responseText);` && |\n| &&
                `            } else {` && |\n| &&
                `                const responseData = await response.json();` && |\n| &&
-*               `            if ( counter < sap.z2ui5.counter ) {` && |\n| &&
-*               `            if ( counter > 2 ) {` && |\n| &&
-*               `            return };` && |\n| &&
                `                sap.z2ui5.responseData = responseData;` && |\n| &&
                `              if( !sap.z2ui5.oBody.APP_START ) { sap.z2ui5.oBody.APP_START = sap.z2ui5.responseData.S_FRONT.APP; }` && |\n| &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n| &&
@@ -492,7 +480,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `    sap.z2ui5.onAfterRendering = [];` && |\n| &&
                `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
                `    sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
-*               `    sap.z2ui5.counter = 0; ` && |\n| &&
                `    }` && |\n| &&
                `);`.
 
