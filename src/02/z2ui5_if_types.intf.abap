@@ -45,8 +45,8 @@ INTERFACE z2ui5_if_types
 
   TYPES:
     BEGIN OF ty_s_event_control,
-      check_view_destroy          TYPE abap_bool,
-      check_allow_parallel_events TYPE abap_bool,
+      check_view_destroy    TYPE abap_bool,
+      check_allow_multi_req TYPE abap_bool,
     END OF ty_s_event_control.
 
 ENDINTERFACE.

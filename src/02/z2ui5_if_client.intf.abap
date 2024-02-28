@@ -33,9 +33,7 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE clike.
 
-  METHODS view_model_update
-    IMPORTING
-      path TYPE data OPTIONAL.
+  METHODS view_model_update.
 
   METHODS nest_view_display
     IMPORTING

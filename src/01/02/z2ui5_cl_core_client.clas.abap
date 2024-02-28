@@ -214,16 +214,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     mo_action->ms_next-s_set-s_view-check_update_model = abap_true.
 
-    IF path IS NOT INITIAL.
-      TRY.
-          DATA(lv_bind) = z2ui5_if_client~_bind( val = path path = abap_true ).
-        CATCH cx_root.
-          lv_bind = z2ui5_if_client~_bind_edit( val = path path = abap_true ).
-      ENDTRY.
-      SHIFT lv_bind LEFT DELETING LEADING `/`.
-      SPLIT lv_bind AT `/` INTO TABLE mo_action->ms_next-s_set-s_view-update_path.
-    ENDIF.
-
   ENDMETHOD.
 
 
