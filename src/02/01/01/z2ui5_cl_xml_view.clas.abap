@@ -3743,7 +3743,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD begin_button.
 
-    result = _generic( name = `beginButton` ).
+    result = _generic( `beginButton` ).
 
   ENDMETHOD.
 
@@ -4379,7 +4379,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD end_button.
 
-    result = _generic( name = `endButton` ).
+    result = _generic( `endButton` ).
 
   ENDMETHOD.
 
