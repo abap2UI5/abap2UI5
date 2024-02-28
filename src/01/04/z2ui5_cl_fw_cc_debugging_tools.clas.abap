@@ -20,6 +20,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
 
   METHOD get_js.
 
+
     result = `` && |\n|  &&
              `sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n|  &&
               `    "sap/ui/core/Control",` && |\n|  &&
