@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_ui_webc DEFINITION
+CLASS z2ui5_cl_ui5_webc DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC INHERITING FROM z2ui5_cl_ui5.
@@ -11,26 +11,26 @@ CLASS z2ui5_cl_ui5_ui_webc DEFINITION
                 tooltip       TYPE clike OPTIONAL
                 design        TYPE clike OPTIONAL
                 click         TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS bar
       IMPORTING id            TYPE clike OPTIONAL
                 design        TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS label
       IMPORTING
         id            TYPE clike OPTIONAL
         text            TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS panel
       IMPORTING id            TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS header
       IMPORTING id            TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS input
       IMPORTING id            TYPE clike OPTIONAL
@@ -38,11 +38,11 @@ CLASS z2ui5_cl_ui5_ui_webc DEFINITION
                 click         TYPE clike OPTIONAL
                 value         TYPE clike OPTIONAL
                 width         TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS toast
       IMPORTING id            TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
   PROTECTED SECTION.
 
@@ -51,7 +51,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UI5_UI_WEBC IMPLEMENTATION.
+CLASS Z2UI5_CL_UI5_WEBC IMPLEMENTATION.
 
 
   METHOD bar.
