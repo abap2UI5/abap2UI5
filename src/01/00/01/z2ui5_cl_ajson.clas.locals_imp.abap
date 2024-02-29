@@ -987,8 +987,8 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
           <container> = to_date( is_node-value ).
         ELSEIF is_node_type-type_kind = lif_kind=>time AND is_node-value IS NOT INITIAL.
           <container> = to_time( is_node-value ).
-        ELSEIF is_node_type-type_kind = lif_kind=>packed AND is_node-value IS NOT INITIAL.
-          <container> = to_timestamp( is_node-value ).
+*        ELSEIF is_node_type-type_kind = lif_kind=>packed AND is_node-value IS NOT INITIAL.
+*          <container> = to_timestamp( is_node-value ).
         ELSE.
           <container> = is_node-value.
         ENDIF.
