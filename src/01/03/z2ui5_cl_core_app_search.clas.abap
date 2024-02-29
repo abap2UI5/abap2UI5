@@ -128,7 +128,7 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
 
   METHOD view_display.
 
- DATA(page) = z2ui5_cl_xml_view=>factory(    )->shell( )->page( `abap2UI5 - App Finder`
+ DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->page( `abap2UI5 - App Finder`
     )->content( ).
 
     page->icon_tab_header( selectedkey    = client->_bind_edit( mv_selected_key )
