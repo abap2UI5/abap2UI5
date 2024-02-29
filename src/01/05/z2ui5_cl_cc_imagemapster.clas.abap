@@ -80,7 +80,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_imagemapster IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
 
   METHOD get_js_local.
@@ -3312,35 +3312,12 @@ CLASS z2ui5_cl_cc_imagemapster IMPLEMENTATION.
     ENDIF.
 
     imagemapster_config = `` &&
-` var resizeTime = 100;` &&
-` var resizeDelay = 100;    ` &&
-`` &&
-`$("img[usemap]").mapster(` &&
-      json_config &&
-*`     {` &&
-*`        "strokeColor": "ff0000",` &&
-*`        "fillColor": "fcffa4",` &&
-*`        fillOpacity: 0.8,` &&
-*`        stroke: true,` &&
-*`        strokeOpacity: 0.8,` &&
-*`        strokeWidth: 3,` &&
-*`        singleSelect: true` &&
-*`        areas: [` &&
-*`            {` &&
-*`                key: "tbl",` &&
-**`                fillColor: "ff0000",` &&
-**`                staticState: true,` &&
-**`                stroke: true` &&
-*`            }` &&
-*`        ],` &&
-*`        mapKey: "state"` &&
-*`    }
-*`   );` &&
-`   );`.
-
-    IF auto_resize = abap_true.
-
-      imagemapster_config = imagemapster_config &&
+      ` var resizeTime = 100;` &&
+      ` var resizeDelay = 100;    ` &&
+      `` &&
+      `$("img[usemap]").mapster(` &&
+            json_config &&
+      `);` &&
       `` &&
       `    function resize(maxWidth, maxHeight) {` &&
       `        var image = $("img"),` &&
@@ -3357,7 +3334,7 @@ CLASS z2ui5_cl_cc_imagemapster IMPLEMENTATION.
       `        image.mapster("resize", newWidth, newHeight, resizeTime);` &&
       `    }` &&
       `` &&
-      `    function onWindowResize() {` &&
+      `    function onWindowResize(w = 0, h = 0) {` &&
       `` &&
       `        var curWidth = $(window).width(),` &&
       `            curHeight = $(window).height(),` &&
@@ -3371,11 +3348,15 @@ CLASS z2ui5_cl_cc_imagemapster IMPLEMENTATION.
       `                newHeight = $(window).height();` &&
       `            if (newWidth === curWidth &amp;&amp;` &&
       `                newHeight === curHeight) {` &&
-      `                resize(newWidth, newHeight);` &&
+      `                resize(newWidth-w, newHeight-h);` &&
       `            }` &&
       `            checking = false;` &&
       `        }, resizeDelay);` &&
-      `    }` &&
+      `    }`.
+
+    IF auto_resize = abap_true.
+
+      imagemapster_config = imagemapster_config &&
       `` &&
       `    $(window).bind("resize", onWindowResize);`.
     ENDIF.
