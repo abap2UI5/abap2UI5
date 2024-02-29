@@ -5,10 +5,10 @@ CLASS z2ui5_cl_core_bind_srv DEFINITION
 
   PUBLIC SECTION.
 
-    DATA mo_app TYPE REF TO z2ui5_cl_core_app .
-    DATA mr_attri TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
+    DATA mo_app    TYPE REF TO z2ui5_cl_core_app .
+    DATA mr_attri  TYPE REF TO z2ui5_if_core_types=>ty_s_attri .
     DATA ms_config TYPE z2ui5_if_core_types=>ty_s_bind_config .
-    DATA mv_type TYPE string .
+    DATA mv_type   TYPE string .
 
     METHODS constructor
       IMPORTING
@@ -273,7 +273,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
         result = |/{ lv_id }|.
 
-        IF ms_config-path_only = abap_false.
+        IF config-path_only = abap_false.
           result = `{` && result && `}`.
         ENDIF.
 
