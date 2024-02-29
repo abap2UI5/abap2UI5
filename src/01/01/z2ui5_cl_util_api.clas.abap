@@ -773,10 +773,11 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
     DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
 
-    LOOP AT sdescr->components REFERENCE INTO DATA(lr_comp).
+    result = sdescr->get_components( ).
 
-      DATA(ls_attri) = VALUE abap_componentdescr( name = attri && lr_comp->name ).
-      INSERT ls_attri INTO TABLE result.
+    LOOP AT result REFERENCE INTO DATA(lr_comp).
+
+      lr_comp->name = attri && lr_comp->name.
 
     ENDLOOP.
 
