@@ -47,7 +47,7 @@ CLASS z2ui5_cl_test_app_131 IMPLEMENTATION.
         )->toast( id = 'myToast'
         )->_ns_html(
         )->script( )->_add_c(
-               `  debugger; var toastOpener9 = sap.z2ui5.oView.byId("btn-9");` && |\n|  &&
+               `  var toastOpener9 = sap.z2ui5.oView.byId("btn-9");` && |\n|  &&
                `    var toast9 = sap.z2ui5.oView.byId("myToast"); ` && |\n|  &&
                `    toastOpener9.getDomRef().addEventListener("click", () => {` && |\n|  &&
                `        toast9.setText("MyText");` && |\n|  &&
@@ -56,38 +56,6 @@ CLASS z2ui5_cl_test_app_131 IMPLEMENTATION.
          ).
 
     client->view_display( lo_view->_stringify( ) ).
-
-*    client->view_display( `<mvc:View` && |\n|  &&
-*                          ` displayBlock="true"` && |\n|  &&
-*                          ` xmlns="sap.ui.webc.main"` && |\n|  &&
-*                          ` xmlns:wf="sap.ui.webc.fiori"` && |\n|  &&
-*                          ` xmlns:mvc="sap.ui.core.mvc"` && |\n|  &&
-*                          ` xmlns:html="http://www.w3.org/1999/xhtml">` && |\n|  &&
-*                          |\n|  &&
-*                          `<wf:Bar design="Header">` && |\n|  &&
-*                          `    <Label id="basic-label"/>` && |\n|  &&
-*                          `    <Button icon="home" tooltip="Go home" design="Transparent"/>` && |\n|  &&
-*                          `    <Button icon="action-settings" tooltip="Go to settings"/>` && |\n|  &&
-*                          `</wf:Bar>` &&
-*                          ` <Panel>` && |\n|  &&
-*                          `     <header>` && |\n|  &&
-*                          `         <Label text="UI5 Web Components Enablement"/>` && |\n|  &&
-*                          `     </header>` && |\n|  &&
-*                          `         <Input id="myInput" value="Enter your text here!" width="100%"/>` && |\n|  &&
-*                          `         <Button id="btn-9" text="Don't click me!" click="onClick" width="100%"/>` && |\n|  &&
-*                          ` </Panel>` && |\n|  &&
-*                          |\n|  &&
-*                          ` <Toast id="myToast"/>` && |\n|  &&
-*                          |\n|  &&
-*                          `<html:script>` && |\n|  &&
-*                          `  debugger; var toastOpener9 = sap.z2ui5.oView.byId("btn-9");` && |\n|  &&
-*                          `    var toast9 = sap.z2ui5.oView.byId("myToast"); ` && |\n|  &&
-*                          `    toastOpener9.getDomRef().addEventListener("click", () => {` && |\n|  &&
-*                          `        toast9.setText("MyText");` && |\n|  &&
-*                          `        toast9.show();` && |\n|  &&
-*                          `    });` && |\n|  &&
-*                          `</html:script>` && |\n|  &&
-*                          `</mvc:View>` ).
 
   ENDMETHOD.
 
