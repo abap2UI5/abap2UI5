@@ -5,7 +5,7 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
 
   PUBLIC SECTION.
 
-    INTERFACES z2ui5_if_app .
+    INTERFACES z2ui5_if_app.
 
     DATA:
       BEGIN OF ms_home,
@@ -17,7 +17,8 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
         class_value_state      TYPE string,
         class_value_state_text TYPE string,
         class_editable         TYPE abap_bool VALUE abap_true,
-      END OF ms_home .
+      END OF ms_home.
+
     DATA client TYPE REF TO z2ui5_if_client.
     DATA mv_check_initialized TYPE abap_bool.
 
@@ -29,8 +30,10 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
     METHODS z2ui5_on_event.
     METHODS view_display_start.
     METHODS on_event_check.
+
   PROTECTED SECTION.
     DATA mt_classes TYPE string_table.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -245,8 +248,8 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     CASE client->get( )-event.
 
-      when `OPEN_DEBUG`.
-      client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
+      WHEN `OPEN_DEBUG`.
+        client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
       WHEN `OPEN_INFO`.
         client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
         RETURN.

@@ -147,12 +147,8 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
   METHOD main.
 
-*    IF mt_attri->* IS INITIAL.
-*      main_init( ).
-*      RETURN.
-*    ENDIF.
-
     main_init( ).
+
     IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
       main_run( ).
     ENDIF.
@@ -161,13 +157,20 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
 
   METHOD main_init.
-    TRY.
-        DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
-        DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
-        INSERT LINES OF lt_init INTO TABLE mt_attri->*.
 
-      CATCH cx_root.
-    ENDTRY.
+    IF mt_attri->* IS NOT INITIAL.
+      LOOP AT mt_attri->* TRANSPORTING NO FIELDS
+        WHERE bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
+      ENDLOOP.
+      IF sy-subrc = 0.
+        RETURN.
+      ENDIF.
+    ENDIF.
+
+    DATA(ls_attri) = VALUE z2ui5_if_core_types=>ty_s_attri( r_ref = REF #( mo_app ) ).
+    DATA(lt_init) = diss_oref( REF #( ls_attri ) ).
+    INSERT LINES OF lt_init INTO TABLE mt_attri->*.
+
   ENDMETHOD.
 
 

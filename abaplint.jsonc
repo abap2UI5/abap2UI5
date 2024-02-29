@@ -90,7 +90,7 @@
     "empty_line_in_statement": true,
     "empty_statement": true,
     "empty_structure": {
-      "loop": true,
+      "loop": false,
       "if": true,
       "while": true,
       "case": true,
