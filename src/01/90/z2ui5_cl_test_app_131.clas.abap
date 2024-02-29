@@ -44,7 +44,7 @@ CLASS z2ui5_cl_test_app_131 IMPLEMENTATION.
                 click   = 'onClick'
                 design  = 'Transparent'
             )->_go_up( )->_ns_webc(
-        )->toast( id = 'myToast'
+        )->toast( 'myToast'
         )->_ns_html(
         )->script( )->_add_c(
                `  var toastOpener9 = sap.z2ui5.oView.byId("btn-9");` && |\n|  &&
