@@ -775,6 +775,12 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
     result = sdescr->get_components( ).
 
+    LOOP AT result REFERENCE INTO DATA(lr_comp).
+
+      lr_comp->name = attri && lr_comp->name.
+
+    ENDLOOP.
+
   ENDMETHOD.
 
 
