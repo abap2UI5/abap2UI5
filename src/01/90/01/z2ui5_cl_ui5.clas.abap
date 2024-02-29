@@ -34,18 +34,6 @@ CLASS z2ui5_cl_ui5 DEFINITION
     METHODS _ns
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5.
 
-    METHODS _ns_ndc
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ndc.
-
-    METHODS _ns_m
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_m.
-
-    METHODS _ns_ui
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui.
-
-    METHODS _ns_suite
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_suite.
-
     METHODS _ns_z2ui5
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_z2ui5.
 
@@ -53,16 +41,16 @@ CLASS z2ui5_cl_ui5 DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_html.
 
     METHODS _ns_webc
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_ui_webc.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_ui5_webc.
 
     METHODS constructor
-      IMPORTING node TYPE REF TO z2ui5_cl_ui5_tree_xml OPTIONAL.
+      IMPORTING node TYPE REF TO z2ui5_cl_ui5__tree OPTIONAL.
 
     METHODS _stringify
       RETURNING VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA _node TYPE REF TO z2ui5_cl_ui5_tree_xml.
+    DATA _node TYPE REF TO z2ui5_cl_ui5__tree.
 
     CLASS-METHODS _2xml
       IMPORTING obj           TYPE REF TO z2ui5_cl_ui5
@@ -192,7 +180,7 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
       CATCH cx_root.
     ENDTRY.
 
-    DATA(lo_node) = NEW z2ui5_cl_ui5_tree_xml( ).
+    DATA(lo_node) = NEW z2ui5_cl_ui5__tree( ).
     DATA(result2) = NEW z2ui5_cl_ui5( lo_node ).
     result2->_node->mv_name = n.
     result2->_node->mv_ns   = ns.
@@ -262,18 +250,6 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
     result = NEW #( _node ).
   ENDMETHOD.
 
-  METHOD _ns_ndc.
-    result = NEW #( _node ).
-  ENDMETHOD.
-
-  METHOD _ns_m.
-    result = NEW #( _node ).
-  ENDMETHOD.
-
-  METHOD _ns_ui.
-    result = NEW #( _node ).
-  ENDMETHOD.
-
   METHOD _ns_z2ui5.
     result = NEW #( _node ).
   ENDMETHOD.
@@ -281,10 +257,6 @@ CLASS z2ui5_cl_ui5 IMPLEMENTATION.
   METHOD _stringify.
     DATA(lo_node) = NEW z2ui5_cl_ui5( _node->mo_root ).
     result = _2xml( lo_node ).
-  ENDMETHOD.
-
-  METHOD _ns_suite.
-    result = NEW #( _node ).
   ENDMETHOD.
 
   METHOD _add_c.

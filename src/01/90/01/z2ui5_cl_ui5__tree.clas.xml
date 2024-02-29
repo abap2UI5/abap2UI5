@@ -3,9 +3,9 @@
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
    <VSEOCLASS>
-    <CLSNAME>Z2UI5_CL_UI5_UI_WEBC</CLSNAME>
+    <CLSNAME>Z2UI5_CL_UI5__TREE</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ns - sap.ui.webc</DESCRIPT>
+    <DESCRIPT>ui5 - utility tree</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
