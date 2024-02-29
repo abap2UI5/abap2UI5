@@ -6564,7 +6564,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD range_slider.
     result = me.
     _generic( name   = `RangeSlider`
-              ns     = `webc`
+*              ns     = `webc`
               t_prop = VALUE #( ( n = `class`           v = class )
                                 ( n = `endValue`        v = endvalue )
                                 ( n = `id`          v = id )
