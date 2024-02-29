@@ -61,10 +61,14 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
           ENDIF.
 
           ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
-          lo_val_front->to_abap(
-            IMPORTING
-              ev_container = <val> ).
 
+          TRY.
+              lo_val_front->to_abap(
+                IMPORTING
+                  ev_container = <val> ).
+            CATCH cx_root.
+              <val> = lo_val_front->mt_json_tree[ 1 ]-value.
+          ENDTRY.
         CATCH cx_root INTO DATA(x).
           ASSERT x IS BOUND.
       ENDTRY.
