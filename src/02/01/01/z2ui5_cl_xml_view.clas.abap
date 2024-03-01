@@ -2068,6 +2068,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS proportion_zoom_strategy
+     importing
+      !ZOOMLEVEL type CLIKE optional
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS total_horizon
@@ -6464,7 +6466,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD proportion_zoom_strategy.
     result = _generic( name = `ProportionZoomStrategy`
-                       ns   = `axistime` ).
+                       ns   = `axistime`
+                       t_prop = VALUE #( ( n = `zoomLevel` v = zoomLevel ) )
+                     ).
   ENDMETHOD.
 
 
