@@ -278,7 +278,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     result = lo_ui5->get_event(
          val                = val
          t_arg              = t_arg
-         s_cnt              = s_cnt ).
+         s_cnt              = s_ctrl ).
 
   ENDMETHOD.
 
