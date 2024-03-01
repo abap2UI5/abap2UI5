@@ -86,6 +86,8 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS test_time_substract_seconds    FOR TESTING RAISING cx_static_check.
     METHODS test_func_get_user_tech        FOR TESTING RAISING cx_static_check.
 
+
+    METHODS test_rtti_get_t_attri_by_incl FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_classname_by_ref FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_name        FOR TESTING RAISING cx_static_check.
     METHODS test_rtti_get_type_kind        FOR TESTING RAISING cx_static_check.
@@ -743,6 +745,41 @@ CLASS ltcl_unit_test IMPLEMENTATION.
                                 && |{ cl_abap_char_utilities=>horizontal_tab }| ) <> `JsadfHHs`.
       cl_abap_unit_assert=>fail( ).
 
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_rtti_get_t_attri_by_incl.
+
+    IF sy-sysid = 'ABC'.
+      RETURN.
+    ENDIF.
+
+    TYPES:
+      BEGIN OF ty_struc_incl,
+        incl_title  TYPE string,
+        incl_value  TYPE string,
+        incl_value2 TYPE string,
+      END OF ty_struc_incl.
+
+    TYPES:
+      BEGIN OF ty_struc,
+        title  TYPE string,
+        value  TYPE string,
+        value2 TYPE string,
+      END OF ty_struc.
+
+    DATA
+      BEGIN OF ms_struc2.
+    INCLUDE TYPE ty_struc.
+    INCLUDE TYPE ty_struc_incl.
+    DATA  END OF ms_struc2.
+
+    DATA(lo_datadescr) = cl_abap_typedescr=>describe_by_data( ms_struc2 ).
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_include( type = CAST #( lo_datadescr ) attri = `` ).
+
+    IF lines( lt_attri ) <> 2.
+      cl_abap_unit_assert=>fail( ).
     ENDIF.
 
   ENDMETHOD.
