@@ -8,6 +8,13 @@ Legend
 + : added
 - : removed
 
+2024-03-01 v1.121.0
+-------------------
+
+* Launchpad Compatibility
++ Custom Control Message Manager
+* Fixes for low UI5 releases
+
 
 2024-02-25 v1.120.0
 -------------------
