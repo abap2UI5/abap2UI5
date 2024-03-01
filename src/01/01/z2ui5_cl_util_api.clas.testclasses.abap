@@ -764,9 +764,8 @@ CLASS ltcl_unit_test IMPLEMENTATION.
         value  TYPE string,
         value2 TYPE string,
       END OF ty_struc.
-    DATA ms_struc TYPE ty_struc.
 
-    DATA:
+    DATA
       BEGIN OF ms_struc2.
         INCLUDE TYPE ty_struc.
         INCLUDE TYPE ty_struc_incl.
