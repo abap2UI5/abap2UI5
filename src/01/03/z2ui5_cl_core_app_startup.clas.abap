@@ -195,10 +195,10 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 *    simple_form2->label( `` ).
 *    simple_form2->text( `` ).
 
-    simple_form2->toolbar( )->title( `Feedback & Support` ).
+    simple_form2->toolbar( )->title( `The Project` ).
 
 *    simple_form2->label( `Links & More` ).
-    simple_form2->label( `The Project` ).
+    simple_form2->label( `Social` ).
     simple_form2->link( text   = `Repository on GitHub`
                         target = `_blank`
                         href   = `https://github.com/abap2UI5/abap2UI5` ).
@@ -219,7 +219,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 *    simple_form2->label( `Social` ).
 
 
-    simple_form2->label( `Author` ).
+    simple_form2->label( `Feedback` ).
     simple_form2->link( text   = `Contact`
                         target = `_blank`
                         href   =  `https://github.com/oblomov-dev` ).
