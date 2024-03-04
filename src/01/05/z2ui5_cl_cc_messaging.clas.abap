@@ -16,7 +16,7 @@ CLASS z2ui5_cl_cc_messaging DEFINITION
         descriptionurl TYPE string,
         persistent     TYPE string,
       END OF ty_s_item .
-    TYPES ty_t_items type table of ty_s_item WITH EMPTY KEY  ##NEEDED.
+    TYPES ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
 
     CLASS-METHODS get_js
       RETURNING

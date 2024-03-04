@@ -12,8 +12,8 @@ CLASS z2ui5_cl_core_app_search DEFINITION
         name    TYPE string,
         visible TYPE abap_bool,
       END OF ty_app.
-    DATA mt_apps type table of ty_app WITH EMPTY KEY.
-    DATA mt_favs type table of ty_app WITH EMPTY KEY.
+    DATA mt_apps TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
+    DATA mt_favs TYPE STANDARD TABLE OF ty_app WITH EMPTY KEY.
     DATA ms_app_sel TYPE ty_app.
 
     DATA check_initialized TYPE abap_bool.
@@ -43,7 +43,7 @@ CLASS z2ui5_cl_core_app_search DEFINITION
         classname  TYPE string,
         check_hide TYPE abap_bool,
       END OF ty_s_app.
-    TYPES ty_t_app type table of ty_s_app WITH EMPTY KEY.
+    TYPES ty_t_app TYPE STANDARD TABLE OF ty_s_app WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_s_repo,
@@ -57,7 +57,7 @@ CLASS z2ui5_cl_core_app_search DEFINITION
         t_app                TYPE ty_t_app,
         number_of_app        TYPE i,
       END OF ty_s_repo.
-    TYPES ty_t_repo type table of ty_s_repo WITH EMPTY KEY.
+    TYPES ty_t_repo TYPE STANDARD TABLE OF ty_s_repo WITH EMPTY KEY.
 
     DATA mt_git_repos TYPE ty_t_repo.
     DATA mt_git_addons TYPE ty_t_repo.

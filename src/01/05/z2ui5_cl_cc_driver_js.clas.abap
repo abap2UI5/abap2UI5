@@ -69,7 +69,7 @@
           on_highlighted       TYPE string,
         END OF ty_config_steps.
 
-      TYPES ty_config_steps_tt type table of ty_config_steps WITH EMPTY KEY.
+      TYPES ty_config_steps_tt TYPE STANDARD TABLE OF ty_config_steps WITH EMPTY KEY.
 
       TYPES:
         BEGIN OF ty_config,

@@ -104,7 +104,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD db_load_by_handle.
 
-    DATA lt_db type table of z2ui5_t_util_01 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_util_01 WITH EMPTY KEY.
 
     SELECT data
       FROM z2ui5_t_util_01
@@ -133,7 +133,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD db_load_by_id.
 
-    DATA lt_db type table of z2ui5_t_util_01 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_util_01 WITH EMPTY KEY.
 
     SELECT data
       FROM z2ui5_t_util_01
@@ -154,7 +154,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD db_save.
 
-    DATA lt_db type table of z2ui5_t_util_01 WITH EMPTY KEY.
+    DATA lt_db TYPE STANDARD TABLE OF z2ui5_t_util_01 WITH EMPTY KEY.
     SELECT id
       FROM z2ui5_t_util_01
        WHERE

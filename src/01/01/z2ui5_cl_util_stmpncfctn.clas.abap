@@ -274,7 +274,7 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
     TYPES clsname TYPE c LENGTH 30.
     TYPES refclsname TYPE c LENGTH 30.
     TYPES END OF ty_s_impl.
-    DATA lt_impl type table of ty_s_impl WITH DEFAULT KEY.
+    DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
     TYPES BEGIN OF ty_s_key.
     TYPES intkey TYPE c LENGTH 30.
     TYPES END OF ty_s_key.

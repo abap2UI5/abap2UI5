@@ -16,8 +16,8 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         r TYPE string,
       END OF ty_x_y_r_data.
 
-    TYPES ty_x_y_r_data_t type table of ty_x_y_r_data WITH EMPTY KEY.
-    TYPES ty_bg_color type table of string WITH EMPTY KEY.
+    TYPES ty_x_y_r_data_t TYPE STANDARD TABLE OF ty_x_y_r_data WITH EMPTY KEY.
+    TYPES ty_bg_color TYPE STANDARD TABLE OF string WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_padding,
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         values TYPE string_table,
       END OF ty_data_venn .
 
-    TYPES ty_data_venn_t type table of ty_data_venn WITH EMPTY KEY.
+    TYPES ty_data_venn_t TYPE STANDARD TABLE OF ty_data_venn WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_dataset,
@@ -111,7 +111,7 @@ CLASS z2ui5_cl_cc_chartjs DEFINITION
         tension            TYPE string,
       END OF ty_dataset.
 
-    TYPES ty_datasets type table of ty_dataset WITH EMPTY KEY.
+    TYPES ty_datasets TYPE STANDARD TABLE OF ty_dataset WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_data,

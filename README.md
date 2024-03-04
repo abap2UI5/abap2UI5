@@ -151,7 +151,7 @@ CLASS z2ui5_cl_demo_app DEFINITION PUBLIC.
         checkbox TYPE abap_bool,
       END OF ty_row.
 
-    DATA t_tab type table of ty_row WITH EMPTY KEY.
+    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
     DATA check_initialized TYPE abap_bool.
 
 ENDCLASS.

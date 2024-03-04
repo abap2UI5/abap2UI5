@@ -25,7 +25,7 @@ interface z2ui5_if_ajson_types
       children type i,
     end of ty_node.
   types:
-    ty_nodes_tt type table of ty_node with key path name.
+    ty_nodes_tt TYPE STANDARD TABLE OF ty_node with key path name.
   types:
     ty_nodes_ts type sorted table of ty_node
       with unique key path name

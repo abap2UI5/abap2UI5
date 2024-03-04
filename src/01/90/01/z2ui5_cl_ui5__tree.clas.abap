@@ -12,7 +12,7 @@ CLASS z2ui5_cl_ui5__tree DEFINITION
     DATA mo_root     TYPE REF TO z2ui5_cl_ui5__tree.
     DATA mo_previous TYPE REF TO z2ui5_cl_ui5__tree.
     DATA mo_parent   TYPE REF TO z2ui5_cl_ui5__tree.
-    DATA mt_child    type table of REF TO z2ui5_cl_ui5__tree WITH EMPTY KEY.
+    DATA mt_child    TYPE STANDARD TABLE OF REF TO z2ui5_cl_ui5__tree WITH EMPTY KEY.
 ENDCLASS.
 
 

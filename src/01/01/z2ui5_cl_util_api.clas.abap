@@ -13,7 +13,7 @@ CLASS z2ui5_cl_util_api DEFINITION
         selkz    TYPE abap_bool,
         editable TYPE abap_bool,
       END OF ty_s_token.
-    TYPES ty_t_token type table of ty_s_token WITH EMPTY KEY.
+    TYPES ty_t_token TYPE STANDARD TABLE OF ty_s_token WITH EMPTY KEY.
 
     TYPES ty_t_range TYPE RANGE OF string.
     TYPES ty_s_range TYPE LINE OF ty_t_range.
@@ -24,7 +24,7 @@ CLASS z2ui5_cl_util_api DEFINITION
         t_range TYPE ty_t_range,
         t_token TYPE ty_t_token,
       END OF ty_s_sql_multi.
-    TYPES ty_t_filter_multi type table of ty_s_sql_multi WITH EMPTY KEY.
+    TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_sql_multi WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_s_sql_result,
@@ -37,7 +37,7 @@ CLASS z2ui5_cl_util_api DEFINITION
         high  TYPE string,
         descr TYPE string,
       END OF ty_s_fix_val.
-    TYPES ty_t_fix_val type table of ty_s_fix_val WITH EMPTY KEY.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH EMPTY KEY.
 
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
