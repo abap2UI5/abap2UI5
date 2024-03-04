@@ -199,7 +199,7 @@ class lcl_mapping_camel implementation. "DEPRECATED
   method z2ui5_if_ajson_mapping~to_json.
 
     types ty_token type c length 255.
-    data lt_tokens type standard table of ty_token.
+    data lt_tokens type table of ty_token.
     data lv_from type i.
     field-symbols <token> like line of lt_tokens.
 
@@ -302,7 +302,7 @@ class lcl_to_camel implementation.
     types lty_token type c length 255.
     constants lc_forced_underscore_marker type c length 1 value cl_abap_char_utilities=>horizontal_tab.
 
-    data lt_tokens type standard table of lty_token.
+    data lt_tokens type table of lty_token.
     data lv_from type i.
     field-symbols <token> like line of lt_tokens.
 

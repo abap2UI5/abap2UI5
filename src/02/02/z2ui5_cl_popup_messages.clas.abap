@@ -18,7 +18,7 @@ CLASS z2ui5_cl_popup_messages DEFINITION
         message_v3 TYPE string,
         message_v4 TYPE string,
       END OF ty_s_msg.
-    TYPES ty_t_msg TYPE STANDARD TABLE OF ty_s_msg.
+    TYPES ty_t_msg type table of ty_s_msg.
     DATA mt_msg TYPE ty_t_msg.
 
     CLASS-METHODS factory

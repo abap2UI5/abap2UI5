@@ -10,7 +10,7 @@ CLASS z2ui5_cl_fw_cc_scrolling DEFINITION
         id       TYPE string,
         scrollto TYPE string,
       END OF ty_s_item.
-    TYPES ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY ##NEEDED.
+    TYPES ty_t_item type table of ty_s_item WITH EMPTY KEY ##NEEDED.
 
     CLASS-METHODS get_js
       RETURNING

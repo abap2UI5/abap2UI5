@@ -23,7 +23,7 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
         check_default TYPE abap_bool,
         t_filter      TYPE z2ui5_cl_util=>ty_t_filter_multi,
       END OF ty_s_variant_out.
-    TYPES ty_t_variant_out TYPE STANDARD TABLE OF ty_s_variant_out WITH EMPTY KEY.
+    TYPES ty_t_variant_out type table of ty_s_variant_out WITH EMPTY KEY.
     DATA mt_variant TYPE ty_t_variant_out.
 
     DATA ms_variant_save TYPE ty_s_variant_out.

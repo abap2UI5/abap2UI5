@@ -19,12 +19,12 @@ CLASS ltcl_test_app DEFINITION FOR TESTING.
 
     CLASS-DATA sv_var TYPE string.
     CLASS-DATA ss_tab TYPE ty_row.
-    CLASS-DATA st_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
+    CLASS-DATA st_tab type table of ty_row WITH EMPTY KEY.
     CLASS-METHODS class_constructor.
 
     DATA mv_val TYPE string ##NEEDED.
     DATA ms_tab TYPE ty_row ##NEEDED.
-    DATA mt_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY ##NEEDED.
+    DATA mt_tab type table of ty_row WITH EMPTY KEY ##NEEDED.
 
   PROTECTED SECTION.
   PRIVATE SECTION.

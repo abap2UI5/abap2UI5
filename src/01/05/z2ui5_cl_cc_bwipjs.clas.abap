@@ -12,7 +12,7 @@ CLASS z2ui5_cl_cc_bwipjs DEFINITION
         text TYPE string,
         opts TYPE string,
       END OF ty_s_barcode.
-    TYPES ty_t_barcode TYPE STANDARD TABLE OF ty_s_barcode WITH EMPTY KEY.
+    TYPES ty_t_barcode type table of ty_s_barcode WITH EMPTY KEY.
 
     CONSTANTS cv_src TYPE string VALUE `https://cdnjs.cloudflare.com/ajax/libs/bwip-js/4.1.1/bwip-js-min.js` ##NEEDED.
 

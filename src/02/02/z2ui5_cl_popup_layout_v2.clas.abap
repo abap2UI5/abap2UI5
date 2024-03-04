@@ -16,11 +16,11 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
         ddtext     TYPE string,
       END OF fixvalue.
 
-    TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
+    TYPES fixvalues type table of fixvalue WITH EMPTY KEY.
     TYPES ty_s_t001 TYPE z2ui5_t001.
-    TYPES ty_t_t001 TYPE STANDARD TABLE OF ty_s_t001 WITH EMPTY KEY.
+    TYPES ty_t_t001 type table of ty_s_t001 WITH EMPTY KEY.
     TYPES ty_s_t002 TYPE z2ui5_t002.
-    TYPES ty_t_t002 TYPE STANDARD TABLE OF ty_s_t002 WITH EMPTY KEY.
+    TYPES ty_t_t002 type table of ty_s_t002 WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_s_layout,
@@ -39,7 +39,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
         uname     TYPE c LENGTH 12,
         selkz     TYPE abap_bool,
       END OF ty_s_layo.
-    TYPES ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
+    TYPES ty_t_layo type table of ty_s_layo WITH EMPTY KEY.
 
     DATA mt_t001 TYPE ty_t_layo.
     DATA ms_layout TYPE ty_s_layout.
@@ -701,7 +701,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
 
   METHOD save_layout.
 
-    DATA t002 TYPE STANDARD TABLE OF z2ui5_t002 WITH EMPTY KEY.
+    DATA t002 type table of z2ui5_t002 WITH EMPTY KEY.
 
     IF mv_layout IS INITIAL.
       client->message_toast_display( 'Layoutname missing.' ).

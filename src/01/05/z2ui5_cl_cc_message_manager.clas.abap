@@ -17,7 +17,7 @@ public section.
         persistent     TYPE string,
       END OF ty_s_item .
 
-  types ty_t_items TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
+  types ty_t_items type table of ty_s_item WITH EMPTY KEY  ##NEEDED.
 
   class-methods GET_JS
     returning

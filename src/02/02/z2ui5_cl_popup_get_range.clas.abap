@@ -14,7 +14,7 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
         high   TYPE string,
         key    TYPE string,
       END OF ty_s_filter_pop.
-    DATA mt_filter TYPE STANDARD TABLE OF ty_s_filter_pop WITH EMPTY KEY.
+    DATA mt_filter type table of ty_s_filter_pop WITH EMPTY KEY.
 
     CLASS-METHODS factory
       IMPORTING

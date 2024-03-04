@@ -191,7 +191,7 @@ class lcl_json_parser definition final.
   private section.
 
     types:
-      ty_stack_tt type standard table of ref to z2ui5_if_ajson_types=>ty_node.
+      ty_stack_tt type table of ref to z2ui5_if_ajson_types=>ty_node.
 
     data mt_stack type ty_stack_tt.
     data mv_stack_path type string.
@@ -1980,7 +1980,7 @@ class lcl_mutator_queue definition final.
         value(ro_self) type ref to lcl_mutator_queue.
 
   private section.
-    data mt_queue type standard table of ref to lif_mutator_runner.
+    data mt_queue type table of ref to lif_mutator_runner.
 
 endclass.
 
