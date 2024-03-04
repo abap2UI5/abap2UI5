@@ -1974,6 +1974,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !includeiteminselection TYPE abap_bool OPTIONAL
         !inset                  TYPE abap_bool OPTIONAL
         !width                  TYPE clike OPTIONAL
+        !toggleopenstate        TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS standard_tree_item
@@ -3570,7 +3571,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -7533,6 +7534,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `headerText`       v = headertext )
                            ( n = `footerText`       v = footertext )
                            ( n = `mode`             v = mode )
+                           ( n = `toggleOpenState`  v = toggleopenstate )
                            ( n = `width`            v = width )
                            ( n = `includeItemInSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( includeiteminselection ) )
                            ( n = `inset`  v = z2ui5_cl_util=>boolean_abap_2_json( inset ) )
