@@ -84,8 +84,7 @@ CLASS Z2UI5_CL_POPUP_PDF IMPLEMENTATION.
                             ( n = `width`  v = `99%` )
                     )
               )->get_parent( )->get_parent( )->get_parent(
-              )->footer( )->overflow_toolbar(
-                  )->toolbar_spacer(
+              )->buttons(
                   )->button(
                       text  = button_text_cancel
                       press = client->_event( 'BUTTON_CANCEL' )

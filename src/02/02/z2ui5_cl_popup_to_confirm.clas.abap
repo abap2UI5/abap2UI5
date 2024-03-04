@@ -70,8 +70,7 @@ CLASS z2ui5_cl_popup_to_confirm IMPLEMENTATION.
                   )->vbox( 'sapUiMediumMargin'
                       )->text( question_text
               )->get_parent( )->get_parent(
-              )->footer( )->overflow_toolbar(
-                  )->toolbar_spacer(
+              )->buttons(
                   )->button(
                       text  = button_text_cancel
                       press = client->_event( 'BUTTON_CANCEL' )

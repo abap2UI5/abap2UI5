@@ -80,8 +80,7 @@ CLASS Z2UI5_CL_POPUP_INPUT_VALUE IMPLEMENTATION.
                     value  = client->_bind_edit( ms_result-value )
                     submit = client->_event( 'BUTTON_CONFIRM' )
               )->get_parent( )->get_parent(
-              )->footer( )->overflow_toolbar(
-                  )->toolbar_spacer(
+              )->buttons(
                   )->button(
                       text  = button_text_cancel
                       press = client->_event( 'BUTTON_CANCEL' )
