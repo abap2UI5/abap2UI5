@@ -13,7 +13,7 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
         list_key                TYPE string,
         list_selected_attribute TYPE string,
         list_selected_class     TYPE string,
-*        areas TYPE TABLE OF ty_c,
+*        areas TYPE STANDARD TABLE OF ty_c,
         single_select           TYPE abap_bool,
         wrap_class              TYPE string,
         wrap_css                TYPE string,

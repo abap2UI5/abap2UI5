@@ -59,8 +59,7 @@ CLASS z2ui5_cl_popup_textedit IMPLEMENTATION.
                   width = '100%'
                   value = client->_bind_edit( ms_result-text )
           )->get_parent(
-          )->footer( )->overflow_toolbar(
-              )->toolbar_spacer(
+          )->buttons(
               )->button(
                   text  = 'Cancel'
                   press = client->_event( 'BUTTON_TEXTAREA_CANCEL' )

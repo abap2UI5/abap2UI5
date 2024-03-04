@@ -190,19 +190,19 @@ CLASS Z2UI5_CL_POPUP_GET_RANGE_MULTI IMPLEMENTATION.
                   text  = `Clear`
                   press = client->_event( val = `LIST_DELETE` t_arg = VALUE #( ( `${NAME}` ) ) ) ).
 
-    lo_popup->footer( )->overflow_toolbar(
+    lo_popup->buttons(
         )->button( text  = `Clear All`
                    icon  = 'sap-icon://delete'
                    type  = `Transparent`
                    press = client->_event( val = `POPUP_DELETE_ALL` )
-        )->toolbar_spacer(
+*        )->toolbar_spacer(
         )->button( text  = 'DB Read'
                   press = client->_event( 'BUTTON_DB_READ' )
                  icon  = 'sap-icon://download-from-cloud'
        )->button( text  = 'DB Save'
                   press = client->_event( 'BUTTON_DB_SAVE' )
                   icon  = 'sap-icon://save'
-        )->toolbar_spacer(
+*        )->toolbar_spacer(
        )->button( text  = 'Cancel'
                   press = client->_event( 'BUTTON_CANCEL' )
        )->button( text  = 'OK'

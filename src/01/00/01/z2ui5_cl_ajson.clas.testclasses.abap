@@ -1628,8 +1628,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays_simple.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    DATA lt_mock  TYPE TABLE OF string_table.
-    DATA lt_exp   TYPE TABLE OF string_table.
+    DATA lt_mock  TYPE STANDARD TABLE OF string_table.
+    DATA lt_exp   TYPE STANDARD TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1662,8 +1662,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    DATA lt_mock  TYPE TABLE OF string_table.
-    DATA lt_exp   TYPE TABLE OF string_table.
+    DATA lt_mock  TYPE STANDARD TABLE OF string_table.
+    DATA lt_exp   TYPE STANDARD TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -3544,8 +3544,8 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
   METHOD array_index.
 
-    DATA lt_act TYPE TABLE OF ty_loc.
-    DATA lt_exp TYPE TABLE OF ty_loc.
+    DATA lt_act TYPE STANDARD TABLE OF ty_loc.
+    DATA lt_exp TYPE STANDARD TABLE OF ty_loc.
     DATA ls_exp TYPE ty_loc.
 
     DATA lv_src TYPE string.
@@ -4197,7 +4197,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA lt_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
 
-    DATA lt_tab TYPE TABLE OF ty_struc.
+    DATA lt_tab TYPE STANDARD TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
 
     APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
@@ -4265,7 +4265,7 @@ CLASS ltcl_filter_test DEFINITION FINAL
         type TYPE z2ui5_if_ajson_filter=>ty_visit_type,
       END OF ty_visit_history.
 
-    DATA mt_visit_history TYPE TABLE OF ty_visit_history.
+    DATA mt_visit_history TYPE STANDARD TABLE OF ty_visit_history.
 
     METHODS simple_test FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS array_test FOR TESTING RAISING z2ui5_cx_ajson_error.

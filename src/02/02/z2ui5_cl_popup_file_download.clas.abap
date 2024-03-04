@@ -99,8 +99,7 @@ CLASS Z2UI5_CL_POPUP_FILE_DOWNLOAD IMPLEMENTATION.
       )->input( value   = mv_size
                 enabled = abap_false
       )->get_parent( )->get_parent(
-      )->footer( )->overflow_toolbar(
-      )->toolbar_spacer(
+      )->buttons(
       )->button(
         text  = button_text_cancel
         press = client->_event( 'BUTTON_CANCEL' )

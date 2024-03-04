@@ -72,8 +72,7 @@ CLASS z2ui5_cl_popup_messages IMPLEMENTATION.
                         )->text( '{NUMBER}'
                         )->text( '{MESSAGE}'
             )->get_parent( )->get_parent( )->get_parent( )->get_parent(
-            )->footer( )->overflow_toolbar(
-                )->toolbar_spacer(
+            )->buttons(
                 )->button(
                     text  = 'continue'
                     press = client->_event( 'BUTTON_CONTINUE' )

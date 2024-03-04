@@ -83,8 +83,7 @@ CLASS z2ui5_cl_popup_file_upload IMPLEMENTATION.
                         placeholder = 'filepath here...'
                         upload      = client->_event( 'UPLOAD' )
               )->get_parent( )->get_parent(
-              )->footer( )->overflow_toolbar(
-                  )->toolbar_spacer(
+              )->buttons(
                   )->button(
                       text  = button_text_cancel
                       press = client->_event( 'BUTTON_CANCEL' )

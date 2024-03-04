@@ -102,7 +102,8 @@ CLASS Z2UI5_CL_POPUP_GET_RANGE IMPLEMENTATION.
                         type  = `Transparent`
                         press = client->_event( val = `POPUP_DELETE` t_arg = VALUE #( ( `${KEY}` ) ) ) ).
 
-    lo_popup->footer( )->overflow_toolbar(
+    lo_popup->buttons(
+*    )->begin_button(
         )->button( text  = `Delete All`
                    icon  = 'sap-icon://delete'
                    type  = `Transparent`
@@ -110,7 +111,8 @@ CLASS Z2UI5_CL_POPUP_GET_RANGE IMPLEMENTATION.
         )->button( text  = `Add Item`
                    icon  = `sap-icon://add`
                    press = client->_event( val = `POPUP_ADD` )
-        )->toolbar_spacer(
+*      )->get_parent(
+*      )->end_button(
        )->button(
             text  = 'Cancel'
             press = client->_event( 'BUTTON_CANCEL' )
