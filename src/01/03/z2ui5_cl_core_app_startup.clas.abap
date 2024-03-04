@@ -88,7 +88,8 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
       )->button( text = `Debugging Tools` icon = `sap-icon://enablement`
         press = client->_event( `OPEN_DEBUG` )
       )->button( text = `System` icon = `sap-icon://information`
-        press = client->_event( `OPEN_INFO` ) ).
+        press = client->_event( `OPEN_INFO` )
+    ).
 
     DATA(simple_form2) = page2->simple_form(
         editable                = abap_true
@@ -160,7 +161,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     simple_form2->label( `App Finder` ).
     simple_form2->button(
         text  = `Start & Install Apps`
-        press = client->_event_client( val   = client->cs_event-open_new_tab t_arg = VALUE #( ( lv_url_samples3 ) ) )
+        press = client->_event_client( val = client->cs_event-open_new_tab t_arg = VALUE #( ( lv_url_samples3 ) ) )
         width = `70%` ).
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
@@ -191,22 +192,37 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                  target      = `_blank`
                  href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
-    simple_form2->label( `` ).
-    simple_form2->text( `` ).
+*    simple_form2->label( `` ).
+*    simple_form2->text( `` ).
 
-*    simple_form2->toolbar( )->title( `Links & More` ).
-    simple_form2->label( `Links & More` ).
+    simple_form2->toolbar( )->title( `Feedback & Support` ).
+
+*    simple_form2->label( `Links & More` ).
+    simple_form2->label( `The Project` ).
     simple_form2->link( text   = `Repository on GitHub`
                         target = `_blank`
                         href   = `https://github.com/abap2UI5/abap2UI5` ).
-    simple_form2->label( ).
-    simple_form2->link( text   = `News on Twitter`
-                        target = `_blank`
-                        href   = `https://twitter.com/abap2UI5` ).
+
     simple_form2->label( ).
     simple_form2->link( text   = `Blog Series on SAP Community`
                         target = `_blank`
                         href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
+
+    simple_form2->label( ).
+    simple_form2->link( text   = `News on Twitter`
+                        target = `_blank`
+                        href   = `https://twitter.com/abap2UI5` ).
+
+    simple_form2->label( `` ).
+    simple_form2->text( `` ).
+
+*    simple_form2->label( `Social` ).
+
+
+    simple_form2->label( `Author` ).
+    simple_form2->link( text   = `Contact`
+                        target = `_blank`
+                        href   =  `https://github.com/oblomov-dev` ).
 
     client->view_display( page2->stringify( ) ).
 
