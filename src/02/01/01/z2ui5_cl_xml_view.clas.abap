@@ -817,10 +817,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
     METHODS begin_button
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
-            METHODS end_button
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS end_button
       RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS search_field
       IMPORTING
         !search            TYPE clike OPTIONAL
@@ -2048,6 +2048,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showsearchbutton          TYPE clike OPTIONAL
         !aligncustomcontenttoright TYPE clike OPTIONAL
         !findmode                  TYPE clike OPTIONAL
+        !findbuttonpress           TYPE clike OPTIONAL
         !infoofselectitems         TYPE clike OPTIONAL
         !showbirdeyebutton         TYPE clike OPTIONAL
         !showdisplaytypebutton     TYPE clike OPTIONAL
@@ -2069,8 +2070,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS proportion_zoom_strategy
-     importing
-      !ZOOMLEVEL type CLIKE optional
+      IMPORTING
+        !zoomlevel    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS total_horizon
@@ -2088,11 +2089,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS row_settings_template
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS gantt_row_settings
       IMPORTING
-        !rowid        TYPE clike OPTIONAL
-        !shapes1      TYPE clike OPTIONAL
-        !shapes2      TYPE clike OPTIONAL
+        !rowid         TYPE clike OPTIONAL
+        !shapes1       TYPE clike OPTIONAL
+        !relationships TYPE clike OPTIONAL
+        !shapes2       TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS shapes1
@@ -2103,12 +2106,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS task
       IMPORTING
+        !id           TYPE clike OPTIONAL
         !type         TYPE clike OPTIONAL
         !color        TYPE clike OPTIONAL
         !endtime      TYPE clike OPTIONAL
         !time         TYPE clike OPTIONAL
         !title        TYPE clike OPTIONAL
         !showtitle    TYPE clike OPTIONAL
+        !connectable  TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS gantt_table
@@ -3555,6 +3560,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS relationship
+      IMPORTING
+        !shapeid      TYPE clike OPTIONAL
+        !type         TYPE clike OPTIONAL
+        !successor    TYPE clike OPTIONAL
+        !predecessor  TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS relationships
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -3571,8 +3589,25 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
+  METHOD relationship.
+
+    result = _generic( name = `Relationship`
+                       ns = `gantt`
+                        t_prop = VALUE #( ( n = `shapeId`    v = shapeid )
+                                         ( n = `type`        v = type )
+                                         ( n = `SUCCESSOR`   v = successor )
+                                         ( n = `PREDECESSOR` v = predecessor )
+                                          ) ).
+
+  ENDMETHOD.
+
+
+  METHOD relationships.
+    result = _generic( name = `relationships`
+                       ns = `gantt` ).
+  ENDMETHOD.
 
   METHOD actions.
     result = _generic( name = `actions`
@@ -4148,6 +4183,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `alignCustomContentToRight` v = z2ui5_cl_util=>boolean_abap_2_json( aligncustomcontenttoright ) )
                                          ( n = `findMode`                  v = findmode )
                                          ( n = `infoOfSelectItems`         v = infoofselectitems )
+                                         ( n = `findbuttonpress`           v = findbuttonpress )
                                          ( n = `showBirdEyeButton`         v = z2ui5_cl_util=>boolean_abap_2_json( showbirdeyebutton ) )
                                          ( n = `showDisplayTypeButton`     v = z2ui5_cl_util=>boolean_abap_2_json( showdisplaytypebutton ) )
                                          ( n = `showLegendButton`          v = z2ui5_cl_util=>boolean_abap_2_json( showlegendbutton ) )
@@ -4809,7 +4845,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `rowId` v = rowid )
                                          ( n = `shapes1` v = shapes1 )
-                                         ( n = `shapes2` v = shapes2 ) ) ).
+                                         ( n = `shapes1` v = shapes1 )
+                                         ( n = `relationships` v = relationships ) ) ).
   ENDMETHOD.
 
 
@@ -6468,7 +6505,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD proportion_zoom_strategy.
     result = _generic( name = `ProportionZoomStrategy`
                        ns   = `axistime`
-                       t_prop = VALUE #( ( n = `zoomLevel` v = zoomLevel ) )
+                       t_prop = VALUE #( ( n = `zoomLevel` v = zoomlevel ) )
                      ).
   ENDMETHOD.
 
@@ -7178,7 +7215,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = `shapes`
                        t_prop = VALUE #( ( n = `time` v = time )
                                          ( n = `endTime` v = endtime )
+                                         ( n = `id` v = id )
                                          ( n = `type` v = type )
+                                         ( n = `connectable` v = connectable )
                                          ( n = `title` v = title )
                                          ( n = `showTitle` v = z2ui5_cl_util=>boolean_abap_2_json( showtitle ) )
                                          ( n = `color` v = color ) ) ).
