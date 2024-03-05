@@ -288,7 +288,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                                 (  n = `uploadButtonText`   v = uploadbuttontext )
                                 (  n = `fileType`           v = filetype )
                                 (  n = `checkDirectUpload`  v = z2ui5_cl_util=>boolean_abap_2_json( checkdirectupload ) )
-                                (  n = `icon`           v = icon ) 
+                                (  n = `icon`           v = icon )
                                 (  n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )    ) ).
 
 
