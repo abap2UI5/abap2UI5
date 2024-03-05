@@ -4845,7 +4845,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `rowId` v = rowid )
                                          ( n = `shapes1` v = shapes1 )
-                                         ( n = `shapes1` v = shapes1 )
+                                         ( n = `shapes2` v = shapes2 )
                                          ( n = `relationships` v = relationships ) ) ).
   ENDMETHOD.
 
