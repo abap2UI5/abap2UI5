@@ -121,6 +121,8 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !uploadbuttontext  TYPE clike OPTIONAL
         !checkdirectupload TYPE clike OPTIONAL
         !filetype          TYPE clike OPTIONAL
+        !icon              TYPE clike OPTIONAL
+        !ENABLED           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
@@ -285,7 +287,9 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                                 (  n = `buttonText`         v = buttontext )
                                 (  n = `uploadButtonText`   v = uploadbuttontext )
                                 (  n = `fileType`           v = filetype )
-                                (  n = `checkDirectUpload`  v = z2ui5_cl_util=>boolean_abap_2_json( checkdirectupload ) ) ) ).
+                                (  n = `checkDirectUpload`  v = z2ui5_cl_util=>boolean_abap_2_json( checkdirectupload ) )
+                                (  n = `icon`           v = icon )
+                                (  n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )    ) ).
 
 
   ENDMETHOD.
