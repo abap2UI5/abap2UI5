@@ -777,6 +777,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS custom_data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS core_custom_data
+      IMPORTING
+        key           TYPE clike OPTIONAL
+        value         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS badge_custom_data
       IMPORTING
         !key          TYPE clike OPTIONAL
@@ -1738,6 +1744,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
     METHODS ui_column
       IMPORTING
+        !id               TYPE clike OPTIONAL
         !width               TYPE clike OPTIONAL
         !showsortmenuentry   TYPE clike OPTIONAL
         !sortproperty        TYPE clike OPTIONAL
@@ -1748,6 +1755,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)        TYPE REF TO z2ui5_cl_xml_view .
     METHODS ui_columns
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS ui_custom_data
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS ui_extension
@@ -2060,12 +2070,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !zoomlevel                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS gantt_chart_with_table
       IMPORTING
-        !id                 TYPE clike OPTIONAL
-        !shapeselectionmode TYPE clike OPTIONAL
+        !id                        TYPE clike OPTIONAL
+        !shapeselectionmode        TYPE clike OPTIONAL
+        !isconnectordetailsvisible TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)              TYPE REF TO z2ui5_cl_xml_view .
     METHODS axis_time_strategy
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2097,7 +2109,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !relationships TYPE clike OPTIONAL
         !shapes2       TYPE clike OPTIONAL
       RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS shapes1
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2139,6 +2151,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS base_rectangle
       IMPORTING
         !time                    TYPE clike OPTIONAL
+        !shapeid                 TYPE clike OPTIONAL
         !endtime                 TYPE clike OPTIONAL
         !selectable              TYPE clike OPTIONAL
         !selectedfill            TYPE clike OPTIONAL
@@ -3589,25 +3602,8 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
-  METHOD relationship.
-
-    result = _generic( name = `Relationship`
-                       ns = `gantt`
-                        t_prop = VALUE #( ( n = `shapeId`    v = shapeid )
-                                         ( n = `type`        v = type )
-                                         ( n = `SUCCESSOR`   v = successor )
-                                         ( n = `PREDECESSOR` v = predecessor )
-                                          ) ).
-
-  ENDMETHOD.
-
-
-  METHOD relationships.
-    result = _generic( name = `relationships`
-                       ns = `gantt` ).
-  ENDMETHOD.
 
   METHOD actions.
     result = _generic( name = `actions`
@@ -3754,7 +3750,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `BaseRectangle`
                        ns     = 'gantt'
                        t_prop = VALUE #( ( n = `time`                      v = time )
-                                         ( n = `endtime`                   v = endtime )
+                                         ( n = `endTime`                   v = endtime )
                                          ( n = `selectable`                v = z2ui5_cl_util=>boolean_abap_2_json( selectable ) )
                                          ( n = `selectedFill`              v = selectedfill )
                                          ( n = `fill`                      v = fill )
@@ -3774,6 +3770,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `selected`                  v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                                          ( n = `resizable`                 v = z2ui5_cl_util=>boolean_abap_2_json( resizable ) )
                                          ( n = `horizontalTextAlignment`   v = horizontaltextalignment )
+                                         ( n = `shapeId`                   v = shapeid )
                                          ( n = `highlighted`               v = z2ui5_cl_util=>boolean_abap_2_json( highlighted ) )
                                          ( n = `highlightable`             v = z2ui5_cl_util=>boolean_abap_2_json( highlightable ) ) ) ).
   ENDMETHOD.
@@ -4216,6 +4213,18 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD content_right.
     result = _generic( `contentRight` ).
+  ENDMETHOD.
+
+
+  METHOD core_custom_data.
+    result = me.
+    _generic( name   = `CustomData`
+               ns = `core`
+              t_prop = VALUE #(
+                ( n = `value` v = value )
+                ( n = `key` v = key )
+                ) ).
+
   ENDMETHOD.
 
 
@@ -4836,7 +4845,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `GanttChartWithTable`
                        ns     = `gantt`
                        t_prop = VALUE #( ( n = `id` v = id )
-                                         ( n = `shapeSelectionMode` v = shapeselectionmode ) ) ).
+                                         ( n = `shapeSelectionMode` v = shapeselectionmode )
+                                         ( n = `isConnectorDetailsVisible` v = z2ui5_cl_util=>boolean_abap_2_json( isconnectordetailsvisible ) )
+                                          ) ).
   ENDMETHOD.
 
 
@@ -6637,6 +6648,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD relationship.
+
+    result = _generic( name = `Relationship`
+                       ns = `gantt`
+                        t_prop = VALUE #( ( n = `shapeId`    v = shapeid )
+                                         ( n = `type`        v = type )
+                                         ( n = `successor`   v = successor )
+                                         ( n = `predecessor` v = predecessor )
+                                          ) ).
+
+  ENDMETHOD.
+
+
+  METHOD relationships.
+    result = _generic( name = `relationships`
+                       ns = `gantt` ).
+  ENDMETHOD.
+
+
   METHOD responsive_splitter.
     result = _generic( name   = `ResponsiveSplitter`
                        ns     = `layout`
@@ -7632,6 +7662,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `Column`
                        ns     = 'table'
                        t_prop = VALUE #(
+                          ( n = `id` v = id )
                           ( n = `width` v = width )
                           ( n = `showSortMenuEntry`    v = showsortmenuentry )
                           ( n = `sortProperty`         v = sortproperty )
@@ -7643,6 +7674,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD ui_columns.
     result = _generic( name = `columns`
+                       ns   = 'table' ).
+  ENDMETHOD.
+
+
+  METHOD ui_custom_data.
+    result = _generic( name = `customData`
                        ns   = 'table' ).
   ENDMETHOD.
 
