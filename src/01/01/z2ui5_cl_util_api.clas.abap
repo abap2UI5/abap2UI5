@@ -678,6 +678,8 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
     TRY.
 
         z2ui5_cl_ajson=>parse( val )->to_abap(
+          exporting
+          iv_corresponding = abap_true
           IMPORTING
             ev_container = data ).
 
