@@ -1977,6 +1977,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree
       IMPORTING
+        !id                     TYPE clike OPTIONAL
         !items                  TYPE clike OPTIONAL
         !headertext             TYPE clike OPTIONAL
         !footertext             TYPE clike OPTIONAL
@@ -7599,6 +7600,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD tree.
     result = _generic( name   = `Tree`
                        t_prop = VALUE #(
+                           ( n = `id`               v = id )
                            ( n = `items`            v = items )
                            ( n = `headerText`       v = headertext )
                            ( n = `footerText`       v = footertext )

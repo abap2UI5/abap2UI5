@@ -134,13 +134,15 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            });` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `            oFragment.setModel(oview_model);` && |\n| &&
+               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
+               `            sap.z2ui5[viewProp].Fragment = Fragment;` && |\n| &&
                `            let oControl = openById ? sap.z2ui5.oView.byId(openById) : null;` && |\n| &&
                `            if (oControl) {` && |\n| &&
                `                oFragment.openBy(oControl);` && |\n| &&
                `            } else {` && |\n| &&
                `                oFragment.open();` && |\n| &&
                `            }` && |\n| &&
-               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
+*               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `        },` && |\n| &&
                `        async displayPopover(xml, viewProp, openById) {` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
@@ -151,13 +153,16 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
                `            oFragment.setModel(oview_model);` && |\n| &&
+               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
+               `            sap.z2ui5[viewProp].Fragment = Fragment;` && |\n| &&
                `            let oControl = openById ? sap.z2ui5.oView.byId(openById) : null;` && |\n| &&
                `            if (oControl) {` && |\n| &&
                `                oFragment.openBy(oControl);` && |\n| &&
                `            } else {` && |\n| &&
+               `                sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `                oFragment.open();` && |\n| &&
                `            }` && |\n| &&
-               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
+*               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `        },` && |\n| &&
                `        async displayNestedView(xml, viewProp, viewNestId) {` && |\n| &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
