@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_popup_layout_v2 DEFINITION
+CLASS z2ui5_cl_popup_layout DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -67,7 +67,7 @@ CLASS z2ui5_cl_popup_layout_v2 DEFINITION
         !delete_layout   TYPE abap_bool OPTIONAL
         !extended_layout TYPE abap_bool OPTIONAL
       RETURNING
-        VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout_v2.
+        VALUE(result)    TYPE REF TO z2ui5_cl_popup_layout.
 
     TYPES:
       BEGIN OF ty_s_result,
@@ -141,7 +141,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
+CLASS z2ui5_cl_popup_layout IMPLEMENTATION.
 
 
   METHOD db_delete_layout.
@@ -824,7 +824,7 @@ CLASS z2ui5_cl_popup_layout_v2 IMPLEMENTATION.
     IF client->get( )-check_on_navigated = abap_true.
 
       TRY.
-          DATA(app) = CAST z2ui5_cl_popup_layout_v2( client->get_app( client->get( )-s_draft-id_prev_app ) ).
+          DATA(app) = CAST z2ui5_cl_popup_layout( client->get_app( client->get( )-s_draft-id_prev_app ) ).
           DATA(ls_result) = app->result( ).
           IF ls_result-check_cancel = abap_true.
             RETURN.
