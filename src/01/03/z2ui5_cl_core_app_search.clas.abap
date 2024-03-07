@@ -344,7 +344,7 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
       ENDTRY.
 
       mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` )
-        ( name  = row ) ).
+        ( name  = row-classname ) ).
       search( ).
       view_display( client ).
       RETURN.

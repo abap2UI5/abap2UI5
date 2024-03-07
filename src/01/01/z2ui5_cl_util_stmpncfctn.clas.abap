@@ -12,6 +12,14 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
         long   TYPE string,
       END OF ty_data_element_texts .
 
+    TYPES:
+      BEGIN OF ts_class,
+        classname   TYPE c LENGTH 30,
+        description TYPE string,
+      END OF ts_class,
+      tt_classes TYPE STANDARD TABLE OF ts_class
+                      WITH NON-UNIQUE DEFAULT KEY.
+
     CLASS-METHODS method_get_source
       IMPORTING
         !iv_classname  TYPE clike
@@ -61,7 +69,7 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
       IMPORTING
         !val          TYPE clike
       RETURNING
-        VALUE(result) TYPE string_table.
+        VALUE(result) TYPE tt_classes.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
@@ -69,7 +77,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
+CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
 
   METHOD conv_decode_x_base64.
@@ -304,7 +312,9 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
           RECEIVING
             rt_names = lt_implementation_names.
 
-        result = lt_implementation_names.
+        result = VALUE #(
+                   FOR implementation_name IN lt_implementation_names
+                   ( classname = implementation_name ) ).
 
       CATCH cx_sy_dyn_call_illegal_class.
 
@@ -319,10 +329,25 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
           EXCEPTIONS
             not_existing = 1
             OTHERS       = 2.
+        IF lines( lt_impl ) = 0.
+          RETURN.
+        ENDIF.
 
         LOOP AT lt_impl REFERENCE INTO DATA(lr_impl).
-          INSERT CONV #( lr_impl->clsname ) INTO TABLE result.
+          INSERT VALUE #( classname = lr_impl->clsname ) INTO TABLE result.
         ENDLOOP.
+
+        DATA(from) = |seoclass LEFT OUTER JOIN seoclasstx|
+                  && |                    ON  seoclasstx~clsname = seoclass~clsname|
+                  && |                    AND seoclasstx~langu   = @sy-langu|.
+
+        SELECT
+          FROM (from)
+          FIELDS seoclass~clsname    AS classname,
+                 seoclasstx~descript AS description
+          FOR ALL ENTRIES IN @result
+          WHERE seoclass~clsname = @result-classname
+          INTO TABLE @result.
 
     ENDTRY.
 
