@@ -148,7 +148,8 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
         ENDIF.
 
         TRY.
-            result-s_control-app_start = result-s_front-o_comp_data->get( `/startupParameters/app_start/1` ).
+            data(lo_comp) = result-s_front-o_comp_data.
+            result-s_control-app_start = lo_comp->get( `/startupParameters/app_start/1` ).
             result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
           CATCH cx_root.
         ENDTRY.
