@@ -292,6 +292,10 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
     TYPES intkey TYPE c LENGTH 30.
     TYPES END OF ty_s_key.
     DATA ls_key TYPE ty_s_key.
+    DATA BEGIN OF ls_clskey.
+    DATA clsname TYPE c LENGTH 30.
+    DATA END OF ls_clskey.
+    DATA class TYPE REF TO data.
 
     TRY.
 
@@ -339,32 +343,34 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+        DATA(type) = 'SEOC_CLASS_R'.
+        CREATE DATA class TYPE (type).
+        ASSIGN class->* TO FIELD-SYMBOL(<class>).
+
         LOOP AT lt_impl REFERENCE INTO DATA(lr_impl).
-          INSERT VALUE #( classname = lr_impl->clsname ) INTO TABLE result.
+
+          CLEAR: <class>.
+
+          ls_clskey-clsname = lr_impl->clsname.
+
+          lv_fm = `SEO_CLASS_READ`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              clskey = ls_clskey
+            IMPORTING
+              class  = <class>.
+
+          ASSIGN
+            COMPONENT 'DESCRIPT'
+            OF STRUCTURE <class>
+            TO FIELD-SYMBOL(<description>).
+          ASSERT sy-subrc = 0.
+
+          INSERT
+            VALUE #( classname = lr_impl->clsname
+                     description = <description> )
+            INTO TABLE result.
         ENDLOOP.
-
-        DATA(from) = |seoclass LEFT OUTER JOIN seoclasstx|
-                  && |                    ON  seoclasstx~clsname = seoclass~clsname|
-                  && |                    AND seoclasstx~langu   = @sy-langu|.
-
-        DATA(fields) = |seoclass~clsname    AS classname, |
-                    && |seoclasstx~descript AS description|.
-
-        DATA(where) = |seoclass~clsname = @result-classname|.
-
-        IF lines( result ) = 0.
-          RETURN.
-        ENDIF.
-
-        SELECT
-          FROM (from)
-          FIELDS (fields)
-          FOR ALL ENTRIES IN @result
-          WHERE (where)
-          INTO TABLE @result.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
 
     ENDTRY.
 
