@@ -7,6 +7,7 @@ CLASS z2ui5_cl_popup_get_range DEFINITION
 
     INTERFACES z2ui5_if_app.
 
+
     TYPES:
       BEGIN OF ty_s_filter_pop,
         option TYPE string,

@@ -147,17 +147,21 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+        TRY.
+            result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
+                result-s_front-o_comp_data->get( `/startupParameters/app_start/1` ) ).
+            IF result-s_control-app_start IS NOT INITIAL.
+              IF result-s_control-app_start(1) = `-`.
+                REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
+                REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
+              ENDIF.
+              RETURN.
+            ENDIF.
+          CATCH cx_root.
+        ENDTRY.
+
         result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
-            result-s_front-o_comp_data->get( `/startupParameters/app_start/1` ) ).
-        IF result-s_control-app_start IS NOT INITIAL.
-          IF result-s_control-app_start(1) = `-`.
-            REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
-            REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
-          ENDIF.
-          RETURN.
-        ENDIF.
-        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
-            z2ui5_cl_util=>url_param_get( val = `app_start` url = result-s_front-search ) ).
+        z2ui5_cl_util=>url_param_get( val = `app_start` url = result-s_front-search ) ).
 
       CATCH cx_root INTO DATA(x).
         RAISE EXCEPTION TYPE z2ui5_cx_util_error
