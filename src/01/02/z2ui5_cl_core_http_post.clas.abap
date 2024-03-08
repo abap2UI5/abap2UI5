@@ -86,7 +86,8 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         s_front-params    = mo_action->ms_next-s_set
         s_front-id        = mo_action->mo_app->ms_draft-id
         s_front-app       = z2ui5_cl_util=>rtti_get_classname_by_ref( mo_action->mo_app->mo_app )
-        s_front-app_start = ms_request-s_control-app_start ).
+*        s_front-app_start = ms_request-s_front-app_start
+        ).
 
     IF ms_response-s_front-params-s_view-check_update_model = abap_true
     OR ms_response-s_front-params-s_view_nest-check_update_model = abap_true

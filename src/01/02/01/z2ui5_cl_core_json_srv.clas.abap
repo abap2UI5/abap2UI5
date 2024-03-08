@@ -63,9 +63,9 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
           ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
 
 *          TRY.
-              lo_val_front->to_abap(
-                IMPORTING
-                  ev_container = <val> ).
+          lo_val_front->to_abap(
+            IMPORTING
+              ev_container = <val> ).
 *            CATCH cx_root.
 *              <val> = lo_val_front->mt_json_tree[ 1 ]-value.
 *          ENDTRY.
@@ -140,12 +140,20 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
             IMPORTING
                 ev_container    = result-s_front ).
 
+        result-s_front-o_comp_data = lo_ajson->slice( `/COMPDATA` ).
+
         result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD` ).
         IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.
-        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_front-app_start ).
+
+        result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(
+            result-s_front-o_comp_data->get( `/startupParameters/app_start/1` ) ).
         IF result-s_control-app_start IS NOT INITIAL.
+          IF result-s_control-app_start(1) = `-`.
+            REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
+            REPLACE FIRST OCCURRENCE OF `-` IN result-s_control-app_start WITH `/`.
+          ENDIF.
           RETURN.
         ENDIF.
         result-s_control-app_start = z2ui5_cl_util=>c_trim_upper(

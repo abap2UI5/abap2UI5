@@ -41,6 +41,7 @@ INTERFACE z2ui5_if_types
       viewname               TYPE string,
       s_draft                TYPE ty_s_draft,
       s_config               TYPE ty_s_config,
+      t_comp_params          TYPE ty_t_name_value,
     END OF ty_s_get.
 
   TYPES:
