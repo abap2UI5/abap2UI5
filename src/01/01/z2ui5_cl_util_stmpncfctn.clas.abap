@@ -12,6 +12,14 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
         long   TYPE string,
       END OF ty_data_element_texts .
 
+    TYPES:
+      BEGIN OF ts_class,
+        classname   TYPE c LENGTH 30,
+        description TYPE string,
+      END OF ts_class,
+      tt_classes TYPE STANDARD TABLE OF ts_class
+                      WITH NON-UNIQUE DEFAULT KEY.
+
     CLASS-METHODS method_get_source
       IMPORTING
         !iv_classname  TYPE clike
@@ -61,15 +69,20 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
       IMPORTING
         !val          TYPE clike
       RETURNING
-        VALUE(result) TYPE string_table.
+        VALUE(result) TYPE tt_classes.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CLASS-METHODS get_class_description_xco
+      IMPORTING
+        i_classname   TYPE ts_class-classname
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
+CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
 
   METHOD conv_decode_x_base64.
@@ -279,6 +292,10 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
     TYPES intkey TYPE c LENGTH 30.
     TYPES END OF ty_s_key.
     DATA ls_key TYPE ty_s_key.
+    DATA BEGIN OF ls_clskey.
+    DATA clsname TYPE c LENGTH 30.
+    DATA END OF ls_clskey.
+    DATA class TYPE REF TO data.
 
     TRY.
 
@@ -304,7 +321,10 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
           RECEIVING
             rt_names = lt_implementation_names.
 
-        result = lt_implementation_names.
+        result = VALUE #(
+                   FOR implementation_name IN lt_implementation_names
+                   ( classname   = implementation_name
+                     description = get_class_description_xco( CONV #( implementation_name ) ) ) ).
 
       CATCH cx_sy_dyn_call_illegal_class.
 
@@ -319,9 +339,37 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
           EXCEPTIONS
             not_existing = 1
             OTHERS       = 2.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        DATA(type) = 'SEOC_CLASS_R'.
+        CREATE DATA class TYPE (type).
+        ASSIGN class->* TO FIELD-SYMBOL(<class>).
 
         LOOP AT lt_impl REFERENCE INTO DATA(lr_impl).
-          INSERT CONV #( lr_impl->clsname ) INTO TABLE result.
+
+          CLEAR <class>.
+
+          ls_clskey-clsname = lr_impl->clsname.
+
+          lv_fm = `SEO_CLASS_READ`.
+          CALL FUNCTION lv_fm
+            EXPORTING
+              clskey = ls_clskey
+            IMPORTING
+              class  = <class>.
+
+          ASSIGN
+            COMPONENT 'DESCRIPT'
+            OF STRUCTURE <class>
+            TO FIELD-SYMBOL(<description>).
+          ASSERT sy-subrc = 0.
+
+          INSERT
+            VALUE #( classname = lr_impl->clsname
+                     description = <description> )
+            INTO TABLE result.
         ENDLOOP.
 
     ENDTRY.
@@ -501,4 +549,29 @@ CLASS Z2UI5_CL_UTIL_STMPNCFCTN IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
+
+  METHOD get_class_description_xco.
+
+    DATA:
+      obj     TYPE REF TO object,
+      content TYPE REF TO object.
+
+    CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
+      EXPORTING
+        iv_name  = i_classname
+      RECEIVING
+        ro_class = obj.
+
+    CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
+      RECEIVING
+        ro_content = content.
+
+    CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
+      RECEIVING
+        rv_short_description = result.
+
+  ENDMETHOD.
+
 ENDCLASS.
+
