@@ -32,7 +32,7 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
     METHODS on_event_check.
 
   PROTECTED SECTION.
-    DATA mt_classes TYPE string_table.
+    DATA mt_classes TYPE z2ui5_cl_util_stmpncfctn=>tt_classes.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
           IF ls_result-check_confirmed = abap_true.
 
             ASSIGN ls_result-row->* TO FIELD-SYMBOL(<class>).
-            ms_home-classname = <class>.
+            ms_home = CORRESPONDING #( BASE ( ms_home ) <class> ).
             view_display_start( ).
             RETURN.
           ENDIF.
