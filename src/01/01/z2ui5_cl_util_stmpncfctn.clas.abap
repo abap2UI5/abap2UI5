@@ -349,7 +349,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
         LOOP AT lt_impl REFERENCE INTO DATA(lr_impl).
 
-          CLEAR: <class>.
+          CLEAR <class>.
 
           ls_clskey-clsname = lr_impl->clsname.
 
