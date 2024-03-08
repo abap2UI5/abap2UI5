@@ -73,6 +73,11 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
+    CLASS-METHODS get_class_description_xco
+      IMPORTING
+        i_classname   TYPE ts_class-classname
+      RETURNING
+        VALUE(result) TYPE string.
 ENDCLASS.
 
 
@@ -314,7 +319,8 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
         result = VALUE #(
                    FOR implementation_name IN lt_implementation_names
-                   ( classname = implementation_name ) ).
+                   ( classname   = implementation_name
+                     description = get_class_description_xco( CONV #( implementation_name ) ) ) ).
 
       CATCH cx_sy_dyn_call_illegal_class.
 
@@ -341,12 +347,16 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
                   && |                    ON  seoclasstx~clsname = seoclass~clsname|
                   && |                    AND seoclasstx~langu   = @sy-langu|.
 
+        DATA(fields) = |seoclass~clsname    AS classname, |
+                    && |seoclasstx~descript AS description|.
+
+        DATA(where) = |seoclass~clsname = @result-classname|.
+
         SELECT
           FROM (from)
-          FIELDS seoclass~clsname    AS classname,
-                 seoclasstx~descript AS description
+          FIELDS (fields)
           FOR ALL ENTRIES IN @result
-          WHERE seoclass~clsname = @result-classname
+          WHERE (where)
           INTO TABLE @result.
 
     ENDTRY.
@@ -526,4 +536,29 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
     ENDTRY.
 
   ENDMETHOD.
+
+
+  METHOD get_class_description_xco.
+
+    DATA:
+      obj     TYPE REF TO object,
+      content TYPE REF TO object.
+
+    CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
+      EXPORTING
+        iv_name  = i_classname
+      RECEIVING
+        ro_class = obj.
+
+    CALL METHOD obj->('IF_XCO_AO_CLASS~CONTENT')
+      RECEIVING
+        ro_content = content.
+
+    CALL METHOD content->('IF_XCO_CLAS_CONTENT~GET_SHORT_DESCRIPTION')
+      RECEIVING
+        rv_short_description = result.
+
+  ENDMETHOD.
+
 ENDCLASS.
+
