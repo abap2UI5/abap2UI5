@@ -247,7 +247,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
           IF ls_result-check_confirmed = abap_true.
 
             ASSIGN ls_result-row->* TO FIELD-SYMBOL(<class>).
-            MOVE-CORRESPONDING <class> TO ms_home.
+            ms_home = CORRESPONDING #( BASE ( ms_home ) <class> ).
             view_display_start( ).
             RETURN.
           ENDIF.

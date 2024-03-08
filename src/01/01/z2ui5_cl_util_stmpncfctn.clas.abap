@@ -335,7 +335,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
           EXCEPTIONS
             not_existing = 1
             OTHERS       = 2.
-        IF lines( lt_impl ) = 0.
+        IF sy-subrc <> 0.
           RETURN.
         ENDIF.
 
@@ -352,12 +352,19 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
 
         DATA(where) = |seoclass~clsname = @result-classname|.
 
+        IF lines( result ) = 0.
+          RETURN.
+        ENDIF.
+
         SELECT
           FROM (from)
           FIELDS (fields)
           FOR ALL ENTRIES IN @result
           WHERE (where)
           INTO TABLE @result.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
 
     ENDTRY.
 
