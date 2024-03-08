@@ -46,7 +46,24 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
       t_event_arg            = mo_action->ms_actual-t_event_arg
       s_draft                = CORRESPONDING #( mo_action->mo_app->ms_draft )
       check_on_navigated     = mo_action->ms_actual-check_on_navigated
-      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front ) ).
+      s_config               = CORRESPONDING #( mo_action->mo_http_post->ms_request-s_front )
+      ).
+
+    TRY.
+        DATA(lo_params) = mo_action->mo_http_post->ms_request-s_front-o_comp_data->slice( `/startupParameters/` ).
+        IF lo_params IS NOT BOUND.
+          RETURN.
+        ENDIF.
+        LOOP AT lo_params->mt_json_tree
+            REFERENCE INTO DATA(lr_comp)
+            WHERE name = `1`.
+
+          INSERT VALUE #(
+             n = shift_left( val = shift_right( val = lr_comp->path sub = `/` ) sub = `/` )
+             v = lr_comp->value ) INTO TABLE result-t_comp_params.
+        ENDLOOP.
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 

@@ -142,7 +142,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            } else {` && |\n| &&
                `                oFragment.open();` && |\n| &&
                `            }` && |\n| &&
-*               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `        },` && |\n| &&
                `        async displayPopover(xml, viewProp, openById) {` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
@@ -162,7 +161,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `                oFragment.open();` && |\n| &&
                `            }` && |\n| &&
-*               `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `        },` && |\n| &&
                `        async displayNestedView(xml, viewProp, viewNestId) {` && |\n| &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
@@ -319,9 +317,9 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                }` && |\n| &&
                `            sap.z2ui5.isBusy = true;` && |\n| &&
                `             BusyIndicator.show();` && |\n| &&
-               `            let appStart = sap.z2ui5.oBody.APP_START;` && |\n| &&
+*               `            let appStart = sap.z2ui5.oBody.APP_START;` && |\n| &&
                `            sap.z2ui5.oBody = {};` && |\n| &&
-               `            sap.z2ui5.oBody.APP_START = appStart;` && |\n| &&
+*               `            sap.z2ui5.oBody.APP_START = appStart;` && |\n| &&
                `            if ( sap.z2ui5.oController == this ) {` && |\n| &&
                `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n| &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
@@ -428,7 +426,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            } else {` && |\n| &&
                `                const responseData = await response.json();` && |\n| &&
                `                sap.z2ui5.responseData = responseData;` && |\n| &&
-               `              if( !sap.z2ui5.oBody.APP_START ) { sap.z2ui5.oBody.APP_START = sap.z2ui5.responseData.S_FRONT.APP; }` && |\n| &&
+*               `              if( !sap.z2ui5.oBody.APP_START ) { sap.z2ui5.APP_START = sap.z2ui5.responseData.S_FRONT.APP; }` && |\n| &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n| &&
                `                   ID : responseData.S_FRONT.ID,` && |\n| &&
                `                   PARAMS : responseData.S_FRONT.PARAMS,` && |\n| &&
@@ -443,12 +441,13 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `       let event =  (args) => { if ( args != undefined  ) { return args[0][0]; } };` && |\n| &&
                `            sap.z2ui5.oBody.S_FRONT = {` && |\n| &&
                `                ID: sap.z2ui5?.oBody?.ID,` && |\n| &&
-               `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n| &&
+               `                COMPDATA: (sap.z2ui5.ComponentData) ? sap.z2ui5.ComponentData : {} ,` && |\n| &&
+*               `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n| &&
                `                XX: sap.z2ui5?.oBody?.XX,` && |\n| &&
                `                ORIGIN: window.location.origin,` && |\n| &&
                `                PATHNAME: window.location.pathname, // sap.z2ui5.pathname,` && |\n| &&
                `                SEARCH: (sap.z2ui5.search) ?  sap.z2ui5.search : window.location.search,` && |\n| &&
-               `                VIEW: sap.z2ui5.oBody.VIEWNAME,` && |\n| &&
+               `                VIEW: sap.z2ui5.oBody?.VIEWNAME,` && |\n| &&
                `                T_STARTUP_PARAMETERS: sap.z2ui5.startupParameters,` && |\n| &&
            `                   EVENT:  event(sap.z2ui5.oBody?.ARGUMENTS),` && |\n| &&
                `            };` && |\n| &&
@@ -456,7 +455,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `             sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n| &&
                `            delete sap.z2ui5.oBody.ID;` && |\n| &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n| &&
-               `            delete sap.z2ui5.oBody?.APP_START;` && |\n| &&
+*               `            delete sap.z2ui5.oBody?.APP_START;` && |\n| &&
                `            delete sap.z2ui5.oBody?.S_FRONT.XX;` && |\n| &&
                `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n| &&
               `            if  (!sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } ` && |\n| &&
@@ -478,7 +477,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n| &&
                `    sap.z2ui5.checkNestAfter = false;` && |\n| &&
                `    sap.z2ui5.oBody = {` && |\n| &&
-               `        APP_START: sap.z2ui5.APP_START` && |\n| &&
+*               `        APP_START: sap.z2ui5.APP_START` && |\n| &&
                `    };` && |\n| &&
                `    sap.z2ui5.oController.Roundtrip();` && |\n| &&
                `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
