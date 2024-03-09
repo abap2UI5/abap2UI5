@@ -7,12 +7,12 @@ CLASS z2ui5_cl_core_event_srv DEFINITION
 
     METHODS get_event
       IMPORTING
-        !val         TYPE clike OPTIONAL
-        !t_arg       TYPE string_table OPTIONAL
-        !s_cnt       TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+        !val          TYPE clike OPTIONAL
+        !t_arg        TYPE string_table OPTIONAL
+        !s_cnt        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
           PREFERRED PARAMETER val
       RETURNING
-        VALUE(result)       TYPE string.
+        VALUE(result) TYPE string.
 
     METHODS get_event_client
       IMPORTING
@@ -39,7 +39,17 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'|.
 
-    IF s_cnt-check_allow_multi_req = abap_true.
+    IF s_cnt-model_name IS NOT INITIAL.
+      IF s_cnt-check_allow_multi_req = abap_true.
+        IF s_cnt-check_view_destroy = abap_true.
+          result = result && `,true,true, "` && s_cnt-model_name && `"`.
+        ELSE.
+          result = result && `,false,true, "`  && s_cnt-model_name && `"`.
+        ENDIF.
+      ELSE.
+        result = result && `,false,false, "`  && s_cnt-model_name && `"`.
+      ENDIF.
+    ELSEIF s_cnt-check_allow_multi_req = abap_true.
       IF s_cnt-check_view_destroy = abap_true.
         result = result && `,true,true`.
       ELSE.
