@@ -317,10 +317,12 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                }` && |\n| &&
                `            sap.z2ui5.isBusy = true;` && |\n| &&
                `             BusyIndicator.show();` && |\n| &&
-*               `            let appStart = sap.z2ui5.oBody.APP_START;` && |\n| &&
                `            sap.z2ui5.oBody = {};` && |\n| &&
-*               `            sap.z2ui5.oBody.APP_START = appStart;` && |\n| &&
-               `            if ( sap.z2ui5.oController == this ) {` && |\n| &&
+               `            if ( args[0][3] ) {` && |\n| &&
+               `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n| &&
+               `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
+               `            }` && |\n| &&
+               `            else if ( sap.z2ui5.oController == this ) {` && |\n| &&
                `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n| &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `            }else if ` && |\n| &&
