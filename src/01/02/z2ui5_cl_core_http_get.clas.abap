@@ -407,6 +407,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                id: 'mainView',` && |\n| &&
                `                preprocessors: { xml: { models: { template: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
+               `            sap.z2ui5.oView.setModel(sap.z2ui5.oDeviceModel, "device");` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
@@ -469,7 +470,8 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `        },` && |\n| &&
                `    })` && |\n| &&
                `});` && |\n| &&
-               `sap.ui.require(["z2ui5/Controller", "sap/ui/core/BusyIndicator", "sap/ui/core/mvc/XMLView", "sap/ui/core/Fragment", "sap/m/MessageToast", "sap/m/MessageBox", "sap/ui/model/json/JSONModel"], (Controller,BusyIndicator)=>{` && |\n| &&
+               `sap.ui.require(["z2ui5/Controller", "sap/ui/core/BusyIndicator", "sap/ui/model/json/JSONModel", "sap/ui/core/mvc/XMLView", "sap/ui/core/Fragment", "sap/m/MessageToast", "sap/m/MessageBox"], (Controller,BusyIndicator, JSONModel)=>{` &&
+                |\n| &&
                `    BusyIndicator.show();` && |\n| &&
                `    sap.z2ui5.oController = new Controller();` && |\n| &&
                `    sap.z2ui5.oControllerNest = new Controller();` && |\n| &&
@@ -486,6 +488,17 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `    sap.z2ui5.onAfterRendering = [];` && |\n| &&
                `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
                `    sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
+*               `        // set device model` && |\n|  &&
+*               `        sap.z2ui5.oDeviceModel = new JSONModel({` && |\n|  &&
+*               `            isTouch : sap.ui.Device.support.touch,` && |\n|  &&
+*               `            isNoTouch : !sap.ui.Device.support.touch,` && |\n|  &&
+*               `            isPhone : sap.ui.Device.system.phone,` && |\n|  &&
+*               `            isNoPhone : !sap.ui.Device.system.phone,` && |\n|  &&
+*               `            listMode : sap.ui.Device.system.phone ? "None" : "SingleSelectMaster",` && |\n|  &&
+*               `            listItemType : sap.ui.Device.system.phone ? "Active" : "Inactive"` && |\n|  &&
+*               `        });` && |\n|  &&
+*               `        sap.z2ui5.oDeviceModel.setDefaultBindingMode("OneWay");` && |\n|  &&
+               `        ` && |\n| &&
                `    }` && |\n| &&
                `);`.
 

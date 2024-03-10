@@ -98,10 +98,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     mo_action->ms_next-o_app_call = app.
 
-    result = COND #( WHEN app->id_draft IS INITIAL
-        THEN z2ui5_cl_util=>uuid_get_c32( )
-        ELSE app->id_app ).
+*    result = COND #( WHEN app->id_draft IS INITIAL
+*        THEN z2ui5_cl_util=>uuid_get_c32( )
+*        ELSE app->id_app ).
 
+    IF app->id_app IS INITIAL.
+      app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
+    ENDIF.
+    result =  app->id_app.
   ENDMETHOD.
 
 
@@ -113,9 +117,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     mo_action->ms_next-o_app_leave = app.
 
-    result = COND #( WHEN app->id_draft IS INITIAL
-        THEN z2ui5_cl_util=>uuid_get_c32( )
-        ELSE app->id_app ).
+*    result = COND #( WHEN app->id_draft IS INITIAL
+*        THEN z2ui5_cl_util=>uuid_get_c32( )
+*        ELSE app->id_app ).
+
+    IF app->id_app IS INITIAL.
+      app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
+    ENDIF.
+    result =  app->id_app.
 
   ENDMETHOD.
 
