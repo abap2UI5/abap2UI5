@@ -1600,17 +1600,38 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE string .
     METHODS tree_table
       IMPORTING
-        !rows                   TYPE clike
-        !selectionmode          TYPE clike DEFAULT 'Single'
-        !enablecolumnreordering TYPE clike DEFAULT 'false'
-        !expandfirstlevel       TYPE clike DEFAULT 'false'
-        !columnselect           TYPE clike OPTIONAL
-        !rowselectionchange     TYPE clike OPTIONAL
-        !selectionbehavior      TYPE clike DEFAULT 'RowSelector'
-        !selectedindex          TYPE clike OPTIONAL
-        !id                     TYPE clike OPTIONAL
-        !visiblerowcount        TYPE clike OPTIONAL
-        !visiblerowcountmode    TYPE clike OPTIONAL
+        !rows                     TYPE clike OPTIONAL
+        !selectionMode            TYPE clike OPTIONAL
+        !enableColumnReordering   TYPE clike OPTIONAL
+        !expandFirstLevel         TYPE clike OPTIONAL
+        !columnSelect             TYPE clike OPTIONAL
+        !rowSelectionChange       TYPE clike OPTIONAL
+        !selectionBehavior        TYPE clike OPTIONAL
+        !id                       TYPE clike OPTIONAL
+        !alternateRowColors       TYPE clike OPTIONAL
+        !columnHeaderVisible      TYPE clike OPTIONAL
+        !enableCellFilter         TYPE clike OPTIONAL
+        !enableColumnFreeze       TYPE clike OPTIONAL
+        !enableCustomFilter       TYPE clike OPTIONAL
+        !enableSelectAll          TYPE clike OPTIONAL
+        !showNoData               TYPE clike OPTIONAL
+        !showOverlay              TYPE clike OPTIONAL
+        !visible                  TYPE clike OPTIONAL
+        !columnHeaderHeight       TYPE clike OPTIONAL
+        !firstVisibleRow          TYPE clike OPTIONAL
+        !fixedColumnCount         TYPE clike OPTIONAL
+        !threshold                TYPE clike OPTIONAL
+        !width                    TYPE clike OPTIONAL
+        !useGroupMode             TYPE clike OPTIONAL
+        !groupHeaderProperty      TYPE clike OPTIONAL
+        !rowActionCount           TYPE clike OPTIONAL
+        !selectedIndex            TYPE clike OPTIONAL
+        !visibleRowCount          TYPE clike OPTIONAL
+        !visibleRowCountMode      TYPE clike OPTIONAL
+        !minAutoRowCount          TYPE clike OPTIONAL
+        !fixedBottomRowCount      TYPE clike OPTIONAL
+        !fixedRowCount            TYPE clike OPTIONAL
+        !rowHeight                TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_columns
@@ -3584,6 +3605,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS relationships
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS no_data
+      IMPORTING
+        !ns TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -5943,6 +5970,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD no_data.
+    result = _generic( name = `noData`
+                       ns   = ns ).
+  ENDMETHOD.
+
+
   METHOD numeric_content.
 
     result = _generic( name   = `NumericContent`
@@ -7640,15 +7673,37 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       t_prop = VALUE #(
                                         ( n = `rows`                    v = rows )
                                         ( n = `selectionMode`           v = selectionmode )
-                                        ( n = `enableColumnReordering`  v = enablecolumnreordering )
-                                        ( n = `expandFirstLevel`        v = expandfirstlevel )
+                                        ( n = `enableColumnReordering`  v = z2ui5_cl_util=>boolean_abap_2_json( enableColumnReordering ) )
+                                        ( n = `expandFirstLevel`        v = z2ui5_cl_util=>boolean_abap_2_json( expandFirstLevel ) )
                                         ( n = `columnSelect`            v = columnselect )
                                         ( n = `rowSelectionChange`      v = rowselectionchange )
                                         ( n = `selectionBehavior`       v = selectionbehavior )
                                         ( n = `id`                      v = id )
+                                        ( n = `alternateRowColors`      v = z2ui5_cl_util=>boolean_abap_2_json( alternaterowcolors ) )
+                                        ( n = `columnHeaderVisible`      v = z2ui5_cl_util=>boolean_abap_2_json( columnHeaderVisible ) )
+                                        ( n = `enableCellFilter`      v = z2ui5_cl_util=>boolean_abap_2_json( enableCellFilter ) )
+                                        ( n = `enableColumnFreeze`      v = z2ui5_cl_util=>boolean_abap_2_json( enableColumnFreeze ) )
+                                        ( n = `enableCustomFilter`      v = z2ui5_cl_util=>boolean_abap_2_json( enableCustomFilter ) )
+                                        ( n = `enableSelectAll`      v = z2ui5_cl_util=>boolean_abap_2_json( enableSelectAll ) )
+                                        ( n = `showNoData`      v = z2ui5_cl_util=>boolean_abap_2_json( showNoData ) )
+                                        ( n = `showOverlay`      v = z2ui5_cl_util=>boolean_abap_2_json( showOverlay ) )
+                                        ( n = `visible`      v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                        ( n = `columnHeaderHeight`           v = columnHeaderHeight )
+                                        ( n = `firstVisibleRow`           v = firstVisibleRow )
+                                        ( n = `fixedColumnCount`           v = fixedColumnCount )
+                                        ( n = `threshold`           v = threshold )
+                                        ( n = `width`           v = width )
+                                        ( n = `useGroupMode`           v =  z2ui5_cl_util=>boolean_abap_2_json( useGroupMode ) )
+                                        ( n = `groupHeaderProperty`           v = groupHeaderProperty )
+                                        ( n = `rowActionCount`           v = rowActionCount )
                                         ( n = `selectedIndex`           v = selectedindex )
+                                        ( n = `rowHeight`           v = rowHeight )
+                                        ( n = `fixedRowCount`           v = fixedRowCount )
+                                        ( n = `fixedBottomRowCount`           v = fixedBottomRowCount )
+                                        ( n = `minAutoRowCount`           v = minAutoRowCount )
                                         ( n = `visibleRowCount`         v = visiblerowcount )
                                         ( n = `visibleRowCountMode`     v = visiblerowcountmode ) ) ).
+
   ENDMETHOD.
 
 
