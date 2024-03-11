@@ -48,7 +48,7 @@ INTERFACE z2ui5_if_types
     BEGIN OF ty_s_event_control,
       check_view_destroy    TYPE abap_bool,
       check_allow_multi_req TYPE abap_bool,
-      model_name            TYPE string,
+*      model_name            TYPE string,
     END OF ty_s_event_control.
 
 ENDINTERFACE.
