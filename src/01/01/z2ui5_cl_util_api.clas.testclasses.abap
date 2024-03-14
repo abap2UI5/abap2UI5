@@ -113,7 +113,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS conv_copy_ref_data FOR TESTING RAISING cx_static_check.
     METHODS rtti_check_ref_data FOR TESTING RAISING cx_static_check.
     METHODS test_check_bound_a_not_inital FOR TESTING RAISING cx_static_check.
-    METHODS test_sql_get_by_string.
+    METHODS test_sql_get_by_string FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -284,7 +284,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_sql_get_by_string.
 
     DATA(lv_test) = ``.
-    DATA(ls_sql) = z2ui5_cl_util_api=>sql_get_by_string( lv_test ).
+    DATA(ls_sql) = z2ui5_cl_util_api=>sql_get_by_string( lv_test ) ##NEEDED.
 
   ENDMETHOD.
 
