@@ -366,7 +366,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
+CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
 
   METHOD boolean_abap_2_json.
@@ -401,6 +401,7 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
           OR 'XFELD'
           OR 'ABAP_BOOLEAN'
           OR 'WDY_BOOLEAN'
+          OR 'BOOLE_D'
           OR 'OS_BOOLEAN'.
         result = abap_true.
     ENDCASE.
@@ -678,7 +679,7 @@ CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
     TRY.
 
         z2ui5_cl_ajson=>parse( val )->to_abap(
-          exporting
+          EXPORTING
           iv_corresponding = abap_true
           IMPORTING
             ev_container = data ).
