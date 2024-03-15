@@ -1806,6 +1806,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !text         TYPE clike OPTIONAL
         !type         TYPE clike OPTIONAL
         !press        TYPE clike OPTIONAL
+        !visible        TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS radio_button
@@ -7763,7 +7764,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           ( n = `icon`     v = icon )
                           ( n = `text`     v = text )
                           ( n = `type`     v = type )
-                          ( n = `press`    v = press ) ) ).
+                          ( n = `press`    v = press )
+                          ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible )  ) ) ).
   ENDMETHOD.
 
 
