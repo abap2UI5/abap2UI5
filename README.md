@@ -7,6 +7,7 @@
    <br>
 <a href="https://github.com/abap2UI5/abap2UI5/issues/306"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
+<a href="https://communityinviter.com/apps/abapgit/abap"><img src="https://img.shields.io/badge/Join-Slack-blue"></a>
 <a href="https://twitter.com/abap2UI5"><img src="https://img.shields.io/twitter/follow/abap2UI5"></a>
 </p>
 
@@ -60,6 +61,19 @@
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Join the Advent of Code 2023 with abap2UI5 [(SCN - 27.11.2023)](https://blogs.sap.com/2023/11/27/preparing-for-advent-of-code-2023/)
 * And finally, don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
+
+#### Credits
+* These [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
+* Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
+* Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
+* JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
+* Serialization of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
+* ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
+* The code is primarily developed on an [**ABAP Developer Edition 7.52**](https://hub.docker.com/r/sapse/abap-platform-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
+* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(SAP)](https://www.sap.com/germany/index.html)
+
+_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
 
 #### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:
@@ -219,19 +233,6 @@ ENDCLASS.
 
 </details>
 
-#### Credits
-* These [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
-* Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
-* Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
-* JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Serialization of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
-* ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
-* The code is primarily developed on an [**ABAP Developer Edition 7.52**](https://hub.docker.com/r/sapse/abap-platform-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
-* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(SAP)](https://www.sap.com/germany/index.html)
-
-_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
-  
 #### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
