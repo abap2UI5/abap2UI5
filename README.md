@@ -3,11 +3,11 @@
 <p align="center">
 <a href="https://github.com/abap2ui5/abap2ui5/releases/"><img src="https://img.shields.io/github/v/release/abap2ui5/abap2ui5"></a>
 <a href="https://opensource.org/licenses/MIT"><img src="https://img.shields.io/badge/License-MIT-yellow.svg"></a>
-   <a href="https://github.com/abap2UI5/abap2UI5/issues/306"><img src="https://img.shields.io/badge/PRs-welcome-green"></a>
+   <a href="https://github.com/abap2UI5/abap2UI5/issues/306"><img src="https://img.shields.io/badge/PRs-welcome-orange"></a>
     <br>
-<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/abaplint_static_code_check-passing-green"></a>
-<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/syntax_downport_7.02-passing-green"></a>
-<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/unit_tests-passing-green"></a>
+<a href="https://abaplint.app/stats/abap2UI5/abap2UI5"><img src="https://img.shields.io/badge/static_code_check-passing-green"></a>
+<a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/build_downport.yaml"><img src="https://img.shields.io/badge/syntax_downport_7.02-passing-green"></a>
+<a href="https://github.com/abap2UI5/abap2UI5/actions/workflows/test.yml"><img src="https://img.shields.io/badge/unit_tests-passing-green"></a>
    <br>
 <a href="https://github.com/abap2UI5/abap2UI5/graphs/contributors"><img src="https://img.shields.io/github/contributors/abap2ui5/abap2ui5"></a>
 <a href="https://communityinviter.com/apps/abapgit/abap"><img src="https://img.shields.io/badge/Join-Slack-blue"></a>
