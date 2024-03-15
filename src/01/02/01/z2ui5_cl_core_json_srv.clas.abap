@@ -42,9 +42,15 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
   METHOD model_front_to_back.
 
+    IF line_exists( t_attri->*[ view = view ] ).
+      DATA(lv_view) = view.
+    ELSE.
+      lv_view = z2ui5_if_client=>cs_view-main.
+    ENDIF.
+
     LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
       WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
-      AND  view  = view.
+      AND  view  = lv_view.
       TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
@@ -62,13 +68,10 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
           ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
 
-*          TRY.
           lo_val_front->to_abap(
             IMPORTING
               ev_container = <val> ).
-*            CATCH cx_root.
-*              <val> = lo_val_front->mt_json_tree[ 1 ]-value.
-*          ENDTRY.
+
         CATCH cx_root INTO DATA(x).
           ASSERT x IS BOUND.
       ENDTRY.
@@ -148,7 +151,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
         ENDIF.
 
         TRY.
-            data(lo_comp) = result-s_front-o_comp_data.
+            DATA(lo_comp) = result-s_front-o_comp_data.
             result-s_control-app_start = lo_comp->get( `/startupParameters/app_start/1` ).
             result-s_control-app_start = z2ui5_cl_util=>c_trim_upper( result-s_control-app_start ).
           CATCH cx_root.
