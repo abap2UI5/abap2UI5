@@ -1633,6 +1633,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !fixedBottomRowCount      TYPE clike OPTIONAL
         !fixedRowCount            TYPE clike OPTIONAL
         !rowHeight                TYPE clike OPTIONAL
+        !toggleopenstate          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS tree_columns
@@ -7705,6 +7706,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                         ( n = `fixedBottomRowCount`           v = fixedBottomRowCount )
                                         ( n = `minAutoRowCount`           v = minAutoRowCount )
                                         ( n = `visibleRowCount`         v = visiblerowcount )
+                                        ( n = `toggleopenstate`         v = toggleopenstate )
                                         ( n = `visibleRowCountMode`     v = visiblerowcountmode ) ) ).
 
   ENDMETHOD.
