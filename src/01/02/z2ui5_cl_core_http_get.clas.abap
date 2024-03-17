@@ -385,7 +385,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` && |\n| &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n| &&
                `            }` && |\n| &&
-
 `            if (sap.z2ui5.oResponse.PARAMS.S_FOLLOW_UP_ACTION.FRONTENT_EVENT != ''){ let mParams = sap.z2ui5.oResponse.PARAMS.S_FOLLOW_UP_ACTION.FRONTENT_EVENT.split( "'");  mParams.splice(0,1);  mParams.splice(1,1); sap.z2ui5.oCo` &&
 `ntroller.eF.apply( undefined , mParams); }` &&
 |\n|
