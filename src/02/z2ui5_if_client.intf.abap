@@ -105,12 +105,12 @@ INTERFACE z2ui5_if_client
 
   METHODS _event
     IMPORTING
-      val         TYPE clike        OPTIONAL
-      t_arg       TYPE string_table OPTIONAL
-      s_ctrl      TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
+      val           TYPE clike        OPTIONAL
+      t_arg         TYPE string_table OPTIONAL
+      s_ctrl        TYPE z2ui5_if_types=>ty_s_event_control OPTIONAL
         PREFERRED PARAMETER val
     RETURNING
-      VALUE(result)      TYPE string.
+      VALUE(result) TYPE string.
 
   METHODS _event_client
     IMPORTING
@@ -160,5 +160,10 @@ INTERFACE z2ui5_if_client
   METHODS clear
     IMPORTING
       val TYPE data.
+
+  METHODS follow_up_action
+    IMPORTING
+      frontend_event TYPE string OPTIONAL
+      custom_js      TYPE string OPTIONAL.
 
 ENDINTERFACE.

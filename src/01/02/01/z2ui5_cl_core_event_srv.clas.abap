@@ -82,7 +82,7 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
           CONTINUE.
         ENDIF.
         IF lv_new(1) <> `$` AND lv_new(1) <> `{`.
-          lv_new = `"` && lv_new && `"`.
+          lv_new = `'` && lv_new && `'`.
         ENDIF.
         result = result && `, ` && lv_new.
       ENDLOOP.
