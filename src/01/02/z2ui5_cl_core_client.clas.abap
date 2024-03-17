@@ -321,8 +321,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~follow_up_action.
 
      mo_action->ms_next-s_set-s_follow_up_action-custom_js = custom_js.
-*     mo_action->ms_next-s_set-s_follow_up_action-frontent_event = frontend_event.
-     mo_action->ms_next-s_set-s_follow_up_action-frontent_event = z2ui5_if_client~_event_client( val = z2ui5_if_client=>cs_event-open_new_tab t_arg = value #( ( `www.test.de` ) ) ).
+     mo_action->ms_next-s_set-s_follow_up_action-frontent_event = frontend_event.
 
   ENDMETHOD.
 
