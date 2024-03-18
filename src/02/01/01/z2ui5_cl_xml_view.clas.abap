@@ -1269,6 +1269,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !itempress              TYPE clike OPTIONAL
         !select                 TYPE clike OPTIONAL
         !delete                 TYPE clike OPTIONAL
+        !class                 TYPE clike OPTIONAL
       RETURNING
         VALUE(result)           TYPE REF TO z2ui5_cl_xml_view .
     METHODS custom_list_item
@@ -3976,7 +3977,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD card_header.
     result = _generic( name = `Header`
-                       ns   = `f`
+                       ns   = `card`
                    t_prop   = VALUE #(
                          ( n = `id`  v = id )
                          ( n = `class`  v = class )
@@ -5607,6 +5608,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `headerText`             v = headertext )
                                          ( n = `items`                  v = items )
                                          ( n = `mode`                   v = mode )
+                                         ( n = `class`                   v = class )
                                          ( n = `itemPress`                   v = itempress )
                                          ( n = `select`                   v = select )
                                          ( n = `selectionChange`        v = selectionchange )
@@ -8141,9 +8143,10 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                      ( n = `xmlns:table`    v = `sap.ui.table` )
+                      ( n = `xmlns:table`     v = `sap.ui.table` )
                       ( n = `xmlns:template`  v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
                       ( n = `xmlns:f`         v = `sap.f` )
+                      ( n = `xmlns:card`      v = `sap.f.cards` )
                       ( n = `xmlns:form`      v = `sap.ui.layout.form` )
                       ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
                       ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
@@ -8160,16 +8163,16 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
                       ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
                       ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
-                      ( n = `xmlns:viz`        v = `sap.viz.ui5.controls` )
+                      ( n = `xmlns:viz`       v = `sap.viz.ui5.controls` )
                       ( n = `xmlns:vk`        v = `sap.ui.vk` )
-                      ( n = `xmlns:vbm`        v = `sap.ui.vbm` )
-                      ( n = `xmlns:ndc`        v = `sap.ndc` )
+                      ( n = `xmlns:vbm`       v = `sap.ui.vbm` )
+                      ( n = `xmlns:ndc`       v = `sap.ndc` )
                       ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
                       ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
                       ( n = `xmlns:p13n`      v = `sap.m.p13n` )
                       ( n = `xmlns:upload`    v = `sap.m.upload` )
                       ( n = `xmlns:fl`        v = `sap.ui.fl` )
-                      ( n = `xmlns:tnt`      v = `sap.tnt` ) ).
+                      ( n = `xmlns:tnt`       v = `sap.tnt` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
 
