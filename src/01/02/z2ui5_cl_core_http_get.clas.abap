@@ -385,15 +385,17 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` && |\n| &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n| &&
                `            };` && |\n| &&
-               `            if (sap.z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS){` && |\n| &&
-               `              let mParams = sap.z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split( "'");` && |\n| &&
-               `              let mParamsEF = mParams.filter((val, index) => index % 2)` && |\n| &&
-               `              if(mParamsEF.length) {` && |\n| &&
-               `                sap.z2ui5.oController.eF.apply( undefined , mParamsEF);` && |\n| &&
-               `              } else {` && |\n| &&
-               `                Function("return " + mParams[0])();` && |\n| &&
-               `              }` && |\n| &&
-               `            }` && |\n| &&
+               `            if(sap.z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` && |\n| &&
+               `              setTimeout(() => {` && |\n| &&
+               `                  let mParams = sap.z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split("'");` && |\n| &&
+               `                  let mParamsEF = mParams.filter((val, index) => index % 2)` && |\n| &&
+               `                  if(mParamsEF.length) {` && |\n| &&
+               `                    sap.z2ui5.oController.eF.apply( undefined , mParamsEF);` && |\n| &&
+               `                  } else {` && |\n| &&
+               `                    Function("return " + mParams[0])();` && |\n| &&
+               `                  }` && |\n| &&
+               `                },100);` && |\n| &&
+               `              };` && |\n| &&
                |\n| &&
                `            sap.z2ui5.oController.showMessage('S_MSG_TOAST', sap.z2ui5.oResponse.PARAMS);` && |\n| &&
                `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n| &&
