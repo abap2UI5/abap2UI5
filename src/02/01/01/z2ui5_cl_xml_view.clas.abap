@@ -7706,7 +7706,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                         ( n = `fixedBottomRowCount`           v = fixedBottomRowCount )
                                         ( n = `minAutoRowCount`           v = minAutoRowCount )
                                         ( n = `visibleRowCount`         v = visiblerowcount )
-                                        ( n = `toggleopenstate`         v = toggleopenstate )
+                                        ( n = `toggleOpenState`         v = toggleopenstate )
                                         ( n = `visibleRowCountMode`     v = visiblerowcountmode ) ) ).
 
   ENDMETHOD.
