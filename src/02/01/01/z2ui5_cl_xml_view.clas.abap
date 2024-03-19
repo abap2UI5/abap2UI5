@@ -7540,7 +7540,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
     result = me.
-    _generic( ns     = COND #( WHEN level IS NOT INITIAL THEN `webc` ELSE ns )
+    _generic( ns     = ns
               name   = lv_name
               t_prop = VALUE #( ( n = `text`     v = text )
                                 ( n = `class`     v = class )
