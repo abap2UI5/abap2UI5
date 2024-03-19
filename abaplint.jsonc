@@ -147,7 +147,7 @@
     "message_exists": true,
     "method_implemented_twice": true,
     "method_length": false,
-    "method_overwrites_builtin": true,
+    "method_overwrites_builtin": false,
     "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
