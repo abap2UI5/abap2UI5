@@ -2283,6 +2283,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS nodes
+      IMPORTING
+        !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS lanes
@@ -3615,6 +3617,47 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS no_data
       IMPORTING
         !ns TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS lines
+      IMPORTING
+        !ns           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS groups
+      IMPORTING
+        !ns           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS network_graph
+      IMPORTING
+        !id              TYPE clike OPTIONAL
+        !class           TYPE clike OPTIONAL
+        !height          TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+        !nodes           TYPE clike OPTIONAL
+        !lines           TYPE clike OPTIONAL
+        !groups          TYPE clike OPTIONAL
+        !backgroundColor TYPE clike OPTIONAL
+        !backgroundImage TYPE clike OPTIONAL
+        !noDataText      TYPE clike OPTIONAL
+        !orientation     TYPE clike OPTIONAL
+        !renderType      TYPE clike OPTIONAL
+        !enableWheelZoom TYPE clike OPTIONAL
+        !enableZoom      TYPE clike OPTIONAL
+        !noData          TYPE clike OPTIONAL
+        !visible         TYPE clike OPTIONAL
+        !afterLayouting         TYPE clike OPTIONAL
+        !beforeLayouting         TYPE clike OPTIONAL
+        !failure         TYPE clike OPTIONAL
+        !graphReady         TYPE clike OPTIONAL
+        !search         TYPE clike OPTIONAL
+        !searchSuggest         TYPE clike OPTIONAL
+        !selectionChange         TYPE clike OPTIONAL
+        !zoomChanged         TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -5009,6 +5052,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD groups.
+    result = _generic( name = `groups`
+                       ns   = ns ).
+  ENDMETHOD.
+
+
   METHOD group_items.
     result = _generic( `groupItems` ).
   ENDMETHOD.
@@ -5539,6 +5588,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD lines.
+    result = _generic( name = `lines`
+                       ns   = ns ).
+  ENDMETHOD.
+
+
   METHOD line_micro_chart.
     result = me.
     _generic( name   = `LineMicroChart`
@@ -5869,9 +5924,41 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD network_graph.
+    result = _generic( name   = `Graph`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `height`  v = height )
+                             ( n = `width`  v = width )
+                             ( n = `nodes`  v = nodes )
+                             ( n = `lines`  v = lines )
+                             ( n = `groups`  v = groups )
+                             ( n = `backgroundColor`  v = backgroundColor )
+                             ( n = `backgroundImage`  v = backgroundImage )
+                             ( n = `noDataText`  v = noDataText )
+                             ( n = `orientation`  v = orientation )
+                             ( n = `renderType`  v = renderType )
+                             ( n = `afterLayouting`  v = afterLayouting )
+                             ( n = `beforeLayouting`  v = beforeLayouting )
+                             ( n = `failure`  v = failure )
+                             ( n = `graphReady`  v = graphReady )
+                             ( n = `search`  v = search )
+                             ( n = `searchSuggest`  v = searchSuggest )
+                             ( n = `selectionChange`  v = selectionChange )
+                             ( n = `zoomChanged`  v = zoomChanged )
+                             ( n = `enableWheelZoom`           v = z2ui5_cl_util=>boolean_abap_2_json( enableWheelZoom ) )
+                             ( n = `enableZoom`           v = z2ui5_cl_util=>boolean_abap_2_json( enableZoom ) )
+                             ( n = `noData`           v = z2ui5_cl_util=>boolean_abap_2_json( noData ) )
+                             ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+
+  ENDMETHOD.
+
+
   METHOD nodes.
     result = _generic( name = `nodes`
-                       ns   = `commons` ).
+                       ns   = ns ).
   ENDMETHOD.
 
 
@@ -7540,7 +7627,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
     result = me.
-    _generic( ns     = COND #( WHEN level IS NOT INITIAL THEN `webc` ELSE ns )
+    _generic( ns     = ns
               name   = lv_name
               t_prop = VALUE #( ( n = `text`     v = text )
                                 ( n = `class`     v = class )
@@ -8143,6 +8230,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ( n = `xmlns:layout`    v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
+                      ( n = `xmlns:ng`        v = `sap.suite.ui.commons.networkgraph` )
+                      ( n = `xmlns:nglayout`  v = `sap.suite.ui.commons.networkgraph.layout` )
+                      ( n = `xmlns:ngcustom`  v = `sap.suite.ui.commons.sample.NetworkGraphCustomRendering` )
                       ( n = `xmlns:table`     v = `sap.ui.table` )
                       ( n = `xmlns:template`  v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
                       ( n = `xmlns:f`         v = `sap.f` )
