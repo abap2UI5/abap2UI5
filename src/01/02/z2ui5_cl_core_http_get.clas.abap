@@ -144,6 +144,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 *               `            }` && |\n| &&
                `        },` && |\n| &&
                `        async displayPopover(xml, viewProp, openById) {` && |\n| &&
+               `            let sapUiCore = sap.ui.require('sap/ui/core/Core');` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oControllerPopover,` && |\n| &&
@@ -165,7 +166,11 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            } else if ( sap.z2ui5.oViewNest2?.byId(openById) ) {` && |\n| &&
                `              oControl = sap.z2ui5.oViewNest2.byId(openById);` && |\n| &&
                `            } else {` && |\n| &&
-               `              oControl = null;` && |\n| &&
+               `                if(sapUiCore.byId(openById)) {` && |\n| &&
+               `                  oControl = sapUiCore.byId(openById);` && |\n| &&
+               `                } else {` && |\n| &&
+               `                  oControl = null;` && |\n| &&
+               `                };` && |\n| &&
                `            }` && |\n| &&
 *               `            if (oControl) {` && |\n| &&
                `             oFragment.openBy(oControl);` && |\n| &&

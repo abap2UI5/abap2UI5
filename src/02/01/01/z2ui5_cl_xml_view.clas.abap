@@ -776,6 +776,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS custom_data
+      IMPORTING
+        !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS core_custom_data
@@ -2287,6 +2289,51 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !ns           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS node
+      IMPORTING
+        !id           TYPE clike OPTIONAL
+        !class           TYPE clike OPTIONAL
+        !altText           TYPE clike OPTIONAL
+        !collapsed           TYPE clike OPTIONAL
+        !coreNodeSize           TYPE clike OPTIONAL
+        !description           TYPE clike OPTIONAL
+        !descriptionLineSize           TYPE clike OPTIONAL
+        !group           TYPE clike OPTIONAL
+        !headerCheckBoxState           TYPE clike OPTIONAL
+        !height           TYPE clike OPTIONAL
+        !title           TYPE clike OPTIONAL
+        !icon           TYPE clike OPTIONAL
+        !iconSize           TYPE clike OPTIONAL
+        !key           TYPE clike OPTIONAL
+        !maxWidth           TYPE clike OPTIONAL
+        !selected           TYPE clike OPTIONAL
+        !shape           TYPE clike OPTIONAL
+        !showActionLinksButton           TYPE clike OPTIONAL
+        !showDetailButton           TYPE clike OPTIONAL
+        !showExpandButton           TYPE clike OPTIONAL
+        !statusIcon           TYPE clike OPTIONAL
+        !titleLineSize           TYPE clike OPTIONAL
+        !visible           TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+        !x           TYPE clike OPTIONAL
+        !y           TYPE clike OPTIONAL
+        !collapseExpand           TYPE clike OPTIONAL
+        !headerCheckBoxPress           TYPE clike OPTIONAL
+        !hover           TYPE clike OPTIONAL
+        !press           TYPE clike OPTIONAL
+        !attributes           TYPE clike OPTIONAL
+        !actionbuttons           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS node_image
+      IMPORTING
+        !id           TYPE clike OPTIONAL
+        !class           TYPE clike OPTIONAL
+        !height           TYPE clike OPTIONAL
+        !src           TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS lanes
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
@@ -2570,6 +2617,29 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS statuses
       IMPORTING
         !ns           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+    METHODS status
+      IMPORTING
+        !id           TYPE clike OPTIONAL
+        !class           TYPE clike OPTIONAL
+        !backgroundColor           TYPE clike OPTIONAL
+        !borderColor           TYPE clike OPTIONAL
+        !borderStyle           TYPE clike OPTIONAL
+        !borderWidth           TYPE clike OPTIONAL
+        !contentColor           TYPE clike OPTIONAL
+        !headerContentColor           TYPE clike OPTIONAL
+        !hoverBackgroundColor           TYPE clike OPTIONAL
+        !hoverBorderColor           TYPE clike OPTIONAL
+        !hoverContentColor           TYPE clike OPTIONAL
+        !key           TYPE clike OPTIONAL
+        !legendColor           TYPE clike OPTIONAL
+        !selectedBackgroundColor           TYPE clike OPTIONAL
+        !selectedBorderColor           TYPE clike OPTIONAL
+        !selectedContentColor           TYPE clike OPTIONAL
+        !title           TYPE clike OPTIONAL
+        !useFocusColorAsContentColor           TYPE clike OPTIONAL
+        !visible           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
     METHODS first_status
@@ -3626,9 +3696,47 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS groups
+    METHODS line
       IMPORTING
-        !ns           TYPE clike OPTIONAL
+        !id           TYPE clike OPTIONAL
+        !class           TYPE clike OPTIONAL
+        !arrowOrientation           TYPE clike OPTIONAL
+        !arrowPosition           TYPE clike OPTIONAL
+        !description           TYPE clike OPTIONAL
+        !from           TYPE clike OPTIONAL
+        !lineType           TYPE clike OPTIONAL
+        !selected           TYPE clike OPTIONAL
+        !status           TYPE clike OPTIONAL
+        !stretchToCenter           TYPE clike OPTIONAL
+        !title           TYPE clike OPTIONAL
+        !to           TYPE clike OPTIONAL
+        !visible           TYPE clike OPTIONAL
+        !press           TYPE clike OPTIONAL
+        !hover           TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS groups
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS group
+      IMPORTING
+        !id    TYPE clike OPTIONAL
+        !class    TYPE clike OPTIONAL
+        !collapsed    TYPE clike OPTIONAL
+        !description  TYPE clike OPTIONAL
+        !headerCheckBoxState  TYPE clike OPTIONAL
+        !icon         TYPE clike OPTIONAL
+        !key          TYPE clike OPTIONAL
+        !minWidth          TYPE clike OPTIONAL
+        !parentGroupKey          TYPE clike OPTIONAL
+        !status          TYPE clike OPTIONAL
+        !title          TYPE clike OPTIONAL
+        !visible          TYPE clike OPTIONAL
+        !collapseExpand          TYPE clike OPTIONAL
+        !headerCheckBoxPress          TYPE clike OPTIONAL
+        !showDetail          TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -3636,6 +3744,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         !id              TYPE clike OPTIONAL
         !class           TYPE clike OPTIONAL
+        !layout          TYPE clike OPTIONAL
         !height          TYPE clike OPTIONAL
         !width           TYPE clike OPTIONAL
         !nodes           TYPE clike OPTIONAL
@@ -3661,6 +3770,87 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS layout_algorithm
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS layered_layout
+      IMPORTING
+        !id         TYPE clike OPTIONAL
+        !class         TYPE clike OPTIONAL
+        !lineSpacingFactor         TYPE clike OPTIONAL
+        !mergeEdges         TYPE clike OPTIONAL
+        !nodePlacement         TYPE clike OPTIONAL
+        !nodeSpacing         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS force_based_layout
+      IMPORTING
+        !id         TYPE clike OPTIONAL
+        !class         TYPE clike OPTIONAL
+        !alpha         TYPE clike OPTIONAL
+        !charge         TYPE clike OPTIONAL
+        !friction         TYPE clike OPTIONAL
+        !maximumDuration         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS force_directed_layout
+      IMPORTING
+        !id         TYPE clike OPTIONAL
+        !class         TYPE clike OPTIONAL
+        !coolDownStep         TYPE clike OPTIONAL
+        !initialTemperature         TYPE clike OPTIONAL
+        !maxIterations         TYPE clike OPTIONAL
+        !maxTime         TYPE clike OPTIONAL
+        !optimalDistanceConstant         TYPE clike OPTIONAL
+        !staticNodes         TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS noop_layout
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS swim_lane_chain_layout
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS two_columns_layout
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS attributes
+      IMPORTING
+        !ns TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS element_attribute
+      IMPORTING
+        !ns    TYPE clike OPTIONAL
+        !label TYPE clike OPTIONAL
+        !value TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS action_buttons
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+     METHODS action_button
+      IMPORTING
+        !id       TYPE clike OPTIONAL
+        !class    TYPE clike OPTIONAL
+        !enabled    TYPE clike OPTIONAL
+        !icon    TYPE clike OPTIONAL
+        !position    TYPE clike OPTIONAL
+        !title    TYPE clike OPTIONAL
+        !press    TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -3683,6 +3873,27 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD actions.
     result = _generic( name = `actions`
                        ns   = ns ).
+  ENDMETHOD.
+
+
+  METHOD action_button.
+    result = _generic( name   = `ActionButton`
+                       ns     = `networkgraph`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `icon`     v = icon )
+                             ( n = `position` v = position )
+                             ( n = `title`    v = title )
+                             ( n = `press`    v = press )
+                             ( n = `enabled`  v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD action_buttons.
+    result = _generic( name = `actionButtons`
+                       ns   = `networkgraph` ).
   ENDMETHOD.
 
 
@@ -3755,6 +3966,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `hideOnNoData`    v = z2ui5_cl_util=>boolean_abap_2_json( hideonnodata ) )
                                 ( n = `showLabel`    v = z2ui5_cl_util=>boolean_abap_2_json( showlabel ) )
                                 ( n = `width`  v = width ) ) ).
+  ENDMETHOD.
+
+
+  METHOD attributes.
+    result = _generic( name = `attributes`
+                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
 
@@ -4314,7 +4531,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD custom_data.
-    result = _generic( `customData` ).
+    result = _generic( name = `customData`
+                       ns = ns ).
   ENDMETHOD.
 
 
@@ -4491,6 +4709,16 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `showSideContent`                 v = showsidecontent )
                            ( n = `containerQuery`                  v = containerquery ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD element_attribute.
+    result = _generic( name = `ElementAttribute`
+                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns )
+                       t_prop = VALUE #(
+                             ( n = `label`  v = label )
+                             ( n = `value`  v = value )
+                         ) ).
   ENDMETHOD.
 
 
@@ -4886,6 +5114,36 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD force_based_layout.
+    result = _generic( name   = `ForceBasedLayout`
+                       ns     = `nglayout`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `alpha`  v = alpha )
+                             ( n = `charge`  v = charge )
+                             ( n = `friction`  v = friction )
+                             ( n = `maximumDuration`  v = maximumDuration )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD force_directed_layout.
+    result = _generic( name   = `ForceDirectedLayout`
+                       ns     = `nglayout`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `coolDownStep`  v = coolDownStep )
+                             ( n = `initialTemperature`  v = initialTemperature )
+                             ( n = `maxIterations`  v = maxIterations )
+                             ( n = `maxTime`  v = maxTime )
+                             ( n = `optimalDistanceConstant`  v = optimalDistanceConstant )
+                             ( n = `staticNodes`  v = staticNodes )
+                         ) ).
+  ENDMETHOD.
+
+
   METHOD formatted_text.
     result = me.
     _generic( name   = `FormattedText`
@@ -5052,9 +5310,30 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD group.
+    result = _generic( name = `group`
+                       ns   = `networkgraph`
+                       t_prop = VALUE #( ( n = `collapsed`  v = z2ui5_cl_util=>boolean_abap_2_json( collapsed ) )
+                                         ( n = `id`       v = id )
+                                         ( n = `class`       v = class )
+                                         ( n = `description`       v = description )
+                                         ( n = `headerCheckBoxState`        v = headerCheckBoxState )
+                                         ( n = `icon`      v = icon )
+                                         ( n = `key`      v = key )
+                                         ( n = `minWidth`      v = minWidth )
+                                         ( n = `parentGroupKey`      v = parentGroupKey )
+                                         ( n = `status`      v = status )
+                                         ( n = `title`    v = title )
+                                         ( n = `collapseExpand`    v = collapseExpand )
+                                         ( n = `showDetail`    v = showDetail )
+                                         ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `headerCheckBoxPress`  v = headerCheckBoxPress ) ) ).
+  ENDMETHOD.
+
+
   METHOD groups.
     result = _generic( name = `groups`
-                       ns   = ns ).
+                       ns   = `networkgraph` ).
   ENDMETHOD.
 
 
@@ -5565,6 +5844,26 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD layered_layout.
+    result = _generic( name   = `LayeredLayout`
+                       ns     = `nglayout`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `lineSpacingFactor`  v = lineSpacingFactor )
+                             ( n = `nodePlacement`  v = nodePlacement )
+                             ( n = `nodeSpacing`  v = nodeSpacing )
+                             ( n = `mergeEdges`  v = z2ui5_cl_util=>boolean_abap_2_json( mergeEdges ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD layout_algorithm.
+    result = _generic( name = `layoutAlgorithm`
+                       ns   = `networkgraph` ).
+  ENDMETHOD.
+
+
   METHOD layout_data.
     result = _generic( ns   = ns
                        name = `layoutData` ).
@@ -5588,9 +5887,34 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD line.
+
+    result = _generic( name   = `Line`
+                       ns    = `networkgraph`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `arrowOrientation`  v = arrowOrientation )
+                             ( n = `arrowPosition`         v = arrowPosition )
+                             ( n = `description`  v = description )
+                             ( n = `from`             v = from )
+                             ( n = `lineType`        v = lineType )
+                             ( n = `status`         v = status )
+                             ( n = `title`       v = title )
+                             ( n = `to`        v = to )
+                             ( n = `hover`        v = hover )
+                             ( n = `press`        v = press )
+                             ( n = `stretchToCenter`           v = z2ui5_cl_util=>boolean_abap_2_json( stretchToCenter ) )
+                             ( n = `selected`           v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
+                             ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+
+  ENDMETHOD.
+
+
   METHOD lines.
     result = _generic( name = `lines`
-                       ns   = ns ).
+                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
 
@@ -5926,9 +6250,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD network_graph.
     result = _generic( name   = `Graph`
+                       ns     = `networkgraph`
                        t_prop = VALUE #(
                              ( n = `id`  v = id )
                              ( n = `class`  v = class )
+                             ( n = `layout`  v = layout )
                              ( n = `height`  v = height )
                              ( n = `width`  v = width )
                              ( n = `nodes`  v = nodes )
@@ -5956,9 +6282,70 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD node.
+    result = _generic( name   = `Node`
+                       ns     = `networkgraph`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `altText`  v = altText )
+                             ( n = `coreNodeSize`         v = coreNodeSize )
+                             ( n = `description`  v = description )
+                             ( n = `descriptionLineSize`  v = descriptionLineSize )
+                             ( n = `group`             v = group )
+                             ( n = `headerCheckBoxState`        v = headerCheckBoxState )
+                             ( n = `height`         v = height )
+                             ( n = `icon`       v = icon )
+                             ( n = `iconSize`        v = iconSize )
+                             ( n = `iconSize` v = iconSize )
+                             ( n = `key` v = key )
+                             ( n = `maxWidth` v = maxWidth )
+                             ( n = `title` v = title )
+                             ( n = `shape` v = shape )
+                             ( n = `statusIcon` v = statusIcon )
+                             ( n = `titleLineSize` v = titleLineSize )
+                             ( n = `width` v = width )
+                             ( n = `x` v = x )
+                             ( n = `y` v = y )
+                             ( n = `attributes` v = attributes )
+                             ( n = `actionButtons` v = actionButtons )
+                             ( n = `collapseExpand` v = collapseExpand )
+                             ( n = `headerCheckBoxPress` v = headerCheckBoxPress )
+                             ( n = `hover` v = hover )
+                             ( n = `press` v = press )
+                             ( n = `collapsed`           v = z2ui5_cl_util=>boolean_abap_2_json( collapsed ) )
+                             ( n = `selected`           v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
+                             ( n = `showActionLinksButton`           v = z2ui5_cl_util=>boolean_abap_2_json( showActionLinksButton ) )
+                             ( n = `showDetailButton`           v = z2ui5_cl_util=>boolean_abap_2_json( showDetailButton ) )
+                             ( n = `showExpandButton`           v = z2ui5_cl_util=>boolean_abap_2_json( showExpandButton ) )
+                             ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+
+  ENDMETHOD.
+
+
   METHOD nodes.
     result = _generic( name = `nodes`
                        ns   = ns ).
+  ENDMETHOD.
+
+
+  METHOD node_image.
+    result = _generic( name = `NodeImage`
+                       ns   = `networkgraph`
+                       t_prop = VALUE #(
+                                        ( n = `id`  v = id )
+                                        ( n = `class`  v = class )
+                                        ( n = `height`  v = height )
+                                        ( n = `width`  v = width )
+                                        ( n = `src`  v = src )
+                                      ) ).
+  ENDMETHOD.
+
+
+  METHOD noop_layout.
+    result = _generic( name = `NoopLayout`
+                       ns   = `nglayout` ).
   ENDMETHOD.
 
 
@@ -7221,9 +7608,38 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD status.
+
+    result = _generic( name   = `Status`
+                       ns     = `networkgraph`
+                       t_prop = VALUE #(
+                             ( n = `id`  v = id )
+                             ( n = `class`  v = class )
+                             ( n = `backgroundColor`  v = backgroundColor )
+                             ( n = `borderColor`         v = borderColor )
+                             ( n = `borderStyle`         v = borderStyle )
+                             ( n = `borderWidth`         v = borderWidth )
+                             ( n = `contentColor`         v = contentColor )
+                             ( n = `headerContentColor`         v = headerContentColor )
+                             ( n = `hoverBackgroundColor`         v = hoverBackgroundColor )
+                             ( n = `hoverBorderColor`         v = hoverBorderColor )
+                             ( n = `hoverContentColor`         v = hoverContentColor )
+                             ( n = `key`         v = key )
+                             ( n = `legendColor`         v = legendColor )
+                             ( n = `selectedBackgroundColor`         v = selectedBackgroundColor )
+                             ( n = `selectedBorderColor`         v = selectedBorderColor )
+                             ( n = `selectedContentColor`         v = selectedcontentcolor )
+                             ( n = `title`         v = title )
+                             ( n = `useFocusColorAsContentColor`           v = z2ui5_cl_util=>boolean_abap_2_json( useFocusColorAsContentColor ) )
+                             ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+
+  ENDMETHOD.
+
+
   METHOD statuses.
     result = _generic( name = `statuses`
-                       ns   = ns ).
+                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
 
@@ -7285,6 +7701,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD suggestion_rows.
     result = _generic( `suggestionRows` ).
+  ENDMETHOD.
+
+
+  METHOD swim_lane_chain_layout.
+    result = _generic( name = `SwimLaneChainLayout`
+                       ns   = `nglayout` ).
   ENDMETHOD.
 
 
@@ -7809,6 +8231,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD two_columns_layout.
+    result = _generic( name = `TwoColumnsLayout`
+                       ns   = `nglayout` ).
+  ENDMETHOD.
+
+
   METHOD ui_column.
     result = _generic( name   = `Column`
                        ns     = 'table'
@@ -8226,43 +8654,43 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     IF me = mo_root.
 
       lt_prop = VALUE #(
-                      ( n = `xmlns:z2ui5`     v = `z2ui5` )
-                      ( n = `xmlns:layout`    v = `sap.ui.layout` )
+                      ( n = `xmlns:z2ui5`        v = `z2ui5` )
+                      ( n = `xmlns:layout`       v = `sap.ui.layout` )
 *                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
 *                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-                      ( n = `xmlns:ng`        v = `sap.suite.ui.commons.networkgraph` )
-                      ( n = `xmlns:nglayout`  v = `sap.suite.ui.commons.networkgraph.layout` )
-                      ( n = `xmlns:ngcustom`  v = `sap.suite.ui.commons.sample.NetworkGraphCustomRendering` )
-                      ( n = `xmlns:table`     v = `sap.ui.table` )
-                      ( n = `xmlns:template`  v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
-                      ( n = `xmlns:f`         v = `sap.f` )
-                      ( n = `xmlns:card`      v = `sap.f.cards` )
-                      ( n = `xmlns:form`      v = `sap.ui.layout.form` )
-                      ( n = `xmlns:editor`    v = `sap.ui.codeeditor` )
-                      ( n = `xmlns:mchart`    v = `sap.suite.ui.microchart` )
-                      ( n = `xmlns:webc`      v = `sap.ui.webc.main` )
-                      ( n = `xmlns:uxap`      v = `sap.uxap` )
-                      ( n = `xmlns:sap`       v = `sap` )
-                      ( n = `xmlns:text`      v = `sap.ui.richtexteditor` )
-                      ( n = `xmlns:html`      v = `http://www.w3.org/1999/xhtml` )
-                      ( n = `xmlns:fb`        v = `sap.ui.comp.filterbar` )
-                      ( n = `xmlns:u`         v = `sap.ui.unified` )
-                      ( n = `xmlns:gantt`     v = `sap.gantt.simple` )
-                      ( n = `xmlns:axistime`  v = `sap.gantt.axistime` )
-                      ( n = `xmlns:config`    v = `sap.gantt.config` )
-                      ( n = `xmlns:shapes`    v = `sap.gantt.simple.shapes` )
-                      ( n = `xmlns:commons`   v = `sap.suite.ui.commons` )
-                      ( n = `xmlns:vm`        v = `sap.ui.comp.variants` )
-                      ( n = `xmlns:viz`       v = `sap.viz.ui5.controls` )
-                      ( n = `xmlns:vk`        v = `sap.ui.vk` )
-                      ( n = `xmlns:vbm`       v = `sap.ui.vbm` )
-                      ( n = `xmlns:ndc`       v = `sap.ndc` )
-                      ( n = `xmlns:svm`       v = `sap.ui.comp.smartvariants` )
-                      ( n = `xmlns:flvm`      v = `sap.ui.fl.variants` )
-                      ( n = `xmlns:p13n`      v = `sap.m.p13n` )
-                      ( n = `xmlns:upload`    v = `sap.m.upload` )
-                      ( n = `xmlns:fl`        v = `sap.ui.fl` )
-                      ( n = `xmlns:tnt`       v = `sap.tnt` ) ).
+                      ( n = `xmlns:networkgraph` v = `sap.suite.ui.commons.networkgraph` )
+                      ( n = `xmlns:nglayout`     v = `sap.suite.ui.commons.networkgraph.layout` )
+                      ( n = `xmlns:ngcustom`     v = `sap.suite.ui.commons.sample.NetworkGraphCustomRendering` )
+                      ( n = `xmlns:table`        v = `sap.ui.table` )
+                      ( n = `xmlns:template`     v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
+                      ( n = `xmlns:f`            v = `sap.f` )
+                      ( n = `xmlns:card`         v = `sap.f.cards` )
+                      ( n = `xmlns:form`         v = `sap.ui.layout.form` )
+                      ( n = `xmlns:editor`       v = `sap.ui.codeeditor` )
+                      ( n = `xmlns:mchart`       v = `sap.suite.ui.microchart` )
+                      ( n = `xmlns:webc`         v = `sap.ui.webc.main` )
+                      ( n = `xmlns:uxap`         v = `sap.uxap` )
+                      ( n = `xmlns:sap`          v = `sap` )
+                      ( n = `xmlns:text`         v = `sap.ui.richtexteditor` )
+                      ( n = `xmlns:html`         v = `http://www.w3.org/1999/xhtml` )
+                      ( n = `xmlns:fb`           v = `sap.ui.comp.filterbar` )
+                      ( n = `xmlns:u`            v = `sap.ui.unified` )
+                      ( n = `xmlns:gantt`        v = `sap.gantt.simple` )
+                      ( n = `xmlns:axistime`     v = `sap.gantt.axistime` )
+                      ( n = `xmlns:config`       v = `sap.gantt.config` )
+                      ( n = `xmlns:shapes`       v = `sap.gantt.simple.shapes` )
+                      ( n = `xmlns:commons`      v = `sap.suite.ui.commons` )
+                      ( n = `xmlns:vm`           v = `sap.ui.comp.variants` )
+                      ( n = `xmlns:viz`          v = `sap.viz.ui5.controls` )
+                      ( n = `xmlns:vk`           v = `sap.ui.vk` )
+                      ( n = `xmlns:vbm`          v = `sap.ui.vbm` )
+                      ( n = `xmlns:ndc`          v = `sap.ndc` )
+                      ( n = `xmlns:svm`          v = `sap.ui.comp.smartvariants` )
+                      ( n = `xmlns:flvm`         v = `sap.ui.fl.variants` )
+                      ( n = `xmlns:p13n`         v = `sap.m.p13n` )
+                      ( n = `xmlns:upload`       v = `sap.m.upload` )
+                      ( n = `xmlns:fl`           v = `sap.ui.fl` )
+                      ( n = `xmlns:tnt`          v = `sap.tnt` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
 
