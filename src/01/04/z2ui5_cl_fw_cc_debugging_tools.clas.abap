@@ -71,7 +71,7 @@ CLASS Z2UI5_CL_FW_CC_DEBUGGING_TOOLS IMPLEMENTATION.
              `                            return;` && |\n|  &&
              `                        }` && |\n|  &&
              `                        if (selItem == 'VIEW') {` && |\n|  &&
-             `                           if( !sap?.z2ui5?.oView?.mProperties?.viewContent !== 'undefined' ) {` && |\n|  &&
+             `                           if( sap?.z2ui5?.oView?.mProperties?.viewContent !== undefined ) {` && |\n|  &&
              `                              this.displayEditor( oEvent, this.prettifyXml( sap?.z2ui5?.oView?.mProperties?.viewContent ) , 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );` && |\n|  &&
              `                           } else {` && |\n|  &&
              `                              this.displayEditor( oEvent, this.prettifyXml( sap.z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML ), 'xml', this.prettifyXml( sap?.z2ui5?.oView?._xContent.outerHTML) );` && |\n|  &&
