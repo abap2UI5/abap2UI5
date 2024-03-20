@@ -7628,6 +7628,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                              ( n = `legendColor`         v = legendColor )
                              ( n = `selectedBackgroundColor`         v = selectedBackgroundColor )
                              ( n = `selectedBorderColor`         v = selectedBorderColor )
+                             ( n = `selectedContentColor`         v = selectedcontentcolor )
                              ( n = `title`         v = title )
                              ( n = `useFocusColorAsContentColor`           v = z2ui5_cl_util=>boolean_abap_2_json( useFocusColorAsContentColor ) )
                              ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
