@@ -320,8 +320,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~follow_up_action.
 
-     mo_action->ms_next-s_set-s_follow_up_action-custom_js = custom_js.
-     mo_action->ms_next-s_set-s_follow_up_action-frontent_event = frontend_event.
+     mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
 
   ENDMETHOD.
 

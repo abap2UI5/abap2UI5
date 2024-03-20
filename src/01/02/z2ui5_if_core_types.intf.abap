@@ -90,7 +90,7 @@ INTERFACE z2ui5_if_core_types
         text TYPE string,
       END OF s_msg_toast,
       BEGIN OF s_follow_up_action,
-        frontent_event TYPE string,
+*        frontent_event TYPE string,
         custom_js      TYPE string,
       END OF s_follow_up_action,
     END OF ty_s_next_frontend.

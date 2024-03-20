@@ -163,7 +163,6 @@ INTERFACE z2ui5_if_client
 
   METHODS follow_up_action
     IMPORTING
-      frontend_event TYPE string OPTIONAL
-      custom_js      TYPE string OPTIONAL.
+      val      TYPE string.
 
 ENDINTERFACE.
