@@ -16,7 +16,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_func_get_uuid_32.
 
-    DATA(lv_uuid) = z2ui5_cl_util_stmpncfctn=>uuid_get_c32( ).
+    DATA(lv_uuid) = z2ui5_cl_stmpncfctn_api=>uuid_get_c32( ).
     cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
     cl_abap_unit_assert=>assert_equals(
         act = 32
@@ -26,7 +26,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
   METHOD test_func_get_uuid_22.
 
-    DATA(lv_uuid) = z2ui5_cl_util_stmpncfctn=>uuid_get_c22( ).
+    DATA(lv_uuid) = z2ui5_cl_stmpncfctn_api=>uuid_get_c22( ).
     cl_abap_unit_assert=>assert_not_initial( lv_uuid ).
     cl_abap_unit_assert=>assert_equals(
         act = 22
@@ -37,10 +37,10 @@ CLASS ltcl_test IMPLEMENTATION.
   METHOD test_encoding.
 
     DATA(lv_string)   = `my string`.
-    DATA(lv_xstring)  = z2ui5_cl_util_stmpncfctn=>conv_get_xstring_by_string( lv_string ).
-    DATA(lv_string2)  = z2ui5_cl_util_stmpncfctn=>conv_encode_x_base64( lv_xstring ).
-    DATA(lv_xstring2) = z2ui5_cl_util_stmpncfctn=>conv_decode_x_base64( lv_string2 ).
-    DATA(lv_string3)  = z2ui5_cl_util_stmpncfctn=>conv_get_string_by_xstring( lv_xstring2 ).
+    DATA(lv_xstring)  = z2ui5_cl_stmpncfctn_api=>conv_get_xstring_by_string( lv_string ).
+    DATA(lv_string2)  = z2ui5_cl_stmpncfctn_api=>conv_encode_x_base64( lv_xstring ).
+    DATA(lv_xstring2) = z2ui5_cl_stmpncfctn_api=>conv_decode_x_base64( lv_string2 ).
+    DATA(lv_string3)  = z2ui5_cl_stmpncfctn_api=>conv_get_string_by_xstring( lv_xstring2 ).
 
     cl_abap_unit_assert=>assert_equals(
         act = lv_string3
@@ -54,7 +54,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(ls_result) = z2ui5_cl_util_stmpncfctn=>rtti_get_data_element_texts( `UNAME` ).
+    DATA(ls_result) = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( `UNAME` ).
     cl_abap_unit_assert=>assert_not_initial( ls_result ).
 
   ENDMETHOD.
@@ -65,7 +65,7 @@ CLASS ltcl_test IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(mt_classes) = z2ui5_cl_util_stmpncfctn=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
+    DATA(mt_classes) = z2ui5_cl_stmpncfctn_api=>rtti_get_classes_impl_intf( `IF_SERIALIZABLE_OBJECT`  ).
     cl_abap_unit_assert=>assert_not_initial( mt_classes ).
 
   ENDMETHOD.

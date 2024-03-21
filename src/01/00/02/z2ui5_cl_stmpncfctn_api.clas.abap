@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_util_stmpncfctn DEFINITION
+CLASS z2ui5_cl_stmpncfctn_api DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -14,13 +14,12 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
 
     TYPES:
       BEGIN OF ts_class,
-        classname   TYPE c LENGTH 30,
+        classname   TYPE string,
         description TYPE string,
-      END OF ts_class,
-      tt_classes TYPE STANDARD TABLE OF ts_class
-                      WITH NON-UNIQUE DEFAULT KEY.
+      END OF ts_class.
+    TYPES tt_classes TYPE STANDARD TABLE OF ts_class WITH NON-UNIQUE DEFAULT KEY.
 
-    CLASS-METHODS method_get_source
+    CLASS-METHODS source_get_method
       IMPORTING
         !iv_classname  TYPE clike
         !iv_methodname TYPE clike
@@ -71,18 +70,19 @@ CLASS z2ui5_cl_util_stmpncfctn DEFINITION
       RETURNING
         VALUE(result) TYPE tt_classes.
 
-  PROTECTED SECTION.
-  PRIVATE SECTION.
-    CLASS-METHODS get_class_description_xco
+    CLASS-METHODS xco_get_class_description
       IMPORTING
-        i_classname   TYPE ts_class-classname
+        i_classname   TYPE clike
       RETURNING
         VALUE(result) TYPE string.
+
+  PROTECTED SECTION.
+  PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
+CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
 
   METHOD conv_decode_x_base64.
@@ -199,7 +199,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD method_get_source.
+  METHOD source_get_method.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
@@ -324,7 +324,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
         result = VALUE #(
                    FOR implementation_name IN lt_implementation_names
                    ( classname   = implementation_name
-                     description = get_class_description_xco( CONV #( implementation_name ) ) ) ).
+                     description = xco_get_class_description( implementation_name ) ) ).
 
       CATCH cx_sy_dyn_call_illegal_class.
 
@@ -551,7 +551,7 @@ CLASS z2ui5_cl_util_stmpncfctn IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD get_class_description_xco.
+  METHOD xco_get_class_description.
 
     DATA:
       obj     TYPE REF TO object,
