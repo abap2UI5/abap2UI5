@@ -1,7 +1,7 @@
 CLASS z2ui5_cl_util_api DEFINITION
   PUBLIC
   CREATE PUBLIC
-  INHERITING FROM z2ui5_cl_util_stmpncfctn.
+  INHERITING FROM z2ui5_cl_stmpncfctn_api.
 
   PUBLIC SECTION.
 
@@ -53,7 +53,7 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_fix_val ##NEEDED.
 
-    CLASS-METHODS source_get_method
+    CLASS-METHODS source_get_method2
       IMPORTING
         iv_classname  TYPE clike
         iv_methodname TYPE clike
@@ -366,7 +366,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util_api IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL_API IMPLEMENTATION.
 
 
   METHOD boolean_abap_2_json.
@@ -901,9 +901,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD source_get_method.
+  METHOD source_get_method2.
 
-    DATA(lt_source) = method_get_source(
+    DATA(lt_source) = source_get_method(
          iv_classname  = iv_classname
          iv_methodname = iv_methodname ).
 
