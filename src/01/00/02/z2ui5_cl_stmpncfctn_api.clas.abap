@@ -553,13 +553,14 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
   METHOD xco_get_class_description.
 
-    DATA:
-      obj     TYPE REF TO object,
-      content TYPE REF TO object.
+    DATA obj     TYPE REF TO object.
+    DATA content TYPE REF TO object.
+    DATA lv_classname type c length 30.
 
+    lv_classname = i_classname.
     CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
       EXPORTING
-        iv_name  = i_classname
+        iv_name  = lv_classname
       RECEIVING
         ro_class = obj.
 
