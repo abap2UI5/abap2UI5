@@ -3852,6 +3852,44 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !press    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+ methods ROUTES
+    importing
+      !ID type CLIKE optional
+      !ITEMS type CLIKE optional
+    preferred parameter ITEMS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods LEGEND_AREA
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods LEGENDITEM
+    importing
+      !ID type CLIKE optional
+      !TEXT type CLIKE optional
+      !COLOR type CLIKE optional
+    preferred parameter TEXT
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+  methods LEGEND
+    importing
+      !ID type CLIKE optional
+      !ITEMS type CLIKE optional
+      !CAPTION type CLIKE optional
+    preferred parameter ITEMS
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
+
+ methods ROUTE
+    importing
+      !ID type CLIKE optional
+      !POSITION type CLIKE optional
+      !ROUTETYPE type CLIKE optional
+      !LINEDASH type CLIKE optional
+      !COLOR type CLIKE optional
+      !COLORBORDER type CLIKE optional
+      !LINEWIDTH type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
 
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
@@ -8785,6 +8823,72 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD _z2ui5.
 
     result = NEW #( me ).
+
+  ENDMETHOD.
+
+
+  METHOD LEGEND.
+
+    result = _generic( name  = `Legend`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `caption`  v = caption )
+                            ( n = `items`  v = items )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD LEGENDITEM.
+
+    result = _generic( name  = `LegendItem`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `text`  v = text )
+                            ( n = `color`  v = color )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD LEGEND_AREA.
+
+    result = _generic( name  = `legend`
+                      ns     = `vbm`
+                      ).
+
+  ENDMETHOD.
+
+
+  METHOD ROUTE.
+
+    result = me.
+    _generic( name           = `Route`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `position`  v = position )
+                            ( n = `routetype`  v = routetype )
+                            ( n = `lineDash`  v = lineDash )
+                            ( n = `linewidth`  v = linewidth )
+                            ( n = `color`  v = color )
+                            ( n = `colorBorder`  v = colorborder )
+
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD ROUTES.
+
+    result = _generic( name  = `Routes`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `items`  v = items )
+                        ) ).
 
   ENDMETHOD.
 ENDCLASS.
