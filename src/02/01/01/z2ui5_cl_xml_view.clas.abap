@@ -8875,8 +8875,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                             ( n = `linewidth`  v = linewidth )
                             ( n = `color`  v = color )
                             ( n = `colorBorder`  v = colorborder )
-
-                        ) ).
+) ).
 
   ENDMETHOD.
 
