@@ -55,9 +55,18 @@ CLASS lcl_github IMPLEMENTATION.
         )
         (
         name                 = `Generic Search Help`
-        descr                = `Popups with Search Helps, dynamically created based on imported values.`
+        descr                = `Popups with Search Helps, dynamically created based on imported values`
         author_link          = `https://github.com/axelmohnen`
         author_name          = `axelmohnen`
+        check_standard_abap  = abap_true
+        check_abap_for_cloud = abap_true
+        link                 = `https://github.com/axelmohnen/a2UI5-generic_search_hlp`
+        )
+        (
+        name                 = `ABAP SQL Console`
+        descr                = `Quickly Run SQL Commands in Your Browser`
+        author_link          = `https://github.com/abap2UI5-apps/abap-sql-console`
+        author_name          = `oblomov`
         check_standard_abap  = abap_true
         check_abap_for_cloud = abap_true
         link                 = `https://github.com/axelmohnen/a2UI5-generic_search_hlp`
@@ -88,6 +97,11 @@ CLASS lcl_github IMPLEMENTATION.
              name          = `abap2UI5-web`
             descr          = `Run abap2UI5 with open-abap on Node.js`
             link           = `https://github.com/abap2UI5/abap2UI5-web`
+            )
+            (
+             name          = `abap2UI5-samples`
+            descr          = `Explore Code Samples of abap2UI5`
+            link           = `https://github.com/abap2UI5/abap2UI5-samples`
             )
             ).
 

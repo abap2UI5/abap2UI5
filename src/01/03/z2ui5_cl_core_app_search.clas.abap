@@ -332,6 +332,9 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
+    ms_search-check_hide_samples = abap_true.
+    ms_search-check_hide_system  = abap_true.
+
       TRY.
           z2ui5_cl_util=>db_load_by_handle(
             EXPORTING
