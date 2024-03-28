@@ -3172,6 +3172,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !tooltip       TYPE clike OPTIONAL
         !image         TYPE clike OPTIONAL
         !icon          TYPE clike OPTIONAL
+        !click          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS analytic_map
@@ -7579,6 +7580,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                             ( n = `tooltip`  v = tooltip )
                             ( n = `image`  v = image )
                             ( n = `icon`  v = icon )
+                            ( n = `click`  v = click )
                         ) ).
 
   ENDMETHOD.
