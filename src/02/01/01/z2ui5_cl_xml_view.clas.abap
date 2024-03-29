@@ -648,6 +648,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !importance        TYPE clike OPTIONAL
         !autopopinwidth    TYPE clike OPTIONAL
         !class             TYPE clike OPTIONAL
+        !headermenu        TYPE clike OPTIONAL
           PREFERRED PARAMETER width
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
@@ -3892,6 +3893,125 @@ CLASS z2ui5_cl_xml_view DEFINITION
     returning
       value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
 
+ methods column_menu
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !visible type CLIKE optional
+      !afterclose type CLIKE optional
+      !beforeopen type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_item
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !icon type CLIKE optional
+      !label type CLIKE optional
+      !resetButtonEnabled type CLIKE optional
+      !showCancelButton type CLIKE optional
+      !showConfirmButton type CLIKE optional
+      !showResetButton type CLIKE optional
+      !visible type CLIKE optional
+      !cancel type CLIKE optional
+      !confirm type CLIKE optional
+      !reset type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_action_item
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !icon type CLIKE optional
+      !label type CLIKE optional
+      !visible type CLIKE optional
+      !press type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_action
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !category type CLIKE optional
+      !label type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_action_item
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !key type CLIKE optional
+      !label type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_group
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !change type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_group_item
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !grouped type CLIKE optional
+      !key type CLIKE optional
+      !label type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_sort
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !change type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_sort_item
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !sortorder type CLIKE optional
+      !key type CLIKE optional
+      !label type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+  methods column_menu_quick_total
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !change type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+ methods column_menu_quick_total_item
+    importing
+      !id type CLIKE optional
+      !class type CLIKE optional
+      !totaled type CLIKE optional
+      !key type CLIKE optional
+      !label type CLIKE optional
+      !visible type CLIKE optional
+    returning
+      value(RESULT) type ref to z2ui5_cl_xml_view .
+
+
   PROTECTED SECTION.
     DATA mv_name  TYPE string.
     DATA mv_ns     TYPE string.
@@ -4377,6 +4497,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `width` v = width )
                                          ( n = `minScreenWidth` v = minscreenwidth )
                                          ( n = `hAlign` v = halign )
+                                         ( n = `headerMenu` v = headermenu )
                                          ( n = `autoPopinWidth` v = autopopinwidth )
                                          ( n = `vAlign` v = valign )
                                          ( n = `importance` v = importance )
@@ -4419,6 +4540,157 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `detailPress`     v = detailpress )
                                          ( n = `navigated`     v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) )
                                          ( n = `press`    v = press ) ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu.
+    result = _generic( name   = `Menu`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `afterClose`     v = afterClose )
+                             ( n = `beforeOpen` v = beforeOpen )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_action_item.
+    result = _generic( name   = `ActionItem`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `icon`     v = icon )
+                             ( n = `label`    v = label )
+                             ( n = `press`    v = press )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_item.
+    result = _generic( name   = `Item`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `icon`     v = icon )
+                             ( n = `label`    v = label )
+                             ( n = `cancel`    v = cancel )
+                             ( n = `confirm`    v = confirm )
+                             ( n = `reset`    v = reset )
+                             ( n = `resetButtonEnabled`  v = z2ui5_cl_util=>boolean_abap_2_json( resetButtonEnabled ) )
+                             ( n = `showCancelButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showCancelButton ) )
+                             ( n = `showConfirmButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showConfirmButton ) )
+                             ( n = `showResetButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showResetButton ) )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_action.
+    result = _generic( name   = `QuickAction`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `category`     v = category )
+                             ( n = `label`     v = label )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_action_item.
+    result = _generic( name   = `QuickActionItem`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `key`    v = key )
+                             ( n = `label`    v = label )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_group.
+    result = _generic( name   = `QuickGroup`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `change`     v = change )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_group_item.
+    result = _generic( name   = `QuickGroupItem`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `key`    v = key )
+                             ( n = `label`    v = label )
+                             ( n = `grouped`  v = z2ui5_cl_util=>boolean_abap_2_json( grouped ) )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_sort.
+    result = _generic( name   = `QuickSort`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `change`     v = change )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_sort_item.
+    result = _generic( name   = `QuickSortItem`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `key`    v = key )
+                             ( n = `label`    v = label )
+                             ( n = `sortOrder`  v = sortOrder )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_total.
+    result = _generic( name   = `QuickTotal`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `change`     v = change )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
+  ENDMETHOD.
+
+
+  METHOD column_menu_quick_total_item.
+    result = _generic( name   = `QuickTotalItem`
+                       ns     = `columnmenu`
+                       t_prop = VALUE #(
+                             ( n = `id`       v = id )
+                             ( n = `class`    v = class )
+                             ( n = `key`    v = key )
+                             ( n = `label`    v = label )
+                             ( n = `totaled`  v = z2ui5_cl_util=>boolean_abap_2_json( totaled ) )
+                             ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                         ) ).
   ENDMETHOD.
 
 
@@ -5911,6 +6183,41 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD LEGEND.
+
+    result = _generic( name  = `Legend`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `caption`  v = caption )
+                            ( n = `items`  v = items )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD LEGENDITEM.
+
+    result = _generic( name  = `LegendItem`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `text`  v = text )
+                            ( n = `color`  v = color )
+                        ) ).
+
+  ENDMETHOD.
+
+
+  METHOD LEGEND_AREA.
+
+    result = _generic( name  = `legend`
+                      ns     = `vbm`
+                      ).
+
+  ENDMETHOD.
+
+
   METHOD light_box.
     result = _generic( name = `LightBox`
                     t_prop  = VALUE #( ( n = `id`         v = id )
@@ -7261,6 +7568,36 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `useLegacyTheme`      v = z2ui5_cl_util=>boolean_abap_2_json( uselegacytheme ) )
                                          ( n = `wrapping`            v = z2ui5_cl_util=>boolean_abap_2_json( wrapping ) )
                                          ( n = `width`               v = width ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD ROUTE.
+
+    result = me.
+    _generic( name           = `Route`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `position`  v = position )
+                            ( n = `routetype`  v = routetype )
+                            ( n = `lineDash`  v = lineDash )
+                            ( n = `linewidth`  v = linewidth )
+                            ( n = `color`  v = color )
+                            ( n = `colorBorder`  v = colorborder )
+) ).
+
+  ENDMETHOD.
+
+
+  METHOD ROUTES.
+
+    result = _generic( name  = `Routes`
+                      ns     = `vbm`
+                      t_prop = VALUE #(
+                            ( n = `id`  v = id )
+                            ( n = `items`  v = items )
+                        ) ).
 
   ENDMETHOD.
 
@@ -8708,6 +9045,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                       ( n = `xmlns:table`        v = `sap.ui.table` )
                       ( n = `xmlns:template`     v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
                       ( n = `xmlns:f`            v = `sap.f` )
+                      ( n = `xmlns:columnmenu`   v = `sap.m.table.columnmenu` )
                       ( n = `xmlns:card`         v = `sap.f.cards` )
                       ( n = `xmlns:form`         v = `sap.ui.layout.form` )
                       ( n = `xmlns:editor`       v = `sap.ui.codeeditor` )
@@ -8825,71 +9163,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD _z2ui5.
 
     result = NEW #( me ).
-
-  ENDMETHOD.
-
-
-  METHOD LEGEND.
-
-    result = _generic( name  = `Legend`
-                      ns     = `vbm`
-                      t_prop = VALUE #(
-                            ( n = `id`  v = id )
-                            ( n = `caption`  v = caption )
-                            ( n = `items`  v = items )
-                        ) ).
-
-  ENDMETHOD.
-
-
-  METHOD LEGENDITEM.
-
-    result = _generic( name  = `LegendItem`
-                      ns     = `vbm`
-                      t_prop = VALUE #(
-                            ( n = `id`  v = id )
-                            ( n = `text`  v = text )
-                            ( n = `color`  v = color )
-                        ) ).
-
-  ENDMETHOD.
-
-
-  METHOD LEGEND_AREA.
-
-    result = _generic( name  = `legend`
-                      ns     = `vbm`
-                      ).
-
-  ENDMETHOD.
-
-
-  METHOD ROUTE.
-
-    result = me.
-    _generic( name           = `Route`
-                      ns     = `vbm`
-                      t_prop = VALUE #(
-                            ( n = `id`  v = id )
-                            ( n = `position`  v = position )
-                            ( n = `routetype`  v = routetype )
-                            ( n = `lineDash`  v = lineDash )
-                            ( n = `linewidth`  v = linewidth )
-                            ( n = `color`  v = color )
-                            ( n = `colorBorder`  v = colorborder )
-) ).
-
-  ENDMETHOD.
-
-
-  METHOD ROUTES.
-
-    result = _generic( name  = `Routes`
-                      ns     = `vbm`
-                      t_prop = VALUE #(
-                            ( n = `id`  v = id )
-                            ( n = `items`  v = items )
-                        ) ).
 
   ENDMETHOD.
 ENDCLASS.
