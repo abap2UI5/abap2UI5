@@ -110,7 +110,7 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_oref( lr_ref ).
 
     LOOP AT lt_attri REFERENCE INTO DATA(lr_attri)
-        WHERE visibility   = cl_abap_objectdescr=>public
+        WHERE visibility = cl_abap_objectdescr=>public
         AND is_interface = abap_false
         AND is_constant  = abap_false.
       TRY.
