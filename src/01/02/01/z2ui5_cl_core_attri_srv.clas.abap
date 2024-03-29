@@ -146,9 +146,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       TRY.
           lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
           lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
-
         CATCH cx_root.
-          DATA(lv_test) = `test`.
       ENDTRY.
     ENDLOOP.
 
