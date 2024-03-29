@@ -78,6 +78,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
       CATCH cx_root INTO DATA(x2).
         TRY.
 
+            lo_model->attri_refs_update( ).
+
             DATA(lo_dissolver) = NEW z2ui5_cl_core_dissolve_srv(
               attri = mt_attri
               app   = mo_app ).

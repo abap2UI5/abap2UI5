@@ -158,12 +158,16 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     TRY.
         data(lv_path) = shift_right( val = val sub = `->*` ).
         mo_app->mt_attri->*[ name = lv_path ]-check_dissolved = abap_false.
+        mo_app->mt_attri->*[ name = lv_path ]-name_client = ``.
+        mo_app->mt_attri->*[ name = lv_path ]-bind_type = ``.
+        clear mo_app->mt_attri->*[ name = lv_path ]-r_ref.
+*        clear mo_app->mt_attri->*[ name = lv_path ]-o_typedescr.
 
-        LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2).
-          IF lr_bind2->name CS val.
-            DELETE mo_app->mt_attri->*.
-          ENDIF.
-        ENDLOOP.
+*        LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2).
+*          IF lr_bind2->name CS val.
+*            DELETE mo_app->mt_attri->*.
+*          ENDIF.
+*        ENDLOOP.
 
       CATCH cx_root.
     ENDTRY.
