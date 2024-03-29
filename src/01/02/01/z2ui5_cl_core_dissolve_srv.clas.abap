@@ -72,6 +72,10 @@ CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
 
   METHOD diss_dref.
 
+    IF z2ui5_cl_util=>check_unassign_inital( ir_attri->r_ref ).
+      RETURN.
+    ENDIF.
+
     DATA(lr_ref) = z2ui5_cl_util=>unassign_data( ir_attri->r_ref ).
     IF lr_ref IS INITIAL.
       RETURN.

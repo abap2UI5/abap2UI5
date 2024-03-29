@@ -72,6 +72,10 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
+      IF lr_attri->r_ref IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
+
       ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val_ref>).
       IF <val_ref> IS NOT INITIAL.
         ASSIGN <val_ref>->* TO FIELD-SYMBOL(<val>).
@@ -139,10 +143,13 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
   METHOD attri_refs_update.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
+      TRY.
+          lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
-      lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
-      lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
-
+        CATCH cx_root.
+          DATA(lv_test) = `test`.
+      ENDTRY.
     ENDLOOP.
 
   ENDMETHOD.

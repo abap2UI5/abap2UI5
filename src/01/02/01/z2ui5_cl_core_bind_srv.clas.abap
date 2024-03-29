@@ -158,6 +158,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     TRY.
         DATA(lv_path) = shift_right( val = val sub = `->*` ).
         mo_app->mt_attri->*[ name = lv_path ]-check_dissolved = abap_false.
+        mo_app->mt_attri->*[ name = val ]-check_dissolved = abap_false.
         mo_app->mt_attri->*[ name = lv_path ]-name_client = ``.
         mo_app->mt_attri->*[ name = lv_path ]-bind_type = ``.
 
