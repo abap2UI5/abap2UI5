@@ -13,6 +13,7 @@
     "ignoreSyntaxCheck": false,
     "addFilenames": true,
     "addCommonJS": true,
+    "skipReposrc": true,
     "unknownTypes": "runtimeError",
     "keywords": ["return", "in", "class", "for", "delete", "default", "var"],
     "extraSetup": "../test/setup.mjs",
