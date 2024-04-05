@@ -22,6 +22,8 @@ CLASS ltcl_test_app2 IMPLEMENTATION.
 
 ENDCLASS.
 
+
+
 CLASS ltcl_test_search_attri DEFINITION FINAL FOR TESTING
   DURATION SHORT
   RISK LEVEL HARMLESS.
@@ -99,6 +101,139 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
 
     DATA(lr_attri) = REF #( lt_attri[ r_ref = lr_value ] ).
     IF lr_attri->r_ref <> lr_value.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+
+CLASS ltcl_test_app_sub DEFINITION FINAL FOR TESTING
+  DURATION MEDIUM
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    DATA mv_value TYPE string ##NEEDED.
+    DATA mr_value TYPE REF TO string.
+    DATA mr_value2 TYPE REF TO data.
+
+    METHODS constructor.
+ENDCLASS.
+
+CLASS ltcl_test_app_sub IMPLEMENTATION.
+
+  METHOD constructor.
+
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_test_app3 DEFINITION FINAL FOR TESTING
+  DURATION MEDIUM
+  RISK LEVEL HARMLESS.
+
+  PUBLIC SECTION.
+
+    DATA mv_value TYPE string ##NEEDED.
+    DATA mr_value TYPE REF TO string.
+    DATA mr_value2 TYPE REF TO data.
+    DATA mo_app TYPE REF TO ltcl_test_app_sub.
+
+    METHODS constructor.
+ENDCLASS.
+
+CLASS ltcl_test_app3 IMPLEMENTATION.
+
+  METHOD constructor.
+    mo_app = NEW #( ).
+  ENDMETHOD.
+
+ENDCLASS.
+
+CLASS ltcl_test_get_attri DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS first_test FOR TESTING RAISING cx_static_check.
+    METHODS second_test FOR TESTING RAISING cx_static_check.
+    METHODS third_test FOR TESTING RAISING cx_static_check.
+    METHODS test4 FOR TESTING RAISING cx_static_check.
+
+ENDCLASS.
+
+CLASS ltcl_test_get_attri IMPLEMENTATION.
+
+  METHOD first_test.
+
+    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    DATA lr_value TYPE REF TO data.
+    GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
+
+    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app_client ).
+
+    DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
+
+    IF lr_attri <> REF #( lo_app_client->mv_value ).
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD second_test.
+
+    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    CREATE DATA lo_app_client->mr_value.
+
+    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app_client ).
+
+    DATA(lr_attri) = lo_model->attri_get_val_ref( `MR_VALUE->*` ).
+
+    IF lr_attri <> lo_app_client->mr_value.
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD third_test.
+
+    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+
+    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app_client ).
+
+    DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
+
+    IF lr_attri <> REF #( lo_app_client->mo_app->mv_value ).
+      cl_abap_unit_assert=>abort( ).
+    ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test4.
+
+    DATA(lo_app_client) = NEW ltcl_test_app3( ).
+    CREATE DATA lo_app_client->mo_app->mr_value.
+
+    DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( ).
+    DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+      attri = REF #( lt_attri )
+      app   = lo_app_client ).
+
+    DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MR_VALUE->*` ).
+
+    IF lr_attri <> lo_app_client->mo_app->mr_value.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
