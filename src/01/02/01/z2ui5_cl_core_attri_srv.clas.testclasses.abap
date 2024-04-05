@@ -117,7 +117,7 @@ CLASS ltcl_test_app_sub DEFINITION FINAL FOR TESTING
 
     DATA mv_value TYPE string ##NEEDED.
     DATA mr_value TYPE REF TO string.
-    DATA mr_value2 TYPE REF TO data.
+*    DATA mr_value2 TYPE REF TO data.
 
     METHODS constructor.
 ENDCLASS.
@@ -138,7 +138,7 @@ CLASS ltcl_test_app3 DEFINITION FINAL FOR TESTING
 
     DATA mv_value TYPE string ##NEEDED.
     DATA mr_value TYPE REF TO string.
-    DATA mr_value2 TYPE REF TO data.
+*    DATA mr_value2 TYPE REF TO data.
     DATA mo_app TYPE REF TO ltcl_test_app_sub.
 
     METHODS constructor.
@@ -180,7 +180,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MV_VALUE` ).
 
-    IF lr_attri <> REF #( lo_app_client->mv_value ).
+    IF REF #( lo_app_client->mv_value ) <> lr_attri.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
@@ -215,7 +215,7 @@ CLASS ltcl_test_get_attri IMPLEMENTATION.
 
     DATA(lr_attri) = lo_model->attri_get_val_ref( `MO_APP->MV_VALUE` ).
 
-    IF lr_attri <> REF #( lo_app_client->mo_app->mv_value ).
+    IF REF #( lo_app_client->mo_app->mv_value ) <> lr_attri.
       cl_abap_unit_assert=>abort( ).
     ENDIF.
 
