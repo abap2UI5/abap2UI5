@@ -686,6 +686,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !errormessage      TYPE clike OPTIONAL
         !errormessagetitle TYPE clike OPTIONAL
         !showerror         TYPE clike OPTIONAL
+        !displayedBars     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS bars
@@ -6051,6 +6052,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `press`             v = press )
                                          ( n = `labelWidth`        v = labelwidth )
                                          ( n = `errorMessageTitle` v = errormessagetitle )
+                                         ( n = `displayedBars`     v = displayedBars )
                                          ( n = `errorMessage`      v = errormessage ) ) ).
   ENDMETHOD.
 
