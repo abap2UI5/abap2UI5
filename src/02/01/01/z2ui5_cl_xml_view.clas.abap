@@ -7197,7 +7197,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `activeIcon`    v = activeIcon )
                                          ( n = `type`          v = type ) ) ).
   ENDMETHOD.
-
   METHOD overflow_toolbar_toggle_button.
     result = me.
     _generic( name   = `OverflowToolbarToggleButton`
@@ -7208,8 +7207,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `type`    v = type )
                                 ( n = `tooltip` v = tooltip ) ) ).
   ENDMETHOD.
-
-
   METHOD page.
     result = _generic( name   = `Page`
                        ns     = ns
