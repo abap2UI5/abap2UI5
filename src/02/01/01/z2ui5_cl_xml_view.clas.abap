@@ -1092,13 +1092,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !defaultaction TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
-    METHODS menu_button
+         METHODS menu_button
       IMPORTING
         !text          TYPE clike OPTIONAL
-        !activeIcon    TYPE clike OPTIONAL
+        !activeicon    TYPE clike OPTIONAL
         !buttonmode    TYPE clike OPTIONAL
         !type          TYPE clike OPTIONAL
         !enabled       TYPE clike OPTIONAL
+        !defaultaction TYPE clike OPTIONAL
       RETURNING
         VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS menu_item
@@ -1578,6 +1579,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !wrapping           TYPE clike OPTIONAL
         !wrappingtype       TYPE clike OPTIONAL
         !id                 TYPE clike OPTIONAL
+        !visible            TYPE clike OPTIONAL
           PREFERRED PARAMETER text
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
@@ -1778,7 +1780,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !customfilter             TYPE clike OPTIONAL
         !id                       TYPE clike OPTIONAL
         !flex                     TYPE clike OPTIONAL
-        !rowMode                  TYPE clike OPTIONAL
+        !selectionBehavior        TYPE clike OPTIONAL
+        !rowmode                  TYPE clike OPTIONAL
           PREFERRED PARAMETER rows
       RETURNING
         VALUE(result)             TYPE REF TO z2ui5_cl_xml_view .
@@ -7185,14 +7188,14 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `type`    v = type )
                                          ( n = `tooltip` v = tooltip ) ) ).
   ENDMETHOD.
-  
   METHOD menu_button.
     result = _generic( name   = `MenuButton`
-                       t_prop = VALUE #( ( n = `buttonMode`  v = buttonmode ) 
-                                         ( n = `text`        v = text )
-                                         ( n = `enabled`     v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                         ( n = `activeIcon`  v = activeIcon )
-                                         ( n = `type`        v = type ) ) ).
+                       t_prop = VALUE #( ( n = `buttonMode`    v = buttonmode )
+                                         ( n = `defaultAction` v = defaultaction )
+                                         ( n = `text`          v = text )
+                                         ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                         ( n = `activeIcon`    v = activeIcon )
+                                         ( n = `type`          v = type ) ) ).
   ENDMETHOD.
 
   METHOD overflow_toolbar_toggle_button.
@@ -8278,6 +8281,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `maxLines`  v = maxlines )
                                 ( n = `renderWhitespace`  v = renderwhitespace )
                                 ( n = `textAlign`  v = textalign )
+                                ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                 ( n = `textDirection`  v = textdirection )
                                 ( n = `width`  v = width )
                                 ( n = `id`  v = id )
@@ -8706,17 +8710,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `editable`                  v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
                            ( n = `enableCellFilter`          v = z2ui5_cl_util=>boolean_abap_2_json( enablecellfilter ) )
                            ( n = `enableGrouping`            v = z2ui5_cl_util=>boolean_abap_2_json( enablegrouping ) )
-                           ( n = `senableSelectAll`          v = z2ui5_cl_util=>boolean_abap_2_json( enableselectall ) )
+                           ( n = `enableSelectAll`           v = z2ui5_cl_util=>boolean_abap_2_json( enableselectall ) )
                            ( n = `firstVisibleRow`           v = firstvisiblerow )
                            ( n = `fixedBottomRowCount`       v = fixedbottomrowcount )
                            ( n = `fixedColumnCount`          v = fixedcolumncount )
                            ( n = `rowActionCount`            v = rowactioncount )
                            ( n = `fixedRowCount`             v = fixedrowcount )
                            ( n = `minAutoRowCount`           v = minautorowcount )
-                           ( n = `minAutoRowCount`           v = minautorowcount )
                            ( n = `rowHeight`                 v = rowheight )
                            ( n = `selectedIndex`             v = selectedindex )
                            ( n = `selectionMode`             v = selectionmode )
+                           ( n = `selectionBehavior`         v = selectionBehavior )
                            ( n = `showColumnVisibilityMenu`  v = z2ui5_cl_util=>boolean_abap_2_json( showcolumnvisibilitymenu ) )
                            ( n = `showNoData`                v = z2ui5_cl_util=>boolean_abap_2_json( shownodata ) )
                            ( n = `threshold`                 v = threshold )
@@ -8729,7 +8733,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                            ( n = `id`                        v = id )
                            ( n = `fl:flexibility`            v = flex )
                            ( n = `rowSelectionChange`        v = rowselectionchange )
-                           ( n = `rowMode`                   v = rowMode ) ) ).
+                           ( n = `rowMode`                   v = rowmode )
+                            ) ).
 
   ENDMETHOD.
 
