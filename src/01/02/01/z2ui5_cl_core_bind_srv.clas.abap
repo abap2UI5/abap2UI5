@@ -130,7 +130,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     IF mr_attri->custom_filter_back IS BOUND.
       TRY.
-          DATA(li_serial) = CAST if_serializable_object( mr_attri->custom_filter_back ) ##NEEDED.
+          CAST if_serializable_object( mr_attri->custom_filter_back ).
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
@@ -141,7 +141,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     IF mr_attri->custom_filter_back IS BOUND.
       TRY.
-          DATA(li_serial2) = CAST if_serializable_object( mr_attri->custom_mapper_back ) ##NEEDED.
+          CAST if_serializable_object( mr_attri->custom_mapper_back ).
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
@@ -162,19 +162,10 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
         mo_app->mt_attri->*[ name = lv_path ]-name_client = ``.
         mo_app->mt_attri->*[ name = lv_path ]-bind_type = ``.
 
-*        clear mo_app->mt_attri->*[ name = lv_path ]-r_ref.
-*        clear mo_app->mt_attri->*[ name = lv_path ]-o_typedescr.
-
         LOOP AT mo_app->mt_attri->* REFERENCE INTO DATA(lr_bind2)
         WHERE name = lv_path.
-
           CLEAR lr_bind2->r_ref.
-
         ENDLOOP.
-*          IF lr_bind2->name CS val.
-*            DELETE mo_app->mt_attri->*.
-*          ENDIF.
-*        ENDLOOP.
 
       CATCH cx_root.
     ENDTRY.
