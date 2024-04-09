@@ -80,6 +80,8 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
             lo_model->attri_refs_update( ).
 
+            clear mt_attri->*.
+
             DATA(lo_dissolver) = NEW z2ui5_cl_core_dissolve_srv(
               attri = mt_attri
               app   = mo_app ).
