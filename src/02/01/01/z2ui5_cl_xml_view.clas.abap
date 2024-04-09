@@ -914,6 +914,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
           PREFERRED PARAMETER title
       RETURNING
         VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+    METHODS menu_button
+      IMPORTING
+        !text          TYPE clike OPTIONAL
+        !activeicon    TYPE clike OPTIONAL
+        !buttonmode    TYPE clike OPTIONAL
+        !type          TYPE clike OPTIONAL
+        !enabled       TYPE clike OPTIONAL
+        !defaultaction TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
     METHODS panel
       IMPORTING
         !expandable       TYPE clike OPTIONAL
@@ -8837,6 +8847,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD menu_button.
+    result = _generic( name   = `MenuButton`
+                       t_prop = VALUE #( ( n = `buttonMode`    v = buttonmode )
+                                         ( n = `defaultAction` v = defaultaction )
+                                         ( n = `text`          v = text )
+                                         ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                         ( n = `activeIcon`    v = activeIcon )
+                                         ( n = `type`          v = type ) ) ).
+  ENDMETHOD.
 
   METHOD variant_management.
 
