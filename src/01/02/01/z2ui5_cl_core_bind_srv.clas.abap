@@ -130,7 +130,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     IF mr_attri->custom_filter_back IS BOUND.
       TRY.
-          CAST if_serializable_object( mr_attri->custom_filter_back ).
+          DATA(lo_dummy) = CAST if_serializable_object( mr_attri->custom_filter_back ) ##NEEDED.
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
@@ -141,7 +141,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
 
     IF mr_attri->custom_filter_back IS BOUND.
       TRY.
-          CAST if_serializable_object( mr_attri->custom_mapper_back ).
+          DATA(lo_dummy2) = CAST if_serializable_object( mr_attri->custom_mapper_back ) ##NEEDED.
         CATCH cx_root.
           RAISE EXCEPTION TYPE z2ui5_cx_util_error
             EXPORTING
