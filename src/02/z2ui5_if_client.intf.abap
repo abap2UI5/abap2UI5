@@ -13,6 +13,7 @@ INTERFACE z2ui5_if_client
       cross_app_nav_to_ext      TYPE string VALUE `CROSS_APP_NAV_TO_EXT`,
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
       popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
+      download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
     END OF cs_event.
 
   CONSTANTS:
