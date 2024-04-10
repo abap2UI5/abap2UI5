@@ -70,7 +70,7 @@ CLASS Z2UI5_CL_CC_MESSAGE_MANAGER IMPLEMENTATION.
       `       },` && |\n| &&
       |\n| &&
       `       Model2Messaging( ){` && |\n| &&
-      `               debugger;` && |\n| &&
+*      `               debugger;` && |\n| &&
       `           var Model = this.getProperty("items");` && |\n| &&
       `           if(!Model) { return; }` && |\n| &&
       |\n| &&

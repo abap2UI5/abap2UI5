@@ -264,6 +264,12 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            )` && |\n| &&
                `            let oCrossAppNavigator;` && |\n| &&
                `            switch (args[0]) {` && |\n| &&
+               `            case 'DOWNLOAD_B64_FILE':` && |\n| &&
+               `                var a = document.createElement("a");` && |\n| &&
+               `                a.href = args[1];` && |\n| &&
+               `                a.download = args[2];` && |\n| &&
+               `                a.click();` && |\n| &&
+               `                break;` && |\n| &&
                `            case 'CROSS_APP_NAV_TO_PREV_APP':` && |\n| &&
                `                oCrossAppNavigator = sap.ushell.Container.getService("CrossApplicationNavigation");` && |\n| &&
                `                oCrossAppNavigator.backToPreviousApp();` && |\n| &&
