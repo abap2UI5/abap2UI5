@@ -4,12 +4,12 @@ CLASS z2ui5_cl_cc_spreadsheet DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-
+    INTERFACES z2ui5_if_ajson_filter.
     CLASS-METHODS get_js
       IMPORTING
-      !i_columnconfig TYPE clike
+        !i_columnconfig TYPE clike OPTIONAL
       RETURNING
-      VALUE(r_js) TYPE string .
+        VALUE(r_js)     TYPE string .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -20,6 +20,11 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
 
 
   METHOD get_js.
+    DATA lv_column_config TYPE string.
+    lv_column_config = i_columnconfig.
+    IF lv_column_config IS INITIAL.
+      lv_column_config = `''`.
+    ENDIF.
 
     r_js  = `        sap.ui.define("z2ui5/ExportSpreadsheet" , [` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
@@ -44,6 +49,9 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                            type: "string",` && |\n| &&
                      `                            defaultValue: ""` && |\n| &&
                      `                        },` && |\n| &&
+                     `                        columnconfig: { ` && |\n| &&
+                     `                            type: "Array" ` && |\n| &&
+                     `                        },` && |\n| &&
                      `                        text: {` && |\n| &&
                      `                            type: "string",` && |\n| &&
                      `                            defaultValue: ""` && |\n| &&
@@ -57,6 +65,12 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                    renderer: null` && |\n| &&
                      `                },` && |\n| &&
                      |\n| &&
+                     `                setColumnconfig: function(oConfig) { ` && |\n| &&
+                     `debugger;` && |\n| &&
+*                     `                  oConfig = JSON.parse(oConfig);` && |\n| &&
+                     `                  this.setProperty("columnconfig", oConfig, true );` && |\n| &&
+                     `                },` && |\n| &&
+                     |\n| &&
                      `                renderer: function (oRm, oControl) {` && |\n| &&
                      |\n| &&
                      `                    oControl.oExportButton = new Button({` && |\n| &&
@@ -66,7 +80,8 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                        press: function (oEvent) { ` && |\n| &&
                      |\n| &&
                      `debugger;` && |\n| &&
-                     `                             var aCols =` && i_columnconfig  && `;` && |\n| &&
+                     `                             var aCols = oControl.getProperty("columnconfig");` && |\n| &&
+                     `                             if( !aCols ) { aCols = ` && lv_column_config  && `; }` && |\n| &&
                      |\n| &&
                      `                             var oBinding, oSettings, oSheet, vTableId, vViewPrefix,vPrefixTableId;` && |\n| &&
                      `                             vTableId = oControl.getProperty("tableId")` && |\n| &&
@@ -98,6 +113,46 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                }` && |\n| &&
                      `            });` && |\n| &&
                      `        });`.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_ajson_filter~keep_node.
+
+    rv_keep = abap_true.
+
+    CASE iv_visit.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-open.
+
+        IF is_node-children = 0.
+          rv_keep = abap_false.
+        ENDIF.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-value.
+
+        CASE is_node-type.
+          WHEN z2ui5_if_ajson_types=>node_type-boolean.
+            IF is_node-value = `false`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-number.
+            IF is_node-value = `0` OR is_node-value = `0.00`.
+              rv_keep = abap_false.
+            ENDIF.
+          WHEN z2ui5_if_ajson_types=>node_type-string.
+            IF is_node-value = ``.
+              rv_keep = abap_false.
+            ENDIF.
+        ENDCASE.
+
+      WHEN  z2ui5_if_ajson_filter=>visit_type-close.
+
+        IF is_node-children = 0.
+          rv_keep = abap_false.
+        ENDIF.
+
+    ENDCASE.
 
   ENDMETHOD.
 ENDCLASS.
