@@ -676,11 +676,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !value          TYPE clike OPTIONAL
         !displayedvalue TYPE clike OPTIONAL
         !selected       TYPE clike OPTIONAL
+        !color          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS interact_bar_chart
       IMPORTING
         !selectionchanged  TYPE clike OPTIONAL
+        !selectionEnabled  TYPE clike OPTIONAL
         !press             TYPE clike OPTIONAL
         !labelwidth        TYPE clike OPTIONAL
         !errormessage      TYPE clike OPTIONAL
@@ -698,6 +700,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !value          TYPE clike OPTIONAL
         !displayedvalue TYPE clike OPTIONAL
         !selected       TYPE clike OPTIONAL
+        !color          TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
     METHODS interact_line_chart
@@ -709,6 +712,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !errormessage      TYPE clike OPTIONAL
         !errormessagetitle TYPE clike OPTIONAL
         !showerror         TYPE clike OPTIONAL
+        !displayedPoints   TYPE clike OPTIONAL
+        !selectionEnabled  TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS points
@@ -6060,6 +6065,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `InteractiveBarChart`
                        ns     = `mchart`
                        t_prop = VALUE #( ( n = `selectionChanged`  v = selectionchanged )
+                                         ( n = `selectionEnabled`  v = selectionEnabled )
                                          ( n = `showError`         v = showerror )
                                          ( n = `press`             v = press )
                                          ( n = `labelWidth`        v = labelwidth )
@@ -6075,7 +6081,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `label`          v = label )
                                          ( n = `displayedValue` v = displayedvalue )
                                          ( n = `value`          v = value )
-                                         ( n = `selected`       v = selected ) ) ).
+                                         ( n = `selected`       v = selected )
+                                         ( n = `color`          v = color ) ) ).
   ENDMETHOD.
 
 
@@ -6097,7 +6104,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `label`          v = label )
                                          ( n = `displayedValue` v = displayedvalue )
                                          ( n = `value`          v = value )
-                                         ( n = `selected`       v = selected ) ) ).
+                                         ( n = `selected`       v = selected )
+                                         ( n = `color`          v = color ) ) ).
   ENDMETHOD.
 
 
@@ -6110,7 +6118,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `errorMessageTitle` v = errormessagetitle )
                                          ( n = `errorMessage`      v = errormessage )
                                          ( n = `precedingPoint`    v = precedingpoint )
-                                         ( n = `succeedingPoint`   v = succeddingpoint ) ) ).
+                                         ( n = `succeedingPoint`   v = succeddingpoint )
+                                         ( n = `displayedPoints`   v = displayedPoints )
+                                         ( n = `selectionEnabled`  v = selectionEnabled ) ) ).
   ENDMETHOD.
 
 
