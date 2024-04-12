@@ -2889,6 +2889,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !readyrecurring     TYPE clike OPTIONAL
       RETURNING
         VALUE(result)       TYPE REF TO z2ui5_cl_xml_view .
+ methods SLIDER
+    importing
+      !MAX type CLIKE optional
+      !MIN type CLIKE optional
+      !STEP type CLIKE optional
+      !VALUE type CLIKE optional
+      !ENABLETICKMARKS type CLIKE optional
+      !WIDTH type CLIKE optional
+      !CLASS type CLIKE optional
+      !ID type CLIKE optional
+      !ENABLED type CLIKE optional
+    returning
+      value(RESULT) type ref to Z2UI5_CL_XML_VIEW .
     METHODS upload_set
       IMPORTING
         !id                      TYPE clike OPTIONAL
@@ -9055,6 +9068,20 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           (  n = `complete`             v = complete ) ) ).
   ENDMETHOD.
 
+METHOD SLIDER.
+    result = me.
+    _generic( name   = `Slider`
+*              ns     = `webc`
+              t_prop = VALUE #( ( n = `class`           v = class )
+                                ( n = `id`          v = id )
+                                ( n = `max`   v = max )
+                                ( n = `min`   v = min )
+                                ( n = `enableTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( enabletickmarks ) )
+                                ( n = `enabled`   v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                ( n = `value`   v = value )
+                                ( n = `step`   v = step )
+                                ( n = `width`   v = width ) ) ).
+  ENDMETHOD.
 
   METHOD xml_get.
     DATA lt_prop TYPE z2ui5_if_types=>ty_t_name_value.
