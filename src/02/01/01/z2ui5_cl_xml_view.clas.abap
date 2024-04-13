@@ -665,6 +665,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showerror         TYPE clike OPTIONAL
         !displayedsegments TYPE clike OPTIONAL
         !press             TYPE clike OPTIONAL
+        !segments             TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS segments
@@ -689,6 +690,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !errormessagetitle TYPE clike OPTIONAL
         !showerror         TYPE clike OPTIONAL
         !displayedBars     TYPE clike OPTIONAL
+        !bars              TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS bars
@@ -714,6 +716,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !showerror         TYPE clike OPTIONAL
         !displayedPoints   TYPE clike OPTIONAL
         !selectionEnabled  TYPE clike OPTIONAL
+        !points            TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
     METHODS points
@@ -6082,6 +6085,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `showError`         v = showerror )
                                          ( n = `press`             v = press )
                                          ( n = `labelWidth`        v = labelwidth )
+                                         ( n = `bars`              v = bars )
                                          ( n = `errorMessageTitle` v = errormessagetitle )
                                          ( n = `displayedBars`     v = displayedBars )
                                          ( n = `errorMessage`      v = errormessage ) ) ).
@@ -6107,6 +6111,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `errorMessageTitle` v = errormessagetitle )
                                          ( n = `errorMessage`      v = errormessage )
                                          ( n = `displayedSegments` v = displayedsegments )
+                                         ( n = `segments` v = segments )
                                          ( n = `press`             v = press ) ) ).
   ENDMETHOD.
 
@@ -6131,6 +6136,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `errorMessageTitle` v = errormessagetitle )
                                          ( n = `errorMessage`      v = errormessage )
                                          ( n = `precedingPoint`    v = precedingpoint )
+                                         ( n = `points`            v = points )
                                          ( n = `succeedingPoint`   v = succeddingpoint )
                                          ( n = `displayedPoints`   v = displayedPoints )
                                          ( n = `selectionEnabled`  v = selectionEnabled ) ) ).
@@ -6484,6 +6490,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD master_pages.
     result = _generic( `masterPages` ).
+  ENDMETHOD.
+
+
+  METHOD menu_button.
+    result = _generic( name   = `MenuButton`
+                       t_prop = VALUE #( ( n = `buttonMode`    v = buttonmode )
+                                         ( n = `defaultAction` v = defaultaction )
+                                         ( n = `text`          v = text )
+                                         ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                         ( n = `activeIcon`    v = activeIcon )
+                                         ( n = `type`          v = type ) ) ).
   ENDMETHOD.
 
 
@@ -7847,6 +7864,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+METHOD SLIDER.
+    result = me.
+    _generic( name   = `Slider`
+*              ns     = `webc`
+              t_prop = VALUE #( ( n = `class`           v = class )
+                                ( n = `id`          v = id )
+                                ( n = `max`   v = max )
+                                ( n = `min`   v = min )
+                                ( n = `enableTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( enabletickmarks ) )
+                                ( n = `enabled`   v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                ( n = `value`   v = value )
+                                ( n = `step`   v = step )
+                                ( n = `width`   v = width ) ) ).
+  ENDMETHOD.
+
+
   METHOD slide_tile.
 
     result = _generic( name   = `SlideTile`
@@ -8870,15 +8903,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD menu_button.
-    result = _generic( name   = `MenuButton`
-                       t_prop = VALUE #( ( n = `buttonMode`    v = buttonmode )
-                                         ( n = `defaultAction` v = defaultaction )
-                                         ( n = `text`          v = text )
-                                         ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                         ( n = `activeIcon`    v = activeIcon )
-                                         ( n = `type`          v = type ) ) ).
-  ENDMETHOD.
 
   METHOD variant_management.
 
@@ -9068,20 +9092,6 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                           (  n = `complete`             v = complete ) ) ).
   ENDMETHOD.
 
-METHOD SLIDER.
-    result = me.
-    _generic( name   = `Slider`
-*              ns     = `webc`
-              t_prop = VALUE #( ( n = `class`           v = class )
-                                ( n = `id`          v = id )
-                                ( n = `max`   v = max )
-                                ( n = `min`   v = min )
-                                ( n = `enableTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( enabletickmarks ) )
-                                ( n = `enabled`   v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                ( n = `value`   v = value )
-                                ( n = `step`   v = step )
-                                ( n = `width`   v = width ) ) ).
-  ENDMETHOD.
 
   METHOD xml_get.
     DATA lt_prop TYPE z2ui5_if_types=>ty_t_name_value.
