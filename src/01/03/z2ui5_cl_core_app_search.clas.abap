@@ -128,8 +128,8 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
 
   METHOD view_display.
 
- DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->page( `abap2UI5 - App Finder`
-    )->content( ).
+    DATA(page) = z2ui5_cl_xml_view=>factory( )->shell( )->page( `abap2UI5 - App Finder`
+       )->content( ).
 
     page->icon_tab_header( selectedkey    = client->_bind_edit( mv_selected_key )
                                                  select = client->_event_client(
@@ -146,10 +146,10 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
                                    )->icon_tab_filter( key  = `page_addon`
                                                        text = `Addons on GitHub`
                                 ).
-      DATA(pages) =   page->nav_container( id                    = `NavCon`
-                                                   initialpage           = `page_favs`
-                                                   defaulttransitionname = `flip`
-                                    )->pages( ).
+    DATA(pages) =   page->nav_container( id                    = `NavCon`
+                                                 initialpage           = `page_favs`
+                                                 defaulttransitionname = `flip`
+                                  )->pages( ).
 
     pages->page(
                            title = `Result: ` && client->_bind( ms_favorites-number )
@@ -332,21 +332,27 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
     IF check_initialized = abap_false.
       check_initialized = abap_true.
 
-    ms_search-check_hide_samples = abap_true.
-    ms_search-check_hide_system  = abap_true.
+      ms_search-check_hide_samples = abap_true.
+      ms_search-check_hide_system  = abap_true.
 
       TRY.
           z2ui5_cl_util=>db_load_by_handle(
             EXPORTING
               uname  = sy-uname
-              handle = 'z2ui5_cl_app_search_apps'
+              handle = z2ui5_cl_util=>rtti_get_classname_by_ref( me )
             IMPORTING
               result = mt_favs ).
 
         CATCH cx_root.
       ENDTRY.
 
-      mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` )
+      DATA li_app2 TYPE REF TO z2ui5_if_app.
+      DATA(rtti) = cl_abap_typedescr=>describe_by_data(  li_app2  ).
+      DATA(ref) = CAST cl_abap_refdescr( rtti ).
+      DATA(name) = ref->get_referenced_type( )->absolute_name.
+      name = substring_after( val = name sub = `\INTERFACE=` ).
+
+      mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( name )
         ( name  = row-classname ) ).
       search( ).
       view_display( client ).
