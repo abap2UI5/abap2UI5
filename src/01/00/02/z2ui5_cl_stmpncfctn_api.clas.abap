@@ -299,9 +299,11 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
     TRY.
 
+        ls_clskey-clsname = val.
+
         CALL METHOD ('XCO_CP_ABAP')=>interface
           EXPORTING
-            iv_name      = val
+            iv_name      = ls_clskey-clsname
           RECEIVING
             ro_interface = obj.
 
