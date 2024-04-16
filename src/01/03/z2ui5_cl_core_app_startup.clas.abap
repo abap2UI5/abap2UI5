@@ -150,7 +150,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     DATA(lv_url_samples2) = z2ui5_cl_util=>app_get_url(
                   client    = client
-                  classname = z2ui5_cl_util_api=>rtti_get_classname_by_ref( NEW z2ui5_cl_demo_app_000( ) ) ).
+                  classname = 'z2ui5_cl_demo_app_000' ).
 
     DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
                     client    = client
