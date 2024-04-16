@@ -152,17 +152,9 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
-    data lo_app type ref to z2ui5_cl_core_app_search.
-    data(rtti) = cl_abap_typedescr=>describe_by_data(  lo_app  ).
-    data(ref) = CAST cl_abap_refdescr( rtti ).
-    data(name) = ref->get_referenced_type( )->absolute_name.
-    name = substring_after( val = name sub = `\CLASS=` ).
-
     DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
                     client    = client
-*                    classname = 'z2ui5_cl_core_app_search'
-                    classname = name
-                     ).
+                    classname = z2ui5_cl_util_api=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_search( ) ) ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
 
