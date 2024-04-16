@@ -327,6 +327,8 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
 
   METHOD z2ui5_if_app~main.
 
+    DATA li_app TYPE REF TO z2ui5_if_app.
+
     me->client = client.
 
     IF check_initialized = abap_false.
@@ -346,13 +348,7 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
         CATCH cx_root.
       ENDTRY.
 
-      DATA li_app2 TYPE REF TO z2ui5_if_app.
-      DATA(rtti) = cl_abap_typedescr=>describe_by_data(  li_app2  ).
-      DATA(ref) = CAST cl_abap_refdescr( rtti ).
-      DATA(name) = ref->get_referenced_type( )->absolute_name.
-      name = substring_after( val = name sub = `\INTERFACE=` ).
-
-      mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( name )
+      mt_apps = VALUE #( FOR row IN z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) )
         ( name  = row-classname ) ).
       search( ).
       view_display( client ).
@@ -382,7 +378,6 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
 
             DATA(lt_arg2) = client->get( )-t_event_arg.
             DATA(lv_app2) = lt_arg2[ 1 ].
-            DATA li_app TYPE REF TO z2ui5_if_app.
             CREATE OBJECT li_app TYPE (lv_app2).
             client->nav_app_call( li_app ).
           CATCH cx_root INTO DATA(x).

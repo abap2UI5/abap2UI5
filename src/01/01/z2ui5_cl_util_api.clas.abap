@@ -149,7 +149,7 @@ CLASS z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS rtti_get_intfname_by_ref
       IMPORTING
-        !in           TYPE REF TO object
+        !in           TYPE any
       RETURNING
         VALUE(result) TYPE string.
 
@@ -771,14 +771,16 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_intfname_by_ref.
 
-    data(rtti) = cl_abap_typedescr=>describe_by_data(  in  ).
-    data(ref) = CAST cl_abap_refdescr( rtti ).
-    data(name) = ref->get_referenced_type( )->absolute_name.
+    DATA(rtti) = cl_abap_typedescr=>describe_by_data(  in  ).
+    DATA(ref) = CAST cl_abap_refdescr( rtti ).
+    DATA(name) = ref->get_referenced_type( )->absolute_name.
     result = substring_after( val = name sub = `\INTERFACE=` ).
 
   ENDMETHOD.
+
 
   METHOD rtti_get_type_kind.
 
