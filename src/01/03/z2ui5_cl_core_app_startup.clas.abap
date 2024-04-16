@@ -262,7 +262,6 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
-
     CASE client->get( )-event.
 
       WHEN `OPEN_DEBUG`.
