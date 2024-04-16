@@ -725,7 +725,8 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
           result = abap_true.
         ENDIF.
 
-      CATCH cx_root. " cx_sy_rtti_syntax_error
+      CATCH cx_root.
+        " cx_sy_rtti_syntax_error
     ENDTRY.
 
   ENDMETHOD.
