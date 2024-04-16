@@ -262,6 +262,8 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
+    DATA li_app TYPE REF TO z2ui5_if_app.
+
     CASE client->get( )-event.
 
       WHEN `OPEN_DEBUG`.
@@ -284,7 +286,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
       WHEN 'VALUE_HELP'.
         TRY.
-            mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( `Z2UI5_IF_APP` ).
+            mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) ).
             client->nav_app_call( z2ui5_cl_popup_to_select=>factory( mt_classes ) ).
           CATCH cx_root.
             client->message_box_display( `The value help is not available on your system, upgrade to a higher release first` ).
