@@ -262,6 +262,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
   METHOD z2ui5_on_event.
 
+
     CASE client->get( )-event.
 
       WHEN `OPEN_DEBUG`.
@@ -300,7 +301,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     ms_home-btn_event_id   = `BUTTON_CHECK`.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = `Z2UI5_CL_APP_HELLO_WORLD`.
+    ms_home-classname      = z2ui5_cl_util_api=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
 
   ENDMETHOD.
 ENDCLASS.
