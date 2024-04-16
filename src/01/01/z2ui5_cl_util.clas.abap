@@ -14,7 +14,7 @@ CLASS z2ui5_cl_util DEFINITION
     CLASS-METHODS app_get_url
       IMPORTING
         !client          TYPE REF TO z2ui5_if_client
-        VALUE(classname) TYPE string OPTIONAL
+        VALUE(classname) TYPE clike OPTIONAL
       RETURNING
         VALUE(result)    TYPE string.
 
@@ -58,7 +58,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL IMPLEMENTATION.
 
 
   METHOD app_get_url.
