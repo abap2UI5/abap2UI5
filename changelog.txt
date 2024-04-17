@@ -8,6 +8,16 @@ Legend
 + : added
 - : removed
 
+
+2024-04-17 v1.125.0
+-------------------
+
+* Binding Fixes for Attributes created with RTTI
++ XML View Extensions
++ Replace Magic Numbers and Fixes for Auto Renaming
++ Download base64 Files
++ Features for Interactive Charts
+
 2024-04-01 v1.124.0
 -------------------
 
