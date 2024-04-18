@@ -65,6 +65,10 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
 
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
 
+      IF lr_attri->o_typedescr IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
+
       IF lr_attri->bind_type = z2ui5_if_core_types=>cs_bind_type-one_time.
         DELETE mt_attri->*.
         CONTINUE.
