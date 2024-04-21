@@ -1,0 +1,42 @@
+{
+    "global": {
+      "files": "/src/**/*.*"
+    },
+    "dependencies": [
+      {
+        "url": "https://github.com/abapedia/steampunk-2305-api-intersect-702",
+        "files": "/src/**/*.*"
+      }
+    ],
+    "rename": {
+      "output": "output",
+      "patterns": [
+        {
+          "type": "CLAS|INTF|TABL",
+          "oldName": "z2ui5_(.*)",
+          "newName": "Z5UI5_$1"
+        }
+      ]
+    },
+    "syntax": {
+      "version": "v757",
+      "errorNamespace": "."
+    },
+    "rules": {
+      "allowed_object_types": {
+        "allowed": ["CLAS", "DEVC", "INTF", "TABL"]
+      },
+      "allowed_object_naming": true,
+      "begin_end_names": true,
+      "check_ddic": true,
+      "check_include": true,
+      "check_syntax": true,
+      "global_class": true,
+      "implement_methods": true,
+      "method_implemented_twice": true,
+      "parser_error": true,
+      "superclass_final": true,
+      "unknown_types": true,
+      "xml_consistency": true
+    }
+  }

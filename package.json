@@ -2,13 +2,17 @@
   "name": "abap2ui5",
   "private": true,
   "version": "1.0.0",
-  "description": "Developing UI5 Apps in pure ABAP.",
+  "description": "Developing UI5 Apps purely in ABAP.",
   "scripts": {
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
     "downport": "rm -rf downport && cp -r src downport && abaplint --fix abaplint-downport.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
-    "test": "npm run downport && npm run transpile && npm run unit"
+    "test": "npm run downport && npm run transpile && npm run unit",
+    "rename": "abaplint abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r output/src/** src/",
+    "cleanup": "rm -rf input && rm -rf output",
+    "mirror": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename && npm run cleanup",
+    "mirror2": "abaplint abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r src/** src/"
   },
   "repository": {
     "type": "git",

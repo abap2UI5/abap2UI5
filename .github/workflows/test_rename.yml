@@ -1,0 +1,20 @@
+name: test_renaming
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - run: npm install @abaplint/cli -g
+    - run: npm run rename
+
