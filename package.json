@@ -8,7 +8,8 @@
     "downport": "rm -rf downport && cp -r src downport && abaplint --fix abaplint-downport.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
-    "test": "npm run downport && npm run transpile && npm run unit"
+    "test": "npm run downport && npm run transpile && npm run unit",
+    "rename": "abaplint abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r output/input/abap2UI5/src/** src/"
   },
   "repository": {
     "type": "git",
