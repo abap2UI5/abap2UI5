@@ -67,6 +67,7 @@
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Join the Advent of Code 2023 with abap2UI5 [(SCN - 27.11.2023)](https://blogs.sap.com/2023/11/27/preparing-for-advent-of-code-2023/)
 * Running abap2UI5 backend in browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
+* Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
   
 #### Credits
 * These [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
