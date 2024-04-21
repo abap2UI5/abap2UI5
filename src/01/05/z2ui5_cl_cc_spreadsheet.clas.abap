@@ -49,6 +49,10 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                            type: "string",` && |\n| &&
                      `                            defaultValue: ""` && |\n| &&
                      `                        },` && |\n| &&
+                     `                        tooltip: {` && |\n| &&
+                     `                            type: "string",` && |\n| &&
+                     `                            defaultValue: ""` && |\n| &&
+                     `                        },` && |\n| &&
                      `                        columnconfig: { ` && |\n| &&
                      `                            type: "Array" ` && |\n| &&
                      `                        },` && |\n| &&
@@ -66,20 +70,21 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                },` && |\n| &&
                      |\n| &&
                      `                setColumnconfig: function(oConfig) { ` && |\n| &&
-                     `debugger;` && |\n| &&
 *                     `                  oConfig = JSON.parse(oConfig);` && |\n| &&
                      `                  this.setProperty("columnconfig", oConfig, true );` && |\n| &&
                      `                },` && |\n| &&
                      |\n| &&
                      `                renderer: function (oRm, oControl) {` && |\n| &&
+                     `                    var checkVersion = sap.ui.getVersionInfo().gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
                      |\n| &&
                      `                    oControl.oExportButton = new Button({` && |\n| &&
                      `                        text: oControl.getProperty("text"),` && |\n| &&
                      `                        icon: oControl.getProperty("icon"), ` && |\n| &&
                      `                        type: oControl.getProperty("type"), ` && |\n| &&
+                     `                        enabled: checkVersion,` && |\n| &&
+                     `                        tooltip: !checkVersion ? 'Not Available on OpenUI5 SDK' : oControl.getProperty("tooltip") , ` && |\n| &&
                      `                        press: function (oEvent) { ` && |\n| &&
                      |\n| &&
-                     `debugger;` && |\n| &&
                      `                             var aCols = oControl.getProperty("columnconfig");` && |\n| &&
                      `                             if( !aCols ) { aCols = ` && lv_column_config  && `; }` && |\n| &&
                      |\n| &&
