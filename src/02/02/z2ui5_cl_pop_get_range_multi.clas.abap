@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_popup_get_range_multi DEFINITION
+CLASS z2ui5_cl_pop_get_range_multi DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -38,7 +38,7 @@ CLASS z2ui5_cl_popup_get_range_multi DEFINITION
         var_handle2     TYPE clike OPTIONAL
         var_handle3     TYPE clike OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_cl_popup_get_range_multi.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range_multi.
 
     TYPES:
       BEGIN OF ty_s_result,
@@ -71,7 +71,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POPUP_GET_RANGE_MULTI IMPLEMENTATION.
+CLASS Z2UI5_CL_POP_GET_RANGE_MULTI IMPLEMENTATION.
 
 
   METHOD db_read.
