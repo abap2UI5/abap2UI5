@@ -1,13 +1,13 @@
 {
   "configurations": {
     "default": {
-      "filename": "./abaplint.jsonc"
+      "filename": "./ci/abaplint.jsonc"
     },
     "abap_standard_readiness": {
-      "filename": "./linter/abaplint-standard_abap_readiness.jsonc"
+      "filename": "./ci/abaplint-standard_abap_readiness.jsonc"
     },
     "abap_cloud_readiness": {
-      "filename": "./linter/abaplint-abap_cloud_readiness.jsonc"
+      "filename": "./ci/abaplint-abap_cloud_readiness.jsonc"
     }
   }
 }
