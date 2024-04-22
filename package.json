@@ -9,10 +9,8 @@
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit",
-    "rename": "abaplint ./ci/abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r output/src/** src/",
-    "cleanup": "rm -rf input && rm -rf output",
-    "mirror": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename && npm run cleanup",
-    "mirror2": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename"
+    "rename": "abaplint ./ci/abaplint_rename.json --rename",
+    "cleanup": "rm -rf input && rm -rf output"
   },
   "repository": {
     "type": "git",
