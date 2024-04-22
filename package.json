@@ -5,14 +5,12 @@
   "description": "Developing UI5 Apps purely in ABAP.",
   "scripts": {
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
-    "downport": "rm -rf downport && cp -r src downport && abaplint --fix abaplint-downport.jsonc && npm run syfixes",
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit",
-    "rename": "abaplint abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r output/src/** src/",
-    "cleanup": "rm -rf input && rm -rf output",
-    "mirror": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename && npm run cleanup",
-    "mirror2": "abaplint abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r src/** src/"
+    "rename": "abaplint ./ci/abaplint_rename.json --rename",
+    "cleanup": "rm -rf input && rm -rf output"
   },
   "repository": {
     "type": "git",
@@ -24,10 +22,10 @@
   },
   "homepage": "https://github.com/abap2UI5/abap2UI5#readme",
   "devDependencies": {
-    "@abaplint/cli": "^2.106.5",
+    "@abaplint/cli": "^2.106.9",
     "@abaplint/database-sqlite": "^2.8.0",
-    "@abaplint/runtime": "^2.8.22",
-    "@abaplint/transpiler-cli": "^2.8.22"
+    "@abaplint/runtime": "^2.8.24",
+    "@abaplint/transpiler-cli": "^2.8.24"
   },
   "dependencies": {
     "npm-check-updates": "^16.14.18"
