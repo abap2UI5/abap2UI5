@@ -11,7 +11,8 @@
     "test": "npm run downport && npm run transpile && npm run unit",
     "rename": "abaplint ./ci/abaplint_rename.json --rename && rm -rf src/ui5/* && cp -r output/src/** src/",
     "cleanup": "rm -rf input && rm -rf output",
-    "mirror": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename && npm run cleanup"
+    "mirror": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename && npm run cleanup",
+    "mirror2": "npm run cleanup && rm -rf src/* && rm -rf output && npm run rename"
   },
   "repository": {
     "type": "git",
