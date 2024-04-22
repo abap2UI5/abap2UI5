@@ -9,7 +9,7 @@
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit",
-    "rename": "abaplint ./ci/abaplint_rename.json --rename",
+    "rename": "abaplint ./ci/abaplint_rename.jsonc --rename",
     "cleanup": "rm -rf input && rm -rf output"
   },
   "repository": {
