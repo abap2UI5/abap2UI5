@@ -29,8 +29,9 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
     r_js  = `        sap.ui.define("z2ui5/ExportSpreadsheet" , [` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `            "sap/m/Button",` && |\n| &&
-                     `            "sap/ui/export/Spreadsheet"` && |\n| &&
-                     `        ], function (Control, Button, Spreadsheet) {` && |\n| &&
+*                     `            "sap/ui/export/Spreadsheet"` && |\n| &&
+*                     `        ], function (Control, Button, Spreadsheet) {` && |\n| &&
+                     `        ], function (Control, Button) {` && |\n| &&
                      `            "use strict";` && |\n| &&
                      |\n| &&
                      `            return Control.extend("z2ui5.ExportSpreadsheet", {` && |\n| &&
@@ -105,12 +106,15 @@ CLASS Z2UI5_CL_CC_SPREADSHEET IMPLEMENTATION.
                      `                               workbook: { columns: aCols },` && |\n| &&
                      `                               dataSource: oBinding` && |\n| &&
                      `                             };` && |\n| &&
-                     `                             oSheet = new Spreadsheet(oSettings);` && |\n| &&
-                     `                             oSheet.build()` && |\n| &&
-                     `                               .then(function() {` && |\n| &&
-                     `                               }).finally(function() {` && |\n| &&
-                     `                                 oSheet.destroy();` && |\n| &&
-                     `                               });` && |\n| &&
+*                     `                             oSheet = new Spreadsheet(oSettings);` && |\n| &&
+                     `                             sap.ui.require(["sap/ui/export/Spreadsheet"], function(Spreadsheet) {` && |\n| &&
+                     `                              oSheet = new Spreadsheet(oSettings);` && |\n| &&
+                     `                              oSheet.build()` && |\n| &&
+                     `                                .then(function() {` && |\n| &&
+                     `                                }).finally(function() {` && |\n| &&
+                     `                                   oSheet.destroy();` && |\n| &&
+                     `                                });` && |\n| &&
+                     `                             });` && |\n| &&
                      `                         }.bind(oControl)` && |\n| &&
                      `                  });` && |\n| &&
                      |\n| &&
