@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_test_hello_world DEFINITION PUBLIC.
+CLASS z2ui5_cl_test_hello_wor DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
@@ -13,7 +13,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_test_hello_world IMPLEMENTATION.
+CLASS z2ui5_cl_test_hello_wor IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
