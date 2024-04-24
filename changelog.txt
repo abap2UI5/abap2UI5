@@ -13,7 +13,7 @@ Legend
 -------------------
 
 * Fixes and XML View Extnsions
-* Btter Support for Attributes created with RTTI
+* More Support for Attributes created with RTTI
 + Update Spreadsheet CC for OpenUI5 Compatibility
 
 2024-04-17 v1.125.0
