@@ -381,7 +381,7 @@ CLASS z2ui5_cl_core_app_search IMPLEMENTATION.
             CREATE OBJECT li_app TYPE (lv_app2).
             client->nav_app_call( li_app ).
           CATCH cx_root INTO DATA(x).
-            client->nav_app_call( z2ui5_cl_popup_to_inform=>factory( x->get_text( ) ) ).
+            client->nav_app_call( z2ui5_cl_pop_to_inform=>factory( x->get_text( ) ) ).
         ENDTRY.
 
       WHEN `ON_PRESS`.

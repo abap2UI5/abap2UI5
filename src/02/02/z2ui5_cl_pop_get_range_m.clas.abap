@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_pop_get_range_multi DEFINITION
+CLASS z2ui5_cl_pop_get_range_m DEFINITION
   PUBLIC FINAL
   CREATE PUBLIC.
 
@@ -38,7 +38,7 @@ CLASS z2ui5_cl_pop_get_range_multi DEFINITION
         var_handle2     TYPE clike OPTIONAL
         var_handle3     TYPE clike OPTIONAL
       RETURNING
-        VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range_multi.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range_m.
 
     TYPES:
       BEGIN OF ty_s_result,
@@ -71,7 +71,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POP_GET_RANGE_MULTI IMPLEMENTATION.
+CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
 
 
   METHOD db_read.
@@ -335,7 +335,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_MULTI IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
 
-      DATA(lo_popup) = CAST z2ui5_cl_popup_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
+      DATA(lo_popup) = CAST z2ui5_cl_pop_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
       IF lo_popup->result( )-check_confirmed = abap_true.
         ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
         <tab>-t_range = lo_popup->result( )-t_range.
@@ -358,7 +358,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_MULTI IMPLEMENTATION.
         lt_event = client->get( )-t_event_arg.
         mv_popup_name = lt_event[ 1 ].
         DATA(ls_sql) = ms_result-t_sql[ name = mv_popup_name ].
-        client->nav_app_call( z2ui5_cl_popup_get_range=>factory( ls_sql-t_range ) ).
+        client->nav_app_call( z2ui5_cl_pop_get_range=>factory( ls_sql-t_range ) ).
 
       WHEN `BUTTON_DB_READ`.
         popup_variant_read( ).
