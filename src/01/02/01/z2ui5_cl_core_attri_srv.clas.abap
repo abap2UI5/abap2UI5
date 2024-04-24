@@ -104,7 +104,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    DATA(lo_dissolve) = NEW z2ui5_cl_core_dissolve_srv(
+    DATA(lo_dissolve) = NEW z2ui5_cl_core_diss_srv(
        attri = mt_attri
        app   = mo_app ).
 

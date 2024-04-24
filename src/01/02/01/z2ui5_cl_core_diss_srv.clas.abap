@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_dissolve_srv DEFINITION
+CLASS z2ui5_cl_core_diss_srv DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -46,7 +46,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_dissolve_srv IMPLEMENTATION.
+CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
 
 
   METHOD constructor.
