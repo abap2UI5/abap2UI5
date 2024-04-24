@@ -242,7 +242,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     IF client->get( )-check_on_navigated = abap_true.
       TRY.
-          DATA(lo_f4) = CAST z2ui5_cl_popup_to_select( client->get_app( client->get( )-s_draft-id_prev_app ) ).
+          DATA(lo_f4) = CAST z2ui5_cl_pop_to_select( client->get_app( client->get( )-s_draft-id_prev_app ) ).
           DATA(ls_result) = lo_f4->result( ).
           IF ls_result-check_confirmed = abap_true.
 
@@ -287,7 +287,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
       WHEN 'VALUE_HELP'.
         TRY.
             mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) ).
-            client->nav_app_call( z2ui5_cl_popup_to_select=>factory( mt_classes ) ).
+            client->nav_app_call( z2ui5_cl_pop_to_select=>factory( mt_classes ) ).
           CATCH cx_root.
             client->message_box_display( `The value help is not available on your system, upgrade to a higher release first` ).
         ENDTRY.

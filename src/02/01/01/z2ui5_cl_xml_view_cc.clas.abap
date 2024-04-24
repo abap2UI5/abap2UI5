@@ -257,7 +257,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
     mo_view->_generic( ns   = `html`
                        name = `style` ).
 
-    CALL METHOD ('Z2UI5_CL_CC_DEMO_OUTPUT')=>('GET_STYLE')
+    CALL METHOD ('Z2UI5_CL_CC_DEMO_OUT')=>('GET_STYLE')
       RECEIVING
         result = lv_style.
     result = mo_view->_cc_plain_xml( lv_style )->html( val ).

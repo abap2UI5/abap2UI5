@@ -90,7 +90,6 @@ INTERFACE z2ui5_if_core_types
         text TYPE string,
       END OF s_msg_toast,
       BEGIN OF s_follow_up_action,
-*        frontent_event TYPE string,
         custom_js      TYPE string,
       END OF s_follow_up_action,
     END OF ty_s_next_frontend.
@@ -120,7 +119,6 @@ INTERFACE z2ui5_if_core_types
         id          TYPE string,
         view        TYPE string,
         t_event_arg TYPE string_table,
-*        app_start        TYPE string,
         origin      TYPE string,
         pathname    TYPE string,
         search      TYPE string,
@@ -161,6 +159,6 @@ INTERFACE z2ui5_if_core_types
       s_config           TYPE ty_s_config,
     END OF ty_s_actual.
 
-  TYPES ty_s_db TYPE z2ui5_t_core_01.
+  TYPES ty_s_db TYPE z2ui5_t_01.
 
 ENDINTERFACE.
