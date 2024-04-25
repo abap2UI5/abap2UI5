@@ -1342,6 +1342,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !width        TYPE clike OPTIONAL
                 !class        TYPE clike OPTIONAL
                 !id           TYPE clike OPTIONAL
+                !value        TYPE clike OPTIONAL
+                !value2       TYPE clike OPTIONAL
+                !change       TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS generic_tag
@@ -6940,7 +6943,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `showTickmarks`   v = z2ui5_cl_util=>boolean_abap_2_json( showtickmarks ) )
                                 ( n = `startValue`   v = startvalue )
                                 ( n = `step`   v = step )
-                                ( n = `width`   v = width ) ) ).
+                                ( n = `width`   v = width )
+                                ( n = `value`   v = value )
+                                ( n = `value2`   v = value2 )
+                                ( n = `change`   v = change ) ) ).
   ENDMETHOD.
 
   METHOD rating_indicator.
