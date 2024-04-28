@@ -6073,7 +6073,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        ns     = `mchart`
                        t_prop = VALUE #(
                                         ( n = `x`       v = x )
-                                        ( n = `x`       v = x )
+                                        ( n = `y`       v = y )
                                         ( n = `color`       v = color )
                                         ( n = `show`       v = z2ui5_cl_util=>boolean_abap_2_json( show ) )
                                        ) ).
@@ -6355,7 +6355,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `press`    v = press )
                                          ( n = `title`    v = title )
                                          ( n = `stepWidth`    v = stepWidth )
-                                         ( n = `state`    v = stepWidth )
+                                         ( n = `state`    v = state )
                                          ( n = `key`    v = key )
                                          ( n = `icon`    v = icon )
                                          ( n = `showSeparator`    v = z2ui5_cl_util=>boolean_abap_2_json( showSeparator ) )
