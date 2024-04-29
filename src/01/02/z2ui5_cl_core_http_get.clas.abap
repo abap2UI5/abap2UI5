@@ -456,9 +456,24 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                      if(mtoast) { mtoast.classList.add(params[msgType].CLASS); }` && |\n| &&
                `                     };` && |\n| &&
                `                } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
-               `                    MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n| &&
-               `                }` && |\n| &&
+               `                    if (params[msgType].TYPE) {` && |\n| &&
+               `                     MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n| &&
+               `                    } else {` && |\n| &&
+               `                      MessageBox.show(params[msgType].TEXT,{styleClass:params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',` && |\n| &&
+               `                                                                             title: params[msgType].TITLE ? params[msgType].TITLE : '',` && |\n| &&
+               `                                                                             onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n| &&
+               `                                                                             actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n| &&
+               `                                                                             emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n| &&
+               `                                                                             initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n| &&
+               `                                                                             textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',` && |\n| &&
+               `                                                                             icon: params[msgType].ICON ? params[msgType].ICON : 'NONE' ,` && |\n| &&
+               `                                                                             details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n| &&
+               `                                                                             closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n| &&
+               `                                                                          }` && |\n| &&
+               `                                                    )` && |\n| &&
+               `                    }` && |\n| &&
                `            }` && |\n| &&
+              `            }` && |\n| &&
                `        },` && |\n| &&
                `        async createView(xml, viewModel) {` && |\n| &&
                `            let oview_model = new JSONModel(viewModel);` && |\n| &&
