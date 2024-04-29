@@ -97,8 +97,19 @@ INTERFACE z2ui5_if_client
 
   METHODS message_box_display
     IMPORTING
-      text TYPE clike
-      type TYPE clike DEFAULT 'information'.
+      text              TYPE string
+      type              TYPE string DEFAULT `information`
+      title             TYPE string OPTIONAL
+      styleclass        TYPE string OPTIONAL
+      onclose           TYPE string OPTIONAL
+      actions           TYPE string_table OPTIONAL
+      emphasizedaction  TYPE string OPTIONAL
+      initialfocus      TYPE string OPTIONAL
+      textdirection     TYPE string OPTIONAL
+      icon              TYPE string OPTIONAL
+      details           TYPE string OPTIONAL
+      closeonnavigation TYPE abap_bool DEFAULT abap_true
+    PREFERRED PARAMETER text.
 
   METHODS message_toast_display
     IMPORTING

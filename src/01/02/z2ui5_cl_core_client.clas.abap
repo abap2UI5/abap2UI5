@@ -89,7 +89,20 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_box_display.
 
-    mo_action->ms_next-s_set-s_msg_box = VALUE #( text = text type = type ).
+    mo_action->ms_next-s_set-s_msg_box = VALUE #(
+                                                  text              = text
+                                                  type              = type
+                                                  title             = title
+                                                  styleclass        = styleclass
+                                                  onclose           = onclose
+                                                  actions           = actions
+                                                  emphasizedaction  = emphasizedaction
+                                                  initialfocus      = initialfocus
+                                                  textdirection     = textdirection
+                                                  icon              = icon
+                                                  details           = details
+                                                  closeOnNavigation = closeOnNavigation
+                                                ).
 
   ENDMETHOD.
 
