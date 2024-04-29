@@ -437,7 +437,19 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            if (params == undefined) { return; }` && |\n| &&
                `            if (params[msgType]?.TEXT !== undefined) {` && |\n| &&
                `                if (msgType === 'S_MSG_TOAST') {` && |\n| &&
-               `                    MessageToast.show(params[msgType].TEXT);` && |\n| &&
+               `                    MessageToast.show(params[msgType].TEXT,{duration: parseInt(params[msgType].DURATION),` && |\n| &&
+               `                                                            width: params[msgType].WIDTH,` && |\n| &&
+               `                                                            my: params[msgType].MY,` && |\n| &&
+               `                                                            at: params[msgType].AT,` && |\n| &&
+               `                                                            of: params[msgType].OF ? params[msgType].OF : window,` && |\n| &&
+               `                                                            offset: params[msgType].OFFSET,` && |\n| &&
+               `                                                            collision: params[msgType].COLLISION,` && |\n| &&
+               `                                                            onClose: params[msgType].ONCLOSE ? params[msgType].ONCLOSE : null,` && |\n| &&
+               `                                                            autoClose: params[msgType].AUTOCLOSE ? true : false,` && |\n| &&
+               `                                                            animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION,` && |\n| &&
+               `                                                            animationDuration: parseInt(params[msgType].ANIMATIONDURATION),` && |\n| &&
+               `                                                            closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : false` && |\n| &&
+               `                     });` && |\n| &&
                `                } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
                `                    MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n| &&
                `                }` && |\n| &&
