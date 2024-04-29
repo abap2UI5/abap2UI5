@@ -121,7 +121,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                }` && |\n| &&
                `            }` && |\n| &&
                `            )` && |\n| &&
-`           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new mBusyDialog({ text : "Please Restart t` &&
+`           }catch(e){BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new mBusyDialog({ text : "Please Restart t` &&
 `he App" }).open();  } } ) }` && |\n| &&
                `        },` && |\n| &&
                |\n| &&
@@ -420,7 +420,18 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                this.updateModelIfRequired('S_POPUP', sap.z2ui5.oViewPopup);` && |\n| &&
                `                this.updateModelIfRequired('S_POPOVER', sap.z2ui5.oViewPopover);` && |\n| &&
                `                sap.z2ui5.oController.onAfterRendering();` && |\n| &&
-               `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n| &&
+               `           }catch(e){BusyIndicator.hide(); if(e.message.includes("openui5")) { if(e.message.includes("script load error")) { sap.z2ui5.oController.checkSDKcompatibility(e) } } else { ` && |\n| &&
+               `             MessageBox.error(e.toLocaleString()); } }` && |\n| &&
+               `        },` && |\n| &&
+               `        checkSDKcompatibility(err) {` && |\n| &&
+               `          var ui5_sdk = sap.ui.getVersionInfo().gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
+               `          if(!ui5_sdk) {` && |\n| &&
+               `            if(err) {` && |\n| &&
+               `              MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5" );` && |\n| &&
+               `              return;` && |\n| &&
+               `            };` && |\n| &&
+               `          };` && |\n| &&
+               `          MessageBox.error(err.toLocaleString());` && |\n| &&
                `        },` && |\n| &&
                `        showMessage(msgType, params) {` && |\n| &&
                `            if (params == undefined) { return; }` && |\n| &&
