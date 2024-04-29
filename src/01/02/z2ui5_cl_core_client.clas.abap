@@ -97,7 +97,6 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   METHOD z2ui5_if_client~message_toast_display.
 
     mo_action->ms_next-s_set-s_msg_toast = VALUE #(
-                                                    id                       = id
                                                     text                     = text
                                                     duration                 = duration
                                                     width                    = width
@@ -111,6 +110,7 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
                                                     animationtimingfunction  = animationtimingfunction
                                                     animationduration        = animationduration
                                                     closeonbrowsernavigation = closeonbrowsernavigation
+                                                    class                    = class
                                                   ).
 
   ENDMETHOD.

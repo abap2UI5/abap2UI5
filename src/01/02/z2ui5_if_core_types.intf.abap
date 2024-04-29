@@ -87,7 +87,7 @@ INTERFACE z2ui5_if_core_types
         text TYPE string,
       END OF s_msg_box,
       BEGIN OF s_msg_toast,
-        id                       TYPE string,
+        class                    TYPE string,
         text                     TYPE string,
         duration                 TYPE string,
         width                    TYPE string,
