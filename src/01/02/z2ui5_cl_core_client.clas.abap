@@ -19,7 +19,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_client IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -34,6 +34,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF val = z2ui5_if_client=>cs_clear-view.
       CLEAR mo_action->ms_next-s_set-s_view.
     ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD z2ui5_if_client~follow_up_action.
+
+     mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
 
   ENDMETHOD.
 
@@ -89,7 +96,22 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~message_toast_display.
 
-    mo_action->ms_next-s_set-s_msg_toast = VALUE #( text = text ).
+    mo_action->ms_next-s_set-s_msg_toast = VALUE #(
+                                                    id                       = id
+                                                    text                     = text
+                                                    duration                 = duration
+                                                    width                    = width
+                                                    my                       = my
+                                                    at                       = at
+                                                    of                       = of
+                                                    offset                   = offset
+                                                    collision                = collision
+                                                    onclose                  = onclose
+                                                    autoclose                = autoclose
+                                                    animationtimingfunction  = animationtimingfunction
+                                                    animationduration        = animationduration
+                                                    closeonbrowsernavigation = closeonbrowsernavigation
+                                                  ).
 
   ENDMETHOD.
 
@@ -317,11 +339,4 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
          t_arg = t_arg ).
 
   ENDMETHOD.
-
-  METHOD z2ui5_if_client~follow_up_action.
-
-     mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
-
-  ENDMETHOD.
-
 ENDCLASS.
