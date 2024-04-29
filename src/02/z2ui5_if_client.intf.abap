@@ -102,7 +102,6 @@ INTERFACE z2ui5_if_client
 
   METHODS message_toast_display
     IMPORTING
-      id                       TYPE string OPTIONAL
       text                     TYPE string
       duration                 TYPE string DEFAULT `3000`
       width                    TYPE string DEFAULT `15em`
@@ -116,6 +115,7 @@ INTERFACE z2ui5_if_client
       animationtimingfunction  TYPE string DEFAULT `ease`
       animationduration        TYPE string DEFAULT `1000`
       closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
+      class                    TYPE string OPTIONAL
     PREFERRED PARAMETER text.
 
   METHODS _event

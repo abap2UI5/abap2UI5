@@ -450,6 +450,11 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                                                            animationDuration: parseInt(params[msgType].ANIMATIONDURATION),` && |\n| &&
                `                                                            closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : false` && |\n| &&
                `                     });` && |\n| &&
+               `                     if(params[msgType].CLASS) {` && |\n| &&
+               `                      let mtoast = {};` && |\n| &&
+               `                      mtoast = document.getElementsByClassName("sapMMessageToast")[0];` && |\n| &&
+               `                      if(mtoast) { mtoast.classList.add(params[msgType].CLASS); }` && |\n| &&
+               `                     };` && |\n| &&
                `                } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
                `                    MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n| &&
                `                }` && |\n| &&
