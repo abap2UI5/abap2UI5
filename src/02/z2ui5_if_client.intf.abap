@@ -97,12 +97,37 @@ INTERFACE z2ui5_if_client
 
   METHODS message_box_display
     IMPORTING
-      text TYPE clike
-      type TYPE clike DEFAULT 'information'.
+      text              TYPE string
+      type              TYPE string DEFAULT `information`
+      title             TYPE string OPTIONAL
+      styleclass        TYPE string OPTIONAL
+      onclose           TYPE string OPTIONAL
+      actions           TYPE string_table OPTIONAL
+      emphasizedaction  TYPE string OPTIONAL
+      initialfocus      TYPE string OPTIONAL
+      textdirection     TYPE string OPTIONAL
+      icon              TYPE string OPTIONAL
+      details           TYPE string OPTIONAL
+      closeonnavigation TYPE abap_bool DEFAULT abap_true
+    PREFERRED PARAMETER text.
 
   METHODS message_toast_display
     IMPORTING
-      text TYPE string.
+      text                     TYPE string
+      duration                 TYPE string DEFAULT `3000`
+      width                    TYPE string DEFAULT `15em`
+      my                       TYPE string DEFAULT `center bottom`
+      at                       TYPE string DEFAULT `center bottom`
+      of                       TYPE string OPTIONAL
+      offset                   TYPE string DEFAULT `0 0`
+      collision                TYPE string DEFAULT `fit fit`
+      onclose                  TYPE string DEFAULT ``
+      autoclose                TYPE abap_bool DEFAULT abap_true
+      animationtimingfunction  TYPE string DEFAULT `ease`
+      animationduration        TYPE string DEFAULT `1000`
+      closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
+      class                    TYPE string OPTIONAL
+    PREFERRED PARAMETER text.
 
   METHODS _event
     IMPORTING

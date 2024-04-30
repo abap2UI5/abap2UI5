@@ -121,7 +121,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                }` && |\n| &&
                `            }` && |\n| &&
                `            )` && |\n| &&
-`           }catch(e){ BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new mBusyDialog({ text : "Please Restart t` &&
+`           }catch(e){BusyIndicator.hide(); sap.z2ui5.isBusy = false; MessageBox.error( e.toLocaleString() , { title : "Unexpected Error Occured - App Terminated" , actions : [ ] , onClose :  () => {  new mBusyDialog({ text : "Please Restart t` &&
 `he App" }).open();  } } ) }` && |\n| &&
                `        },` && |\n| &&
                |\n| &&
@@ -420,17 +420,60 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                this.updateModelIfRequired('S_POPUP', sap.z2ui5.oViewPopup);` && |\n| &&
                `                this.updateModelIfRequired('S_POPOVER', sap.z2ui5.oViewPopover);` && |\n| &&
                `                sap.z2ui5.oController.onAfterRendering();` && |\n| &&
-               `           }catch(e){ BusyIndicator.hide(); MessageBox.error(e.toLocaleString()); }` && |\n| &&
+               `           }catch(e){BusyIndicator.hide(); if(e.message.includes("openui5")) { if(e.message.includes("script load error")) { sap.z2ui5.oController.checkSDKcompatibility(e) } } else { ` && |\n| &&
+               `             MessageBox.error(e.toLocaleString()); } }` && |\n| &&
+               `        },` && |\n| &&
+               `        checkSDKcompatibility(err) {` && |\n| &&
+               `          var ui5_sdk = sap.ui.getVersionInfo().gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
+               `          if(!ui5_sdk) {` && |\n| &&
+               `            if(err) {` && |\n| &&
+               `              MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5" );` && |\n| &&
+               `              return;` && |\n| &&
+               `            };` && |\n| &&
+               `          };` && |\n| &&
+               `          MessageBox.error(err.toLocaleString());` && |\n| &&
                `        },` && |\n| &&
                `        showMessage(msgType, params) {` && |\n| &&
                `            if (params == undefined) { return; }` && |\n| &&
                `            if (params[msgType]?.TEXT !== undefined) {` && |\n| &&
                `                if (msgType === 'S_MSG_TOAST') {` && |\n| &&
-               `                    MessageToast.show(params[msgType].TEXT);` && |\n| &&
+               `                    MessageToast.show(params[msgType].TEXT,{duration: parseInt(params[msgType].DURATION),` && |\n| &&
+               `                                                            width: params[msgType].WIDTH,` && |\n| &&
+               `                                                            my: params[msgType].MY,` && |\n| &&
+               `                                                            at: params[msgType].AT,` && |\n| &&
+               `                                                            of: params[msgType].OF ? params[msgType].OF : window,` && |\n| &&
+               `                                                            offset: params[msgType].OFFSET,` && |\n| &&
+               `                                                            collision: params[msgType].COLLISION,` && |\n| &&
+               `                                                            onClose: params[msgType].ONCLOSE ? params[msgType].ONCLOSE : null,` && |\n| &&
+               `                                                            autoClose: params[msgType].AUTOCLOSE ? true : false,` && |\n| &&
+               `                                                            animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION,` && |\n| &&
+               `                                                            animationDuration: parseInt(params[msgType].ANIMATIONDURATION),` && |\n| &&
+               `                                                            closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : false` && |\n| &&
+               `                     });` && |\n| &&
+               `                     if(params[msgType].CLASS) {` && |\n| &&
+               `                      let mtoast = {};` && |\n| &&
+               `                      mtoast = document.getElementsByClassName("sapMMessageToast")[0];` && |\n| &&
+               `                      if(mtoast) { mtoast.classList.add(params[msgType].CLASS); }` && |\n| &&
+               `                     };` && |\n| &&
                `                } else if (msgType === 'S_MSG_BOX') {` && |\n| &&
-               `                    MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n| &&
-               `                }` && |\n| &&
+               `                    if (params[msgType].TYPE) {` && |\n| &&
+               `                     MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n| &&
+               `                    } else {` && |\n| &&
+               `                      MessageBox.show(params[msgType].TEXT,{styleClass:params[msgType].STYLECLASS ? params[msgType].STYLECLASS : '',` && |\n| &&
+               `                                                                             title: params[msgType].TITLE ? params[msgType].TITLE : '',` && |\n| &&
+               `                                                                             onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + params[msgType].ONCLOSE) : null,` && |\n| &&
+               `                                                                             actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n| &&
+               `                                                                             emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMPHASIZEDACTION : 'OK',` && |\n| &&
+               `                                                                             initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCUS : null,` && |\n| &&
+               `                                                                             textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIRECTION : 'Inherit',` && |\n| &&
+               `                                                                             icon: params[msgType].ICON ? params[msgType].ICON : 'NONE' ,` && |\n| &&
+               `                                                                             details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n| &&
+               `                                                                             closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n| &&
+               `                                                                          }` && |\n| &&
+               `                                                    )` && |\n| &&
+               `                    }` && |\n| &&
                `            }` && |\n| &&
+              `            }` && |\n| &&
                `        },` && |\n| &&
                `        async createView(xml, viewModel) {` && |\n| &&
                `            let oview_model = new JSONModel(viewModel);` && |\n| &&
