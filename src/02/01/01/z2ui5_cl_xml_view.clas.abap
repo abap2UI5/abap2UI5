@@ -94,6 +94,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 displayinline    TYPE clike OPTIONAL
                 backgrounddesign TYPE clike OPTIONAL
                 aligncontent     TYPE clike OPTIONAL
+                items            TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS popover
@@ -3521,6 +3522,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS groups
+      IMPORTING !ns              TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS group
@@ -3787,6 +3789,68 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS custom_control
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS responsive_scale
+      IMPORTING
+        id       TYPE clike OPTIONAL
+        class       TYPE clike OPTIONAL
+        tickmarksbetweenlabels       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS status_indicator
+      IMPORTING
+        id       TYPE clike OPTIONAL
+        class       TYPE clike OPTIONAL
+        height       TYPE clike OPTIONAL
+        labelPosition       TYPE clike OPTIONAL
+        showLabel       TYPE clike OPTIONAL
+        size       TYPE clike OPTIONAL
+        value       TYPE clike OPTIONAL
+        viewBox       TYPE clike OPTIONAL
+        width       TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+        press       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS property_thresholds
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS property_threshold
+      IMPORTING
+        id       TYPE clike OPTIONAL
+        class       TYPE clike OPTIONAL
+        fillcolor       TYPE clike OPTIONAL
+        tovalue       TYPE clike OPTIONAL
+        ariaLabel       TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS shape_group
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+
+    METHODS library_shape
+      IMPORTING
+        id       TYPE clike OPTIONAL
+        class       TYPE clike OPTIONAL
+        animationOnChange       TYPE clike OPTIONAL
+        definition       TYPE clike OPTIONAL
+        fillColor       TYPE clike OPTIONAL
+        fillingAngle       TYPE clike OPTIONAL
+        fillingDirection       TYPE clike OPTIONAL
+        fillingType       TYPE clike OPTIONAL
+        height       TYPE clike OPTIONAL
+        horizontalAlignment       TYPE clike OPTIONAL
+        shapeId       TYPE clike OPTIONAL
+        strokeColor       TYPE clike OPTIONAL
+        strokeWidth       TYPE clike OPTIONAL
+        verticalAlignment       TYPE clike OPTIONAL
+        visible       TYPE clike OPTIONAL
+        width       TYPE clike OPTIONAL
+        x       TYPE clike OPTIONAL
+        y       TYPE clike OPTIONAL
+        afterShapeLoaded       TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
   PROTECTED SECTION.
@@ -5172,6 +5236,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                    ( n = `fitContainer`  v = z2ui5_cl_util=>boolean_abap_2_json( fitcontainer ) )
                                    ( n = `justifyContent`  v = justifycontent )
                                    ( n = `wrap`  v = wrap )
+                                   ( n = `items`  v = items )
                                    ( n = `direction`  v = direction )
                                    ( n = `alignContent`  v = aligncontent )
                                    ( n = `backgroundDesign`  v = backgrounddesign )
@@ -5411,7 +5476,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD groups.
     result = _generic( name = `groups`
-                       ns   = `networkgraph` ).
+                       ns   = SWITCH #( ns WHEN `` THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
 
@@ -5989,6 +6054,32 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name = `legend`
                        ns   = `vbm` ).
 
+  ENDMETHOD.
+
+
+  METHOD library_shape.
+    result = _generic( name   = `LibraryShape`
+                       ns     = `si`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `class`    v = class )
+                                         ( n = `animationOnChange`     v = z2ui5_cl_util=>boolean_abap_2_json( animationOnChange ) )
+                                         ( n = `definition`     v = definition )
+                                         ( n = `fillColor`     v = fillColor )
+                                         ( n = `fillingAngle`     v = fillingAngle )
+                                         ( n = `fillingDirection`     v = fillingDirection )
+                                         ( n = `fillingType`     v = fillingType )
+                                         ( n = `height`     v = height )
+                                         ( n = `horizontalAlignment`     v = horizontalAlignment )
+                                         ( n = `shapeId`     v = shapeId )
+                                         ( n = `strokeColor`     v = strokeColor )
+                                         ( n = `strokeWidth`     v = strokeWidth )
+                                         ( n = `verticalAlignment`     v = verticalAlignment )
+                                         ( n = `width`     v = width )
+                                         ( n = `x`     v = x )
+                                         ( n = `y`     v = y )
+                                         ( n = `afterShapeLoaded`     v = afterShapeLoaded )
+                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                        ) ).
   ENDMETHOD.
 
 
@@ -7229,6 +7320,25 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD property_threshold.
+    result = _generic( name   = `PropertyThreshold`
+                       ns     = `si`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `class`    v = class )
+                                         ( n = `ariaLabel`     v = ariaLabel )
+                                         ( n = `fillColor`     v = fillColor )
+                                         ( n = `toValue`     v = toValue )
+                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                        ) ).
+  ENDMETHOD.
+
+
+  METHOD property_thresholds.
+    result = _generic( name   = `propertyThresholds`
+                       ns     = `si` ).
+  ENDMETHOD.
+
+
   METHOD proportion_zoom_strategy.
     result = _generic( name   = `ProportionZoomStrategy`
                        ns     = `axistime`
@@ -7380,6 +7490,15 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD relationships.
     result = _generic( name = `relationships`
                        ns   = `gantt` ).
+  ENDMETHOD.
+
+
+  METHOD responsive_scale.
+    result = _generic( name   = `ResponsiveScale`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `class`    v = class )
+                                         ( n = `tickmarksBetweenLabels`     v = tickmarksBetweenLabels )
+                                        ) ).
   ENDMETHOD.
 
 
@@ -7582,6 +7701,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD shapes2.
     result = _generic( name = `shapes2`
                        ns   = `gantt` ).
+  ENDMETHOD.
+
+
+  METHOD shape_group.
+    result = _generic( name   = `ShapeGroup`
+                       ns     = `si` ).
   ENDMETHOD.
 
 
@@ -7886,6 +8011,24 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD statuses.
     result = _generic( name = `statuses`
                        ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
+  ENDMETHOD.
+
+
+  METHOD status_indicator.
+    result = _generic( name   = `StatusIndicator`
+                       ns     = `si`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `class`    v = class )
+                                         ( n = `height`     v = height )
+                                         ( n = `labelPosition` v = labelPosition )
+                                         ( n = `showLabel`    v = z2ui5_cl_util=>boolean_abap_2_json( showLabel ) )
+                                         ( n = `size`    v = size )
+                                         ( n = `value`    v = value )
+                                         ( n = `viewBox`    v = viewBox )
+                                         ( n = `width`    v = width )
+                                         ( n = `press`    v = press )
+                                         ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                        ) ).
   ENDMETHOD.
 
 
@@ -8937,6 +9080,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
           ( n = `xmlns:config`       v = `sap.gantt.config` )
           ( n = `xmlns:shapes`       v = `sap.gantt.simple.shapes` )
           ( n = `xmlns:commons`      v = `sap.suite.ui.commons` )
+          ( n = `xmlns:si`           v = `sap.suite.ui.commons.statusindicator` )
           ( n = `xmlns:vm`           v = `sap.ui.comp.variants` )
           ( n = `xmlns:viz`          v = `sap.viz.ui5.controls` )
           ( n = `xmlns:vk`           v = `sap.ui.vk` )
