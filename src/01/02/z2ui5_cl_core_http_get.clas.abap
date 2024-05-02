@@ -376,7 +376,8 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            }` && |\n| &&
                `            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
                `            sap.z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
-               `            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n| &&
+               `           for (let i = 1 ; i < sap.z2ui5.oBody.ARGUMENTS.length; i++ ) { if ( typeof sap.z2ui5.oBody.ARGUMENTS[ i ] === 'object'  ){ sap.z2ui5.oBody.ARGUMENTS[ i ] = JSON.stringify( sap.z2ui5.oBody.ARGUMENTS[ i ] ) } } sap.z2ui5.oRe` &&
+`sponseOld = sap.z2ui5.oResponse;` && |\n| &&
                `            sap.z2ui5.oController.Roundtrip();` && |\n| &&
                `        },` && |\n| &&
                `        responseError(response) {` && |\n| &&
