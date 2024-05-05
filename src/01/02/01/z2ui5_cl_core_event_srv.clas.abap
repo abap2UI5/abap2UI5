@@ -39,16 +39,6 @@ CLASS z2ui5_cl_core_event_srv IMPLEMENTATION.
 
     result = |{ z2ui5_if_core_types=>cs_ui5-event_backend_function }(['{ val }'|.
 
-*    IF s_cnt-model_name IS NOT INITIAL.
-*      IF s_cnt-check_allow_multi_req = abap_true.
-*        IF s_cnt-check_view_destroy = abap_true.
-*          result = result && `,true,true, "` && s_cnt-model_name && `"`.
-*        ELSE.
-*          result = result && `,false,true, "`  && s_cnt-model_name && `"`.
-*        ENDIF.
-*      ELSE.
-*        result = result && `,false,false, "`  && s_cnt-model_name && `"`.
-*      ENDIF.
     IF s_cnt-check_allow_multi_req = abap_true.
       IF s_cnt-check_view_destroy = abap_true.
         result = result && `,true,true`.
