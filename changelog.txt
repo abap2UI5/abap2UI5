@@ -9,10 +9,18 @@ Legend
 - : removed
 
 
+2024-05-05 v1.127.0
+-------------------
+
++ New Properties for Range Slider and Status Indicator
++ Message Toast & Message Box Improvements
++ Adjustments for the Support of Automatic Renaming
+* Bugfixes and Small Improvements
+
 2024-04-17 v1.126.0
 -------------------
 
-* Fixes and XML View Extnsions
+* Fixes and XML View Extensions
 * More Support for Attributes created with RTTI
 + Update Spreadsheet CC for OpenUI5 Compatibility
 
