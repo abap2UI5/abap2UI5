@@ -216,7 +216,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
     mo_view->popover( showheader = abap_false placement = placement class = class )->hbox( justifycontent = `Center`
       )->vbox( justifycontent = `Center` alignitems = `Center`
-        )->text( text = text
+        )->text( text
         )->button( type = btn_type text = btn_txt icon = btn_icon press = btn_event ).
 
   ENDMETHOD.
