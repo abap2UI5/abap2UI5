@@ -105,6 +105,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 contentwidth  TYPE clike OPTIONAL
                 contentheight TYPE clike OPTIONAL
                 showheader    TYPE clike OPTIONAL
+                showarrow     TYPE clike OPTIONAL
+                resizable     TYPE clike OPTIONAL
+                modal         TYPE clike OPTIONAL
+                horizontalscrolling TYPE clike OPTIONAL
+                verticalscrolling   TYPE clike OPTIONAL
+                visible             TYPE clike OPTIONAL
+                offsetx             TYPE clike OPTIONAL
+                offsety             TYPE clike OPTIONAL
+                contentminwidth     TYPE clike OPTIONAL
+                titlealignment      TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS list_item
@@ -7251,7 +7261,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `placement`     v = placement )
                                          ( n = `initialFocus`  v = initialfocus )
                                          ( n = `contentHeight` v = contentheight )
-                                         ( n = `showheader`    v = showheader )
+                                         ( n = `showHeader`    v = z2ui5_cl_util=>boolean_abap_2_json( showheader ) )
+                                         ( n = `showArrow`    v = z2ui5_cl_util=>boolean_abap_2_json( showarrow ) )
+                                         ( n = `resizable`    v = z2ui5_cl_util=>boolean_abap_2_json( resizable ) )
+                                         ( n = `modal`    v = z2ui5_cl_util=>boolean_abap_2_json( modal ) )
+                                         ( n = `horizontalScrolling`    v = z2ui5_cl_util=>boolean_abap_2_json( horizontalScrolling ) )
+                                         ( n = `verticalScrolling`    v = z2ui5_cl_util=>boolean_abap_2_json( verticalScrolling ) )
+                                         ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `offsetX`    v = offsetX )
+                                         ( n = `offsetY`    v = offsetY )
+                                         ( n = `contentMinWidth`    v = contentMinWidth )
+                                         ( n = `titleAlignment`    v = titleAlignment )
                                          ( n = `contentWidth`  v = contentwidth ) ) ).
   ENDMETHOD.
 

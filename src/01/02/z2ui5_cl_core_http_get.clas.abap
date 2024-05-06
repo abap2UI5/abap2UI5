@@ -442,17 +442,17 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            if (params == undefined) { return; }` && |\n| &&
                `            if (params[msgType]?.TEXT !== undefined) {` && |\n| &&
                `                if (msgType === 'S_MSG_TOAST') {` && |\n| &&
-               `                    MessageToast.show(params[msgType].TEXT,{duration: parseInt(params[msgType].DURATION),` && |\n| &&
-               `                                                            width: params[msgType].WIDTH,` && |\n| &&
-               `                                                            my: params[msgType].MY,` && |\n| &&
-               `                                                            at: params[msgType].AT,` && |\n| &&
-               `                                                            of: params[msgType].OF ? params[msgType].OF : window,` && |\n| &&
-               `                                                            offset: params[msgType].OFFSET,` && |\n| &&
-               `                                                            collision: params[msgType].COLLISION,` && |\n| &&
-               `                                                            onClose: params[msgType].ONCLOSE ? params[msgType].ONCLOSE : null,` && |\n| &&
-               `                                                            autoClose: params[msgType].AUTOCLOSE ? true : false,` && |\n| &&
-               `                                                            animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION,` && |\n| &&
-               `                                                            animationDuration: parseInt(params[msgType].ANIMATIONDURATION),` && |\n| &&
+               `                    MessageToast.show(params[msgType].TEXT,{duration: params[msgType].DURATION ? parseInt(params[msgType].DURATION) : 3000 ,` && |\n| &&
+               `                                                            width: params[msgType].WIDTH ? params[msgType].WIDTH : '15em' ,` && |\n| &&
+*               `                                                            my: params[msgType].MY ? params[msgType].MY : 'leftcenter' ,` && |\n| &&
+*               `                                                            at: params[msgType].AT ? params[msgType].AT : 'CenterCenter' ,` && |\n| &&
+*               `                                                            of: params[msgType].OF ? params[msgType].OF : window ,` && |\n| &&
+*               `                                                            offset: params[msgType].OFFSET ? params[msgType].OFFSET : '0 0' ,` && |\n| &&
+*               `                                                            collision: params[msgType].COLLISION ? params[msgType].COLLISION : 'fit fit' ,` && |\n| &&
+               `                                                            onClose: params[msgType].ONCLOSE ? params[msgType].ONCLOSE : null ,` && |\n| &&
+               `                                                            autoClose: params[msgType].AUTOCLOSE ? true : false ,` && |\n| &&
+               `                                                            animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION ? params[msgType].ANIMATIONTIMINGFUNCTION : 'ease' ,` && |\n| &&
+               `                                                            animationDuration: params[msgType].ANIMATIONDURATION ? parseInt(params[msgType].ANIMATIONDURATION) : 1000 ,` && |\n| &&
                `                                                            closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : false` && |\n| &&
                `                     });` && |\n| &&
                `                     if(params[msgType].CLASS) {` && |\n| &&

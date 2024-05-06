@@ -114,17 +114,17 @@ INTERFACE z2ui5_if_client
   METHODS message_toast_display
     IMPORTING
       text                     TYPE string
-      duration                 TYPE string DEFAULT `3000`
-      width                    TYPE string DEFAULT `15em`
-      my                       TYPE string DEFAULT `center bottom`
-      at                       TYPE string DEFAULT `center bottom`
+      duration                 TYPE string OPTIONAL
+      width                    TYPE string OPTIONAL
+      my                       TYPE string OPTIONAL
+      at                       TYPE string OPTIONAL
       of                       TYPE string OPTIONAL
-      offset                   TYPE string DEFAULT `0 0`
-      collision                TYPE string DEFAULT `fit fit`
+      offset                   TYPE string OPTIONAL
+      collision                TYPE string OPTIONAL
       onclose                  TYPE string DEFAULT ``
       autoclose                TYPE abap_bool DEFAULT abap_true
-      animationtimingfunction  TYPE string DEFAULT `ease`
-      animationduration        TYPE string DEFAULT `1000`
+      animationtimingfunction  TYPE string OPTIONAL
+      animationduration        TYPE string OPTIONAL
       closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
       class                    TYPE string OPTIONAL
     PREFERRED PARAMETER text.

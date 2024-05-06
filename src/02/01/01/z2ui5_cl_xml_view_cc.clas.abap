@@ -186,6 +186,18 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS approve_popover
+      IMPORTING
+        !placement TYPE clike OPTIONAL
+        !class     TYPE clike OPTIONAL
+        !text      TYPE clike OPTIONAL
+        !btn_txt   TYPE clike OPTIONAL
+        !btn_type  TYPE clike OPTIONAL
+        !btn_icon  TYPE clike OPTIONAL
+        !btn_event TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS constructor
       IMPORTING
         !view TYPE REF TO z2ui5_cl_xml_view .
@@ -197,6 +209,17 @@ ENDCLASS.
 
 
 CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
+
+
+  METHOD approve_popover.
+    result = mo_view.
+
+    mo_view->popover( showheader = abap_false placement = placement class = class )->hbox( justifycontent = `Center`
+      )->vbox( justifycontent = `Center` alignitems = `Center`
+        )->text( text = text
+        )->button( type = btn_type text = btn_txt icon = btn_icon press = btn_event ).
+
+  ENDMETHOD.
 
 
   METHOD bwip_js.
