@@ -222,7 +222,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
     simple_form2->label( `Feedback` ).
     simple_form2->link( text   = `Contact`
                         target = `_blank`
-                        href   =  `https://taplink.cc/oblomov` ).
+                        href   =  `https://github.com/oblomov-dev` ).
 
     client->view_display( page2->stringify( ) ).
 
