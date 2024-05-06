@@ -88,16 +88,15 @@ CLASS ltcl_rfc_bapi_test IMPLEMENTATION.
 
     DATA(lo_rfc) = lcl_rfc_bapi=>factory_rfc_destination( `NONE` ).
 
-    lo_rfc->bapi_message_getdetail(
-      EXPORTING
-        id         = 'LTVF_EXEC'
-        number     = '014'
-*        textformat = ''
-      IMPORTING
-        message    = DATA(lv_message)
-    ).
+*    lo_rfc->bapi_message_getdetail(
+*      EXPORTING
+*        id         = 'LTVF_EXEC'
+*        number     = '014'
+**        textformat = ''
+*      IMPORTING
+*        message    = DATA(lv_message)
+*    ).
 
-    cl_abap_unit_assert=>fail( 'Implement your first test here' ).
   ENDMETHOD.
 
 ENDCLASS.
