@@ -71,7 +71,7 @@ CLASS lcl_rfc_bapi IMPLEMENTATION.
     TRY.
 
         DATA(lv_fm_name) = `BAPI_MESSAGE_GETDETAIL`.
-        CALL FUNCTION 'BAPI_MESSAGE_GETDETAIL'
+        CALL FUNCTION lv_fm_name
           DESTINATION mv_destination
           EXPORTING
             id            = lv_id                " Message class
