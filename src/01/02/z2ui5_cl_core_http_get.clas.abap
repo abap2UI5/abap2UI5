@@ -376,11 +376,16 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            }` && |\n| &&
                `            sap.z2ui5.oBody.ID = sap.z2ui5.oResponse.ID;` && |\n| &&
                `            sap.z2ui5.oBody.ARGUMENTS = args;` && |\n| &&
-               `            for (let i = 1 ; i < sap.z2ui5.oBody.ARGUMENTS.length; i++ ) { ` && |\n| &&
-               `             if ( typeof sap.z2ui5.oBody.ARGUMENTS[ i ] === 'object'  ){ ` && |\n| &&
-               `               sap.z2ui5.oBody.ARGUMENTS[ i ] = JSON.stringify( sap.z2ui5.oBody.ARGUMENTS[ i ] )` && |\n| &&
-               `             } ` && |\n| &&
-               `            } ` && |\n| &&
+               `                     sap.z2ui5.oBody.ARGUMENTS.forEach( ( item , i ) => { ` && |\n| &&
+           `    if ( i == 0 ) {  return; } if ( typeof item === 'object'  ){  ` && |\n| &&
+            `      sap.z2ui5.oBody.ARGUMENTS[ i ] = JSON.stringify( item ); ` && |\n| &&
+           `     }  ` && |\n| &&
+          `     });  ` && |\n| &&
+*               `            for (let i = 1 ; i < sap.z2ui5.oBody.ARGUMENTS.length; i++ ) { ` && |\n| &&
+*               `             if ( typeof sap.z2ui5.oBody.ARGUMENTS[ i ] === 'object'  ){ ` && |\n| &&
+*               `               sap.z2ui5.oBody.ARGUMENTS[ i ] = JSON.stringify( sap.z2ui5.oBody.ARGUMENTS[ i ] )` && |\n| &&
+*               `             } ` && |\n| &&
+*               `            } ` && |\n| &&
                `            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n| &&
                `            sap.z2ui5.oController.Roundtrip();` && |\n| &&
                `        },` && |\n| &&
