@@ -398,6 +398,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showtitle      TYPE clike OPTIONAL
                 !visible       TYPE clike OPTIONAL
                 wraptitle      TYPE clike OPTIONAL
+                anchorBarButtonColor      TYPE clike OPTIONAL
+                titleVisible      TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sub_sections
@@ -412,6 +414,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showtitle      TYPE clike OPTIONAL
                 titleuppercase TYPE clike OPTIONAL
                 !visible       TYPE clike OPTIONAL
+                !titleVisible       TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS shell
@@ -7082,7 +7085,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
             ( n = `height`                     v = height )
             ( n = `sectionTitleLevel`                     v = sectiontitlelevel )
             ( n = `editHeaderButtonPress`    v = editheaderbuttonpress )
-            ( n = `upperCaseAnchorBar`       v = uppercaseanchorbar )
+            ( n = `upperCaseAnchorBar`       v = z2ui5_cl_util=>boolean_abap_2_json( upperCaseAnchorBar ) )
             ( n = `beforeNavigate`       v = beforenavigate )
             ( n = `headerContentPinnedStateChange`       v = headercontentpinnedstatechange )
             ( n = `navigate`       v = navigate )
@@ -7100,7 +7103,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                  t_prop = VALUE #( ( n = `titleUppercase`  v = z2ui5_cl_util=>boolean_abap_2_json( titleuppercase ) )
                                    ( n = `title`           v = title )
                                    ( n = `id`              v = id )
+                                   ( n = `anchorBarButtonColor`              v = anchorBarButtonColor )
                                    ( n = `titleLevel`      v = titlelevel )
+                                   ( n = `titleVisible`       v = z2ui5_cl_util=>boolean_abap_2_json( titleVisible ) )
                                    ( n = `showTitle`       v = z2ui5_cl_util=>boolean_abap_2_json( showtitle ) )
                                    ( n = `visible`       v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                    ( n = `wrapTitle`       v = z2ui5_cl_util=>boolean_abap_2_json( wraptitle ) )
@@ -7116,6 +7121,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                    ( n = `mode`    v = mode )
                                    ( n = `importance`    v = importance )
                                    ( n = `titleLevel`    v = titlelevel )
+                                   ( n = `titleVisible`    v = z2ui5_cl_util=>boolean_abap_2_json( titleVisible ) )
                                    ( n = `showTitle`    v = z2ui5_cl_util=>boolean_abap_2_json( showtitle ) )
                                    ( n = `titleUppercase`    v = z2ui5_cl_util=>boolean_abap_2_json( titleuppercase ) )
                                    ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
