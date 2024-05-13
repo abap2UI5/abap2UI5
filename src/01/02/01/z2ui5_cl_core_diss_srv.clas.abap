@@ -200,7 +200,7 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
       lr_attri->check_dissolved = abap_true.
 
       IF lr_attri->o_typedescr IS NOT BOUND.
-        DATA(ls_entry) = create_new_entry( name = lr_attri->name ).
+        DATA(ls_entry) = create_new_entry( lr_attri->name ).
         lr_attri->o_typedescr = ls_entry-o_typedescr.
         lr_attri->r_ref = ls_entry-r_ref.
       ENDIF.
