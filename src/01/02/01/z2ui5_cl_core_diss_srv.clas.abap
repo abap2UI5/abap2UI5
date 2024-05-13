@@ -151,11 +151,22 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
 
   METHOD main.
 
-    main_init( ).
+    TRY.
 
-    IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
-      main_run( ).
-    ENDIF.
+        main_init( ).
+
+        IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+          main_run( ).
+        ENDIF.
+
+      CATCH cx_root.
+        CLEAR mt_attri->*.
+        main_init( ).
+
+        IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+          main_run( ).
+        ENDIF.
+    ENDTRY.
 
   ENDMETHOD.
 
@@ -187,6 +198,12 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
          AND bind_type <> z2ui5_if_core_types=>cs_bind_type-one_time.
 
       lr_attri->check_dissolved = abap_true.
+
+      IF lr_attri->o_typedescr IS NOT BOUND.
+        DATA(ls_entry) = create_new_entry( name = lr_attri->name ).
+        lr_attri->o_typedescr = ls_entry-o_typedescr.
+        lr_attri->r_ref = ls_entry-r_ref.
+      ENDIF.
 
       CASE lr_attri->o_typedescr->kind.
 
