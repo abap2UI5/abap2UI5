@@ -115,6 +115,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 offsety             TYPE clike OPTIONAL
                 contentminwidth     TYPE clike OPTIONAL
                 titlealignment      TYPE clike OPTIONAL
+                beforeOpen      TYPE clike OPTIONAL
+                beforeClose      TYPE clike OPTIONAL
+                afterOpen      TYPE clike OPTIONAL
+                afterClose      TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS list_item
@@ -394,6 +398,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showtitle      TYPE clike OPTIONAL
                 !visible       TYPE clike OPTIONAL
                 wraptitle      TYPE clike OPTIONAL
+                anchorBarButtonColor      TYPE clike OPTIONAL
+                titleVisible      TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS sub_sections
@@ -408,6 +414,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showtitle      TYPE clike OPTIONAL
                 titleuppercase TYPE clike OPTIONAL
                 !visible       TYPE clike OPTIONAL
+                !titleVisible       TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS shell
@@ -881,6 +888,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 backgrounddesign TYPE clike OPTIONAL
                 expandanimation  TYPE clike OPTIONAL
                 !visible         TYPE clike OPTIONAL
+                !expand         TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vbox
@@ -1771,6 +1779,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS planning_calendar
       IMPORTING !rows                     TYPE clike OPTIONAL
+                id                 TYPE clike OPTIONAL
+                class                 TYPE clike OPTIONAL
                 startdate                 TYPE clike OPTIONAL
                 appointmentsvisualization TYPE clike OPTIONAL
                 appointmentselect         TYPE clike OPTIONAL
@@ -1778,7 +1788,48 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showweeknumbers           TYPE clike OPTIONAL
                 showdaynamesline          TYPE clike OPTIONAL
                 legend                    TYPE clike OPTIONAL
+                appointmentHeight                    TYPE clike OPTIONAL
+                appointmentRoundWidth                    TYPE clike OPTIONAL
+                builtInViews                    TYPE clike OPTIONAL
+                calendarWeekNumbering                    TYPE clike OPTIONAL
+                firstDayOfWeek                    TYPE clike OPTIONAL
+                height                    TYPE clike OPTIONAL
+                groupAppointmentsMode                    TYPE clike OPTIONAL
+                iconShape                    TYPE clike OPTIONAL
+                maxDate                    TYPE clike OPTIONAL
+                minDate                    TYPE clike OPTIONAL
+                noDataText                    TYPE clike OPTIONAL
+                primaryCalendarType                    TYPE clike OPTIONAL
+                secondaryCalendarType                    TYPE clike OPTIONAL
+                intervalSelect                    TYPE clike OPTIONAL
+                rowHeaderPress                    TYPE clike OPTIONAL
+                rowSelectionChange                    TYPE clike OPTIONAL
+                startDateChange                    TYPE clike OPTIONAL
+                viewChange                    TYPE clike OPTIONAL
+                stickyHeader                    TYPE clike OPTIONAL
+                viewKey                    TYPE clike OPTIONAL
+                width                    TYPE clike OPTIONAL
+                singleSelection                    TYPE clike OPTIONAL
+                showRowHeaders                    TYPE clike OPTIONAL
+                multipleAppointmentsSelection                    TYPE clike OPTIONAL
+                showIntervalHeaders                    TYPE clike OPTIONAL
           PREFERRED PARAMETER rows
+      RETURNING VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
+
+
+    METHODS planning_calendar_view
+      IMPORTING
+        !appointmentHeight                     TYPE clike OPTIONAL
+        !description                     TYPE clike OPTIONAL
+        !intervalLabelFormatter                     TYPE clike OPTIONAL
+        !intervalSize                     TYPE clike OPTIONAL
+        !intervalsL                     TYPE clike OPTIONAL
+        !intervalsM                     TYPE clike OPTIONAL
+        !intervalsS                     TYPE clike OPTIONAL
+        !intervalType                     TYPE clike OPTIONAL
+        !key                     TYPE clike OPTIONAL
+        !relative                     TYPE clike OPTIONAL
+        !showSubIntervals                     TYPE clike OPTIONAL
       RETURNING VALUE(result)             TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS planning_calendar_row
@@ -1791,12 +1842,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 enableappointmentscreate      TYPE clike OPTIONAL
                 enableappointmentsdraganddrop TYPE clike OPTIONAL
                 enableappointmentsresize      TYPE clike OPTIONAL
+                noAppointmentsText                TYPE clike OPTIONAL
+                nonWorkingHours                TYPE clike OPTIONAL
+                rowHeaderDescription                TYPE clike OPTIONAL
                 nonworkingdays                TYPE clike OPTIONAL
                 selected                      TYPE clike OPTIONAL
                 appointmentcreate             TYPE clike OPTIONAL
                 appointmentdragenter          TYPE clike OPTIONAL
                 appointmentdrop               TYPE clike OPTIONAL
                 appointmentresize             TYPE clike OPTIONAL
+                id             TYPE clike OPTIONAL
+                class             TYPE clike OPTIONAL
           PREFERRED PARAMETER appointments
       RETURNING VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1805,6 +1861,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !id              TYPE clike OPTIONAL
                 appointmentitems TYPE clike OPTIONAL
                 standarditems    TYPE clike OPTIONAL
+                columnWidth    TYPE clike OPTIONAL
+                visible    TYPE clike OPTIONAL
           PREFERRED PARAMETER items
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1848,6 +1906,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !type         TYPE clike OPTIONAL
                 tentative     TYPE clike OPTIONAL
                 !key          TYPE clike OPTIONAL
+                !selected          TYPE clike OPTIONAL
           PREFERRED PARAMETER startdate
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4212,7 +4271,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `text`                      v = text )
                                          ( n = `type`                      v = type )
                                          ( n = `key`                       v = key )
-                                         ( n = `tentative`                 v = tentative ) ) ).
+                                         ( n = `selected`                 v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
+                                         ( n = `tentative`                 v = z2ui5_cl_util=>boolean_abap_2_json( tentative ) )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -7024,7 +7085,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
             ( n = `height`                     v = height )
             ( n = `sectionTitleLevel`                     v = sectiontitlelevel )
             ( n = `editHeaderButtonPress`    v = editheaderbuttonpress )
-            ( n = `upperCaseAnchorBar`       v = uppercaseanchorbar )
+            ( n = `upperCaseAnchorBar`       v = z2ui5_cl_util=>boolean_abap_2_json( upperCaseAnchorBar ) )
             ( n = `beforeNavigate`       v = beforenavigate )
             ( n = `headerContentPinnedStateChange`       v = headercontentpinnedstatechange )
             ( n = `navigate`       v = navigate )
@@ -7042,7 +7103,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                  t_prop = VALUE #( ( n = `titleUppercase`  v = z2ui5_cl_util=>boolean_abap_2_json( titleuppercase ) )
                                    ( n = `title`           v = title )
                                    ( n = `id`              v = id )
+                                   ( n = `anchorBarButtonColor`              v = anchorBarButtonColor )
                                    ( n = `titleLevel`      v = titlelevel )
+                                   ( n = `titleVisible`       v = z2ui5_cl_util=>boolean_abap_2_json( titleVisible ) )
                                    ( n = `showTitle`       v = z2ui5_cl_util=>boolean_abap_2_json( showtitle ) )
                                    ( n = `visible`       v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                    ( n = `wrapTitle`       v = z2ui5_cl_util=>boolean_abap_2_json( wraptitle ) )
@@ -7058,6 +7121,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                    ( n = `mode`    v = mode )
                                    ( n = `importance`    v = importance )
                                    ( n = `titleLevel`    v = titlelevel )
+                                   ( n = `titleVisible`    v = z2ui5_cl_util=>boolean_abap_2_json( titleVisible ) )
                                    ( n = `showTitle`    v = z2ui5_cl_util=>boolean_abap_2_json( showtitle ) )
                                    ( n = `titleUppercase`    v = z2ui5_cl_util=>boolean_abap_2_json( titleuppercase ) )
                                    ( n = `visible`    v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
@@ -7191,7 +7255,9 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                    ( n = `width`   v = width )
                                    ( n = `id`   v = id )
                                    ( n = `class`   v = class )
-                                   ( n = `headerText` v = headertext ) ) ).
+                                   ( n = `expand`   v = expand )
+                                   ( n = `headerText` v = headertext )
+                                 ) ).
 
   ENDMETHOD.
 
@@ -7208,12 +7274,39 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `PlanningCalendar`
                        t_prop = VALUE #( ( n = `rows`                      v = rows )
                                          ( n = `startDate`                 v = startdate )
+                                         ( n = `id`                 v = id )
+                                         ( n = `class`                 v = class )
+                                         ( n = `appointmentHeight` v = appointmentHeight )
+                                         ( n = `appointmentRoundWidth` v = appointmentRoundWidth )
+                                         ( n = `builtInViews` v = builtInViews )
+                                         ( n = `calendarWeekNumbering` v = calendarWeekNumbering )
+                                         ( n = `firstDayOfWeek` v = firstDayOfWeek )
+                                         ( n = `groupAppointmentsMode` v = groupAppointmentsMode )
+                                         ( n = `height` v = height )
+                                         ( n = `iconShape` v = iconShape )
+                                         ( n = `maxDate` v = maxDate )
+                                         ( n = `minDate` v = minDate )
+                                         ( n = `noDataText` v = noDataText )
+                                         ( n = `primaryCalendarType` v = primaryCalendarType )
+                                         ( n = `secondaryCalendarType` v = secondaryCalendarType )
                                          ( n = `appointmentsVisualization` v = appointmentsvisualization )
                                          ( n = `appointmentSelect`         v = appointmentselect )
-                                         ( n = `showEmptyIntervalHeaders`  v = showemptyintervalheaders )
-                                         ( n = `showWeekNumbers`           v = showweeknumbers )
+                                         ( n = `intervalSelect`         v = intervalSelect )
+                                         ( n = `rowHeaderPress`         v = rowHeaderPress )
+                                         ( n = `rowSelectionChange`         v = rowSelectionChange )
+                                         ( n = `startDateChange`         v = startDateChange )
+                                         ( n = `viewChange`         v = viewChange )
+                                         ( n = `stickyHeader`         v = stickyHeader )
+                                         ( n = `viewKey`         v = viewKey )
+                                         ( n = `width`         v = width )
+                                         ( n = `singleSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( singleSelection ) )
+                                         ( n = `showRowHeaders`  v = z2ui5_cl_util=>boolean_abap_2_json( showRowHeaders ) )
+                                         ( n = `multipleAppointmentsSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( multipleAppointmentsSelection ) )
+                                         ( n = `showIntervalHeaders`  v = z2ui5_cl_util=>boolean_abap_2_json( showIntervalHeaders ) )
+                                         ( n = `showEmptyIntervalHeaders`  v = z2ui5_cl_util=>boolean_abap_2_json( showEmptyIntervalHeaders ) )
+                                         ( n = `showWeekNumbers`           v = z2ui5_cl_util=>boolean_abap_2_json( showWeekNumbers ) )
                                          ( n = `legend`                    v = legend )
-                                         ( n = `showDayNamesLine`          v = showdaynamesline ) ) ).
+                                         ( n = `showDayNamesLine`          v = z2ui5_cl_util=>boolean_abap_2_json( showDayNamesLine ) ) ) ).
   ENDMETHOD.
 
 
@@ -7222,6 +7315,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `id`                              v = id )
                                          ( n = `items`                           v = items )
                                          ( n = `appointmentItems`                v = appointmentitems )
+                                         ( n = `columnWidth`                v = columnWidth )
+                                         ( n = `visible`                v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                          ( n = `standardItems`                   v = standarditems ) ) ).
 
   ENDMETHOD.
@@ -7231,20 +7326,44 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic( name   = `PlanningCalendarRow`
                        t_prop = VALUE #( ( n = `appointments`                    v = appointments )
                                          ( n = `intervalHeaders`                 v = intervalheaders )
+                                         ( n = `id`                            v = id )
+                                         ( n = `class`                            v = class )
                                          ( n = `icon`                            v = icon )
                                          ( n = `title`                           v = title )
                                          ( n = `key`                             v = key )
-                                         ( n = `enableAppointmentsCreate`        v = enableappointmentscreate )
+                                         ( n = `noAppointmentsText`                             v = noAppointmentsText )
+                                         ( n = `nonWorkingHours`                             v = nonWorkingHours )
+                                         ( n = `rowHeaderDescription`                             v = rowHeaderDescription )
+                                         ( n = `nonworkingdays`                             v = nonworkingdays )
+                                         ( n = `enableAppointmentsCreate`        v = z2ui5_cl_util=>boolean_abap_2_json( enableAppointmentsCreate ) )
                                          ( n = `appointmentResize`               v = appointmentresize )
                                          ( n = `appointmentDrop`                 v = appointmentdrop )
                                          ( n = `appointmentDragEnter`            v = appointmentdragenter )
                                          ( n = `appointmentCreate`               v = appointmentcreate )
-                                         ( n = `selected`                        v = selected )
+                                         ( n = `selected`                        v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
                                          ( n = `nonWorkingDays`                  v = nonworkingdays )
-                                         ( n = `enableAppointmentsResize`        v = enableappointmentsresize )
-                                         ( n = `enableAppointmentsDragAndDrop`   v = enableappointmentsdraganddrop )
-                                         ( n = `text`                            v = text ) ) ).
+                                         ( n = `enableAppointmentsResize`        v = z2ui5_cl_util=>boolean_abap_2_json( enableAppointmentsResize ) )
+                                         ( n = `enableAppointmentsDragAndDrop`   v = z2ui5_cl_util=>boolean_abap_2_json( enableAppointmentsDragAndDrop ) )
+                                         ( n = `text`                            v = text )
+                                       ) ).
 
+  ENDMETHOD.
+
+
+  METHOD planning_calendar_view.
+    result = _generic( name   = `PlanningCalendarView`
+                       t_prop = VALUE #( ( n = `appointmentHeight`                      v = appointmentHeight )
+                                         ( n = `description`                 v = description )
+                                         ( n = `intervalLabelFormatter`                 v = intervalLabelFormatter )
+                                         ( n = `intervalSize`  v = intervalSize )
+                                         ( n = `intervalsL`  v = intervalsL )
+                                         ( n = `intervalsM`  v = intervalsM )
+                                         ( n = `intervalsS`  v = intervalsS )
+                                         ( n = `intervalType`  v = intervalType )
+                                         ( n = `key`  v = key )
+                                         ( n = `relative`  v = z2ui5_cl_util=>boolean_abap_2_json( relative ) )
+                                         ( n = `showSubIntervals`  v = z2ui5_cl_util=>boolean_abap_2_json( showSubIntervals ) )
+                                       ) ).
   ENDMETHOD.
 
 
@@ -7272,7 +7391,12 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `offsetY`    v = offsetY )
                                          ( n = `contentMinWidth`    v = contentMinWidth )
                                          ( n = `titleAlignment`    v = titleAlignment )
-                                         ( n = `contentWidth`  v = contentwidth ) ) ).
+                                         ( n = `contentWidth`  v = contentwidth )
+                                         ( n = `afterClose`  v = afterClose )
+                                         ( n = `afterOpen`  v = afterOpen )
+                                         ( n = `beforeClose`  v = beforeClose )
+                                         ( n = `beforeOpen`  v = beforeOpen )
+                                       ) ).
   ENDMETHOD.
 
 
