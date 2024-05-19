@@ -192,12 +192,8 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                  target      = `_blank`
                  href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
-*    simple_form2->label( `` ).
-*    simple_form2->text( `` ).
-
     simple_form2->toolbar( )->title( `The Project` ).
 
-*    simple_form2->label( `Links & More` ).
     simple_form2->label( `Social` ).
     simple_form2->link( text   = `Repository on GitHub`
                         target = `_blank`
@@ -215,9 +211,6 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
     simple_form2->label( `` ).
     simple_form2->text( `` ).
-
-*    simple_form2->label( `Social` ).
-
 
     simple_form2->label( `Feedback` ).
     simple_form2->link( text   = `Contact`
@@ -289,7 +282,7 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
             mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) ).
             client->nav_app_call( z2ui5_cl_pop_to_select=>factory( mt_classes ) ).
           CATCH cx_root.
-            client->message_box_display( `The value help is not available on your system, upgrade to a higher release first` ).
+            client->message_box_display( `The value help is not available on your system, install the Open Source Project S-RTTI` ).
         ENDTRY.
     ENDCASE.
 

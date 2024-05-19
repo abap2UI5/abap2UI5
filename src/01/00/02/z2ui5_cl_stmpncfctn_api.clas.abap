@@ -95,7 +95,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
           RECEIVING
             decoded = result.
 
-      CATCH cx_sy_dyn_call_illegal_class.
+      CATCH cx_root.
 
         DATA(classname) = 'CL_HTTP_UTILITY'.
         CALL METHOD (classname)=>('DECODE_X_BASE64')
@@ -119,7 +119,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
           RECEIVING
             encoded   = result.
 
-      CATCH cx_sy_dyn_call_illegal_class.
+      CATCH cx_root.
 
         DATA(classname) = 'CL_HTTP_UTILITY'.
         CALL METHOD (classname)=>('ENCODE_X_BASE64')
@@ -147,7 +147,8 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
             source = val
           RECEIVING
             result = result.
-      CATCH cx_sy_dyn_call_illegal_class.
+
+      CATCH cx_root.
 
         DATA(conv_in_class) = 'CL_ABAP_CONV_IN_CE'.
         CALL METHOD (conv_in_class)=>create
@@ -180,7 +181,8 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
             source = val
           RECEIVING
             result = result.
-      CATCH cx_sy_dyn_call_illegal_class.
+
+      CATCH cx_root.
 
         DATA(conv_out_class) = 'CL_ABAP_CONV_OUT_CE'.
         CALL METHOD (conv_out_class)=>create
@@ -235,7 +237,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
           RECEIVING
             rt_source = result.
 
-      CATCH cx_sy_dyn_call_error.
+      CATCH cx_root.
 
         DATA(lv_name) = 'CL_OO_FACTORY'.
         CALL METHOD (lv_name)=>('CREATE_INSTANCE')
@@ -328,7 +330,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
                    ( classname   = implementation_name
                      description = xco_get_class_description( implementation_name ) ) ).
 
-      CATCH cx_sy_dyn_call_illegal_class.
+      CATCH cx_root INTO DATA(lx).
 
         ls_key-intkey = val.
 
@@ -535,7 +537,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
               RECEIVING
                 uuid = uuid.
 
-          CATCH cx_sy_dyn_call_illegal_class.
+          CATCH cx_root.
 
             DATA(lv_fm) = `GUID_CREATE`.
             CALL FUNCTION lv_fm
@@ -549,7 +551,6 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
       CATCH cx_root.
         ASSERT 1 = 0.
     ENDTRY.
-
   ENDMETHOD.
 
 
@@ -557,7 +558,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
     DATA obj     TYPE REF TO object.
     DATA content TYPE REF TO object.
-    DATA lv_classname type c length 30.
+    DATA lv_classname TYPE c LENGTH 30.
 
     lv_classname = i_classname.
     CALL METHOD ('XCO_CP_ABAP')=>('CLASS')
