@@ -9,6 +9,14 @@ Legend
 - : removed
 
 
+2024-05-20 v1.128.0
+-------------------
+
+* Popover and Message Toast Adjustments
+* Fixes for Laucnhpad Compatibility
+* Fixes for Data Binding with Generic Data References
++ New Properties for the XML View
+
 2024-05-05 v1.127.0
 -------------------
 
