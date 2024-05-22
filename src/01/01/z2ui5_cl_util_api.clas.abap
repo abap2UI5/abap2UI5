@@ -366,6 +366,8 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS check_raise_srtti_installed.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -1097,28 +1099,17 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD xml_srtti_parse.
 
+    check_raise_srtti_installed( ).
+
     DATA srtti TYPE REF TO object.
-    DATA rtti_type TYPE REF TO cl_abap_typedescr.
-    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
-
-    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
-
-      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
-                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
-
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = lv_text.
-
-    ENDIF.
-
     CALL TRANSFORMATION id SOURCE XML rtti_data RESULT srtti = srtti.
 
+    DATA rtti_type TYPE REF TO cl_abap_typedescr.
     CALL METHOD srtti->('GET_RTTI')
       RECEIVING
         rtti = rtti_type.
 
+    DATA lo_datadescr TYPE REF TO cl_abap_datadescr.
     lo_datadescr ?= rtti_type.
 
     CREATE DATA result TYPE HANDLE lo_datadescr.
@@ -1130,19 +1121,9 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD xml_srtti_stringify.
 
+    check_raise_srtti_installed( ).
+
     DATA srtti TYPE REF TO object.
-    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
-
-      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
-      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
-                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
-
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = lv_text.
-
-    ENDIF.
-
     DATA(lv_classname) = 'ZCL_SRTTI_TYPEDESCR'.
     CALL METHOD (lv_classname)=>('CREATE_BY_DATA_OBJECT')
       EXPORTING
@@ -1197,4 +1178,21 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     RAISE EXCEPTION TYPE z2ui5_cx_util_error EXPORTING val = v.
 
   ENDMETHOD.
+
+  METHOD check_raise_srtti_installed.
+
+    IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
+
+      DATA(lv_link) = `https://github.com/sandraros/S-RTTI`.
+      DATA(lv_text) = `<p>Please install the open-source project S-RTTI by sandraros and try again: <a href="` &&
+                       lv_link && `" style="color:blue; font-weight:600;" target="_blank">(link)</a></p>`.
+
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = lv_text.
+
+    ENDIF.
+
+  ENDMETHOD.
+
 ENDCLASS.
