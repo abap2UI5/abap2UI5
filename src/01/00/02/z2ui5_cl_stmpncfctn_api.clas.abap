@@ -334,7 +334,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
         ls_key-intkey = val.
 
-        DATA(lv_fm) = `SEO_INTERFACE_IMPLEM_GET_ALL4`.
+        DATA(lv_fm) = `SEO_INTERFACE_IMPLEM_GET_ALL`.
         CALL FUNCTION lv_fm
           EXPORTING
             intkey       = ls_key
