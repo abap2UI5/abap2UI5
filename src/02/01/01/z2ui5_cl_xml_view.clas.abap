@@ -2396,6 +2396,52 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !change                 TYPE clike OPTIONAL
       RETURNING VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
 
+
+    METHODS variant_management_sapm
+      IMPORTING !creationAllowed      TYPE clike OPTIONAL
+                !defaultKey               TYPE clike OPTIONAL
+                !inErrorState           TYPE clike OPTIONAL
+                !level    TYPE clike OPTIONAL
+                !maxWidth       TYPE clike OPTIONAL
+                !modified           TYPE clike OPTIONAL
+                !popoverTitle         TYPE clike OPTIONAL
+                !selectedKey TYPE clike OPTIONAL
+                !showFooter       TYPE clike OPTIONAL
+                !showSaveAs              TYPE clike OPTIONAL
+                !supportApplyAutomatically     TYPE clike OPTIONAL
+                !supportContexts       TYPE clike OPTIONAL
+                !supportDefault           TYPE clike OPTIONAL
+                !supportFavorites               TYPE clike OPTIONAL
+                !supportPublic           TYPE clike OPTIONAL
+                !titleStyle                 TYPE clike OPTIONAL
+                !visible                  TYPE clike OPTIONAL
+                !items                TYPE clike OPTIONAL
+                !cancel          TYPE clike OPTIONAL
+                !manage          TYPE clike OPTIONAL
+                !manageCancel          TYPE clike OPTIONAL
+                !save          TYPE clike OPTIONAL
+                !select          TYPE clike OPTIONAL
+                !id                    TYPE clike OPTIONAL
+      RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS variant_item_sapm
+      IMPORTING !author      TYPE clike OPTIONAL
+                !changeable                 TYPE clike OPTIONAL
+                !contexts                 TYPE clike OPTIONAL
+                !executeOnSelect                 TYPE clike OPTIONAL
+                !favorite                 TYPE clike OPTIONAL
+                !key                 TYPE clike OPTIONAL
+                !remove                 TYPE clike OPTIONAL
+                !rename                 TYPE clike OPTIONAL
+                !sharing                 TYPE clike OPTIONAL
+                !title                 TYPE clike OPTIONAL
+                !visible                 TYPE clike OPTIONAL
+                !id                 TYPE clike OPTIONAL
+                !textDirection                 TYPE clike OPTIONAL
+                !text                 TYPE clike OPTIONAL
+                !enabled                 TYPE clike OPTIONAL
+      RETURNING VALUE(result)           TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS feed_input
       IMPORTING buttontooltip    TYPE clike OPTIONAL
                 !enabled         TYPE clike OPTIONAL
@@ -8988,6 +9034,26 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD variant_item_sapm.
+    result = _generic( name   = `VariantItem`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `author`    v = author )
+                                         ( n = `changeable`     v = z2ui5_cl_util=>boolean_abap_2_json( changeable ) )
+                                         ( n = `enabled`     v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                         ( n = `favorite`     v = z2ui5_cl_util=>boolean_abap_2_json( favorite ) )
+                                         ( n = `remove`     v = z2ui5_cl_util=>boolean_abap_2_json( remove ) )
+                                         ( n = `rename`     v = z2ui5_cl_util=>boolean_abap_2_json( rename ) )
+                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( rename ) )
+                                         ( n = `contexts` v = contexts )
+                                         ( n = `key`    v = key )
+                                         ( n = `sharing`    v = sharing )
+                                         ( n = `text`    v = text )
+                                         ( n = `textDirection`    v = textDirection )
+                                         ( n = `title`    v = title )
+                                         ( n = `executeOnSelect`  v = z2ui5_cl_util=>boolean_abap_2_json( executeOnSelect ) ) ) ).
+  ENDMETHOD.
+
+
   METHOD variant_management.
 
     result = _generic(
@@ -9041,6 +9107,37 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                      ( n = `save`    v = save )
                      ( n = `select`    v = select )
                      ( n = `for`  v = for ) ) ).
+  ENDMETHOD.
+
+
+  METHOD variant_management_sapm.
+    result = _generic( name   = `VariantManagement`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `defaultKey`    v = defaultKey )
+                                         ( n = `level`    v = level )
+                                         ( n = `maxWidth`    v = maxWidth )
+                                         ( n = `popoverTitle`    v = popoverTitle )
+                                         ( n = `selectedKey`    v = selectedKey )
+                                         ( n = `titleStyle`    v = titleStyle )
+                                         ( n = `cancel`    v = cancel )
+                                         ( n = `manage`    v = manage )
+                                         ( n = `manageCancel`    v = manageCancel )
+                                         ( n = `save`    v = save )
+                                         ( n = `select`    v = select )
+                                         ( n = `items`    v = items )
+                                         ( n = `creationAllowed`     v = z2ui5_cl_util=>boolean_abap_2_json( creationAllowed ) )
+                                         ( n = `inErrorState`     v = z2ui5_cl_util=>boolean_abap_2_json( inErrorState ) )
+                                         ( n = `modified`     v = z2ui5_cl_util=>boolean_abap_2_json( modified ) )
+                                         ( n = `showFooter`     v = z2ui5_cl_util=>boolean_abap_2_json( showFooter ) )
+                                         ( n = `showSaveAs`     v = z2ui5_cl_util=>boolean_abap_2_json( showSaveAs ) )
+                                         ( n = `supportApplyAutomatically`     v = z2ui5_cl_util=>boolean_abap_2_json( supportApplyAutomatically ) )
+                                         ( n = `supportContexts`     v = z2ui5_cl_util=>boolean_abap_2_json( supportContexts ) )
+                                         ( n = `supportDefault`     v = z2ui5_cl_util=>boolean_abap_2_json( supportDefault ) )
+                                         ( n = `supportFavorites`     v = z2ui5_cl_util=>boolean_abap_2_json( supportFavorites ) )
+                                         ( n = `supportPublic`     v = z2ui5_cl_util=>boolean_abap_2_json( supportPublic ) )
+                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                       ) ).
+
   ENDMETHOD.
 
 
