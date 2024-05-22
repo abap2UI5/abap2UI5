@@ -22,7 +22,7 @@ CLASS Z2UI5_CL_CC_DEBUG_TOOL IMPLEMENTATION.
 
 
     result = `` && |\n|  &&
-             `sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n|  &&
+             `if (!z2ui5.DebuggingTools) { sap.ui.define( "z2ui5/DebuggingTools" ,[` && |\n|  &&
               `    "sap/ui/core/Control",` && |\n|  &&
               `     "sap/ui/core/Fragment",` && |\n|  &&
               `     "sap/ui/model/json/JSONModel"` && |\n|  &&
@@ -254,7 +254,7 @@ CLASS Z2UI5_CL_CC_DEBUG_TOOL IMPLEMENTATION.
              `    ` && |\n|  &&
              `                document.addEventListener("keydown", function (zEvent) {` && |\n|  &&
              `                    if (zEvent.ctrlKey ) { if ( zEvent.key === "F12") {  // case sensitive` && |\n|  &&
-             `                        sap.z2ui5.DebuggingTools.show();` && |\n|  &&
+             `                        z2ui5.DebuggingTools.show();` && |\n|  &&
              `                    } }` && |\n|  &&
              `                });` && |\n|  &&
              `    ` && |\n|  &&
@@ -263,7 +263,9 @@ CLASS Z2UI5_CL_CC_DEBUG_TOOL IMPLEMENTATION.
              `            renderer(oRm, oControl) {` && |\n|  &&
              `            }, ` && |\n|  &&
              `        });` && |\n|  &&
-             `    }); `.
+             `    });  ` &&
+             `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
+             ` }); }`.
 
   ENDMETHOD.
 ENDCLASS.

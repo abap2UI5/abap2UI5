@@ -21,7 +21,7 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
   METHOD get_js.
 
     result  = ` ` &&
-      ` sap.ui.require([` && |\n|  &&
+      `if (!z2ui5.Info) { sap.ui.require([` && |\n|  &&
       `    "sap/ui/VersionInfo",` && |\n|  &&
       `    "sap/base/util/Version"` && |\n|  &&
       `], function(VersionInfo, VersionUtil) {` && |\n|  &&
@@ -81,7 +81,7 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `            ` && |\n| &&
       `        }` && |\n| &&
       `   });` && |\n| &&
-      `});`.
+      `}); }`.
 
   ENDMETHOD.
 

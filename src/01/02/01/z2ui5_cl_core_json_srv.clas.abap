@@ -145,7 +145,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
 
         result-s_front-o_comp_data = lo_ajson->slice( `/COMPDATA` ).
 
-        result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD` ).
+        result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD` or result-s_front-pathname CS `/ui2/flp`).
         IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.

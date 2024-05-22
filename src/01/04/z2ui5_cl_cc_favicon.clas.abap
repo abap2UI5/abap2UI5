@@ -20,7 +20,7 @@ CLASS z2ui5_cl_cc_favicon IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/Favicon" , ["sap/ui/core/Control"], (Control)=>{` && |\n| &&
+    result = `if (!z2ui5.Favicon) { sap.ui.define("z2ui5/Favicon" , ["sap/ui/core/Control"], (Control)=>{` && |\n| &&
              `        "use strict";` && |\n| &&
              `        return Control.extend("z2ui5.Favicon", {` && |\n| &&
              `            metadata: {` && |\n| &&
@@ -40,7 +40,7 @@ CLASS z2ui5_cl_cc_favicon IMPLEMENTATION.
              `            },` && |\n| &&
              `            renderer(oRm, oControl) {}` && |\n| &&
              `        });` && |\n| &&
-             `  });`.
+             `  }); }`.
 
   ENDMETHOD.
 ENDCLASS.

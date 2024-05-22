@@ -27,7 +27,7 @@ CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/Scrolling", [` && |\n| &&
+    result = `if (!z2ui5.Scrolling) { sap.ui.define("z2ui5/Scrolling", [` && |\n| &&
              `  "sap/ui/core/Control",` && |\n| &&
              `], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
@@ -79,7 +79,7 @@ CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
              `            } , 50 , oControl );` && |\n| &&
              `      }` && |\n| &&
              `  });` && |\n| &&
-             `});`.
+             `}); }`.
   ENDMETHOD.
 
 ENDCLASS.

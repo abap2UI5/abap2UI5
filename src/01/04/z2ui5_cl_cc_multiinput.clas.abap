@@ -20,7 +20,7 @@ CLASS Z2UI5_CL_CC_MULTIINPUT IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = ` sap.ui.define( "z2ui5/MultiInputExt" , ["sap/ui/core/Control", "sap/m/Token"` && |\n| &&
+    result = `if (!z2ui5.MultiInputExt) { sap.ui.define( "z2ui5/MultiInputExt" , ["sap/ui/core/Control", "sap/m/Token"` && |\n| &&
          `], (Control, Token) => {` && |\n| &&
          `  "use strict";` && |\n| &&
          |\n| &&
@@ -75,6 +75,6 @@ CLASS Z2UI5_CL_CC_MULTIINPUT IMPLEMENTATION.
          `      renderer(oRM, oControl) {` && |\n| &&
          `      }` && |\n| &&
          `  });` && |\n| &&
-         `});`.
+         `}); }`.
   ENDMETHOD.
 ENDCLASS.

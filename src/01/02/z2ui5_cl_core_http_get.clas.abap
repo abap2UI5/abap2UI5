@@ -73,7 +73,8 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
+    result = ` if (!z2ui5.Controller) { ` &&
+    `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
 `" ], function(Control` &&
   `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog ) {` && |\n| &&
                `    "use strict";` && |\n| &&
@@ -557,7 +558,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `           sap.z2ui5.oController.readHttp();` && |\n| &&
                `        },` && |\n| &&
                `    })` && |\n| &&
-               `});` && |\n| &&
+               `}); } ` && |\n| &&
                `sap.ui.require(["z2ui5/Controller", "sap/ui/core/BusyIndicator", "sap/ui/model/json/JSONModel", "sap/ui/core/mvc/XMLView", "sap/ui/core/Fragment", "sap/m/MessageToast", "sap/m/MessageBox"], (Controller,BusyIndicator, JSONModel)=>{` &&
                 |\n| &&
                `    BusyIndicator.show();` && |\n| &&
@@ -599,6 +600,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
         z2ui5_cl_cc_timer=>get_js( ) &&
         z2ui5_cl_cc_focus=>get_js( ) &&
         z2ui5_cl_cc_title=>get_js( ) &&
+        z2ui5_cl_cc_lp_title=>get_js( ) &&
         z2ui5_cl_cc_history=>get_js( ) &&
         z2ui5_cl_cc_scrolling=>get_js( ) &&
         z2ui5_cl_cc_info=>get_js( ) &&
@@ -654,15 +656,15 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
     DATA(lv_add_js) = get_js_cc_startup( ) && ms_request-custom_js.
 
     mv_response = mv_response  &&
-               `<script> sap.z2ui5 = sap.z2ui5 || {};` && |\n| &&
+               `<script> sap.z2ui5 = sap.z2ui5 || {} ;  if ( typeof z2ui5 == "undefined" ) { var z2ui5 = {}; };` && |\n| &&
                get_js( ) && |\n| &&
                lv_add_js && |\n| &&
     `          sap.z2ui5.JSON_MODEL_LIMIT = ` && COND #( WHEN ms_request-json_model_limit IS NOT INITIAL THEN ms_request-json_model_limit ELSE 100 ) && `;`.
 
     mv_response = mv_response &&
-       z2ui5_cl_cc_debug_tool=>get_js( ) &&
-    `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { sap.z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
-    ` });`.
+       z2ui5_cl_cc_debug_tool=>get_js( ). " &&
+*    `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
+*    ` });`.
 
     mv_response = mv_response && |\n| &&
                  `</script>` && |\n| &&

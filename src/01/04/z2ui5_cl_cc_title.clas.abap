@@ -19,7 +19,7 @@ CLASS z2ui5_cl_cc_title IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/Title" , ["sap/ui/core/Control"], (Control)=>{` && |\n| &&
+    result = `if (!z2ui5.Title) { sap.ui.define("z2ui5/Title" , ["sap/ui/core/Control"], (Control)=>{` && |\n| &&
              `        "use strict";` && |\n| &&
              `        return Control.extend("z2ui5.Title", {` && |\n| &&
              `            metadata: {` && |\n| &&
@@ -35,7 +35,7 @@ CLASS z2ui5_cl_cc_title IMPLEMENTATION.
              `            },` && |\n| &&
              `            renderer(oRm, oControl) {}` && |\n| &&
              `        });` && |\n| &&
-             `  });`.
+             `  }); }`.
 
   ENDMETHOD.
 
