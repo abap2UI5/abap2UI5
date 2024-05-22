@@ -9043,7 +9043,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                          ( n = `favorite`     v = z2ui5_cl_util=>boolean_abap_2_json( favorite ) )
                                          ( n = `remove`     v = z2ui5_cl_util=>boolean_abap_2_json( remove ) )
                                          ( n = `rename`     v = z2ui5_cl_util=>boolean_abap_2_json( rename ) )
-                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( rename ) )
+                                         ( n = `visible`     v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                          ( n = `contexts` v = contexts )
                                          ( n = `key`    v = key )
                                          ( n = `sharing`    v = sharing )
