@@ -19,7 +19,7 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/Timer" , [` && |\n| &&
+    result = `if (!z2ui5.Timer) {sap.ui.define("z2ui5/Timer" , [` && |\n| &&
       `   "sap/ui/core/Control"` && |\n| &&
       `], (Control) => {` && |\n| &&
       `   "use strict";` && |\n| &&
@@ -62,7 +62,7 @@ CLASS z2ui5_cl_cc_timer IMPLEMENTATION.
       `        oControl.delayedCall( oControl );` && |\n| &&
       `        }` && |\n| &&
       `   });` && |\n| &&
-      `});`.
+      `}); }`.
 
   ENDMETHOD.
 ENDCLASS.

@@ -99,7 +99,13 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
     OR ms_response-s_front-params-s_view_nest2-xml IS NOT INITIAL
     OR ms_response-s_front-params-s_popup-xml IS NOT INITIAL
     OR ms_response-s_front-params-s_popover-xml IS NOT INITIAL.
+
+      DATA(lo_model) = NEW z2ui5_cl_core_attri_srv(
+       attri = mo_action->mo_app->mt_attri
+       app   = mo_action->mo_app->mo_app ).
+      lo_model->attri_refs_update( ).
       ms_response-model = mo_action->mo_app->model_json_stringify( ).
+
     ELSE.
       ms_response-model = `{}`.
     ENDIF.

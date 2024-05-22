@@ -59,18 +59,6 @@ ENDCLASS.
 CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Static Public Method Z2UI5_CL_POPUP_TO_SELECT=>FACTORY
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] I_TAB                          TYPE        STANDARD TABLE
-* | [--->] I_TITLE                        TYPE        CLIKE(optional)
-* | [--->] I_SORT_FIELD                   TYPE        CLIKE(optional)
-* | [--->] I_DESCENDING                   TYPE        ABAP_BOOL(optional)
-* | [--->] I_CONTENTWIDTH                 TYPE        CLIKE(optional)
-* | [--->] I_CONTENTHEIGHT                TYPE        CLIKE(optional)
-* | [--->] I_GROWINGTHRESHOLD             TYPE        CLIKE(optional)
-* | [<-()] R_RESULT                       TYPE REF TO Z2UI5_CL_POPUP_TO_SELECT
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD factory.
 
     r_result = NEW #( ).
@@ -87,10 +75,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method Z2UI5_CL_POPUP_TO_SELECT->DISPLAY
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD display.
 
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.

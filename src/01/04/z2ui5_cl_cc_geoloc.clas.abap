@@ -20,7 +20,7 @@ CLASS z2ui5_cl_cc_geoloc IMPLEMENTATION.
 
   METHOD get_js.
 
-    result  = `sap.ui.define("z2ui5/Geolocation" , [` && |\n| &&
+    result  = `if (!z2ui5.Geolocation) { sap.ui.define("z2ui5/Geolocation" , [` && |\n| &&
       `   "sap/ui/core/Control"` && |\n| &&
       `], (Control) => {` && |\n| &&
       `   "use strict";` && |\n| &&
@@ -108,7 +108,7 @@ CLASS z2ui5_cl_cc_geoloc IMPLEMENTATION.
       |\n| &&
       `        }` && |\n| &&
       `   });` && |\n| &&
-      `});`.
+      `}); }`.
 
   ENDMETHOD.
 

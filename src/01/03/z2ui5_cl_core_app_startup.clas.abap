@@ -280,10 +280,11 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
       WHEN 'VALUE_HELP'.
         TRY.
             mt_classes = z2ui5_cl_util=>rtti_get_classes_impl_intf( z2ui5_cl_util=>rtti_get_intfname_by_ref( li_app ) ).
-            client->nav_app_call( z2ui5_cl_pop_to_select=>factory( mt_classes ) ).
           CATCH cx_root.
-            client->message_box_display( `The value help is not available on your system, install the Open Source Project S-RTTI` ).
+            client->message_box_display( `Unfortunately the value help is not available on your ABAP release!` ).
+            RETURN.
         ENDTRY.
+        client->nav_app_call( z2ui5_cl_pop_to_select=>factory( mt_classes ) ).
     ENDCASE.
 
   ENDMETHOD.

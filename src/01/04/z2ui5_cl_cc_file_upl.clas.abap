@@ -21,7 +21,7 @@ CLASS z2ui5_cl_cc_file_upl IMPLEMENTATION.
 
   METHOD get_js.
 
-    result  = ` sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
+    result  = `if (!z2ui5.FileUploader) { sap.ui.define("z2ui5/FileUploader",[` && |\n| &&
                      `            "sap/ui/core/Control",` && |\n| &&
                      `            "sap/m/Button",` && |\n| &&
                      `            "sap/ui/unified/FileUploader"` && |\n| &&
@@ -184,7 +184,7 @@ CLASS z2ui5_cl_cc_file_upl IMPLEMENTATION.
                      `                    oRm.renderControl(hbox);` && |\n| &&
                      `                }` && |\n| &&
                      `            });` && |\n| &&
-                     `        });`.
+                     `        }); }`.
 
   ENDMETHOD.
 

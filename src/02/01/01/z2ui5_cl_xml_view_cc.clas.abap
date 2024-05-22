@@ -72,6 +72,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !setupdate      TYPE clike OPTIONAL
       RETURNING
         VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS geolocation
       IMPORTING
         !finished           TYPE clike OPTIONAL
@@ -141,6 +142,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS title
+      IMPORTING
+        !title        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS lp_title
       IMPORTING
         !title        TYPE clike OPTIONAL
       RETURNING
@@ -483,6 +490,14 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD lp_title.
+
+    result = mo_view.
+    mo_view->_generic( name = `LPTitle`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `title`  v = title ) ) ).
+
+  ENDMETHOD.
 
   METHOD title.
 

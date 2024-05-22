@@ -19,7 +19,7 @@ CLASS z2ui5_cl_cc_uitable IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `sap.ui.define("z2ui5/UITableExt" , [` && |\n| &&
+    result = `if (!z2ui5.UITableExt) { sap.ui.define("z2ui5/UITableExt" , [` && |\n| &&
              `  "sap/ui/core/Control"` && |\n| &&
              `], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
@@ -55,7 +55,7 @@ CLASS z2ui5_cl_cc_uitable IMPLEMENTATION.
              `      renderer(oRM, oControl) {` && |\n| &&
              `      }` && |\n| &&
              `  });` && |\n| &&
-             `});`.
+             `}); }`.
 
   ENDMETHOD.
 

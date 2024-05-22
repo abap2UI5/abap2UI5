@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_cc_history DEFINITION
+CLASS z2ui5_cl_cc_lp_title DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -11,29 +11,29 @@ CLASS z2ui5_cl_cc_history DEFINITION
 
   PROTECTED SECTION.
   PRIVATE SECTION.
-
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_history IMPLEMENTATION.
-
+CLASS z2ui5_cl_cc_lp_title IMPLEMENTATION.
 
   METHOD get_js.
 
-    result = `if (!z2ui5.History) { sap.ui.define("z2ui5/History",["sap/ui/core/Control"], (Control)=>{` && |\n| &&
+    result = `if (!z2ui5.LPTitle) { sap.ui.define("z2ui5/LPTitle" , ["sap/ui/core/Control"], (Control)=>{` && |\n| &&
              `        "use strict";` && |\n| &&
-             `        return Control.extend("z2ui5.History", {` && |\n| &&
+             `        return Control.extend("z2ui5.LPTitle", {` && |\n| &&
              `            metadata: {` && |\n| &&
              `                properties: {` && |\n| &&
-             `                    search: {` && |\n| &&
+             `                    title: {` && |\n| &&
              `                        type: "string"` && |\n| &&
              `                    },` && |\n| &&
              `                }` && |\n| &&
              `            },` && |\n| &&
-             `            setSearch(val) {` && |\n| &&
-             `                this.setProperty("search", val);` && |\n| &&
-             `                history.replaceState(null, null, window.location.pathname + val );` && |\n| &&
+             `            setTitle(val) {` && |\n| &&
+             `                try { ` && |\n| &&
+             `                this.setProperty("title", val);` && |\n| &&
+             `                z2ui5.oLaunchpadService.setTitle( val );` && |\n| &&
+             `               } catch (e) { console.error("Launchpad Service to set Title not found");  }` && |\n| &&
              `            },` && |\n| &&
              `            renderer(oRm, oControl) {}` && |\n| &&
              `        });` && |\n| &&
