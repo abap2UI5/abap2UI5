@@ -662,9 +662,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
     `          sap.z2ui5.JSON_MODEL_LIMIT = ` && COND #( WHEN ms_request-json_model_limit IS NOT INITIAL THEN ms_request-json_model_limit ELSE 100 ) && `;`.
 
     mv_response = mv_response &&
-       z2ui5_cl_cc_debug_tool=>get_js( ). " &&
-*    `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
-*    ` });`.
+       z2ui5_cl_cc_debug_tool=>get_js( ).
 
     mv_response = mv_response && |\n| &&
                  `</script>` && |\n| &&
