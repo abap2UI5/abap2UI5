@@ -56,6 +56,9 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `                device_browser: {` && |\n| &&
       `                    type: "string"` && |\n| &&
       `                },` && |\n| &&
+      `                device_system_desktop: {` && |\n| &&
+      `                    type: "boolean"` && |\n| &&
+      `                },` && |\n| &&
       `            },` && |\n| &&
       `            events: {` && |\n| &&
       `                 "finished": { ` && |\n| &&
@@ -77,6 +80,7 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `            oControl.setProperty( "ui5_gav" ,  sap.z2ui5.oCurrentVersionInfo.gav  );` && |\n| &&
       `            oControl.setProperty( "device_os" ,  sap.ui.Device.os.name );` && |\n| &&
       `          oControl.setProperty( "device_browser" ,  sap.ui.Device.browser.name );` && |\n| &&
+      `          oControl.setProperty( "device_system_desktop" ,  sap.ui.Device.system.desktop );` && |\n| &&
       `          setTimeout( oControl.onEvent , 1000 , oControl );` && |\n| &&
       `            ` && |\n| &&
       `        }` && |\n| &&
