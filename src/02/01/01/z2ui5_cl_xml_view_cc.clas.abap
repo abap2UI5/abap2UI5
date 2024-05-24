@@ -49,6 +49,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !onphoto      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS bwip_js
       IMPORTING
         !bcid         TYPE clike OPTIONAL
@@ -90,16 +91,17 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS info_frontend
       IMPORTING
-        !finished          TYPE clike OPTIONAL
-        !ui5_version       TYPE any OPTIONAL
-        !ui5_gav           TYPE any OPTIONAL
-        !ui5_theme         TYPE any OPTIONAL
-        !device_os         TYPE any OPTIONAL
-        !device_systemtype TYPE any OPTIONAL
-        !device_browser    TYPE any OPTIONAL
+        !finished              TYPE clike OPTIONAL
+        !ui5_version           TYPE clike OPTIONAL
+        !ui5_gav               TYPE clike OPTIONAL
+        !ui5_theme             TYPE clike OPTIONAL
+        !device_os             TYPE clike OPTIONAL
+        !device_systemtype     TYPE clike OPTIONAL
+        !device_browser        TYPE clike OPTIONAL
+        !device_system_desktop TYPE clike OPTIONAL
           PREFERRED PARAMETER finished
       RETURNING
-        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS spreadsheet_export
       IMPORTING
@@ -125,7 +127,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
         !checkdirectupload TYPE clike OPTIONAL
         !filetype          TYPE clike OPTIONAL
         !icon              TYPE clike OPTIONAL
-        !ENABLED           TYPE clike OPTIONAL
+        !enabled           TYPE clike OPTIONAL
       RETURNING
         VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
@@ -195,13 +197,13 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS approve_popover
       IMPORTING
-        !placement TYPE clike OPTIONAL
-        !class     TYPE clike OPTIONAL
-        !text      TYPE clike OPTIONAL
-        !btn_txt   TYPE clike OPTIONAL
-        !btn_type  TYPE clike OPTIONAL
-        !btn_icon  TYPE clike OPTIONAL
-        !btn_event TYPE clike OPTIONAL
+        !placement    TYPE clike OPTIONAL
+        !class        TYPE clike OPTIONAL
+        !text         TYPE clike OPTIONAL
+        !btn_txt      TYPE clike OPTIONAL
+        !btn_type     TYPE clike OPTIONAL
+        !btn_icon     TYPE clike OPTIONAL
+        !btn_event    TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
@@ -215,7 +217,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
 
   METHOD approve_popover.
@@ -385,6 +387,7 @@ CLASS Z2UI5_CL_XML_VIEW_CC IMPLEMENTATION.
                                 ( n = `device_os`  v = device_os )
                                 ( n = `device_systemtype`  v = device_systemtype )
                                 ( n = `device_browser`  v = device_browser )
+                                ( n = `device_system_desktop`  v = z2ui5_cl_util=>boolean_abap_2_json( device_system_desktop ) )
               ) ).
 
   ENDMETHOD.
