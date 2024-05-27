@@ -1615,10 +1615,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS filter_group_item
-      IMPORTING !name              TYPE clike
-                label              TYPE clike
-                groupname          TYPE clike
-                visibleinfilterbar TYPE clike DEFAULT 'true'
+      IMPORTING !name              TYPE clike OPTIONAL
+                label              TYPE clike OPTIONAL
+                groupname          TYPE clike OPTIONAL
+                visibleinfilterbar TYPE clike OPTIONAL
+                mandatory          TYPE clike OPTIONAL
+                controlTooltip          TYPE clike OPTIONAL
+                entitySetName          TYPE clike OPTIONAL
+                entityTypeName          TYPE clike OPTIONAL
+                groupTitle          TYPE clike OPTIONAL
+                hiddenFilter          TYPE clike OPTIONAL
+                labelTooltip          TYPE clike OPTIONAL
+                visible          TYPE clike OPTIONAL
+                change          TYPE clike OPTIONAL
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS filter_control
@@ -5295,7 +5304,18 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                        t_prop = VALUE #( ( n = 'name'                v  = name )
                                          ( n = 'label'               v  = label )
                                          ( n = 'groupName'           v  = groupname )
-                                         ( n = 'visibleInFilterBar'  v  = visibleinfilterbar ) ) ).
+                                         ( n = 'controlTooltip'           v  = controlTooltip )
+                                         ( n = 'entitySetName'           v  = entitySetName )
+                                         ( n = 'entityTypeName'           v  = entityTypeName )
+                                         ( n = 'groupTitle'           v  = groupTitle )
+                                         ( n = 'labelTooltip'           v  = labelTooltip )
+                                         ( n = 'change'           v  = change )
+                                         ( n = 'visibleInFilterBar'  v  = z2ui5_cl_util=>boolean_abap_2_json( visibleInFilterBar ) )
+                                         ( n = 'mandatory'  v  = z2ui5_cl_util=>boolean_abap_2_json( mandatory ) )
+                                         ( n = 'hiddenFilter'  v  = z2ui5_cl_util=>boolean_abap_2_json( hiddenFilter ) )
+                                         ( n = 'visible'  v  = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                       ) ).
+
   ENDMETHOD.
 
 
