@@ -55,12 +55,12 @@
 * Join the Advent of Code 2023 with abap2UI5 [(SCN - 27.11.2023)](https://blogs.sap.com/2023/11/27/preparing-for-advent-of-code-2023/)
 * Featured on SAP Developer News [(youtube - 15.12.2023)](https://www.youtube.com/watch?v=CfH9L03WUCg&t=350s)
 * Highlighted in the Boring Enterprise Nerdcast [(youtube - 29.01.2024)](https://youtu.be/svDZKFBvqR8?t=1050)
-* Running abap2UI5 backend in browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
+* Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
 * Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
   
 #### Apps, Extensions & More
-* Integrate your apps to SAP Fiori On-Premise Launchpad [(ext-fiori_launchpad)](https://github.com/abap2UI5/ext-service_integration)
-* Connect with SAP BTP & SAP Mobile Start [(ext-btp)](https://github.com/abap2UI5/ext-business_technology_platform)
+* Host your apps on the SAP Fiori Launchpad [(connect-lp)](https://github.com/abap2UI5-connector_sap_fiori_launchpad)
+* Host your apps on the SAP BTP with Build Workzone & Mobile Start [(connect-btp)](https://github.com/abap2UI5/abap2UI5-connector_sap_btp)
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
