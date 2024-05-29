@@ -61,10 +61,10 @@
 #### Apps, Extensions & More
 * Host your apps on SAP Fiori Launchpads [(connect-lp)](https://github.com/abap2UI5/abap2UI5-connector_sap_fiori_launchpad)
 * Host your apps on SAP BTP with Build Workzone & Mobile Start [(connect-btp)](https://github.com/abap2UI5/abap2UI5-connector_sap_btp)
-* Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
-* Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
+* Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
+* Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
 * And don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
   
 #### Credits
@@ -125,7 +125,7 @@ CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_app.
-    DATA quantity TYPE string.
+    DATA name TYPE string.
 
 ENDCLASS.
 
@@ -134,17 +134,17 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
   METHOD z2ui5_if_app~main.
 
     CASE client->get( )-event.
-      WHEN 'BUTTON_POST'.
-        client->message_toast_display( |{ quantity } Product ABC - send to the server| ).
+      WHEN 'POST'.
+        client->message_toast_display( |Your name is { quantity }.| ).
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory(
       )->page( 'abap2UI5 - Hello World App'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
-            )->label( 'Product-ABC'
-            )->input( client->_bind_edit( quantity )
-            )->button( text = 'post' press = client->_event( 'BUTTON_POST' )
+            )->label( 'What is your name?'
+            )->input( client->_bind_edit( name )
+            )->button( text = 'post' press = client->_event( 'POST' )
       )->stringify( ) ).
 
   ENDMETHOD.
