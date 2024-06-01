@@ -16,7 +16,7 @@
 <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 </p>
 
-| :point_up:    | [Hey are you already following the new abap2UI5 project page on LinkedIn?](https://www.linkedin.com/company/abap2ui5) |
+| :point_up:    | [Hey! Are you already following the new abap2UI5 project page on LinkedIn?](https://www.linkedin.com/company/abap2ui5) |
 |---------------|:----------------------------------------|
 
 *...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
