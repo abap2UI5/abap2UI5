@@ -9,6 +9,14 @@ Legend
 - : removed
 
 
+2024-06-01 v1.129.0
+-------------------
+
+* Added new Attributes for FilterGroupItem Control
+* Added new Attributes for VariantManagement Control
+* Fixed Issues with Data Model & Binding Logic
++ Addressed Fixes for SAP Fiori Launchpad Integration
+
 2024-05-20 v1.128.0
 -------------------
 
