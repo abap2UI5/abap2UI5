@@ -39,7 +39,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
 
 
   METHOD factory.
@@ -205,17 +205,10 @@ CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
                         href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
 
     simple_form2->label( ).
-    simple_form2->link( text   = `News on Twitter`
+    simple_form2->link( text   = `Follow abap2UI5 on Linkedin`
                         target = `_blank`
-                        href   = `https://twitter.com/abap2UI5` ).
+                        href   = `https://www.linkedin.com/company/abap2ui5` ).
 
-    simple_form2->label( `` ).
-    simple_form2->text( `` ).
-
-    simple_form2->label( `Feedback` ).
-    simple_form2->link( text   = `Contact`
-                        target = `_blank`
-                        href   =  `https://github.com/oblomov-dev` ).
 
     client->view_display( page2->stringify( ) ).
 
