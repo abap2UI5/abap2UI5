@@ -92,7 +92,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
     ).
 
  page2->message_strip(
-   text = `Hey! Are you already following the new abap2UI5 page on LinkedIn?`
+   `Hey! Are you already following the new abap2UI5 page on LinkedIn?`
      )->get( )->link( )->link( text = ` Check it out here...` href = `https://www.linkedin.com/company/abap2ui5` target = `blank` ).
 
     DATA(simple_form2) = page2->simple_form(
