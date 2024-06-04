@@ -633,7 +633,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `    <script id="sap-ui-bootstrap"`.
 
     LOOP AT lt_config REFERENCE INTO DATA(lr_config).
-      mv_response = mv_response && | { lr_config->n }="{ lr_config->v }"|.
+      mv_response = mv_response && | { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
     mv_response = mv_response &&

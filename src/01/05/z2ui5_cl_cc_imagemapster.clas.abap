@@ -5,6 +5,20 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
 
   PUBLIC SECTION.
     INTERFACES z2ui5_if_ajson_filter.
+
+    TYPES:
+      BEGIN OF ty_render_select_highlight,
+        fill                    TYPE abap_bool,
+        fill_color              TYPE string,
+        fill_opacity(3)         TYPE p DECIMALS 2,
+        stroke                  TYPE abap_bool,
+        stroke_color            TYPE string,
+        stroke_opacity(3)       TYPE p DECIMALS 2,
+        stroke_width(3)         TYPE p DECIMALS 2,
+        fade                    TYPE abap_bool,
+        fade_duration           TYPE i,
+      END OF ty_render_select_highlight.
+
     TYPES:
       BEGIN OF ty_c,
         map_key                 TYPE string,
@@ -39,6 +53,8 @@ CLASS z2ui5_cl_cc_imagemapster DEFINITION
         stroke_color            TYPE string,
         stroke_opacity(3)       TYPE p DECIMALS 2,
         stroke_width(3)         TYPE p DECIMALS 2,
+        render_highlight        TYPE ty_render_select_highlight,
+        render_select           TYPE ty_render_select_highlight,
       END OF ty_c.
 
     CLASS-METHODS get_js_local
@@ -3311,6 +3327,16 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
       ENDTRY.
     ENDIF.
 
+    FIND 'renderHighlight' IN json_config.
+    IF sy-subrc = 0.
+      REPLACE 'renderHighlight' IN json_config WITH 'render_highlight'.
+    ENDIF.
+
+    FIND 'renderSelect' IN json_config.
+    IF sy-subrc = 0.
+      REPLACE 'renderSelect' IN json_config WITH 'render_select'.
+    ENDIF.
+
     imagemapster_config = `` &&
       ` var resizeTime = 100;` &&
       ` var resizeDelay = 100;    ` &&
@@ -3380,7 +3406,19 @@ CLASS Z2UI5_CL_CC_IMAGEMAPSTER IMPLEMENTATION.
 
         CASE is_node-type.
           WHEN z2ui5_if_ajson_types=>node_type-boolean.
-            IF is_node-name = `is_selectable`.
+            IF is_node-name = `is_selectable`
+              OR is_node-name = `is_deselectable`
+              OR is_node-name = `is_mask`
+              OR is_node-name = `selected`
+              OR is_node-name = `show_tool_tip:`
+              OR is_node-name = `static_state`
+              OR is_node-name = `fade`
+              OR is_node-name = `scale_map:`
+              OR is_node-name = `no_href_is_mask:`
+              OR is_node-name = `sort_list`
+              OR is_node-name = `single_select`
+              OR is_node-name = `click_navigate`
+              OR is_node-name = `highlight`.
               RETURN.
             ENDIF.
             IF is_node-value = `false`.
