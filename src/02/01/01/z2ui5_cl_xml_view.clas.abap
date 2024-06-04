@@ -1974,12 +1974,19 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING !id                    TYPE clike     OPTIONAL
                 items                  TYPE clike     OPTIONAL
                 headertext             TYPE clike     OPTIONAL
+                headerLevel            TYPE clike     OPTIONAL
                 footertext             TYPE clike     OPTIONAL
                 !mode                  TYPE clike     OPTIONAL
                 includeiteminselection TYPE abap_bool OPTIONAL
                 inset                  TYPE abap_bool OPTIONAL
                 !width                 TYPE clike     OPTIONAL
                 toggleopenstate        TYPE clike     OPTIONAL
+                selectionchange        TYPE clike     OPTIONAL
+                itempress              TYPE clike     OPTIONAL
+                select                 TYPE clike     OPTIONAL
+                multiSelectMode        TYPE clike     OPTIONAL
+                noDataText             TYPE clike     OPTIONAL
+                showNoData             TYPE clike     OPTIONAL
       RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS standard_tree_item
@@ -3239,6 +3246,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !width           TYPE clike OPTIONAL
                 !id              TYPE clike OPTIONAL
                 !scroll          TYPE clike OPTIONAL
+                !snapToRow       TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dependents
@@ -3747,6 +3755,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS action_buttons
+      IMPORTING
+        !ns           TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS action_button
@@ -3977,6 +3987,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
         afterShapeLoaded       TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS tile_info
+      IMPORTING
+        id       TYPE clike OPTIONAL
+        class       TYPE clike OPTIONAL
+        backgroundColor       TYPE clike OPTIONAL
+        borderColor       TYPE clike OPTIONAL
+        src       TYPE clike OPTIONAL
+        text       TYPE clike OPTIONAL
+        textColor       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS badge
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -4016,7 +4040,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
   METHOD action_buttons.
     result = _generic( name = `actionButtons`
-                       ns   = `networkgraph` ).
+                       ns   = SWITCH #( ns WHEN '' THEN `networkgraph` ELSE ns ) ).
   ENDMETHOD.
 
 
@@ -4121,6 +4145,11 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD axis_time_strategy.
     result = _generic( name = `axisTimeStrategy`
                        ns   = `gantt` ).
+  ENDMETHOD.
+
+
+  METHOD badge.
+    result = _generic( `badge` ).
   ENDMETHOD.
 
 
@@ -5687,6 +5716,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                    ( n = `showDividers` v = z2ui5_cl_util=>boolean_abap_2_json( showdividers ) )
                                    ( n = `showOverflowItem` v = z2ui5_cl_util=>boolean_abap_2_json( showoverflowitem ) )
                                    ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                   ( n = `snapToRow ` v = z2ui5_cl_util=>boolean_abap_2_json( snapToRow  ) )
                                    ( n = `width` v = width )
                                    ( n = `id` v = id )
                                    ( n = `scroll` v = scroll ) ) ).
@@ -8524,6 +8554,22 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD tile_info.
+    result = _generic(
+                 name   = `TileInfo`
+                 t_prop = VALUE #(
+                     ( n = `id`               v = id )
+                     ( n = `class`               v = class )
+                     ( n = `backgroundColor`            v = backgroundColor )
+                     ( n = `borderColor`       v = borderColor )
+                     ( n = `src`       v = src )
+                     ( n = `text`             v = text )
+                     ( n = `textColor`  v = textColor )
+                   ) ).
+
+  ENDMETHOD.
+
+
   METHOD timeline.
 
     result = _generic(
@@ -8748,8 +8794,17 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                      ( n = `mode`             v = mode )
                      ( n = `toggleOpenState`  v = toggleopenstate )
                      ( n = `width`            v = width )
+                     ( n = `selectionChange`            v = selectionchange )
+                     ( n = `itemPress`            v = itempress )
+                     ( n = `select`            v = select )
+                     ( n = `multiSelectMode`            v = multiSelectMode )
+                     ( n = `noDataText`            v = noDataText )
+                     ( n = `headerLevel`            v = headerLevel )
                      ( n = `includeItemInSelection`  v = z2ui5_cl_util=>boolean_abap_2_json( includeiteminselection ) )
-                     ( n = `inset`  v = z2ui5_cl_util=>boolean_abap_2_json( inset ) ) ) ).
+                     ( n = `showNoData`  v = z2ui5_cl_util=>boolean_abap_2_json( showNoData ) )
+                     ( n = `inset`  v = z2ui5_cl_util=>boolean_abap_2_json( inset ) )
+                   ) ).
+
   ENDMETHOD.
 
 

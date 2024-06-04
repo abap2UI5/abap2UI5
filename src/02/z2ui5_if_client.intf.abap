@@ -97,36 +97,36 @@ INTERFACE z2ui5_if_client
 
   METHODS message_box_display
     IMPORTING
-      text              TYPE string
-      type              TYPE string DEFAULT `information`
-      title             TYPE string OPTIONAL
-      styleclass        TYPE string OPTIONAL
-      onclose           TYPE string OPTIONAL
+      text              TYPE clike
+      type              TYPE clike DEFAULT `information`
+      title             TYPE clike OPTIONAL
+      styleclass        TYPE clike OPTIONAL
+      onclose           TYPE clike OPTIONAL
       actions           TYPE string_table OPTIONAL
-      emphasizedaction  TYPE string OPTIONAL
-      initialfocus      TYPE string OPTIONAL
-      textdirection     TYPE string OPTIONAL
-      icon              TYPE string OPTIONAL
-      details           TYPE string OPTIONAL
+      emphasizedaction  TYPE clike OPTIONAL
+      initialfocus      TYPE clike OPTIONAL
+      textdirection     TYPE clike OPTIONAL
+      icon              TYPE clike OPTIONAL
+      details           TYPE clike OPTIONAL
       closeonnavigation TYPE abap_bool DEFAULT abap_true
     PREFERRED PARAMETER text.
 
   METHODS message_toast_display
     IMPORTING
-      text                     TYPE string
-      duration                 TYPE string OPTIONAL
-      width                    TYPE string OPTIONAL
-      my                       TYPE string OPTIONAL
-      at                       TYPE string OPTIONAL
-      of                       TYPE string OPTIONAL
-      offset                   TYPE string OPTIONAL
-      collision                TYPE string OPTIONAL
-      onclose                  TYPE string DEFAULT ``
+      text                     TYPE clike
+      duration                 TYPE clike OPTIONAL
+      width                    TYPE clike OPTIONAL
+      my                       TYPE clike OPTIONAL
+      at                       TYPE clike OPTIONAL
+      of                       TYPE clike OPTIONAL
+      offset                   TYPE clike OPTIONAL
+      collision                TYPE clike OPTIONAL
+      onclose                  TYPE clike DEFAULT ``
       autoclose                TYPE abap_bool DEFAULT abap_true
-      animationtimingfunction  TYPE string OPTIONAL
-      animationduration        TYPE string OPTIONAL
+      animationtimingfunction  TYPE clike OPTIONAL
+      animationduration        TYPE clike OPTIONAL
       closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-      class                    TYPE string OPTIONAL
+      class                    TYPE clike OPTIONAL
     PREFERRED PARAMETER text.
 
   METHODS _event
