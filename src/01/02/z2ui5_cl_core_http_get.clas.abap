@@ -142,7 +142,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `        async displayPopover(xml, viewProp, openById) {` && |\n| &&
                `          // let sapUiCore = sap.ui.require('sap/ui/core/Core');` && |\n| &&
                `           sap.ui.require(["sap/ui/core/Element"], async function(Element) { ` &&
-    ` debugger;  ` &&
+    `   ` &&
         ` ` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
                `                definition: xml,` && |\n| &&
