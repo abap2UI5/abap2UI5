@@ -75,8 +75,8 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
     result = ` if (!z2ui5.Controller) { ` &&
     `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
-`" ], function(Control` &&
-  `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog ) {` && |\n| &&
+`",   "sap/ui/VersionInfo" ], function(Control` &&
+  `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo ) {` && |\n| &&
                `    "use strict";` && |\n| &&
                `    return Controller.extend("z2ui5.Controller", {` && |\n| &&
                `        async onAfterRendering() {` && |\n| &&
@@ -140,7 +140,10 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                oFragment.open();` && |\n| &&
                `        },` && |\n| &&
                `        async displayPopover(xml, viewProp, openById) {` && |\n| &&
-               `            let sapUiCore = sap.ui.require('sap/ui/core/Core');` && |\n| &&
+               `          // let sapUiCore = sap.ui.require('sap/ui/core/Core');` && |\n| &&
+               `           sap.ui.require(["sap/ui/core/Element"], async function(Element) { ` &&
+    `   ` &&
+        ` ` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
                `                definition: xml,` && |\n| &&
                `                controller: sap.z2ui5.oControllerPopover,` && |\n| &&
@@ -161,14 +164,15 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            } else if ( sap.z2ui5.oViewNest2?.byId(openById) ) {` && |\n| &&
                `              oControl = sap.z2ui5.oViewNest2.byId(openById);` && |\n| &&
                `            } else {` && |\n| &&
-               `                if(sapUiCore.byId(openById)) {` && |\n| &&
-               `                  oControl = sapUiCore.byId(openById);` && |\n| &&
+               `               if(sapUiCore.byId(openById)) {` && |\n| &&
+               `               //   oControl = sapUiCore.byId(openById);` && |\n| &&
+               `                  oControl = Element.getElementById(openById);` && |\n| &&
                `                } else {` && |\n| &&
                `                  oControl = null;` && |\n| &&
                `                };` && |\n| &&
                `            }` && |\n| &&
                `             oFragment.openBy(oControl);` && |\n| &&
-               `        },` && |\n| &&
+               `       }); },` && |\n| &&
                `        async displayNestedView(xml, viewProp, viewNestId) {` && |\n| &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            const oView = await XMLView.create({` && |\n| &&
@@ -423,8 +427,10 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `           }catch(e){BusyIndicator.hide(); if(e.message.includes("openui5")) { if(e.message.includes("script load error")) { sap.z2ui5.oController.checkSDKcompatibility(e) } } else { ` && |\n| &&
                `             MessageBox.error(e.toLocaleString()); } }` && |\n| &&
                `        },` && |\n| &&
-               `        checkSDKcompatibility(err) {` && |\n| &&
-               `          var ui5_sdk = sap.ui.getVersionInfo().gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
+               `       async checkSDKcompatibility(err) {` && |\n| &&
+               `          let oCurrentVersionInfo = await VersionInfo.load();` && |\n| &&
+               `          var ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
+*               `        //  var ui5_sdk = sap.ui.getVersionInfo().gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
                `          if(!ui5_sdk) {` && |\n| &&
                `            if(err) {` && |\n| &&
                `              MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5" );` && |\n| &&
