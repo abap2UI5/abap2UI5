@@ -37,15 +37,15 @@ CLASS z2ui5_cl_cc_focus IMPLEMENTATION.
              |\n| &&
              `      init() {` && |\n| &&
              `      },` && |\n| &&
-             `      setFocusId(val) {` && |\n| &&
-             `      if ( sap.z2ui5.oView ){ ` && |\n| &&
-             `      this.setProperty("focusId", val); ` && |\n| &&
-             `              var oElement = sap.z2ui5.oView.byId(val);` && |\n| &&
+             `       setFocusId(val) {` && |\n| &&
+             `    //  if ( sap.z2ui5.oView ){ ` && |\n| &&
+             `    try{   this.setProperty("focusId", val); ` && |\n| &&
+             `           var oElement = sap.z2ui5.oView.byId(val);` && |\n| &&
              `              var oFocus = oElement.getFocusInfo();` && |\n| &&
              `            //  oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));` && |\n| &&
              `            //  oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));` && |\n| &&
-             `              oElement.applyFocusInfo(oFocus);` && |\n| &&
-             `     } },` && |\n| &&
+             `              oElement.applyFocusInfo(oFocus); } catch (e) {}` && |\n| &&
+             `      },` && |\n| &&
              |\n| &&
              `      renderer(oRm, oControl) {` && |\n| &&
              |\n| &&

@@ -13,6 +13,7 @@ CLASS ltcl_test_http_get DEFINITION FINAL FOR TESTING
     METHODS js_no_sap_ui_get_core FOR TESTING RAISING cx_static_check.
     METHODS js_no_window FOR TESTING RAISING cx_static_check.
     METHODS js_no_document FOR TESTING RAISING cx_static_check.
+    METHODS js_2x_compatibility FOR TESTING RAISING cx_static_check.
     METHODS bootstrap_with_open_ui5 FOR TESTING RAISING cx_static_check.
     METHODS js_no_jquery FOR TESTING RAISING cx_static_check.
     METHODS debugging_tools FOR TESTING RAISING cx_static_check.
@@ -75,6 +76,17 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 *    IF lv_index_html CS `SAP.UI.GETCORE`.
 *      cl_abap_unit_assert=>fail( 'sap.ui.get.core not allowed' ).
 *    ENDIF.
+
+  ENDMETHOD.
+
+
+  METHOD js_2x_compatibility.
+
+    DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
+    DATA(lv_index_html) = to_upper( lo_get->main( ) ) ##NEEDED.
+    IF lv_index_html CS `SAP.UI.GETVERSIONINFO`.
+      cl_abap_unit_assert=>fail( 'SAP.UI.GETVERSIONINFO not allowed' ).
+    ENDIF.
 
   ENDMETHOD.
 
