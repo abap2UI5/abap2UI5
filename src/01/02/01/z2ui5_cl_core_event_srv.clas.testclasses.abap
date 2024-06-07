@@ -19,7 +19,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_event
-      exp = `eB(['POST'])` ).
+      exp = `.eB(['POST'])` ).
 
   ENDMETHOD.
 
@@ -30,7 +30,7 @@ CLASS ltcl_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = lv_event
-      exp = `eF('POPOVER_CLOSE')` ).
+      exp = `.eF('POPOVER_CLOSE')` ).
 
   ENDMETHOD.
 ENDCLASS.

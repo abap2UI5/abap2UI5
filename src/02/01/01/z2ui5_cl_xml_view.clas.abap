@@ -904,22 +904,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS vbox
-      IMPORTING !id              TYPE clike OPTIONAL
-                height           TYPE clike OPTIONAL
-                justifycontent   TYPE clike OPTIONAL
-                !class           TYPE clike OPTIONAL
-                rendertype       TYPE clike OPTIONAL
-                aligncontent     TYPE clike OPTIONAL
-                direction        TYPE clike OPTIONAL
-                alignitems       TYPE clike OPTIONAL
-                !width           TYPE clike OPTIONAL
-                !wrap            TYPE clike OPTIONAL
-                backgrounddesign TYPE clike OPTIONAL
-                displayinline    TYPE clike OPTIONAL
-                fitcontainer     TYPE clike OPTIONAL
-                !visible         TYPE clike OPTIONAL
-                  PREFERRED PARAMETER class
-      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING
+        !id              TYPE clike OPTIONAL
+        height           TYPE clike OPTIONAL
+        justifycontent   TYPE clike OPTIONAL
+        !class           TYPE clike OPTIONAL
+        rendertype       TYPE clike OPTIONAL
+        aligncontent     TYPE clike OPTIONAL
+        direction        TYPE clike OPTIONAL
+        alignitems       TYPE clike OPTIONAL
+        !width           TYPE clike OPTIONAL
+        !wrap            TYPE clike OPTIONAL
+        backgrounddesign TYPE clike OPTIONAL
+        displayinline    TYPE clike OPTIONAL
+        fitcontainer     TYPE clike OPTIONAL
+        !visible         TYPE clike OPTIONAL
+          PREFERRED PARAMETER class
+      RETURNING
+        VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS hbox
       IMPORTING !id              TYPE clike OPTIONAL
@@ -9513,6 +9515,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = NEW #( me ).
 
   ENDMETHOD.
+
   METHOD p_cell_selector.
 
     result = me.
