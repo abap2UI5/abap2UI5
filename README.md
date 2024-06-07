@@ -41,7 +41,7 @@
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
 
-#### Information (Blog Series)
+#### Know-How I: Introduction, Development, Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
 2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
 3. Popups, F4-Help, Messages & Controller Logic [(SCN - 30.03.2023)](https://blogs.sap.com/2023/03/30/abap2ui5-3-4-flow-logic-pop-ups-f4-help/)<br>
@@ -54,6 +54,11 @@
 10. Extensions I: Exploring External Libraries & Native Device Capabilities [(SCN - 04.12.2023)](https://blogs.sap.com/2023/12/04/abap2ui5-a3-extensions-i-exploring-external-libraries-native-device-capabilities/)<br>
 11. Extensions II: Guideline for Developing New Features in JavaScript [(SCN - 11.12.2023)](https://blogs.sap.com/2023/12/11/abap2ui5-a4-extensions-ii-guideline-for-developing-new-features-in-javascript/)<br>
 12. Update II: Community Feedback, New Features & Outlook – Jan. 2024 [(SCN - 08.01.2024)](https://blogs.sap.com/2024/01/08/abap2ui5-12-update-ii-community-feedback-new-features-outlook-january-2024/)<br>
+
+#### Know-How II: SAP Fiori Launchpad Integration
+1. Installation & Configrations [(LinkedIn - 03.06.2024)](https://www.linkedin.com/pulse/copy-abap2ui5-host-your-apps-sap-fiori-launchpad-abap2ui5-ocn2e/?trackingId=Eot1XiIJHbM2a2ebDSF3dg%3D%3D&lipi=urn%3Ali%3Apage%3Ad_flagship3_pulse_read%3B4FqT5lkFQBioKDKsj%2F3ZTw%3D%3D)<br>
+2. Features - Title, Parameters, Navigation [(LinkedIn - 06.06.2024)](https://www.linkedin.com/pulse/abap2ui5-host-your-apps-sap-fiori-launchpad-23-features-abap2ui5-upche/?trackingId=WdScbzEUGgKY%2FS2Ibiy5fA%3D%3D&lipi=urn%3Ali%3Apage%3Ad_flagship3_pulse_read%3B4FqT5lkFQBioKDKsj%2F3ZTw%3D%3D)<br>
+3. Integration of KPIs [(LinkedIn - 07.06.2024)](https://www.linkedin.com/pulse/abap2ui5-host-your-apps-sap-fiori-launchpad-33-kpis-abap2ui5-uuxxe/?trackingId=RedZMaZUkHn%2Bv6oSTwtVQw%3D%3D&lipi=urn%3Ali%3Apage%3Ad_flagship3_pulse_read%3B4FqT5lkFQBioKDKsj%2F3ZTw%3D%3D)<br>
 
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
