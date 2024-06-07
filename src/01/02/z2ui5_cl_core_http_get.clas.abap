@@ -53,6 +53,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
     result = VALUE #(
         (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+*        (  n = `src`                       v = `https://ui5.sap.com/1.124.0/resources/sap-ui-core.js` )
         (  n = `data-sap-ui-theme`         v = `sap_horizon` )
         (  n = `data-sap-ui-async`         v = `true` )
         (  n = `data-sap-ui-bindingSyntax` v = `complex` )
