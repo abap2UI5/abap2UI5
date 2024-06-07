@@ -139,7 +139,7 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
       lr_ref = ir_attri->r_ref.
     ENDIF.
 
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( lr_ref ).
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( lr_ref ).
 
     LOOP AT lt_attri INTO DATA(ls_attri).
       DATA(ls_new) = create_new_entry( lv_name && ls_attri-name ).

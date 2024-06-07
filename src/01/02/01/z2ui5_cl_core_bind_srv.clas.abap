@@ -76,7 +76,7 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
     ASSIGN ms_config-tab->* TO <tab>.
     ASSIGN <tab>[ ms_config-tab_index ] TO <row>.
 
-    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ms_config-tab ).
+    DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_config-tab ).
     LOOP AT lt_attri ASSIGNING FIELD-SYMBOL(<comp>).
 
       ASSIGN COMPONENT <comp>-name OF STRUCTURE <row> TO <ele>.

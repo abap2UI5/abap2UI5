@@ -264,7 +264,7 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE abap_attrdescr_tab.
 
-    CLASS-METHODS rtti_get_t_attri_by_struc
+    CLASS-METHODS rtti_get_t_attri_by_any
       IMPORTING
         !val          TYPE any
       RETURNING
@@ -367,8 +367,6 @@ CLASS z2ui5_cl_util_api DEFINITION
         VALUE(result) TYPE string.
 
     CLASS-METHODS check_raise_srtti_installed.
-
-
 
     CLASS-METHODS get_comps_by_data
       IMPORTING !data         TYPE REF TO data
@@ -506,7 +504,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD filter_get_multi_by_data.
 
-    LOOP AT rtti_get_t_attri_by_struc( val ) REFERENCE INTO DATA(lr_comp).
+    LOOP AT rtti_get_t_attri_by_any( val ) REFERENCE INTO DATA(lr_comp).
       INSERT VALUE #( name = lr_comp->name ) INTO TABLE result.
     ENDLOOP.
 
@@ -833,7 +831,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rtti_get_t_attri_by_struc.
+  METHOD rtti_get_t_attri_by_any.
 
     TRY.
         DATA(lo_type) = cl_abap_typedescr=>describe_by_data( val ).
@@ -1208,66 +1206,57 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD get_comps_by_data.
 
-    TRY.
-        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( data->* ).
-
-        CASE typedesc->kind.
-
-          WHEN cl_abap_typedescr=>kind_table.
-
-            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
-            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
-
-          WHEN cl_abap_typedescr=>kind_struct.
-
-            structdesc = CAST cl_abap_structdescr( typedesc ).
-
-          WHEN OTHERS.
-        ENDCASE.
-
-        DATA(comp) = structdesc->get_components( ).
-
-        LOOP AT comp INTO DATA(com).
-
-          IF com-as_include = abap_true.
-
-            APPEND LINES OF get_comp_by_struc( com-type ) TO result.
-
-          ELSE.
-
-            APPEND com TO result.
-
-          ENDIF.
-
-        ENDLOOP.
-
-      CATCH cx_root.
-    ENDTRY.
+*    TRY.
+*        FIELD-SYMBOLS <any> type any.
+*        ASSign data->* to <any>.
+*        DATA(typedesc) = cl_abap_typedescr=>describe_by_data( data->* ).
+*
+*        CASE typedesc->kind.
+*
+*          WHEN cl_abap_typedescr=>kind_table.
+*
+*            DATA(tabledesc) = CAST cl_abap_tabledescr( typedesc ).
+*            DATA(structdesc) = CAST cl_abap_structdescr( tabledesc->get_table_line_type( ) ).
+*
+*          WHEN cl_abap_typedescr=>kind_struct.
+*
+*            structdesc = CAST cl_abap_structdescr( typedesc ).
+*
+*          WHEN OTHERS.
+*        ENDCASE.
+*
+*        DATA(comp) = structdesc->get_components( ).
+*
+*        LOOP AT comp INTO DATA(com).
+*
+*          IF com-as_include = abap_true.
+*            APPEND LINES OF get_comp_by_struc( com-type ) TO result.
+*          ELSE.
+*            APPEND com TO result.
+*          ENDIF.
+*
+*        ENDLOOP.
+*
+*      CATCH cx_root.
+*    ENDTRY.
 
   ENDMETHOD.
 
 
   METHOD get_comp_by_struc.
 
-    DATA struc TYPE REF TO cl_abap_structdescr.
-
-    struc ?= type.
-
-    DATA(comp) = struc->get_components( ).
-
-    LOOP AT comp INTO DATA(com).
-
-      IF com-as_include = abap_true.
-
-        APPEND LINES OF get_comp_by_struc( com-type ) TO result.
-
-      ELSE.
-
-        APPEND com TO result.
-
-      ENDIF.
-
-    ENDLOOP.
+*    DATA struc TYPE REF TO cl_abap_structdescr.
+*    struc ?= type.
+*    DATA(comp) = struc->get_components( ).
+*    LOOP AT comp INTO DATA(com).
+*
+*      IF com-as_include = abap_true.
+*        APPEND LINES OF get_comp_by_struc( com-type ) TO result.
+*      ELSE.
+*        APPEND com TO result.
+*      ENDIF.
+*
+*    ENDLOOP.
 
   ENDMETHOD.
 
