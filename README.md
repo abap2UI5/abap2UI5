@@ -73,7 +73,6 @@
 * Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
   
 #### Apps, Extensions & More
-* Host your apps on SAP Fiori Launchpads [(connect-lp)](https://github.com/abap2UI5/abap2UI5-connector_sap_fiori_launchpad)
 * Host your apps on SAP BTP with Build Workzone & Mobile Start [(connect-btp)](https://github.com/abap2UI5/abap2UI5-connector_sap_btp)
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
