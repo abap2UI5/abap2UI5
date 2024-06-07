@@ -286,7 +286,7 @@ CLASS z2ui5_cl_pop_layout IMPLEMENTATION.
 
     " create the tab first if the db fields were added/deleted
 
-    DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_struc( tab ).
+    DATA(t_comp)   = z2ui5_cl_util=>rtti_get_t_attri_by_any( tab ).
     DATA(tab_name) = z2ui5_cl_util=>rtti_tab_get_relative_name( tab ).
     IF tab_name IS INITIAL.
       tab_name = classname.
@@ -495,7 +495,7 @@ CLASS z2ui5_cl_pop_layout IMPLEMENTATION.
     DATA(list) = tab->column_list_item(  ).
     DATA(cells) = list->cells( ).
     DATA(columns) = tab->columns( ).
-    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_struc( ms_layout-t_layout ).
+    DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_layout-t_layout ).
 
     LOOP AT lt_comp REFERENCE INTO DATA(comp).
 
