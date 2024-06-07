@@ -370,11 +370,11 @@ CLASS z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS get_comps_by_data
       IMPORTING !data         TYPE REF TO data
-      RETURNING VALUE(result) TYPE abap_component_tab.
+      RETURNING VALUE(result) TYPE abap_component_tab ##needed.
 
     CLASS-METHODS get_comp_by_struc
       IMPORTING !type         TYPE REF TO cl_abap_datadescr
-      RETURNING VALUE(result) TYPE abap_component_tab.
+      RETURNING VALUE(result) TYPE abap_component_tab ##needed.
 
   PROTECTED SECTION.
   PRIVATE SECTION.
