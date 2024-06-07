@@ -74,6 +74,8 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
 
   METHOD get_js.
 
+    DATA(lv_two_way_model) = z2ui5_if_core_types=>cs_ui5-two_way_model.
+
     result = ` if (!z2ui5.Controller) { ` &&
     `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
 `",   "sap/ui/VersionInfo" ], function(Control` &&
@@ -337,29 +339,29 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `             BusyIndicator.show();` && |\n| &&
                `            sap.z2ui5.oBody = {};` && |\n| &&
                `            if ( args[0][3] ) {` && |\n| &&
-               `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n| &&
+               `                sap.z2ui5.oBody.` && lv_two_way_model && ` = sap.z2ui5.oView.getModel().getData().` && lv_two_way_model && `;` && |\n| &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `            }` && |\n| &&
                `            else if ( sap.z2ui5.oController == this ) {` && |\n| &&
-               `                sap.z2ui5.oBody.XX = sap.z2ui5.oView.getModel().getData().XX;` && |\n| &&
+               `                sap.z2ui5.oBody.` && lv_two_way_model && ` = sap.z2ui5.oView.getModel().getData().` && lv_two_way_model && `;` && |\n| &&
                `                sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `            }else if ` && |\n| &&
                `               (  sap.z2ui5.oControllerPopup == this ) {` && |\n| &&
                `                    if (sap.z2ui5.oViewPopup){` && |\n| &&
-               `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopup.getModel().getData().XX;` && |\n| &&
+               `                    sap.z2ui5.oBody.` && lv_two_way_model && ` = sap.z2ui5.oViewPopup.getModel().getData().` && lv_two_way_model && `;` && |\n| &&
                `                   }` && |\n| &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `                }else if ( ` && |\n| &&
                `                sap.z2ui5.oControllerPopover == this ) {` && |\n| &&
-               `                            sap.z2ui5.oBody.XX = sap.z2ui5.oViewPopover.getModel().getData().XX;` && |\n| &&
+               `                            sap.z2ui5.oBody.` && lv_two_way_model && ` = sap.z2ui5.oViewPopover.getModel().getData().` && lv_two_way_model && `;` && |\n| &&
                `                            sap.z2ui5.oBody.VIEWNAME = 'MAIN';` && |\n| &&
                `                }else if ( ` && |\n| &&
                `                sap.z2ui5.oControllerNest == this ) {` && |\n| &&
-               `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewNest.getModel().getData().XX;` && |\n| &&
+               `                    sap.z2ui5.oBody.` && lv_two_way_model && ` = sap.z2ui5.oViewNest.getModel().getData().` && lv_two_way_model && `;` && |\n| &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'NEST';` && |\n| &&
                `                }else if (` && |\n| &&
                `                sap.z2ui5.oControllerNest2 == this ) {` && |\n| &&
-               `                    sap.z2ui5.oBody.XX = sap.z2ui5.oViewNest2.getModel().getData().XX;` && |\n| &&
+               `                    sap.z2ui5.oBody.` && lv_two_way_model && ` = sap.z2ui5.oViewNest2.getModel().getData().` && lv_two_way_model && `;` && |\n| &&
                `                    sap.z2ui5.oBody.VIEWNAME = 'NEST2';` && |\n| &&
                `                }` && |\n| &&
                `            sap.z2ui5.onBeforeRoundtrip.forEach(item=>{` && |\n| &&
@@ -531,7 +533,7 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                ID: sap.z2ui5?.oBody?.ID,` && |\n| &&
                `                COMPDATA: (sap.z2ui5.ComponentData) ? sap.z2ui5.ComponentData : {} ,` && |\n| &&
 *               `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n| &&
-               `                XX: sap.z2ui5?.oBody?.XX,` && |\n| &&
+               `                ` && lv_two_way_model && `: sap.z2ui5?.oBody?.` && lv_two_way_model && `,` && |\n| &&
                `                ORIGIN: window.location.origin,` && |\n| &&
                `                PATHNAME: window.location.pathname, // sap.z2ui5.pathname,` && |\n| &&
                `                SEARCH: (sap.z2ui5.search) ?  sap.z2ui5.search : window.location.search,` && |\n| &&
@@ -544,13 +546,13 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            delete sap.z2ui5.oBody.ID;` && |\n| &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n| &&
 *               `            delete sap.z2ui5.oBody?.APP_START;` && |\n| &&
-               `            delete sap.z2ui5.oBody?.S_FRONT.XX;` && |\n| &&
+               `            delete sap.z2ui5.oBody?.S_FRONT.` && lv_two_way_model && `;` && |\n| &&
                `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n| &&
               `            if  (!sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } ` && |\n| &&
               `            if  (sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { if (sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0 ) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } }` && |\n| &&
               `            if  (sap.z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) { delete sap.z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS; } ` && |\n| &&
               `            if ( sap.z2ui5.oBody.S_FRONT.SEARCH == '' ){ delete sap.z2ui5.oBody.S_FRONT.SEARCH; } ` && |\n| &&
-              `            if (!sap.z2ui5.oBody.XX){ delete sap.z2ui5.oBody.XX; } ` && |\n| &&
+              `            if (!sap.z2ui5.oBody.` && lv_two_way_model && `){ delete sap.z2ui5.oBody.` && lv_two_way_model && `; } ` && |\n| &&
                `           sap.z2ui5.oController.readHttp();` && |\n| &&
                `        },` && |\n| &&
                `    })` && |\n| &&
