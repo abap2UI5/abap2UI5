@@ -3604,6 +3604,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !visible           TYPE clike OPTIONAL
                 activate           TYPE clike OPTIONAL
                 complete           TYPE clike OPTIONAL
+                subsequentSteps    TYPE clike OPTIONAL
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS template_repeat
@@ -9367,7 +9368,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            (  n = `validated`            v = z2ui5_cl_util=>boolean_abap_2_json( validated ) )
                            (  n = `visible`              v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                            (  n = `activate`             v = activate )
-                           (  n = `complete`             v = complete ) ) ).
+                          (  n = `complete`             v = complete )
+                          (  n = `nextStep`             v = nextStep )
+                          (  n = `subsequentSteps`      v = subsequentSteps ) ) ).
   ENDMETHOD.
 
 
