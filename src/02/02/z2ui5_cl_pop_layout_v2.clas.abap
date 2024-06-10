@@ -570,7 +570,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       " if structure was changed we do not want any dead entries ...
       LOOP AT t_heads INTO DATA(s_head).
-        DELETE FROM z2ui5_t004 WHERE guid = s_head-guid.
+        DELETE FROM z2ui5_t004 WHERE guid = @s_head-guid.
       ENDLOOP.
 
       COMMIT WORK AND WAIT.
