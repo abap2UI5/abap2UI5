@@ -3605,6 +3605,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 activate           TYPE clike OPTIONAL
                 complete           TYPE clike OPTIONAL
                 subsequentSteps    TYPE clike OPTIONAL
+                nextStep           TYPE clike OPTIONAL
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS template_repeat
