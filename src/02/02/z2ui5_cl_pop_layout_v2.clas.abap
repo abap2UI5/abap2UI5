@@ -208,7 +208,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       ENDCASE.
 
-      client->view_model_update( ).
+      client->popup_model_update( ).
 
     ENDIF.
 
@@ -531,7 +531,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       DATA(user) = sy-uname.
     ENDIF.
 
-    DATA(Head) = VALUE z2ui5_t003( layout   = mv_layout
+    DATA(Head) = VALUE z2ui5_t003( guid     = ms_layout-s_head-guid
+                                   layout   = mv_layout
                                    control  = ms_layout-s_head-control
                                    handle01 = ms_layout-s_head-handle01
                                    handle02 = ms_layout-s_head-handle02
@@ -544,8 +545,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     LOOP AT ms_layout-t_layout INTO DATA(layout).
 
       CLEAR line.
-      line = CORRESPONDING #( layout ).
+
       line = CORRESPONDING #( ms_layout-s_head ).
+      line = CORRESPONDING #( layout ).
       line-layout = mv_layout.
 
       line-width  = check_width_unit( line-width ).
@@ -555,30 +557,44 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     ENDLOOP.
 
     " Does a matching Layout exist?
-    SELECT mandt,
-           guid,
-           layout,
-           control,
-           handle01,
-           handle02,
-           handle03,
-           handle04,
-           descr,
-           def,
-           uname
-      FROM z2ui5_t003
+    SELECT guid FROM z2ui5_t003
       WHERE layout   = @Head-layout
         AND control  = @Head-control
         AND handle01 = @Head-handle01
         AND handle02 = @Head-handle02
         AND handle03 = @Head-handle03
         AND handle04 = @Head-handle04
-      INTO TABLE @DATA(t_guids).
+      INTO TABLE @DATA(t_heads).
 
     IF sy-subrc = 0.
+
       " if structure was changed we do not want any dead entries ...
-      DELETE z2ui5_t004 FROM TABLE @t_guids.
+      LOOP AT t_heads INTO DATA(s_head).
+        DELETE FROM z2ui5_t004 WHERE guid = s_head-guid.
+      ENDLOOP.
+
       COMMIT WORK AND WAIT.
+    ELSE.
+
+      " guid already taken
+      SELECT guid FROM z2ui5_t003
+        WHERE guid = @head-guid
+        INTO TABLE @t_heads.
+
+      IF sy-subrc = 0.
+        " Layout changed and saved under new name -> new Guid needed
+        TRY.
+            Head-guid = cl_system_uuid=>create_uuid_c32_static( ).
+
+            LOOP AT Positions REFERENCE INTO DATA(r_pos).
+              r_pos->guid = Head-guid.
+            ENDLOOP.
+
+          CATCH cx_root.
+        ENDTRY.
+
+      ENDIF.
+
     ENDIF.
 
     MODIFY z2ui5_t003 FROM @Head.
@@ -593,6 +609,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         client->message_toast_display( 'Data saved.' ).
 
         ms_layout-s_head = Head.
+
+        clear: ms_layout-t_layout.
 
         LOOP AT positions INTO DATA(pos).
           CLEAR layout.
@@ -741,13 +759,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       WHERE guid = @Head-guid
       INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout  ##SUBRC_OK.
 
-
   ENDMETHOD.
 
   METHOD init_layout.
 
     " create the tab first if the db fields were added/deleted
-*    DATA(t_comp) = z2ui5_cl_util_api=>get_comps_by_data( data ).
     DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_any( data ).
 
     LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
@@ -757,7 +773,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                       handle03 = handle03
                       handle04 = handle04
                       fname    = lr_comp->name
-                      rollname = lr_comp->type->get_relative_name( ) ) INTO TABLE result-t_layout.
+                      rollname = lr_comp->type->get_relative_name( ) )
+             INTO TABLE result-t_layout.
     ENDLOOP.
 
     " Select Layouts
@@ -821,6 +838,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     IF def-layout IS NOT INITIAL.
 
       SELECT guid,
+             pos_guid,
              layout,
              control,
              handle01,
@@ -846,7 +864,14 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
             DATA(pos) = REF #( t_pos[ fname = layout->fname ] ).
             layout->* = CORRESPONDING #( pos->* ).
           CATCH cx_root.
+
+            TRY.
+                DATA(pos_guid) = cl_system_uuid=>create_uuid_c32_static( ).
+              CATCH cx_root.
+            ENDTRY.
+
             layout->guid       = def-guid.
+            layout->pos_guid   = pos_guid.
             layout->layout     = 'Default'.
             layout->control    = control.
             layout->halign     = 'Begin'.
@@ -895,6 +920,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     LOOP AT result-t_layout REFERENCE INTO layout.
 
+      TRY.
+          DATA(pos_guid) = cl_system_uuid=>create_uuid_c32_static( ).
+        CATCH cx_root.
+      ENDTRY.
+
       index = index + 1.
 
       " Default only 10 rows
@@ -910,6 +940,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       ENDIF.
 
       layout->guid       = guid.
+      layout->pos_guid   = pos_guid.
       layout->layout     = 'Default'.
       layout->control    = control.
       layout->halign     = 'Begin'.
@@ -975,16 +1006,16 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     CASE result->get( )-event.
 
       WHEN 'LAYOUT_OPEN'.
-        client->view_destroy( ).
+
         result->nav_app_call( factory( layout      = layout
                                        open_layout = abap_true   ) ).
 
       WHEN 'LAYOUT_EDIT'.
-        client->view_destroy( ).
+
         result->nav_app_call( factory( layout = layout   ) ).
 
       WHEN 'LAYOUT_DELETE'.
-        client->view_destroy( ).
+
         result->nav_app_call( factory( layout        = layout
                                        delete_layout = abap_true ) ).
 
@@ -1060,6 +1091,10 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout->rollname ) )-long.
     ELSE.
       result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout->alternative_text ) )-long.
+    ENDIF.
+
+    IF result IS INITIAL.
+      result = layout->fname.
     ENDIF.
 
   ENDMETHOD.
