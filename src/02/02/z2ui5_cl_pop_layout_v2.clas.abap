@@ -568,12 +568,17 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     IF sy-subrc = 0.
 
-      " if structure was changed we do not want any dead entries ...
-      LOOP AT t_heads INTO DATA(s_head).
-        DELETE FROM z2ui5_t004 WHERE guid = @s_head-guid.
-      ENDLOOP.
+      SELECT mandt, guid, pos_guid FROM z2ui5_t004
+        FOR ALL ENTRIES IN @t_heads
+        WHERE guid = @t_heads-guid
+        INTO TABLE @DATA(t_del).
 
-      COMMIT WORK AND WAIT.
+      IF sy-subrc = 0.
+        " if structure was changed we do not want any dead entries ...
+        DELETE z2ui5_t004 FROM TABLE t_del.
+        COMMIT WORK AND WAIT.
+      ENDIF.
+
     ELSE.
 
       " guid already taken
@@ -610,7 +615,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
         ms_layout-s_head = Head.
 
-        clear ms_layout-t_layout.
+        CLEAR ms_layout-t_layout.
 
         LOOP AT positions INTO DATA(pos).
           CLEAR layout.
