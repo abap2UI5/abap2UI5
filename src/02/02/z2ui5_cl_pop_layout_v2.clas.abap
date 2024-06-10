@@ -610,7 +610,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
         ms_layout-s_head = Head.
 
-        clear: ms_layout-t_layout.
+        clear ms_layout-t_layout.
 
         LOOP AT positions INTO DATA(pos).
           CLEAR layout.
