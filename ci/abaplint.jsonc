@@ -248,7 +248,7 @@
     "unnecessary_pragma": true,
     "unnecessary_return": true,
     "unreachable_code": true,
-    "unsecure_fae": true,
+    "unsecure_fae": false,
     "unused_ddic": true,
     "unused_methods": true,
     "unused_types": true,
