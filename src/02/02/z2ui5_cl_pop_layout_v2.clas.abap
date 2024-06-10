@@ -575,7 +575,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       IF sy-subrc = 0.
         " if structure was changed we do not want any dead entries ...
-        DELETE z2ui5_t004 FROM TABLE t_del.
+        DELETE z2ui5_t004 FROM TABLE @t_del.
         COMMIT WORK AND WAIT.
       ENDIF.
 
