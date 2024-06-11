@@ -386,7 +386,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-)->button( text  = 'Back'
+         )->button( text  = 'Back'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'Save'
@@ -474,8 +474,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     result = xml.
 
-    result->button( icon = 'sap-icon://action-settings'
-                    press      = client->_event( val = 'LAYOUT_EDIT' ) ).
+    result->button( icon  = 'sap-icon://action-settings'
+                    press = client->_event( val = 'LAYOUT_EDIT' ) ).
 
   ENDMETHOD.
 
@@ -681,7 +681,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-)->button( text  = 'Back'
+         )->button( text  = 'Back'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'Delete'
@@ -729,7 +729,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-)->button( text  = 'Back'
+         )->button( text  = 'Back'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'OK'
@@ -1053,10 +1053,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     result = client.
 
-    CASE result->get( )-event.
-      WHEN 'LAYOUT_EDIT'.
-        result->nav_app_call( factory( layout = layout   ) ).
-    ENDCASE.
+    IF result->get( )-event = 'LAYOUT_EDIT'.
+      result->nav_app_call( factory( layout = layout   ) ).
+    ENDIF.
 
   ENDMETHOD.
 
