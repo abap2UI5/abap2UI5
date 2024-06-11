@@ -101,7 +101,6 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `          oControl.setProperty( "ui5_gav" ,  sap.z2ui5.oCurrentVersionInfo.gav  );` && |\n| &&
       `          oControl.setProperty( "device_os" ,  sap.ui.Device.os.name );` && |\n| &&
       `          oControl.setProperty( "device_browser" ,  sap.ui.Device.browser.name );` && |\n| &&
-
       `          setTimeout( oControl.onEvent , 1000 , oControl );` && |\n| &&
       `            ` && |\n| &&
       `        }` && |\n| &&
