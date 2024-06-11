@@ -41,6 +41,24 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `                ui5_version: {` && |\n| &&
       `                    type: "string"` && |\n| &&
       `                },` && |\n| &&
+      `                device_phone: {` && |\n| &&
+      `                    type: "string"` && |\n| &&
+      `                },` && |\n| &&
+      `                device_desktop: {` && |\n| &&
+      `                    type: "string"` && |\n| &&
+      `                },` && |\n| &&
+      `                device_tablet: {` && |\n| &&
+      `                    type: "string"` && |\n| &&
+      `                },` && |\n| &&
+      `                device_combi: {` && |\n| &&
+      `                    type: "string"` && |\n| &&
+      `                },` && |\n| &&
+      `                device_height: {` && |\n| &&
+      `                    type: "string"` && |\n| &&
+      `                },` && |\n| &&
+      `                device_width: {` && |\n| &&
+      `                    type: "string"` && |\n| &&
+      `                },` && |\n| &&
       `                ui5_gav: {` && |\n| &&
       `                    type: "string"` && |\n| &&
       `                },` && |\n| &&
@@ -55,9 +73,6 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `                },` && |\n| &&
       `                device_browser: {` && |\n| &&
       `                    type: "string"` && |\n| &&
-      `                },` && |\n| &&
-      `                device_system_desktop: {` && |\n| &&
-      `                    type: "boolean"` && |\n| &&
       `                },` && |\n| &&
       `            },` && |\n| &&
       `            events: {` && |\n| &&
@@ -76,11 +91,16 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `      onEvent(oControl) { oControl.fireFinished( );  }, ` && |\n| &&
       `       renderer(oRm, oControl) {` && |\n| &&
       |\n| &&
-      `            oControl.setProperty( "ui5_version" , sap.z2ui5.oCurrentVersionInfo.version );` && |\n| &&
-      `            oControl.setProperty( "ui5_gav" ,  sap.z2ui5.oCurrentVersionInfo.gav  );` && |\n| &&
-      `            oControl.setProperty( "device_os" ,  sap.ui.Device.os.name );` && |\n| &&
+      `          oControl.setProperty( "device_phone" , sap.ui.Device.system.phone );` && |\n| &&
+      `          oControl.setProperty( "device_desktop" , sap.ui.Device.system.desktop );` && |\n| &&
+      `          oControl.setProperty( "device_tablet" , sap.ui.Device.system.tablet );` && |\n| &&
+      `          oControl.setProperty( "device_combi" , sap.ui.Device.system.combi );` && |\n| &&
+      `          oControl.setProperty( "device_height" , sap.ui.Device.resize.height );` && |\n| &&
+      `          oControl.setProperty( "device_width" , sap.ui.Device.resize.width );` && |\n| &&
+      `          oControl.setProperty( "ui5_version" , sap.z2ui5.oCurrentVersionInfo.version );` && |\n| &&
+      `          oControl.setProperty( "ui5_gav" ,  sap.z2ui5.oCurrentVersionInfo.gav  );` && |\n| &&
+      `          oControl.setProperty( "device_os" ,  sap.ui.Device.os.name );` && |\n| &&
       `          oControl.setProperty( "device_browser" ,  sap.ui.Device.browser.name );` && |\n| &&
-      `          oControl.setProperty( "device_system_desktop" ,  sap.ui.Device.system.desktop );` && |\n| &&
       `          setTimeout( oControl.onEvent , 1000 , oControl );` && |\n| &&
       `            ` && |\n| &&
       `        }` && |\n| &&
