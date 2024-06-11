@@ -148,7 +148,6 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       RETURNING
         VALUE(result) TYPE ty_s_positions-tlabel.
 
-  PRIVATE SECTION.
     METHODS delete_selected_layout
       IMPORTING
         !Head TYPE ty_s_layo.
@@ -173,6 +172,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
         handle04      TYPE handle
       RETURNING
         VALUE(result) TYPE ty_s_layout.
+
 ENDCLASS.
 
 
@@ -262,12 +262,13 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
-    DATA(dialog) = popup->dialog( title      = 'Layout'
-                                  stretch    = abap_true
-                                  afterclose = client->_event( 'CLOSE' ) ).
+    DATA(dialog) = popup->dialog( title        = 'Layout'
+*                                  stretch      = abap_true
+                                  contentwidth = '70%'
+                                  afterclose   = client->_event( 'CLOSE' ) ).
 
     DATA(tab) = dialog->table( growing          = abap_true
-                               growingthreshold = '50'
+                               growingthreshold = '80'
                                items            = client->_bind_edit( ms_layout-t_layout ) ).
 
     DATA(list) = tab->column_list_item( ).
@@ -373,13 +374,26 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     ENDLOOP.
 
     dialog->buttons(
-               )->button( text  = 'Back'
-                          icon  = 'sap-icon://nav-back'
-                          press = client->_event( 'CLOSE' )
-             )->button( text  = 'Save'
-                        press = client->_event( 'EDIT_SAVE' )
-                        icon  = 'sap-icon://save'
-                        type  = 'Emphasized' ).
+          )->button( press = client->_event( 'LAYOUT_EDIT' )
+                     icon  = 'sap-icon://edit'
+                     type  = 'Emphasized'
+          )->button( press = client->_event( 'LAYOUT_LOAD' )
+                     icon  = 'sap-icon://open-folder'
+                     type  = 'Ghost'
+          )->button( press = client->_event( 'LAYOUT_DELETE' )
+                     icon  = 'sap-icon://delete'
+                     type  = 'Ghost'
+          )->button( type    = 'Transparent'
+                     enabled = abap_false
+                     text    = `               `
+
+         )->button( text  = 'Back'
+                    icon  = 'sap-icon://sys-cancel-2'
+                    press = client->_event( 'CLOSE' )
+         )->button( text  = 'Save'
+                    press = client->_event( 'EDIT_SAVE' )
+                    icon  = 'sap-icon://save'
+                    type  = 'Emphasized' ).
 
     client->popup_display( popup->get_root( )->xml_get( ) ).
 
@@ -388,6 +402,20 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
   METHOD on_event.
 
     CASE client->get( )-event.
+
+      WHEN 'LAYOUT_EDIT'.
+
+        client->nav_app_call( factory( layout = ms_layout ) ).
+
+      WHEN 'LAYOUT_LOAD'.
+
+        client->nav_app_call( factory( layout      = ms_layout
+                                       open_layout = abap_true   ) ).
+
+      WHEN 'LAYOUT_DELETE'.
+
+        client->nav_app_call( factory( layout        = ms_layout
+                                       delete_layout = abap_true ) ).
 
       WHEN 'CLOSE'.
 
@@ -447,19 +475,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     result = xml.
 
-    result->menu_button( activeicon = 'sap-icon://action-settings'
-                         text       = `Layout`
-           )->_generic( `menu`
-          )->_generic( `Menu`
-             )->menu_item( text  = 'Change Layout'
-                           icon  = 'sap-icon://edit'
-                           press = client->_event( val = 'LAYOUT_EDIT' )
-             )->menu_item( text  = 'Choose Layout'
-                           icon  = 'sap-icon://open-folder'
-                           press = client->_event( val = 'LAYOUT_OPEN' )
-             )->menu_item( text  = 'Manage Layouts'
-                           icon  = 'sap-icon://delete'
-                           press = client->_event( val = 'LAYOUT_DELETE' ) ).
+    result->button( icon = 'sap-icon://action-settings'
+                    press      = client->_event( val = 'LAYOUT_EDIT' ) ).
 
   ENDMETHOD.
 
@@ -468,7 +485,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(dialog) = popup->dialog( title        = 'Save'
-                                  contentwidth = '80%'
+                                  contentwidth = '70%'
                                   afterclose   = client->_event( 'SAVE_CLOSE' ) ).
 
     DATA(form) = dialog->content( )->simple_form( title                   = 'Layout'
@@ -636,7 +653,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(dialog) = popup->dialog( title        = 'Layout'
-                                  contentwidth = '50%'
+                                  contentwidth = '70%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
     dialog->table( headertext = 'Layout'
@@ -652,13 +669,27 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                             )->text( '{LAYOUT}'
                             )->text( '{DESCR}' ).
 
-    dialog->buttons( )->button( text  = 'Back'
-                                icon  = 'sap-icon://nav-back'
-                                press = client->_event( 'CLOSE' )
-          )->button( text  = 'Delete'
-                     press = client->_event( 'DELETE_SELECT' )
-                     type  = 'Reject'
-                     icon  = 'sap-icon://delete' ).
+    dialog->buttons(
+          )->button( press = client->_event( 'LAYOUT_EDIT' )
+                     icon  = 'sap-icon://edit'
+                     type  = 'Ghost'
+          )->button( press = client->_event( 'LAYOUT_LOAD' )
+                     icon  = 'sap-icon://open-folder'
+                     type  = 'Ghost'
+          )->button( press = client->_event( 'LAYOUT_DELETE' )
+                     icon  = 'sap-icon://delete'
+                     type  = 'Emphasized'
+          )->button( type    = 'Transparent'
+                     enabled = abap_false
+                     text    = `               `
+
+         )->button( text  = 'Back'
+                    icon  = 'sap-icon://sys-cancel-2'
+                    press = client->_event( 'CLOSE' )
+         )->button( text  = 'Delete'
+                    icon  = 'sap-icon://delete'
+                    press = client->_event( 'DELETE_SELECT' )
+                    type  = 'Reject' ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -669,7 +700,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(dialog) = popup->dialog( title        = 'Layout'
-                                  contentwidth = '50%'
+                                  contentwidth = '70%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
     dialog->table( headertext = 'Layout'
@@ -687,13 +718,27 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                             )->text( '{DESCR}'
                             )->text( '{DEF}' ).
 
-    dialog->buttons( )->button( text  = 'Back'
-                                icon  = 'sap-icon://nav-back'
-                                press = client->_event( 'CLOSE' )
-          )->button( text  = 'Open'
-                     icon  = 'sap-icon://accept'
-                     press = client->_event( 'OPEN_SELECT' )
-                     type  = 'Emphasized' ).
+    dialog->buttons(
+          )->button( press = client->_event( 'LAYOUT_EDIT' )
+                     icon  = 'sap-icon://edit'
+                     type  = 'Ghost'
+          )->button( press = client->_event( 'LAYOUT_LOAD' )
+                     icon  = 'sap-icon://open-folder'
+                     type  = 'Emphasized'
+          )->button( press = client->_event( 'LAYOUT_DELETE' )
+                     icon  = 'sap-icon://delete'
+                     type  = 'Ghost'
+          )->button( type    = 'Transparent'
+                     enabled = abap_false
+                     text    = `               `
+
+         )->button( text  = 'Back'
+                    icon  = 'sap-icon://sys-cancel-2'
+                    press = client->_event( 'CLOSE' )
+         )->button( text  = 'OK'
+                    icon  = 'sap-icon://accept'
+                    press = client->_event( 'OPEN_SELECT' )
+                    type  = 'Emphasized' ).
 
     client->popup_display( popup->stringify( ) ).
 
@@ -1012,21 +1057,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     result = client.
 
     CASE result->get( )-event.
-
-      WHEN 'LAYOUT_OPEN'.
-
-        result->nav_app_call( factory( layout      = layout
-                                       open_layout = abap_true   ) ).
-
       WHEN 'LAYOUT_EDIT'.
-
         result->nav_app_call( factory( layout = layout   ) ).
-
-      WHEN 'LAYOUT_DELETE'.
-
-        result->nav_app_call( factory( layout        = layout
-                                       delete_layout = abap_true ) ).
-
     ENDCASE.
 
   ENDMETHOD.
