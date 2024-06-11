@@ -93,12 +93,17 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       IMPORTING
         !finished              TYPE clike OPTIONAL
         !ui5_version           TYPE clike OPTIONAL
+        !device_height         TYPE clike OPTIONAL
+        !device_width          TYPE clike OPTIONAL
+        !device_phone          TYPE clike OPTIONAL
+        !device_desktop        TYPE clike OPTIONAL
+        !device_tablet         TYPE clike OPTIONAL
+        !device_combi          TYPE clike OPTIONAL
         !ui5_gav               TYPE clike OPTIONAL
         !ui5_theme             TYPE clike OPTIONAL
         !device_os             TYPE clike OPTIONAL
         !device_systemtype     TYPE clike OPTIONAL
         !device_browser        TYPE clike OPTIONAL
-        !device_system_desktop TYPE clike OPTIONAL
           PREFERRED PARAMETER finished
       RETURNING
         VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
@@ -387,8 +392,13 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                 ( n = `device_os`  v = device_os )
                                 ( n = `device_systemtype`  v = device_systemtype )
                                 ( n = `device_browser`  v = device_browser )
-                                ( n = `device_system_desktop`  v = z2ui5_cl_util=>boolean_abap_2_json( device_system_desktop ) )
-              ) ).
+                                ( n = `device_phone`   v = device_phone )
+                                ( n = `device_desktop` v = device_desktop )
+                                ( n = `device_table`   v = device_tablet )
+                                ( n = `device_combi`   v = device_combi )
+                                ( n = `device_height`   v = device_height )
+                                ( n = `device_width`   v = device_width ) )
+               ).
 
   ENDMETHOD.
 
