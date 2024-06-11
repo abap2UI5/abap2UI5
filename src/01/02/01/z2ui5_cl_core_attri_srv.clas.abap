@@ -108,7 +108,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
        attri = mt_attri
        app   = mo_app ).
 
-    DO 10 TIMES.
+    DO 5 TIMES.
 
       lo_dissolve->main( ).
 
@@ -123,6 +123,37 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
 
       EXIT.
     ENDDO.
+
+    """"" new
+    DATA(lt_attri) = mt_attri->*.
+    DELETE lt_attri WHERE BIND_type IS INITIAL.
+    CLEAR mt_attri->*.
+    DO 5 TIMES.
+
+      lo_dissolve->main( ).
+
+      result = attri_search( val ).
+      IF result IS BOUND.
+        LOOP AT mt_attri->* ASSIGNING FIELD-SYMBOL(<ls_attri>).
+          DATA(lv_name) = <ls_attri>-name.
+          IF line_exists( lt_attri[ name = lv_name ] ).
+            <ls_attri>-bind_type = lt_attri[ name = lv_name ]-bind_type.
+            <ls_attri>-name_client = lt_attri[ name = lv_name ]-name_client.
+            <ls_attri>-view = lt_attri[ name = lv_name ]-view.
+          ENDIF.
+        ENDLOOP.
+        RETURN.
+      ENDIF.
+
+      IF line_exists( mt_attri->*[ check_dissolved = abap_false ] ).
+        CONTINUE.
+      ENDIF.
+
+      EXIT.
+    ENDDO.
+
+
+    """""
 
     RAISE EXCEPTION TYPE z2ui5_cx_util_error
       EXPORTING
