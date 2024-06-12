@@ -219,7 +219,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
           )->simple_form( title    = 'F4-Help'
                           layout   = 'ResponsiveGridLayout'
                           editable = abap_true
-          )->content( ns = 'form' ).
+          )->content( 'form' ).
 
     " Gehe über alle Comps
     LOOP AT mt_dfies REFERENCE INTO DATA(dfies).
