@@ -6,28 +6,55 @@ CLASS z2ui5_cl_util_api DEFINITION
   PUBLIC SECTION.
     TYPES:
       BEGIN OF ty_s_dfies,
-        tabname    TYPE string,
-        fieldname  TYPE string,
-        offset     TYPE string,
-        domname    TYPE string,
-        rollname   TYPE string,
-        checktable TYPE string,
-        leng       TYPE string,
-        intlen     TYPE string,
-        outputlen  TYPE string,
-        decimals   TYPE string,
-        datatype   TYPE string,
-        inttype    TYPE string,
-        reftable   TYPE string,
-        reffield   TYPE string,
-        convexit   TYPE string,
-        fieldtext  TYPE string,
-        reptext    TYPE string,
-        scrtext_s  TYPE string,
-        scrtext_m  TYPE string,
-        scrtext_l  TYPE string,
-        keyflag    TYPE string,
-        mac        TYPE string,
+        tabname     TYPE c LENGTH 30,
+        fieldname   TYPE c LENGTH 30,
+        langu       TYPE string,
+        position    TYPE n length 4,
+        offset      TYPE n length 6,
+        domname     TYPE c LENGTH 30,
+        rollname    TYPE c LENGTH 30,
+        checktable  TYPE c LENGTH 30,
+        leng        TYPE n length 6,
+        intlen      TYPE n length 6,
+        outputlen   TYPE n length 6,
+        decimals    TYPE n length 6,
+        datatype    TYPE c LENGTH 4,
+        inttype     TYPE c LENGTH 1,
+        reftable    TYPE c LENGTH 30,
+        reffield    TYPE c LENGTH 30,
+        precfield   TYPE c LENGTH 30,
+        authorid    TYPE c LENGTH 3,
+        memoryid    TYPE c LENGTH 20,
+        logflag     TYPE c LENGTH 1,
+        mask        TYPE c LENGTH 20,
+        masklen     TYPE n length 4,
+        convexit    TYPE c LENGTH 5,
+        headlen     TYPE n length 2,
+        scrlen1     TYPE n length 2,
+        scrlen2     TYPE n length 2,
+        scrlen3     TYPE n length 2,
+        fieldtext   TYPE c LENGTH 60,
+        reptext     TYPE c LENGTH 55,
+        scrtext_s   TYPE c LENGTH 10,
+        scrtext_m   TYPE c LENGTH 20,
+        scrtext_l   TYPE c LENGTH 40,
+        keyflag     TYPE c LENGTH 1,
+        lowercase   TYPE c LENGTH 1,
+        mac         TYPE c LENGTH 1,
+        genkey      TYPE c LENGTH 1,
+        noforkey    TYPE c LENGTH 1,
+        valexi      TYPE c LENGTH 1,
+        noauthch    TYPE c LENGTH 1,
+        sign        TYPE c LENGTH 1,
+        dynpfld     TYPE c LENGTH 1,
+        f4availabl  TYPE c LENGTH 1,
+        comptype    TYPE c LENGTH 1,
+        lfieldname  TYPE c LENGTH 132,
+        ltrflddis   TYPE c LENGTH 1,
+        bidictrlc   TYPE c LENGTH 1,
+        outputstyle TYPE n length 2,
+        nohistory   TYPE c LENGTH 1,
+        ampmformat  TYPE c LENGTH 1,
       END OF ty_s_dfies,
       ty_t_dfies TYPE STANDARD TABLE OF ty_s_dfies WITH EMPTY KEY.
 
@@ -1351,17 +1378,56 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD rtti_get_t_attri_on_prem.
 
     DATA structdescr TYPE REF TO cl_abap_structdescr.
-    DATA t_ddict     TYPE ty_t_dfies.
+    DATA dfies       TYPE REF TO data.
+    DATA s_dfies     TYPE ty_s_dfies.
+
+    FIELD-SYMBOLS <dfies> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line>  TYPE any.
+
+    DATA(comps) = rtti_get_t_attri_by_table_name( 'DFIES' ).
 
     TRY.
+
+        DATA(new_struct_desc) = cl_abap_structdescr=>create( comps ).
+
+        DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
+                                                           p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
+        CREATE DATA dfies TYPE HANDLE new_table_desc.
+
+        ASSIGN dfies->* TO <dfies>.
+        IF <dfies> IS NOT ASSIGNED.
+          RETURN.
+        ENDIF.
+
         structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
 
-        t_ddict = CORRESPONDING #( structdescr->get_ddic_field_list( ) ).
+        <dfies> = structdescr->get_ddic_field_list( ).
 
-        result = CORRESPONDING #( t_ddict ).
+        LOOP AT <dfies> ASSIGNING <line>.
 
-        LOOP AT result ASSIGNING FIELD-SYMBOL(<result>) WHERE rollname IS INITIAL.
-          <result>-rollname = <result>-fieldname.
+          LOOP AT comps INTO DATA(comp).
+
+            ASSIGN COMPONENT comp-name OF STRUCTURE <line> TO FIELD-SYMBOL(<value>).
+            IF <value> IS NOT ASSIGNED.
+              CONTINUE.
+            ENDIF.
+
+            ASSIGN COMPONENT comp-name OF STRUCTURE s_dfies TO FIELD-SYMBOL(<value_dest>).
+            IF <value_dest> IS NOT ASSIGNED.
+              CONTINUE.
+            ENDIF.
+
+            <value_dest> = <value>.
+
+            UNASSIGN <value>.
+            UNASSIGN <value_dest>.
+
+          ENDLOOP.
+
+          APPEND s_dfies TO result.
+          CLEAR s_dfies.
+
         ENDLOOP.
 
       CATCH cx_root.
@@ -1380,14 +1446,17 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     DATA r_content TYPE REF TO data.
     DATA type      TYPE REF TO object.
     DATA element   TYPE REF TO object.
+    DATA tab       type c LENGTH 16.
 
     FIELD-SYMBOLS <any>   TYPE any.
     FIELD-SYMBOLS <names> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <name>  TYPE any.
     FIELD-SYMBOLS <fiel>  TYPE REF TO object.
 
+    tab = tabname.
+
     CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>database_table
-      EXPORTING iv_name           = tabname
+      EXPORTING iv_name           = tab
       RECEIVING ro_database_table = db.
 
     ASSIGN db->('IF_XCO_DATABASE_TABLE~FIELDS->IF_XCO_DBT_FIELDS_FACTORY~ALL') TO <any>.
@@ -1471,10 +1540,10 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       IF sy-subrc = 0.
         result = VALUE #( BASE result
-                          ( fieldname = <name> keyflag = <key> tabname = tabname scrtext_s = <text> rollname = <rname> ) ).
+                          ( fieldname = <name> keyflag = <key> tabname = tab scrtext_s = <text> rollname = <rname> ) ).
       ELSE.
         result = VALUE #( BASE result
-                          ( fieldname = <name> keyflag = <key> tabname = tabname scrtext_s = <text> rollname = <name> ) ).
+                          ( fieldname = <name> keyflag = <key> tabname = tab scrtext_s = <text> rollname = <name> ) ).
       ENDIF.
 
       UNASSIGN <Content>.
