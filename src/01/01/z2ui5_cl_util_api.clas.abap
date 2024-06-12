@@ -1351,7 +1351,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
   METHOD rtti_get_t_attri_on_prem.
 
     DATA structdescr TYPE REF TO cl_abap_structdescr.
-    DATA t_ddict     TYPE z2ui5_cl_util_api=>ty_t_dfies.
+    DATA t_ddict     TYPE ty_t_dfies.
 
     TRY.
         structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
