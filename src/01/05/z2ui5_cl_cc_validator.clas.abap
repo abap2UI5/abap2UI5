@@ -60,7 +60,7 @@ CLASS Z2UI5_CL_CC_VALIDATOR IMPLEMENTATION.
 *      CATCH cx_root.
 *    ENDTRY.
 
-    /ui2/cl_json=>serialize(
+   lv_schema_json = /ui2/cl_json=>serialize(
       EXPORTING
         data             = is_validation
         compress         = abap_true
@@ -74,8 +74,6 @@ CLASS Z2UI5_CL_CC_VALIDATOR IMPLEMENTATION.
 *        numc_as_string   =
 *        name_mappings    =
 *        conversion_exits =
-      RECEIVING
-        r_json           = lv_schema_json
     ).
 
 
