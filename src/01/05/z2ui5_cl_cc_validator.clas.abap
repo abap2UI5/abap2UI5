@@ -61,8 +61,7 @@ CLASS Z2UI5_CL_CC_VALIDATOR IMPLEMENTATION.
 *    ENDTRY.
 
    lv_schema_json = /ui2/cl_json=>serialize(
-      EXPORTING
-        data             = is_validation
+      data             = is_validation
         compress         = abap_true
 *        name             =
         pretty_name      = 'X'
