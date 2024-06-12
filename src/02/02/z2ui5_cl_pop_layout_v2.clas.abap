@@ -82,10 +82,10 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       IMPORTING
         !data         TYPE REF TO data
         !control      TYPE control
-        handle01      TYPE handle
-        handle02      TYPE handle
-        handle03      TYPE handle
-        handle04      TYPE handle
+        handle01      TYPE handle OPTIONAL
+        handle02      TYPE handle OPTIONAL
+        handle03      TYPE handle OPTIONAL
+        handle04      TYPE handle OPTIONAL
       RETURNING
         VALUE(result) TYPE ty_s_layout.
 
