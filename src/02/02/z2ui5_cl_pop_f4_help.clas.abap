@@ -102,8 +102,6 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
   METHOD get_where_tab.
 
-
-    " Gehe über alle Comps
     LOOP AT mt_dfies REFERENCE INTO DATA(dfies).
 
       IF NOT ( dfies->keyflag = abap_true OR dfies->fieldname = mv_check_tab_field ).
@@ -111,7 +109,9 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
       ENDIF.
 
       ASSIGN COMPONENT dfies->fieldname OF STRUCTURE ms_data_row->* TO FIELD-SYMBOL(<value>).
-
+      IF <value> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
       IF <value> IS INITIAL.
         CONTINUE.
       ENDIF.
@@ -130,37 +130,9 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
       IF result CA `_`.
         REPLACE ALL OCCURRENCES OF `_` IN result WITH `#_`.
-     endif.
+      ENDIF.
 
     ENDLOOP.
-
-*    DATA t_selopt TYPE rsds_frange_t.
-*
-*    " Gehe über alle Comps
-*    LOOP AT mt_dfies REFERENCE INTO DATA(dfies).
-*
-*      IF NOT ( dfies->keyflag = abap_true OR dfies->fieldname = mv_check_tab_field ).
-*        CONTINUE.
-*      ENDIF.
-*
-*      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE ms_data_row->* TO FIELD-SYMBOL(<val>).
-*
-*      IF <val> IS INITIAL.
-*        CONTINUE.
-*      ENDIF.
-*      t_selopt = VALUE #(
-*          BASE t_selopt
-*          ( fieldname = dfies->fieldname selopt_t = VALUE #( ( sign = 'I' option = 'CP' low = |*{ <val> }*|  high = '' ) ) ) ).
-*
-*    ENDLOOP.
-*
-*    DATA(range) = VALUE rsds_trange( ( tablename = mv_check_tab frange_t = t_selopt ) ).
-*
-*    DATA where_clauses TYPE rsds_twhere.
-*
-*    CALL FUNCTION 'FREE_SELECTIONS_RANGE_2_WHERE'
-*      EXPORTING field_ranges  = range
-*      IMPORTING where_clauses = where_clauses.
 
   ENDMETHOD.
 
@@ -202,6 +174,10 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
           WHERE (where)
           INTO CORRESPONDING FIELDS OF TABLE @<table>
           UP TO @mv_rows ROWS.
+
+        IF sy-subrc <> 0.
+        ENDIF.
+
         set_row_id( ).
 
       CATCH cx_root.
@@ -221,7 +197,6 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
                           editable = abap_true
           )->content( 'form' ).
 
-    " Gehe über alle Comps
     LOOP AT mt_dfies REFERENCE INTO DATA(dfies).
 
       IF dfies->fieldname = `MANDT`.
@@ -232,8 +207,11 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
       ENDIF.
 
       ASSIGN COMPONENT dfies->fieldname OF STRUCTURE ms_data_row->* TO FIELD-SYMBOL(<val>).
+      IF <val> IS NOT ASSIGNED.
+        CONTINUE.
+      ENDIF.
 
-      simple_form->label( text = get_txt( conv #( dfies->rollname ) ) ).
+      simple_form->label( get_txt( CONV #( dfies->rollname ) ) ).
 
       simple_form->input( value         = client->_bind_edit( <val> )
                           showvaluehelp = abap_false
@@ -241,7 +219,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
     ENDLOOP.
 
-    simple_form->label( text = get_txt( 'SYST_TABIX' ) ).
+    simple_form->label( get_txt( 'SYST_TABIX' ) ).
 
     simple_form->input( value         = client->_bind_edit( mv_rows )
                         showvaluehelp = abap_false
@@ -256,7 +234,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
     " TODO: variable is assigned but never used (ABAP cleaner)
     DATA(headder) = table->header_toolbar(
                  )->overflow_toolbar(
-                 )->Title( text = mv_check_tab
+                 )->Title( mv_check_tab
                  )->toolbar_spacer( ).
 
     headder = z2ui5_cl_pop_layout_v2=>render_layout_function( xml    = headder
@@ -308,9 +286,6 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
 
-    " TODO: variable is assigned but never used (ABAP cleaner)
-    DATA(event) = client->get( )-event.
-
     CASE client->get( )-event.
 
       WHEN `F4_CLOSE`.
@@ -328,6 +303,9 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
         ASSIGN <tab>[ lt_arg[ 1 ] ] TO FIELD-SYMBOL(<row>).
 
         ASSIGN COMPONENT mv_check_tab_field OF STRUCTURE <row> TO FIELD-SYMBOL(<value>).
+        IF <value> IS NOT ASSIGNED.
+          RETURN.
+        ENDIF.
 
         mv_return_value = <value>.
 
@@ -388,12 +366,15 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
     DATA(t_dfies) = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( mv_table ).
 
     READ TABLE t_dfies REFERENCE INTO DATA(dfies) WITH KEY fieldname = mv_field.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
 
     IF dfies->checktable IS INITIAL.
       RETURN.
     ENDIF.
 
-    mt_dfies = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( conv #( dfies->checktable ) ).
+    mt_dfies = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( CONV #( dfies->checktable ) ).
     "
     " ASSIGNMENT --- this may not be 100% certain ... :(
     mv_check_tab_field = VALUE #( mt_dfies[ rollname = dfies->rollname ]-fieldname OPTIONAL ).
@@ -408,7 +389,6 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
   METHOD prefill_inputs.
 
-    " Gehe über alle Comps
     LOOP AT mt_dfies REFERENCE INTO DATA(dfies).
 
       IF NOT ( dfies->keyflag = abap_true OR dfies->fieldname = mv_check_tab_field ).
