@@ -422,13 +422,13 @@ CLASS z2ui5_cl_util_api DEFINITION
       IMPORTING
         tabname       TYPE string
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util_api=>ty_t_dfies.
+        VALUE(result) TYPE ty_t_dfies.
 
     CLASS-METHODS rtti_get_t_attri_on_cloud
       IMPORTING
         tabname       TYPE string
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_util_api=>ty_t_dfies.
+        VALUE(result) TYPE ty_t_dfies.
 ENDCLASS.
 
 
