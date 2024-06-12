@@ -62,20 +62,20 @@ CLASS Z2UI5_CL_CC_VALIDATOR IMPLEMENTATION.
 
     /ui2/cl_json=>serialize(
       EXPORTING
-        data             = is_validation                 " Data to serialize
-        compress         = abap_true                 " Skip empty elements
-*        name             =                  " Object name
-        pretty_name      = 'X'                 " Pretty Print property names
-*        type_descr       =                  " Data descriptor
-*        assoc_arrays     =                  " Serialize tables with unique keys as associative array
-*        ts_as_iso8601    =                  " Dump timestamps as string in ISO8601 format
-*        expand_includes  =                  " Expand named includes in structures
-*        assoc_arrays_opt =                  " Optimize rendering of name value maps
-*        numc_as_string   =                  " Serialize NUMC fields as strings
-*        name_mappings    =                  " ABAP<->JSON Name Mapping Table
-*        conversion_exits =                  " Use DDIC conversion exits on serialize of values
+        data             = is_validation
+        compress         = abap_true
+*        name             =
+        pretty_name      = 'X'
+*        type_descr       =
+*        assoc_arrays     =
+*        ts_as_iso8601    =
+*        expand_includes  =
+*        assoc_arrays_opt =
+*        numc_as_string   =
+*        name_mappings    =
+*        conversion_exits =
       RECEIVING
-        r_json           = lv_schema_json                 " JSON string
+        r_json           = lv_schema_json
     ).
 
 
