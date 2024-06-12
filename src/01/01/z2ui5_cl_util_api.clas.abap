@@ -4,6 +4,59 @@ CLASS z2ui5_cl_util_api DEFINITION
   INHERITING FROM z2ui5_cl_stmpncfctn_api.
 
   PUBLIC SECTION.
+    TYPES:
+      BEGIN OF ty_s_dfies,
+        tabname     TYPE c LENGTH 30,
+        fieldname   TYPE c LENGTH 30,
+        langu       TYPE string,
+        position    TYPE n length 4,
+        offset      TYPE n length 6,
+        domname     TYPE c LENGTH 30,
+        rollname    TYPE c LENGTH 30,
+        checktable  TYPE c LENGTH 30,
+        leng        TYPE n length 6,
+        intlen      TYPE n length 6,
+        outputlen   TYPE n length 6,
+        decimals    TYPE n length 6,
+        datatype    TYPE c LENGTH 4,
+        inttype     TYPE c LENGTH 1,
+        reftable    TYPE c LENGTH 30,
+        reffield    TYPE c LENGTH 30,
+        precfield   TYPE c LENGTH 30,
+        authorid    TYPE c LENGTH 3,
+        memoryid    TYPE c LENGTH 20,
+        logflag     TYPE c LENGTH 1,
+        mask        TYPE c LENGTH 20,
+        masklen     TYPE n length 4,
+        convexit    TYPE c LENGTH 5,
+        headlen     TYPE n length 2,
+        scrlen1     TYPE n length 2,
+        scrlen2     TYPE n length 2,
+        scrlen3     TYPE n length 2,
+        fieldtext   TYPE c LENGTH 60,
+        reptext     TYPE c LENGTH 55,
+        scrtext_s   TYPE c LENGTH 10,
+        scrtext_m   TYPE c LENGTH 20,
+        scrtext_l   TYPE c LENGTH 40,
+        keyflag     TYPE c LENGTH 1,
+        lowercase   TYPE c LENGTH 1,
+        mac         TYPE c LENGTH 1,
+        genkey      TYPE c LENGTH 1,
+        noforkey    TYPE c LENGTH 1,
+        valexi      TYPE c LENGTH 1,
+        noauthch    TYPE c LENGTH 1,
+        sign        TYPE c LENGTH 1,
+        dynpfld     TYPE c LENGTH 1,
+        f4availabl  TYPE c LENGTH 1,
+        comptype    TYPE c LENGTH 1,
+        lfieldname  TYPE c LENGTH 132,
+        ltrflddis   TYPE c LENGTH 1,
+        bidictrlc   TYPE c LENGTH 1,
+        outputstyle TYPE n length 2,
+        nohistory   TYPE c LENGTH 1,
+        ampmformat  TYPE c LENGTH 1,
+      END OF ty_s_dfies,
+      ty_t_dfies TYPE STANDARD TABLE OF ty_s_dfies WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_s_token,
@@ -270,6 +323,18 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING
         VALUE(result) TYPE cl_abap_structdescr=>component_table.
 
+    CLASS-METHODS rtti_get_t_attri_by_table_name
+      IMPORTING
+        table_name    TYPE any
+      RETURNING
+        VALUE(result) TYPE cl_abap_structdescr=>component_table.
+
+    CLASS-METHODS rtti_get_t_dfies_by_table_name
+      IMPORTING
+        table_name    TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_t_dfies.
+
     CLASS-METHODS rtti_get_type_name
       IMPORTING
         !val          TYPE any
@@ -377,7 +442,20 @@ CLASS z2ui5_cl_util_api DEFINITION
       RETURNING VALUE(result) TYPE abap_component_tab ##NEEDED.
 
   PROTECTED SECTION.
+
   PRIVATE SECTION.
+
+    CLASS-METHODS rtti_get_t_attri_on_prem
+      IMPORTING
+        tabname       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_t_dfies.
+
+    CLASS-METHODS rtti_get_t_attri_on_cloud
+      IMPORTING
+        tabname       TYPE string
+      RETURNING
+        VALUE(result) TYPE ty_t_dfies ##NEEDED.
 ENDCLASS.
 
 
@@ -1257,6 +1335,109 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *      ENDIF.
 *
 *    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_attri_by_table_name.
+
+    TRY.
+        DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    result = lo_struct->get_components( ).
+
+    LOOP AT result REFERENCE INTO DATA(lr_comp)
+         WHERE as_include = abap_true.
+
+      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type
+                                                    attri = lr_comp->name ).
+
+      DELETE result.
+      INSERT LINES OF lt_attri INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_dfies_by_table_name.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_name( 'T100' ).
+
+        result = rtti_get_t_attri_on_prem( table_name ).
+
+      CATCH cx_root.
+
+        result = rtti_get_t_attri_on_cloud( table_name ).
+
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_attri_on_prem.
+
+    DATA structdescr TYPE REF TO cl_abap_structdescr.
+    DATA dfies       TYPE REF TO data.
+    DATA s_dfies     TYPE ty_s_dfies.
+
+    FIELD-SYMBOLS <dfies> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line>  TYPE any.
+
+    DATA(comps) = rtti_get_t_attri_by_table_name( 'DFIES' ).
+
+    TRY.
+
+        DATA(new_struct_desc) = cl_abap_structdescr=>create( comps ).
+
+        DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
+                                                           p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
+        CREATE DATA dfies TYPE HANDLE new_table_desc.
+
+        ASSIGN dfies->* TO <dfies>.
+        IF <dfies> IS NOT ASSIGNED.
+          RETURN.
+        ENDIF.
+
+        structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
+
+        <dfies> = structdescr->get_ddic_field_list( ).
+
+        LOOP AT <dfies> ASSIGNING <line>.
+
+          LOOP AT comps INTO DATA(comp).
+
+            ASSIGN COMPONENT comp-name OF STRUCTURE <line> TO FIELD-SYMBOL(<value>).
+            IF <value> IS NOT ASSIGNED.
+              CONTINUE.
+            ENDIF.
+
+            ASSIGN COMPONENT comp-name OF STRUCTURE s_dfies TO FIELD-SYMBOL(<value_dest>).
+            IF <value_dest> IS NOT ASSIGNED.
+              CONTINUE.
+            ENDIF.
+
+            <value_dest> = <value>.
+
+            UNASSIGN <value>.
+            UNASSIGN <value_dest>.
+
+          ENDLOOP.
+
+          APPEND s_dfies TO result.
+          CLEAR s_dfies.
+
+        ENDLOOP.
+
+      CATCH cx_root.
+    ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_attri_on_cloud.
+
+
 
   ENDMETHOD.
 
