@@ -4,6 +4,32 @@ CLASS z2ui5_cl_util_api DEFINITION
   INHERITING FROM z2ui5_cl_stmpncfctn_api.
 
   PUBLIC SECTION.
+    TYPES:
+      BEGIN OF ty_s_dfies,
+        tabname    TYPE string,
+        fieldname  TYPE string,
+        offset     TYPE string,
+        domname    TYPE string,
+        rollname   TYPE string,
+        checktable TYPE string,
+        leng       TYPE string,
+        intlen     TYPE string,
+        outputlen  TYPE string,
+        decimals   TYPE string,
+        datatype   TYPE string,
+        inttype    TYPE string,
+        reftable   TYPE string,
+        reffield   TYPE string,
+        convexit   TYPE string,
+        fieldtext  TYPE string,
+        reptext    TYPE string,
+        scrtext_s  TYPE string,
+        scrtext_m  TYPE string,
+        scrtext_l  TYPE string,
+        keyflag    TYPE string,
+        mac        TYPE string,
+      END OF ty_s_dfies,
+      ty_t_dfies TYPE STANDARD TABLE OF ty_s_dfies WITH EMPTY KEY.
 
     TYPES:
       BEGIN OF ty_s_token,
@@ -269,6 +295,18 @@ CLASS z2ui5_cl_util_api DEFINITION
         !val          TYPE any
       RETURNING
         VALUE(result) TYPE cl_abap_structdescr=>component_table.
+
+    CLASS-METHODS rtti_get_t_attri_by_table_name
+      IMPORTING
+        table_name    TYPE any
+      RETURNING
+        VALUE(result) TYPE cl_abap_structdescr=>component_table.
+
+    CLASS-METHODS rtti_get_t_dfies_by_table_name
+      IMPORTING
+        table_name    TYPE any
+      RETURNING
+        VALUE(result) TYPE ty_t_dfies.
 
     CLASS-METHODS rtti_get_type_name
       IMPORTING
@@ -1257,6 +1295,160 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 *      ENDIF.
 *
 *    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_attri_by_table_name.
+
+    TRY.
+        DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
+      CATCH cx_root.
+        RETURN.
+    ENDTRY.
+
+    result = lo_struct->get_components( ).
+
+    LOOP AT result REFERENCE INTO DATA(lr_comp)
+         WHERE as_include = abap_true.
+
+      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type
+                                                    attri = lr_comp->name ).
+
+      DELETE result.
+      INSERT LINES OF lt_attri INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD rtti_get_t_dfies_by_table_name.
+
+DATA tabname     TYPE c LENGTH 16.
+    DATA structdescr TYPE REF TO cl_abap_structdescr.
+    DATA db          TYPE REF TO object.
+    DATA fields      TYPE REF TO object.
+    DATA r_names     TYPE REF TO data.
+    DATA t_param     TYPE abap_parmbind_tab.
+    DATA field       TYPE REF TO object.
+    DATA content     TYPE REF TO object.
+    DATA r_content   TYPE REF TO data.
+    DATA type        TYPE REF TO object.
+    DATA element     TYPE REF TO object.
+
+    FIELD-SYMBOLS <any>   TYPE any.
+    FIELD-SYMBOLS <names> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <name>  TYPE any.
+    FIELD-SYMBOLS <fiel>  TYPE REF TO object.
+
+    " convert to correct type,
+    tabname = table_name.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_name( 'T100' ).
+
+        TRY.
+            structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
+
+            DATA(ddict) =  structdescr->get_ddic_field_list( ).
+
+            MOVE-CORRESPONDING ddict TO result.
+
+            LOOP AT result ASSIGNING FIELD-SYMBOL(<result>) WHERE rollname IS INITIAL.
+              <result>-rollname = <result>-fieldname.
+            ENDLOOP.
+
+          CATCH cx_root.
+        ENDTRY.
+
+      CATCH cx_root.
+
+        CALL METHOD ('XCO_CP_ABAP_DICTIONARY')=>database_table
+          EXPORTING iv_name           = tabname
+          RECEIVING ro_database_table = db.
+
+        ASSIGN db->('IF_XCO_DATABASE_TABLE~FIELDS->IF_XCO_DBT_FIELDS_FACTORY~ALL') TO <any>.
+
+        IF sy-subrc <> 0.
+          " fallback to RTTI, KEY field does not exist in S/4 2020
+          RAISE EXCEPTION NEW cx_sy_dyn_call_illegal_class( ).
+        ENDIF.
+
+        fields = <any>.
+
+        CREATE DATA r_names TYPE ('SXCO_T_AD_FIELD_NAMES').
+        ASSIGN r_names->* TO <Names>.
+
+        CALL METHOD fields->('IF_XCO_DBT_FIELDS~GET_NAMES')
+          RECEIVING rt_names = <Names>.
+
+        LOOP AT <Names> ASSIGNING <name>.
+
+          CLEAR t_param.
+
+          " Befüllung der Tabelle
+          INSERT VALUE #( name  = 'IV_NAME'
+                          kind  = cl_abap_objectdescr=>exporting
+                          value = REF #( <name> ) ) INTO TABLE t_param.
+          INSERT VALUE #( name  = 'RO_FIELD'
+                          kind  = cl_abap_objectdescr=>receiving
+                          value = REF #( field ) ) INTO TABLE t_param.
+
+          " Dynamischer Aufruf
+
+          CALL METHOD db->(`IF_XCO_DATABASE_TABLE~FIELD`)
+            PARAMETER-TABLE t_param.
+
+          ASSIGN t_param[ name = 'RO_FIELD' ] TO FIELD-SYMBOL(<line>).
+          ASSIGN <line>-value->* TO <fiel>.
+*          fiel = t_param[ name = 'RO_FIELD' ]-value->*.
+
+          CALL METHOD <fiel>->('IF_XCO_DBT_FIELD~CONTENT')
+            RECEIVING ro_content = content.
+
+          CREATE DATA r_content TYPE ('IF_XCO_DBT_FIELD_CONTENT=>TS_CONTENT').
+          ASSIGN r_content->* TO FIELD-SYMBOL(<Content>) CASTING TYPE ('IF_XCO_DBT_FIELD_CONTENT=>TS_CONTENT').
+
+          CALL METHOD content->('IF_XCO_DBT_FIELD_CONTENT~GET')
+            RECEIVING rs_content = <Content>.
+
+          ASSIGN COMPONENT 'KEY_INDICATOR'     OF STRUCTURE <content> TO FIELD-SYMBOL(<key>).
+          ASSIGN COMPONENT 'SHORT_DESCRIPTION' OF STRUCTURE <content> TO FIELD-SYMBOL(<text>).
+          ASSIGN COMPONENT 'TYPE'              OF STRUCTURE <content> TO FIELD-SYMBOL(<type>).
+
+          IF NOT ( <key> IS ASSIGNED AND <text> IS ASSIGNED AND <type> IS ASSIGNED ).
+            CONTINUE.
+          ENDIF.
+
+          type = <type>.
+
+          " Dict type
+          CALL METHOD type->('IF_XCO_DBT_FIELD_TYPE~GET_DATA_ELEMENT')
+            RECEIVING ro_data_element = element.
+
+          IF <text> IS INITIAL.
+            <text> = <name>.
+          ENDIF.
+
+          ASSIGN element->('IF_XCO_AD_OBJECT~NAME') TO FIELD-SYMBOL(<rname>).
+
+          IF sy-subrc = 0.
+            result = VALUE #(
+                BASE result
+                ( fieldname = <name> keyflag = <key> tabname = tabname scrtext_s = <text> rollname = <rname> ) ).
+          ELSE.
+            result = VALUE #(
+                BASE result
+                ( fieldname = <name> keyflag = <key> tabname = tabname scrtext_s = <text> rollname = <name> ) ).
+          ENDIF.
+
+          UNASSIGN <Content>.
+          UNASSIGN <key>.
+          UNASSIGN <Text>.
+          UNASSIGN <type>.
+          UNASSIGN <rname>.
+
+        ENDLOOP.
+
+    ENDTRY.
 
   ENDMETHOD.
 
