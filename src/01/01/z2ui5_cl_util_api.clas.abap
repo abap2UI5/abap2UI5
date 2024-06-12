@@ -455,7 +455,7 @@ CLASS z2ui5_cl_util_api DEFINITION
       IMPORTING
         tabname       TYPE string
       RETURNING
-        VALUE(result) TYPE ty_t_dfies.
+        VALUE(result) TYPE ty_t_dfies ##NEEDED.
 ENDCLASS.
 
 
