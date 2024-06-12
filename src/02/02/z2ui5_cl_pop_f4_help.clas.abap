@@ -176,11 +176,13 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
           UP TO @mv_rows ROWS.
 
         IF sy-subrc <> 0.
+          client->message_toast_display( 'No Entries found.' ).
         ENDIF.
 
         set_row_id( ).
 
       CATCH cx_root.
+        client->message_toast_display( 'Table not released.' ).
     ENDTRY.
 
   ENDMETHOD.
