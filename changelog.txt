@@ -9,11 +9,20 @@ Legend
 - : removed
 
 
+2024-06-13 v1.130.0
+-------------------
+
++ Wizard Control, Wizard Steps
++ Frontend Info CC with Device Information
+* Improved Binding Logic, bind_clear replaced
+* Multiple Fixes for Focus CC
++ Message Strip Visible Property
+
 2024-06-01 v1.129.0
 -------------------
 
-* Added new Attributes for FilterGroupItem Control
-* Added new Attributes for VariantManagement Control
++ New Attributes for FilterGroupItem Control
++ New Attributes for VariantManagement Control
 * Fixed Issues with Data Model & Binding Logic
 + Addressed Fixes for SAP Fiori Launchpad Integration
 
@@ -37,10 +46,10 @@ Legend
 -------------------
 
 * Fixes and XML View Extensions
-* More Support for Attributes created with RTTI
+* Improved Support for Attributes created with RTTI
 + Update Spreadsheet CC for OpenUI5 Compatibility
 
-2024-04-17 v1.125.0
+2024-04-06 v1.125.0
 -------------------
 
 * Binding Fixes for Attributes created with RTTI
@@ -52,7 +61,7 @@ Legend
 2024-04-01 v1.124.0
 -------------------
 
-* Data Binding
+* Data Binding Improvements
 * Popup Handling
 * App in App Handling
 + New XML Properties for MultiInput and Table
