@@ -6,8 +6,8 @@ CLASS z2ui5_cl_pop_f4_help DEFINITION
     INTERFACES if_serializable_object.
     INTERFACES z2ui5_if_app.
 
-    DATA mt_DATA         TYPE REF TO data.
-    DATA ms_DATA_row     TYPE REF TO data.
+    DATA mt_data         TYPE REF TO data.
+    DATA ms_data_row     TYPE REF TO data.
     DATA ms_layout       TYPE z2ui5_cl_pop_layout_v2=>ty_s_layout.
 
     DATA mv_table        TYPE string.
@@ -82,7 +82,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
     on_event( ).
 
-    on_after_LAYOUT( ).
+    on_after_layout( ).
 
   ENDMETHOD.
 
@@ -108,7 +108,9 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE ms_data_row->* TO FIELD-SYMBOL(<value>).
+      ASSIGN ms_data_row->* TO FIELD-SYMBOL(<row>).
+
+      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE <row> TO FIELD-SYMBOL(<value>).
       IF <value> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
@@ -148,7 +150,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
         APPEND LINES OF z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( mv_check_tab  ) TO comp.
 
-        DATA(New_struct_desc) = cl_abap_structdescr=>create( comp ).
+        DATA(new_struct_desc) = cl_abap_structdescr=>create( comp ).
 
         DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
                                                            p_table_kind = cl_abap_tabledescr=>tablekind_std ).
@@ -192,7 +194,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(simple_form) = popup->dialog( title        = 'F4-Help'
-                                       contentWidth = '90%'
+                                       contentwidth = '90%'
                                        afterclose   = client->_event( 'F4_CLOSE' )
           )->simple_form( title    = 'F4-Help'
                           layout   = 'ResponsiveGridLayout'
@@ -208,7 +210,9 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE ms_data_row->* TO FIELD-SYMBOL(<val>).
+      ASSIGN ms_data_row->* TO FIELD-SYMBOL(<row>).
+
+      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE <row> TO FIELD-SYMBOL(<val>).
       IF <val> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
@@ -226,17 +230,19 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
     simple_form->input( value         = client->_bind_edit( mv_rows )
                         showvaluehelp = abap_false
                         submit        = client->_event( 'F4_INPUT_DONE' )
-                        maxLength     = '3' ).
+                        maxlength     = '3' ).
+
+    ASSIGN mt_data->* TO FIELD-SYMBOL(<table>).
 
     DATA(table) = popup->get_child( )->table( growing    = 'true'
                                               width      = 'auto'
-                                              items      = client->_bind( val = mt_DATA->* )
-                                              headerText = mv_check_tab  ).
+                                              items      = client->_bind( val = <table> )
+                                              headertext = mv_check_tab  ).
 
     " TODO: variable is assigned but never used (ABAP cleaner)
     DATA(headder) = table->header_toolbar(
                  )->overflow_toolbar(
-                 )->Title( mv_check_tab
+                 )->title( mv_check_tab
                  )->toolbar_spacer( ).
 
     headder = z2ui5_cl_pop_layout_v2=>render_layout_function( xml    = headder
@@ -300,7 +306,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
         DATA(lt_arg) = client->get( )-t_event_arg.
 
-        ASSIGN mt_DATA->* TO <tab>.
+        ASSIGN mt_data->* TO <tab>.
 
         ASSIGN <tab>[ lt_arg[ 1 ] ] TO FIELD-SYMBOL(<row>).
 
@@ -335,7 +341,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
     FIELD-SYMBOLS <tab>  TYPE STANDARD TABLE.
     FIELD-SYMBOLS <line> TYPE any.
 
-    ASSIGN mt_DATA->* TO <tab>.
+    ASSIGN mt_data->* TO <tab>.
 
     LOOP AT <tab> ASSIGNING <line>.
 
@@ -397,7 +403,9 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
         CONTINUE.
       ENDIF.
 
-      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE ms_data_row->* TO FIELD-SYMBOL(<val>).
+      ASSIGN ms_data_row->* TO FIELD-SYMBOL(<row>).
+
+      ASSIGN COMPONENT dfies->fieldname OF STRUCTURE <row> TO FIELD-SYMBOL(<val>).
       IF <val> IS NOT ASSIGNED.
         CONTINUE.
       ENDIF.
