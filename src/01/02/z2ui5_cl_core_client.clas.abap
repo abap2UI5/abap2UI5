@@ -294,14 +294,6 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~_bind_clear.
-
-*    DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
-*    lo_bind->clear( val ).
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~_bind_edit.
 
     DATA(lo_bind) = NEW z2ui5_cl_core_bind_srv( mo_action->mo_app ).
