@@ -55,6 +55,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     DATA mt_controls   TYPE ty_t_controls.
     DATA mt_Head       TYPE ty_t_layo.
     DATA ms_layout     TYPE ty_s_layout.
+    DATA ms_layout_tmp TYPE ty_s_layout.
     DATA mv_descr      TYPE string.
     DATA mv_layout     TYPE string.
     DATA mv_def        TYPE abap_bool.
@@ -389,6 +390,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
          )->button( text  = 'Back'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
+         )->button( text  = 'Okay'
+                    icon  = 'sap-icon://accept'
+                    press = client->_event( 'OKAY' )
          )->button( text  = 'Save'
                     press = client->_event( 'EDIT_SAVE' )
                     icon  = 'sap-icon://save'
@@ -416,9 +420,18 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         client->nav_app_call( factory( layout        = ms_layout
                                        delete_layout = abap_true ) ).
 
+
+      WHEN 'OKAY'.
+
+        client->popup_destroy( ).
+
+        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
       WHEN 'CLOSE'.
 
         client->popup_destroy( ).
+
+        ms_layout = ms_layout_tmp.
 
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
@@ -464,6 +477,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     result = NEW #( ).
 
     result->ms_layout = layout.
+    result->ms_layout_tmp = layout.
 
     result->mv_open   = open_layout.
     result->mv_delete = delete_layout.
