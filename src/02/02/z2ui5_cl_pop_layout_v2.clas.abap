@@ -20,8 +20,8 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     TYPES ty_t_head TYPE STANDARD TABLE OF ty_s_head WITH EMPTY KEY.
 
     TYPES  BEGIN OF ty_s_positions.
-             INCLUDE TYPE z2ui5_t004.
-    TYPES:   tlabel TYPE string,
+    INCLUDE TYPE z2ui5_t004.
+    TYPES: tlabel TYPE string,
            END OF ty_s_positions.
     TYPES ty_t_positions TYPE STANDARD TABLE OF ty_s_positions WITH EMPTY KEY.
 
@@ -32,7 +32,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       END OF ty_s_layout.
 
     TYPES BEGIN OF ty_s_layo.
-            INCLUDE TYPE z2ui5_t003.
+    INCLUDE TYPE z2ui5_t003.
     TYPES   selkz TYPE abap_bool.
     TYPES END OF ty_s_layo.
     TYPES ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.

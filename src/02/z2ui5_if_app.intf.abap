@@ -1,7 +1,7 @@
 INTERFACE z2ui5_if_app PUBLIC.
   INTERFACES if_serializable_object.
 
-  CONSTANTS version TYPE string VALUE '1.300.0'.
+  CONSTANTS version TYPE string VALUE '1.301.0'.
   CONSTANTS origin  TYPE string VALUE 'https://github.com/abap2UI5/abap2UI5'.
   CONSTANTS license TYPE string VALUE 'MIT'.
 
