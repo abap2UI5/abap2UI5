@@ -179,10 +179,6 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
-  METHODS _bind_clear
-    IMPORTING
-      val TYPE data.
-
   METHODS clear
     IMPORTING
       val TYPE data.
