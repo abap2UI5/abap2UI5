@@ -262,7 +262,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
                        minscreenwidth  = client->_bind( val       = layout->width
                                                         tab       = ms_layout-t_layout
                                                         tab_index = lv_index )
-       )->text( get_txt( CONV #( layout->rollname ) ) ).
+       )->text( layout->tlabel ).
 
     ENDLOOP.
 

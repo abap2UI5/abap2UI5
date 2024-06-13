@@ -20,8 +20,8 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     TYPES ty_t_head TYPE STANDARD TABLE OF ty_s_head WITH EMPTY KEY.
 
     TYPES  BEGIN OF ty_s_positions.
-    INCLUDE TYPE z2ui5_t004.
-    TYPES: tlabel TYPE string,
+             INCLUDE TYPE z2ui5_t004.
+    TYPES:   tlabel TYPE string,
            END OF ty_s_positions.
     TYPES ty_t_positions TYPE STANDARD TABLE OF ty_s_positions WITH EMPTY KEY.
 
@@ -32,7 +32,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       END OF ty_s_layout.
 
     TYPES BEGIN OF ty_s_layo.
-    INCLUDE TYPE z2ui5_t003.
+            INCLUDE TYPE z2ui5_t003.
     TYPES   selkz TYPE abap_bool.
     TYPES END OF ty_s_layo.
     TYPES ty_t_layo TYPE STANDARD TABLE OF ty_s_layo WITH EMPTY KEY.
@@ -655,8 +655,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                                   contentwidth = '70%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
-    dialog->table( mode       = 'SingleSelectLeft'
-                   items      = client->_bind_edit( mt_head )
+    dialog->table( mode  = 'SingleSelectLeft'
+                   items = client->_bind_edit( mt_head )
                 )->columns(
                     )->column( )->text( 'Layout' )->get_parent(
                     )->column( )->text( 'Description'
@@ -700,8 +700,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                                   contentwidth = '70%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
-    dialog->table( mode       = 'SingleSelectLeft'
-                   items      = client->_bind_edit( mt_head )
+    dialog->table( mode  = 'SingleSelectLeft'
+                   items = client->_bind_edit( mt_head )
                 )->columns(
                     )->column( )->text( 'Layout' )->get_parent(
                     )->column( )->text( 'Description' )->get_parent(
@@ -842,43 +842,46 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         AND handle02 = @handle02
         AND handle03 = @handle03
         AND handle04 = @handle04
-      INTO TABLE @DATA(Head) ##SUBRC_OK.
+      INTO TABLE @DATA(Head).
 
-    " Default all Handles + User
-    DATA(def) = VALUE #( Head[ handle01 = handle01
-                               handle02 = handle02
-                               handle03 = handle03
-                               handle04 = handle04
-                               def      = abap_true
-                               uname    = sy-uname ] OPTIONAL ).
+    IF sy-subrc = 0.
 
-    IF def IS INITIAL.
-      " Default frist 3 Handles + User
-      def = VALUE #( Head[ handle01 = handle01
-                           handle02 = handle02
-                           handle03 = handle03
-                           def      = abap_true
-                           uname    = sy-uname ] OPTIONAL ).
+      " Default all Handles + User
+      DATA(def) = VALUE #( Head[ handle01 = handle01
+                                 handle02 = handle02
+                                 handle03 = handle03
+                                 handle04 = handle04
+                                 def      = abap_true
+                                 uname    = sy-uname ] OPTIONAL ).
+
       IF def IS INITIAL.
-        " Default frist 2 Handles + User
+        " Default frist 3 Handles + User
         def = VALUE #( Head[ handle01 = handle01
                              handle02 = handle02
+                             handle03 = handle03
                              def      = abap_true
                              uname    = sy-uname ] OPTIONAL ).
         IF def IS INITIAL.
-          " Default frist 1 Handles + User
+          " Default frist 2 Handles + User
           def = VALUE #( Head[ handle01 = handle01
+                               handle02 = handle02
                                def      = abap_true
                                uname    = sy-uname ] OPTIONAL ).
-        ENDIF.
-        IF def IS INITIAL.
-          " Default User
-          def = VALUE #( Head[ def   = abap_true
-                               uname = sy-uname ] OPTIONAL ).
-        ENDIF.
-        IF def IS INITIAL.
-          " Default User
-          def = VALUE #( Head[ def = abap_true ] OPTIONAL ).
+          IF def IS INITIAL.
+            " Default frist 1 Handles + User
+            def = VALUE #( Head[ handle01 = handle01
+                                 def      = abap_true
+                                 uname    = sy-uname ] OPTIONAL ).
+          ENDIF.
+          IF def IS INITIAL.
+            " Default User
+            def = VALUE #( Head[ def   = abap_true
+                                 uname = sy-uname ] OPTIONAL ).
+          ENDIF.
+          IF def IS INITIAL.
+            " Default User
+            def = VALUE #( Head[ def = abap_true ] OPTIONAL ).
+          ENDIF.
         ENDIF.
       ENDIF.
     ENDIF.
