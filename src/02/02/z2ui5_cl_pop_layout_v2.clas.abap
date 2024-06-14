@@ -145,7 +145,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
 
     CLASS-METHODS set_text
       IMPORTING
-        !layout       TYPE REF TO ty_s_positions
+        !layout       TYPE ty_s_positions
       RETURNING
         VALUE(result) TYPE ty_s_positions-tlabel.
 
@@ -188,26 +188,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       on_init( ms_layout-s_head-control ).
 
-      CASE abap_true.
-        WHEN mv_open.
+      init_edit( ).
 
-          get_layouts( ).
-
-          render_open( ).
-
-        WHEN mv_delete.
-
-          get_layouts( ).
-
-          render_delete( ).
-
-        WHEN OTHERS.
-
-          init_edit( ).
-
-          render_edit( ).
-
-      ENDCASE.
+      render_edit( ).
 
       client->popup_model_update( ).
 
@@ -408,18 +391,21 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       WHEN 'LAYOUT_EDIT'.
 
-        client->nav_app_call( factory( layout = ms_layout ) ).
+        init_edit( ).
+
+        render_edit( ).
 
       WHEN 'LAYOUT_LOAD'.
 
-        client->nav_app_call( factory( layout      = ms_layout
-                                       open_layout = abap_true   ) ).
+        get_layouts( ).
+
+        render_open( ).
 
       WHEN 'LAYOUT_DELETE'.
 
-        client->nav_app_call( factory( layout        = ms_layout
-                                       delete_layout = abap_true ) ).
+        get_layouts( ).
 
+        render_delete( ).
 
       WHEN 'OKAY'.
 
@@ -476,11 +462,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     result = NEW #( ).
 
-    result->ms_layout = layout.
+    result->ms_layout     = layout.
     result->ms_layout_tmp = layout.
 
-    result->mv_open   = open_layout.
-    result->mv_delete = delete_layout.
+    result->mv_open       = open_layout.
+    result->mv_delete     = delete_layout.
 
   ENDMETHOD.
 
@@ -653,8 +639,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         LOOP AT positions INTO DATA(pos).
           CLEAR layout.
           layout = CORRESPONDING #( pos ).
+          layout-tlabel = set_text( layout ).
           APPEND layout TO ms_layout-t_layout.
         ENDLOOP.
+
+        ms_layout-t_layout = sort_by_seqence( ms_layout-t_layout ).
 
       ENDIF.
     ENDIF.
@@ -694,7 +683,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-         )->button( text  = 'Back'
+         )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'Delete'
@@ -741,7 +730,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-         )->button( text  = 'Back'
+         )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'OK'
@@ -949,7 +938,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
             layout->handle04   = handle04.
         ENDTRY.
 
-        layout->tlabel = set_text( layout ).
+        layout->tlabel = set_text( layout->* ).
 
       ENDLOOP.
 
@@ -1015,7 +1004,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       layout->handle03   = handle03.
       layout->handle04   = handle04.
 
-      layout->tlabel     = set_text( layout ).
+      layout->tlabel     = set_text( layout->* ).
 
     ENDLOOP.
 
@@ -1138,14 +1127,14 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
   METHOD set_text.
 
-    IF layout->alternative_text IS INITIAL.
-      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout->rollname ) )-long.
+    IF layout-alternative_text IS INITIAL.
+      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-rollname ) )-long.
     ELSE.
-      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout->alternative_text ) )-long.
+      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-alternative_text ) )-long.
     ENDIF.
 
     IF result IS INITIAL.
-      result = layout->fname.
+      result = layout-fname.
     ENDIF.
 
   ENDMETHOD.
