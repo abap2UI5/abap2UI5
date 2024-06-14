@@ -145,7 +145,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
 
     CLASS-METHODS set_text
       IMPORTING
-        !layout       TYPE REF TO ty_s_positions
+        !layout       TYPE ty_s_positions
       RETURNING
         VALUE(result) TYPE ty_s_positions-tlabel.
 
@@ -639,8 +639,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         LOOP AT positions INTO DATA(pos).
           CLEAR layout.
           layout = CORRESPONDING #( pos ).
+          layout-tlabel = set_text( layout ).
           APPEND layout TO ms_layout-t_layout.
         ENDLOOP.
+
+        ms_layout-t_layout = sort_by_seqence( ms_layout-t_layout ).
 
       ENDIF.
     ENDIF.
@@ -935,7 +938,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
             layout->handle04   = handle04.
         ENDTRY.
 
-        layout->tlabel = set_text( layout ).
+        layout->tlabel = set_text( layout->* ).
 
       ENDLOOP.
 
@@ -1001,7 +1004,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       layout->handle03   = handle03.
       layout->handle04   = handle04.
 
-      layout->tlabel     = set_text( layout ).
+      layout->tlabel     = set_text( layout->* ).
 
     ENDLOOP.
 
@@ -1124,14 +1127,14 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
   METHOD set_text.
 
-    IF layout->alternative_text IS INITIAL.
-      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout->rollname ) )-long.
+    IF layout-alternative_text IS INITIAL.
+      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-rollname ) )-long.
     ELSE.
-      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout->alternative_text ) )-long.
+      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-alternative_text ) )-long.
     ENDIF.
 
     IF result IS INITIAL.
-      result = layout->fname.
+      result = layout-fname.
     ENDIF.
 
   ENDMETHOD.
