@@ -26,7 +26,7 @@
 
 *...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
-#### Key Features
+### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
 * **User-Friendly:** Implement just a single interface for a standalone UI5 application
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
@@ -34,14 +34,15 @@
 * **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP 2402)
 * **Easy Installation:** abapGit project, no additional app deployment required
 
-#### Compatibility
+### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
 
-#### Know-How I: Introduction, Development & Technical Background
+### Know-How 
+#### I. Introduction, Development & Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
 2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
 3. Popups, F4-Help, Messages & Controller Logic [(SCN - 30.03.2023)](https://blogs.sap.com/2023/03/30/abap2ui5-3-4-flow-logic-pop-ups-f4-help/)<br>
@@ -55,12 +56,16 @@
 11. Extensions II: Guideline for Developing New Features in JavaScript [(SCN - 11.12.2023)](https://blogs.sap.com/2023/12/11/abap2ui5-a4-extensions-ii-guideline-for-developing-new-features-in-javascript/)<br>
 12. Update II: Community Feedback, New Features & Outlook – Jan. 2024 [(SCN - 08.01.2024)](https://blogs.sap.com/2024/01/08/abap2ui5-12-update-ii-community-feedback-new-features-outlook-january-2024/)<br>
 
-#### Know-How II: SAP Fiori Launchpad Integration
+#### II. SAP Fiori Launchpad Integration
 1. Installation & Configrations [(LinkedIn - 03.06.2024)](https://www.linkedin.com/pulse/copy-abap2ui5-host-your-apps-sap-fiori-launchpad-abap2ui5-ocn2e/?trackingId=Eot1XiIJHbM2a2ebDSF3dg%3D%3D&lipi=urn%3Ali%3Apage%3Ad_flagship3_pulse_read%3B4FqT5lkFQBioKDKsj%2F3ZTw%3D%3D)<br>
 2. Features: Title, Parameters & Navigation [(LinkedIn - 06.06.2024)](https://www.linkedin.com/pulse/abap2ui5-host-your-apps-sap-fiori-launchpad-23-features-abap2ui5-upche/?trackingId=WdScbzEUGgKY%2FS2Ibiy5fA%3D%3D&lipi=urn%3Ali%3Apage%3Ad_flagship3_pulse_read%3B4FqT5lkFQBioKDKsj%2F3ZTw%3D%3D)<br>
 3. Integration of KPIs [(LinkedIn - 07.06.2024)](https://www.linkedin.com/pulse/abap2ui5-host-your-apps-sap-fiori-launchpad-33-kpis-abap2ui5-uuxxe/?trackingId=RedZMaZUkHn%2Bv6oSTwtVQw%3D%3D&lipi=urn%3Ali%3Apage%3Ad_flagship3_pulse_read%3B4FqT5lkFQBioKDKsj%2F3ZTw%3D%3D)<br>
 
-#### References
+#### III. SAP BTP Integration with Build Workzone & Mobile Start
+1. Installation & Configuration [(LinkedIn - 09.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-13-installation-lf1re/?trackingId=jFrPiQOaJTZn6WCiK5gS3g%3D%3D)<br>
+
+
+### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
 * Featured on SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
 * Highlighted in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
@@ -71,16 +76,16 @@
 * Highlighted in the Boring Enterprise Nerdcast [(youtube - 29.01.2024)](https://youtu.be/svDZKFBvqR8?t=1050)
 * Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
 * Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
+* Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
   
-#### Apps, Extensions & More
-* Host your apps on SAP BTP with Build Workzone & Mobile Start [(connect-btp)](https://github.com/abap2UI5/abap2UI5-connector_sap_btp)
+### Apps, Extensions & More
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
 * And don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
   
-#### Credits
+### Credits
 * These [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
 * Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
@@ -95,7 +100,7 @@
 
 _Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
 
-#### Installation
+### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
 ```abap
@@ -253,7 +258,7 @@ ENDCLASS.
 
 </details>
 
-#### FAQ
+### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
