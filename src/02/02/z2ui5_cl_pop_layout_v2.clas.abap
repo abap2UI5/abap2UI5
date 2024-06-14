@@ -188,26 +188,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       on_init( ms_layout-s_head-control ).
 
-      CASE abap_true.
-        WHEN mv_open.
+      init_edit( ).
 
-          get_layouts( ).
-
-          render_open( ).
-
-        WHEN mv_delete.
-
-          get_layouts( ).
-
-          render_delete( ).
-
-        WHEN OTHERS.
-
-          init_edit( ).
-
-          render_edit( ).
-
-      ENDCASE.
+      render_edit( ).
 
       client->popup_model_update( ).
 
@@ -408,18 +391,21 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       WHEN 'LAYOUT_EDIT'.
 
-        client->nav_app_call( factory( layout = ms_layout ) ).
+        init_edit( ).
+
+        render_edit( ).
 
       WHEN 'LAYOUT_LOAD'.
 
-        client->nav_app_call( factory( layout      = ms_layout
-                                       open_layout = abap_true   ) ).
+        get_layouts( ).
+
+        render_open( ).
 
       WHEN 'LAYOUT_DELETE'.
 
-        client->nav_app_call( factory( layout        = ms_layout
-                                       delete_layout = abap_true ) ).
+        get_layouts( ).
 
+        render_delete( ).
 
       WHEN 'OKAY'.
 
@@ -476,11 +462,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     result = NEW #( ).
 
-    result->ms_layout = layout.
+    result->ms_layout     = layout.
     result->ms_layout_tmp = layout.
 
-    result->mv_open   = open_layout.
-    result->mv_delete = delete_layout.
+    result->mv_open       = open_layout.
+    result->mv_delete     = delete_layout.
 
   ENDMETHOD.
 
@@ -694,7 +680,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-         )->button( text  = 'Back'
+         )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'Delete'
@@ -741,7 +727,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-         )->button( text  = 'Back'
+         )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'OK'
