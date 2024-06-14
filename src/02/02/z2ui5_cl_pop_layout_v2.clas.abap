@@ -387,7 +387,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           )->button( type    = 'Transparent'
                      enabled = abap_false
                      text    = `               `
-         )->button( text  = 'Back'
+         )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
                     press = client->_event( 'CLOSE' )
          )->button( text  = 'Okay'
