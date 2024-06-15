@@ -42,6 +42,7 @@
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
 
 ### Know-How 
+*Exploring the [samples repository](https://github.com/abap2UI5/abap2UI5-samples) is the quickest way to become an abap2UI5 expert...* 🧭
 #### I. Introduction, Development & Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
 2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
@@ -71,8 +72,6 @@
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
-* And don't forget to explore the [Samples Repository](https://github.com/abap2UI5/abap2UI5-samples) 🧭
-
 
 ### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
