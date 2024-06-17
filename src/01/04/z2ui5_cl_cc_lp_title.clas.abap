@@ -32,7 +32,7 @@ CLASS z2ui5_cl_cc_lp_title IMPLEMENTATION.
              `            setTitle(val) {` && |\n| &&
              `                try { ` && |\n| &&
              `                this.setProperty("title", val);` && |\n| &&
-             `                z2ui5.oLaunchpadService.setTitle( val );` && |\n| &&
+             `                sap.z2ui5.oLaunchpadService.setTitle( val );` && |\n| &&
              `               } catch (e) { console.error("Launchpad Service to set Title not found");  }` && |\n| &&
              `            },` && |\n| &&
              `            renderer(oRm, oControl) {}` && |\n| &&
