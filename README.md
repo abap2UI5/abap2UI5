@@ -129,7 +129,7 @@ ENDMETHOD.
 
 </details>
 
-#### Usage
+### Usage
 Implement the abap2UI5 interface as shown in the following example:
 ```abap
 CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
