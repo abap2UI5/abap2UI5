@@ -64,8 +64,8 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 
 #### III. SAP BTP Integration
 1. Installation & Configuration [(LinkedIn - 09.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-13-installation-lf1re/?trackingId=jFrPiQOaJTZn6WCiK5gS3g%3D%3D)<br>
-2. Setup SAP Build Workzone Websites
-3. Setup SAP Mobile Start
+2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
+3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
 #### IV. More
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
