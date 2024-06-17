@@ -1275,7 +1275,14 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     TRY.
         DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
       CATCH cx_root.
-        RETURN.
+
+        TRY.
+            DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
+            lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
+          CATCH cx_root.
+            RETURN.
+        ENDTRY.
+
     ENDTRY.
 
     result = lo_struct->get_components( ).
