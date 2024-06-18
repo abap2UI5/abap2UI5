@@ -91,9 +91,9 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
         press = client->_event( `OPEN_INFO` )
     ).
 
- page2->message_strip(
-   `Hey! Are you already following the new abap2UI5 page on LinkedIn?`
-     )->get( )->link( )->link( text = ` Check it out here...` href = `https://www.linkedin.com/company/abap2ui5` target = `blank` ).
+* page2->message_strip(
+*   `Hey! Are you already following the new abap2UI5 page on LinkedIn?`
+*     )->get( )->link( )->link( text = ` Check it out here...` href = `https://www.linkedin.com/company/abap2ui5` target = `blank` ).
 
     DATA(simple_form2) = page2->simple_form(
         editable                = abap_true
@@ -186,6 +186,8 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
     simple_form2->label( `` ).
     simple_form2->text( `` ).
 
+    simple_form2->toolbar( )->title( `Contribution` ).
+
     simple_form2->label( `Open a Pull Request` ).
     simple_form2->link( text = `You added a new feature or fixed a bug?`
                target        = `_blank`
@@ -196,23 +198,27 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
                  target      = `_blank`
                  href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
-    simple_form2->toolbar( )->title( `The Project` ).
+    simple_form2->toolbar( )->title( `Social Media` ).
 
-    simple_form2->label( `Social` ).
-    simple_form2->link( text   = `Repository on GitHub`
-                        target = `_blank`
-                        href   = `https://github.com/abap2UI5/abap2UI5` ).
+*    simple_form2->label( `Stay Connected` ).
+*    simple_form2->link( text   = `Repository on GitHub`
+*                        target = `_blank`
+*                        href   = `https://github.com/abap2UI5/abap2UI5` ).
 
-    simple_form2->label( ).
-    simple_form2->link( text   = `Blog Series on SAP Community`
-                        target = `_blank`
-                        href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
+*    simple_form2->label( ).
+*    simple_form2->link( text   = `Blog Series on SAP Community`
+*                        target = `_blank`
+*                        href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
 
     simple_form2->label( ).
     simple_form2->link( text   = `Follow abap2UI5 on Linkedin`
                         target = `_blank`
                         href   = `https://www.linkedin.com/company/abap2ui5` ).
 
+    simple_form2->label( ).
+    simple_form2->link( text   = `www.abap2UI5.org`
+                        target = `_blank`
+                        href   = `http://www.abap2UI5.org` ).
 
     client->view_display( page2->stringify( ) ).
 
