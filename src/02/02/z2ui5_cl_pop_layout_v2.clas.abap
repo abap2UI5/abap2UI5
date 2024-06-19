@@ -301,7 +301,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       CASE control-attribute.
         WHEN 'VISIBLE'.
-          col = columns->column( width = '4.5rem' )->header( `` ).
+          col = columns->column( '4.5rem' )->header( `` ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
           col = columns->column( width = '4.5rem' )->header( `` ).
