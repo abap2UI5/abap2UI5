@@ -1233,8 +1233,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         )->button( text  = `Add Item`
                    icon  = `sap-icon://add`
                    press = client->_event( val = `SUBCOLUMN_ADD` )
-
-       )->button( text  = 'Cancel'
+)->button( text  = 'Cancel'
                   press = client->_event( 'SUBCOLUMN_CANCEL' )
        )->button( text  = 'OK'
                   press = client->_event( 'SUBCOLUMN_CONFIRM' )
