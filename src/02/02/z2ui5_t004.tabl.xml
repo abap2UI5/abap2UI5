@@ -185,6 +185,15 @@
      <LENG>000030</LENG>
      <MASK>  CHAR</MASK>
     </DD03P>
+    <DD03P>
+     <FIELDNAME>SUBCOLUMN</FIELDNAME>
+     <ADMINFIELD>0</ADMINFIELD>
+     <INTTYPE>C</INTTYPE>
+     <INTLEN>000510</INTLEN>
+     <DATATYPE>CHAR</DATATYPE>
+     <LENG>000255</LENG>
+     <MASK>  CHAR</MASK>
+    </DD03P>
    </DD03P_TABLE>
   </asx:values>
  </asx:abap>
