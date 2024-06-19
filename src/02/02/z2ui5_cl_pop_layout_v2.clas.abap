@@ -316,7 +316,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           col = columns->column( `7rem` )->header( `` ).
           col->text( 'Width in rem' ).
         WHEN 'SEQUENCE'.
-          col = columns->column( width = `5rem` )->header( `` ).
+          col = columns->column( `5rem` )->header( `` ).
           col->text( 'Sequence' ).
         WHEN 'ALTERNATIVE_TEXT'.
           col = columns->column( )->header( `` ).
