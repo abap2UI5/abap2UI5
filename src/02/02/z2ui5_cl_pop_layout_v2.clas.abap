@@ -313,7 +313,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           col = columns->column( )->header( `` ).
           col->text( 'Importance' ).
         WHEN 'WIDTH'.
-          col = columns->column( width = `7rem` )->header( `` ).
+          col = columns->column( `7rem` )->header( `` ).
           col->text( 'Width in rem' ).
         WHEN 'SEQUENCE'.
           col = columns->column( width = `5rem` )->header( `` ).
