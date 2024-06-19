@@ -1226,8 +1226,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                                                 t_arg = VALUE #( ( `${KEY}` ) ) ) ).
 
     lo_popup->buttons(
-
-        )->button( text  = `Delete All`
+)->button( text  = `Delete All`
                    icon  = 'sap-icon://delete'
                    type  = `Transparent`
                    press = client->_event( val = `SUBCOLUMN_DELETE_ALL` )
