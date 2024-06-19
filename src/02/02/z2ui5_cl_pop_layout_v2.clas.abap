@@ -195,7 +195,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       IMPORTING
         !layout       TYPE ty_t_positions
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_pop_layout_v2=>ty_t_positions.
+        VALUE(result) TYPE ty_t_positions.
 
 ENDCLASS.
 
