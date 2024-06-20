@@ -454,7 +454,7 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
     DATA(table_name) = 'E070'.
 
     TRY.
-        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name = table_name ).
+        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name ).
 
         DATA(new_struct_desc) = cl_abap_structdescr=>create( t_comp ).
 
