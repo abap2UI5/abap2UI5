@@ -9,11 +9,6 @@ CLASS z2ui5_cl_pop_transport DEFINITION
     TYPES trobj_name     TYPE c LENGTH 120.
     TYPES sxco_transport TYPE c LENGTH 20.
 
-    TYPES: BEGIN OF ty_s_e070,
-             trkorr  TYPE c LENGTH 40,
-             strkorr TYPE c LENGTH 40,
-           END OF ty_s_e070.
-
     TYPES: BEGIN OF ty_s_data,
              short_description TYPE string,
              transport         TYPE sxco_transport,
@@ -35,12 +30,6 @@ CLASS z2ui5_cl_pop_transport DEFINITION
         iv_tabname   TYPE string
         is_transport TYPE ty_s_data.
 
-    CLASS-METHODS add_to_transport_cloud
-      IMPORTING
-        ir_data      TYPE REF TO datA
-        iv_tabname   TYPE string
-        is_transport TYPE ty_s_data.
-
     CLASS-METHODS add_to_transport_onprem
       IMPORTING
         ir_data      TYPE REF TO datA
@@ -49,6 +38,21 @@ CLASS z2ui5_cl_pop_transport DEFINITION
 
   PROTECTED SECTION.
     CLASS-METHODS get_tr_onprem.
+
+    CLASS-METHODS set_e071k
+      IMPORTING
+        ir_data       TYPE REF TO datA
+        iv_tabname    TYPE string
+        is_transport  TYPE ty_s_data
+      RETURNING
+        VALUE(result) TYPE REF TO data.
+
+    CLASS-METHODS set_e071
+      IMPORTING
+        iv_tabname    TYPE string
+        is_transport  TYPE ty_s_data
+      RETURNING
+        VALUE(result) TYPE REF TO data.
 
     DATA client  TYPE REF TO z2ui5_if_client.
     DATA mv_init TYPE abap_bool.
@@ -158,9 +162,9 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
   METHOD add_DATA_to_tranport.
 
     IF z2ui5_cl_util_api=>rtti_check_lang_version_cloud( ) = abap_true.
-      add_to_transport_cloud( ir_data      = ir_data
-                              iv_tabname   = iv_tabname
-                              is_transport = is_transport ).
+*      add_to_transport_cloud( ir_data      = ir_data
+*                              iv_tabname   = iv_tabname
+*                              is_transport = is_transport ).
     ELSE.
       add_to_transport_onprem( ir_data      = ir_data
                                iv_tabname   = iv_tabname
@@ -213,171 +217,20 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
     rv_tabkey = lv_tabkey.
   ENDMETHOD.
 
-  METHOD add_to_transport_cloud.
-    " TODO: parameter IR_DATA is never used (ABAP cleaner)
-    " TODO: parameter IV_TABNAME is never used (ABAP cleaner)
-    " TODO: parameter IS_TRANSPORT is never used (ABAP cleaner)
-
-    IF 1 = 2.
-    ENDIF.
-
-  ENDMETHOD.
-
   METHOD add_to_transport_onprem.
 
-    DATA t_e071k TYPE REF TO data.
-    DATA s_e071k TYPE REF TO data.
-    DATA t_e071  TYPE REF TO data.
-    DATA s_e071  TYPE REF TO data.
-
     FIELD-SYMBOLS <t_e071k> TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <s_e071k> TYPE any.
-    FIELD-SYMBOLS <value>   TYPE any.
     FIELD-SYMBOLS <t_e071>  TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <s_e071>  TYPE any.
-    FIELD-SYMBOLS <tab>     TYPE STANDARD TABLE.
-    FIELD-SYMBOLS <line>    TYPE any.
 
-    DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( 'E071K' ).
+    DATA(r_e071k) = set_e071k( ir_data      = ir_data
+                               iv_tabname   = iv_tabname
+                               is_transport = is_transport ).
 
-    TRY.
+    DATA(r_e071) = set_e071( iv_tabname   = iv_tabname
+                             is_transport = is_transport ).
 
-        DATA(struct_desc) = cl_abap_structdescr=>create( t_comp ).
-
-        DATA(table_desc) = cl_abap_tabledescr=>create( p_line_type  = struct_desc
-                                                       p_table_kind = cl_abap_tabledescr=>tablekind_std ).
-
-        CREATE DATA t_e071k TYPE HANDLE table_desc.
-        CREATE DATA s_e071k TYPE HANDLE struct_desc.
-
-        ASSIGN t_e071k->* TO <t_e071k>.
-        ASSIGN s_e071k->* TO <s_e071k>.
-
-      CATCH cx_root.
-
-    ENDTRY.
-
-    DATA(dfies) = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( iv_tabname ).
-
-    ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <s_e071k> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = is_transport-transport.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'PGMID' OF STRUCTURE <s_e071k> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = 'R3TR'.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'MASTERTYPE' OF STRUCTURE <s_e071k> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = 'TABU'.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'OBJECT' OF STRUCTURE <s_e071k> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = 'TABU'.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'MASTERNAME' OF STRUCTURE <s_e071k> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = iv_tabname.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'OBJNAME' OF STRUCTURE <s_e071k> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = iv_tabname.
-    ENDIF.
-    UNASSIGN <value>.
-
-    t_comp = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( 'E071' ).
-
-    TRY.
-
-        DATA(struct_desc_new) = cl_abap_structdescr=>create( t_comp ).
-
-        DATA(table_desc_new) = cl_abap_tabledescr=>create( p_line_type  = struct_desc_new
-                                                           p_table_kind = cl_abap_tabledescr=>tablekind_std ).
-
-        CREATE DATA t_e071 TYPE HANDLE table_desc_new.
-        CREATE DATA s_e071 TYPE HANDLE struct_desc_new.
-
-        ASSIGN t_e071->* TO <t_e071>.
-        ASSIGN s_e071->* TO <s_e071>.
-
-      CATCH cx_root.
-
-    ENDTRY.
-
-    ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <s_e071> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = is_transport-transport.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'PGMID' OF STRUCTURE <s_e071> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = 'R3TR'.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'OBJECT' OF STRUCTURE <s_e071> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = 'TABU'.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'OBJ_NAME' OF STRUCTURE <s_e071> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = iv_tabname.
-    ENDIF.
-    UNASSIGN <value>.
-    ASSIGN COMPONENT 'OBJFUNC' OF STRUCTURE <s_e071> TO <value>.
-    IF <value> IS NOT ASSIGNED.
-      RETURN.
-    ELSE.
-      <value> = 'K'.
-    ENDIF.
-    UNASSIGN <value>.
-
-    APPEND <s_e071> TO <t_e071>.
-
-    ASSIGN iR_data->* TO <tab>.
-
-    IF <tab> IS INITIAL.
-      RETURN.
-    ENDIF.
-
-    LOOP AT <tab> ASSIGNING <line>.
-
-      ASSIGN COMPONENT 'TABKEY' OF STRUCTURE <s_e071k> TO <value>.
-      IF <value> IS NOT ASSIGNED.
-        RETURN.
-      ELSE.
-        <value> = get_e071k_tabkey( dfies = dfies
-                                    line  = <line> ).
-      ENDIF.
-
-      APPEND <s_e071k> TO <t_e071k>.
-
-    ENDLOOP.
+    ASSIGN r_e071k->* TO <t_e071k>.
+    ASSIGN r_e071->* TO <t_e071>.
 
     DATA(fb1) = 'TR_APPEND_TO_COMM_OBJS_KEYS'.
 
@@ -454,7 +307,7 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
     DATA(table_name) = 'E070'.
 
     TRY.
-        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name ).
+        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name = table_name ).
 
         DATA(new_struct_desc) = cl_abap_structdescr=>create( t_comp ).
 
@@ -470,11 +323,13 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
         DATA(where) =
         |( TRFUNCTION EQ 'Q' ) AND ( TRSTATUS EQ 'D' ) AND ( KORRDEV EQ 'CUST' ) AND ( AS4USER EQ '{ sy-uname }' )|.
 
-        SELECT *
+        SELECT TRKORR, STRKORR
           FROM (table_name)
           WHERE (where)
           INTO TABLE @<table>.
-
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
       CATCH cx_root.
     ENDTRY.
 
@@ -530,10 +385,13 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
           where = |( { where } )|.
         ENDLOOP.
 
-        SELECT *
+        SELECT TRKORR, AS4TEXT
           FROM (table_name)
           WHERE (where)
           INTO TABLE @<table>.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
 
       CATCH cx_root.
     ENDTRY.
@@ -545,7 +403,7 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
         CONTINUE.
       ELSE.
 
-        READ TABLE mt_data REFERENCE INTO DATA(data) WITH KEY TASK = <value>.
+        READ TABLE mt_data REFERENCE INTO DATA(data) WITH KEY task = <value>.
         IF sy-subrc = 0.
 
           ASSIGN COMPONENT 'AS4TEXT' OF STRUCTURE <line> TO <value>.
@@ -562,6 +420,178 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
       ENDIF.
 
     ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD set_e071k.
+
+    DATA t_e071k TYPE REF TO data.
+    DATA s_e071k TYPE REF TO data.
+
+    FIELD-SYMBOLS <t_e071k> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <s_e071k> TYPE any.
+    FIELD-SYMBOLS <value>   TYPE any.
+    FIELD-SYMBOLS <tab>     TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line>    TYPE any.
+
+    DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( 'E071K' ).
+
+    TRY.
+
+        DATA(struct_desc) = cl_abap_structdescr=>create( t_comp ).
+
+        DATA(table_desc) = cl_abap_tabledescr=>create( p_line_type  = struct_desc
+                                                       p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
+        CREATE DATA t_e071k TYPE HANDLE table_desc.
+        CREATE DATA s_e071k TYPE HANDLE struct_desc.
+
+        ASSIGN t_e071k->* TO <t_e071k>.
+        ASSIGN s_e071k->* TO <s_e071k>.
+
+      CATCH cx_root.
+
+    ENDTRY.
+
+    DATA(dfies) = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( iv_tabname ).
+
+*   is_transport-transport = assign_value( component = 'TRKORR'
+*                                          structure = <s_e071k> ).                                         )
+
+    ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <s_e071k> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = is_transport-transport.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'PGMID' OF STRUCTURE <s_e071k> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = 'R3TR'.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'MASTERTYPE' OF STRUCTURE <s_e071k> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = 'TABU'.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'OBJECT' OF STRUCTURE <s_e071k> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = 'TABU'.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'MASTERNAME' OF STRUCTURE <s_e071k> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = iv_tabname.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'OBJNAME' OF STRUCTURE <s_e071k> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = iv_tabname.
+    ENDIF.
+    UNASSIGN <value>.
+
+    ASSIGN iR_data->* TO <tab>.
+
+    IF <tab> IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    LOOP AT <tab> ASSIGNING <line>.
+
+      ASSIGN COMPONENT 'TABKEY' OF STRUCTURE <s_e071k> TO <value>.
+      IF <value> IS NOT ASSIGNED.
+        RETURN.
+      ELSE.
+        <value> = get_e071k_tabkey( dfies = dfies
+                                    line  = <line> ).
+      ENDIF.
+
+      APPEND <s_e071k> TO <t_e071k>.
+
+    ENDLOOP.
+
+    result = t_e071k.
+
+  ENDMETHOD.
+
+  METHOD set_e071.
+
+    DATA t_e071 TYPE REF TO data.
+    DATA s_e071 TYPE REF TO data.
+
+    FIELD-SYMBOLS <t_e071> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <s_e071> TYPE any.
+    FIELD-SYMBOLS <value>  TYPE any.
+
+    DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( 'E071' ).
+
+    TRY.
+
+        DATA(struct_desc_new) = cl_abap_structdescr=>create( t_comp ).
+
+        DATA(table_desc_new) = cl_abap_tabledescr=>create( p_line_type  = struct_desc_new
+                                                           p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
+        CREATE DATA t_e071 TYPE HANDLE table_desc_new.
+        CREATE DATA s_e071 TYPE HANDLE struct_desc_new.
+
+        ASSIGN t_e071->* TO <t_e071>.
+        ASSIGN s_e071->* TO <s_e071>.
+
+      CATCH cx_root.
+
+    ENDTRY.
+
+    ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <s_e071> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = is_transport-transport.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'PGMID' OF STRUCTURE <s_e071> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = 'R3TR'.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'OBJECT' OF STRUCTURE <s_e071> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = 'TABU'.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'OBJ_NAME' OF STRUCTURE <s_e071> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = iv_tabname.
+    ENDIF.
+    UNASSIGN <value>.
+    ASSIGN COMPONENT 'OBJFUNC' OF STRUCTURE <s_e071> TO <value>.
+    IF <value> IS NOT ASSIGNED.
+      RETURN.
+    ELSE.
+      <value> = 'K'.
+    ENDIF.
+    UNASSIGN <value>.
+
+    APPEND <s_e071> TO <t_e071>.
+
+    result = t_e071.
 
   ENDMETHOD.
 

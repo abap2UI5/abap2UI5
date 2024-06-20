@@ -33,6 +33,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
            END OF ty_s_positions.
     TYPES ty_t_positions TYPE STANDARD TABLE OF ty_s_positions WITH EMPTY KEY.
 
+    DATA mt_token TYPE z2ui5_cl_util=>ty_t_token.
 
     TYPES:
       BEGIN OF ty_s_layout,
@@ -74,7 +75,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     DATA mt_halign           TYPE fixvalues.
     DATA mt_importance       TYPE fixvalues.
 
-    DATA mv_active_SUBCOLumn TYPE string.
+    DATA mv_active_subcolumn TYPE string.
     DATA mt_comps            TYPE ty_t_positions.
     DATA mt_sub_cols         TYPE ty_t_sub_columns.
 
@@ -194,7 +195,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       IMPORTING
         !layout       TYPE ty_t_positions
       RETURNING
-        VALUE(result) TYPE ty_t_positions.
+        VALUE(result) TYPE z2ui5_cl_pop_layout_v2=>ty_t_positions.
 
 ENDCLASS.
 
@@ -300,10 +301,10 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       CASE control-attribute.
         WHEN 'VISIBLE'.
-          col = columns->column( '4.5rem' )->header( `` ).
+          col = columns->column( width = '4.5rem' )->header( `` ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
-          col = columns->column( '4.5rem' )->header( `` ).
+          col = columns->column( width = '4.5rem' )->header( `` ).
           col->text( 'Merge' ).
         WHEN 'HALIGN'.
           col = columns->column( )->header( `` ).
@@ -312,10 +313,10 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           col = columns->column( )->header( `` ).
           col->text( 'Importance' ).
         WHEN 'WIDTH'.
-          col = columns->column( `7rem` )->header( `` ).
+          col = columns->column( width = `7rem` )->header( `` ).
           col->text( 'Width in rem' ).
         WHEN 'SEQUENCE'.
-          col = columns->column( `5rem` )->header( `` ).
+          col = columns->column( width = `5rem` )->header( `` ).
           col->text( 'Sequence' ).
         WHEN 'ALTERNATIVE_TEXT'.
           col = columns->column( )->header( `` ).
@@ -1198,16 +1199,13 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     lo_popup = lo_popup->dialog( afterclose   = client->_event( 'SUBCOLUMN_CANCEL' )
-*                                 contentheight = `50%`
+
                                  contentwidth = `20%`
                                  title        = 'Define Sub Coloumns' ).
 
-    DATA(vbox) = lo_popup->vbox( " height         = `100%`
-                                 justifycontent = 'SpaceBetween' ).
+    DATA(vbox) = lo_popup->vbox( justifycontent = 'SpaceBetween' ).
 
-    DATA(item) = vbox->list(
-                             "   headertext = `Product`
-                             nodata          = `no Subcolumns defined`
+    DATA(item) = vbox->list( nodata          = `no Subcolumns defined`
                              items           = client->_bind_edit( mt_sub_cols )
                              selectionchange = client->_event( 'SELCHANGE' )
                 )->custom_list_item( ).
@@ -1225,14 +1223,16 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                                                 t_arg = VALUE #( ( `${KEY}` ) ) ) ).
 
     lo_popup->buttons(
-)->button( text  = `Delete All`
+
+        )->button( text  = `Delete All`
                    icon  = 'sap-icon://delete'
                    type  = `Transparent`
                    press = client->_event( val = `SUBCOLUMN_DELETE_ALL` )
         )->button( text  = `Add Item`
                    icon  = `sap-icon://add`
                    press = client->_event( val = `SUBCOLUMN_ADD` )
-)->button( text  = 'Cancel'
+
+       )->button( text  = 'Cancel'
                   press = client->_event( 'SUBCOLUMN_CANCEL' )
        )->button( text  = 'OK'
                   press = client->_event( 'SUBCOLUMN_CONFIRM' )
@@ -1252,6 +1252,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         mv_active_SUBCOLumn = VALUE #( arg[ 1 ] OPTIONAL ).
 
         READ TABLE ms_layout-t_layout REFERENCE INTO DATA(layout) WITH KEY fname = mv_active_subcolumn.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
 
         mt_comps    = ms_layout-t_layout.
         mt_sub_cols = layout->t_sub_col.
@@ -1261,6 +1264,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       WHEN `SUBCOLUMN_CONFIRM`.
 
         READ TABLE ms_layout-t_layout REFERENCE INTO layout WITH KEY fname = mv_active_subcolumn.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
 
         CLEAR layout->subcolumn.
 
