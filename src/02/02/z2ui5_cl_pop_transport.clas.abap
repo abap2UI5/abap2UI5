@@ -3,6 +3,7 @@ CLASS z2ui5_cl_pop_transport DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
+
     INTERFACES if_serializable_object.
     INTERFACES z2ui5_if_app.
 
@@ -16,9 +17,11 @@ CLASS z2ui5_cl_pop_transport DEFINITION
              selkz             TYPE abap_bool,
            END OF ty_s_data.
 
-    CLASS-DATA mt_data TYPE STANDARD TABLE OF ty_s_data WITH EMPTY KEY.
-
+    DATA client  TYPE REF TO z2ui5_if_client.
+    DATA mv_init TYPE abap_bool.
     DATA ms_transport TYPE ty_s_data.
+
+    CLASS-DATA mt_data TYPE STANDARD TABLE OF ty_s_data WITH EMPTY KEY.
 
     CLASS-METHODS factory
       RETURNING
@@ -30,13 +33,14 @@ CLASS z2ui5_cl_pop_transport DEFINITION
         iv_tabname   TYPE string
         is_transport TYPE ty_s_data.
 
+  PROTECTED SECTION.
+
     CLASS-METHODS add_to_transport_onprem
       IMPORTING
         ir_data      TYPE REF TO datA
         iv_tabname   TYPE string
         is_transport TYPE ty_s_data.
 
-  PROTECTED SECTION.
     CLASS-METHODS get_tr_onprem.
 
     CLASS-METHODS set_e071k
@@ -54,25 +58,24 @@ CLASS z2ui5_cl_pop_transport DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
-    CLASS-METHODS read_e070.
-
-    DATA client  TYPE REF TO z2ui5_if_client.
-    DATA mv_init TYPE abap_bool.
-
-    METHODS on_init.
-
-    METHODS render_view.
-
-    METHODS on_event.
-    METHODS get_tr_cloud.
-
-  PRIVATE SECTION.
     CLASS-METHODS get_e071k_tabkey
       IMPORTING
         !line            TYPE any
         dfies            TYPE z2ui5_cl_stmpncfctn_api=>ty_t_dfies
       RETURNING
         VALUE(rv_tabkey) TYPE trobj_name.
+
+    CLASS-METHODS read_e070.
+
+    METHODS on_init.
+
+    METHODS render_view.
+
+    METHODS on_event.
+
+    METHODS get_tr_cloud.
+
+  PRIVATE SECTION.
 
 ENDCLASS.
 
@@ -335,7 +338,9 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
           where = |( { where } )|.
         ENDLOOP.
 
-        SELECT trkorr, as4text
+        SELECT trkorr,
+               langu,
+               as4text
           FROM (table_name)
           WHERE (where)
           INTO TABLE @<table>.
@@ -574,7 +579,15 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
         DATA(where) =
         |( TRFUNCTION EQ 'Q' ) AND ( TRSTATUS EQ 'D' ) AND ( KORRDEV EQ 'CUST' ) AND ( AS4USER EQ '{ sy-uname }' )|.
 
-        SELECT trkorr, strkorr
+        SELECT trkorr,
+               trfunction,
+               trstatus,
+               tarsystem,
+               korrdev,
+               as4user,
+               as4date,
+               as4time,
+               strkorr
           FROM (table_name)
           WHERE (where)
           INTO TABLE @<table>.
