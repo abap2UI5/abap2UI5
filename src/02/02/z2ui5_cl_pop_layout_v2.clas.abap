@@ -33,8 +33,6 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
            END OF ty_s_positions.
     TYPES ty_t_positions TYPE STANDARD TABLE OF ty_s_positions WITH EMPTY KEY.
 
-    DATA mt_token TYPE z2ui5_cl_util=>ty_t_token.
-
     TYPES:
       BEGIN OF ty_s_layout,
         s_head   TYPE ty_s_head,
@@ -195,7 +193,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       IMPORTING
         !layout       TYPE ty_t_positions
       RETURNING
-        VALUE(result) TYPE z2ui5_cl_pop_layout_v2=>ty_t_positions.
+        VALUE(result) TYPE ty_t_positions.
 
 ENDCLASS.
 
@@ -301,10 +299,10 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       CASE control-attribute.
         WHEN 'VISIBLE'.
-          col = columns->column( width = '4.5rem' )->header( `` ).
+          col = columns->column( '4.5rem' )->header( `` ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
-          col = columns->column( width = '4.5rem' )->header( `` ).
+          col = columns->column( '4.5rem' )->header( `` ).
           col->text( 'Merge' ).
         WHEN 'HALIGN'.
           col = columns->column( )->header( `` ).
@@ -313,10 +311,10 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           col = columns->column( )->header( `` ).
           col->text( 'Importance' ).
         WHEN 'WIDTH'.
-          col = columns->column( width = `7rem` )->header( `` ).
+          col = columns->column( `7rem` )->header( `` ).
           col->text( 'Width in rem' ).
         WHEN 'SEQUENCE'.
-          col = columns->column( width = `5rem` )->header( `` ).
+          col = columns->column( `5rem` )->header( `` ).
           col->text( 'Sequence' ).
         WHEN 'ALTERNATIVE_TEXT'.
           col = columns->column( )->header( `` ).
@@ -1199,7 +1197,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     lo_popup = lo_popup->dialog( afterclose   = client->_event( 'SUBCOLUMN_CANCEL' )
-
                                  contentwidth = `20%`
                                  title        = 'Define Sub Coloumns' ).
 
@@ -1223,7 +1220,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                                                 t_arg = VALUE #( ( `${KEY}` ) ) ) ).
 
     lo_popup->buttons(
-
         )->button( text  = `Delete All`
                    icon  = 'sap-icon://delete'
                    type  = `Transparent`
@@ -1231,7 +1227,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         )->button( text  = `Add Item`
                    icon  = `sap-icon://add`
                    press = client->_event( val = `SUBCOLUMN_ADD` )
-
        )->button( text  = 'Cancel'
                   press = client->_event( 'SUBCOLUMN_CANCEL' )
        )->button( text  = 'OK'

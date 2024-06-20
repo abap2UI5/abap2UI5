@@ -54,6 +54,8 @@ CLASS z2ui5_cl_pop_transport DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO data.
 
+    CLASS-METHODS read_e070.
+
     DATA client  TYPE REF TO z2ui5_if_client.
     DATA mv_init TYPE abap_bool.
 
@@ -161,11 +163,11 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
 
   METHOD add_DATA_to_tranport.
 
-    IF z2ui5_cl_util_api=>rtti_check_lang_version_cloud( ) = abap_true.
+    IF z2ui5_cl_util_api=>rtti_check_lang_version_cloud( ) = abap_false.
 *      add_to_transport_cloud( ir_data      = ir_data
 *                              iv_tabname   = iv_tabname
 *                              is_transport = is_transport ).
-    ELSE.
+*    ELSE.
       add_to_transport_onprem( ir_data      = ir_data
                                iv_tabname   = iv_tabname
                                is_transport = is_transport ).
@@ -298,16 +300,17 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
 
     DATA lo_tab  TYPE REF TO data.
     DATA lo_line TYPE REF TO data.
-    DATA ls_data TYPE ty_s_data.
 
     FIELD-SYMBOLS <table> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <line>  TYPE any.
     FIELD-SYMBOLS <value> TYPE any.
 
-    DATA(table_name) = 'E070'.
+    read_e070( ).
+
+    DATA(table_name) = 'E07T'.
 
     TRY.
-        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name = table_name ).
+        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name ).
 
         DATA(new_struct_desc) = cl_abap_structdescr=>create( t_comp ).
 
@@ -320,72 +323,19 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
         ASSIGN lo_tab->* TO <table>.
         ASSIGN lo_line->* TO <line>.
 
-        DATA(where) =
-        |( TRFUNCTION EQ 'Q' ) AND ( TRSTATUS EQ 'D' ) AND ( KORRDEV EQ 'CUST' ) AND ( AS4USER EQ '{ sy-uname }' )|.
-
-        SELECT TRKORR, STRKORR
-          FROM (table_name)
-          WHERE (where)
-          INTO TABLE @<table>.
-        IF sy-subrc <> 0.
-          RETURN.
-        ENDIF.
-      CATCH cx_root.
-    ENDTRY.
-
-    LOOP AT <table> INTO <line>.
-
-      ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <line> TO <value>.
-      IF <value> IS NOT ASSIGNED.
-        CONTINUE.
-      ELSE.
-        ls_data-transport = <value>.
-      ENDIF.
-
-      UNASSIGN <value>.
-
-      ASSIGN COMPONENT 'STRKORR' OF STRUCTURE <line> TO <value>.
-      IF <value> IS NOT ASSIGNED.
-        CONTINUE.
-      ELSE.
-        ls_data-task = <value>.
-      ENDIF.
-
-      UNASSIGN <value>.
-
-      APPEND ls_data TO mt_data.
-
-    ENDLOOP.
-
-    table_name = 'E07T'.
-
-    TRY.
-        t_comp = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name ).
-
-        new_struct_desc = cl_abap_structdescr=>create( t_comp ).
-
-        new_table_desc = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
-                                                     p_table_kind = cl_abap_tabledescr=>tablekind_std ).
-
-        CREATE DATA lo_tab TYPE HANDLE new_table_desc.
-        CREATE DATA lo_line TYPE HANDLE new_struct_desc.
-
-        ASSIGN lo_tab->* TO <table>.
-        ASSIGN lo_line->* TO <line>.
-
         DATA(index) = 0.
 
         LOOP AT mt_data INTO DATA(line).
           index = index + 1.
           IF index = 1.
-            where = |TRKORR EQ '{ line-task }'|.
+            DATA(where) = |TRKORR EQ '{ line-task }'|.
           ELSE.
             where = |{ where }OR TRKORR EQ '{ line-task }'|.
           ENDIF.
           where = |( { where } )|.
         ENDLOOP.
 
-        SELECT TRKORR, AS4TEXT
+        SELECT trkorr, as4text
           FROM (table_name)
           WHERE (where)
           INTO TABLE @<table>.
@@ -592,6 +542,71 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
     APPEND <s_e071> TO <t_e071>.
 
     result = t_e071.
+
+  ENDMETHOD.
+
+  METHOD read_e070.
+
+    DATA lo_tab  TYPE REF TO data.
+    DATA lo_line TYPE REF TO data.
+    DATA ls_data TYPE ty_s_data.
+
+    FIELD-SYMBOLS <table> TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <line>  TYPE any.
+    FIELD-SYMBOLS <value> TYPE any.
+
+    DATA(table_name) = 'E070'.
+
+    TRY.
+        DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( table_name ).
+
+        DATA(new_struct_desc) = cl_abap_structdescr=>create( t_comp ).
+
+        DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
+                                                           p_table_kind = cl_abap_tabledescr=>tablekind_std ).
+
+        CREATE DATA lo_tab TYPE HANDLE new_table_desc.
+        CREATE DATA lo_line TYPE HANDLE new_struct_desc.
+
+        ASSIGN lo_tab->* TO <table>.
+        ASSIGN lo_line->* TO <line>.
+
+        DATA(where) =
+        |( TRFUNCTION EQ 'Q' ) AND ( TRSTATUS EQ 'D' ) AND ( KORRDEV EQ 'CUST' ) AND ( AS4USER EQ '{ sy-uname }' )|.
+
+        SELECT trkorr, strkorr
+          FROM (table_name)
+          WHERE (where)
+          INTO TABLE @<table>.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+      CATCH cx_root.
+    ENDTRY.
+
+    LOOP AT <table> INTO <line>.
+
+      ASSIGN COMPONENT 'TRKORR' OF STRUCTURE <line> TO <value>.
+      IF <value> IS NOT ASSIGNED.
+        CONTINUE.
+      ELSE.
+        ls_data-transport = <value>.
+      ENDIF.
+
+      UNASSIGN <value>.
+
+      ASSIGN COMPONENT 'STRKORR' OF STRUCTURE <line> TO <value>.
+      IF <value> IS NOT ASSIGNED.
+        CONTINUE.
+      ELSE.
+        ls_data-task = <value>.
+      ENDIF.
+
+      UNASSIGN <value>.
+
+      APPEND ls_data TO mt_data.
+
+    ENDLOOP.
 
   ENDMETHOD.
 
