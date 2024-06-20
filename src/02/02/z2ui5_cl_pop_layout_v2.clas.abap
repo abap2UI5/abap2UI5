@@ -19,9 +19,17 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     TYPES ty_s_Head TYPE z2ui5_t003.
     TYPES ty_t_head TYPE STANDARD TABLE OF ty_s_head WITH EMPTY KEY.
 
+    TYPES:
+      BEGIN OF ty_s_sub_columns,
+        key   TYPE string,
+        fname TYPE string,
+      END OF ty_s_sub_columns.
+    TYPES ty_t_sub_columns TYPE STANDARD TABLE OF ty_s_sub_columns WITH EMPTY KEY.
+
     TYPES  BEGIN OF ty_s_positions.
              INCLUDE TYPE z2ui5_t004.
-    TYPES:   tlabel TYPE string,
+    TYPES:   tlabel    TYPE string,
+             t_sub_col TYPE ty_t_sub_columns,
            END OF ty_s_positions.
     TYPES ty_t_positions TYPE STANDARD TABLE OF ty_s_positions WITH EMPTY KEY.
 
@@ -52,18 +60,22 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     CLASS-DATA ui_table TYPE control VALUE 'ui.Table' ##NO_TEXT.
     CLASS-DATA m_table  TYPE control VALUE 'm.Table' ##NO_TEXT.
 
-    DATA mt_controls   TYPE ty_t_controls.
-    DATA mt_Head       TYPE ty_t_layo.
-    DATA ms_layout     TYPE ty_s_layout.
-    DATA ms_layout_tmp TYPE ty_s_layout.
-    DATA mv_descr      TYPE string.
-    DATA mv_layout     TYPE string.
-    DATA mv_def        TYPE abap_bool.
-    DATA mv_usr        TYPE abap_bool.
-    DATA mv_open       TYPE abap_bool.
-    DATA mv_delete     TYPE abap_bool.
-    DATA mt_halign     TYPE fixvalues.
-    DATA mt_importance TYPE fixvalues.
+    DATA mt_controls         TYPE ty_t_controls.
+    DATA mt_Head             TYPE ty_t_layo.
+    DATA ms_layout           TYPE ty_s_layout.
+    DATA ms_layout_tmp       TYPE ty_s_layout.
+    DATA mv_descr            TYPE string.
+    DATA mv_layout           TYPE string.
+    DATA mv_def              TYPE abap_bool.
+    DATA mv_usr              TYPE abap_bool.
+    DATA mv_open             TYPE abap_bool.
+    DATA mv_delete           TYPE abap_bool.
+    DATA mt_halign           TYPE fixvalues.
+    DATA mt_importance       TYPE fixvalues.
+
+    DATA mv_active_subcolumn TYPE string.
+    DATA mt_comps            TYPE ty_t_positions.
+    DATA mt_sub_cols         TYPE ty_t_sub_columns.
 
     CLASS-METHODS on_event_layout
       IMPORTING
@@ -157,6 +169,9 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       IMPORTING
         !Head TYPE ty_s_layo.
 
+    METHODS render_add_subcolumn.
+    METHODS on_event_subcoloumns.
+
     CLASS-METHODS get_relative_name_of_table
       IMPORTING
         !table        TYPE any
@@ -173,6 +188,12 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
         handle04      TYPE handle
       RETURNING
         VALUE(result) TYPE ty_s_layout.
+
+    CLASS-METHODS set_sub_columns
+      IMPORTING
+        !layout       TYPE ty_t_positions
+      RETURNING
+        VALUE(result) TYPE ty_t_positions.
 
 ENDCLASS.
 
@@ -232,6 +253,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                            ( control = m_table  attribute = 'WIDTH' )
                            ( control = m_table  attribute = 'ALTERNATIVE_TEXT' )
                            ( control = m_table  attribute = 'SEQUENCE' )
+                           ( control = m_table  attribute = 'SUBCOLUMN' )
                            ( control = ui_table attribute = 'VISIBLE' )
                            ( control = ui_table attribute = 'ALTERNATIVE_TEXT' )
                            ( control = ui_table attribute = 'HALIGN' )
@@ -277,11 +299,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       CASE control-attribute.
         WHEN 'VISIBLE'.
-          col = columns->column( )->header( `` ).
+          col = columns->column( '4.5rem' )->header( `` ).
           col->text( 'Visible' ).
         WHEN 'MERGE'.
-          col = columns->column( )->header( `` ).
-          col->text( 'Merge duplicates' ).
+          col = columns->column( '4.5rem' )->header( `` ).
+          col->text( 'Merge' ).
         WHEN 'HALIGN'.
           col = columns->column( )->header( `` ).
           col->text( 'Align' ).
@@ -289,15 +311,17 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           col = columns->column( )->header( `` ).
           col->text( 'Importance' ).
         WHEN 'WIDTH'.
-          col = columns->column( )->header( `` ).
+          col = columns->column( `7rem` )->header( `` ).
           col->text( 'Width in rem' ).
         WHEN 'SEQUENCE'.
-          col = columns->column( )->header( `` ).
+          col = columns->column( `5rem` )->header( `` ).
           col->text( 'Sequence' ).
         WHEN 'ALTERNATIVE_TEXT'.
           col = columns->column( )->header( `` ).
           col->text( 'Alternative Text' ).
-
+        WHEN 'SUBCOLUMN'.
+          col = columns->column( )->header( `` ).
+          col->text( 'Subcolumn' ).
       ENDCASE.
 
     ENDLOOP.
@@ -340,8 +364,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         WHEN 'WIDTH'.
 
           cells->input( value     = |\{{ comp->name }\}|
-                        maxLength = `7`
-                        width     = `7rem` ).
+                        maxLength = `7` ).
 
         WHEN 'SEQUENCE'.
 
@@ -352,6 +375,13 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         WHEN 'ALTERNATIVE_TEXT'.
 
           cells->input( |\{{ comp->name }\}| ).
+
+        WHEN 'SUBCOLUMN'.
+
+          cells->button( text  = |\{{ comp->name }\}|
+                         icon  = `sap-icon://add`
+                         press = client->_event( val   = 'CALL_SUBCOLUMN'
+                                                 t_arg = VALUE #( ( `${FNAME}` ) ) ) ).
 
       ENDCASE.
 
@@ -454,6 +484,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         client->popup_destroy( ).
 
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
+      WHEN OTHERS.
+
+        on_event_subcoloumns( ).
+
     ENDCASE.
 
   ENDMETHOD.
@@ -805,7 +840,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
            importance,
            width,
            sequence,
-           alternative_text
+           alternative_text,
+           subcolumn
       FROM z2ui5_t004
       WHERE guid = @Head-guid
       INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout  ##SUBRC_OK.
@@ -907,7 +943,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
              importance,
              width,
              sequence,
-             alternative_text
+             alternative_text,
+             subcolumn
         FROM z2ui5_t004
         WHERE guid = @def-guid
         INTO TABLE @DATA(t_pos) ##SUBRC_OK.
@@ -944,6 +981,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       result-s_head   = CORRESPONDING #( def ).
       result-t_layout = sort_by_seqence( result-t_layout ).
+      result-t_layout = set_sub_columns( result-t_layout ).
 
       RETURN.
 
@@ -1151,6 +1189,128 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       REPLACE ALL OCCURRENCES OF ` ` IN result WITH ``.
       result = |{ result }rem|.
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD render_add_subcolumn.
+
+    DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
+
+    lo_popup = lo_popup->dialog( afterclose   = client->_event( 'SUBCOLUMN_CANCEL' )
+                                 contentwidth = `20%`
+                                 title        = 'Define Sub Coloumns' ).
+
+    DATA(vbox) = lo_popup->vbox( justifycontent = 'SpaceBetween' ).
+
+    DATA(item) = vbox->list( nodata          = `no Subcolumns defined`
+                             items           = client->_bind_edit( mt_sub_cols )
+                             selectionchange = client->_event( 'SELCHANGE' )
+                )->custom_list_item( ).
+
+    DATA(grid) = item->grid( ).
+
+    grid->combobox( selectedkey = `{FNAME}`
+                    items       = client->_bind( mt_comps  )
+                   )->item( key  = '{FNAME}'
+                            text = '{FNAME}'
+             )->get_parent(
+             )->button( icon  = 'sap-icon://decline'
+                        type  = `Transparent`
+                        press = client->_event( val   = `SUBCOLUMN_DELETE`
+                                                t_arg = VALUE #( ( `${KEY}` ) ) ) ).
+
+    lo_popup->buttons(
+        )->button( text  = `Delete All`
+                   icon  = 'sap-icon://delete'
+                   type  = `Transparent`
+                   press = client->_event( val = `SUBCOLUMN_DELETE_ALL` )
+        )->button( text  = `Add Item`
+                   icon  = `sap-icon://add`
+                   press = client->_event( val = `SUBCOLUMN_ADD` )
+       )->button( text  = 'Cancel'
+                  press = client->_event( 'SUBCOLUMN_CANCEL' )
+       )->button( text  = 'OK'
+                  press = client->_event( 'SUBCOLUMN_CONFIRM' )
+                  type  = 'Emphasized' ).
+
+    client->popup_display( lo_popup->stringify( ) ).
+
+  ENDMETHOD.
+
+  METHOD on_event_subcoloumns.
+
+    CASE client->get( )-event.
+
+      WHEN 'CALL_SUBCOLUMN'.
+
+        DATA(arg) = client->get( )-t_event_arg.
+        mv_active_SUBCOLumn = VALUE #( arg[ 1 ] OPTIONAL ).
+
+        READ TABLE ms_layout-t_layout REFERENCE INTO DATA(layout) WITH KEY fname = mv_active_subcolumn.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        mt_comps    = ms_layout-t_layout.
+        mt_sub_cols = layout->t_sub_col.
+
+        render_add_subcolumn( ).
+
+      WHEN `SUBCOLUMN_CONFIRM`.
+
+        READ TABLE ms_layout-t_layout REFERENCE INTO layout WITH KEY fname = mv_active_subcolumn.
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        CLEAR layout->subcolumn.
+
+        LOOP AT mt_sub_cols REFERENCE INTO DATA(line).
+          layout->subcolumn = |{ layout->subcolumn } { line->fname }|.
+        ENDLOOP.
+        SHIFT layout->subcolumn LEFT DELETING LEADING space.
+
+        layout->t_sub_col = mt_sub_cols.
+
+        client->popup_destroy( ).
+
+        init_edit( ).
+        render_edit( ).
+
+      WHEN `SUBCOLUMN_CANCEL`.
+
+        init_edit( ).
+        render_edit( ).
+
+      WHEN `SUBCOLUMN_ADD`.
+        INSERT VALUE #( key = z2ui5_cl_util=>uuid_get_c32( ) ) INTO TABLE mt_sub_cols.
+        client->popup_model_update( ).
+
+      WHEN `SUBCOLUMN_DELETE`.
+        DATA(lt_event) = client->get( )-t_event_arg.
+        DELETE mt_sub_cols WHERE key = lt_event[ 1 ].
+        client->popup_model_update( ).
+
+      WHEN `SUBCOLUMN_DELETE_ALL`.
+        mt_sub_cols = VALUE #( ).
+        client->popup_model_update( ).
+
+    ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD set_sub_columns.
+
+    result = layout.
+
+    LOOP AT result REFERENCE INTO DATA(line) WHERE subcolumn IS NOT INITIAL.
+
+      SPLIT line->subcolumn AT ` ` INTO TABLE DATA(tab).
+
+      line->t_sub_col = VALUE #( FOR t IN tab
+                                 ( key = z2ui5_cl_util=>uuid_get_c32( ) fname = t ) ).
+
+    ENDLOOP.
 
   ENDMETHOD.
 
