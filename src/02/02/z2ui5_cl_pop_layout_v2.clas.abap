@@ -33,7 +33,6 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
            END OF ty_s_positions.
     TYPES ty_t_positions TYPE STANDARD TABLE OF ty_s_positions WITH EMPTY KEY.
 
-    DATA mt_token TYPE z2ui5_cl_util=>ty_t_token.
 
     TYPES:
       BEGIN OF ty_s_layout,
