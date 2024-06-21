@@ -1433,6 +1433,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !min          TYPE clike OPTIONAL
                 !max          TYPE clike OPTIONAL
                 !step         TYPE clike OPTIONAL
+                !width        TYPE clike OPTIONAL
                 valuestate    TYPE clike OPTIONAL
                 !enabled      TYPE clike OPTIONAL
                 !description  TYPE clike OPTIONAL
@@ -8295,6 +8296,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `max`  v = max )
                                 ( n = `min`  v = min )
                                 ( n = `step` v = step )
+                                ( n = `width` v = width )
                                 ( n = `value` v = value )
                                 ( n = `valueState` v = valuestate )
                                 ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
