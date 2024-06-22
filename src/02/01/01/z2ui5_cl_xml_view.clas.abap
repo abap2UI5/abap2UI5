@@ -166,11 +166,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_strip
-      IMPORTING !text         TYPE clike OPTIONAL
-                !type         TYPE clike OPTIONAL
-                showicon      TYPE clike OPTIONAL
-                !class        TYPE clike OPTIONAL
-                !visible      TYPE clike OPTIONAL
+      IMPORTING !text            TYPE clike OPTIONAL
+                !type            TYPE clike OPTIONAL
+                !showicon        TYPE clike OPTIONAL
+                !customicon      TYPE clike OPTIONAL
+                !class           TYPE clike OPTIONAL
+                !visible         TYPE clike OPTIONAL
+                !showclosebutton TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -6598,7 +6600,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `text`     v = text )
                                 ( n = `type`     v = type )
                                 ( n = `showIcon` v = z2ui5_cl_util=>boolean_abap_2_json( showicon ) )
+                                ( n = `customIcon`       v = customicon )
                                 ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                ( n = `showCloseButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showclosebutton ) )
                                 ( n = `class`    v = class ) ) ).
   ENDMETHOD.
 
