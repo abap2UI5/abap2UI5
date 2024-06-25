@@ -1256,7 +1256,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         mt_comps    = ms_layout-t_layout.
         mt_sub_cols = layout->t_sub_col.
         mt_sub_cols_tmp = mt_sub_cols.
-        clear: mv_rerender.
+        clear mv_rerender.
 
         render_add_subcolumn( ).
 
