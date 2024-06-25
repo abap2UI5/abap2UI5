@@ -2885,6 +2885,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !class          TYPE clike OPTIONAL
                 !id             TYPE clike OPTIONAL
                 !enabled        TYPE clike OPTIONAL
+                !change         TYPE clike OPTIONAL
       RETURNING VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS upload_set
@@ -8060,6 +8061,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `enabled`   v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                 ( n = `value`   v = value )
                                 ( n = `step`   v = step )
+                                ( n = `change`   v = change )
                                 ( n = `width`   v = width ) ) ).
   ENDMETHOD.
 
