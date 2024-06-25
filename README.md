@@ -59,7 +59,12 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
-#### IV. More
+#### IV. On-Stack & Side-By-Side Extension
+1. Overview
+2. Running abap2UI5 on older releases via abaplint downport [(downport)](https://github.com/abap2UI5/abap2UI5-downport)
+3. Callling Apps Remotely via RFC [(rfc-connector)](https://github.com/abap2UI5/abap2UI5-connector_rfc)
+
+#### V. More
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
