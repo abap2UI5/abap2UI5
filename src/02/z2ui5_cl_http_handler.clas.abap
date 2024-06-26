@@ -51,7 +51,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     result = SWITCH #( body
      WHEN `` THEN http_get( config )
-     ELSE z2ui5_cl_http_handler=>http_post( body ) ).
+     ELSE http_post( body ) ).
 
   ENDMETHOD.
 
