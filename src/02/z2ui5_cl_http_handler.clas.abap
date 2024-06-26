@@ -18,7 +18,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS main
       IMPORTING
-        val           TYPE string
+        body          type string
+        config        TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 
@@ -48,9 +49,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main.
 
-    result = SWITCH #( val
-     WHEN `` THEN http_get( )
-     ELSE http_post( val ) ).
+    result = SWITCH #( body
+     WHEN `` THEN http_get( config )
+     ELSE http_post( body ) ).
 
   ENDMETHOD.
 
