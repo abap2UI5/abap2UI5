@@ -50,7 +50,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     result = SWITCH #( val
      WHEN `` THEN http_get( )
-     ELSE z2ui5_cl_http_handler=>http_post( val ) ).
+     ELSE http_post( val ) ).
 
   ENDMETHOD.
 
