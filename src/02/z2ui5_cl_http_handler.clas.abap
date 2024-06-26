@@ -16,6 +16,12 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS main
+      IMPORTING
+        val           TYPE string
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -39,4 +45,13 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     result = lo_post->main( ).
 
   ENDMETHOD.
+
+  METHOD main.
+
+    result = SWITCH #( val
+     WHEN `` THEN http_get( )
+     ELSE http_post( val ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
