@@ -23,7 +23,7 @@
 * **User-Friendly:** Implement just a single interface for a standalone UI5 application
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
 * **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
-* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP 2402)
+* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP Cloud)
 * **Easy Installation:** abapGit project, no additional app deployment required
 
 ### Compatibility
@@ -59,7 +59,12 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
-#### IV. More
+#### IV. On-Stack & Side-By-Side Extension
+1. Overview
+2. Running abap2UI5 on older releases via abaplint downport [(downport)](https://github.com/abap2UI5/abap2UI5-downport)
+3. Callling Apps Remotely via RFC [(rfc-connector)](https://github.com/abap2UI5/abap2UI5-connector_rfc)
+
+#### V. More
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
 * Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
 * Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
@@ -99,12 +104,8 @@ Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/
 ```abap
 METHOD if_http_extension~handle_request.
 
-   DATA(lv_resp) = SWITCH #( server->request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
-      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( server->request->get_cdata( ) ) ).
-
+   server->response->set_cdata( z2ui5_cl_http_handler=>main( server->request->get_cdata( ) ) ).
    server->response->set_header_field( name = `cache-control` value = `no-cache` ).
-   server->response->set_cdata( lv_resp ).
    server->response->set_status( code = 200 reason = `success` ).
 
 ENDMETHOD.
@@ -116,12 +117,8 @@ ENDMETHOD.
 ```abap
 METHOD if_http_service_extension~handle_request.
 
-   DATA(lv_resp) = SWITCH #( request->get_method( )
-      WHEN 'GET'  THEN z2ui5_cl_http_handler=>http_get( )
-      WHEN 'POST' THEN z2ui5_cl_http_handler=>http_post( request->get_text( ) ) ).
-
+   response->set_text( z2ui5_cl_http_handler=>main( request->get_text( ) ) ).
    response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
-   response->set_text( lv_resp ).
    response->set_status( 200 ).
 
 ENDMETHOD.

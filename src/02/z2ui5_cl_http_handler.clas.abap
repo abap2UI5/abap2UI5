@@ -16,6 +16,13 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
+    CLASS-METHODS main
+      IMPORTING
+        body          type string
+        config        TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
@@ -39,4 +46,13 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     result = lo_post->main( ).
 
   ENDMETHOD.
+
+  METHOD main.
+
+    result = SWITCH #( body
+     WHEN `` THEN http_get( config )
+     ELSE http_post( body ) ).
+
+  ENDMETHOD.
+
 ENDCLASS.
