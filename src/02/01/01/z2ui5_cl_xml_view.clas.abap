@@ -1763,7 +1763,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS radio_button
-      IMPORTING activehandling TYPE clike OPTIONAL
+      IMPORTING !id            TYPE clike OPTIONAL
+                activehandling TYPE clike OPTIONAL
                 editable       TYPE clike OPTIONAL
                 !enabled       TYPE clike OPTIONAL
                 groupname      TYPE clike OPTIONAL
@@ -1787,6 +1788,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 valuestate    TYPE clike OPTIONAL
                 !width        TYPE clike OPTIONAL
                 !select       TYPE clike OPTIONAL
+                !class        TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dynamic_side_content
@@ -7672,7 +7674,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD radio_button.
     result = _generic(
                  name   = `RadioButton`
-                 t_prop = VALUE #( ( n = `activeHandling`  v = z2ui5_cl_util=>boolean_abap_2_json( activehandling ) )
+                 t_prop = VALUE #( ( n = `id`             v = id )
+                                  ( n = `activeHandling`  v = z2ui5_cl_util=>boolean_abap_2_json( activehandling ) )
                                    ( n = `editable`        v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
                                    ( n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                    ( n = `selected`        v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
@@ -7697,7 +7700,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `textDirection`  v = textdirection )
                                          ( n = `valueState`     v = valuestate )
                                          ( n = `select`         v = select )
-                                         ( n = `width`          v = width ) ) ).
+                                         ( n = `width`          v = width )
+                                         ( n = `class`          v = class ) ) ).
   ENDMETHOD.
 
 
