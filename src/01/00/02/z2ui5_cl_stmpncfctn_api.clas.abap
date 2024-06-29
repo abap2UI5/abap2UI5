@@ -554,7 +554,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
   METHOD uuid_get_c22.
 
-    DATA uuid TYPE c LENGTH 22.
+    DATA lv_uuid TYPE c LENGTH 22.
 
     TRY.
 
@@ -569,11 +569,11 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
             DATA(lv_fm) = `GUID_CREATE`.
             CALL FUNCTION lv_fm
               IMPORTING
-                ev_guid_22 = uuid.
+                ev_guid_22 = lv_uuid.
 
         ENDTRY.
 
-        result = uuid.
+        result = lv_uuid.
 
       CATCH cx_root.
         ASSERT 1 = 0.
