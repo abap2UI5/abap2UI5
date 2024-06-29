@@ -7675,7 +7675,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
                  name   = `RadioButton`
                  t_prop = VALUE #( ( n = `id`             v = id )
-                                  ( n = `activeHandling`  v = z2ui5_cl_util=>boolean_abap_2_json( activehandling ) )
+                                   ( n = `activeHandling`  v = z2ui5_cl_util=>boolean_abap_2_json( activehandling ) )
                                    ( n = `editable`        v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
                                    ( n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                    ( n = `selected`        v = z2ui5_cl_util=>boolean_abap_2_json( selected ) )
