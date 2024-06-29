@@ -562,7 +562,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
             DATA(lv_classname) = `CL_SYSTEM_UUID`.
             CALL METHOD (lv_classname)=>if_system_uuid_static~create_uuid_c22
               RECEIVING
-                uuid = uuid.
+                uuid = lv_uuid.
 
           CATCH cx_sy_dyn_call_illegal_class.
 
@@ -600,7 +600,7 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
 
 
   METHOD uuid_get_c32.
-    DATA uuid TYPE c LENGTH 32.
+    DATA lv_uuid TYPE c LENGTH 32.
 
     TRY.
 
@@ -608,18 +608,18 @@ CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
             DATA(lv_classname) = `CL_SYSTEM_UUID`.
             CALL METHOD (lv_classname)=>if_system_uuid_static~create_uuid_c32
               RECEIVING
-                uuid = uuid.
+                uuid = lv_uuid.
 
           CATCH cx_root.
 
             DATA(lv_fm) = `GUID_CREATE`.
             CALL FUNCTION lv_fm
               IMPORTING
-                ev_guid_32 = uuid.
+                ev_guid_32 = lv_uuid.
 
         ENDTRY.
 
-        result = uuid.
+        result = lv_uuid.
 
       CATCH cx_root.
         ASSERT 1 = 0.
