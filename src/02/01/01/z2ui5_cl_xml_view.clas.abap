@@ -3023,6 +3023,40 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !visible      TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS date_range_selection
+      IMPORTING
+        !value                   TYPE clike OPTIONAL
+        !placeholder             TYPE clike OPTIONAL
+        !displayformat           TYPE clike OPTIONAL
+        !valueformat             TYPE clike OPTIONAL
+        !required                TYPE clike OPTIONAL
+        !valuestate              TYPE clike OPTIONAL
+        !valuestatetext          TYPE clike OPTIONAL
+        !enabled                 TYPE clike OPTIONAL
+        !showcurrentdatebutton   TYPE clike OPTIONAL
+        !change                  TYPE clike OPTIONAL
+        !hideinput               TYPE clike OPTIONAL
+        !showfooter              TYPE clike OPTIONAL
+        !visible                 TYPE clike OPTIONAL
+        !showvaluestatemessage   TYPE clike OPTIONAL
+        !mindate                 TYPE clike OPTIONAL
+        !maxdate                 TYPE clike OPTIONAL
+        !editable                TYPE clike OPTIONAL
+        !width                   TYPE clike OPTIONAL
+        !id                      TYPE clike OPTIONAL
+        !calendarweeknumbering   TYPE clike OPTIONAL
+        !displayformattype       TYPE clike OPTIONAL
+        !class                   TYPE clike OPTIONAL
+        !textdirection           TYPE clike OPTIONAL
+        !textalign               TYPE clike OPTIONAL
+        !name                    TYPE clike OPTIONAL
+        !datevalue               TYPE clike OPTIONAL
+        !initialfocuseddatevalue TYPE clike OPTIONAL
+        !delimiter               TYPE clike OPTIONAL
+          PREFERRED PARAMETER value
+      RETURNING
+        VALUE(result)            TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS variant_management_fl
       IMPORTING displaytextfsv                TYPE clike OPTIONAL
                 editable                      TYPE clike OPTIONAL
@@ -9554,4 +9588,37 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD date_range_selection.
+    result = me.
+    _generic( name   = `DateRangeSelection`
+              t_prop = VALUE #(
+                  ( n = `value`                 v = value )
+                  ( n = `displayFormat`         v = displayformat )
+                  ( n = `displayFormatType`         v = displayformattype )
+                  ( n = `valueFormat`           v = valueformat )
+                  ( n = `required`              v = z2ui5_cl_util=>boolean_abap_2_json( required ) )
+                  ( n = `valueState`            v = valuestate )
+                  ( n = `valueStateText`        v = valuestatetext )
+                  ( n = `placeholder`           v = placeholder )
+                  ( n = `textAlign`                v = textalign )
+                  ( n = `textDirection`                v = textdirection )
+                  ( n = `change`                v = change )
+                  ( n = `maxDate`               v = maxdate )
+                  ( n = `minDate`               v = mindate )
+                  ( n = `width`               v = width )
+                  ( n = `id`               v = id )
+                  ( n = `dateValue`               v = datevalue )
+                  ( n = `name`               v = name )
+                  ( n = `class`               v = class )
+                  ( n = `calendarWeekNumbering`               v = calendarweeknumbering )
+                  ( n = `initialFocusedDateValue`               v = initialfocuseddatevalue )
+                  ( n = `enabled`               v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                  ( n = `visible`               v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                  ( n = `editable`              v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+                  ( n = `hideInput`             v = z2ui5_cl_util=>boolean_abap_2_json( hideinput ) )
+                  ( n = `showFooter`            v = z2ui5_cl_util=>boolean_abap_2_json( showfooter ) )
+                  ( n = `showValueStateMessage` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluestatemessage ) )
+                  ( n = `showCurrentDateButton` v = z2ui5_cl_util=>boolean_abap_2_json( showcurrentdatebutton ) )
+                  ( n = `delimiter` v = delimiter ) )                  ).
+  ENDMETHOD.
 ENDCLASS.
