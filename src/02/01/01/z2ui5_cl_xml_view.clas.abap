@@ -9587,6 +9587,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                 ) ).
 
   ENDMETHOD.
+
   METHOD date_range_selection.
     result = me.
     _generic( name   = `DateRangeSelection`
