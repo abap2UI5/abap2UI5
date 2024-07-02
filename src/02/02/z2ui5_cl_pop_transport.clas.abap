@@ -3,7 +3,6 @@ CLASS z2ui5_cl_pop_transport DEFINITION
   CREATE PUBLIC.
 
   PUBLIC SECTION.
-
     INTERFACES if_serializable_object.
     INTERFACES z2ui5_if_app.
 
@@ -17,8 +16,8 @@ CLASS z2ui5_cl_pop_transport DEFINITION
              selkz             TYPE abap_bool,
            END OF ty_s_data.
 
-    DATA client  TYPE REF TO z2ui5_if_client.
-    DATA mv_init TYPE abap_bool.
+    DATA client       TYPE REF TO z2ui5_if_client.
+    DATA mv_init      TYPE abap_bool.
     DATA ms_transport TYPE ty_s_data.
 
     CLASS-DATA mt_data TYPE STANDARD TABLE OF ty_s_data WITH EMPTY KEY.
@@ -34,7 +33,6 @@ CLASS z2ui5_cl_pop_transport DEFINITION
         is_transport TYPE ty_s_data.
 
   PROTECTED SECTION.
-
     CLASS-METHODS add_to_transport_onprem
       IMPORTING
         ir_data      TYPE REF TO datA
@@ -74,8 +72,6 @@ CLASS z2ui5_cl_pop_transport DEFINITION
     METHODS on_event.
 
     METHODS get_tr_cloud.
-
-  PRIVATE SECTION.
 
 ENDCLASS.
 
@@ -230,6 +226,9 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
     DATA(r_e071k) = set_e071k( ir_data      = ir_data
                                iv_tabname   = iv_tabname
                                is_transport = is_transport ).
+    IF r_e071k->* IS INITIAL.
+      RETURN.
+    ENDIF.
 
     DATA(r_e071) = set_e071( iv_tabname   = iv_tabname
                              is_transport = is_transport ).
@@ -458,9 +457,9 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
 
     ASSIGN iR_data->* TO <tab>.
 
-    IF <tab> IS INITIAL.
-      RETURN.
-    ENDIF.
+*    IF <tab> IS INITIAL.
+*      RETURN.
+*    ENDIF.
 
     LOOP AT <tab> ASSIGNING <line>.
 

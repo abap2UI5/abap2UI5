@@ -59,6 +59,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
 
     CLASS-DATA ui_table TYPE control VALUE 'ui.Table' ##NO_TEXT.
     CLASS-DATA m_table  TYPE control VALUE 'm.Table' ##NO_TEXT.
+    CLASS-DATA others   TYPE control VALUE '' ##NO_TEXT.
 
     DATA mt_controls         TYPE ty_t_controls.
     DATA mt_Head             TYPE ty_t_layo.
@@ -77,7 +78,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
     DATA mt_comps            TYPE ty_t_positions.
     DATA mt_sub_cols         TYPE ty_t_sub_columns.
     DATA mt_sub_cols_tmp     TYPE ty_t_sub_columns.
-    DATA mv_rerender         type abap_bool.
+    DATA mv_rerender         TYPE abap_bool.
 
     CLASS-METHODS on_event_layout
       IMPORTING
@@ -173,6 +174,7 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
 
     METHODS render_add_subcolumn.
     METHODS on_event_subcoloumns.
+    METHODS check_rerender_necessary.
 
     CLASS-METHODS get_relative_name_of_table
       IMPORTING
@@ -260,9 +262,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                            ( control = ui_table attribute = 'ALTERNATIVE_TEXT' )
                            ( control = ui_table attribute = 'HALIGN' )
                            ( control = ui_table attribute = 'WIDTH' )
-                           ( control = ``         attribute = 'VISIBLE' )
-                           ( control = ``         attribute = 'SEQUENCE' )
-                           ( control = ``         attribute = 'ALTERNATIVE_TEXT' ) ).
+                           ( control = others   attribute = 'VISIBLE' )
+                           ( control = others   attribute = 'SEQUENCE' )
+                           ( control = others   attribute = 'ALTERNATIVE_TEXT' ) ).
 
   ENDMETHOD.
 
@@ -404,10 +406,10 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                      text    = `               `
          )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
-                    press = client->_event( 'CLOSE' )
+                    press = client->_event( 'EDIT_CLOSE' )
          )->button( text  = 'Okay'
                     icon  = 'sap-icon://accept'
-                    press = client->_event( 'OKAY' )
+                    press = client->_event( 'EDIT_OKAY' )
          )->button( text  = 'Save'
                     press = client->_event( 'EDIT_SAVE' )
                     icon  = 'sap-icon://save'
@@ -439,13 +441,22 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
         render_delete( ).
 
-      WHEN 'OKAY'.
+      WHEN 'EDIT_OKAY'.
+
+        LOOP AT ms_layout-t_layout REFERENCE INTO DATA(layout).
+          layout->tlabel           = set_text( layout->* ).
+          layout->alternative_text = to_upper( layout->alternative_text ).
+        ENDLOOP.
+
+        ms_layout-t_layout = sort_by_seqence( ms_layout-t_layout ).
+
+        check_rerender_necessary( ).
 
         client->popup_destroy( ).
 
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
-      WHEN 'CLOSE'.
+      WHEN 'EDIT_CLOSE'.
 
         client->popup_destroy( ).
 
@@ -466,6 +477,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       WHEN 'SAVE_SAVE'.
 
         save_layout( ).
+
+        check_rerender_necessary( ).
 
         client->popup_destroy( ).
 
@@ -1166,7 +1179,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD set_text.
-
     IF layout-alternative_text IS INITIAL.
       result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-rollname ) )-long.
     ELSE.
@@ -1246,7 +1258,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
       WHEN 'CALL_SUBCOLUMN'.
 
         DATA(arg) = client->get( )-t_event_arg.
-        mv_active_SUBCOLumn = VALUE #( arg[ 1 ] OPTIONAL ).
+        mv_active_subcolumn = VALUE #( arg[ 1 ] OPTIONAL ).
 
         READ TABLE ms_layout-t_layout REFERENCE INTO DATA(layout) WITH KEY fname = mv_active_subcolumn.
         IF sy-subrc <> 0.
@@ -1256,7 +1268,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         mt_comps    = ms_layout-t_layout.
         mt_sub_cols = layout->t_sub_col.
         mt_sub_cols_tmp = mt_sub_cols.
-        clear mv_rerender.
 
         render_add_subcolumn( ).
 
@@ -1275,10 +1286,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         SHIFT layout->subcolumn LEFT DELETING LEADING space.
 
         layout->t_sub_col = mt_sub_cols.
-
-        IF mt_sub_cols <> mt_sub_cols_tmp.
-          mv_rerender = abap_true.
-        endif.
 
         client->popup_destroy( ).
 
@@ -1317,6 +1324,33 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
       line->t_sub_col = VALUE #( FOR t IN tab
                                  ( key = z2ui5_cl_util=>uuid_get_c32( ) fname = t ) ).
+
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD check_rerender_necessary.
+
+    CLEAR mv_rerender.
+
+    " Sequence and SubCols need rerendering
+    LOOP AT ms_layout-t_layout INTO DATA(layout).
+
+      READ TABLE ms_layout_tmp-t_layout INTO DATA(layout_tmp)
+           WITH KEY guid     = layout-guid
+                    pos_guid = layout-pos_guid.
+
+      IF sy-subrc = 0.
+        IF layout-sequence <> layout_tmp-sequence.
+          mv_rerender = abap_true.
+          RETURN.
+        ENDIF.
+
+        IF layout-t_sub_col <> layout_tmp-t_sub_col.
+          mv_rerender = abap_true.
+          RETURN.
+        ENDIF.
+      ENDIF.
 
     ENDLOOP.
 

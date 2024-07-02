@@ -394,7 +394,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                 ( n = `device_browser`  v = device_browser )
                                 ( n = `device_phone`   v = device_phone )
                                 ( n = `device_desktop` v = device_desktop )
-                                ( n = `device_table`   v = device_tablet )
+                                ( n = `device_tablet`   v = device_tablet )
                                 ( n = `device_combi`   v = device_combi )
                                 ( n = `device_height`   v = device_height )
                                 ( n = `device_width`   v = device_width ) )
