@@ -49,7 +49,7 @@ CLASS z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS rtti_get_t_ddic_fixed_values
       IMPORTING
-        val           TYPE data
+        rollname      TYPE string
         langu         TYPE clike DEFAULT sy-langu
       RETURNING
         VALUE(result) TYPE ty_t_fix_val ##NEEDED.
@@ -878,30 +878,39 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
   METHOD rtti_get_t_ddic_fixed_values.
 
-*    DATA(lo_ele) = CAST cl_abap_elemdescr( cl_abap_typedescr=>describe_by_data( val ) ).
-*
-*    DATA lv_langu TYPE c LENGTH 1.
-*    lv_langu = langu.
-*
-*    lo_ele->get_ddic_fixed_values(
-*      EXPORTING
-*        p_langu        = lv_langu
-*      RECEIVING
-*        p_fixed_values = DATA(lt_values)
-*      EXCEPTIONS
-*        not_found      = 1
-*        no_ddic_type   = 2
-*        OTHERS         = 3 ).
-*
-*    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
-*
-*      INSERT VALUE #(
-*          low = lr_fix->low
-*          high = lr_fix->high
-*          descr = lr_fix->ddtext
-*          ) INTO TABLE result.
-*
-*    ENDLOOP.
+    IF rollname IS INITIAL.
+      RETURN.
+    ENDIF.
+
+    TRY.
+
+        cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = rollname
+                                             RECEIVING  p_descr_ref    = DATA(typedescr)
+                                             EXCEPTIONS type_not_found = 1
+                                                        OTHERS         = 2 ).
+        IF sy-subrc <> 0.
+          RETURN.
+        ENDIF.
+
+        DATA(elemdescr) = CAST cl_abap_elemdescr( typedescr ).
+
+        elemdescr->get_ddic_fixed_values( EXPORTING  p_langu        = langu
+                                          RECEIVING  p_fixed_values = DATA(lt_values)
+                                          EXCEPTIONS not_found      = 1
+                                                     no_ddic_type   = 2
+                                                     OTHERS         = 3 ).
+
+        LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
+
+          INSERT VALUE #( low   = lr_fix->low
+                          high  = lr_fix->high
+                          descr = lr_fix->ddtext )
+                 INTO TABLE result.
+
+        ENDLOOP.
+
+      CATCH cx_root.
+    ENDTRY.
 
   ENDMETHOD.
 

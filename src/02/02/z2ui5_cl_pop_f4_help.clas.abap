@@ -76,6 +76,10 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
       on_init( ).
 
+      IF mv_check_tab IS INITIAL.
+        RETURN.
+      ENDIF.
+
       render_view( ).
 
     ENDIF.
@@ -89,6 +93,10 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
   METHOD on_init.
 
     get_dfies( ).
+
+    IF mv_check_tab IS INITIAL.
+      RETURN.
+    ENDIF.
 
     create_objects( ).
 
@@ -375,7 +383,10 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
     READ TABLE t_dfies REFERENCE INTO DATA(dfies) WITH KEY fieldname = mv_field.
     IF sy-subrc <> 0.
-      RETURN.
+
+      client->popup_destroy( ).
+      client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
+
     ENDIF.
 
     IF dfies->checktable IS INITIAL.
