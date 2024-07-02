@@ -262,9 +262,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                            ( control = ui_table attribute = 'ALTERNATIVE_TEXT' )
                            ( control = ui_table attribute = 'HALIGN' )
                            ( control = ui_table attribute = 'WIDTH' )
-                           ( control = ``         attribute = 'VISIBLE' )
-                           ( control = ``         attribute = 'SEQUENCE' )
-                           ( control = ``         attribute = 'ALTERNATIVE_TEXT' ) ).
+                           ( control = others   attribute = 'VISIBLE' )
+                           ( control = others   attribute = 'SEQUENCE' )
+                           ( control = others   attribute = 'ALTERNATIVE_TEXT' ) ).
 
   ENDMETHOD.
 
@@ -1340,14 +1340,16 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
            WITH KEY guid     = layout-guid
                     pos_guid = layout-pos_guid.
 
-      IF layout-sequence <> layout_tmp-sequence.
-        mv_rerender = abap_true.
-        RETURN.
-      ENDIF.
+      IF sy-subrc = 0.
+        IF layout-sequence <> layout_tmp-sequence.
+          mv_rerender = abap_true.
+          RETURN.
+        ENDIF.
 
-      IF layout-t_sub_col <> layout_tmp-t_sub_col.
-        mv_rerender = abap_true.
-        RETURN.
+        IF layout-t_sub_col <> layout_tmp-t_sub_col.
+          mv_rerender = abap_true.
+          RETURN.
+        ENDIF.
       ENDIF.
 
     ENDLOOP.

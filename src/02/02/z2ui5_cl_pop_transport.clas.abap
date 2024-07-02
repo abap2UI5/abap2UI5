@@ -244,9 +244,6 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
                  wt_e071k  = <t_e071k>
       EXCEPTIONS OTHERS    = 1.
     IF sy-subrc <> 0.
-      " TODO: variable is assigned but only used in commented-out code (ABAP cleaner)
-      MESSAGE ID sy-msgid TYPE sy-msgty NUMBER sy-msgno WITH sy-msgv1 sy-msgv2 sy-msgv3 sy-msgv4 INTO DATA(msg).
-*    client->message_box_display( msg ).
       RETURN.
     ENDIF.
 
