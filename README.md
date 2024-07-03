@@ -90,7 +90,7 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 #### IV. On-Stack & Side-By-Side Extension
 1. Overview
 2. Running abap2UI5 on older releases via abaplint downport [(downport)](https://github.com/abap2UI5/abap2UI5-downport)
-3. Callling Apps Remotely via RFC [(rfc-connector)](https://github.com/abap2UI5/abap2UI5-connector_rfc)
+3. Calling Apps Remotely via RFC [(LinkedIn - 25.06.2024)](https://www.linkedin.com/pulse/calling-abap2ui5-apps-remotely-via-rfc-abap2ui5-btoue/)
 
 #### V. More
 * Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
