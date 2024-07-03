@@ -222,11 +222,13 @@ CLASS z2ui5_cl_pop_transport IMPLEMENTATION.
 
     FIELD-SYMBOLS <t_e071k> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <t_e071>  TYPE STANDARD TABLE.
+    FIELD-SYMBOLS <e071>    TYPE any.
 
     DATA(r_e071k) = set_e071k( ir_data      = ir_data
                                iv_tabname   = iv_tabname
                                is_transport = is_transport ).
-    IF r_e071k->* IS INITIAL.
+    ASSIGN r_e071k->* TO <e071>.
+    IF <e071> IS INITIAL.
       RETURN.
     ENDIF.
 
