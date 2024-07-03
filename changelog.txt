@@ -9,6 +9,15 @@ Legend
 - : removed
 
 
+2024-07-03 v1.131.0
+-------------------
+
++ Radio Button, Radio Button Group, Date Range Selector
++ Popup Layout V2
+* Fix Launchpad Title
+* Syntax Fixes for v750
+* Bugfixes and Small Improvements
+
 2024-06-13 v1.130.0
 -------------------
 
