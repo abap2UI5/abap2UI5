@@ -18,7 +18,7 @@
 
 *...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
-### Key Features
+#### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
 * **User-Friendly:** Implement just a single interface for a standalone UI5 application
 * **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS, BOPF or RAP)
@@ -26,15 +26,43 @@
 * **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP Cloud)
 * **Easy Installation:** abapGit project, no additional app deployment required
 
-### Compatibility
+#### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud ABAP Environment (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
 
+#### References
+* Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
+* Featured on SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
+* Highlighted in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
+* Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
+* Showcased at SAP TechEd 2023 [(youtube - 02.11.2023)](https://www.youtube.com/watch?v=kLbF0ooStZs&t=3052s)
+* Join the Advent of Code 2023 with abap2UI5 [(SCN - 27.11.2023)](https://blogs.sap.com/2023/11/27/preparing-for-advent-of-code-2023/)
+* Featured on SAP Developer News [(youtube - 15.12.2023)](https://www.youtube.com/watch?v=CfH9L03WUCg&t=350s)
+* Highlighted in the Boring Enterprise Nerdcast [(youtube - 29.01.2024)](https://youtu.be/svDZKFBvqR8?t=1050)
+* Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
+* Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
+* Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
+  
+#### Credits
+* These [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
+* Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
+* Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
+* JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
+* Serialization of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
+* ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
+* Live demos running in the browser are based on [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) and [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
+* Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
+* The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-platform-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
+* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(SAP)](https://www.sap.com/germany/index.html)
+
+_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on._ 👷‍♂️
+
 ### Know-How 
-_Take some time to explore the [samples repository.](https://github.com/abap2UI5/abap2UI5-samples) This is the quickest way to become an abap2UI5 expert._ 🤓
+_Take some time to explore the [samples repository.](https://github.com/abap2UI5/abap2UI5-samples) This is the quickest way to become an abap2UI5 expert._
 #### I. Introduction, Development & Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
 2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
@@ -70,34 +98,6 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 * Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
 * Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
 
-### References
-* Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
-* Featured on SAP Developer News [(youtube - 26.01.2023)](https://www.youtube.com/watch?v=6BDK55xYttM)
-* Highlighted in the Boring Enterprise Nerdletter [(newsletter - 08.03.2023)](https://boringenterprisenerds.substack.com/p/34-abap2ui5-sap-cva-burnout-c2c-shortwave)
-* Part of the SAP Developer Code Challenge [(SCN - 17.05.2023)](https://groups.community.sap.com/t5/application-development/sap-developer-code-challenge-open-source-abap-week-2/m-p/260727#M1372)
-* Showcased at SAP TechEd 2023 [(youtube - 02.11.2023)](https://www.youtube.com/watch?v=kLbF0ooStZs&t=3052s)
-* Join the Advent of Code 2023 with abap2UI5 [(SCN - 27.11.2023)](https://blogs.sap.com/2023/11/27/preparing-for-advent-of-code-2023/)
-* Featured on SAP Developer News [(youtube - 15.12.2023)](https://www.youtube.com/watch?v=CfH9L03WUCg&t=350s)
-* Highlighted in the Boring Enterprise Nerdcast [(youtube - 29.01.2024)](https://youtu.be/svDZKFBvqR8?t=1050)
-* Running abap2UI5 Backend in Browser [(LinkedIn - 02.04.2024)](https://www.linkedin.com/pulse/running-abap2ui5-backend-browser-lars-hvam-petersen-l8zff/?trackingId=4mhMb1v%2FSoa8SmDSiuCEpg%3D%3D)
-* Check out Cust&Code Videos with abap2UI5 [(youtube - 20.05.2024)](https://www.youtube.com/watch?v=SD1vIt_ty0k)
-* Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
-  
-### Credits
-* These [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
-* Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
-* Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
-* JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Serialization of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
-* ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
-* Live demos running in the browser are based on [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) and [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
-* Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
-* The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-platform-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
-* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(SAP)](https://www.sap.com/germany/index.html)
-
-_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on!_ 👷‍♂️
-
 ### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:
 ##### Standard ABAP  🏠
@@ -126,7 +126,7 @@ ENDMETHOD.
 
 </details>
 
-### Usage
+#### Usage
 Implement the abap2UI5 interface as shown in the following example:
 ```abap
 CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
@@ -248,7 +248,7 @@ ENDCLASS.
 
 </details>
 
-### FAQ
+#### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
