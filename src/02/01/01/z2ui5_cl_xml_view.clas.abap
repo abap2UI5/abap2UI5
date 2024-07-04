@@ -817,6 +817,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !width            TYPE clike OPTIONAL
                 !value            TYPE clike OPTIONAL
                 !id               TYPE clike OPTIONAL
+                !class            TYPE clike OPTIONAL
                 !change           TYPE clike OPTIONAL
                 livechange        TYPE clike OPTIONAL
                 suggest           TYPE clike OPTIONAL
@@ -7918,6 +7919,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `search` v = search )
                                 ( n = `value`  v = value )
                                 ( n = `id`     v = id )
+                                ( n = `class`  v = class )
                                 ( n = `change` v = change )
                                 ( n = `maxLength` v = maxlength )
                                 ( n = `placeholder` v = placeholder )
