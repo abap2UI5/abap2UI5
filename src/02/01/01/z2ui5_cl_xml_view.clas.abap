@@ -731,6 +731,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 detailpress   TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS action_list_item
+      IMPORTING !id           TYPE clike OPTIONAL
+                text          TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS cells
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4579,6 +4584,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `detailPress`     v = detailpress )
                                          ( n = `navigated`     v = z2ui5_cl_util=>boolean_abap_2_json( navigated ) )
                                          ( n = `press`    v = press ) ) ).
+  ENDMETHOD.
+
+
+  METHOD action_list_item.
+    result = _generic( name   = `ActionListItem`
+                       t_prop = VALUE #( ( n = `id`     v = id )
+                                         ( n = `text`   v = text ) ) ).
   ENDMETHOD.
 
 
