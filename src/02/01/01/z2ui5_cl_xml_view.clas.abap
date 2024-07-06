@@ -2884,17 +2884,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS slider
-      IMPORTING !max            TYPE clike OPTIONAL
-                !min            TYPE clike OPTIONAL
-                !step           TYPE clike OPTIONAL
-                !value          TYPE clike OPTIONAL
-                enabletickmarks TYPE clike OPTIONAL
-                !width          TYPE clike OPTIONAL
-                !class          TYPE clike OPTIONAL
-                !id             TYPE clike OPTIONAL
-                !enabled        TYPE clike OPTIONAL
-                !change         TYPE clike OPTIONAL
-      RETURNING VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !max                TYPE clike OPTIONAL
+                !min                TYPE clike OPTIONAL
+                !step               TYPE clike OPTIONAL
+                !value              TYPE clike OPTIONAL
+                enabletickmarks     TYPE clike OPTIONAL
+                !width              TYPE clike OPTIONAL
+                !class              TYPE clike OPTIONAL
+                !id                 TYPE clike OPTIONAL
+                !enabled            TYPE clike OPTIONAL
+                !change             TYPE clike OPTIONAL
+                inputsAsTooltips    TYPE clike OPTIONAL
+                showAdvancedTooltip TYPE clike OPTIONAL
+                showHandleTooltip   TYPE clike OPTIONAL
+      RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS upload_set
       IMPORTING !id                     TYPE clike OPTIONAL
@@ -4078,7 +4081,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -8114,7 +8117,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `value`   v = value )
                                 ( n = `step`   v = step )
                                 ( n = `change`   v = change )
-                                ( n = `width`   v = width ) ) ).
+                                ( n = `width`   v = width )
+                                ( n = `inputsAsTooltips`   v = inputsAsTooltips )
+                                ( n = `showAdvancedTooltip`   v = showAdvancedTooltip )
+                                ( n = `showHandleTooltip`   v = showHandleTooltip ) ) ).
   ENDMETHOD.
 
 
@@ -9580,6 +9586,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD p_cell_selector.
 
     result = me.
@@ -9588,6 +9595,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `id` v = id ) ) ).
 
   ENDMETHOD.
+
 
   METHOD p_copy_provider.
 
@@ -9601,6 +9609,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                 ) ).
 
   ENDMETHOD.
+
 
   METHOD date_range_selection.
     result = me.
