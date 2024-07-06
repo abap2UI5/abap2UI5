@@ -49,6 +49,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 showfooter               TYPE clike OPTIONAL
                 headerpinned             TYPE clike OPTIONAL
                 toggleheaderontitleclick TYPE clike OPTIONAL
+                class                    TYPE clike OPTIONAL
       RETURNING VALUE(result)            TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS dynamic_page_title
@@ -219,6 +220,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 sectionchange                  TYPE clike OPTIONAL
                 subsectionvisibilitychange     TYPE clike OPTIONAL
                 toggleanchorbar                TYPE clike OPTIONAL
+                class                          TYPE clike OPTIONAL
       RETURNING VALUE(result)                  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_page_header
@@ -5046,7 +5048,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            (  n = `headerExpanded`           v = z2ui5_cl_util=>boolean_abap_2_json( headerexpanded ) )
                            (  n = `headerPinned`           v = z2ui5_cl_util=>boolean_abap_2_json( headerpinned ) )
                            (  n = `showFooter`           v = z2ui5_cl_util=>boolean_abap_2_json( showfooter ) )
-                           (  n = `toggleHeaderOnTitleClick` v = toggleheaderontitleclick ) ) ).
+                           (  n = `toggleHeaderOnTitleClick` v = toggleheaderontitleclick )
+                           (  n = `class`  v = class ) ) ).
   ENDMETHOD.
 
 
@@ -7263,7 +7266,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `sectionChange`       v = sectionchange )
             ( n = `subSectionVisibilityChange`       v = subsectionvisibilitychange )
             ( n = `toggleAnchorBar`       v = toggleanchorbar )
-            ( n = `showFooter`               v = z2ui5_cl_util=>boolean_abap_2_json( showfooter ) ) ) ).
+            ( n = `showFooter`               v = z2ui5_cl_util=>boolean_abap_2_json( showfooter ) )
+            ( n = `class`                  v = class ) )  ).
   ENDMETHOD.
 
 
