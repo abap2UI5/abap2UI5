@@ -143,7 +143,7 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'POST'.
-        client->message_toast_display( |Your name is { quantity }.| ).
+        client->message_toast_display( |Your name is { name }.| ).
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory(
