@@ -964,6 +964,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS simple_form
       IMPORTING !title                  TYPE clike OPTIONAL
                 !layout                 TYPE clike OPTIONAL
+                !class                  TYPE clike OPTIONAL
                 editable                TYPE clike OPTIONAL
                 columnsxl               TYPE clike OPTIONAL
                 columnsl                TYPE clike OPTIONAL
@@ -8082,6 +8083,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         t_prop = VALUE #(
             ( n = `title`    v = title )
             ( n = `layout`   v = layout )
+            ( n = `class`           v = class )
             ( n = `adjustLabelSpan`   v = adjustlabelspan )
             ( n = `backgroundDesign`   v = backgrounddesign )
             ( n = `breakpointL`   v = breakpointl )
