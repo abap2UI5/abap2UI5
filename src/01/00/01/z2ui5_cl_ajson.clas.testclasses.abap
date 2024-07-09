@@ -4389,7 +4389,6 @@ CLASS ltcl_filter_test IMPLEMENTATION.
     lo_nodes_exp->add( '/      |9     |str    |i    |9|0' ).
     lo_nodes_exp->add( '/      |10    |str    |j    |10|0' ).
 
-
     cl_abap_unit_assert=>assert_equals(
       act = lo_json_filtered->mt_json_tree
       exp = lo_nodes_exp->sorted( ) ).
