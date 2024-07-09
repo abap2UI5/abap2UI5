@@ -4347,15 +4347,48 @@ CLASS ltcl_filter_test IMPLEMENTATION.
     lo_json->push(
       iv_path = '/'
       iv_val  = 'b' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'c' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'd' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'e' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'f' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'g' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'h' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'i' ).
+    lo_json->push(
+      iv_path = '/'
+      iv_val  = 'j' ).
 
     lo_json_filtered = z2ui5_cl_ajson=>create_from(
       ii_source_json = lo_json
       ii_filter      = me ).
 
     CREATE OBJECT lo_nodes_exp.
-    lo_nodes_exp->add( '       |      |array  |     | |2' ).
+    lo_nodes_exp->add( '       |      |array  |     | |10' ).
     lo_nodes_exp->add( '/      |1     |str    |a    |1|0' ).
     lo_nodes_exp->add( '/      |2     |str    |b    |2|0' ).
+    lo_nodes_exp->add( '/      |3     |str    |c    |3|0' ).
+    lo_nodes_exp->add( '/      |4     |str    |d    |4|0' ).
+    lo_nodes_exp->add( '/      |5     |str    |e    |5|0' ).
+    lo_nodes_exp->add( '/      |6     |str    |f    |6|0' ).
+    lo_nodes_exp->add( '/      |7     |str    |g    |7|0' ).
+    lo_nodes_exp->add( '/      |8     |str    |h    |8|0' ).
+    lo_nodes_exp->add( '/      |9     |str    |i    |9|0' ).
+    lo_nodes_exp->add( '/      |10    |str    |j    |10|0' ).
+
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_json_filtered->mt_json_tree
