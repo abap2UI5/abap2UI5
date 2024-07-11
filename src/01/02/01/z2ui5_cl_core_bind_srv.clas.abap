@@ -105,10 +105,15 @@ CLASS z2ui5_cl_core_bind_srv IMPLEMENTATION.
           val = `<p>Binding Error - Two different binding types for same attribute used (` && mr_attri->name && `).`.
     ENDIF.
 
-    IF mr_attri->custom_mapper IS BOUND AND mr_attri->custom_mapper <> ms_config-custom_mapper.
-      RAISE EXCEPTION TYPE z2ui5_cx_util_error
-        EXPORTING
-          val = `<p>Binding Error - Two different mapper for same attribute used (` && mr_attri->name && `).`.
+    IF mr_attri->custom_mapper IS BOUND.
+
+      DATA(lv_name1) = z2ui5_cl_util=>rtti_get_classname_by_ref( mr_attri->custom_mapper ).
+      DATA(lv_name2) = z2ui5_cl_util=>rtti_get_classname_by_ref( ms_config-custom_mapper ).
+      IF lv_name1 <> lv_name2.
+        RAISE EXCEPTION TYPE z2ui5_cx_util_error
+          EXPORTING
+            val = `<p>Binding Error - Two different mapper for same attribute used (` && mr_attri->name && `).`.
+      ENDIF.
     ENDIF.
 
     IF mr_attri->custom_mapper_back IS BOUND AND mr_attri->custom_mapper_back <> ms_config-custom_mapper_back.
