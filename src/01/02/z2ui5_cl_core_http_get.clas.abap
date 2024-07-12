@@ -378,11 +378,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
             `      sap.z2ui5.oBody.ARGUMENTS[ i ] = JSON.stringify( item ); ` && |\n| &&
            `     }  ` && |\n| &&
           `     });  ` && |\n| &&
-*               `            for (let i = 1 ; i < sap.z2ui5.oBody.ARGUMENTS.length; i++ ) { ` && |\n| &&
-*               `             if ( typeof sap.z2ui5.oBody.ARGUMENTS[ i ] === 'object'  ){ ` && |\n| &&
-*               `               sap.z2ui5.oBody.ARGUMENTS[ i ] = JSON.stringify( sap.z2ui5.oBody.ARGUMENTS[ i ] )` && |\n| &&
-*               `             } ` && |\n| &&
-*               `            } ` && |\n| &&
                `            sap.z2ui5.oResponseOld = sap.z2ui5.oResponse;` && |\n| &&
                `            sap.z2ui5.oController.Roundtrip();` && |\n| &&
                `        },` && |\n| &&
@@ -433,7 +428,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `       async checkSDKcompatibility(err) {` && |\n| &&
                `          let oCurrentVersionInfo = await VersionInfo.load();` && |\n| &&
                `          var ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
-*               `        //  var ui5_sdk = sap.ui.getVersionInfo().gav.includes('com.sap.ui5') ? true : false;` && |\n| &&
                `          if(!ui5_sdk) {` && |\n| &&
                `            if(err) {` && |\n| &&
                `              MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not availabe in openui5" );` && |\n| &&
@@ -448,11 +442,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `                if (msgType === 'S_MSG_TOAST') {` && |\n| &&
                `                    MessageToast.show(params[msgType].TEXT,{duration: params[msgType].DURATION ? parseInt(params[msgType].DURATION) : 3000 ,` && |\n| &&
                `                                                            width: params[msgType].WIDTH ? params[msgType].WIDTH : '15em' ,` && |\n| &&
-*               `                                                            my: params[msgType].MY ? params[msgType].MY : 'leftcenter' ,` && |\n| &&
-*               `                                                            at: params[msgType].AT ? params[msgType].AT : 'CenterCenter' ,` && |\n| &&
-*               `                                                            of: params[msgType].OF ? params[msgType].OF : window ,` && |\n| &&
-*               `                                                            offset: params[msgType].OFFSET ? params[msgType].OFFSET : '0 0' ,` && |\n| &&
-*               `                                                            collision: params[msgType].COLLISION ? params[msgType].COLLISION : 'fit fit' ,` && |\n| &&
                `                                                            onClose: params[msgType].ONCLOSE ? params[msgType].ONCLOSE : null ,` && |\n| &&
                `                                                            autoClose: params[msgType].AUTOCLOSE ? true : false ,` && |\n| &&
                `                                                            animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION ? params[msgType].ANIMATIONTIMINGFUNCTION : 'ease' ,` && |\n| &&
@@ -516,7 +505,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            } else {` && |\n| &&
                `                const responseData = await response.json();` && |\n| &&
                `                sap.z2ui5.responseData = responseData;` && |\n| &&
-*               `              if( !sap.z2ui5.oBody.APP_START ) { sap.z2ui5.APP_START = sap.z2ui5.responseData.S_FRONT.APP; }` && |\n| &&
                `                sap.z2ui5.oController.responseSuccess({` && |\n| &&
                `                   ID : responseData.S_FRONT.ID,` && |\n| &&
                `                   PARAMS : responseData.S_FRONT.PARAMS,` && |\n| &&
@@ -532,7 +520,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            sap.z2ui5.oBody.S_FRONT = {` && |\n| &&
                `                ID: sap.z2ui5?.oBody?.ID,` && |\n| &&
                `                COMPDATA: (sap.z2ui5.ComponentData) ? sap.z2ui5.ComponentData : {} ,` && |\n| &&
-*               `                APP_START: sap.z2ui5?.oBody?.APP_START,` && |\n| &&
                `                ` && lv_two_way_model && `: sap.z2ui5?.oBody?.` && lv_two_way_model && `,` && |\n| &&
                `                ORIGIN: window.location.origin,` && |\n| &&
                `                PATHNAME: window.location.pathname, // sap.z2ui5.pathname,` && |\n| &&
@@ -545,7 +532,6 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `             sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG = sap.z2ui5.oBody?.ARGUMENTS;` && |\n| &&
                `            delete sap.z2ui5.oBody.ID;` && |\n| &&
                `            delete sap.z2ui5.oBody?.VIEWNAME;` && |\n| &&
-*               `            delete sap.z2ui5.oBody?.APP_START;` && |\n| &&
                `            delete sap.z2ui5.oBody?.S_FRONT.` && lv_two_way_model && `;` && |\n| &&
                `            delete sap.z2ui5.oBody?.ARGUMENTS;` && |\n| &&
               `            if  (!sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG) { delete sap.z2ui5.oBody.S_FRONT.T_EVENT_ARG; } ` && |\n| &&
@@ -567,24 +553,12 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `    sap.z2ui5.oControllerPopover = new Controller();` && |\n| &&
                `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n| &&
                `    sap.z2ui5.checkNestAfter = false;` && |\n| &&
-               `    sap.z2ui5.oBody = {` && |\n| &&
-*               `        APP_START: sap.z2ui5.APP_START` && |\n| &&
-               `    };` && |\n| &&
+               `    sap.z2ui5.oBody = { };` && |\n| &&
                `    sap.z2ui5.oController.Roundtrip();` && |\n| &&
                `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
                `    sap.z2ui5.onAfterRendering = [];` && |\n| &&
                `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
                `    sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
-*               `        // set device model` && |\n|  &&
-*               `        sap.z2ui5.oDeviceModel = new JSONModel({` && |\n|  &&
-*               `            isTouch : sap.ui.Device.support.touch,` && |\n|  &&
-*               `            isNoTouch : !sap.ui.Device.support.touch,` && |\n|  &&
-*               `            isPhone : sap.ui.Device.system.phone,` && |\n|  &&
-*               `            isNoPhone : !sap.ui.Device.system.phone,` && |\n|  &&
-*               `            listMode : sap.ui.Device.system.phone ? "None" : "SingleSelectMaster",` && |\n|  &&
-*               `            listItemType : sap.ui.Device.system.phone ? "Active" : "Inactive"` && |\n|  &&
-*               `        });` && |\n|  &&
-*               `        sap.z2ui5.oDeviceModel.setDefaultBindingMode("OneWay");` && |\n|  &&
                `        ` && |\n| &&
                `    }` && |\n| &&
                `);`.
