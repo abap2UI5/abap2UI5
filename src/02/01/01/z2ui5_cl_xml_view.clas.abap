@@ -3064,6 +3064,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         !textalign               TYPE clike OPTIONAL
         !name                    TYPE clike OPTIONAL
         !datevalue               TYPE clike OPTIONAL
+        !seconddatevalue         TYPE clike OPTIONAL
         !initialfocuseddatevalue TYPE clike OPTIONAL
         !delimiter               TYPE clike OPTIONAL
           PREFERRED PARAMETER value
@@ -9639,6 +9640,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                   ( n = `width`               v = width )
                   ( n = `id`               v = id )
                   ( n = `dateValue`               v = datevalue )
+                  ( n = `secondDateValue`         v = seconddatevalue )
                   ( n = `name`               v = name )
                   ( n = `class`               v = class )
                   ( n = `calendarWeekNumbering`               v = calendarweeknumbering )
