@@ -319,6 +319,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 valuecolor        TYPE clike OPTIONAL
                 !visible          TYPE clike OPTIONAL
                 !width            TYPE clike OPTIONAL
+                !class            TYPE clike OPTIONAL
       RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS link_tile_content
@@ -4084,7 +4085,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -7006,7 +7007,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `formatterValue` v = z2ui5_cl_util=>boolean_abap_2_json( formattervalue ) )
                           ( n = `animateTextChange` v = z2ui5_cl_util=>boolean_abap_2_json( animatetextchange ) )
                           ( n = `adaptiveFontSize` v = z2ui5_cl_util=>boolean_abap_2_json( adaptivefontsize ) )
-                          ( n = `withMargin` v = z2ui5_cl_util=>boolean_abap_2_json( withmargin ) ) ) ).
+                          ( n = `withMargin` v = z2ui5_cl_util=>boolean_abap_2_json( withmargin ) )
+                          ( n = `class`      v = class ) ) ).
 
   ENDMETHOD.
 
