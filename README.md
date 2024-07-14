@@ -57,7 +57,6 @@
 * Live demos running in the browser are based on [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) and [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
 * The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-platform-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
-* Checks for compatibility with "ABAP for Cloud" are performed on [**BTP ABAP Trial**](https://discovery-center.cloud.sap/serviceCatalog/abap-environment?region=all) [(SAP)](https://www.sap.com/germany/index.html)
 
 _Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on._ 👷‍♂️
 
@@ -89,7 +88,7 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 
 #### IV. On-Stack & Side-By-Side Extension
 1. Overview
-2. Running abap2UI5 on older releases via abaplint downport [(downport)](https://github.com/abap2UI5/abap2UI5-downport)
+2. Running abap2UI5 on older releases via abaplint downport [(LinkedIn - 14.07.2024)](https://www.linkedin.com/pulse/running-abap2ui5-older-r3-releases-downport-compatibility-abaplint-mjkle/)
 3. Calling Apps Remotely via RFC [(LinkedIn - 25.06.2024)](https://www.linkedin.com/pulse/calling-abap2ui5-apps-remotely-via-rfc-abap2ui5-btoue/)
 
 #### V. More
