@@ -503,6 +503,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !required        TYPE clike OPTIONAL
                 valuestate       TYPE clike OPTIONAL
                 valuestatetext   TYPE clike OPTIONAL
+                placeholder      TYPE clike OPTIONAL
+                showsuggestion   TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tokens
@@ -6760,7 +6762,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `class` v = class )
                                          ( n = `required` v = required )
                                          ( n = `valueState` v = valueState )
-                                         ( n = `valueStateText` v = valueStateText ) ) ).
+                                         ( n = `valueStateText` v = valueStateText )
+                                         ( n = `placeholder` v = placeholder )
+                                         ( n = `showSuggestion` v = z2ui5_cl_util=>boolean_abap_2_json( showsuggestion ) ) ) ).
   ENDMETHOD.
 
 
