@@ -7788,13 +7788,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `RatingIndicator`
                        t_prop = VALUE #( ( n = `class`        v = class )
                                          ( n = `maxValue`     v = maxvalue )
-                                         ( n = `displayOnly`  v = displayonly )
-                                         ( n = `editable`     v = editable )
+                                         ( n = `displayOnly`  v = z2ui5_cl_util=>boolean_abap_2_json( displayOnly ) )
+                                         ( n = `editable`     v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
                                          ( n = `iconSize`     v = iconsize )
                                          ( n = `value`        v = value )
                                          ( n = `id`           v = id )
                                          ( n = `change`       v = change )
-                                         ( n = `enabled`      v = enabled )
+                                         ( n = `enabled`      v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                          ( n = `tooltip`      v = tooltip ) ) ).
 
   ENDMETHOD.
