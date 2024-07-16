@@ -1342,6 +1342,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !enabled              TYPE clike OPTIONAL
                 filtersecondaryvalues TYPE clike OPTIONAL
                 showselectall         TYPE clike OPTIONAL
+                !id                   TYPE clike OPTIONAL
+                !class                TYPE clike OPTIONAL
       RETURNING VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid
@@ -6722,6 +6724,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             (  n = `selectedKeys`        v = selectedkeys )
             (  n = `selectedItems`        v = selecteditems )
             (  n = `items`               v = items )
+            (  n = `id`                  v = id )
+            (  n = `class`               v = class )
             (  n = `selectionFinish`     v = selectionfinish )
             (  n = `width`               v = width )
             (  n = `showSecondaryValues` v = z2ui5_cl_util=>boolean_abap_2_json( showsecondaryvalues ) )
