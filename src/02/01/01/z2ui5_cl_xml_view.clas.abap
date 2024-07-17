@@ -2585,6 +2585,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 resizable     TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS toolbar_layout_data
+      IMPORTING !id           TYPE clike OPTIONAL
+                maxWidth      TYPE clike OPTIONAL
+                minWidth      TYPE clike OPTIONAL
+                shrinkable    TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS object_header
       IMPORTING backgrounddesign     TYPE clike OPTIONAL
                 condensed            TYPE clike OPTIONAL
@@ -4090,7 +4097,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -9661,5 +9668,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                   ( n = `showValueStateMessage` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluestatemessage ) )
                   ( n = `showCurrentDateButton` v = z2ui5_cl_util=>boolean_abap_2_json( showcurrentdatebutton ) )
                   ( n = `delimiter` v = delimiter ) )                  ).
+  ENDMETHOD.
+
+
+  METHOD toolbar_layout_data.
+    result = _generic( name   = `ToolbarLayoutData`
+                       t_prop = VALUE #( ( n = `id`            v = id )
+                                         ( n = `maxWidth`      v = maxwidth )
+                                         ( n = `minWidth`      v = minwidth )
+                                         ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) ) ) ).
   ENDMETHOD.
 ENDCLASS.
