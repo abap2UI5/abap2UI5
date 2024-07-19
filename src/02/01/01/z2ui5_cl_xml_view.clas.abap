@@ -346,6 +346,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !disabled     TYPE clike OPTIONAL
                 !visible      TYPE clike OPTIONAL
                 footer        TYPE clike OPTIONAL
+                class         TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS expanded_heading
@@ -1347,8 +1348,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid
-      IMPORTING !class        TYPE clike OPTIONAL
-                default_span  TYPE clike OPTIONAL
+      IMPORTING !class         TYPE clike OPTIONAL
+                default_span   TYPE clike OPTIONAL
+                containerquery TYPE clike OPTIONAL
                   PREFERRED PARAMETER default_span
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5696,7 +5698,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `Grid`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `defaultSpan` v = default_span )
-                                         ( n = `class`       v = class ) ) ).
+                                         ( n = `class`       v = class )
+                                         ( n = `containerQuery` v = z2ui5_cl_util=>boolean_abap_2_json( containerquery ) ) ) ).
   ENDMETHOD.
 
 
@@ -8656,7 +8659,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `state`   v = state )
                                          ( n = `disabled`   v = z2ui5_cl_util=>boolean_abap_2_json( disabled ) )
                                          ( n = `visible`   v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                                         ( n = `footer` v = footer ) ) ).
+                                         ( n = `footer` v = footer )
+                                         ( n = `class` v = class ) ) ).
 
   ENDMETHOD.
 
