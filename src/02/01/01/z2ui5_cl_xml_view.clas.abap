@@ -1492,6 +1492,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 wrapping          TYPE clike OPTIONAL
                 !name             TYPE clike OPTIONAL
                 valuestate        TYPE clike OPTIONAL
+                !required         TYPE clike OPTIONAL
                   PREFERRED PARAMETER selected
       RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4541,7 +4542,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `partiallySelected`  v = z2ui5_cl_util=>boolean_abap_2_json( partiallyselected ) )
                                 ( n = `useEntireWidth`  v = z2ui5_cl_util=>boolean_abap_2_json( useentirewidth ) )
                                 ( n = `wrapping`  v = z2ui5_cl_util=>boolean_abap_2_json( wrapping ) )
-                                ( n = `select`   v = select ) ) ).
+                                ( n = `select`   v = select )
+                                ( n = `required`   v = z2ui5_cl_util=>boolean_abap_2_json( required ) ) ) ).
   ENDMETHOD.
 
 
