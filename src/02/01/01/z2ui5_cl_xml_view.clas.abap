@@ -1356,6 +1356,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS grid_data
       IMPORTING span          TYPE clike OPTIONAL
+                linebreak     TYPE clike OPTIONAL
+                indentl       TYPE clike OPTIONAL
+                indentm       TYPE clike OPTIONAL
                   PREFERRED PARAMETER span
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4100,7 +4103,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -5709,7 +5712,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = me.
     _generic( name   = `GridData`
               ns     = `layout`
-              t_prop = VALUE #( ( n = `span` v = span ) ) ).
+              t_prop = VALUE #( ( n = `span`      v = span )
+                                ( n = `linebreak` v = z2ui5_cl_util=>boolean_abap_2_json( linebreak ) )
+                                ( n = `indentL`   v = indentl )
+                                ( n = `indentM`   v = indentm ) ) ).
   ENDMETHOD.
 
 
