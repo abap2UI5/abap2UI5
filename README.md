@@ -77,7 +77,7 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 12. Update II: Community Feedback, New Features & Outlook 2024 [(SCN - 08.01.2024)](https://blogs.sap.com/2024/01/08/abap2ui5-12-update-ii-community-feedback-new-features-outlook-january-2024/)<br>
 
 #### II. On-Stack & Side-By-Side Extensibility
-1. Overview & Architecture
+1. Overview & Use Cases
 2. Running abap2UI5 on older R/3 Releases [(LinkedIn - 14.07.2024)](https://www.linkedin.com/pulse/running-abap2ui5-older-r3-releases-downport-compatibility-abaplint-mjkle/)
 3. Calling Apps Remotely via RFC [(LinkedIn - 25.06.2024)](https://www.linkedin.com/pulse/calling-abap2ui5-apps-remotely-via-rfc-abap2ui5-btoue/)
    
