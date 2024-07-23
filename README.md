@@ -58,10 +58,10 @@
 * Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
 * The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
-_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support, making it a joy to work on._ 👷‍♂️
+_Thanks to everyone who submits PRs or enriches my knowledge in issues, via Slack, or through other channels. This project greatly benefits from your support!_
 
 ### Know-How 
-_Take some time to explore the [samples repository.](https://github.com/abap2UI5/abap2UI5-samples) This is the quickest way to become an abap2UI5 expert._
+_Take some time to explore the [samples repository.](https://github.com/abap2UI5/abap2UI5-samples) This is the quickest way to become an abap2UI5 expert._ 🤓
 #### I. Introduction, Development & Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
 2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
