@@ -1704,6 +1704,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING !rows                    TYPE clike OPTIONAL
                 columnheadervisible      TYPE clike OPTIONAL
                 editable                 TYPE clike OPTIONAL
+                class                    TYPE clike OPTIONAL
                 enablecellfilter         TYPE clike OPTIONAL
                 enablegrouping           TYPE clike OPTIONAL
                 enableselectall          TYPE clike OPTIONAL
@@ -9075,6 +9076,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `alternateRowColors`        v = z2ui5_cl_util=>boolean_abap_2_json( alternaterowcolors ) )
             ( n = `columnHeaderVisible`       v = columnheadervisible )
             ( n = `editable`                  v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+            ( n = `class`                     v = class )
             ( n = `enableCellFilter`          v = z2ui5_cl_util=>boolean_abap_2_json( enablecellfilter ) )
             ( n = `enableGrouping`            v = z2ui5_cl_util=>boolean_abap_2_json( enablegrouping ) )
             ( n = `enableSelectAll`           v = z2ui5_cl_util=>boolean_abap_2_json( enableselectall ) )
