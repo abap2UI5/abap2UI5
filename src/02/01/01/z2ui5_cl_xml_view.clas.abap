@@ -2550,6 +2550,17 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 press         TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS feed_content
+      IMPORTING contenttext      TYPE clike OPTIONAL
+                subheader        TYPE clike OPTIONAL
+                value            TYPE clike OPTIONAL
+      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS news_content
+      IMPORTING contenttext      TYPE clike OPTIONAL
+                subheader        TYPE clike OPTIONAL
+      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS mask_input
       IMPORTING placeholder           TYPE clike OPTIONAL
                 !mask                 TYPE clike OPTIONAL
@@ -9691,5 +9702,24 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `maxWidth`      v = maxwidth )
                                          ( n = `minWidth`      v = minwidth )
                                          ( n = `shrinkable`    v = z2ui5_cl_util=>boolean_abap_2_json( shrinkable ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD feed_content.
+    result = _generic(
+                 name   = `FeedContent`
+                 t_prop = VALUE #( ( n = `contentText`    v = contenttext )
+                                   ( n = `subheader`      v = subheader )
+                                   ( n = `value`          v = value ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD news_content.
+    result = _generic(
+                 name   = `NewsContent`
+                 t_prop = VALUE #( ( n = `contentText`    v = contenttext )
+                                   ( n = `subheader`      v = subheader ) ) ).
+
   ENDMETHOD.
 ENDCLASS.
