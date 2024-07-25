@@ -5640,41 +5640,41 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD generic_tile.
 
-    result = me.
-    _generic( name   = `GenericTile`
-              ns     = ``
-              t_prop = VALUE #(
-                  ( n = `class`      v = class )
-                  ( n = `id`     v = id )
-                  ( n = `header`     v = header )
-                  ( n = `mode`     v = mode )
-                  ( n = `additionalTooltip`     v = additionaltooltip )
-                  ( n = `appShortcut`     v = appshortcut )
-                  ( n = `backgroundColor`     v = backgroundcolor )
-                  ( n = `backgroundImage`     v = backgroundimage )
-                  ( n = `dropAreaOffset`     v = dropareaoffset )
-                  ( n = `press`      v = press )
-                  ( n = `frameType`  v = frametype )
-                  ( n = `failedText`  v = failedtext )
-                  ( n = `headerImage`  v = headerimage )
-                  ( n = `scope`  v = scope )
-                  ( n = `sizeBehavior`  v = sizebehavior )
-                  ( n = `state`  v = state )
-                  ( n = `systemInfo`  v = systeminfo )
-                  ( n = `tileBadge`  v = tilebadge )
-                  ( n = `tileIcon`  v = tileicon )
-                  ( n = `url`  v = url )
-                  ( n = `valueColor`  v = valuecolor )
-                  ( n = `width`  v = width )
-                  ( n = `wrappingType`  v = wrappingtype )
-                  ( n = `imageDescription`  v = imagedescription )
-                  ( n = `navigationButtonText`  v = navigationbuttontext )
-                  ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
-                  ( n = `renderOnThemeChange`  v = z2ui5_cl_util=>boolean_abap_2_json( renderonthemechange ) )
-                  ( n = `enableNavigationButton`  v = z2ui5_cl_util=>boolean_abap_2_json( enablenavigationbutton ) )
-                  ( n = `pressEnabled`  v = z2ui5_cl_util=>boolean_abap_2_json( pressenabled ) )
-                  ( n = `iconLoaded`  v = z2ui5_cl_util=>boolean_abap_2_json( iconloaded ) )
-                  ( n = `subheader`  v = subheader ) ) ).
+    result = _generic(
+                 name   = `GenericTile`
+                 ns     = ``
+                 t_prop = VALUE #(
+                     ( n = `class`      v = class )
+                     ( n = `id`     v = id )
+                     ( n = `header`     v = header )
+                     ( n = `mode`     v = mode )
+                     ( n = `additionalTooltip`     v = additionaltooltip )
+                     ( n = `appShortcut`     v = appshortcut )
+                     ( n = `backgroundColor`     v = backgroundcolor )
+                     ( n = `backgroundImage`     v = backgroundimage )
+                     ( n = `dropAreaOffset`     v = dropareaoffset )
+                     ( n = `press`      v = press )
+                     ( n = `frameType`  v = frametype )
+                     ( n = `failedText`  v = failedtext )
+                     ( n = `headerImage`  v = headerimage )
+                     ( n = `scope`  v = scope )
+                     ( n = `sizeBehavior`  v = sizebehavior )
+                     ( n = `state`  v = state )
+                     ( n = `systemInfo`  v = systeminfo )
+                     ( n = `tileBadge`  v = tilebadge )
+                     ( n = `tileIcon`  v = tileicon )
+                     ( n = `url`  v = url )
+                     ( n = `valueColor`  v = valuecolor )
+                     ( n = `width`  v = width )
+                     ( n = `wrappingType`  v = wrappingtype )
+                     ( n = `imageDescription`  v = imagedescription )
+                     ( n = `navigationButtonText`  v = navigationbuttontext )
+                     ( n = `visible`  v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                     ( n = `renderOnThemeChange`  v = z2ui5_cl_util=>boolean_abap_2_json( renderonthemechange ) )
+                     ( n = `enableNavigationButton`  v = z2ui5_cl_util=>boolean_abap_2_json( enablenavigationbutton ) )
+                     ( n = `pressEnabled`  v = z2ui5_cl_util=>boolean_abap_2_json( pressenabled ) )
+                     ( n = `iconLoaded`  v = z2ui5_cl_util=>boolean_abap_2_json( iconloaded ) )
+                     ( n = `subheader`  v = subheader ) ) ).
 
   ENDMETHOD.
 
