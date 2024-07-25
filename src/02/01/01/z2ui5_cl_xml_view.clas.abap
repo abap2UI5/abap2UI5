@@ -4237,7 +4237,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `showBorder`       v = z2ui5_cl_util=>boolean_abap_2_json( showborder ) )
                                 ( n = `decorative`       v = z2ui5_cl_util=>boolean_abap_2_json( decorative ) )
                                 ( n = `enabled`       v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                ( n = `displaysize` v = displaysize ) ) ).
+                                ( n = `displaySize` v = displaysize ) ) ).
   ENDMETHOD.
 
 
