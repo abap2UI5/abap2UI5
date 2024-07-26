@@ -4116,7 +4116,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -5516,7 +5516,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `alignContent`  v = aligncontent )
                                    ( n = `backgroundDesign`  v = backgrounddesign )
                                    ( n = `displayInline`  v = z2ui5_cl_util=>boolean_abap_2_json( displayinline ) )
-                                   ( n = `visible`  v = visible ) ) ).
+                                   ( n = `visible`        v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
 
