@@ -5516,7 +5516,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                    ( n = `alignContent`  v = aligncontent )
                                    ( n = `backgroundDesign`  v = backgrounddesign )
                                    ( n = `displayInline`  v = z2ui5_cl_util=>boolean_abap_2_json( displayinline ) )
-                                   ( n = `visible`  v = visible ) ) ).
+                                   ( n = `visible`        v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
   ENDMETHOD.
 
 
