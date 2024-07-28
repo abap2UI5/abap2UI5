@@ -452,6 +452,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 basesize         TYPE clike OPTIONAL
                 backgrounddesign TYPE clike OPTIONAL
                 styleclass       TYPE clike OPTIONAL
+                order            TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS code_editor
@@ -5527,7 +5528,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
               t_prop = VALUE #( ( n = `growFactor`  v = growfactor )
                                 ( n = `baseSize`   v = basesize )
                                 ( n = `backgroundDesign`   v = backgrounddesign )
-                                ( n = `styleClass`   v = styleclass ) ) ).
+                                ( n = `styleClass`   v = styleclass )
+                                ( n = `order`        v = order ) ) ).
   ENDMETHOD.
 
 
