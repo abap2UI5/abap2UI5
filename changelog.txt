@@ -8,6 +8,16 @@ Legend
 + : added
 - : removed
 
+2024-07-28 v1.132.0
+-------------------
+
++ Added Properties for Multi Input, Slider, Search Field etc.
++ Added Date Range Selection Control etc.
+* Bugfix Generic Tile & Avator Control
+* Bugfix Binding with Custom Mapper 
+* Bugfix Downport Functionality
+* Bugfix ABAP 750 Syntax
+* Multiple Bugfixes and new Properties added
 
 2024-07-03 v1.131.0
 -------------------
@@ -16,7 +26,6 @@ Legend
 + Popup Layout V2
 * Fix Launchpad Title
 * Syntax Fixes for v750
-* Bugfixes and Small Improvements
 
 2024-06-13 v1.130.0
 -------------------
