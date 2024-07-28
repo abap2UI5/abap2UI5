@@ -2589,6 +2589,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !width        TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS splitter
+      IMPORTING height        TYPE clike OPTIONAL
+                orientation   TYPE clike OPTIONAL
+                !width        TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS pane_container
       IMPORTING resize        TYPE clike OPTIONAL
                 orientation   TYPE clike OPTIONAL
@@ -9725,5 +9731,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                  t_prop = VALUE #( ( n = `contentText`    v = contenttext )
                                    ( n = `subheader`      v = subheader ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD splitter.
+    result = _generic( name   = `Splitter`
+                       ns     = `layout`
+                       t_prop = VALUE #( ( n = `height`       v = height )
+                                         ( n = `orientation`  v = orientation )
+                                         ( n = `width`        v = width ) ) ).
   ENDMETHOD.
 ENDCLASS.
