@@ -557,6 +557,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 startsuggestion               TYPE clike OPTIONAL
                 enablesuggestionshighlighting TYPE clike OPTIONAL
                 enabletableautopopinmode      TYPE clike OPTIONAL
+                arialabelledby                TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
       RETURNING VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1081,6 +1082,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS toolbar_spacer
       IMPORTING !ns           TYPE clike OPTIONAL
+                width         TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS label
@@ -2593,6 +2595,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING height        TYPE clike OPTIONAL
                 orientation   TYPE clike OPTIONAL
                 !width        TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS invisible_text
+      IMPORTING !ns           TYPE clike
+                !id           TYPE clike OPTIONAL
+                text          TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS pane_container
@@ -4123,7 +4131,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -6148,7 +6156,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `startSuggestion`     v = startsuggestion )
             ( n = `valueHelpIconSrc` v = valuehelpiconsrc )
             ( n = `textFormatMode`  v = textformatmode )
-            ( n = `fieldWidth`          v = fieldwidth ) ) ).
+            ( n = `fieldWidth`          v = fieldwidth )
+            ( n = `AriaLabelledBy`      v = arialabelledby ) ) ).
   ENDMETHOD.
 
 
@@ -8898,9 +8907,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD toolbar_spacer.
 
     result = me.
-    _generic( name = `ToolbarSpacer`
-              ns   = ns ).
-
+    _generic( name   = `ToolbarSpacer`
+              ns     = ns
+              t_prop = VALUE #( ( n = `width`     v = width ) ) ).
   ENDMETHOD.
 
 
@@ -9740,5 +9749,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #( ( n = `height`       v = height )
                                          ( n = `orientation`  v = orientation )
                                          ( n = `width`        v = width ) ) ).
+  ENDMETHOD.
+
+
+  METHOD invisible_text.
+    result = _generic( ns     = ns
+                       name   = `InvisibleText`
+                       t_prop = VALUE #( ( n = `id`       v = id )
+                                         ( n = `text`        v = text ) ) ).
   ENDMETHOD.
 ENDCLASS.
