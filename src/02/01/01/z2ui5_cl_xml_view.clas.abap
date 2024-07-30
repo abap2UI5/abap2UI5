@@ -558,6 +558,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 enablesuggestionshighlighting TYPE clike OPTIONAL
                 enabletableautopopinmode      TYPE clike OPTIONAL
                 arialabelledby                TYPE clike OPTIONAL
+                ariadescribedby               TYPE clike OPTIONAL
                   PREFERRED PARAMETER value
       RETURNING VALUE(result)                 TYPE REF TO z2ui5_cl_xml_view.
 
@@ -6157,7 +6158,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `valueHelpIconSrc` v = valuehelpiconsrc )
             ( n = `textFormatMode`  v = textformatmode )
             ( n = `fieldWidth`          v = fieldwidth )
-            ( n = `AriaLabelledBy`      v = arialabelledby ) ) ).
+            ( n = `AriaLabelledBy`      v = arialabelledby )
+            ( n = `AriaDescribedBy`     v = ariadescribedby ) ) ).
   ENDMETHOD.
 
 
