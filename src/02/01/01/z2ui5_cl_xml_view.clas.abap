@@ -2605,6 +2605,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 text          TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS fix_flex
+      IMPORTING !ns            TYPE clike OPTIONAL
+                class          TYPE clike OPTIONAL
+                fixcontentsize TYPE clike OPTIONAL
+      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS fix_content
+      IMPORTING !ns            TYPE clike OPTIONAL
+      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS flex_content
+      IMPORTING !ns            TYPE clike OPTIONAL
+      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS pane_container
       IMPORTING resize        TYPE clike OPTIONAL
                 orientation   TYPE clike OPTIONAL
@@ -4133,7 +4147,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -9761,5 +9775,25 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        name   = `InvisibleText`
                        t_prop = VALUE #( ( n = `id`       v = id )
                                          ( n = `text`        v = text ) ) ).
+  ENDMETHOD.
+
+
+  METHOD fix_content.
+    result = _generic( ns     = ns
+                       name   = `fixContent` ).
+  ENDMETHOD.
+
+
+  METHOD fix_flex.
+    result = _generic( ns     = ns
+                       name   = `FixFlex`
+                       t_prop = VALUE #( ( n = `class`           v = class )
+                                         ( n = `fixContentSize`  v = fixcontentsize ) ) ).
+  ENDMETHOD.
+
+
+  METHOD flex_content.
+    result = _generic( ns     = ns
+                       name   = `flexContent` ).
   ENDMETHOD.
 ENDCLASS.
