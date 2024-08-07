@@ -453,6 +453,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 backgrounddesign TYPE clike OPTIONAL
                 styleclass       TYPE clike OPTIONAL
                 order            TYPE clike OPTIONAL
+                shrinkfactor     TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS code_editor
@@ -5544,7 +5545,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `baseSize`   v = basesize )
                                 ( n = `backgroundDesign`   v = backgrounddesign )
                                 ( n = `styleClass`   v = styleclass )
-                                ( n = `order`        v = order ) ) ).
+                                ( n = `order`        v = order )
+                                ( n = `shrinkFactor` v = shrinkfactor ) ) ).
   ENDMETHOD.
 
 
