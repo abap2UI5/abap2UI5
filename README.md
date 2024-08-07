@@ -28,7 +28,7 @@
 
 #### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
-* S/4 Public Cloud ABAP Environment (ABAP for Cloud)
+* S/4 Public Cloud (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
