@@ -1357,6 +1357,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING !class         TYPE clike OPTIONAL
                 default_span   TYPE clike OPTIONAL
                 containerquery TYPE clike OPTIONAL
+                hspacing       TYPE clike OPTIONAL
+                vspacing       TYPE clike OPTIONAL
+                !width         TYPE clike OPTIONAL
                   PREFERRED PARAMETER default_span
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -1418,6 +1421,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !status        TYPE clike OPTIONAL
                 !class         TYPE clike OPTIONAL
                 press          TYPE clike OPTIONAL
+                valuestate     TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS object_attribute
@@ -4147,7 +4151,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -5667,7 +5671,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `status`  v = status )
                                          ( n = `id`  v = id )
                                          ( n = `press`  v = press )
-                                         ( n = `text`   v = text ) ) ).
+                                         ( n = `text`   v = text )
+                                         ( n = `valueState`   v = valuestate ) ) ).
 
   ENDMETHOD.
 
@@ -5748,9 +5753,12 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     result = _generic( name   = `Grid`
                        ns     = `layout`
-                       t_prop = VALUE #( ( n = `defaultSpan` v = default_span )
-                                         ( n = `class`       v = class )
-                                         ( n = `containerQuery` v = z2ui5_cl_util=>boolean_abap_2_json( containerquery ) ) ) ).
+                       t_prop = VALUE #( ( n = `defaultSpan`    v = default_span )
+                                         ( n = `class`          v = class )
+                                         ( n = `containerQuery` v = z2ui5_cl_util=>boolean_abap_2_json( containerquery ) )
+                                         ( n = `hSpacing`       v = hspacing )
+                                         ( n = `vSpacing`       v = vspacing )
+                                         ( n = `width`          v = width ) ) ).
   ENDMETHOD.
 
 
