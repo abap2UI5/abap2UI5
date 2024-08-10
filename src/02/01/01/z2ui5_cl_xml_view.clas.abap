@@ -4137,7 +4137,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS badge
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
-    METHODS SIDE_NAVIGATION
+    METHODS side_navigation
       IMPORTING
         id type CLIKE optional
         class type CLIKE optional
@@ -4146,11 +4146,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
   	  
-    METHODS NAVIGATION_LIST
+    METHODS navigation_list
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
   	  
-    METHODS NAVIGATION_LIST_ITEM
+    METHODS navigation_list_item
       IMPORTING
         text type CLIKE optional
         icon type CLIKE optional
@@ -4160,7 +4160,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
   	  
-    METHODS FIXED_ITEM
+    METHODS fixed_item
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
