@@ -4141,15 +4141,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING
         id type CLIKE optional
         class type CLIKE optional
-        height type CLIKE optional
         selectedkey type CLIKE optional
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-  	  
+
     METHODS navigation_list
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-  	  
+
     METHODS navigation_list_item
       IMPORTING
         text type CLIKE optional
@@ -4159,7 +4158,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
         key type CLIKE optional
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
-  	  
+
     METHODS fixed_item
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -9833,7 +9832,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( ns     = ns
                        name   = `flexContent` ).
   ENDMETHOD.
-  
+
 
   METHOD side_navigation.
 
