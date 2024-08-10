@@ -9773,7 +9773,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `Splitter`
                        ns     = `layout`
                        t_prop = VALUE #( ( n = `height`       v = height )
-                                         ( n = `orientation`  v = orientation )
+                                         ( n = `Orientation`  v = orientation )
                                          ( n = `width`        v = width ) ) ).
   ENDMETHOD.
 
