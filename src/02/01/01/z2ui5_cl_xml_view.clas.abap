@@ -107,6 +107,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 backgrounddesign TYPE clike OPTIONAL
                 aligncontent     TYPE clike OPTIONAL
                 items            TYPE clike OPTIONAL
+                id               TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS popover
@@ -4136,6 +4137,33 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS badge
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS SIDE_NAVIGATION
+      IMPORTING
+        id type CLIKE optional
+        class type CLIKE optional
+        height type CLIKE optional
+        selectedkey type CLIKE optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+  	  
+    METHODS NAVIGATION_LIST
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+  	  
+    METHODS NAVIGATION_LIST_ITEM
+      IMPORTING
+        text type CLIKE optional
+        icon type CLIKE optional
+        select type CLIKE optional
+        href type CLIKE optional
+        key type CLIKE optional
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+  	  
+    METHODS FIXED_ITEM
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
   PROTECTED SECTION.
     DATA mv_name     TYPE string.
     DATA mv_ns       TYPE string.
@@ -5539,6 +5567,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
                  name   = `FlexBox`
                  t_prop = VALUE #( ( n = `class`  v = class )
+                                   ( n = `id` v = id )
                                    ( n = `renderType`  v = rendertype )
                                    ( n = `width`  v = width )
                                    ( n = `height`  v = height )
@@ -9804,4 +9833,49 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( ns     = ns
                        name   = `flexContent` ).
   ENDMETHOD.
+  
+
+  METHOD side_navigation.
+
+    result = _generic(
+                 name   = `SideNavigation`
+                 ns     = `tnt`
+                 t_prop = VALUE #( ( n = `id`  v = id )
+                                   ( n = `class` v = class )
+                                   ( n = `selectedKey`  v = selectedkey ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD navigation_list.
+
+    result = _generic(
+                 name   = `NavigationList`
+                 ns     = `tnt` ).
+
+  ENDMETHOD.
+
+
+  METHOD navigation_list_item.
+
+    result = me.
+    _generic(
+      name   = `NavigationListItem`
+      ns     = `tnt`
+      t_prop = VALUE #( ( n = `text`  v = text )
+                        ( n = `icon`  v = icon )
+                        ( n = `href`  v = href )
+                        ( n = `key`   v = key )
+                        ( n = `select`  v = select ) ) ).
+
+  ENDMETHOD.
+
+
+  METHOD fixed_item.
+
+    result = _generic( name = `fixedItem`
+                       ns   = `tnt` ).
+
+  ENDMETHOD.
+
 ENDCLASS.
