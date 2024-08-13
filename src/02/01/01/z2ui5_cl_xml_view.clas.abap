@@ -815,6 +815,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 activeicon       TYPE clike OPTIONAL
                 accessiblerole   TYPE clike OPTIONAL
                 textdirection    TYPE clike OPTIONAL
+                arialabelledby   TYPE clike OPTIONAL
+                ariadescribedby  TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS begin_button
@@ -4498,7 +4500,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `accessibleRole` v = accessiblerole )
                                 ( n = `activeIcon` v = activeicon )
                                 ( n = `ariaHasPopup` v = ariahaspopup )
-                                ( n = `class`   v = class ) ) ).
+                                ( n = `class`   v = class )
+                                ( n = `ariaLabelledBy`  v = arialabelledby )
+                                ( n = `ariaDescribedBy` v = ariadescribedby ) ) ).
   ENDMETHOD.
 
 
@@ -6210,8 +6214,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
             ( n = `valueHelpIconSrc` v = valuehelpiconsrc )
             ( n = `textFormatMode`  v = textformatmode )
             ( n = `fieldWidth`          v = fieldwidth )
-            ( n = `AriaLabelledBy`      v = arialabelledby )
-            ( n = `AriaDescribedBy`     v = ariadescribedby ) ) ).
+            ( n = `ariaLabelledBy`      v = arialabelledby )
+            ( n = `ariaDescribedBy`     v = ariadescribedby ) ) ).
   ENDMETHOD.
 
 
@@ -9876,5 +9880,4 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        ns   = `tnt` ).
 
   ENDMETHOD.
-
 ENDCLASS.
