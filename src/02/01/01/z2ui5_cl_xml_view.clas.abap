@@ -4184,7 +4184,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -6383,7 +6383,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD layout_data.
     result = _generic( ns   = ns
                        name = `layoutData` ).
-*                       name = `LayoutData` ).
   ENDMETHOD.
 
 
