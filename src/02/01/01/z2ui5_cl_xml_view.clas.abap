@@ -1467,7 +1467,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS step_input
-      IMPORTING !value        TYPE clike OPTIONAL
+      IMPORTING !id           TYPE clike OPTIONAL
+                !value        TYPE clike OPTIONAL
                 !min          TYPE clike OPTIONAL
                 !max          TYPE clike OPTIONAL
                 !step         TYPE clike OPTIONAL
@@ -8485,7 +8486,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
   METHOD step_input.
     result = me.
     _generic( name   = `StepInput`
-              t_prop = VALUE #( ( n = `max`  v = max )
+              t_prop = VALUE #( ( n = `id`   v = id )
+                                ( n = `max`  v = max )
                                 ( n = `min`  v = min )
                                 ( n = `step` v = step )
                                 ( n = `width` v = width )
