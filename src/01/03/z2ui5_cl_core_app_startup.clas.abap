@@ -211,7 +211,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
 *                        href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
 
     simple_form2->label( ).
-    simple_form2->link( text   = `Follow abap2UI5 on Linkedin`
+    simple_form2->link( text   = `Follow abap2UI5 on LinkedIn`
                         target = `_blank`
                         href   = `https://www.linkedin.com/company/abap2ui5` ).
 
