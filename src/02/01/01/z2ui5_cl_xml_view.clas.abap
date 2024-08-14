@@ -762,6 +762,10 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS content_right
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS content_areas
+      IMPORTING !ns           TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS custom_header
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4180,7 +4184,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -6379,6 +6383,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD layout_data.
     result = _generic( ns   = ns
                        name = `layoutData` ).
+*                       name = `LayoutData` ).
   ENDMETHOD.
 
 
@@ -9879,5 +9884,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name = `fixedItem`
                        ns   = `tnt` ).
 
+  ENDMETHOD.
+
+
+  METHOD content_areas.
+    result = _generic( name = `contentAreas`
+                       ns = ns ).
   ENDMETHOD.
 ENDCLASS.
