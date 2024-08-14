@@ -2577,6 +2577,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS news_content
       IMPORTING contenttext      TYPE clike OPTIONAL
                 subheader        TYPE clike OPTIONAL
+                press            TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS mask_input
@@ -9802,7 +9803,8 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
     result = _generic(
                  name   = `NewsContent`
                  t_prop = VALUE #( ( n = `contentText`    v = contenttext )
-                                   ( n = `subheader`      v = subheader ) ) ).
+                                   ( n = `subheader`      v = subheader )
+                                   ( n = `press`          v = press ) ) ).
 
   ENDMETHOD.
 
