@@ -903,7 +903,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
             ddlanguage TYPE c LENGTH 1,
             ddtext     TYPE c LENGTH 60,
           END OF fixvalue.
-        TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH DEFAULT KEY .
+        TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH DEFAULT KEY.
         DATA lt_values TYPE fixvalues.
 
         CALL METHOD ('elemdescr->get_ddic_fixed_values')
