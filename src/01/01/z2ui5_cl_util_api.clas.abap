@@ -49,7 +49,7 @@ CLASS z2ui5_cl_util_api DEFINITION
 
     CLASS-METHODS rtti_get_t_ddic_fixed_values
       IMPORTING
-        rollname      TYPE string
+        rollname      TYPE clike
         langu         TYPE clike DEFAULT sy-langu
       RETURNING
         VALUE(result) TYPE ty_t_fix_val ##NEEDED.
@@ -884,7 +884,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     TRY.
 
-        cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = rollname
+        cl_abap_typedescr=>describe_by_name( EXPORTING  p_name         = CONV string( rollname )
                                              RECEIVING  p_descr_ref    = DATA(typedescr)
                                              EXCEPTIONS type_not_found = 1
                                                         OTHERS         = 2 ).
@@ -892,13 +892,36 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        DATA(elemdescr) = CAST cl_abap_elemdescr( typedescr ).
+        DATA(elemdescr) = CAST cl_abap_elemdescr( typedescr ) ##NEEDED.
 
-        elemdescr->get_ddic_fixed_values( EXPORTING  p_langu        = langu
-                                          RECEIVING  p_fixed_values = DATA(lt_values)
-                                          EXCEPTIONS not_found      = 1
-                                                     no_ddic_type   = 2
-                                                     OTHERS         = 3 ).
+
+        TYPES:
+          BEGIN OF fixvalue,
+            low        TYPE c LENGTH 10,
+            high       TYPE c LENGTH 10,
+            option     TYPE c LENGTH 2,
+            ddlanguage TYPE c LENGTH 1,
+            ddtext     TYPE c LENGTH 60,
+          END OF fixvalue.
+        TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
+        DATA lt_values TYPE fixvalues.
+
+        CALL METHOD ELEMDESCR->('GET_DDIC_FIXED_VALUES')
+          EXPORTING
+            p_langu        = langu
+          RECEIVING
+            p_fixed_values = lt_values
+          EXCEPTIONS
+            not_found      = 1
+            no_ddic_type   = 2
+            OTHERS         = 3.
+
+*        elemdescr->get_ddic_fixed_values( EXPORTING  p_langu        = langu
+*                                          RECEIVING  p_fixed_values = DATA(lt_values)
+*                                          EXCEPTIONS not_found      = 1
+*                                                     no_ddic_type   = 2
+*                                                     OTHERS         = 3 ).
+
 
         LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
 
