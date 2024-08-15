@@ -892,7 +892,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
           RETURN.
         ENDIF.
 
-        DATA(elemdescr) = CAST cl_abap_elemdescr( typedescr ).
+        DATA(elemdescr) = CAST cl_abap_elemdescr( typedescr ) ##NEEDED.
 
 
         TYPES:
@@ -903,10 +903,10 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
             ddlanguage TYPE c LENGTH 1,
             ddtext     TYPE c LENGTH 60,
           END OF fixvalue.
-        TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH DEFAULT KEY.
+        TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
         DATA lt_values TYPE fixvalues.
 
-        CALL METHOD ('elemdescr->get_ddic_fixed_values')
+        CALL METHOD ELEMDESCR->('GET_DDIC_FIXED_VALUES')
           EXPORTING
             p_langu        = langu
           RECEIVING
