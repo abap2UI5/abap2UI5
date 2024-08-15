@@ -902,7 +902,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
             option     TYPE c LENGTH 2,
             ddlanguage TYPE c LENGTH 1,
             ddtext     TYPE c LENGTH 60,
-          END OF fixvalue .
+          END OF fixvalue.
         TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH DEFAULT KEY .
         DATA lt_values TYPE fixvalues.
 
