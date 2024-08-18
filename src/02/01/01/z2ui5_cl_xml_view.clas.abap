@@ -767,6 +767,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING !ns           TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS field
+      IMPORTING !ns                TYPE clike OPTIONAL
+                !id                TYPE clike OPTIONAL
+                !value             TYPE clike OPTIONAL
+                editmode           TYPE clike OPTIONAL
+                showemptyindicator TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS custom_header
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -800,6 +808,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !enabled      TYPE clike OPTIONAL
                 press         TYPE clike OPTIONAL
                 !class        TYPE clike OPTIONAL
+                pressed       TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS button
@@ -4187,7 +4196,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_xml_view IMPLEMENTATION.
+CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
 
 
   METHOD actions.
@@ -8929,7 +8938,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                 ( n = `icon`    v = icon )
                                 ( n = `type`    v = type )
-                                ( n = `class`   v = class ) ) ).
+                                ( n = `class`   v = class )
+                                ( n = `pressed` v = z2ui5_cl_util=>boolean_abap_2_json( pressed ) ) ) ).
   ENDMETHOD.
 
 
@@ -9628,7 +9638,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `xmlns:upload`       v = `sap.m.upload` )
           ( n = `xmlns:fl`           v = `sap.ui.fl` )
           ( n = `xmlns:plugins`           v = `sap.m.plugins` )
-          ( n = `xmlns:tnt`          v = `sap.tnt` ) ).
+          ( n = `xmlns:tnt`          v = `sap.tnt` )
+          ( n = `xmlns:mdc`          v = `sap.ui.mdc` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
 
@@ -9895,5 +9906,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD content_areas.
     result = _generic( name = `contentAreas`
                        ns = ns ).
+  ENDMETHOD.
+
+
+  METHOD field.
+    result = _generic( name = `Field`
+                       ns = ns
+                       t_prop = VALUE #( ( n = `id`        v = id )
+                                         ( n = `value`     v = value )
+                                         ( n = `editMode`  v = editmode )
+                                         ( n = `showEmptyIndicator`  v = z2ui5_cl_util=>boolean_abap_2_json( showemptyindicator ) ) ) ).
   ENDMETHOD.
 ENDCLASS.
