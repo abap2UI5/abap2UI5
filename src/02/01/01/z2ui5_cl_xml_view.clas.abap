@@ -1793,8 +1793,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS currency
-      IMPORTING !value        TYPE clike
-                !currency     TYPE clike
+      IMPORTING !value        TYPE clike OPTIONAL
+                !currency     TYPE clike OPTIONAL
+                usesymbol     TYPE clike OPTIONAL
+                maxprecision  TYPE clike OPTIONAL
+                stringvalue   TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS ui_row_action
@@ -5001,8 +5004,11 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD currency.
     result = _generic( name   = `Currency`
                        ns     = 'u'
-                       t_prop = VALUE #( ( n = `value` v = value )
-                                         ( n = `currency`  v = currency ) ) ).
+                       t_prop = VALUE #( ( n = `value`        v = value )
+                                         ( n = `currency`     v = currency )
+                                         ( n = `useSymbol`    v = z2ui5_cl_util=>boolean_abap_2_json( usesymbol ) )
+                                         ( n = `maxPrecision` v = maxprecision )
+                                         ( n = `stringValue`  v = stringvalue ) ) ).
 
   ENDMETHOD.
 
