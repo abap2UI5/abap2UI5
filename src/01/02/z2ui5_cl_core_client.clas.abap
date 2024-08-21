@@ -133,10 +133,6 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
 
     mo_action->ms_next-o_app_call = app.
 
-*    result = COND #( WHEN app->id_draft IS INITIAL
-*        THEN z2ui5_cl_util=>uuid_get_c32( )
-*        ELSE app->id_app ).
-
     IF app->id_app IS INITIAL.
       app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
     ENDIF.
@@ -151,10 +147,6 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.
-
-*    result = COND #( WHEN app->id_draft IS INITIAL
-*        THEN z2ui5_cl_util=>uuid_get_c32( )
-*        ELSE app->id_app ).
 
     IF app->id_app IS INITIAL.
       app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
@@ -344,4 +336,5 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
          t_arg = t_arg ).
 
   ENDMETHOD.
+
 ENDCLASS.
