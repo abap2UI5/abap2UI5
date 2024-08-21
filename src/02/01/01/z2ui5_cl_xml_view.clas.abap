@@ -442,6 +442,20 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 appwidthlimited TYPE clike OPTIONAL
       RETURNING VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS shell_bar
+      IMPORTING homeIcon            TYPE clike     OPTIONAL
+                homeIconTooltip     TYPE clike     OPTIONAL
+                notificationsNumber TYPE clike     OPTIONAL
+                secondTitle         TYPE clike     OPTIONAL
+                showCopilot         TYPE abap_bool OPTIONAL
+                showMenuButton      TYPE abap_bool OPTIONAL
+                showNavButton       TYPE abap_bool OPTIONAL
+                showNotifications   TYPE abap_bool OPTIONAL
+                showProductSwitcher TYPE abap_bool OPTIONAL
+                showSearch          TYPE abap_bool OPTIONAL
+                !title              TYPE clike     OPTIONAL
+      RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS blocks
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -8179,6 +8193,24 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
         name   = `Shell`
         ns     = ns
         t_prop = VALUE #( ( n = `appWidthLimited`  v = z2ui5_cl_util=>boolean_abap_2_json( appwidthlimited ) ) ) ).
+  ENDMETHOD.
+
+
+  METHOD shell_bar.
+    result = _generic( name   = `ShellBar`
+                       ns     = `f`
+                       t_prop = VALUE #(
+                           ( n = `homeIcon`  v = homeIcon )
+                           ( n = `homeIconTooltip`  v = homeIconTooltip )
+                           ( n = `notificationsNumber`  v = notificationsNumber  )
+                           ( n = `secondTitle`  v = secondTitle )
+                           ( n = `showCopilot`  v = z2ui5_cl_util=>boolean_abap_2_json( showCopilot ) )
+                           ( n = `showMenuButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showMenuButton ) )
+                           ( n = `showNavButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showNavButton ) )
+                           ( n = `showNotifications`  v = z2ui5_cl_util=>boolean_abap_2_json( showNotifications ) )
+                           ( n = `showProductSwitcher`  v = z2ui5_cl_util=>boolean_abap_2_json( showProductSwitcher ) )
+                           ( n = `showSearch`  v = z2ui5_cl_util=>boolean_abap_2_json( showSearch ) )
+                           ( n = `title`  v = title ) ) ).
   ENDMETHOD.
 
 
