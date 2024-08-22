@@ -869,7 +869,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
            width,
            sequence,
            alternative_text,
-           subcolumn
+           subcolumn,
+           reference_field
       FROM z2ui5_t004
       WHERE guid = @Head-guid
       INTO CORRESPONDING FIELDS OF TABLE @ms_layout-t_layout  ##SUBRC_OK.
