@@ -199,10 +199,6 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_positions.
 
-
-
-  PRIVATE SECTION.
-
 ENDCLASS.
 
 
@@ -435,8 +431,6 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     client->popup_display( popup->get_root( )->xml_get( ) ).
 
   ENDMETHOD.
-
-
 
   METHOD on_event.
 
@@ -1244,9 +1238,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                              selectionchange = client->_event( 'SELCHANGE' )
                 )->custom_list_item( ).
 
-
-    item->combobox( "width = '70%'
-                    selectedkey = `{FNAME}`
+    item->combobox( selectedkey = `{FNAME}`
                     items       = client->_bind( mt_comps  )
                    )->item( key  = '{FNAME}'
                             text = '{FNAME} {TLABEL}'
@@ -1363,22 +1355,23 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
            WITH KEY guid     = layout-guid
                     pos_guid = layout-pos_guid.
 
-      IF sy-subrc = 0.
-        IF layout-sequence <> layout_tmp-sequence.
-          mv_rerender = abap_true.
-          RETURN.
-        ENDIF.
+      IF sy-subrc <> 0.
+        CONTINUE.
+      ENDIF.
 
-        IF layout-t_sub_col <> layout_tmp-t_sub_col.
-          mv_rerender = abap_true.
-          RETURN.
-        ENDIF.
+      IF layout-sequence <> layout_tmp-sequence.
+        mv_rerender = abap_true.
+        RETURN.
+      ENDIF.
 
-        IF layout-reference_field <> layout_tmp-reference_field.
-          mv_rerender = abap_true.
-          RETURN.
-        ENDIF.
+      IF layout-t_sub_col <> layout_tmp-t_sub_col.
+        mv_rerender = abap_true.
+        RETURN.
+      ENDIF.
 
+      IF layout-reference_field <> layout_tmp-reference_field.
+        mv_rerender = abap_true.
+        RETURN.
       ENDIF.
 
     ENDLOOP.
