@@ -43,7 +43,6 @@ CLASS z2ui5_cl_util_api DEFINITION
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING
         type          TYPE REF TO cl_abap_datadescr
-        attri         TYPE clike
       RETURNING
         VALUE(result) TYPE abap_component_tab.
 
@@ -822,11 +821,27 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
     DATA(sdescr) = CAST cl_abap_structdescr( cl_abap_typedescr=>describe_by_name( type->absolute_name ) ).
 
-    result = sdescr->get_components( ).
+    DATA(comps) = sdescr->get_components( ).
 
-    LOOP AT result REFERENCE INTO DATA(lr_comp).
+    LOOP AT comps REFERENCE INTO DATA(lr_comp).
 
-      lr_comp->name = attri && lr_comp->name.
+      IF lr_comp->as_include = abap_true.
+
+        DATA(incl_comps) = rtti_get_t_attri_by_include( lr_comp->type ).
+
+        LOOP AT incl_comps REFERENCE INTO DATA(lr_incl_comp).
+
+          lr_incl_comp->name = lr_incl_comp->name.
+          APPEND lr_incl_comp->* TO result.
+
+        ENDLOOP.
+
+      ELSE.
+
+        lr_comp->name = lr_comp->name.
+        APPEND lr_comp->* TO result.
+
+      ENDIF.
 
     ENDLOOP.
 
@@ -866,8 +881,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     LOOP AT result REFERENCE INTO DATA(lr_comp)
         WHERE as_include = abap_true.
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( type = lr_comp->type
-                                               attri     = lr_comp->name ).
+      DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
@@ -1322,8 +1336,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     LOOP AT result REFERENCE INTO DATA(lr_comp)
          WHERE as_include = abap_true.
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type
-                                                    attri = lr_comp->name ).
+      DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
