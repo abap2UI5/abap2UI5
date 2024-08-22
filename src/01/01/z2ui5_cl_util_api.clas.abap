@@ -827,7 +827,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
 
       IF lr_comp->as_include = abap_true.
 
-        DATA(incl_comps) = rtti_get_t_attri_by_include( type  = lr_comp->type ).
+        DATA(incl_comps) = rtti_get_t_attri_by_include( lr_comp->type ).
 
         LOOP AT incl_comps REFERENCE INTO DATA(lr_incl_comp).
 
@@ -881,7 +881,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     LOOP AT result REFERENCE INTO DATA(lr_comp)
         WHERE as_include = abap_true.
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( type = lr_comp->type ).
+      DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
@@ -1336,7 +1336,7 @@ CLASS z2ui5_cl_util_api IMPLEMENTATION.
     LOOP AT result REFERENCE INTO DATA(lr_comp)
          WHERE as_include = abap_true.
 
-      DATA(lt_attri) = rtti_get_t_attri_by_include( type  = lr_comp->type ).
+      DATA(lt_attri) = rtti_get_t_attri_by_include( lr_comp->type ).
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
