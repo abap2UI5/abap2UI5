@@ -163,7 +163,9 @@ CLASS z2ui5_cl_pop_to_sel_w_layout IMPLEMENTATION.
           index = index + 1.
 
           READ TABLE ms_layout-t_layout INTO DATA(line) WITH KEY fname = subcol-fname.
-
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
           IF line-reference_field IS INITIAL.
             DATA(Column) = |{ line-tlabel }: \{{ subcol-fname }\}|.
           ELSE.
@@ -391,7 +393,7 @@ CLASS z2ui5_cl_pop_to_sel_w_layout IMPLEMENTATION.
           EXIT.
         ENDIF.
         lv_row = lv_row && <field>.
-        lv_index += 1.
+        lv_index = lv_index + 1.
       ENDDO.
 
       IF lv_row NS mv_search_value.
