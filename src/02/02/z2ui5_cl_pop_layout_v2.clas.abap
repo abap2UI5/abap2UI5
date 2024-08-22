@@ -199,6 +199,10 @@ CLASS z2ui5_cl_pop_layout_v2 DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_positions.
 
+
+
+  PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -258,13 +262,16 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                            ( control = m_table  attribute = 'ALTERNATIVE_TEXT' )
                            ( control = m_table  attribute = 'SEQUENCE' )
                            ( control = m_table  attribute = 'SUBCOLUMN' )
+                           ( control = m_table  attribute = 'REFERENCE_FIELD' )
                            ( control = ui_table attribute = 'VISIBLE' )
                            ( control = ui_table attribute = 'ALTERNATIVE_TEXT' )
                            ( control = ui_table attribute = 'HALIGN' )
                            ( control = ui_table attribute = 'WIDTH' )
                            ( control = others   attribute = 'VISIBLE' )
                            ( control = others   attribute = 'SEQUENCE' )
-                           ( control = others   attribute = 'ALTERNATIVE_TEXT' ) ).
+                           ( control = others   attribute = 'ALTERNATIVE_TEXT' )
+                           ( control = others   attribute = 'REFERENCE_FIELD' )
+                           ( control = others   attribute = 'WIDTH' ) ).
 
   ENDMETHOD.
 
@@ -274,7 +281,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     DATA(dialog) = popup->dialog( title        = 'Edit Layout'
 *                                  stretch      = abap_true
-                                  contentwidth = '70%'
+                                  contentwidth = '90%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
     DATA(tab) = dialog->table( growing          = abap_true
@@ -289,8 +296,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
     DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( ms_layout-t_layout ).
 
-    DATA(col) = columns->column( )->header( `` ).
-    col->text( 'Row' ).
+    DATA(col) = columns->column( '15rem' )->header( `` ).
+    col->text( `Row` ).
 
     LOOP AT lt_comp REFERENCE INTO DATA(comp).
 
@@ -323,6 +330,9 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         WHEN 'ALTERNATIVE_TEXT'.
           col = columns->column( )->header( `` ).
           col->text( 'Alternative Text' ).
+        WHEN 'REFERENCE_FIELD'.
+          col = columns->column( )->header( `` ).
+          col->text( 'Reference Field' ).
         WHEN 'SUBCOLUMN'.
           col = columns->column( )->header( `` ).
           col->text( 'Subcolumn' ).
@@ -333,7 +343,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     LOOP AT lt_comp REFERENCE INTO comp.
 
       IF comp->name = 'FNAME'.
-        cells->text( |\{{ comp->name }\}| ).
+        cells->text( |\{{ comp->name }\} { cl_abap_char_utilities=>cr_lf } \{TLABEL\} | ).
       ENDIF.
 
       READ TABLE mt_controls INTO control WITH KEY control   = ms_layout-s_head-control
@@ -387,6 +397,13 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                          press = client->_event( val   = 'CALL_SUBCOLUMN'
                                                  t_arg = VALUE #( ( `${FNAME}` ) ) ) ).
 
+        WHEN 'REFERENCE_FIELD'.
+
+          cells->combobox( selectedkey = |\{{ comp->name }\}|
+                           items       = client->_bind_local( ms_layout-t_layout )
+                        )->item( key  = '{FNAME}'
+                                 text = '{FNAME} - {TLABEL}' ).
+
       ENDCASE.
 
     ENDLOOP.
@@ -406,7 +423,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                      text    = `               `
          )->button( text  = 'Close'
                     icon  = 'sap-icon://sys-cancel-2'
-                    press = client->_event( 'EDIT_CLOSE' )
+                    press = client->_event( 'CLOSE' )
          )->button( text  = 'Okay'
                     icon  = 'sap-icon://accept'
                     press = client->_event( 'EDIT_OKAY' )
@@ -418,6 +435,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     client->popup_display( popup->get_root( )->xml_get( ) ).
 
   ENDMETHOD.
+
+
 
   METHOD on_event.
 
@@ -456,7 +475,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
-      WHEN 'EDIT_CLOSE'.
+      WHEN 'CLOSE'.
 
         client->popup_destroy( ).
 
@@ -534,7 +553,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(dialog) = popup->dialog( title        = 'Save'
-                                  contentwidth = '70%'
+                                  contentwidth = '80%'
                                   afterclose   = client->_event( 'SAVE_CLOSE' ) ).
 
     DATA(form) = dialog->content( )->simple_form( title                   = 'Layout'
@@ -694,7 +713,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
         ENDLOOP.
 
         ms_layout-t_layout = sort_by_seqence( ms_layout-t_layout ).
-
+        ms_layout-t_layout = set_sub_columns( ms_layout-t_layout ).
       ENDIF.
     ENDIF.
 
@@ -705,7 +724,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(dialog) = popup->dialog( title        = 'Delete Layout'
-                                  contentwidth = '70%'
+                                  contentwidth = '90%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
     dialog->table( mode  = 'SingleSelectLeft'
@@ -750,7 +769,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     DATA(dialog) = popup->dialog( title        = 'Select Layout'
-                                  contentwidth = '70%'
+                                  contentwidth = '90%'
                                   afterclose   = client->_event( 'CLOSE' ) ).
 
     dialog->table( mode  = 'SingleSelectLeft'
@@ -869,6 +888,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_any( data ).
 
     LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
+
       INSERT VALUE #( control  = control
                       handle01 = handle01
                       handle02 = handle02
@@ -959,7 +979,8 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
              width,
              sequence,
              alternative_text,
-             subcolumn
+             subcolumn,
+             reference_field
         FROM z2ui5_t004
         WHERE guid = @def-guid
         INTO TABLE @DATA(t_pos) ##SUBRC_OK.
@@ -1180,9 +1201,11 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
 
   METHOD set_text.
     IF layout-alternative_text IS INITIAL.
-      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-rollname ) )-long.
+*      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-rollname ) )-long.
+      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-rollname ) )-short.
     ELSE.
-      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-alternative_text ) )-long.
+*      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-alternative_text ) )-long.
+      result = z2ui5_cl_stmpncfctn_api=>rtti_get_data_element_texts( CONV #( layout-alternative_text ) )-short.
     ENDIF.
 
     IF result IS INITIAL.
@@ -1211,7 +1234,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
     DATA(lo_popup) = z2ui5_cl_xml_view=>factory_popup( ).
 
     lo_popup = lo_popup->dialog( afterclose   = client->_event( 'SUBCOLUMN_CANCEL' )
-                                 contentwidth = `20%`
+                                 contentwidth = `50%`
                                  title        = 'Define Sub Coloumns' ).
 
     DATA(vbox) = lo_popup->vbox( justifycontent = 'SpaceBetween' ).
@@ -1221,12 +1244,12 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
                              selectionchange = client->_event( 'SELCHANGE' )
                 )->custom_list_item( ).
 
-    DATA(grid) = item->grid( ).
 
-    grid->combobox( selectedkey = `{FNAME}`
+    item->combobox( "width = '70%'
+                    selectedkey = `{FNAME}`
                     items       = client->_bind( mt_comps  )
                    )->item( key  = '{FNAME}'
-                            text = '{FNAME}'
+                            text = '{FNAME} {TLABEL}'
              )->get_parent(
              )->button( icon  = 'sap-icon://decline'
                         type  = `Transparent`
@@ -1350,6 +1373,12 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
           mv_rerender = abap_true.
           RETURN.
         ENDIF.
+
+        IF layout-reference_field <> layout_tmp-reference_field.
+          mv_rerender = abap_true.
+          RETURN.
+        ENDIF.
+
       ENDIF.
 
     ENDLOOP.
