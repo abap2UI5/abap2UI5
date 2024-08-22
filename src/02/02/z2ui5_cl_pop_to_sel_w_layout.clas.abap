@@ -42,7 +42,6 @@ CLASS z2ui5_cl_pop_to_sel_w_layout DEFINITION
 
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
-    DATA check_table_line  TYPE abap_bool.
     DATA client            TYPE REF TO z2ui5_if_client.
     DATA title             TYPE string.
     DATA sort_field        TYPE string.
@@ -102,14 +101,14 @@ CLASS z2ui5_cl_pop_to_sel_w_layout IMPLEMENTATION.
     DATA(table) = popup->table( growing          = 'true'
                                 growingthreshold = '100'
                                 width            = 'auto'
-                                autoPopinMode    = abap_true
+                                autopopinmode    = abap_true
                                 items            = client->_bind_edit( val = mr_out->* )
                                 headertext       = title  ).
 
     " TODO: variable is assigned but never used (ABAP cleaner)
     DATA(headder) = table->header_toolbar(
                )->overflow_toolbar(
-                 )->title( text = title
+                 )->title(  title
                  )->search_field( value  = client->_bind_edit( mv_search_value )
                                   search = client->_event( 'SEARCH' )
                                   change = client->_event( 'SEARCH' )
@@ -167,7 +166,7 @@ CLASS z2ui5_cl_pop_to_sel_w_layout IMPLEMENTATION.
             CONTINUE.
           ENDIF.
           IF line-reference_field IS INITIAL.
-            DATA(Column) = |{ line-tlabel }: \{{ subcol-fname }\}|.
+            DATA(column) = |{ line-tlabel }: \{{ subcol-fname }\}|.
           ELSE.
             column = |{ line-tlabel }: \{{ subcol-fname }\} \{{ line-reference_field }\}|.
           ENDIF.
