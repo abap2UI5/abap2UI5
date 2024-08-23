@@ -9981,6 +9981,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `editMode`  v = editmode )
                                          ( n = `showEmptyIndicator`  v = z2ui5_cl_util=>boolean_abap_2_json( showemptyindicator ) ) ) ).
   ENDMETHOD.
+
   METHOD color_picker.
     result = _generic(  ns     = `unified`
                        name   = `ColorPicker`
@@ -9989,4 +9990,5 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `change`             v = change )
                                          ( n = `liveChange`        v = liveChange ) ) ).
   ENDMETHOD.
+
 ENDCLASS.
