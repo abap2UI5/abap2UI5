@@ -2616,6 +2616,13 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 press            TYPE clike OPTIONAL
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS color_picker
+      IMPORTING colorString   TYPE clike
+                displayMode   TYPE clike OPTIONAL
+                change        TYPE clike OPTIONAL
+                liveChange    TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS mask_input
       IMPORTING placeholder           TYPE clike OPTIONAL
                 !mask                 TYPE clike OPTIONAL
@@ -9974,4 +9981,14 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `editMode`  v = editmode )
                                          ( n = `showEmptyIndicator`  v = z2ui5_cl_util=>boolean_abap_2_json( showemptyindicator ) ) ) ).
   ENDMETHOD.
+
+  METHOD color_picker.
+    result = _generic(  ns     = `unified`
+                       name   = `ColorPicker`
+                       t_prop = VALUE #( ( n = `colorString`       v = colorString  )
+                                         ( n = `displayMode`        v = displayMode )
+                                         ( n = `change`             v = change )
+                                         ( n = `liveChange`        v = liveChange ) ) ).
+  ENDMETHOD.
+
 ENDCLASS.
