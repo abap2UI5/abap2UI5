@@ -384,7 +384,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS avatar
-      IMPORTING src               TYPE clike OPTIONAL
+      IMPORTING !ns               TYPE clike OPTIONAL
+                src               TYPE clike OPTIONAL
                 !class            TYPE clike OPTIONAL
                 displaysize       TYPE clike OPTIONAL
                 ariahaspopup      TYPE clike OPTIONAL
@@ -443,18 +444,26 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)   TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS shell_bar
-      IMPORTING homeIcon            TYPE clike     OPTIONAL
-                homeIconTooltip     TYPE clike     OPTIONAL
-                notificationsNumber TYPE clike     OPTIONAL
-                secondTitle         TYPE clike     OPTIONAL
-                showCopilot         TYPE abap_bool OPTIONAL
-                showMenuButton      TYPE abap_bool OPTIONAL
-                showNavButton       TYPE abap_bool OPTIONAL
-                showNotifications   TYPE abap_bool OPTIONAL
-                showProductSwitcher TYPE abap_bool OPTIONAL
-                showSearch          TYPE abap_bool OPTIONAL
-                !title              TYPE clike     OPTIONAL
-      RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING homeIcon               TYPE clike     OPTIONAL
+                homeIconTooltip        TYPE clike     OPTIONAL
+                notificationsNumber    TYPE clike     OPTIONAL
+                secondTitle            TYPE clike     OPTIONAL
+                showCopilot            TYPE abap_bool OPTIONAL
+                showMenuButton         TYPE abap_bool OPTIONAL
+                showNavButton          TYPE abap_bool OPTIONAL
+                showNotifications      TYPE abap_bool OPTIONAL
+                showProductSwitcher    TYPE abap_bool OPTIONAL
+                showSearch             TYPE abap_bool OPTIONAL
+                !title                 TYPE clike     OPTIONAL
+                avatarPressed          TYPE clike     OPTIONAL
+                copilotPressed         TYPE clike     OPTIONAL
+                homeIconPressed        TYPE clike     OPTIONAL
+                menuButtonPressed      TYPE clike     OPTIONAL
+                navButtonPressed       TYPE clike     OPTIONAL
+                notificationsPressed   TYPE clike     OPTIONAL
+                productSwitcherPressed TYPE clike     OPTIONAL
+                searchButtonPressed    TYPE clike     OPTIONAL
+      RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS blocks
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -4319,6 +4328,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD avatar.
     result = me.
     _generic( name   = `Avatar`
+              ns     = ns
               t_prop = VALUE #( ( n = `src`         v = src )
                                 ( n = `class`       v = class )
                                 ( n = `ariaHasPopup`       v = ariahaspopup )
@@ -8202,7 +8212,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #(
                            ( n = `homeIcon`  v = homeIcon )
                            ( n = `homeIconTooltip`  v = homeIconTooltip )
-                           ( n = `notificationsNumber`  v = notificationsNumber  )
+                           ( n = `title`  v = title )
                            ( n = `secondTitle`  v = secondTitle )
                            ( n = `showCopilot`  v = z2ui5_cl_util=>boolean_abap_2_json( showCopilot ) )
                            ( n = `showMenuButton`  v = z2ui5_cl_util=>boolean_abap_2_json( showMenuButton ) )
@@ -8210,7 +8220,16 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                            ( n = `showNotifications`  v = z2ui5_cl_util=>boolean_abap_2_json( showNotifications ) )
                            ( n = `showProductSwitcher`  v = z2ui5_cl_util=>boolean_abap_2_json( showProductSwitcher ) )
                            ( n = `showSearch`  v = z2ui5_cl_util=>boolean_abap_2_json( showSearch ) )
-                           ( n = `title`  v = title ) ) ).
+                           ( n = `notificationsNumber`  v = notificationsNumber  )
+                           ( n = 'avatarPressed' v = avatarPressed )
+                           ( n = 'copilotPressed' v = copilotPressed )
+                           ( n = 'homeIconPressed' v = homeIconPressed )
+                           ( n = 'menuButtonPressed' v = menuButtonPressed )
+                           ( n = 'navButtonPressed' v = navButtonPressed )
+                           ( n = 'notificationsPressed' v = notificationsPressed )
+                           ( n = 'productSwitcherPressed' v = productSwitcherPressed )
+                           ( n = 'searchButtonPressed' v = searchButtonPressed ) ) ).
+
   ENDMETHOD.
 
 
