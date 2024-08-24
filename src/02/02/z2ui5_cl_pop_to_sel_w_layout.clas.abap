@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_pop_to_sel_w_layout DEFINITION
+CLASS z2ui5_cl_pop_to_sel_w_l DEFINITION
   PUBLIC FINAL
   CREATE PROTECTED.
 
@@ -187,11 +187,11 @@ CLASS z2ui5_cl_pop_to_sel_w_layout IMPLEMENTATION.
         ENDIF.
 
       ELSE.
-        IF layout->reference_field IS NOT INITIAL.
+     "   IF layout->reference_field IS NOT INITIAL.
           cells->object_identifier( text = |\{{ layout->fname }\} \{{ layout->reference_field }\}| ).
-        ELSE.
+    "    ELSE.
           cells->object_identifier( text = |\{{ layout->fname }\}| ).
-        ENDIF.
+     "   ENDIF.
       ENDIF.
     ENDLOOP.
 
