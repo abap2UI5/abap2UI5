@@ -237,9 +237,20 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
                             )->text( '{DESCR}'
                             )->text( '{DEF}' ).
 
-    dialog->footer( )->overflow_toolbar(
-          )->toolbar_spacer(
-          )->button(
+*    dialog->footer( )->overflow_toolbar(
+*          )->toolbar_spacer(
+*          )->button(
+*                text  = 'Back'
+*                icon  = 'sap-icon://nav-back'
+*                press = client->_event( 'DB_READ_CLOSE' )
+*          )->button(
+*                text  = 'Open'
+*                icon  = 'sap-icon://accept'
+*                press = client->_event( 'OPEN_SELECT' )
+*                type  = 'Emphasized' ).
+
+         dialog->buttons(
+             )->button(
                 text  = 'Back'
                 icon  = 'sap-icon://nav-back'
                 press = client->_event( 'DB_READ_CLOSE' )
@@ -289,9 +300,20 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
                            )->switch( type = 'AcceptReject' state = client->_bind_edit( ms_variant_save-check_user )
                            ).
 
-    dialog->footer( )->overflow_toolbar(
-          )->toolbar_spacer(
-          )->button(
+*    dialog->footer( )->overflow_toolbar(
+*          )->toolbar_spacer(
+*          )->button(
+*                text  = 'Back'
+*                icon  = 'sap-icon://nav-back'
+*                press = client->_event( 'DB_SAVE_CLOSE' )
+*          )->button(
+*                text  = 'Save'
+*                press = client->_event( 'DB_SAVE' )
+*                type  = 'Success'
+*                icon  = 'sap-icon://save' ).
+
+         dialog->buttons(
+             )->button(
                 text  = 'Back'
                 icon  = 'sap-icon://nav-back'
                 press = client->_event( 'DB_SAVE_CLOSE' )
