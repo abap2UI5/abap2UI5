@@ -196,12 +196,12 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
                    type  = `Transparent`
                    press = client->_event( val = `POPUP_DELETE_ALL` )
 *        )->toolbar_spacer(
-        )->button( text  = 'DB Read'
-                  press = client->_event( 'BUTTON_DB_READ' )
-                 icon  = 'sap-icon://download-from-cloud'
-       )->button( text  = 'DB Save'
-                  press = client->_event( 'BUTTON_DB_SAVE' )
-                  icon  = 'sap-icon://save'
+*        )->button( text  = 'DB Read'
+*                  press = client->_event( 'BUTTON_DB_READ' )
+*                 icon  = 'sap-icon://download-from-cloud'
+*       )->button( text  = 'DB Save'
+*                  press = client->_event( 'BUTTON_DB_SAVE' )
+*                  icon  = 'sap-icon://save'
 *        )->toolbar_spacer(
        )->button( text  = 'Cancel'
                   press = client->_event( 'BUTTON_CANCEL' )
