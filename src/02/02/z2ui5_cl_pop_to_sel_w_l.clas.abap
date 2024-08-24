@@ -34,7 +34,7 @@ CLASS z2ui5_cl_pop_to_sel_w_l DEFINITION
         i_handle03         TYPE z2ui5_cl_pop_layout_v2=>handle OPTIONAL
         i_handle04         TYPE z2ui5_cl_pop_layout_v2=>handle OPTIONAL
       RETURNING
-        VALUE(r_result)    TYPE REF TO z2ui5_cl_pop_to_sel_w_layout.
+        VALUE(r_result)    TYPE REF TO z2ui5_cl_pop_to_sel_w_l.
 
     METHODS result
       RETURNING
