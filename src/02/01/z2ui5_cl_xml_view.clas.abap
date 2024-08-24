@@ -176,7 +176,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !visible         TYPE clike OPTIONAL
                 !showclosebutton TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS footer
       IMPORTING !ns           TYPE string OPTIONAL
@@ -796,7 +796,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !value             TYPE clike OPTIONAL
                 editmode           TYPE clike OPTIONAL
                 showemptyindicator TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS custom_header
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
@@ -1401,7 +1401,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 vspacing       TYPE clike OPTIONAL
                 !width         TYPE clike OPTIONAL
                   PREFERRED PARAMETER default_span
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS grid_data
       IMPORTING span          TYPE clike OPTIONAL
@@ -2605,16 +2605,16 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS feed_content
-      IMPORTING contenttext      TYPE clike OPTIONAL
-                subheader        TYPE clike OPTIONAL
-                value            TYPE clike OPTIONAL
-      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING contenttext   TYPE clike OPTIONAL
+                subheader     TYPE clike OPTIONAL
+                value         TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS news_content
-      IMPORTING contenttext      TYPE clike OPTIONAL
-                subheader        TYPE clike OPTIONAL
-                press            TYPE clike OPTIONAL
-      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING contenttext   TYPE clike OPTIONAL
+                subheader     TYPE clike OPTIONAL
+                press         TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS color_picker
       IMPORTING colorString   TYPE clike
@@ -2668,12 +2668,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS fix_content
-      IMPORTING !ns            TYPE clike OPTIONAL
-      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !ns           TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS flex_content
-      IMPORTING !ns            TYPE clike OPTIONAL
-      RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !ns           TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS pane_container
       IMPORTING resize        TYPE clike OPTIONAL
@@ -4190,9 +4190,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS side_navigation
       IMPORTING
-        id type CLIKE optional
-        class type CLIKE optional
-        selectedkey type CLIKE optional
+        id            TYPE clike OPTIONAL
+        class         TYPE clike OPTIONAL
+        selectedkey   TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -4202,11 +4202,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
 
     METHODS navigation_list_item
       IMPORTING
-        text type CLIKE optional
-        icon type CLIKE optional
-        select type CLIKE optional
-        href type CLIKE optional
-        key type CLIKE optional
+        text          TYPE clike OPTIONAL
+        icon          TYPE clike OPTIONAL
+        select        TYPE clike OPTIONAL
+        href          TYPE clike OPTIONAL
+        key           TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -5402,6 +5402,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                     v = `sap.ui.core` ) INTO TABLE result->mt_prop.
     INSERT VALUE #( n = `xmlns:table`
                     v = `sap.ui.table` ) INTO TABLE result->mt_prop.
+    INSERT VALUE #( n = `xmlns:unified`
+                    v = `sap.ui.unified` ) INTO TABLE result->mt_prop.
 
   ENDMETHOD.
 
@@ -9983,12 +9985,15 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   ENDMETHOD.
 
   METHOD color_picker.
-    result = _generic(  ns     = `unified`
-                       name   = `ColorPicker`
-                       t_prop = VALUE #( ( n = `colorString`       v = colorString  )
-                                         ( n = `displayMode`        v = displayMode )
-                                         ( n = `change`             v = change )
-                                         ( n = `liveChange`        v = liveChange ) ) ).
+
+    result = me.
+    _generic(  ns     = `unified`
+                      name   = `ColorPicker`
+                      t_prop = VALUE #( ( n = `colorString`       v = colorString  )
+                                        ( n = `displayMode`        v = displayMode )
+                                        ( n = `change`             v = change )
+                                        ( n = `liveChange`        v = liveChange ) ) ).
+
   ENDMETHOD.
 
 ENDCLASS.
