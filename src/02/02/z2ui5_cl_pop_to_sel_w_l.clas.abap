@@ -68,7 +68,7 @@ CLASS z2ui5_cl_pop_to_sel_w_l DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_pop_to_sel_w_layout IMPLEMENTATION.
+CLASS z2ui5_cl_pop_to_sel_w_l IMPLEMENTATION.
 
   METHOD factory.
 
