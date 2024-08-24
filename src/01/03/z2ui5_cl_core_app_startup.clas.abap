@@ -63,7 +63,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
         ms_home-class_value_state = `Success`.
         ms_home-class_editable    = abap_false.
 
-        ms_home-url = z2ui5_cl_util=>app_get_url(
+        ms_home-url = z2ui5_cl_core_util_srv=>app_get_url(
                    client    = client
                    classname = ms_home-classname ).
 
@@ -152,21 +152,21 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
              enabled = `{= $` && client->_bind( val = ms_home-class_editable ) && ` === false }` ).
 
 
-    DATA(lv_url_samples2) = z2ui5_cl_util=>app_get_url(
+    DATA(lv_url_samples2) = z2ui5_cl_core_util_srv=>app_get_url(
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
-    DATA(lv_url_samples3) = z2ui5_cl_util=>app_get_url(
-                    client    = client
-                    classname = z2ui5_cl_util_api=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_search( ) ) ).
+*    DATA(lv_url_samples3) = z2ui5_cl_core_util_srv=>app_get_url(
+*                    client    = client
+*                    classname = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_search( ) ) ).
 
     simple_form2->toolbar( )->title( `What's next?` ).
 
-    simple_form2->label( `App Finder` ).
-    simple_form2->button(
-        text  = `Start & Install Apps`
-        press = client->_event_client( val = client->cs_event-open_new_tab t_arg = VALUE #( ( lv_url_samples3 ) ) )
-        width = `70%` ).
+*    simple_form2->label( `App Finder` ).
+*    simple_form2->button(
+*        text  = `Start & Install Apps`
+*        press = client->_event_client( val = client->cs_event-open_new_tab t_arg = VALUE #( ( lv_url_samples3 ) ) )
+*        width = `70%` ).
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
       simple_form2->label( `Start Developing` ).
@@ -183,20 +183,21 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
               href             = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
-    simple_form2->label( `` ).
-    simple_form2->text( `` ).
+*    simple_form2->label( `` ).
+*    simple_form2->text( `` ).
 
     simple_form2->toolbar( )->title( `Contribution` ).
+
+    simple_form2->label( `Open an issue` ).
+    simple_form2->link( text = `You have problems, comments or wishes?`
+                 target      = `_blank`
+                 href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
     simple_form2->label( `Open a Pull Request` ).
     simple_form2->link( text = `You added a new feature or fixed a bug?`
                target        = `_blank`
                href          = `https://github.com/abap2UI5/abap2UI5/pulls` ).
 
-    simple_form2->label( `Open an issue` ).
-    simple_form2->link( text = `You have problems, comments or wishes?`
-                 target      = `_blank`
-                 href        = `https://github.com/abap2UI5/abap2UI5/issues` ).
 
     simple_form2->toolbar( )->title( `Social Media` ).
 
@@ -299,7 +300,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
     ms_home-btn_event_id   = `BUTTON_CHECK`.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = z2ui5_cl_util_api=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
+    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_app_hello_world( ) ).
 
   ENDMETHOD.
 ENDCLASS.
