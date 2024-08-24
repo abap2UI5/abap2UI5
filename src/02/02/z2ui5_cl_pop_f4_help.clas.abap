@@ -15,7 +15,7 @@ CLASS z2ui5_cl_pop_f4_help DEFINITION
     DATA mv_value        TYPE string.
     DATA mv_return_value TYPE string.
     DATA mv_rows         TYPE int1 VALUE '50'.
-    DATA mt_dfies        TYPE z2ui5_cl_util_api=>ty_t_dfies.
+    DATA mt_dfies        TYPE z2ui5_cl_util=>ty_t_dfies.
 
     CLASS-METHODS factory
       IMPORTING
@@ -156,7 +156,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
                                ( name = 'ROW_ID'
                                  type = CAST #( cl_abap_datadescr=>describe_by_data( index ) ) ) ).
 
-        APPEND LINES OF z2ui5_cl_util_api=>rtti_get_t_attri_by_table_name( mv_check_tab  ) TO comp.
+        APPEND LINES OF z2ui5_cl_util=>rtti_get_t_attri_by_table_name( mv_check_tab  ) TO comp.
 
         DATA(new_struct_desc) = cl_abap_structdescr=>create( comp ).
 
@@ -379,7 +379,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
 
   METHOD get_dfies.
 
-    DATA(t_dfies) = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( mv_table ).
+    DATA(t_dfies) = z2ui5_cl_util=>rtti_get_t_dfies_by_table_name( mv_table ).
 
     READ TABLE t_dfies REFERENCE INTO DATA(dfies) WITH KEY fieldname = mv_field.
     IF sy-subrc <> 0.
@@ -393,7 +393,7 @@ CLASS z2ui5_cl_pop_f4_help IMPLEMENTATION.
       RETURN.
     ENDIF.
 
-    mt_dfies = z2ui5_cl_util_api=>rtti_get_t_dfies_by_table_name( CONV #( dfies->checktable ) ).
+    mt_dfies = z2ui5_cl_util=>rtti_get_t_dfies_by_table_name( CONV #( dfies->checktable ) ).
     "
     " ASSIGNMENT --- this may not be 100% certain ... :(
     mv_check_tab_field = VALUE #( mt_dfies[ rollname = dfies->rollname ]-fieldname OPTIONAL ).

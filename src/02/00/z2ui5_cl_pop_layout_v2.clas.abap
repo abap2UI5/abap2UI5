@@ -880,7 +880,7 @@ CLASS z2ui5_cl_pop_layout_v2 IMPLEMENTATION.
   METHOD init_layout.
 
     " create the tab first if the db fields were added/deleted
-    DATA(t_comp) = z2ui5_cl_util_api=>rtti_get_t_attri_by_any( data ).
+    DATA(t_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( data ).
 
     LOOP AT t_comp REFERENCE INTO DATA(lr_comp).
 
