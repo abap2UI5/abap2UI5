@@ -390,7 +390,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_sql_get_by_string.
 
     DATA(lv_test) = ``.
-    DATA(ls_sql) = z2ui5_cl_util_api=>sql_get_by_string( lv_test ) ##NEEDED.
+    DATA(ls_sql) = z2ui5_cl_util=>sql_get_by_string( lv_test ) ##NEEDED.
 
   ENDMETHOD.
 
@@ -419,11 +419,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_test) = `test`.
     DATA(lr_test) = REF #( lv_test ).
 
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_util_api=>check_bound_a_not_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_bound_a_not_inital( lr_test ) ).
     CLEAR lv_test.
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_util_api=>check_bound_a_not_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_bound_a_not_inital( lr_test ) ).
     CLEAR lr_test.
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_util_api=>check_bound_a_not_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_bound_a_not_inital( lr_test ) ).
 
   ENDMETHOD.
 
@@ -432,10 +432,10 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lv_test) = `test`.
     DATA(lr_test) = REF #( lv_test ).
 
-    cl_abap_unit_assert=>assert_false( z2ui5_cl_util_api=>check_unassign_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_false( z2ui5_cl_util=>check_unassign_inital( lr_test ) ).
 
     CLEAR lv_test.
-    cl_abap_unit_assert=>assert_true( z2ui5_cl_util_api=>check_unassign_inital( lr_test ) ).
+    cl_abap_unit_assert=>assert_true( z2ui5_cl_util=>check_unassign_inital( lr_test ) ).
 
   ENDMETHOD.
 
@@ -446,11 +446,11 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     GET REFERENCE OF lv_test INTO lr_data.
 
     cl_abap_unit_assert=>assert_equals(
-      act = z2ui5_cl_util_api=>rtti_check_ref_data( lr_data )
+      act = z2ui5_cl_util=>rtti_check_ref_data( lr_data )
       exp = abap_true ).
 
     cl_abap_unit_assert=>assert_equals(
-      act = z2ui5_cl_util_api=>rtti_check_ref_data( lv_test )
+      act = z2ui5_cl_util=>rtti_check_ref_data( lv_test )
       exp = abap_false ).
 
   ENDMETHOD.
@@ -461,7 +461,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA lr_data TYPE REF TO data.
     GET REFERENCE OF lv_test INTO lr_data.
 
-    DATA(lr_test2) = z2ui5_cl_util_api=>conv_copy_ref_data( lr_data ).
+    DATA(lr_test2) = z2ui5_cl_util=>conv_copy_ref_data( lr_data ).
 
     FIELD-SYMBOLS <result> TYPE data.
     ASSIGN lr_test2->* TO <result>.

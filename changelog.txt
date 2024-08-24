@@ -8,6 +8,17 @@ Legend
 + : added
 - : removed
 
+2024-08-24 v1.133.0
+-------------------
+
++ Added Controls & Properties for Splitter, Grid, Generic Tag, Content Areas, Step Input, News Content, Numeric Content etc.
++ Shell Bar Properties & Events
++ Side Navigation Properties & Events
++ Color Picker Properties
+* Updates for Layout Management of Table Popups
+* Low Release Compatibility of Method to Read Fixvalues
+* Multiple Bugfixes and new Properties added
+
 2024-07-28 v1.132.0
 -------------------
 
