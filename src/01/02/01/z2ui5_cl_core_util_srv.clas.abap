@@ -1,6 +1,6 @@
 CLASS z2ui5_cl_core_util_srv DEFINITION
   PUBLIC
-  INHERITING FROM z2ui5_cl_util_api
+  INHERITING FROM z2ui5_cl_util
   CREATE PUBLIC .
 
   PUBLIC SECTION.
