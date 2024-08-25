@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_POP_GET_RANGE</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>ui - popup get range</DESCRIPT>
+    <DESCRIPT> ui - popup get range</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

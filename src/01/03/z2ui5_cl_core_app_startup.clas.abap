@@ -300,7 +300,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
     ms_home-btn_event_id   = `BUTTON_CHECK`.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_hello_world( ) ).
+    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_hello_w( ) ).
 
   ENDMETHOD.
 ENDCLASS.

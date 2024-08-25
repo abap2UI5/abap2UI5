@@ -51,7 +51,14 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->ms_result-t_range = CORRESPONDING #( t_range ).
+
+    z2ui5_cl_util=>itab_corresponding(
+      EXPORTING
+        val = t_range
+      CHANGING
+        tab =  r_result->ms_result-t_range
+    ).
+
     INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
 
   ENDMETHOD.
