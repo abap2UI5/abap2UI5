@@ -329,13 +329,19 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS filter_get_token_t_by_range_t
       IMPORTING
-        val           TYPE ty_t_range
+        val           TYPE ANY TABLE
       RETURNING
         VALUE(result) TYPE ty_t_token.
 
     CLASS-METHODS filter_get_token_range_mapping
       RETURNING
         VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
+
+    CLASS-METHODS itab_corresponding
+      IMPORTING
+        val TYPE STANDARD TABLE
+      CHANGING
+        tab TYPE STANDARD TABLE.
 
     CLASS-METHODS itab_filter_by_val
       IMPORTING
@@ -725,7 +731,16 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     DATA(lt_mapping) = filter_get_token_range_mapping( ).
 
-    LOOP AT val REFERENCE INTO DATA(lr_row).
+    DATA(lt_tab) = VALUE ty_t_range( ).
+
+      itab_corresponding(
+        EXPORTING
+          val = lt_tab
+        CHANGING
+          tab = lt_tab
+      ).
+
+    LOOP AT lt_tab REFERENCE INTO DATA(lr_row).
 
       DATA(lv_value) = lt_mapping[ n = lr_row->option ]-v.
       REPLACE `{LOW}`  IN lv_value WITH lr_row->low.
@@ -944,11 +959,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   METHOD rtti_get_type_name.
+    TRY.
 
-    DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
-    DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
-    result  = lo_ele->get_relative_name( ).
+        DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
+        DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
+        result  = lo_ele->get_relative_name( ).
 
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 
 
@@ -1055,7 +1073,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
         DATA lt_values TYPE fixvalues.
 
-        CALL METHOD ELEMDESCR->('GET_DDIC_FIXED_VALUES')
+        CALL METHOD elemdescr->('GET_DDIC_FIXED_VALUES')
           EXPORTING
             p_langu        = langu
           RECEIVING
@@ -1475,6 +1493,20 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
       DELETE result.
       INSERT LINES OF lt_attri INTO TABLE result.
+    ENDLOOP.
+
+  ENDMETHOD.
+
+  METHOD itab_corresponding.
+
+    FIELD-SYMBOLS <row_in> TYPE any.
+    FIELD-SYMBOLS <row_out> TYPE any.
+
+    LOOP AT val ASSIGNING <row_in>.
+
+      INSERT INITIAL LINE INTO tab ASSIGNING <row_out>.
+      <row_out> = CORRESPONDING #(  <row_in> ).
+
     ENDLOOP.
 
   ENDMETHOD.

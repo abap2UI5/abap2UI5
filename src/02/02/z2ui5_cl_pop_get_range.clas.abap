@@ -19,7 +19,7 @@ CLASS z2ui5_cl_pop_get_range DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        t_range         TYPE z2ui5_cl_util=>ty_t_range  OPTIONAL
+        t_range         TYPE any table OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range.
 
@@ -51,7 +51,14 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->ms_result-t_range = t_range.
+
+    z2ui5_cl_util=>itab_corresponding(
+      EXPORTING
+        val = t_range
+      CHANGING
+        tab =  r_result->ms_result-t_range
+    ).
+
     INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
 
   ENDMETHOD.
