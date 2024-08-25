@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_core_app_hello_world DEFINITION
+CLASS z2ui5_cl_core_app_hello_w DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -14,7 +14,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_app_hello_world IMPLEMENTATION.
+CLASS z2ui5_cl_core_app_hello_w IMPLEMENTATION.
 
 
   METHOD z2ui5_if_app~main.
