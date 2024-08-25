@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_XML_VIEW_CC</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - view renderer cc</DESCRIPT>
+    <DESCRIPT>abap2UI5 - view parser cc</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
