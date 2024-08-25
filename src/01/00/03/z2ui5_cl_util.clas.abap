@@ -944,11 +944,14 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   METHOD rtti_get_type_name.
+    TRY.
 
-    DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
-    DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
-    result  = lo_ele->get_relative_name( ).
+        DATA(lo_descr) = cl_abap_elemdescr=>describe_by_data( val ).
+        DATA(lo_ele) = CAST cl_abap_elemdescr( lo_descr ).
+        result  = lo_ele->get_relative_name( ).
 
+      CATCH cx_root.
+    ENDTRY.
   ENDMETHOD.
 
 
@@ -1055,7 +1058,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
         DATA lt_values TYPE fixvalues.
 
-        CALL METHOD ELEMDESCR->('GET_DDIC_FIXED_VALUES')
+        CALL METHOD elemdescr->('GET_DDIC_FIXED_VALUES')
           EXPORTING
             p_langu        = langu
           RECEIVING
