@@ -10,7 +10,7 @@ public section.
         id       TYPE string,
         scrollto TYPE string,
       END OF ty_s_item .
-  types:
+  types
     ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
 
   class-methods GET_JS
