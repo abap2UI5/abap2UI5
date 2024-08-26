@@ -62,10 +62,10 @@ _Thanks to everyone who submits PRs or enriches my knowledge in issues, comments
 
 ### What's next?
 
-| 🎓 [Take some time to explore the samples repository and become an abap2UI5 expert](https://github.com/abap2UI5/abap2UI5-samples)|
+| 🎓 [Take some time to explore the sample repository and become an abap2UI5 expert](https://github.com/abap2UI5/abap2UI5-samples)|
 |----------------------------------------------|
-| 🕹️ **[Try out various Apps & Addons and extend the functionality of abap2UI5](https://github.com/abap2UI5-apps-addons)**|
-| 🔌 **[Install connectors to integrate abap2UI5 in your system landscape](https://github.com/abap2UI5-connectors)**|
+| 🕹️ **[Try various apps & addons to extend abap2UI5’s functionality](https://github.com/abap2UI5-apps-addons)**|
+| 🔌 **[Install connectors to integrate abap2UI5 into your system landscape](https://github.com/abap2UI5-connectors)**|
 | 🌎 **[Explore other projects using abap2UI5 on GitHub](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
 
 ### Blogs & Articles
