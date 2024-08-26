@@ -60,8 +60,15 @@
 
 _Thanks to everyone who submits PRs or enriches my knowledge in issues, comments, via Slack, or through other channels. This project greatly benefits from your support!_
 
-### Know-How 
-_Take some time to explore the [samples repository.](https://github.com/abap2UI5/abap2UI5-samples) This is the quickest way to become an abap2UI5 expert._ 🤓
+### What's next?
+
+| 🎓 [Take some time to explore the samples repository and become an abap2UI5 expert](https://github.com/abap2UI5/abap2UI5-samples)|
+|----------------------------------------------|
+| 🕹️ **[Try out various Apps & Addons and extend the functionality of abap2UI5](https://github.com/abap2UI5-apps-addons)**|
+| 🔌 **[Install connectors to integrate abap2UI5 in your system landscape](https://github.com/abap2UI5-connectors)**|
+| 🌎 **[Explore other projects using abap2UI5 on GitHub](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
+
+### Blogs & Articles
 #### I. Development & Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
 2. Displaying Selection Screens & Tables [(SCN - 23.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-output-of-lists-and-tables-toolbar-and-editable-2-3/)<br>
@@ -90,12 +97,6 @@ _Take some time to explore the [samples repository.](https://github.com/abap2UI5
 1. Installation & Configuration [(LinkedIn - 09.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-13-installation-lf1re/?trackingId=jFrPiQOaJTZn6WCiK5gS3g%3D%3D)<br>
 2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
-
-#### V. More
-* Import & Export Excel files in pure ABAP with abap2xslt [(twitter/xslt)](https://twitter.com/abap2UI5/status/1703787345588162907)
-* Pimp up your apps with custom controls and external libraries [(ext-cc)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/custom_controls.md)
-* Rename the Namespace of abap2UI5 [(abap2UI5-mirror)](https://github.com/abap2UI5/abap2UI5-mirror)
-* Discover other projects using abap2UI5 [(abap2UI5/links)](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)
 
 ### Installation
 Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:

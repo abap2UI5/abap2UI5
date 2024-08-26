@@ -140,6 +140,7 @@ CLASS z2ui5_cl_cc_file_upl IMPLEMENTATION.
                      `                        fileType: oControl.getProperty("fileType"),` && |\n| &&
                      `                        visible: oControl.getProperty("visible"),` && |\n| &&
                      `                        uploadOnChange: true,` && |\n| &&
+                     `                        enabled: oControl.getProperty("enabled"),` && |\n| &&
                      `                        value: oControl.getProperty("path"),` && |\n| &&
                      `                        placeholder: oControl.getProperty("placeholder"),` && |\n| &&
                      `                        change: function (oEvent) {` && |\n| &&
