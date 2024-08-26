@@ -108,8 +108,7 @@ INTERFACE z2ui5_if_client
       textdirection     TYPE clike OPTIONAL
       icon              TYPE clike OPTIONAL
       details           TYPE clike OPTIONAL
-      closeonnavigation TYPE abap_bool DEFAULT abap_true
-    PREFERRED PARAMETER text.
+      closeonnavigation TYPE abap_bool DEFAULT abap_true.
 
   METHODS message_toast_display
     IMPORTING
@@ -126,8 +125,7 @@ INTERFACE z2ui5_if_client
       animationtimingfunction  TYPE clike OPTIONAL
       animationduration        TYPE clike OPTIONAL
       closeonbrowsernavigation TYPE abap_bool DEFAULT abap_true
-      class                    TYPE clike OPTIONAL
-    PREFERRED PARAMETER text.
+      class                    TYPE clike OPTIONAL.
 
   METHODS _event
     IMPORTING
