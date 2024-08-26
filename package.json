@@ -5,8 +5,7 @@
   "description": "Developing UI5 Apps purely in ABAP.",
   "scripts": {
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
-    "delete_mapster": "rm ./src/01/05/z2ui5_cl_cc_imagemapster.clas.abap && rm ./src/01/05/z2ui5_cl_cc_imagemapster.clas.xml",
-    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes && npm run delete_mapster",
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/abaplint-downport.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
     "transpile": "rm -rf output && abap_transpile test/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit",
