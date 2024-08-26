@@ -430,7 +430,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_util IMPLEMENTATION.
+CLASS Z2UI5_CL_UTIL IMPLEMENTATION.
 
 
   METHOD db_delete_by_handle.
@@ -534,6 +534,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     result = ls_db-id.
 
   ENDMETHOD.
+
 
   METHOD boolean_abap_2_json.
 
@@ -1396,6 +1397,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD check_raise_srtti_installed.
 
     IF rtti_check_class_exists( 'ZCL_SRTTI_TYPEDESCR' ) = abap_false.
@@ -1469,6 +1471,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD rtti_get_t_attri_by_table_name.
 
     TRY.
@@ -1497,6 +1500,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD itab_corresponding.
 
     FIELD-SYMBOLS <row_in> TYPE any.
@@ -1504,11 +1508,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     LOOP AT val ASSIGNING <row_in>.
 
-      INSERT INITIAL LINE INTO tab ASSIGNING <row_out>.
+      INSERT INITIAL LINE INTO tab ASSIGNING <row_out> index lines( tab ).
       <row_out> = CORRESPONDING #(  <row_in> ).
 
     ENDLOOP.
 
   ENDMETHOD.
-
 ENDCLASS.
