@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CC_UITABLE</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>cc - sap.ui.table extension</DESCRIPT>
+    <DESCRIPT>cc - ui.table extension</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

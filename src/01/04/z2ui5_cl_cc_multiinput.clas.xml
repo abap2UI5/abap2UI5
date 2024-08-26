@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CC_MULTIINPUT</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>cc MultiInput</DESCRIPT>
+    <DESCRIPT>cc - m.multiInput extension</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

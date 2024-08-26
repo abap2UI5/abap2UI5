@@ -1,14 +1,13 @@
-CLASS z2ui5_cl_cc_multiinput DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_MULTIINPUT definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(result) TYPE string.
-
+  class-methods GET_JS
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.

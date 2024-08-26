@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CC_DEBUG_TOOL</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>cc - logging</DESCRIPT>
+    <DESCRIPT>cc - debugging tools</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
