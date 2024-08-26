@@ -2732,6 +2732,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 intropress           TYPE clike OPTIONAL
                 titlepress           TYPE clike OPTIONAL
                 titleselectorpress   TYPE clike OPTIONAL
+                class                TYPE clike OPTIONAL
       RETURNING VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS additional_numbers
@@ -7264,7 +7265,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `iconalt`              v = iconalt )
                           ( n = `icondensityaware`     v = z2ui5_cl_util=>boolean_abap_2_json( icondensityaware ) )
                           ( n = `icontooltip`          v = icontooltip )
-                          ( n = `imageshape`           v = imageshape )
+                          ( n = `imageShape`           v = imageshape )
                           ( n = `intro`                v = intro )
                           ( n = `introactive`          v = z2ui5_cl_util=>boolean_abap_2_json( introactive ) )
                           ( n = `introhref`            v = introhref )
@@ -7286,7 +7287,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                           ( n = `iconpress`            v = iconpress )
                           ( n = `intropress`           v = intropress )
                           ( n = `titlepress`           v = titlepress )
-                          ( n = `titleselectorpress`   v = titleselectorpress ) ) ).
+                          ( n = `titleselectorpress`   v = titleselectorpress )
+                          ( n = `class`                v = class ) ) ).
   ENDMETHOD.
 
 
