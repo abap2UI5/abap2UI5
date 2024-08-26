@@ -62,7 +62,7 @@ _Thanks to everyone who submits PRs or enriches my knowledge in issues, comments
 
 ### What's next?
 
-| 🎓 [Take some time to explore the samples repository. This is the quickest way to become an abap2UI5 expert](https://github.com/abap2UI5/abap2UI5-samples)|
+| 🎓 [Take some time to explore the samples repository and become an abap2UI5 expert](https://github.com/abap2UI5/abap2UI5-samples)|
 |----------------------------------------------|
 | 🕹️ **[Try out Apps & Addons and extend the functionality of abap2UI5](https://github.com/abap2UI5-apps-addons)**|
 | 🔌 **[Integrate abap2UI5 in your system landscape with abap2UI5 connectors ](https://github.com/abap2UI5-connectors)**|
