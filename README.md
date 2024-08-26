@@ -27,11 +27,11 @@
 * **Easy Installation:** abapGit project, no additional app deployment required
 
 #### Compatibility
-* BTP ABAP Environment (ABAP for Cloud)
-* S/4 Public Cloud (ABAP for Cloud)
-* S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
+* **BTP ABAP Environment** (ABAP for Cloud)
+* **S/4 Public Cloud** (ABAP for Cloud)
+* **S/4 Private Cloud or On-Premise** (ABAP for Cloud, Standard ABAP)
+* **R/3 NetWeaver AS ABAP 7.50 or higher** (Standard ABAP)
+* **R/3 NetWeaver AS ABAP 7.02 to 7.42** - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
 
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
@@ -64,7 +64,7 @@ _Thanks to everyone who submits PRs or enriches my knowledge in issues, comments
 
 | 🎓 [Take some time to explore the samples repository and become an abap2UI5 expert](https://github.com/abap2UI5/abap2UI5-samples)|
 |----------------------------------------------|
-| 🕹️ **[Try out various Apps & Addons and extend the functionality of abap2UI5](https://github.com/abap2UI5-apps-addons)**|
+| 🕹️ **[Try various apps and addons to extend abap2UI5’s functionality](https://github.com/abap2UI5-apps-addons)**|
 | 🔌 **[Install connectors to integrate abap2UI5 in your system landscape](https://github.com/abap2UI5-connectors)**|
 | 🌎 **[Explore other projects using abap2UI5 on GitHub](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
 
