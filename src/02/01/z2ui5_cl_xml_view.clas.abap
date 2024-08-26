@@ -335,6 +335,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING src           TYPE clike OPTIONAL
                 !description  TYPE clike OPTIONAL
                 !visible      TYPE clike OPTIONAL
+                class         TYPE clike OPTIONAL
+                press         TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tile_content
@@ -6206,7 +6208,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `ImageContent`
                        t_prop = VALUE #( ( n = `src` v = src )
                                          ( n = `description` v = description )
-                                         ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+                                         ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `class` v = class )
+                                         ( n = `press` v = press ) ) ).
 
   ENDMETHOD.
 
@@ -9984,6 +9988,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `showEmptyIndicator`  v = z2ui5_cl_util=>boolean_abap_2_json( showemptyindicator ) ) ) ).
   ENDMETHOD.
 
+
   METHOD color_picker.
 
     result = me.
@@ -9995,5 +10000,4 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                         ( n = `liveChange`        v = liveChange ) ) ).
 
   ENDMETHOD.
-
 ENDCLASS.
