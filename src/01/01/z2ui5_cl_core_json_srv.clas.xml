@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CORE_JSON_SRV</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - front/back json mapper</DESCRIPT>
+    <DESCRIPT>abap2UI5 - json mapper</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

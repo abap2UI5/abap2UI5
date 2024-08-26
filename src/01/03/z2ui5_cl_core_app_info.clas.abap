@@ -1,36 +1,35 @@
-CLASS z2ui5_cl_core_app_info DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC.
+class Z2UI5_CL_CORE_APP_INFO definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    INTERFACES z2ui5_if_app.
+  interfaces IF_SERIALIZABLE_OBJECT .
+  interfaces Z2UI5_IF_APP .
 
-    DATA client TYPE REF TO z2ui5_if_client.
-    DATA mv_check_initialized TYPE abap_bool.
+  data CLIENT type ref to Z2UI5_IF_CLIENT .
+  data MV_CHECK_INITIALIZED type ABAP_BOOL .
+  data MV_UI5_VERSION type STRING .
 
-    DATA mv_ui5_version TYPE string.
 *    DATA mv_device TYPE string.
 *    DATA mv_device_type TYPE string.
 *    DATA mv_theme TYPE string.
 *    DATA mv_device_browser TYPE string.
 *    DATA mv_device_theme TYPE string.
 *    DATA mv_device_gav TYPE string.
-
-    CLASS-METHODS factory
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_app_info.
-
-    METHODS z2ui5_on_event.
-    METHODS view_display_start.
+  class-methods FACTORY
+    returning
+      value(RESULT) type ref to Z2UI5_CL_CORE_APP_INFO .
+  methods Z2UI5_ON_EVENT .
+  methods VIEW_DISPLAY_START .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
+CLASS Z2UI5_CL_CORE_APP_INFO IMPLEMENTATION.
 
 
   METHOD factory.
@@ -146,5 +145,4 @@ CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
     ENDCASE.
 
   ENDMETHOD.
-
 ENDCLASS.

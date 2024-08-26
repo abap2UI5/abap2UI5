@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_CORE_APP_INFO</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - system info</DESCRIPT>
+    <DESCRIPT>abap2UI5 - app system info</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

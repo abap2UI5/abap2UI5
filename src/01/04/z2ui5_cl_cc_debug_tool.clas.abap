@@ -1,14 +1,13 @@
-CLASS z2ui5_cl_cc_debug_tool DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_DEBUG_TOOL definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(result) TYPE string.
-
+  class-methods GET_JS
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.

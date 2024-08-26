@@ -1,21 +1,20 @@
-CLASS z2ui5_cl_cc_info DEFINITION
-  PUBLIC
-  FINAL
-  CREATE PUBLIC .
+class Z2UI5_CL_CC_INFO definition
+  public
+  final
+  create public .
 
-  PUBLIC SECTION.
+public section.
 
-    CLASS-METHODS get_js
-      RETURNING
-        VALUE(result) TYPE string.
-
+  class-methods GET_JS
+    returning
+      value(RESULT) type STRING .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS z2ui5_cl_cc_info IMPLEMENTATION.
+CLASS Z2UI5_CL_CC_INFO IMPLEMENTATION.
 
 
   METHOD get_js.
@@ -108,5 +107,4 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
       `}); }`.
 
   ENDMETHOD.
-
 ENDCLASS.
