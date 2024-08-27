@@ -79,7 +79,7 @@
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
-      "max": 12
+      "max": 8
     },
     "dangerous_statement": {
   "exclude": [],
@@ -95,7 +95,7 @@
   "deleteTextpool": true,
   "deleteDynpro": true,
   "exportDynpro": true,
-  "dynamicSQL": false
+  "dynamicSQL": true
 },
     "db_operation_in_loop": true,
     "definitions_top": false,
