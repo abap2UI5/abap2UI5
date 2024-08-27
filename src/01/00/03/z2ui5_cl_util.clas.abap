@@ -669,13 +669,13 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD filter_itab.
 
-    FIELD-SYMBOLS <row> TYPE any.
+    DATA ref TYPE REF TO data.
 
-    LOOP AT val ASSIGNING <row>.
+    LOOP AT val REFERENCE INTO ref.
 
       LOOP AT filter INTO DATA(ls_filter).
 
-        ASSIGN <row>-(ls_filter-name) TO FIELD-SYMBOL(<field>).
+        ASSIGN ref->(ls_filter-name) TO FIELD-SYMBOL(<field>).
         IF <field> NOT IN ls_filter-t_range.
           DELETE val.
           EXIT.
