@@ -17,7 +17,7 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     METHODS model_json_parse
       IMPORTING
-        !iv_view  TYPE string
+        !iv_view  TYPE clike
         !io_model TYPE REF TO z2ui5_if_ajson.
 
     METHODS all_xml_stringify
@@ -26,13 +26,13 @@ CLASS z2ui5_cl_core_app DEFINITION
 
     CLASS-METHODS all_xml_parse
       IMPORTING
-        !xml          TYPE string
+        !xml          TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
     CLASS-METHODS db_load
       IMPORTING
-        !id           TYPE string
+        !id           TYPE clike
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_app.
 
