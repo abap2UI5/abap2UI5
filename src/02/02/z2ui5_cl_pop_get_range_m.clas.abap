@@ -75,57 +75,57 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
 
 
   METHOD db_read.
-    TRY.
-
-        CLEAR mt_variant.
-
-        DATA lt_variant_user TYPE ty_t_variant_out.
-        z2ui5_cl_util=>db_load_by_handle(
-            EXPORTING
-                uname   = ms_variant-uname
-                handle  = ms_variant-handle1
-                handle2 = ms_variant-handle2
-                handle3 = ms_variant-handle3
-            IMPORTING
-                result  = lt_variant_user ).
-        INSERT LINES OF lt_variant_user INTO TABLE mt_variant.
-
-        DATA lt_variant TYPE ty_t_variant_out.
-        z2ui5_cl_util=>db_load_by_handle(
-            EXPORTING
-                handle  = ms_variant-handle1
-                handle2 = ms_variant-handle2
-                handle3 = ms_variant-handle3
-            IMPORTING
-                result  = lt_variant
-         ).
-        INSERT LINES OF lt_variant INTO TABLE mt_variant.
-
-      CATCH cx_root.
-    ENDTRY.
+*    TRY.
+*
+*        CLEAR mt_variant.
+*
+*        DATA lt_variant_user TYPE ty_t_variant_out.
+*        z2ui5_cl_util=>db_load_by_handle(
+*            EXPORTING
+*                uname   = ms_variant-uname
+*                handle  = ms_variant-handle1
+*                handle2 = ms_variant-handle2
+*                handle3 = ms_variant-handle3
+*            IMPORTING
+*                result  = lt_variant_user ).
+*        INSERT LINES OF lt_variant_user INTO TABLE mt_variant.
+*
+*        DATA lt_variant TYPE ty_t_variant_out.
+*        z2ui5_cl_util=>db_load_by_handle(
+*            EXPORTING
+*                handle  = ms_variant-handle1
+*                handle2 = ms_variant-handle2
+*                handle3 = ms_variant-handle3
+*            IMPORTING
+*                result  = lt_variant
+*         ).
+*        INSERT LINES OF lt_variant INTO TABLE mt_variant.
+*
+*      CATCH cx_root.
+*    ENDTRY.
   ENDMETHOD.
 
 
   METHOD db_save.
 
-    DATA(lt_variant_user) = mt_variant.
-    DELETE lt_variant_user WHERE s_variant-uname IS INITIAL.
-    z2ui5_cl_util=>db_save(
-        uname   = ms_variant-uname
-        handle  = ms_variant-handle1
-        handle2 = ms_variant-handle2
-        handle3 = ms_variant-handle3
-        data    = lt_variant_user
-    ).
-
-    DATA(lt_variant) = mt_variant.
-    DELETE lt_variant WHERE s_variant-uname IS NOT INITIAL.
-    z2ui5_cl_util=>db_save(
-        handle  = ms_variant-handle1
-        handle2 = ms_variant-handle2
-        handle3 = ms_variant-handle3
-        data    = lt_variant
-    ).
+*    DATA(lt_variant_user) = mt_variant.
+*    DELETE lt_variant_user WHERE s_variant-uname IS INITIAL.
+*    z2ui5_cl_util=>db_save(
+*        uname   = ms_variant-uname
+*        handle  = ms_variant-handle1
+*        handle2 = ms_variant-handle2
+*        handle3 = ms_variant-handle3
+*        data    = lt_variant_user
+*    ).
+*
+*    DATA(lt_variant) = mt_variant.
+*    DELETE lt_variant WHERE s_variant-uname IS NOT INITIAL.
+*    z2ui5_cl_util=>db_save(
+*        handle  = ms_variant-handle1
+*        handle2 = ms_variant-handle2
+*        handle3 = ms_variant-handle3
+*        data    = lt_variant
+*    ).
 
   ENDMETHOD.
 
