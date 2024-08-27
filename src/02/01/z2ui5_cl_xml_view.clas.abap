@@ -3522,6 +3522,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 transitiontime TYPE clike OPTIONAL
                 press          TYPE clike OPTIONAL
                 !width         TYPE clike OPTIONAL
+                class          TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS busy_indicator
@@ -8347,7 +8348,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                          ( n = `transitionTime` v = transitiontime )
                                          ( n = `width` v = width )
                                          ( n = `press` v = press )
-                                         ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+                                         ( n = `visible` v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                                         ( n = `class`   v = class ) ) ).
   ENDMETHOD.
 
 
