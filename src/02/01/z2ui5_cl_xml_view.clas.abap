@@ -8512,7 +8512,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `detailPress` v = detailpress )
                                 ( n = `type`        v = type )
                                 ( n = `counter`     v = counter )
-                                ( n = `selected`    v = selected ) 
+                                ( n = `selected`    v = selected )
                                 ( n = `tooltip`    v = tooltip ) ) ).
 
   ENDMETHOD.
