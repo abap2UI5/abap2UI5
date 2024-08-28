@@ -2611,6 +2611,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING contenttext   TYPE clike OPTIONAL
                 subheader     TYPE clike OPTIONAL
                 value         TYPE clike OPTIONAL
+                class         TYPE clike OPTIONAL
+                press         TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS news_content
@@ -9883,7 +9885,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                  name   = `FeedContent`
                  t_prop = VALUE #( ( n = `contentText`    v = contenttext )
                                    ( n = `subheader`      v = subheader )
-                                   ( n = `value`          v = value ) ) ).
+                                   ( n = `value`          v = value )
+                                   ( n = `class`          v = class )
+                                   ( n = `press`          v = press ) ) ).
 
   ENDMETHOD.
 
