@@ -31,7 +31,7 @@
 * S/4 Public Cloud (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downport repository](https://github.com/abap2UI5/abap2UI5-downport)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downported repositories](https://github.com/abap2UI5-downports)
 
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
@@ -58,13 +58,13 @@
 * Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
 * The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
-_Thanks to everyone who submits PRs or enriches my knowledge in issues, comments, via Slack, or through other channels. This project greatly benefits from your support!_
+_A big thank you to everyone who submits PRs, shares knowledge in issues, comments, via Slack, or through other channels. This project thrives on your support!_
 
 ### What's next?
 
 | 🎓 [Take some time to explore the sample repository and learn how to code with abap2UI5](https://github.com/abap2UI5/abap2UI5-samples)|
 |----------------------------------------------|
-| 🕹️ **[Try various apps & addons to extend abap2UI5’s functionality](https://github.com/abap2UI5-apps-addons)**|
+| 🕹️ **[Try various addons to extend abap2UI5’s functionality](https://github.com/abap2UI5-addons)**|
 | 🔌 **[Install connectors to integrate abap2UI5 into your system landscape](https://github.com/abap2UI5-connectors)**|
 | 🌎 **[Explore other projects using abap2UI5 on GitHub](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
 
