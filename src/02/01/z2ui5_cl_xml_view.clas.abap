@@ -3528,6 +3528,9 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 class          TYPE clike OPTIONAL
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS tiles
+      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS busy_indicator
       IMPORTING !id                     TYPE clike OPTIONAL
                 !class                  TYPE clike OPTIONAL
@@ -10009,5 +10012,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                         ( n = `change`             v = change )
                                         ( n = `liveChange`        v = liveChange ) ) ).
 
+  ENDMETHOD.
+
+
+  METHOD tiles.
+    result = _generic( `tiles` ).
   ENDMETHOD.
 ENDCLASS.
