@@ -10016,6 +10016,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD tiles.
-    result = _generic( name = `tiles` ).
+    result = _generic( `tiles` ).
   ENDMETHOD.
 ENDCLASS.
