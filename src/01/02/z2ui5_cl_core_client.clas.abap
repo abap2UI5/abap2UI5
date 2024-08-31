@@ -338,8 +338,4 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~dirty.
-    mo_action->ms_next-s_set-dirty = val.
-  ENDMETHOD.
-
 ENDCLASS.
