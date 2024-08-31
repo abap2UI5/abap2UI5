@@ -398,6 +398,16 @@ CLASS Z2UI5_CL_CORE_HTTP_GET IMPLEMENTATION.
                `            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` && |\n| &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n| &&
                `            };` && |\n| &&
+               `            const dirty = !!sap.z2ui5.oResponse.PARAMS?.DIRTY;` && |\n| &&
+               `            if (sap.ushell?.Container) {` && |\n| &&
+               `                sap.ushell.Container.setDirtyFlag(dirty);` && |\n| &&
+               `            } else {` && |\n| &&
+               `                window.onbeforeunload = function (e) { ` && |\n| &&
+               `                    if (dirty) {` && |\n| &&
+               `                        e.preventDefault();    ` && |\n| &&
+               `                    }                ` && |\n| &&
+               `                }        ` && |\n| &&
+               `            }` && |\n| &&
                `            if(sap.z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` && |\n| &&
                `              setTimeout(() => {` && |\n| &&
                `                  let mParams = sap.z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split("'");` && |\n| &&

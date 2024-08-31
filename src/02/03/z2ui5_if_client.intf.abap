@@ -185,4 +185,8 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val      TYPE string.
 
+  METHODS dirty
+    IMPORTING
+      val TYPE abap_bool.
+
 ENDINTERFACE.
