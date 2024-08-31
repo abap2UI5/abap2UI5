@@ -16,10 +16,6 @@ CLASS z2ui5_cl_pop_error DEFINITION
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
     DATA error TYPE REF TO cx_root.
-*    DATA title TYPE string.
-*    DATA icon TYPE string.
-*    DATA question_text TYPE string.
-*    DATA button_text_confirm TYPE string.
     DATA check_initialized TYPE abap_bool.
     METHODS view_display.
   PRIVATE SECTION.
