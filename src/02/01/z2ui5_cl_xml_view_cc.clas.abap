@@ -154,6 +154,12 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS Dirty
+      IMPORTING
+        !isdirty        TYPE clike OPTIONAL
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS lp_title
       IMPORTING
         !title        TYPE clike OPTIONAL
@@ -522,6 +528,14 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD Dirty.
+
+    result = mo_view.
+    mo_view->_generic( name = `Dirty`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `isDirty`  v =  z2ui5_cl_util=>boolean_abap_2_json( isDirty ) ) ) ).
+
+  ENDMETHOD.
 
   METHOD uitableext.
 

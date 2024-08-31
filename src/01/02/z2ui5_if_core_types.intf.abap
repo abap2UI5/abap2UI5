@@ -47,6 +47,7 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_next_frontend,
+      dirty TYPE abap_bool,
       BEGIN OF s_view,
         xml                TYPE string,
         check_destroy      TYPE abap_bool,
