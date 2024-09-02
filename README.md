@@ -60,14 +60,15 @@
 
 _A big thank you to everyone who submits PRs, shares knowledge in issues, comments, via Slack, or through other channels. This project thrives on your support!_
 
-### What's next?
 
-| 🎓 [Explore the sample repository and learn how to code with abap2UI5](https://github.com/abap2UI5/abap2UI5-samples)|
+### What's next?
+| Check out... |
 |----------------------------------------------|
-| 🧂 **[Install addons to extend abap2UI5’s functionality](https://github.com/abap2UI5-addons)**|
-| 🌎 **[Set up connectors to access your abap2UI5 apps from anywhere](https://github.com/abap2UI5-connectors)**|
-| 🕹️ **[Discover & try out other abap2UI5 apps](https://github.com/abap2UI5-apps)**|
-| 📺 **[Explore more projects using abap2UI5 on GitHub](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
+| 🎓 **[Sample Repository - Learn how to code with abap2UI5](https://github.com/abap2UI5/abap2UI5-samples)**|
+| 💅 **[Addons - Extend abap2UI5’s functionality](https://github.com/abap2UI5-addons)**| test|
+| 🪐 **[Connectors - Access your apps from anywhere](https://github.com/abap2UI5-connectors)**|
+| 🚜 **[Apps - Discover & try out abap2UI5 apps](https://github.com/abap2UI5-apps)**|
+| 📺 **[More - Explore other projects using abap2UI5 on GitHub](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
 
 ### Blogs & Articles
 #### I. Development & Technical Background
@@ -235,9 +236,7 @@ CLASS z2ui5_cl_demo_app IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'SELCHANGE'.
-        DATA(lt_sel) = t_tab.
-        DELETE lt_sel WHERE selected = abap_false.
-        client->message_box_display( `go to details for item ` && lt_sel[ 1 ]-title ).
+        client->message_box_display( `item pressed with title ` && t_tab[ selected = abap_true ]-title ).
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
