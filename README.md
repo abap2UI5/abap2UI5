@@ -235,9 +235,7 @@ CLASS z2ui5_cl_demo_app IMPLEMENTATION.
     CASE client->get( )-event.
 
       WHEN 'SELCHANGE'.
-        DATA(lt_sel) = t_tab.
-        DELETE lt_sel WHERE selected = abap_false.
-        client->message_box_display( `go to details for item ` && lt_sel[ 1 ]-title ).
+        client->message_box_display( `item pressed with title ` && t_tab[ selected = abap_true ]-title ).
 
       WHEN 'BACK'.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
