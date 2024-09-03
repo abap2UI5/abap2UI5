@@ -1,7 +1,7 @@
 CLASS z2ui5_cl_util DEFINITION
   PUBLIC
   CREATE PUBLIC
-  INHERITING FROM z2ui5_cl_stmpncfctn_api.
+  INHERITING FROM z2ui5_cl_abap_api.
 
   PUBLIC SECTION.
 

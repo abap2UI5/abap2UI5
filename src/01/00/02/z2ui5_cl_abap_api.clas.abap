@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_stmpncfctn_api DEFINITION
+CLASS z2ui5_cl_abap_api DEFINITION
   PUBLIC
   CREATE PUBLIC .
 
@@ -155,7 +155,7 @@ ENDCLASS.
 
 
 
-CLASS z2ui5_cl_stmpncfctn_api IMPLEMENTATION.
+CLASS z2ui5_cl_abap_api IMPLEMENTATION.
 
 
   METHOD conv_decode_x_base64.
