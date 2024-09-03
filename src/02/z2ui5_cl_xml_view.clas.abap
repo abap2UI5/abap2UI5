@@ -7832,7 +7832,7 @@ CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
                                 ( n = `percentValue` v = percentvalue )
                                 ( n = `displayValue` v = displayvalue )
                                 ( n = `showValue`    v = z2ui5_cl_util=>boolean_abap_2_json( showvalue ) )
-                                ( n = `visible`      v = zqmcafw_cl_util=>boolean_abap_2_json( visible ) )
+                                ( n = `visible`      v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
                                 ( n = `state`        v = state ) ) ).
   ENDMETHOD.
 
