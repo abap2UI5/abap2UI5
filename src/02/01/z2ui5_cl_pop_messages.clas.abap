@@ -23,10 +23,10 @@ CLASS z2ui5_cl_pop_messages DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        i_messages            TYPE ty_t_msg
-        i_title               TYPE string DEFAULT `abap2UI5 - Message Popup`
+        i_messages      TYPE ty_t_msg
+        i_title         TYPE string DEFAULT `abap2UI5 - Message Popup`
       RETURNING
-        VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_messages.
+        VALUE(r_result) TYPE REF TO z2ui5_cl_pop_messages.
 
   PROTECTED SECTION.
     DATA client TYPE REF TO z2ui5_if_client.
@@ -96,7 +96,7 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
       WHEN `BUTTON_CONTINUE`.
         client->popup_destroy( ).
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-          WHEN OTHERS.
+      WHEN OTHERS.
     ENDCASE.
 
   ENDMETHOD.

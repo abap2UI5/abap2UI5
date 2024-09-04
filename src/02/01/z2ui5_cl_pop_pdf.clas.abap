@@ -12,7 +12,7 @@ CLASS z2ui5_cl_pop_pdf DEFINITION
         i_title               TYPE string DEFAULT `PDF Viewer`
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
-        i_pdf TYPE string
+        i_pdf                 TYPE string
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_pdf.
 
@@ -44,7 +44,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POP_PDF IMPLEMENTATION.
+CLASS z2ui5_cl_pop_pdf IMPLEMENTATION.
 
 
   METHOD factory.
