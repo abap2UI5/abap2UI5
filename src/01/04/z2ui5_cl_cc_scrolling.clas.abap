@@ -1,28 +1,29 @@
-class Z2UI5_CL_CC_SCROLLING definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_cc_scrolling DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  types:
-    BEGIN OF ty_s_item,
+    TYPES:
+      BEGIN OF ty_s_item,
         id       TYPE string,
         scrollto TYPE string,
       END OF ty_s_item .
-  types
-    ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
+    TYPES
+      ty_t_item TYPE STANDARD TABLE OF ty_s_item WITH EMPTY KEY  ##NEEDED.
 
-  class-methods GET_JS
-    returning
-      value(RESULT) type STRING .
+    CLASS-METHODS get_js
+      RETURNING
+        VALUE(result) TYPE string .
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_SCROLLING IMPLEMENTATION.
+CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
 
 
   METHOD get_js.
