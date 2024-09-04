@@ -119,7 +119,7 @@ CLASS z2ui5_cl_core_diss_srv IMPLEMENTATION.
         AND is_constant  = abap_false.
       TRY.
           DATA(lv_name) = COND #( WHEN ir_attri->name IS NOT INITIAL THEN ir_attri->name && `->` ) && lr_attri->name.
-          DATA(ls_new) = create_new_entry( lv_name  ).
+          DATA(ls_new) = create_new_entry( lv_name ).
           INSERT ls_new INTO TABLE result.
 
         CATCH cx_root.

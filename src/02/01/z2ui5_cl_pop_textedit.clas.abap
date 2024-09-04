@@ -10,8 +10,8 @@ CLASS z2ui5_cl_pop_textedit DEFINITION
       IMPORTING
         i_stretch_active TYPE abap_bool DEFAULT abap_true
         i_textarea       TYPE string OPTIONAL
-        i_title          type string default `Editor`
-        i_check_editable type abap_bool DEFAULT abap_false
+        i_title          TYPE string DEFAULT `Editor`
+        i_check_editable TYPE abap_bool DEFAULT abap_false
           PREFERRED PARAMETER i_textarea
       RETURNING
         VALUE(r_result)  TYPE REF TO z2ui5_cl_pop_textedit.
@@ -61,8 +61,8 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
               icon       = 'sap-icon://edit'
           )->content(
               )->text_area( growing = abap_true
-                    editable = mv_check_editable
-                  value = client->_bind_edit( ms_result-text )
+                    editable        = mv_check_editable
+                  value             = client->_bind_edit( ms_result-text )
           )->get_parent(
           )->buttons(
               )->button(

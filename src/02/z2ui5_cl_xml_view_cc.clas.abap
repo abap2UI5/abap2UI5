@@ -154,7 +154,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
-    METHODS Dirty
+    METHODS dirty
       IMPORTING
         !isdirty      TYPE clike OPTIONAL
       RETURNING
@@ -335,7 +335,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
                                 (  n = `fileType`           v = filetype )
                                 (  n = `checkDirectUpload`  v = z2ui5_cl_util=>boolean_abap_2_json( checkdirectupload ) )
                                 (  n = `icon`           v = icon )
-                                (  n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )    ) ).
+                                (  n = `enabled`         v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) ) ) ).
 
 
   ENDMETHOD.
@@ -528,12 +528,12 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD Dirty.
+  METHOD dirty.
 
     result = mo_view.
     mo_view->_generic( name = `Dirty`
               ns            = `z2ui5`
-              t_prop        = VALUE #( ( n = `isDirty`  v =  z2ui5_cl_util=>boolean_abap_2_json( isDirty ) ) ) ).
+              t_prop        = VALUE #( ( n = `isDirty`  v = z2ui5_cl_util=>boolean_abap_2_json( isdirty ) ) ) ).
 
   ENDMETHOD.
 

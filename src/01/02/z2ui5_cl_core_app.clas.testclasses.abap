@@ -62,7 +62,7 @@ CLASS ltcl_test_db IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
         act = lo_app_user_db->mv_value
-        exp = lo_app_user->mv_value  ).
+        exp = lo_app_user->mv_value ).
 
   ENDMETHOD.
 

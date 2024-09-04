@@ -17,7 +17,7 @@ CLASS z2ui5_cl_pop_get_range DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        t_range         TYPE any table OPTIONAL
+        t_range         TYPE ANY TABLE OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range.
 
@@ -54,7 +54,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
       EXPORTING
         val = t_range
       CHANGING
-        tab =  r_result->ms_result-t_range
+        tab = r_result->ms_result-t_range
     ).
 
     INSERT VALUE #( ) INTO TABLE r_result->ms_result-t_range.
@@ -93,7 +93,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
 
     grid->combobox(
                  selectedkey = `{OPTION}`
-                 items       = client->_bind( mt_mapping  )
+                 items       = client->_bind( mt_mapping )
              )->item(
                      key  = '{N}'
                      text = '{N}'

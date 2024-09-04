@@ -14,7 +14,7 @@ CLASS z2ui5_cl_pop_file_dl DEFINITION
         i_button_text_confirm TYPE string DEFAULT `OK`
         i_button_text_cancel  TYPE string DEFAULT `Cancel`
         i_file                TYPE string
-        i_type                type string default `data:text/csv;base64,`
+        i_type                TYPE string DEFAULT `data:text/csv;base64,`
       RETURNING
         VALUE(r_result)       TYPE REF TO z2ui5_cl_pop_file_dl.
 
@@ -77,7 +77,7 @@ CLASS Z2UI5_CL_POP_FILE_DL IMPLEMENTATION.
               )->content( ).
 
     IF mv_check_download = abap_true.
-      data(lv_csv_x) = z2ui5_cl_util=>conv_get_xstring_by_string( mv_value ).
+      DATA(lv_csv_x) = z2ui5_cl_util=>conv_get_xstring_by_string( mv_value ).
       DATA(lv_base64) = z2ui5_cl_util=>conv_encode_x_base64( lv_csv_x ).
       popup->_generic( ns     = `html`
                        name   = `iframe`

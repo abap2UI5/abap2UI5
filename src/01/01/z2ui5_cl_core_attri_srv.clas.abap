@@ -47,7 +47,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
     LOOP AT mt_attri->* REFERENCE INTO DATA(lr_attri).
       TRY.
           lr_attri->r_ref = attri_get_val_ref( lr_attri->name ).
-          lr_attri->o_typedescr =  cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
+          lr_attri->o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_attri->r_ref ).
 
           IF lr_attri->srtti_data IS NOT INITIAL.
             ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
@@ -126,7 +126,7 @@ CLASS z2ui5_cl_core_attri_srv IMPLEMENTATION.
 
     """"" new
     DATA(lt_attri) = mt_attri->*.
-    DELETE lt_attri WHERE BIND_type IS INITIAL.
+    DELETE lt_attri WHERE bind_type IS INITIAL.
     CLEAR mt_attri->*.
     DO 5 TIMES.
 
