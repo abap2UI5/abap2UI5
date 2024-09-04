@@ -8,11 +8,6 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
     CLASS-METHODS factory
       IMPORTING
         val             TYPE z2ui5_cl_util=>ty_t_filter_multi
-        check_db_active TYPE abap_bool DEFAULT abap_true
-        var_check_user  TYPE abap_bool DEFAULT abap_true
-        var_handle1     TYPE clike DEFAULT sy-repid
-        var_handle2     TYPE clike OPTIONAL
-        var_handle3     TYPE clike OPTIONAL
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_get_range_m.
 
@@ -48,7 +43,6 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
 
     r_result = NEW #( ).
     r_result->ms_result-t_sql = val.
-    r_result->check_db_active = check_db_active.
 
   ENDMETHOD.
 
