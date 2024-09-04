@@ -24,7 +24,6 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
         VALUE(result) TYPE ty_s_result.
 
   PROTECTED SECTION.
-    DATA check_db_active  TYPE abap_bool.
     DATA client                 TYPE REF TO z2ui5_if_client.
     DATA check_initialized      TYPE abap_bool.
     DATA mv_popup_name TYPE LINE OF string_table.
