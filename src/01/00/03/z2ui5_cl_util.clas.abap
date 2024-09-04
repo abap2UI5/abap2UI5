@@ -5,7 +5,7 @@ CLASS z2ui5_cl_util DEFINITION
 
   PUBLIC SECTION.
 
-*  abap-toolkit
+*  abap-toolkit - Utility Functions for ABAP Cloud & Standard ABAP
 *  version: '0.0.1'.
 *  origin: https://github.com/oblomov-dev/abap-toolkit
 *  author: https://github.com/oblomov-dev
