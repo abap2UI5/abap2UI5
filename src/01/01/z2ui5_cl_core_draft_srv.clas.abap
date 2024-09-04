@@ -66,7 +66,7 @@ CLASS z2ui5_cl_core_draft_srv IMPLEMENTATION.
         id_prev           = draft-id_prev
         id_prev_app       = draft-id_prev_app
         id_prev_app_stack = draft-id_prev_app_stack
-        uname             = z2ui5_cl_util=>user_get_tech( )
+        uname             = z2ui5_cl_util=>context_get_user_tech( )
         timestampl        = z2ui5_cl_util=>time_get_timestampl( )
         data              = model_xml ).
 

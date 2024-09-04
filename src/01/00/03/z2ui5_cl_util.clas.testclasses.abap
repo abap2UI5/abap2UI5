@@ -390,7 +390,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
   METHOD test_sql_get_by_string.
 
     DATA(lv_test) = ``.
-    DATA(ls_sql) = z2ui5_cl_util=>sql_get_by_string( lv_test ) ##NEEDED.
+    DATA(ls_sql) = z2ui5_cl_util=>filter_get_sql_by_sql_string( lv_test ) ##NEEDED.
 
   ENDMETHOD.
 
@@ -541,9 +541,9 @@ CLASS ltcl_unit_test IMPLEMENTATION.
 
     cl_abap_unit_assert=>assert_equals(
       act = sy-uname
-      exp = z2ui5_cl_util=>user_get_tech( ) ).
+      exp = z2ui5_cl_util=>context_get_user_tech( ) ).
 
-    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util=>user_get_tech( ) ).
+    cl_abap_unit_assert=>assert_not_initial( z2ui5_cl_util=>context_get_user_tech( ) ).
 
   ENDMETHOD.
 
@@ -892,7 +892,7 @@ CLASS ltcl_unit_test IMPLEMENTATION.
     DATA(lo_datadescr) = cl_abap_typedescr=>describe_by_data( ms_struc2 ).
     DATA(lt_attri) = z2ui5_cl_util=>rtti_get_t_attri_by_include( CAST #( lo_datadescr ) ).
 
-    IF lines( lt_attri ) <> 2.
+    IF lines( lt_attri ) <> 6.
       cl_abap_unit_assert=>fail( ).
     ENDIF.
 
