@@ -189,7 +189,7 @@
     "no_aliases": true,
     "no_chained_assignment": true,
     "no_external_form_calls": true,
-    "no_inline_in_optional_branches": true,
+    "no_inline_in_optional_branches": false,
     "no_public_attributes": false,
     "no_yoda_conditions": true,
     "nrob_consistency": true,
