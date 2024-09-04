@@ -32,7 +32,7 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
     METHODS on_event_check.
 
   PROTECTED SECTION.
-    DATA mt_classes TYPE z2ui5_cl_util=>tt_classes.
+    DATA mt_classes TYPE z2ui5_cl_util=>ty_t_classes.
 
   PRIVATE SECTION.
 ENDCLASS.
