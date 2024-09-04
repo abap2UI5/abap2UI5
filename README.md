@@ -50,8 +50,8 @@
 * These [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
 * Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Static code analysis and quality assurance are performed via [**abaplint**](https://abaplint.org/) and [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
-* JSON parsing for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Serialization of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* JSON handling for frontend-backend communication is implemented with [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
+* Serialization of values of variables created at runtime is implemented with [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * Compatibility with lower releases is ensured through automatic syntax downport with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is achieved with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * Live demos running in the browser are based on [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) and [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
