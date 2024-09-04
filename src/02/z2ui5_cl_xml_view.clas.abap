@@ -1519,7 +1519,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 displayvalue  TYPE clike OPTIONAL
                 showvalue     TYPE clike OPTIONAL
                 !state        TYPE clike OPTIONAL
-                VISIBLE       TYPE clike OPTIONAL
+                visible       TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS segmented_button
@@ -2743,11 +2743,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS header_container
-      IMPORTING scrollstep                  TYPE clike OPTIONAL
-                scrolltime                  TYPE clike OPTIONAL
-                orientation                 TYPE clike OPTIONAL
-                height                      TYPE clike OPTIONAL
-      RETURNING VALUE(result)               TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING scrollstep    TYPE clike OPTIONAL
+                scrolltime    TYPE clike OPTIONAL
+                orientation   TYPE clike OPTIONAL
+                height        TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS markers
       IMPORTING !ns           TYPE clike OPTIONAL
@@ -3534,7 +3534,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)  TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS tiles
-      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS busy_indicator
       IMPORTING !id                     TYPE clike OPTIONAL
@@ -4244,7 +4244,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_XML_VIEW IMPLEMENTATION.
+CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD actions.

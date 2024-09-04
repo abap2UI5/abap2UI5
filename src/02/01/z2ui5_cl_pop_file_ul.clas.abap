@@ -117,9 +117,7 @@ CLASS z2ui5_cl_pop_file_ul IMPLEMENTATION.
 
         DATA(lv_data2) = z2ui5_cl_util=>conv_decode_x_base64( lv_data ).
         ms_result-value = z2ui5_cl_util=>conv_get_string_by_xstring( lv_data2 ).
-
         check_confirm_enabled = abap_true.
-
 
         CLEAR mv_value.
         CLEAR mv_path.

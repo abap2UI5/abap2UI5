@@ -18,6 +18,7 @@ CLASS z2ui5_cl_pop_error DEFINITION
     DATA error TYPE REF TO cx_root.
     DATA check_initialized TYPE abap_bool.
     METHODS view_display.
+
   PRIVATE SECTION.
 ENDCLASS.
 
@@ -37,7 +38,6 @@ CLASS z2ui5_cl_pop_error IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( )->dialog(
                   title      = `Error View`
-*                  icon       = icon
                   afterclose = client->_event( 'BUTTON_CONFIRM' )
               )->content(
                   )->vbox( 'sapUiMediumMargin'

@@ -91,10 +91,6 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
         press = client->_event( `OPEN_INFO` )
     ).
 
-* page2->message_strip(
-*   `Hey! Are you already following the new abap2UI5 page on LinkedIn?`
-*     )->get( )->link( )->link( text = ` Check it out here...` href = `https://www.linkedin.com/company/abap2ui5` target = `blank` ).
-
     DATA(simple_form2) = page2->simple_form(
         editable                = abap_true
         layout                  = `ResponsiveGridLayout`
@@ -156,17 +152,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
                   client    = client
                   classname = 'z2ui5_cl_demo_app_000' ).
 
-*    DATA(lv_url_samples3) = z2ui5_cl_core_util_srv=>app_get_url(
-*                    client    = client
-*                    classname = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_search( ) ) ).
-
     simple_form2->toolbar( )->title( `What's next?` ).
-
-*    simple_form2->label( `App Finder` ).
-*    simple_form2->button(
-*        text  = `Start & Install Apps`
-*        press = client->_event_client( val = client->cs_event-open_new_tab t_arg = VALUE #( ( lv_url_samples3 ) ) )
-*        width = `70%` ).
 
     IF z2ui5_cl_util=>rtti_check_class_exists( `z2ui5_cl_demo_app_000` ).
       simple_form2->label( `Start Developing` ).
@@ -183,9 +169,6 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
               href             = `https://github.com/abap2UI5/abap2UI5-samples` ).
     ENDIF.
 
-*    simple_form2->label( `` ).
-*    simple_form2->text( `` ).
-
     simple_form2->toolbar( )->title( `Contribution` ).
 
     simple_form2->label( `Open an issue` ).
@@ -200,16 +183,6 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
 
 
     simple_form2->toolbar( )->title( `Social Media` ).
-
-*    simple_form2->label( `Stay Connected` ).
-*    simple_form2->link( text   = `Repository on GitHub`
-*                        target = `_blank`
-*                        href   = `https://github.com/abap2UI5/abap2UI5` ).
-
-*    simple_form2->label( ).
-*    simple_form2->link( text   = `Blog Series on SAP Community`
-*                        target = `_blank`
-*                        href   = `https://community.sap.com/t5/technology-blogs-by-members/abap2ui5-1-introduction-developing-ui5-apps-purely-in-abap/ba-p/13567635` ).
 
     simple_form2->label( ).
     simple_form2->link( text   = `Follow abap2UI5 on Linkedin`

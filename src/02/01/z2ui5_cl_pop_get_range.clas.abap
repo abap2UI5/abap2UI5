@@ -4,9 +4,7 @@ CLASS z2ui5_cl_pop_get_range DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-
     INTERFACES z2ui5_if_app.
-
 
     TYPES:
       BEGIN OF ty_s_filter_pop,
@@ -86,7 +84,6 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
                                  justifycontent = 'SpaceBetween' ).
 
     DATA(item) = vbox->list(
-           "   headertext = `Product`
               nodata         = `no conditions defined`
              items           = client->_bind_edit( mt_filter )
              selectionchange = client->_event( 'SELCHANGE' )
@@ -111,7 +108,6 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
                         press = client->_event( val = `POPUP_DELETE` t_arg = VALUE #( ( `${KEY}` ) ) ) ).
 
     lo_popup->buttons(
-*    )->begin_button(
         )->button( text  = `Delete All`
                    icon  = 'sap-icon://delete'
                    type  = `Transparent`
@@ -119,8 +115,6 @@ CLASS Z2UI5_CL_POP_GET_RANGE IMPLEMENTATION.
         )->button( text  = `Add Item`
                    icon  = `sap-icon://add`
                    press = client->_event( val = `POPUP_ADD` )
-*      )->get_parent(
-*      )->end_button(
        )->button(
             text  = 'Cancel'
             press = client->_event( 'BUTTON_CANCEL' )
