@@ -91,22 +91,22 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS info_frontend
       IMPORTING
-        !finished              TYPE clike OPTIONAL
-        !ui5_version           TYPE clike OPTIONAL
-        !device_height         TYPE clike OPTIONAL
-        !device_width          TYPE clike OPTIONAL
-        !device_phone          TYPE clike OPTIONAL
-        !device_desktop        TYPE clike OPTIONAL
-        !device_tablet         TYPE clike OPTIONAL
-        !device_combi          TYPE clike OPTIONAL
-        !ui5_gav               TYPE clike OPTIONAL
-        !ui5_theme             TYPE clike OPTIONAL
-        !device_os             TYPE clike OPTIONAL
-        !device_systemtype     TYPE clike OPTIONAL
-        !device_browser        TYPE clike OPTIONAL
+        !finished          TYPE clike OPTIONAL
+        !ui5_version       TYPE clike OPTIONAL
+        !device_height     TYPE clike OPTIONAL
+        !device_width      TYPE clike OPTIONAL
+        !device_phone      TYPE clike OPTIONAL
+        !device_desktop    TYPE clike OPTIONAL
+        !device_tablet     TYPE clike OPTIONAL
+        !device_combi      TYPE clike OPTIONAL
+        !ui5_gav           TYPE clike OPTIONAL
+        !ui5_theme         TYPE clike OPTIONAL
+        !device_os         TYPE clike OPTIONAL
+        !device_systemtype TYPE clike OPTIONAL
+        !device_browser    TYPE clike OPTIONAL
           PREFERRED PARAMETER finished
       RETURNING
-        VALUE(result)          TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)      TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS spreadsheet_export
       IMPORTING
@@ -156,7 +156,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS Dirty
       IMPORTING
-        !isdirty        TYPE clike OPTIONAL
+        !isdirty      TYPE clike OPTIONAL
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
@@ -300,7 +300,7 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     mo_view->_generic( ns   = `html`
                        name = `style` ).
 
-    data(lv_class) = 'Z2UI5_CL_CC_DEMO_OUT'.
+    DATA(lv_class) = 'Z2UI5_CL_CC_DEMO_OUT'.
     CALL METHOD (lv_class)=>('GET_STYLE')
       RECEIVING
         result = lv_style.
