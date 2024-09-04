@@ -111,7 +111,7 @@
     "db_operation_in_loop": true,
     "definitions_top": false,
     "description_empty": true,
-    "double_space": true,
+    "double_space": false,
     "downport": true,
     "empty_line_in_statement": true,
     "empty_statement": true,
