@@ -294,7 +294,7 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-    CLASS-METHODS rtti_check_lang_version_cloud
+    CLASS-METHODS context_check_abap_cloud
       RETURNING
         VALUE(result) TYPE abap_bool.
 
@@ -926,7 +926,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD rtti_check_lang_version_cloud.
+  METHOD context_check_abap_cloud.
 
     TRY.
         cl_abap_typedescr=>describe_by_name( 'T100' ).

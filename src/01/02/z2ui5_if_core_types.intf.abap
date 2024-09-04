@@ -47,7 +47,6 @@ INTERFACE z2ui5_if_core_types
 
   TYPES:
     BEGIN OF ty_s_next_frontend,
-      dirty TYPE abap_bool,
       BEGIN OF s_view,
         xml                TYPE string,
         check_destroy      TYPE abap_bool,
@@ -114,7 +113,7 @@ INTERFACE z2ui5_if_core_types
         closeonbrowsernavigation TYPE string,
       END OF s_msg_toast,
       BEGIN OF s_follow_up_action,
-        custom_js      TYPE string,
+        custom_js TYPE string,
       END OF s_follow_up_action,
     END OF ty_s_next_frontend.
 
@@ -154,7 +153,6 @@ INTERFACE z2ui5_if_core_types
         app_start       TYPE string,
       END OF s_control,
     END OF ty_s_http_request_post.
-
 
   TYPES:
     BEGIN OF ty_s_draft,

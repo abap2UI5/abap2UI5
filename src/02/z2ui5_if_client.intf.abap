@@ -17,11 +17,6 @@ INTERFACE z2ui5_if_client
     END OF cs_event.
 
   CONSTANTS:
-    BEGIN OF cs_clear,
-      view TYPE string VALUE `VIEW`,
-    END OF cs_clear.
-
-  CONSTANTS:
     BEGIN OF cs_view,
       main    TYPE string VALUE `MAIN`,
       nested  TYPE string VALUE `NEST`,
@@ -177,16 +172,8 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE string.
 
-  METHODS clear
-    IMPORTING
-      val TYPE data.
-
   METHODS follow_up_action
     IMPORTING
-      val      TYPE string.
-
-*  METHODS dirty
-*    IMPORTING
-*      val TYPE abap_bool.
+      val TYPE string.
 
 ENDINTERFACE.

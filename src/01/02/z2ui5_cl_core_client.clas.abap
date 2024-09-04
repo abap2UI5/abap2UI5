@@ -19,7 +19,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
+CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
 
   METHOD constructor.
@@ -29,18 +29,9 @@ CLASS Z2UI5_CL_CORE_CLIENT IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD z2ui5_if_client~clear.
-
-    IF val = z2ui5_if_client=>cs_clear-view.
-      CLEAR mo_action->ms_next-s_set-s_view.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD z2ui5_if_client~follow_up_action.
 
-     mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
+    mo_action->ms_next-s_set-s_follow_up_action-custom_js = val.
 
   ENDMETHOD.
 

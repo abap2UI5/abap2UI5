@@ -62,8 +62,6 @@ CLASS z2ui5_cl_pop_textedit IMPLEMENTATION.
           )->content(
               )->text_area( growing = abap_true
                     editable = mv_check_editable
-*                  height = '100%'
-*                  width = '100%'
                   value = client->_bind_edit( ms_result-text )
           )->get_parent(
           )->buttons(

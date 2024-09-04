@@ -4,6 +4,13 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+    CLASS-METHODS main
+      IMPORTING
+        body          TYPE string
+        config        TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS http_post
       IMPORTING
         val           TYPE string
@@ -13,13 +20,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
     CLASS-METHODS http_get
       IMPORTING
         val           TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL
-      RETURNING
-        VALUE(result) TYPE string.
-
-    CLASS-METHODS main
-      IMPORTING
-        body          type string
-        config        TYPE z2ui5_if_types=>ty_s_http_request_get OPTIONAL
       RETURNING
         VALUE(result) TYPE string.
 

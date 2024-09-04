@@ -4,8 +4,6 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
   CREATE PROTECTED .
 
   PUBLIC SECTION.
-
-    INTERFACES if_serializable_object .
     INTERFACES z2ui5_if_app .
 
     TYPES:
@@ -122,12 +120,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method Z2UI5_CL_POPUP_TO_SELECT->Z2UI5_IF_APP~MAIN
-* +-------------------------------------------------------------------------------------------------+
-* | [--->] CLIENT                         TYPE REF TO Z2UI5_IF_CLIENT
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD z2ui5_if_app~main.
 
     me->client = client.
@@ -143,11 +135,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method Z2UI5_CL_POPUP_TO_SELECT->ON_EVENT
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD on_event.
 
     CASE client->get( )-event.
@@ -168,11 +155,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Public Method Z2UI5_CL_POPUP_TO_SELECT->RESULT
-* +-------------------------------------------------------------------------------------------------+
-* | [<-()] RESULT                         TYPE        TY_S_RESULT
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD result.
 
     result = ms_result.
@@ -180,10 +162,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method Z2UI5_CL_POPUP_TO_SELECT->SET_OUTPUT_TABLE
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD set_output_table.
 
     FIELD-SYMBOLS <row> TYPE any.
@@ -236,10 +214,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method Z2UI5_CL_POPUP_TO_SELECT->ON_EVENT_CONFIRM
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD on_event_confirm.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
@@ -275,10 +249,6 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
   ENDMETHOD.
 
 
-* <SIGNATURE>---------------------------------------------------------------------------------------+
-* | Instance Protected Method Z2UI5_CL_POPUP_TO_SELECT->ON_EVENT_SEARCH
-* +-------------------------------------------------------------------------------------------------+
-* +--------------------------------------------------------------------------------------</SIGNATURE>
   METHOD on_event_search.
 
     FIELD-SYMBOLS <tab_out> TYPE STANDARD TABLE.

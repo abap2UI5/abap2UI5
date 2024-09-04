@@ -57,7 +57,6 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
         title      = title
         afterclose = client->_event( 'BUTTON_CONTINUE' )
             )->table(
-*                mode = 'SingleSelectLeft'
                 client->_bind_edit( mt_msg )
                 )->columns(
                     )->column( )->text( 'Title' )->get_parent(

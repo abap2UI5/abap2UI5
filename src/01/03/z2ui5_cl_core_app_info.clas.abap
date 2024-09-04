@@ -1,35 +1,36 @@
-class Z2UI5_CL_CORE_APP_INFO definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_core_app_info DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  interfaces IF_SERIALIZABLE_OBJECT .
-  interfaces Z2UI5_IF_APP .
+    INTERFACES z2ui5_if_app.
 
-  data CLIENT type ref to Z2UI5_IF_CLIENT .
-  data MV_CHECK_INITIALIZED type ABAP_BOOL .
-  data MV_UI5_VERSION type STRING .
+    DATA client TYPE REF TO z2ui5_if_client.
+    DATA mv_check_initialized TYPE abap_bool.
 
+    DATA mv_ui5_version TYPE string .
 *    DATA mv_device TYPE string.
 *    DATA mv_device_type TYPE string.
 *    DATA mv_theme TYPE string.
 *    DATA mv_device_browser TYPE string.
 *    DATA mv_device_theme TYPE string.
 *    DATA mv_device_gav TYPE string.
-  class-methods FACTORY
-    returning
-      value(RESULT) type ref to Z2UI5_CL_CORE_APP_INFO .
-  methods Z2UI5_ON_EVENT .
-  methods VIEW_DISPLAY_START .
+
+    CLASS-METHODS factory
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_core_app_info.
+
+    METHODS z2ui5_on_event .
+    METHODS view_display_start .
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_APP_INFO IMPLEMENTATION.
+CLASS z2ui5_cl_core_app_info IMPLEMENTATION.
 
 
   METHOD factory.
@@ -43,13 +44,10 @@ CLASS Z2UI5_CL_CORE_APP_INFO IMPLEMENTATION.
 
     DATA(page2) = z2ui5_cl_xml_view=>factory_popup(
          )->dialog(
-*            stretch    = abap_true
             title      = `abap2UI5 - System Information`
             afterclose = client->_event( `CLOSE` ) ).
 
-*    page2->header_content( )->text(  )->title( `abap2UI5 - System Information` )->toolbar_spacer( ).
-
-    data(content) = page2->content( ).
+    DATA(content) = page2->content( ).
     content->_z2ui5( )->info_frontend(
 *        device_browser = client->_bind( mv_device_browser )
 *        device_systemtype = client->_bind( mv_device_type )
@@ -93,7 +91,7 @@ CLASS Z2UI5_CL_CORE_APP_INFO IMPLEMENTATION.
     simple_form2->toolbar( )->title( `Backend` ).
 
     simple_form2->label( `ABAP for Cloud` ).
-    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>rtti_check_lang_version_cloud( ) ).
+    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>context_check_abap_cloud( ) ).
 
     DATA(lv_count) = CONV string( NEW z2ui5_cl_core_draft_srv( )->count_entries( ) ).
     simple_form2->toolbar( )->title( `abap2UI5` ).
@@ -102,7 +100,6 @@ CLASS Z2UI5_CL_CORE_APP_INFO IMPLEMENTATION.
     simple_form2->label( `Draft Entries ` ).
     simple_form2->text( lv_count ).
 
-*    page2->
     page2->end_button( )->button(
                       text  = 'close'
                       press = client->_event( 'CLOSE' )

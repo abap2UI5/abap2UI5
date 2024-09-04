@@ -79,7 +79,6 @@ CLASS Z2UI5_CL_POP_FILE_DL IMPLEMENTATION.
     IF mv_check_download = abap_true.
       data(lv_csv_x) = z2ui5_cl_util=>conv_get_xstring_by_string( mv_value ).
       DATA(lv_base64) = z2ui5_cl_util=>conv_encode_x_base64( lv_csv_x ).
-*      DATA(lv_base64) = z2ui5_cl_util=>conv_decode_x_base64( mv_value ).
       popup->_generic( ns     = `html`
                        name   = `iframe`
                        t_prop = VALUE #( ( n = `src` v = mv_type && lv_base64 ) ( n = `hidden` v = `hidden` ) ) ).
