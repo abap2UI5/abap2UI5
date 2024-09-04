@@ -1,20 +1,21 @@
-class Z2UI5_CL_CC_UITABLE definition
-  public
-  final
-  create public .
+CLASS z2ui5_cl_cc_uitable DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
-public section.
+  PUBLIC SECTION.
 
-  class-methods GET_JS
-    returning
-      value(RESULT) type STRING .
+    CLASS-METHODS get_js
+      RETURNING
+        VALUE(result) TYPE string.
+
   PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CC_UITABLE IMPLEMENTATION.
+CLASS z2ui5_cl_cc_uitable IMPLEMENTATION.
 
 
   METHOD get_js.
