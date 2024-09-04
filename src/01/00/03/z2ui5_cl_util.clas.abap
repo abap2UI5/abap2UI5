@@ -5,6 +5,12 @@ CLASS z2ui5_cl_util DEFINITION
 
   PUBLIC SECTION.
 
+*  abap-toolkit
+*  version: '0.0.1'.
+*  origin: https://github.com/oblomov-dev/abap-toolkit
+*  author: https://github.com/oblomov-dev
+*  license: MIT.
+
     TYPES:
       BEGIN OF ty_s_token,
         key      TYPE string,
@@ -427,7 +433,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_UTIL IMPLEMENTATION.
+CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   METHOD db_delete_by_handle.

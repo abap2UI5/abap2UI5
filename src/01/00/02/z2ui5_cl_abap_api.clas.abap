@@ -4,6 +4,12 @@ CLASS z2ui5_cl_abap_api DEFINITION
 
   PUBLIC SECTION.
 
+*  abap-api
+*  version: '0.0.1'.
+*  origin: https://github.com/oblomov-dev/abap-api
+*  author: https://github.com/oblomov-dev
+*  license: MIT.
+
     TYPES:
       BEGIN OF ty_s_fix_val,
         low   TYPE string,

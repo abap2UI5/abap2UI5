@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_UTIL</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - specfic functions</DESCRIPT>
+    <DESCRIPT>abap toolkit</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>

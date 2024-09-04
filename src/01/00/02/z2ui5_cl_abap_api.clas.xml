@@ -5,7 +5,7 @@
    <VSEOCLASS>
     <CLSNAME>Z2UI5_CL_ABAP_API</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>abap2UI5 - running everywhere snippets</DESCRIPT>
+    <DESCRIPT>abap api</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
