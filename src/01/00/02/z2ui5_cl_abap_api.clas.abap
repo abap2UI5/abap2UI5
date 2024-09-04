@@ -4,6 +4,20 @@ CLASS z2ui5_cl_abap_api DEFINITION
 
   PUBLIC SECTION.
 
+*  abap-api - Serving a Release & Version Independent ABAP Layer
+*  version: '0.0.1'.
+*  origin: https://github.com/oblomov-dev/abap-api
+*  author: https://github.com/oblomov-dev
+*  license: MIT.
+
+    TYPES:
+      BEGIN OF ty_s_fix_val,
+        low   TYPE string,
+        high  TYPE string,
+        descr TYPE string,
+      END OF ty_s_fix_val.
+    TYPES ty_t_fix_val TYPE STANDARD TABLE OF ty_s_fix_val WITH EMPTY KEY.
+
     TYPES:
       BEGIN OF ty_s_dfies,
         tabname     TYPE c LENGTH 30,
@@ -59,19 +73,19 @@ CLASS z2ui5_cl_abap_api DEFINITION
       ty_t_dfies TYPE STANDARD TABLE OF ty_s_dfies WITH EMPTY KEY.
 
     TYPES:
-      BEGIN OF ty_data_element_texts,
+      BEGIN OF ty_s_data_element_text,
         header TYPE string,
         short  TYPE string,
         medium TYPE string,
         long   TYPE string,
-      END OF ty_data_element_texts .
+      END OF ty_s_data_element_text .
 
     TYPES:
-      BEGIN OF ts_class,
+      BEGIN OF ty_s_class_descr,
         classname   TYPE string,
         description TYPE string,
-      END OF ts_class.
-    TYPES tt_classes TYPE STANDARD TABLE OF ts_class WITH NON-UNIQUE DEFAULT KEY.
+      END OF ty_s_class_descr.
+    TYPES tt_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
 
     CLASS-METHODS source_get_method
       IMPORTING
@@ -92,7 +106,7 @@ CLASS z2ui5_cl_abap_api DEFINITION
       IMPORTING
         !i_data_element_name TYPE string
       RETURNING
-        VALUE(result)        TYPE ty_data_element_texts.
+        VALUE(result)        TYPE ty_s_data_element_text.
 
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
@@ -124,11 +138,7 @@ CLASS z2ui5_cl_abap_api DEFINITION
       RETURNING
         VALUE(result) TYPE tt_classes.
 
-    CLASS-METHODS xco_get_class_description
-      IMPORTING
-        i_classname   TYPE clike
-      RETURNING
-        VALUE(result) TYPE string.
+
 
     CLASS-METHODS rtti_get_t_dfies_by_table_name
       IMPORTING
@@ -136,7 +146,21 @@ CLASS z2ui5_cl_abap_api DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_dfies.
 
+    CLASS-METHODS rtti_get_t_fixvalues
+      IMPORTING
+        elemdescr     TYPE REF TO cl_abap_elemdescr
+        langu         TYPE clike
+      RETURNING
+        VALUE(result) TYPE ty_t_fix_val.
+
   PROTECTED SECTION.
+
+    CLASS-METHODS rtti_get_class_descr_on_cloud
+      IMPORTING
+        i_classname   TYPE clike
+      RETURNING
+        VALUE(result) TYPE string.
+
     CLASS-METHODS rtti_get_t_attri_on_prem
       IMPORTING
         tabname       TYPE string
@@ -149,14 +173,51 @@ CLASS z2ui5_cl_abap_api DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_dfies ##NEEDED.
 
-
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
 
 CLASS z2ui5_cl_abap_api IMPLEMENTATION.
 
+
+  METHOD rtti_get_t_fixvalues.
+
+    TYPES:
+      BEGIN OF fixvalue,
+        low        TYPE c LENGTH 10,
+        high       TYPE c LENGTH 10,
+        option     TYPE c LENGTH 2,
+        ddlanguage TYPE c LENGTH 1,
+        ddtext     TYPE c LENGTH 60,
+      END OF fixvalue.
+    TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
+    DATA lt_values TYPE fixvalues.
+
+    DATA(lv_langu) = ``.
+    lv_langu = langu.
+
+    CALL METHOD elemdescr->('GET_DDIC_FIXED_VALUES')
+      EXPORTING
+        p_langu        = lv_langu
+      RECEIVING
+        p_fixed_values = lt_values
+      EXCEPTIONS
+        not_found      = 1
+        no_ddic_type   = 2
+        OTHERS         = 3.
+
+    LOOP AT lt_values REFERENCE INTO DATA(lr_fix).
+
+      INSERT VALUE #( low   = lr_fix->low
+                      high  = lr_fix->high
+                      descr = lr_fix->ddtext )
+             INTO TABLE result.
+
+    ENDLOOP.
+
+  ENDMETHOD.
 
   METHOD conv_decode_x_base64.
 
@@ -401,7 +462,7 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
         result = VALUE #(
                    FOR implementation_name IN lt_implementation_names
                    ( classname   = implementation_name
-                     description = xco_get_class_description( implementation_name ) ) ).
+                     description = rtti_get_class_descr_on_cloud( implementation_name ) ) ).
 
       CATCH cx_root INTO DATA(lx).
 
@@ -627,7 +688,7 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
   ENDMETHOD.
 
 
-  METHOD xco_get_class_description.
+  METHOD rtti_get_class_descr_on_cloud.
 
     DATA obj     TYPE REF TO object.
     DATA content TYPE REF TO object.
