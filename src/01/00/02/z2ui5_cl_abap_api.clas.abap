@@ -85,12 +85,16 @@ CLASS z2ui5_cl_abap_api DEFINITION
         classname   TYPE string,
         description TYPE string,
       END OF ty_s_class_descr.
-    TYPES tt_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
+    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
+
+    CLASS-METHODS context_check_abap_cloud
+      RETURNING
+        VALUE(result) TYPE abap_bool.
 
     CLASS-METHODS source_get_method
       IMPORTING
-        !iv_classname  TYPE clike
-        !iv_methodname TYPE clike
+        iv_classname  TYPE clike
+        iv_methodname TYPE clike
       RETURNING
         VALUE(result)  TYPE string_table.
 
@@ -104,41 +108,39 @@ CLASS z2ui5_cl_abap_api DEFINITION
 
     CLASS-METHODS rtti_get_data_element_texts
       IMPORTING
-        !i_data_element_name TYPE string
+        i_data_element_name TYPE string
       RETURNING
         VALUE(result)        TYPE ty_s_data_element_text.
 
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
-        !val          TYPE string
+        val          TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
     CLASS-METHODS conv_encode_x_base64
       IMPORTING
-        !val          TYPE xstring
+        val          TYPE xstring
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS conv_get_string_by_xstring
       IMPORTING
-        !val          TYPE xstring
+        val          TYPE xstring
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
-        !val          TYPE string
+        val          TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
     CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
-        !val          TYPE clike
+        val          TYPE clike
       RETURNING
-        VALUE(result) TYPE tt_classes.
-
-
+        VALUE(result) TYPE ty_t_classes.
 
     CLASS-METHODS rtti_get_t_dfies_by_table_name
       IMPORTING
@@ -181,6 +183,16 @@ ENDCLASS.
 
 CLASS z2ui5_cl_abap_api IMPLEMENTATION.
 
+  METHOD context_check_abap_cloud.
+
+    TRY.
+        cl_abap_typedescr=>describe_by_name( 'T100' ).
+        result = abap_false.
+      CATCH cx_root.
+        result = abap_true.
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD rtti_get_t_fixvalues.
 
@@ -729,7 +741,6 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
     TRY.
 
         DATA(new_struct_desc) = cl_abap_structdescr=>create( comps ).
-
         DATA(new_table_desc) = cl_abap_tabledescr=>create( p_line_type  = new_struct_desc
                                                            p_table_kind = cl_abap_tabledescr=>tablekind_std ).
 
@@ -741,7 +752,6 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
         ENDIF.
 
         structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
-
         <dfies> = structdescr->get_ddic_field_list( ).
 
         LOOP AT <dfies> ASSIGNING <line>.
@@ -900,20 +910,18 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
 *
 *    ENDLOOP.
 
-
   ENDMETHOD.
 
 
   METHOD rtti_get_t_dfies_by_table_name.
 
-    TRY.
-        cl_abap_typedescr=>describe_by_name( 'T100' ).
-        result = rtti_get_t_attri_on_prem( table_name ).
-
-      CATCH cx_root.
-        result = rtti_get_t_attri_on_cloud( table_name ).
-    ENDTRY.
+    IF context_check_abap_cloud( ).
+      result = rtti_get_t_attri_on_cloud( table_name ).
+    ELSE.
+      result = rtti_get_t_attri_on_prem( table_name ).
+    ENDIF.
 
   ENDMETHOD.
+
 ENDCLASS.
 
