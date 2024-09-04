@@ -92,7 +92,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
                                                   textdirection     = textdirection
                                                   icon              = icon
                                                   details           = details
-                                                  closeOnNavigation = closeOnNavigation
+                                                  closeonnavigation = closeonnavigation
                                                 ).
 
   ENDMETHOD.
@@ -127,7 +127,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF app->id_app IS INITIAL.
       app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
     ENDIF.
-    result =  app->id_app.
+    result = app->id_app.
   ENDMETHOD.
 
 
@@ -142,7 +142,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     IF app->id_app IS INITIAL.
       app->id_app = z2ui5_cl_util=>uuid_get_c32( ).
     ENDIF.
-    result =  app->id_app.
+    result = app->id_app.
 
   ENDMETHOD.
 
@@ -312,9 +312,9 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     DATA(lo_ui5) = NEW z2ui5_cl_core_event_srv( ).
     result = lo_ui5->get_event(
-         val                = val
-         t_arg              = t_arg
-         s_cnt              = s_ctrl ).
+         val   = val
+         t_arg = t_arg
+         s_cnt = s_ctrl ).
 
   ENDMETHOD.
 

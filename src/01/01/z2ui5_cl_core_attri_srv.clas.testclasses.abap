@@ -46,7 +46,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( (
-        r_ref = lr_value
+        r_ref       = lr_value
         o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_value )
          ) ).
 
@@ -69,7 +69,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
     GET REFERENCE OF lo_app_client->mv_value INTO lr_value.
 
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri( (
-         r_ref = REF #( lo_app_client->mv_value )
+         r_ref        = REF #( lo_app_client->mv_value )
           o_typedescr = cl_abap_datadescr=>describe_by_data_ref( lr_value )
          ) ).
 
@@ -96,7 +96,7 @@ CLASS ltcl_test_search_attri IMPLEMENTATION.
     DATA(lt_attri) = VALUE z2ui5_if_core_types=>ty_t_attri(
        ( name = `1` r_ref = REF #( lo_app_client->mr_value ) )
        ( name = `4` r_ref = REF #( lo_app_client->mr_value2 ) )
-       ( name = `2` r_ref = REF #( lo_app_client->mo_app  ) )
+       ( name = `2` r_ref = REF #( lo_app_client->mo_app ) )
        ( name = `3` r_ref = REF #( lo_app_client->mv_value ) ) ).
 
     DATA(lr_attri) = REF #( lt_attri[ r_ref = lr_value ] ).

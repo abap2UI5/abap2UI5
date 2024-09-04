@@ -46,13 +46,13 @@ CLASS z2ui5_cl_core_app_error IMPLEMENTATION.
 
     DATA(view) = z2ui5_cl_xml_view=>factory( ).
     DATA(vbox) = view->shell( )->vbox( alignitems = `Center` ).
-    vbox->text(  ).
+    vbox->text( ).
     vbox->hbox(
         )->icon( src = `sap-icon://alert`
         )->text(
         )->title( `500 Internal Server Error`
         )->text(
-        )->icon( src = `sap-icon://alert`  ).
+        )->icon( src = `sap-icon://alert` ).
     vbox->formatted_text( lv_text ).
     vbox->hbox(
          )->button(

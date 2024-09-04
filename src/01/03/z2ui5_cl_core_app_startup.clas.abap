@@ -80,7 +80,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
   METHOD view_display_start.
 
     DATA(page2) = z2ui5_cl_xml_view=>factory( )->shell( )->page(
-         title = `abap2UI5 - Developing UI5 Apps Purely in ABAP`
+         title         = `abap2UI5 - Developing UI5 Apps Purely in ABAP`
          shownavbutton = abap_false ).
 
     page2->header_content(

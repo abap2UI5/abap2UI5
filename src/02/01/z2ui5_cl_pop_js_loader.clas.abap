@@ -79,7 +79,7 @@ CLASS Z2UI5_CL_POP_JS_LOADER IMPLEMENTATION.
     IF check_open_ui5 = abap_true.
       popup->_z2ui5( )->info_frontend(
         finished = client->_event( `INFO_FINISHED` )
-        ui5_gav = client->_bind_edit( ui5_gav ) ).
+        ui5_gav  = client->_bind_edit( ui5_gav ) ).
     ENDIF.
 
     client->popup_display( popup->stringify( ) ).

@@ -22,7 +22,7 @@
     "strict_sql" : true,
     "easy_to_find_messages" : true,
     "fully_type_itabs" : true,
-    "align_parameters": false,
+    "align_parameters": true,
     "smim_consistency": true,
     "allowed_object_naming": true,
     "allowed_object_types": {
@@ -158,7 +158,7 @@
     "inline_data_old_versions": true,
     "intf_referencing_clas": false,
     "keep_single_parameter_on_one_line": false,
-    "keyword_case": false,
+    "keyword_case": true,
     "line_break_multiple_parameters": false,
     "line_break_style": true,
     "line_length": false,
@@ -242,7 +242,7 @@
       "exclude": [],
       "severity": "Error",
       "ignoreExceptions": false,
-      "ignoreWorkflow": true
+      "ignoreWorkflow": false
     },
     "rfc_error_handling": true,
     "select_add_order_by": false,

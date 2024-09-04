@@ -21,14 +21,14 @@ CLASS z2ui5_cl_cc_info IMPLEMENTATION.
   METHOD get_js.
 
     result  = ` ` &&
-      `if (!z2ui5.Info) { sap.ui.require([` && |\n|  &&
-      `    "sap/ui/VersionInfo",` && |\n|  &&
-      `    "sap/base/util/Version"` && |\n|  &&
-      `], function(VersionInfo, VersionUtil) {` && |\n|  &&
-      `    //access the OpenUI5 version at runtime` && |\n|  &&
-      `    VersionInfo.load().then(function(oCurrentVersionInfo) {` && |\n|  &&
-      `        sap.z2ui5.oCurrentVersionInfo = oCurrentVersionInfo;` && |\n|  &&
-      `    });` && |\n|  &&
+      `if (!z2ui5.Info) { sap.ui.require([` && |\n| &&
+      `    "sap/ui/VersionInfo",` && |\n| &&
+      `    "sap/base/util/Version"` && |\n| &&
+      `], function(VersionInfo, VersionUtil) {` && |\n| &&
+      `    //access the OpenUI5 version at runtime` && |\n| &&
+      `    VersionInfo.load().then(function(oCurrentVersionInfo) {` && |\n| &&
+      `        sap.z2ui5.oCurrentVersionInfo = oCurrentVersionInfo;` && |\n| &&
+      `    });` && |\n| &&
       `});` && |\n| &&
       ` sap.ui.define("z2ui5/Info",[` && |\n| &&
       `   "sap/ui/core/Control"` && |\n| &&

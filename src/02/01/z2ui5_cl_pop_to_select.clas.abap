@@ -80,19 +80,19 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
     DATA(popup) = z2ui5_cl_xml_view=>factory_popup( ).
     DATA(tab) = popup->table_select_dialog(
-              items   = `{path:'`
+              items            = `{path:'`
                                 && client->_bind_edit( val = <tab_out> path = abap_true )
                                 && `', sorter : { path : '` && to_upper( sort_field ) && `', descending : `
                                 && z2ui5_cl_util=>boolean_abap_2_json( me->descending )
                                 && ` } }`
-              cancel  = client->_event( 'CANCEL' )
-              search  = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
-              confirm = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
-              growing = abap_true
-              contentwidth = content_width
-              contentheight = content_height
+              cancel           = client->_event( 'CANCEL' )
+              search           = client->_event( val = 'SEARCH'  t_arg = VALUE #( ( `${$parameters>/value}` ) ( `${$parameters>/clearButtonPressed}` ) ) )
+              confirm          = client->_event( val = 'CONFIRM' t_arg = VALUE #( ( `${$parameters>/selectedContexts[0]/sPath}` ) ) )
+              growing          = abap_true
+              contentwidth     = content_width
+              contentheight    = content_height
               growingthreshold = growing_threshold
-              title   = title ).
+              title            = title ).
 
     DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
     DELETE lt_comp WHERE name = 'ZZSELKZ'.

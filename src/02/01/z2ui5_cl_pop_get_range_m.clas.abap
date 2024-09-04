@@ -69,7 +69,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
                              selectionchange = client->_event( 'SELCHANGE' )
                 )->custom_list_item( ).
 
-    DATA(grid) = item->grid(    class = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin` ).
+    DATA(grid) = item->grid( class = `sapUiSmallMarginTop sapUiSmallMarginBottom sapUiSmallMarginBegin` ).
     grid->text( `{NAME}` ).
 
     grid->multi_input( tokens = `{T_TOKEN}`
