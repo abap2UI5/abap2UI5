@@ -1528,6 +1528,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !id              TYPE clike OPTIONAL
                 !visible         TYPE clike OPTIONAL
                 !enabled         TYPE clike OPTIONAL
+                PREFERRED PARAMETER selected_key
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS checkbox
