@@ -1523,7 +1523,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS segmented_button
-      IMPORTING selected_key     TYPE clike
+      IMPORTING selected_key     TYPE clike OPTIONAL
                 selection_change TYPE clike OPTIONAL
                 !id              TYPE clike OPTIONAL
                 !visible         TYPE clike OPTIONAL
