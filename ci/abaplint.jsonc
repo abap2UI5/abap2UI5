@@ -54,6 +54,8 @@
     "invalid_table_index" : true,
     "macro_naming" : true,
     "prefer_pragmas" : true,
+    "add_test_attributes" : true,
+    "implicit_start_of_selection" : true,
     "reduce_procedural_code" : true,
     "tables_declared_locally" : true,
     "unused_macros" : true,
