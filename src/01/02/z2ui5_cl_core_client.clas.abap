@@ -122,6 +122,10 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_call.
 
+    IF app IS NOT BOUND.
+      z2ui5_cl_util=>x_raise( `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR` ).
+    ENDIF.
+
     mo_action->ms_next-o_app_call = app.
 
     IF app->id_app IS INITIAL.
@@ -133,8 +137,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~nav_app_leave.
 
-    IF app IS NOT BOUND.
+    IF app IS NOT SUPPLIED.
       app = z2ui5_if_client~get_app( z2ui5_if_client~get( )-s_draft-id_prev_app_stack ).
+    ENDIF.
+
+    IF app IS NOT BOUND.
+      z2ui5_cl_util=>x_raise( `NAV_APP_LEAVE_TO_INITIAL_APP_ERROR` ).
     ENDIF.
 
     mo_action->ms_next-o_app_leave = app.

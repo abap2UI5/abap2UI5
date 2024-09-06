@@ -189,6 +189,25 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
 
+    METHODS websocket
+      IMPORTING
+        !value        TYPE clike OPTIONAL
+        !received     TYPE clike OPTIONAL
+        !path         TYPE clike OPTIONAL
+        !checkrepeat  TYPE clike OPTIONAL
+        !checkactive  TYPE clike OPTIONAL
+          PREFERRED PARAMETER received
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
+    METHODS binding_update
+      IMPORTING
+        !changed      TYPE clike OPTIONAL
+        !path         TYPE clike OPTIONAL
+          PREFERRED PARAMETER changed
+      RETURNING
+        VALUE(result) TYPE REF TO z2ui5_cl_xml_view .
+
     METHODS chartjs
       IMPORTING
         !canvas_id    TYPE clike OPTIONAL
@@ -221,6 +240,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS constructor
       IMPORTING
         !view TYPE REF TO z2ui5_cl_xml_view .
+
   PROTECTED SECTION.
     DATA mo_view TYPE REF TO z2ui5_cl_xml_view.
   PRIVATE SECTION.
@@ -504,6 +524,36 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               ns            = `z2ui5`
               t_prop        = VALUE #( ( n = `delayMS`  v = delayms )
                                 ( n = `finished`  v = finished )
+                                ( n = `checkActive`  v = z2ui5_cl_util=>boolean_abap_2_json( checkactive ) )
+                                ( n = `checkRepeat`  v = z2ui5_cl_util=>boolean_abap_2_json( checkrepeat ) )
+              ) ).
+
+  ENDMETHOD.
+
+  METHOD binding_update.
+
+    result = mo_view.
+    mo_view->_generic( name = `BindingUpdate`
+              ns            = `z2ui5`
+              t_prop        = VALUE #(
+*                                 ( n = `value`  v = value )
+                                ( n = `path`  v = path )
+                                ( n = `changed`  v = changed )
+*                                ( n = `checkActive`  v = z2ui5_cl_util=>boolean_abap_2_json( checkactive ) )
+*                                ( n = `checkRepeat`  v = z2ui5_cl_util=>boolean_abap_2_json( checkrepeat ) )
+              ) ).
+
+  ENDMETHOD.
+
+
+  METHOD websocket.
+
+    result = mo_view.
+    mo_view->_generic( name = `Websocket`
+              ns            = `z2ui5`
+              t_prop        = VALUE #( ( n = `value`  v = value )
+                                ( n = `path`  v = path )
+                                ( n = `received`  v = received )
                                 ( n = `checkActive`  v = z2ui5_cl_util=>boolean_abap_2_json( checkactive ) )
                                 ( n = `checkRepeat`  v = z2ui5_cl_util=>boolean_abap_2_json( checkrepeat ) )
               ) ).
