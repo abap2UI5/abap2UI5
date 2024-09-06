@@ -174,7 +174,14 @@
     "max_one_statement": true,
     "message_exists": true,
     "method_implemented_twice": true,
-    "method_length": false,
+    "method_length": {
+  "exclude": [],
+  "severity": "Error",
+  "statements": 100,
+  "errorWhenEmpty": false,
+  "ignoreTestClasses": true,
+  "checkForms": true
+    },
     "method_overwrites_builtin": false,
     "method_parameter_names": false,
     "mix_returning": true,
