@@ -156,7 +156,7 @@
     "if_in_if": true,
     "implement_methods": true,
     "in_statement_indentation": false,
-    "indentation": false,
+    "indentation": true,
     "inline_data_old_versions": true,
     "intf_referencing_clas": false,
     "keep_single_parameter_on_one_line": false,
