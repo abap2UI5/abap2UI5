@@ -87,13 +87,7 @@
       "severity": "Error",
       "spaces": 1
     },
-    "cyclic_oo": {
-      "exclude": [],
-      "severity": "Error",
-      "skip": [],
-      "skipSharedMemory": true,
-      "skipTestclasses": true
-  },
+    "cyclic_oo": false,
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
