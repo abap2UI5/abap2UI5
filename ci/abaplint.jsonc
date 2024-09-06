@@ -88,7 +88,13 @@
       "severity": "Error",
       "spaces": 1
     },
-    "cyclic_oo": false,
+    "cyclic_oo": {
+      "exclude": [],
+      "severity": "Error",
+      "skip": [],
+      "skipSharedMemory": true,
+      "skipTestclasses": true
+  }
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
@@ -182,7 +188,7 @@
   "ignoreTestClasses": true,
   "checkForms": true
     },
-    "method_overwrites_builtin": false,
+    "method_overwrites_builtin": true,
     "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
