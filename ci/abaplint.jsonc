@@ -35,7 +35,6 @@
     },
     "ambiguous_statement": true,
     "avoid_use": {
-  "exclude": ["z2ui5_cl_util_stmpncfctn.clas.abap"],
   "severity": "Error",
   "skipQuickFix": false,
   "define": true,
@@ -156,7 +155,7 @@
     "if_in_if": true,
     "implement_methods": true,
     "in_statement_indentation": false,
-    "indentation": false,
+    "indentation": true,
     "inline_data_old_versions": true,
     "intf_referencing_clas": false,
     "keep_single_parameter_on_one_line": false,
@@ -174,8 +173,18 @@
     "max_one_statement": true,
     "message_exists": true,
     "method_implemented_twice": true,
-    "method_length": false,
-    "method_overwrites_builtin": false,
+    "method_length": {
+  "exclude": [],
+  "severity": "Error",
+  "statements": 100,
+  "errorWhenEmpty": false,
+  "ignoreTestClasses": true,
+  "checkForms": true
+    },
+    "method_overwrites_builtin": {
+  "exclude": [ "z2ui5_cl_xml_view" ],
+  "severity": "Error"
+},
     "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
@@ -229,7 +238,7 @@
     "parser_missing_space": true,
     "pragma_style": true,
     "prefer_corresponding": true,
-    "prefer_inline": false,
+    "prefer_inline": true,
     "prefer_is_not": true,
     "prefer_raise_exception_new": true,
     "prefer_returning_to_exporting": true,
