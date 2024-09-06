@@ -187,7 +187,10 @@
   "ignoreTestClasses": true,
   "checkForms": true
     },
-    "method_overwrites_builtin": true,
+    "method_overwrites_builtin": {
+  "exclude": ["z2ui5_cl_xml_view"],
+  "severity": "Error"
+}
     "method_parameter_names": false,
     "mix_returning": true,
     "modify_only_own_db_tables": {
