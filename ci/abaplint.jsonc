@@ -155,7 +155,7 @@
     "identical_form_names": true,
     "if_in_if": true,
     "implement_methods": true,
-    "in_statement_indentation": false,
+    "in_statement_indentation": true,
     "indentation": true,
     "inline_data_old_versions": true,
     "intf_referencing_clas": false,
