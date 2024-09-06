@@ -23,7 +23,7 @@ CLASS z2ui5_cl_pop_js_loader DEFINITION
         VALUE(result3) TYPE string.
 
     DATA mv_is_open_ui5 TYPE abap_bool.
-  DATA ui5_gav TYPE string.
+    DATA ui5_gav TYPE string.
 
   PROTECTED SECTION.
     DATA check_initialized TYPE abap_bool.
@@ -40,7 +40,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_POP_JS_LOADER IMPLEMENTATION.
+CLASS z2ui5_cl_pop_js_loader IMPLEMENTATION.
 
 
   METHOD factory.
