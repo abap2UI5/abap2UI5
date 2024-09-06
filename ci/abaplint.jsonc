@@ -35,7 +35,6 @@
     },
     "ambiguous_statement": true,
     "avoid_use": {
-  "exclude": ["z2ui5_cl_util_stmpncfctn.clas.abap"],
   "severity": "Error",
   "skipQuickFix": false,
   "define": true,
@@ -94,7 +93,7 @@
       "skip": [],
       "skipSharedMemory": true,
       "skipTestclasses": true
-  }
+  },
     "cyclomatic_complexity": {
       "exclude": [],
       "severity": "Error",
