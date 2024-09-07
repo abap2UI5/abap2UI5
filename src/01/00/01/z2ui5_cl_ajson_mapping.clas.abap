@@ -1,156 +1,156 @@
-class z2ui5_cl_ajson_mapping definition
-  public
-  final
-  create public.
+CLASS z2ui5_cl_ajson_mapping DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC.
 
-  public section.
+  PUBLIC SECTION.
 
-    constants:
-      begin of rename_by,
-        attr_name type i value 0,
-        full_path type i value 1,
-        pattern type i value 2,
+    CONSTANTS:
+      BEGIN OF rename_by,
+        attr_name TYPE i VALUE 0,
+        full_path TYPE i VALUE 1,
+        pattern TYPE i VALUE 2,
         " regex type i value 3, " TODO add if needed in future
-      end of rename_by.
+      END OF rename_by.
 
-    class-methods create_camel_case " DEPRECATED
-      importing
-        it_mapping_fields   type z2ui5_if_ajson_mapping=>ty_mapping_fields optional
-        iv_first_json_upper type abap_bool default abap_true
-      returning
-        value(ri_mapping)   type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_camel_case " DEPRECATED
+      IMPORTING
+        it_mapping_fields   TYPE z2ui5_if_ajson_mapping=>ty_mapping_fields OPTIONAL
+        iv_first_json_upper TYPE abap_bool DEFAULT abap_true
+      RETURNING
+        VALUE(ri_mapping)   TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_upper_case
-      importing
-        it_mapping_fields type z2ui5_if_ajson_mapping=>ty_mapping_fields optional
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_upper_case
+      IMPORTING
+        it_mapping_fields TYPE z2ui5_if_ajson_mapping=>ty_mapping_fields OPTIONAL
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_lower_case
-      importing
-        it_mapping_fields type z2ui5_if_ajson_mapping=>ty_mapping_fields optional
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_lower_case
+      IMPORTING
+        it_mapping_fields TYPE z2ui5_if_ajson_mapping=>ty_mapping_fields OPTIONAL
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_field_mapping " DEPRECATED
-      importing
-        it_mapping_fields type z2ui5_if_ajson_mapping=>ty_mapping_fields
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_field_mapping " DEPRECATED
+      IMPORTING
+        it_mapping_fields TYPE z2ui5_if_ajson_mapping=>ty_mapping_fields
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_rename
-      importing
-        it_rename_map type z2ui5_if_ajson_mapping=>tty_rename_map
-        iv_rename_by type i default rename_by-attr_name
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_rename
+      IMPORTING
+        it_rename_map TYPE z2ui5_if_ajson_mapping=>tty_rename_map
+        iv_rename_by TYPE i DEFAULT rename_by-attr_name
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_compound_mapper
-      importing
-        ii_mapper1 type ref to z2ui5_if_ajson_mapping optional
-        ii_mapper2 type ref to z2ui5_if_ajson_mapping optional
-        ii_mapper3 type ref to z2ui5_if_ajson_mapping optional
-        it_more type z2ui5_if_ajson_mapping=>ty_table_of optional
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_compound_mapper
+      IMPORTING
+        ii_mapper1 TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        ii_mapper2 TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        ii_mapper3 TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        it_more TYPE z2ui5_if_ajson_mapping=>ty_table_of OPTIONAL
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_to_snake_case
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_to_snake_case
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-    class-methods create_to_camel_case
-      importing
-        iv_first_json_upper type abap_bool default abap_false
-      returning
-        value(ri_mapping) type ref to z2ui5_if_ajson_mapping.
+    CLASS-METHODS create_to_camel_case
+      IMPORTING
+        iv_first_json_upper TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(ri_mapping) TYPE REF TO z2ui5_if_ajson_mapping.
 
-  protected section.
+  PROTECTED SECTION.
 
-  private section.
+  PRIVATE SECTION.
 
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_AJSON_MAPPING IMPLEMENTATION.
+CLASS z2ui5_cl_ajson_mapping IMPLEMENTATION.
 
 
-  method create_camel_case.
+  METHOD create_camel_case.
 
-    create object ri_mapping type lcl_mapping_camel
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_camel
+      EXPORTING
         it_mapping_fields   = it_mapping_fields
         iv_first_json_upper = iv_first_json_upper.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_compound_mapper.
+  METHOD create_compound_mapper.
 
-    data lt_queue type z2ui5_if_ajson_mapping=>ty_table_of.
+    DATA lt_queue TYPE z2ui5_if_ajson_mapping=>ty_table_of.
 
-    append ii_mapper1 to lt_queue.
-    append ii_mapper2 to lt_queue.
-    append ii_mapper3 to lt_queue.
-    append lines of it_more to lt_queue.
-    delete lt_queue where table_line is initial.
+    APPEND ii_mapper1 TO lt_queue.
+    APPEND ii_mapper2 TO lt_queue.
+    APPEND ii_mapper3 TO lt_queue.
+    APPEND LINES OF it_more TO lt_queue.
+    DELETE lt_queue WHERE table_line IS INITIAL.
 
-    create object ri_mapping type lcl_compound_mapper
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_compound_mapper
+      EXPORTING
         it_queue = lt_queue.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_field_mapping.
+  METHOD create_field_mapping.
 
-    create object ri_mapping type lcl_mapping_fields
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_fields
+      EXPORTING
         it_mapping_fields = it_mapping_fields.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_lower_case.
+  METHOD create_lower_case.
 
-    create object ri_mapping type lcl_mapping_to_lower
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_lower
+      EXPORTING
         it_mapping_fields = it_mapping_fields.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_rename.
+  METHOD create_rename.
 
-    create object ri_mapping type lcl_rename
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_rename
+      EXPORTING
         it_rename_map = it_rename_map
         iv_rename_by = iv_rename_by.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_to_camel_case.
+  METHOD create_to_camel_case.
 
-    create object ri_mapping type lcl_to_camel
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_to_camel
+      EXPORTING
         iv_first_json_upper = iv_first_json_upper.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_to_snake_case.
+  METHOD create_to_snake_case.
 
-    create object ri_mapping type lcl_to_snake.
+    CREATE OBJECT ri_mapping TYPE lcl_to_snake.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_upper_case.
+  METHOD create_upper_case.
 
-    create object ri_mapping type lcl_mapping_to_upper
-      exporting
+    CREATE OBJECT ri_mapping TYPE lcl_mapping_to_upper
+      EXPORTING
         it_mapping_fields = it_mapping_fields.
 
-  endmethod.
+  ENDMETHOD.
 ENDCLASS.

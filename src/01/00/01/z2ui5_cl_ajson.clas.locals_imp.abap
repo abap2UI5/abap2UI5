@@ -59,25 +59,25 @@ CLASS lcl_utils DEFINITION FINAL.
 
     CLASS-METHODS normalize_path
       IMPORTING
-        iv_path        TYPE string
+        iv_path TYPE string
       RETURNING
         VALUE(rv_path) TYPE string.
     CLASS-METHODS split_path
       IMPORTING
-        iv_path             TYPE string
+        iv_path TYPE string
       RETURNING
         VALUE(rv_path_name) TYPE z2ui5_if_ajson_types=>ty_path_name.
     CLASS-METHODS validate_array_index
       IMPORTING
-        iv_path         TYPE string
-        iv_index        TYPE string
+        iv_path TYPE string
+        iv_index TYPE string
       RETURNING
         VALUE(rv_index) TYPE i
       RAISING
-        z2UI5_cx_ajson_error.
+        z2ui5_cx_ajson_error.
     CLASS-METHODS string_to_xstring_utf8
       IMPORTING
-        iv_str         TYPE string
+        iv_str TYPE string
       RETURNING
         VALUE(rv_xstr) TYPE xstring.
 
@@ -94,24 +94,24 @@ CLASS lcl_utils IMPLEMENTATION.
 
     TRY.
         CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
-          RECEIVING
-            instance = lo_conv.
+        RECEIVING
+          instance = lo_conv.
         CALL METHOD lo_conv->('IF_ABAP_CONV_OUT~CONVERT')
-          EXPORTING
-            source = iv_str
-          RECEIVING
-            result = rv_xstr.
+        EXPORTING
+          source = iv_str
+        RECEIVING
+          result = rv_xstr.
       CATCH cx_sy_dyn_call_illegal_class.
         CALL METHOD (lv_out_ce)=>create
-          EXPORTING
-            encoding = 'UTF-8'
-          RECEIVING
-            conv     = lo_conv.
+        EXPORTING
+          encoding = 'UTF-8'
+        RECEIVING
+          conv = lo_conv.
         CALL METHOD lo_conv->('CONVERT')
-          EXPORTING
-            data   = iv_str
-          IMPORTING
-            buffer = rv_xstr.
+        EXPORTING
+          data = iv_str
+        IMPORTING
+          buffer = rv_xstr.
     ENDTRY.
 
   ENDMETHOD.
@@ -137,7 +137,8 @@ CLASS lcl_utils IMPLEMENTATION.
     IF rv_path+0(1) <> '/'.
       rv_path = '/' && rv_path.
     ENDIF.
-    IF substring( val = rv_path off = strlen( rv_path ) - 1 ) <> '/'.
+    IF substring( val = rv_path
+                  off = strlen( rv_path ) - 1 ) <> '/'.
       rv_path = rv_path && '/'.
     ENDIF.
 
@@ -154,18 +155,24 @@ CLASS lcl_utils IMPLEMENTATION.
       RETURN. " empty path is the alias for root item = '' + ''
     ENDIF.
 
-    IF substring( val = iv_path off = lv_len - 1 ) = '/'.
+    IF substring( val = iv_path
+                  off = lv_len - 1 ) = '/'.
       lv_trim_slash = 1. " ignore last '/'
     ENDIF.
 
-    lv_offs = find( val = reverse( iv_path ) sub = '/' off = lv_trim_slash ).
+    lv_offs = find( val = reverse( iv_path )
+                    sub = '/'
+                    off = lv_trim_slash ).
     IF lv_offs = -1.
       lv_offs  = lv_len. " treat whole string as the 'name' part
     ENDIF.
     lv_offs = lv_len - lv_offs.
 
-    rv_path_name-path = normalize_path( substring( val = iv_path len = lv_offs ) ).
-    rv_path_name-name = substring( val = iv_path off = lv_offs len = lv_len - lv_offs - lv_trim_slash ).
+    rv_path_name-path = normalize_path( substring( val = iv_path
+                                                   len = lv_offs ) ).
+    rv_path_name-name = substring( val = iv_path
+                                   off = lv_offs
+                                   len = lv_len - lv_offs - lv_trim_slash ).
 
   ENDMETHOD.
 
@@ -181,8 +188,8 @@ CLASS lcl_json_parser DEFINITION FINAL.
 
     METHODS parse
       IMPORTING
-        iv_json             TYPE string
-        iv_keep_item_order  TYPE abap_bool DEFAULT abap_false
+        iv_json TYPE string
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rt_json_tree) TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
@@ -205,7 +212,7 @@ CLASS lcl_json_parser DEFINITION FINAL.
 
     METHODS _parse
       IMPORTING
-        iv_json             TYPE string
+        iv_json TYPE string
       RETURNING
         VALUE(rt_json_tree) TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
@@ -230,21 +237,21 @@ CLASS lcl_json_parser IMPLEMENTATION.
     mv_keep_item_order = iv_keep_item_order.
 
     TRY.
-        " TODO sane JSON check:
-        " JSON can be true,false,null,(-)digits
-        " or start from " or from {
+      " TODO sane JSON check:
+      " JSON can be true,false,null,(-)digits
+      " or start from " or from {
         rt_json_tree = _parse( iv_json ).
       CATCH cx_sxml_parse_error INTO lx_sxml_parse.
         lv_location = _get_location(
-          iv_json   = iv_json
-          iv_offset = lx_sxml_parse->xml_offset ).
+        iv_json   = iv_json
+        iv_offset = lx_sxml_parse->xml_offset ).
         z2ui5_cx_ajson_error=>raise(
-          iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
-          iv_location = lv_location ).
+        iv_msg      = |Json parsing error (SXML): { lx_sxml_parse->get_text( ) }|
+        iv_location = lv_location ).
       CATCH cx_dynamic_check INTO lx_sxml. " cx_sxml_error
         z2ui5_cx_ajson_error=>raise(
-          iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
-          iv_location = '@PARSER' ).
+        iv_msg      = |Json parsing error (SXML): { lx_sxml->get_text( ) }|
+        iv_location = '@PARSER' ).
     ENDTRY.
 
   ENDMETHOD.
@@ -253,7 +260,7 @@ CLASS lcl_json_parser IMPLEMENTATION.
 
     DATA lv_json TYPE string.
     DATA lv_offset TYPE i.
-    DATA lt_text TYPE STANDARD TABLE OF string.
+    DATA lt_text TYPE TABLE OF string.
     DATA lv_text TYPE string.
     DATA lv_line TYPE i.
     DATA lv_pos TYPE i.
@@ -361,7 +368,8 @@ CLASS lcl_json_parser IMPLEMENTATION.
           ENDIF.
 
           " remove last path component
-          mv_stack_path = substring( val = mv_stack_path len = find( val = mv_stack_path sub = '/' occ = -2 ) + 1 ).
+          mv_stack_path = substring( val = mv_stack_path
+                                     len = find( val = mv_stack_path sub = '/' occ = -2 ) + 1 ).
         WHEN if_sxml_node=>co_nt_value.
           DATA lo_value TYPE REF TO if_sxml_value_node.
           lo_value ?= lo_node.
@@ -398,9 +406,9 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
 
     CLASS-METHODS stringify
       IMPORTING
-        it_json_tree          TYPE z2ui5_if_ajson_types=>ty_nodes_ts
-        iv_indent             TYPE i DEFAULT 0
-        iv_keep_item_order    TYPE abap_bool DEFAULT abap_false
+        it_json_tree TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        iv_indent TYPE i DEFAULT 0
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
       RETURNING
         VALUE(rv_json_string) TYPE string
       RAISING
@@ -420,7 +428,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
 
     CLASS-METHODS escape_string
       IMPORTING
-        iv_unescaped      TYPE string
+        iv_unescaped TYPE string
       RETURNING
         VALUE(rv_escaped) TYPE string.
 
@@ -439,7 +447,7 @@ CLASS lcl_json_serializer DEFINITION FINAL CREATE PRIVATE.
     METHODS stringify_set
       IMPORTING
         iv_parent_path TYPE string
-        iv_array       TYPE abap_bool
+        iv_array TYPE abap_bool
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -485,7 +493,8 @@ CLASS lcl_json_serializer IMPLEMENTATION.
     DATA lv_indent_prefix TYPE string.
 
     IF mv_indent_step > 0.
-      lv_indent_prefix = repeat( val = ` ` occ = mv_indent_step * mv_level ).
+      lv_indent_prefix = repeat( val = ` `
+                                 occ = mv_indent_step * mv_level ).
       lv_item = lv_indent_prefix.
     ENDIF.
 
@@ -641,7 +650,7 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS to_abap
       IMPORTING
-        it_nodes    TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+        it_nodes     TYPE z2ui5_if_ajson_types=>ty_nodes_ts
       CHANGING
         c_container TYPE any
       RAISING
@@ -689,16 +698,16 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS any_to_abap
       IMPORTING
-        iv_path         TYPE string
-        is_parent_type  TYPE ty_type_cache OPTIONAL
+        iv_path        TYPE string
+        is_parent_type TYPE ty_type_cache OPTIONAL
         i_container_ref TYPE REF TO data
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS value_to_abap
       IMPORTING
-        is_node         TYPE z2ui5_if_ajson_types=>ty_node
-        is_node_type    TYPE ty_type_cache
+        is_node      TYPE z2ui5_if_ajson_types=>ty_node
+        is_node_type TYPE ty_type_cache
         i_container_ref TYPE REF TO data
       RAISING
         z2ui5_cx_ajson_error
@@ -706,9 +715,9 @@ CLASS lcl_json_to_abap DEFINITION FINAL.
 
     METHODS get_node_type
       IMPORTING
-        is_node             TYPE z2ui5_if_ajson_types=>ty_node OPTIONAL " Empty for root
-        is_parent_type      TYPE ty_type_cache OPTIONAL
-        i_container_ref     TYPE REF TO data OPTIONAL
+        is_node            TYPE z2ui5_if_ajson_types=>ty_node OPTIONAL " Empty for root
+        is_parent_type     TYPE ty_type_cache OPTIONAL
+        i_container_ref    TYPE REF TO data OPTIONAL
       RETURNING
         VALUE(rs_node_type) TYPE ty_type_cache
       RAISING
@@ -852,16 +861,16 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
     TRY.
 
-        " array_index because stringified index goes in wrong order [1, 10, 2 ...]
+      " array_index because stringified index goes in wrong order [1, 10, 2 ...]
         LOOP AT mr_nodes->* ASSIGNING <n> USING KEY array_index WHERE path = iv_path.
 
-          " Get or create type cache record
+        " Get or create type cache record
           IF is_parent_type-type_kind <> lif_kind=>table OR ls_node_type-type_kind IS INITIAL.
-            " table records are the same, no need to refetch twice
+          " table records are the same, no need to refetch twice
 
             ls_node_type = get_node_type(
-              is_node        = <n>
-              is_parent_type = is_parent_type ).
+            is_node        = <n>
+            is_parent_type = is_parent_type ).
 
             IF mv_corresponding = abap_true AND ls_node_type IS INITIAL.
               CONTINUE.
@@ -869,24 +878,26 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
           ENDIF.
 
-          " Validate node type
+        " Validate node type
           IF ls_node_type-type_kind = lif_kind=>data_ref OR
-             ls_node_type-type_kind = lif_kind=>object_ref.
-            " TODO maybe in future
+           ls_node_type-type_kind = lif_kind=>object_ref.
+          " TODO maybe in future
             z2ui5_cx_ajson_error=>raise( 'Cannot assign to ref' ).
           ENDIF.
 
-          " Find target field reference
+        " Find target field reference
           CASE is_parent_type-type_kind.
             WHEN lif_kind=>table.
               IF NOT ls_node_type-target_field_name CO '0123456789'.
-                " Does not affect anything actually but for integrity
+              " Does not affect anything actually but for integrity
                 z2ui5_cx_ajson_error=>raise( 'Need index to access tables' ).
               ENDIF.
 
               IF is_parent_type-tab_item_buf IS NOT BOUND. " Indirect hint that table was srt/hsh, see get_node_type
                 APPEND INITIAL LINE TO <parent_stdtab> REFERENCE INTO lr_target_field.
                 ASSERT sy-subrc = 0.
+              ELSE.
+                CLEAR <tab_item>.
               ENDIF.
 
             WHEN lif_kind=>struct_flat OR lif_kind=>struct_deep.
@@ -902,32 +913,32 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
               z2ui5_cx_ajson_error=>raise( 'Unexpected parent type' ).
           ENDCASE.
 
-          " Process value assignment
+        " Process value assignment
           CASE <n>-type.
             WHEN z2ui5_if_ajson_types=>node_type-object.
               IF ls_node_type-type_kind <> lif_kind=>struct_flat AND
-                 ls_node_type-type_kind <> lif_kind=>struct_deep.
+               ls_node_type-type_kind <> lif_kind=>struct_deep.
                 z2ui5_cx_ajson_error=>raise( 'Expected structure' ).
               ENDIF.
               any_to_abap(
-                iv_path         = <n>-path && <n>-name && '/'
-                is_parent_type  = ls_node_type
-                i_container_ref = lr_target_field ).
+              iv_path         = <n>-path && <n>-name && '/'
+              is_parent_type  = ls_node_type
+              i_container_ref = lr_target_field ).
 
             WHEN z2ui5_if_ajson_types=>node_type-array.
               IF NOT ls_node_type-type_kind = lif_kind=>table.
                 z2ui5_cx_ajson_error=>raise( 'Expected table' ).
               ENDIF.
               any_to_abap(
-                iv_path         = <n>-path && <n>-name && '/'
-                is_parent_type  = ls_node_type
-                i_container_ref = lr_target_field ).
+              iv_path         = <n>-path && <n>-name && '/'
+              is_parent_type  = ls_node_type
+              i_container_ref = lr_target_field ).
 
             WHEN OTHERS.
               value_to_abap(
-                is_node         = <n>
-                is_node_type    = ls_node_type
-                i_container_ref = lr_target_field ).
+              is_node         = <n>
+              is_node_type    = ls_node_type
+              i_container_ref = lr_target_field ).
           ENDCASE.
 
           IF is_parent_type-tab_item_buf IS BOUND. " Indirect hint that table was sorted/hashed, see get_node_type.
@@ -950,12 +961,12 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         RAISE EXCEPTION lx_ajson.
       CATCH cx_sy_conversion_no_number.
         z2ui5_cx_ajson_error=>raise(
-          iv_msg = 'Source is not a number'
-          iv_location = <n>-path && <n>-name ).
+        iv_msg = 'Source is not a number'
+        iv_location = <n>-path && <n>-name ).
       CATCH cx_root INTO lx_root.
         z2ui5_cx_ajson_error=>raise(
-          iv_msg = lx_root->get_text( )
-          iv_location = <n>-path && <n>-name ).
+        iv_msg = lx_root->get_text( )
+        iv_location = <n>-path && <n>-name ).
     ENDTRY.
 
   ENDMETHOD.
@@ -1011,7 +1022,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
     DATA lv_m TYPE c LENGTH 2.
     DATA lv_d TYPE c LENGTH 2.
 
-    FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
+    FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)'
       IN iv_value
       SUBMATCHES lv_y lv_m lv_d.
     IF sy-subrc <> 0.
@@ -1025,9 +1036,9 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
 
     CONSTANTS lc_utc TYPE c LENGTH 6 VALUE 'UTC'.
     CONSTANTS lc_regex_ts_with_hour TYPE string
-      VALUE `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\+)(\d{2}):(\d{2})`. "#EC NOTEXT
+      VALUE `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(\+)(\d{2}):(\d{2})`.
     CONSTANTS lc_regex_ts_utc TYPE string
-      VALUE `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(Z|$)`. "#EC NOTEXT
+      VALUE `^(\d{4})-(\d{2})-(\d{2})(T)(\d{2}):(\d{2}):(\d{2})(Z|$)`.
 
     DATA:
       BEGIN OF ls_timestamp,
@@ -1081,12 +1092,12 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
         CASE ls_timestamp-local_sign.
           WHEN '-'.
             lv_timestamp = cl_abap_tstmp=>add(
-              tstmp = lv_timestamp
-              secs  = lv_seconds_conv ).
+            tstmp = lv_timestamp
+            secs  = lv_seconds_conv ).
           WHEN '+'.
             lv_timestamp = cl_abap_tstmp=>subtractsecs(
-              tstmp = lv_timestamp
-              secs  = lv_seconds_conv ).
+            tstmp = lv_timestamp
+            secs  = lv_seconds_conv ).
         ENDCASE.
 
       CATCH cx_parameter_invalid_range cx_parameter_invalid_type.
@@ -1109,7 +1120,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
     DATA lv_m TYPE c LENGTH 2.
     DATA lv_s TYPE c LENGTH 2.
 
-    FIND FIRST OCCURRENCE OF REGEX '^(\d{2}):(\d{2}):(\d{2})(T|$)' "#EC NOTEXT
+    FIND FIRST OCCURRENCE OF REGEX '^(\d{2}):(\d{2}):(\d{2})(T|$)'
       IN iv_value
       SUBMATCHES lv_h lv_m lv_s.
     IF sy-subrc <> 0.
@@ -1130,12 +1141,12 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
 
     CLASS-METHODS convert
       IMPORTING
-        iv_data           TYPE any
-        is_prefix         TYPE z2ui5_if_ajson_types=>ty_path_name OPTIONAL
-        iv_array_index    TYPE i DEFAULT 0
-        ii_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-        is_opts           TYPE z2ui5_if_ajson=>ty_opts OPTIONAL
-        iv_item_order     TYPE i DEFAULT 0
+        iv_data            TYPE any
+        is_prefix          TYPE z2ui5_if_ajson_types=>ty_path_name OPTIONAL
+        iv_array_index     TYPE i DEFAULT 0
+        ii_custom_mapping  TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        is_opts            TYPE z2ui5_if_ajson=>ty_opts OPTIONAL
+        iv_item_order      TYPE i DEFAULT 0
       RETURNING
         VALUE(rt_nodes)   TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
@@ -1143,13 +1154,13 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
 
     CLASS-METHODS insert_with_type
       IMPORTING
-        iv_data           TYPE any
-        iv_type           TYPE z2ui5_if_ajson_types=>ty_node_type
-        is_prefix         TYPE z2ui5_if_ajson_types=>ty_path_name OPTIONAL
-        iv_array_index    TYPE i DEFAULT 0
-        ii_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
-        is_opts           TYPE z2ui5_if_ajson=>ty_opts OPTIONAL
-        iv_item_order     TYPE i DEFAULT 0
+        iv_data            TYPE any
+        iv_type            TYPE z2ui5_if_ajson_types=>ty_node_type
+        is_prefix          TYPE z2ui5_if_ajson_types=>ty_path_name OPTIONAL
+        iv_array_index     TYPE i DEFAULT 0
+        ii_custom_mapping  TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        is_opts            TYPE z2ui5_if_ajson=>ty_opts OPTIONAL
+        iv_item_order      TYPE i DEFAULT 0
       RETURNING
         VALUE(rt_nodes)   TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
@@ -1157,17 +1168,17 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
 
     CLASS-METHODS format_date
       IMPORTING
-        iv_date       TYPE d
+        iv_date TYPE d
       RETURNING
         VALUE(rv_str) TYPE string.
     CLASS-METHODS format_time
       IMPORTING
-        iv_time       TYPE t
+        iv_time TYPE t
       RETURNING
         VALUE(rv_str) TYPE string.
     CLASS-METHODS format_timestamp
       IMPORTING
-        iv_ts         TYPE timestamp
+        iv_ts TYPE timestamp
       RETURNING
         VALUE(rv_str) TYPE string.
 
@@ -1182,84 +1193,84 @@ CLASS lcl_abap_to_json DEFINITION FINAL.
 
     METHODS convert_any
       IMPORTING
-        iv_data       TYPE any
-        io_type       TYPE REF TO cl_abap_typedescr
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        iv_data TYPE any
+        io_type TYPE REF TO cl_abap_typedescr
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS convert_ajson
       IMPORTING
-        io_json       TYPE REF TO z2ui5_if_ajson
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        io_json TYPE REF TO z2ui5_if_ajson
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS convert_value
       IMPORTING
-        iv_data       TYPE any
-        io_type       TYPE REF TO cl_abap_typedescr
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        iv_data TYPE any
+        io_type TYPE REF TO cl_abap_typedescr
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS convert_ref
       IMPORTING
-        iv_data       TYPE any
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        iv_data TYPE any
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS convert_struc
       IMPORTING
-        iv_data       TYPE any
-        io_type       TYPE REF TO cl_abap_typedescr
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        iv_data TYPE any
+        io_type TYPE REF TO cl_abap_typedescr
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS convert_table
       IMPORTING
-        iv_data       TYPE any
-        io_type       TYPE REF TO cl_abap_typedescr
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        iv_data TYPE any
+        io_type TYPE REF TO cl_abap_typedescr
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
     METHODS insert_value_with_type
       IMPORTING
-        iv_data       TYPE any
-        iv_type       TYPE z2ui5_if_ajson_types=>ty_node_type
-        io_type       TYPE REF TO cl_abap_typedescr
-        is_prefix     TYPE z2ui5_if_ajson_types=>ty_path_name
-        iv_index      TYPE i DEFAULT 0
+        iv_data TYPE any
+        iv_type TYPE z2ui5_if_ajson_types=>ty_node_type
+        io_type TYPE REF TO cl_abap_typedescr
+        is_prefix TYPE z2ui5_if_ajson_types=>ty_path_name
+        iv_index TYPE i DEFAULT 0
         iv_item_order TYPE i DEFAULT 0
       CHANGING
-        ct_nodes      TYPE z2ui5_if_ajson_types=>ty_nodes_tt
+        ct_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -1740,7 +1751,7 @@ INTERFACE lif_mutator_runner.
     IMPORTING
       it_source_tree TYPE z2ui5_if_ajson_types=>ty_nodes_ts
     EXPORTING
-      et_dest_tree   TYPE z2ui5_if_ajson_types=>ty_nodes_ts
+      et_dest_tree TYPE z2ui5_if_ajson_types=>ty_nodes_ts
     RAISING
       z2ui5_cx_ajson_error.
 ENDINTERFACE.
@@ -1754,7 +1765,7 @@ CLASS lcl_filter_runner DEFINITION FINAL.
     INTERFACES lif_mutator_runner.
     CLASS-METHODS new
       IMPORTING
-        ii_filter          TYPE REF TO z2ui5_if_ajson_filter
+        ii_filter TYPE REF TO z2ui5_if_ajson_filter
       RETURNING
         VALUE(ro_instance) TYPE REF TO lcl_filter_runner.
     METHODS constructor
@@ -1768,7 +1779,7 @@ CLASS lcl_filter_runner DEFINITION FINAL.
 
     METHODS walk
       IMPORTING
-        iv_path   TYPE string
+        iv_path TYPE string
       CHANGING
         cs_parent TYPE z2ui5_if_ajson_types=>ty_node OPTIONAL
       RAISING
@@ -1866,7 +1877,7 @@ CLASS lcl_mapper_runner DEFINITION FINAL.
     INTERFACES lif_mutator_runner.
     CLASS-METHODS new
       IMPORTING
-        ii_mapper          TYPE REF TO z2ui5_if_ajson_mapping
+        ii_mapper TYPE REF TO z2ui5_if_ajson_mapping
       RETURNING
         VALUE(ro_instance) TYPE REF TO lcl_mapper_runner.
     METHODS constructor
@@ -1980,7 +1991,7 @@ CLASS lcl_mutator_queue DEFINITION FINAL.
         VALUE(ro_instance) TYPE REF TO lcl_mutator_queue.
     METHODS add
       IMPORTING
-        ii_mutator     TYPE REF TO lif_mutator_runner
+        ii_mutator TYPE REF TO lif_mutator_runner
       RETURNING
         VALUE(ro_self) TYPE REF TO lcl_mutator_queue.
 

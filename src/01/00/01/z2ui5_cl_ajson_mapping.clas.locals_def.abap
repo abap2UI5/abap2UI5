@@ -1,116 +1,116 @@
-class lcl_mapping_fields definition.
+CLASS lcl_mapping_fields DEFINITION.
 
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
 
-    methods constructor
-      importing
-        it_mapping_fields type z2ui5_if_ajson_mapping~ty_mapping_fields optional.
+    METHODS constructor
+      IMPORTING
+        it_mapping_fields TYPE z2ui5_if_ajson_mapping~ty_mapping_fields OPTIONAL.
 
-  protected section.
+  PROTECTED SECTION.
 
-  private section.
-    data mt_mapping_fields type z2ui5_if_ajson_mapping~ty_mapping_fields.
+  PRIVATE SECTION.
+    DATA mt_mapping_fields TYPE z2ui5_if_ajson_mapping~ty_mapping_fields.
 
-endclass.
+ENDCLASS.
 
-class lcl_rename definition.
+CLASS lcl_rename DEFINITION.
 
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
 
-    methods constructor
-      importing
-        it_rename_map type z2ui5_if_ajson_mapping~tty_rename_map
-        iv_rename_by type i.
+    METHODS constructor
+      IMPORTING
+        it_rename_map TYPE z2ui5_if_ajson_mapping~tty_rename_map
+        iv_rename_by TYPE i.
 
-  protected section.
+  PROTECTED SECTION.
 
-  private section.
-    data mt_rename_map type z2ui5_if_ajson_mapping~tty_rename_map.
-    data mv_rename_by type i.
+  PRIVATE SECTION.
+    DATA mt_rename_map TYPE z2ui5_if_ajson_mapping~tty_rename_map.
+    DATA mv_rename_by TYPE i.
 
-endclass.
+ENDCLASS.
 
-class lcl_mapping_to_upper definition.
+CLASS lcl_mapping_to_upper DEFINITION.
 
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
 
-    methods constructor
-      importing
-        it_mapping_fields type z2ui5_if_ajson_mapping~ty_mapping_fields optional.
+    METHODS constructor
+      IMPORTING
+        it_mapping_fields TYPE z2ui5_if_ajson_mapping~ty_mapping_fields OPTIONAL.
 
-  protected section.
+  PROTECTED SECTION.
 
-  private section.
-    data mi_mapping_fields type ref to z2ui5_if_ajson_mapping.
+  PRIVATE SECTION.
+    DATA mi_mapping_fields TYPE REF TO z2ui5_if_ajson_mapping.
 
-endclass.
-
-
-class lcl_mapping_to_lower definition.
-
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
-
-    methods constructor
-      importing
-        it_mapping_fields type z2ui5_if_ajson_mapping~ty_mapping_fields optional.
-
-  protected section.
-
-  private section.
-    data mi_mapping_fields type ref to z2ui5_if_ajson_mapping.
-
-endclass.
+ENDCLASS.
 
 
-class lcl_mapping_camel definition.
+CLASS lcl_mapping_to_lower DEFINITION.
 
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
 
-    methods constructor
-      importing
-        it_mapping_fields   type z2ui5_if_ajson_mapping~ty_mapping_fields optional
-        iv_first_json_upper type abap_bool default abap_true.
+    METHODS constructor
+      IMPORTING
+        it_mapping_fields TYPE z2ui5_if_ajson_mapping~ty_mapping_fields OPTIONAL.
 
-  protected section.
+  PROTECTED SECTION.
 
-  private section.
-    data mv_first_json_upper type abap_bool.
-    data mi_mapping_fields type ref to z2ui5_if_ajson_mapping.
+  PRIVATE SECTION.
+    DATA mi_mapping_fields TYPE REF TO z2ui5_if_ajson_mapping.
 
-endclass.
+ENDCLASS.
 
-class lcl_compound_mapper definition.
 
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
+CLASS lcl_mapping_camel DEFINITION.
 
-    methods constructor
-      importing
-        it_queue type z2ui5_if_ajson_mapping=>ty_table_of.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
 
-  protected section.
+    METHODS constructor
+      IMPORTING
+        it_mapping_fields   TYPE z2ui5_if_ajson_mapping~ty_mapping_fields OPTIONAL
+        iv_first_json_upper TYPE abap_bool DEFAULT abap_true.
 
-  private section.
-    data mt_queue type z2ui5_if_ajson_mapping=>ty_table_of.
+  PROTECTED SECTION.
 
-endclass.
+  PRIVATE SECTION.
+    DATA mv_first_json_upper TYPE abap_bool.
+    DATA mi_mapping_fields TYPE REF TO z2ui5_if_ajson_mapping.
 
-class lcl_to_snake definition.
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
-endclass.
+ENDCLASS.
 
-class lcl_to_camel definition.
-  public section.
-    interfaces z2ui5_if_ajson_mapping.
-    methods constructor
-      importing
-        iv_first_json_upper type abap_bool.
-  private section.
-    data mv_first_json_upper type abap_bool.
-endclass.
+CLASS lcl_compound_mapper DEFINITION.
+
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
+
+    METHODS constructor
+      IMPORTING
+        it_queue TYPE z2ui5_if_ajson_mapping=>ty_table_of.
+
+  PROTECTED SECTION.
+
+  PRIVATE SECTION.
+    DATA mt_queue TYPE z2ui5_if_ajson_mapping=>ty_table_of.
+
+ENDCLASS.
+
+CLASS lcl_to_snake DEFINITION.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
+ENDCLASS.
+
+CLASS lcl_to_camel DEFINITION.
+  PUBLIC SECTION.
+    INTERFACES z2ui5_if_ajson_mapping.
+    METHODS constructor
+      IMPORTING
+        iv_first_json_upper TYPE abap_bool.
+  PRIVATE SECTION.
+    DATA mv_first_json_upper TYPE abap_bool.
+ENDCLASS.

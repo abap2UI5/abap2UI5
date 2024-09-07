@@ -1,4 +1,4 @@
-class Z2UI5_CX_AJSON_ERROR definition
+class z2ui5_cx_ajson_error definition
   public
   inheriting from CX_STATIC_CHECK
   final
@@ -45,7 +45,7 @@ public section.
       !IV_LOCATION type STRING optional
       !IS_NODE type ANY optional
     raising
-      Z2UI5_CX_AJSON_ERROR .
+      z2ui5_cx_ajson_error .
   methods SET_LOCATION
     importing
       !IV_LOCATION type STRING optional
@@ -64,10 +64,10 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CX_AJSON_ERROR IMPLEMENTATION.
+CLASS z2ui5_cx_ajson_error IMPLEMENTATION.
 
 
-method CONSTRUCTOR ##ADT_SUPPRESS_GENERATION.
+method CONSTRUCTOR.
 CALL METHOD SUPER->CONSTRUCTOR
 EXPORTING
 PREVIOUS = PREVIOUS

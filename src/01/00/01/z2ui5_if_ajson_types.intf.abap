@@ -1,41 +1,41 @@
-interface z2ui5_if_ajson_types
-  public.
+INTERFACE z2ui5_if_ajson_types
+  PUBLIC.
 
-  types:
-    ty_node_type type string.
+  TYPES:
+    ty_node_type TYPE string.
 
-  constants:
-    begin of node_type,
-      boolean type ty_node_type value 'bool',
-      string  type ty_node_type value 'str',
-      number  type ty_node_type value 'num',
-      null    type ty_node_type value 'null',
-      array   type ty_node_type value 'array',
-      object  type ty_node_type value 'object',
-    end of node_type.
+  CONSTANTS:
+    BEGIN OF node_type,
+      boolean TYPE ty_node_type VALUE 'bool',
+      string  TYPE ty_node_type VALUE 'str',
+      number  TYPE ty_node_type VALUE 'num',
+      null    TYPE ty_node_type VALUE 'null',
+      array   TYPE ty_node_type VALUE 'array',
+      object  TYPE ty_node_type VALUE 'object',
+    END OF node_type.
 
-  types:
-    begin of ty_node,
-      path type string,
-      name type string,
-      type type ty_node_type,
-      value type string,
-      index type i,
-      order type i,
-      children type i,
-    end of ty_node.
-  types:
-    ty_nodes_tt TYPE STANDARD TABLE OF ty_node with key path name.
-  types:
-    ty_nodes_ts type sorted table of ty_node
-      with unique key path name
-      with non-unique sorted key array_index components path index
-      with non-unique sorted key item_order components path order.
+  TYPES:
+    BEGIN OF ty_node,
+      path TYPE string,
+      name TYPE string,
+      type TYPE ty_node_type,
+      value TYPE string,
+      index TYPE i,
+      order TYPE i,
+      children TYPE i,
+    END OF ty_node.
+  TYPES:
+    ty_nodes_tt TYPE STANDARD TABLE OF ty_node WITH KEY path name.
+  TYPES:
+    ty_nodes_ts TYPE SORTED TABLE OF ty_node
+      WITH UNIQUE KEY path name
+      WITH NON-UNIQUE SORTED KEY array_index COMPONENTS path index
+      WITH NON-UNIQUE SORTED KEY item_order COMPONENTS path order.
 
-  types:
-    begin of ty_path_name,
-      path type string,
-      name type string,
-    end of ty_path_name.
+  TYPES:
+    BEGIN OF ty_path_name,
+      path TYPE string,
+      name TYPE string,
+    END OF ty_path_name.
 
-endinterface.
+ENDINTERFACE.

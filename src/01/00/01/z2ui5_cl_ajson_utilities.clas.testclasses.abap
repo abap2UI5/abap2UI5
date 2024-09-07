@@ -2,72 +2,72 @@
 * UTIL
 **********************************************************************
 
-class lcl_nodes_helper definition final.
-  public section.
+CLASS lcl_nodes_helper DEFINITION FINAL.
+  PUBLIC SECTION.
 
-    data mt_nodes type z2ui5_if_ajson_types=>ty_nodes_tt read-only.
+    DATA mt_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt READ-ONLY.
 
-    methods add
-      importing
-        iv_str type string.
-    methods sorted
-      returning
-        value(rt_nodes) type z2ui5_if_ajson_types=>ty_nodes_ts.
+    METHODS add
+      IMPORTING
+        iv_str TYPE string.
+    METHODS sorted
+      RETURNING
+        VALUE(rt_nodes) TYPE z2ui5_if_ajson_types=>ty_nodes_ts.
 
-endclass.
+ENDCLASS.
 
-class lcl_nodes_helper implementation.
-  method add.
+CLASS lcl_nodes_helper IMPLEMENTATION.
+  METHOD add.
 
-    field-symbols <n> like line of mt_nodes.
-    data lv_children type string.
-    data lv_index type string.
+    FIELD-SYMBOLS <n> LIKE LINE OF mt_nodes.
+    DATA lv_children TYPE string.
+    DATA lv_index TYPE string.
 
-    append initial line to mt_nodes assigning <n>.
+    APPEND INITIAL LINE TO mt_nodes ASSIGNING <n>.
 
-    split iv_str at '|' into
+    SPLIT iv_str AT '|' INTO
       <n>-path
       <n>-name
       <n>-type
       <n>-value
       lv_index
       lv_children.
-    condense <n>-path.
-    condense <n>-name.
-    condense <n>-type.
-    condense <n>-value.
+    CONDENSE <n>-path.
+    CONDENSE <n>-name.
+    CONDENSE <n>-type.
+    CONDENSE <n>-value.
     <n>-index = lv_index.
     <n>-children = lv_children.
 
-  endmethod.
+  ENDMETHOD.
 
-  method sorted.
+  METHOD sorted.
     rt_nodes = mt_nodes.
-  endmethod.
-endclass.
+  ENDMETHOD.
+ENDCLASS.
 
 **********************************************************************
 * PARSER
 **********************************************************************
 
-class ltcl_parser_test definition final
-  for testing
-  risk level harmless
-  duration short.
+CLASS ltcl_parser_test DEFINITION FINAL
+  FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
 
-  public section.
+  PUBLIC SECTION.
 
-    class-methods sample_json
-      importing
-        iv_separator   type string optional
-      returning
-        value(rv_json) type string.
+    CLASS-METHODS sample_json
+      IMPORTING
+        iv_separator   TYPE string OPTIONAL
+      RETURNING
+        VALUE(rv_json) TYPE string.
 
-endclass.
+ENDCLASS.
 
-class ltcl_parser_test implementation.
+CLASS ltcl_parser_test IMPLEMENTATION.
 
-  method sample_json.
+  METHOD sample_json.
 
     rv_json =
       '{\n' &&
@@ -108,46 +108,46 @@ class ltcl_parser_test implementation.
       '  ]\n' &&
       '}'.
 
-    replace all occurrences of '\n' in rv_json with iv_separator.
+    REPLACE ALL OCCURRENCES OF '\n' IN rv_json WITH iv_separator.
 
-  endmethod.
+  ENDMETHOD.
 
-endclass.
+ENDCLASS.
 
 **********************************************************************
 * JSON UTILITIES
 **********************************************************************
 
-class ltcl_json_utils definition
-  for testing
-  risk level harmless
-  duration short
-  final.
+CLASS ltcl_json_utils DEFINITION
+  FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT
+  FINAL.
 
-  private section.
+  PRIVATE SECTION.
 
-    methods json_diff for testing raising z2UI5_cx_ajson_error.
-    methods json_diff_types for testing raising z2UI5_cx_ajson_error.
-    methods json_diff_arrays for testing raising z2UI5_cx_ajson_error.
-    methods json_merge for testing raising z2UI5_cx_ajson_error.
-    methods json_sort for testing raising z2UI5_cx_ajson_error.
-    methods is_equal for testing raising z2UI5_cx_ajson_error.
+    METHODS json_diff FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS json_diff_types FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS json_diff_arrays FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS json_merge FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS json_sort FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS is_equal FOR TESTING RAISING z2ui5_cx_ajson_error.
 
-endclass.
+ENDCLASS.
 
-class ltcl_json_utils implementation.
+CLASS ltcl_json_utils IMPLEMENTATION.
 
-  method json_diff.
+  METHOD json_diff.
 
-    data:
-      lv_json       type string,
-      lo_util       type ref to z2ui5_cl_ajson_utilities,
-      lo_insert     type ref to z2ui5_if_ajson,
-      lo_delete     type ref to z2ui5_if_ajson,
-      lo_change     type ref to z2ui5_if_ajson,
-      lo_insert_exp type ref to lcl_nodes_helper,
-      lo_delete_exp type ref to lcl_nodes_helper,
-      lo_change_exp type ref to lcl_nodes_helper.
+    DATA:
+      lv_json       TYPE string,
+      lo_util       TYPE REF TO z2ui5_cl_ajson_utilities,
+      lo_insert     TYPE REF TO z2ui5_if_ajson,
+      lo_delete     TYPE REF TO z2ui5_if_ajson,
+      lo_change     TYPE REF TO z2ui5_if_ajson,
+      lo_insert_exp TYPE REF TO lcl_nodes_helper,
+      lo_delete_exp TYPE REF TO lcl_nodes_helper,
+      lo_change_exp TYPE REF TO lcl_nodes_helper.
 
     lv_json =
       '{\n' &&
@@ -190,9 +190,9 @@ class ltcl_json_utils implementation.
       '  ]\n' &&
       '}'.
 
-    replace all occurrences of '\n' in lv_json with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json WITH cl_abap_char_utilities=>newline.
 
-    create object lo_insert_exp.
+    CREATE OBJECT lo_insert_exp.
     lo_insert_exp->add( '                |        |object |        |0|3' ).
     lo_insert_exp->add( '/               |boolean |str    |true    |0|0' ). " changed type (insert new)
     lo_insert_exp->add( '/               |issues  |array  |        |0|1' ).
@@ -201,7 +201,7 @@ class ltcl_json_utils implementation.
     lo_insert_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_insert_exp->add( '/issues/1/end/  |new     |num    |1       |0|0' ). " array insert
 
-    create object lo_delete_exp.
+    CREATE OBJECT lo_delete_exp.
     lo_delete_exp->add( '                |        |object |        |0|3' ).
     lo_delete_exp->add( '/               |boolean |bool   |true    |0|0' ). " changed type (delete old)
     lo_delete_exp->add( '/               |false   |bool   |false   |0|0' ). " delete
@@ -210,7 +210,7 @@ class ltcl_json_utils implementation.
     lo_delete_exp->add( '/issues/1/      |end     |object |        |0|1' ).
     lo_delete_exp->add( '/issues/1/end/  |row     |num    |4       |0|0' ). " array delete
 
-    create object lo_change_exp.
+    CREATE OBJECT lo_change_exp.
     lo_change_exp->add( '                |        |object |        |0|2' ).
     lo_change_exp->add( '/               |issues  |array  |        |0|1' ).
     lo_change_exp->add( '/               |number  |num    |789     |0|0' ). " changed value
@@ -218,13 +218,13 @@ class ltcl_json_utils implementation.
     lo_change_exp->add( '/issues/1/      |start   |object |        |0|1' ).
     lo_change_exp->add( '/issues/1/start/|row     |num    |5       |0|0' ). " array change
 
-    create object lo_util.
+    CREATE OBJECT lo_util.
 
     lo_util->diff(
-      exporting
+      EXPORTING
         iv_json_a = ltcl_parser_test=>sample_json( )
         iv_json_b = lv_json
-      importing
+      IMPORTING
         eo_insert = lo_insert
         eo_delete = lo_delete
         eo_change = lo_change ).
@@ -241,19 +241,19 @@ class ltcl_json_utils implementation.
       act = lo_change->mt_json_tree
       exp = lo_change_exp->mt_nodes ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method json_diff_types.
+  METHOD json_diff_types.
 
-    data:
-      lv_json_a     type string,
-      lv_json_b     type string,
-      lo_util       type ref to z2ui5_cl_ajson_utilities,
-      lo_insert     type ref to z2ui5_if_ajson,
-      lo_delete     type ref to z2ui5_if_ajson,
-      lo_change     type ref to z2ui5_if_ajson,
-      lo_insert_exp type ref to lcl_nodes_helper,
-      lo_delete_exp type ref to lcl_nodes_helper.
+    DATA:
+      lv_json_a     TYPE string,
+      lv_json_b     TYPE string,
+      lo_util       TYPE REF TO z2ui5_cl_ajson_utilities,
+      lo_insert     TYPE REF TO z2ui5_if_ajson,
+      lo_delete     TYPE REF TO z2ui5_if_ajson,
+      lo_change     TYPE REF TO z2ui5_if_ajson,
+      lo_insert_exp TYPE REF TO lcl_nodes_helper,
+      lo_delete_exp TYPE REF TO lcl_nodes_helper.
 
     " Change single value to array
     lv_json_a =
@@ -272,27 +272,27 @@ class ltcl_json_utils implementation.
       '  "number": 123\n' &&
       '}'.
 
-    replace all occurrences of '\n' in lv_json_a with cl_abap_char_utilities=>newline.
-    replace all occurrences of '\n' in lv_json_b with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    create object lo_insert_exp.
+    CREATE OBJECT lo_insert_exp.
     lo_insert_exp->add( '                |        |object |        |0|1' ).
     lo_insert_exp->add( '/               |string  |array  |        |0|3' ).
     lo_insert_exp->add( '/string/        |1       |str    |a       |1|0' ).
     lo_insert_exp->add( '/string/        |2       |str    |b       |2|0' ).
     lo_insert_exp->add( '/string/        |3       |str    |c       |3|0' ).
 
-    create object lo_delete_exp.
+    CREATE OBJECT lo_delete_exp.
     lo_delete_exp->add( '                |        |object |        |0|1' ).
     lo_delete_exp->add( '/               |string  |str    |abc     |0|0' ).
 
-    create object lo_util.
+    CREATE OBJECT lo_util.
 
     lo_util->diff(
-      exporting
+      EXPORTING
         iv_json_a = lv_json_a
         iv_json_b = lv_json_b
-      importing
+      IMPORTING
         eo_insert = lo_insert
         eo_delete = lo_delete
         eo_change = lo_change ).
@@ -311,10 +311,10 @@ class ltcl_json_utils implementation.
 
     " Change array to single value
     lo_util->diff(
-      exporting
+      EXPORTING
         iv_json_a = lv_json_b
         iv_json_b = lv_json_a
-      importing
+      IMPORTING
         eo_insert = lo_insert
         eo_delete = lo_delete
         eo_change = lo_change ).
@@ -331,18 +331,18 @@ class ltcl_json_utils implementation.
       act = lines( lo_change->mt_json_tree )
       exp = 0 ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method json_diff_arrays.
+  METHOD json_diff_arrays.
 
-    data:
-      lv_json_a     type string,
-      lv_json_b     type string,
-      lo_util       type ref to z2ui5_cl_ajson_utilities,
-      lo_insert     type ref to z2ui5_if_ajson,
-      lo_delete     type ref to z2ui5_if_ajson,
-      lo_change     type ref to z2ui5_if_ajson,
-      lo_insert_exp type ref to lcl_nodes_helper.
+    DATA:
+      lv_json_a     TYPE string,
+      lv_json_b     TYPE string,
+      lo_util       TYPE REF TO z2ui5_cl_ajson_utilities,
+      lo_insert     TYPE REF TO z2ui5_if_ajson,
+      lo_delete     TYPE REF TO z2ui5_if_ajson,
+      lo_change     TYPE REF TO z2ui5_if_ajson,
+      lo_insert_exp TYPE REF TO lcl_nodes_helper.
 
     " Add empty array
     lv_json_a =
@@ -356,17 +356,17 @@ class ltcl_json_utils implementation.
       '  "number": 123\n' &&
       '}'.
 
-    replace all occurrences of '\n' in lv_json_a with cl_abap_char_utilities=>newline.
-    replace all occurrences of '\n' in lv_json_b with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    create object lo_util.
+    CREATE OBJECT lo_util.
 
     " Empty arrays are ignored by default
     lo_util->diff(
-      exporting
+      EXPORTING
         iv_json_a = lv_json_a
         iv_json_b = lv_json_b
-      importing
+      IMPORTING
         eo_insert = lo_insert
         eo_delete = lo_delete
         eo_change = lo_change ).
@@ -385,16 +385,16 @@ class ltcl_json_utils implementation.
 
     " Keep empty arrays
     lo_util->diff(
-      exporting
+      EXPORTING
         iv_json_a = lv_json_a
         iv_json_b = lv_json_b
         iv_keep_empty_arrays = abap_true
-      importing
+      IMPORTING
         eo_insert = lo_insert
         eo_delete = lo_delete
         eo_change = lo_change ).
 
-    create object lo_insert_exp.
+    CREATE OBJECT lo_insert_exp.
     lo_insert_exp->add( '                |        |object |        |0|1' ).
     lo_insert_exp->add( '/               |names   |array  |        |0|0' ).
 
@@ -410,16 +410,16 @@ class ltcl_json_utils implementation.
       act = lines( lo_change->mt_json_tree )
       exp = 0 ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method json_merge.
+  METHOD json_merge.
 
-    data:
-      lv_json_a    type string,
-      lv_json_b    type string,
-      lo_util      type ref to z2ui5_cl_ajson_utilities,
-      lo_merge     type ref to z2ui5_if_ajson,
-      lo_merge_exp type ref to lcl_nodes_helper.
+    DATA:
+      lv_json_a    TYPE string,
+      lv_json_b    TYPE string,
+      lo_util      TYPE REF TO z2ui5_cl_ajson_utilities,
+      lo_merge     TYPE REF TO z2ui5_if_ajson,
+      lo_merge_exp TYPE REF TO lcl_nodes_helper.
 
     " Merge new value of b into a
     lv_json_a =
@@ -441,10 +441,10 @@ class ltcl_json_utils implementation.
       '  "float": 123.45\n' &&
       '}'.
 
-    replace all occurrences of '\n' in lv_json_a with cl_abap_char_utilities=>newline.
-    replace all occurrences of '\n' in lv_json_b with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_a WITH cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json_b WITH cl_abap_char_utilities=>newline.
 
-    create object lo_merge_exp.
+    CREATE OBJECT lo_merge_exp.
     lo_merge_exp->add( '                |        |object |        |0|3' ).
     lo_merge_exp->add( '/               |float   |num    |123.45  |0|0' ).
     lo_merge_exp->add( '/               |number  |num    |123     |0|0' ).
@@ -453,7 +453,7 @@ class ltcl_json_utils implementation.
     lo_merge_exp->add( '/string/        |2       |str    |c       |2|0' ).
     lo_merge_exp->add( '/string/        |3       |str    |b       |3|0' ).
 
-    create object lo_util.
+    CREATE OBJECT lo_util.
 
     lo_merge = lo_util->merge(
       iv_json_a = lv_json_a
@@ -463,15 +463,15 @@ class ltcl_json_utils implementation.
       act = lo_merge->mt_json_tree
       exp = lo_merge_exp->mt_nodes ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method json_sort.
+  METHOD json_sort.
 
-    data:
-      lv_json       type string,
-      lo_util       type ref to z2ui5_cl_ajson_utilities,
-      lv_sorted     type string,
-      lv_sorted_exp type string.
+    DATA:
+      lv_json       TYPE string,
+      lo_util       TYPE REF TO z2ui5_cl_ajson_utilities,
+      lv_sorted     TYPE string,
+      lv_sorted_exp TYPE string.
 
     lv_json =
       '{\n' &&
@@ -485,7 +485,7 @@ class ltcl_json_utils implementation.
       '  "date": "2020-03-15"\n' &&
       '}'.
 
-    replace all occurrences of '\n' in lv_json with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_json WITH cl_abap_char_utilities=>newline.
 
     lv_sorted_exp =
       '{\n' &&
@@ -499,9 +499,9 @@ class ltcl_json_utils implementation.
       '  "true": true\n' &&
       '}'.
 
-    replace all occurrences of '\n' in lv_sorted_exp with cl_abap_char_utilities=>newline.
+    REPLACE ALL OCCURRENCES OF '\n' IN lv_sorted_exp WITH cl_abap_char_utilities=>newline.
 
-    create object lo_util.
+    CREATE OBJECT lo_util.
 
     lv_sorted = lo_util->sort( iv_json = lv_json ).
 
@@ -509,9 +509,9 @@ class ltcl_json_utils implementation.
       act = lv_sorted
       exp = lv_sorted_exp ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method is_equal.
+  METHOD is_equal.
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ajson_utilities=>new( )->is_equal(
@@ -543,6 +543,6 @@ class ltcl_json_utils implementation.
         iv_json_b = '{"a":1,"b":2}' )
       exp = abap_false ).
 
-  endmethod.
+  ENDMETHOD.
 
-endclass.
+ENDCLASS.
