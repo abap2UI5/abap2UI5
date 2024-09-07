@@ -73,7 +73,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
               ev_container = <val> ).
 
         CATCH cx_root INTO DATA(x).
-          ASSERT x IS BOUND.
+          z2ui5_cl_util=>x_raise( |JSON_PARSING_ERROR: { x->get_text( ) } | ).
       ENDTRY.
     ENDLOOP.
 
