@@ -85,7 +85,7 @@ CLASS z2ui5_cl_abap_api DEFINITION
         classname   TYPE string,
         description TYPE string,
       END OF ty_s_class_descr.
-    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE EMPTY KEY.
+    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
 
     CLASS-METHODS context_check_abap_cloud
       RETURNING
