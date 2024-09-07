@@ -85,7 +85,7 @@ CLASS z2ui5_cl_abap_api DEFINITION
         classname   TYPE string,
         description TYPE string,
       END OF ty_s_class_descr.
-    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE DEFAULT KEY.
+    TYPES ty_t_classes TYPE STANDARD TABLE OF ty_s_class_descr WITH NON-UNIQUE EMPTY KEY.
 
     CLASS-METHODS context_check_abap_cloud
       RETURNING
@@ -476,7 +476,7 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
                    ( classname   = implementation_name
                      description = rtti_get_class_descr_on_cloud( implementation_name ) ) ).
 
-      CATCH cx_root INTO DATA(lx).
+      CATCH cx_root.
 
         ls_key-intkey = val.
 
@@ -722,7 +722,6 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
         rv_short_description = result.
 
   ENDMETHOD.
-
 
 
   METHOD rtti_get_t_attri_on_prem.
