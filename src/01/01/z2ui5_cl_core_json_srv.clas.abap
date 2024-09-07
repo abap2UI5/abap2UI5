@@ -53,24 +53,24 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
       AND view  = lv_view.
 *      TRY.
 
-          DATA(lo_val_front) = model->slice( lr_attri->name_client ).
-          IF lo_val_front IS NOT BOUND.
-            CONTINUE.
-          ENDIF.
+      DATA(lo_val_front) = model->slice( lr_attri->name_client ).
+      IF lo_val_front IS NOT BOUND.
+        CONTINUE.
+      ENDIF.
 
-          IF lr_attri->custom_mapper_back IS BOUND.
-            lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
-          ENDIF.
+      IF lr_attri->custom_mapper_back IS BOUND.
+        lo_val_front = lo_val_front->map( lr_attri->custom_mapper_back ).
+      ENDIF.
 
-          IF lr_attri->custom_filter_back IS BOUND.
-            lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
-          ENDIF.
+      IF lr_attri->custom_filter_back IS BOUND.
+        lo_val_front = lo_val_front->filter( lr_attri->custom_filter_back ).
+      ENDIF.
 
-          ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+      ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
 
-          lo_val_front->to_abap(
-            IMPORTING
-              ev_container = <val> ).
+      lo_val_front->to_abap(
+        IMPORTING
+          ev_container = <val> ).
 
 *        CATCH cx_root INTO DATA(x).
 *          ASSERT x IS BOUND.
