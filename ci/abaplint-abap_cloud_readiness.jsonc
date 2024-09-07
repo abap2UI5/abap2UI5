@@ -1,10 +1,11 @@
 {
   "global": {
-    "files": "/src/**/*.*"
+    "files": "/src/**/*.*",
+    "noIssues": [ "/src/01/00/01" ]
   },
   "dependencies": [
     {
-      "url": "https://github.com/abapedia/steampunk-2302-api",
+      "url": "https://github.com/abapedia/steampunk-2305-api-intersect-702",
       "folder": "/deps",
       "files": "/src/**/*.*"
     }
