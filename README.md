@@ -55,7 +55,7 @@
 * Compatibility with lower releases is ensured via automatic syntax downporting with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
 * ABAP for Cloud & Standard ABAP compatibility in a single codeline is made possible with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * Live demos in the browser are powered by [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) & [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
-* Automatic namespace renaming is supported by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
+* Automatic [**namespace renaming**](https://github.com/abap2UI5/abap2UI5-mirror-renamed) is supported by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
 * Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
 * The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
