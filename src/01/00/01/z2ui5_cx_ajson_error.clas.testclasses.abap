@@ -20,7 +20,9 @@ class ltcl_error implementation.
     data lx type ref to z2ui5_cx_ajson_error.
     data lv_msg type string.
 
-    lv_msg = repeat( val = 'a' occ = 50 ) && repeat( val = 'b' occ = 50 ) && '123'.
+    lv_msg = repeat( val = 'a'
+                     occ = 50 ) && repeat( val = 'b'
+                                           occ = 50 ) && '123'.
 
     try.
       z2ui5_cx_ajson_error=>raise( lv_msg ).
@@ -38,7 +40,8 @@ class ltcl_error implementation.
     data lx type ref to z2ui5_cx_ajson_error.
 
     try.
-      z2ui5_cx_ajson_error=>raise( iv_msg = 'a' iv_location = 'b' ).
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a'
+                                   iv_location = 'b' ).
       cl_abap_unit_assert=>fail( ).
     catch z2ui5_cx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -57,7 +60,8 @@ class ltcl_error implementation.
     ls_node-name = 'y'.
 
     try.
-      z2ui5_cx_ajson_error=>raise( iv_msg = 'a' is_node = ls_node ).
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a'
+                                   is_node = ls_node ).
       cl_abap_unit_assert=>fail( ).
     catch z2ui5_cx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(
@@ -72,7 +76,8 @@ class ltcl_error implementation.
     data lx type ref to z2ui5_cx_ajson_error.
 
     try.
-      z2ui5_cx_ajson_error=>raise( iv_msg = 'a' iv_location = 'b' ).
+      z2ui5_cx_ajson_error=>raise( iv_msg = 'a'
+                                   iv_location = 'b' ).
       cl_abap_unit_assert=>fail( ).
     catch z2ui5_cx_ajson_error into lx.
       cl_abap_unit_assert=>assert_equals(

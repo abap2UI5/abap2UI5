@@ -65,7 +65,7 @@ CLASS ltcl_parser_test DEFINITION FINAL
 
     CLASS-METHODS sample_json
       IMPORTING
-        iv_separator   TYPE string OPTIONAL
+        iv_separator TYPE string OPTIONAL
       RETURNING
         VALUE(rv_json) TYPE string.
 
@@ -146,26 +146,26 @@ CLASS ltcl_parser_test IMPLEMENTATION.
         cl_abap_unit_assert=>fail( 'Parsing of string w/o quotes must fail (spec)' ).
       CATCH z2ui5_cx_ajson_error INTO lx_err.
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx_err->get_text( )
-          exp = '*parsing error*' ).
+        act = lx_err->get_text( )
+        exp = '*parsing error*' ).
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx_err->location
-          exp = 'Line 1, Offset 1' ).
+        act = lx_err->location
+        exp = 'Line 1, Offset 1' ).
     ENDTRY.
 
     TRY.
         lt_act = mo_cut->parse( '{' && cl_abap_char_utilities=>newline
-          && '"ok": "abc",' && cl_abap_char_utilities=>newline
-          && '"error"' && cl_abap_char_utilities=>newline
-          && '}' ).
+        && '"ok": "abc",' && cl_abap_char_utilities=>newline
+        && '"error"' && cl_abap_char_utilities=>newline
+        && '}' ).
         cl_abap_unit_assert=>fail( 'Parsing of invalid JSON must fail (spec)' ).
       CATCH z2ui5_cx_ajson_error INTO lx_err.
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx_err->get_text( )
-          exp = '*parsing error*' ).
+        act = lx_err->get_text( )
+        exp = '*parsing error*' ).
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx_err->location
-          exp = 'Line 3, Offset 8' ).
+        act = lx_err->location
+        exp = 'Line 3, Offset 8' ).
     ENDTRY.
 
   ENDMETHOD.
@@ -822,13 +822,15 @@ CLASS ltcl_utils_test IMPLEMENTATION.
       exp = 123 ).
 
     TRY.
-        lcl_utils=>validate_array_index( iv_path = 'x' iv_index = 'a' ).
+        lcl_utils=>validate_array_index( iv_path = 'x'
+                                         iv_index = 'a' ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error.
     ENDTRY.
 
     TRY.
-        lcl_utils=>validate_array_index( iv_path = 'x' iv_index = '0' ).
+        lcl_utils=>validate_array_index( iv_path = 'x'
+                                         iv_index = '0' ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error.
     ENDTRY.
@@ -1331,8 +1333,8 @@ CLASS ltcl_reader_test IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path not found: /x' ).
+        act = lx->message
+        exp = 'Path not found: /x' ).
     ENDTRY.
 
     TRY.
@@ -1340,8 +1342,8 @@ CLASS ltcl_reader_test IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Array expected at: /' ).
+        act = lx->message
+        exp = 'Array expected at: /' ).
     ENDTRY.
 
     TRY.
@@ -1349,8 +1351,8 @@ CLASS ltcl_reader_test IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Array expected at: /a' ).
+        act = lx->message
+        exp = 'Array expected at: /a' ).
     ENDTRY.
 
     CREATE OBJECT lo_nodes.
@@ -1363,8 +1365,8 @@ CLASS ltcl_reader_test IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot convert [object] to string at [/1]' ).
+        act = lx->message
+        exp = 'Cannot convert [object] to string at [/1]' ).
     ENDTRY.
 
   ENDMETHOD.
@@ -1389,75 +1391,96 @@ CLASS ltcl_json_to_abap DEFINITION
         a TYPE string,
         b TYPE i,
       END OF ty_struc,
-      tty_struc        TYPE STANDARD TABLE OF ty_struc WITH KEY a,
+      tty_struc TYPE STANDARD TABLE OF ty_struc WITH KEY a,
       tty_struc_sorted TYPE SORTED TABLE OF ty_struc WITH UNIQUE KEY a,
       tty_struc_hashed TYPE HASHED TABLE OF ty_struc WITH UNIQUE KEY a,
       BEGIN OF ty_complex,
-        str        TYPE string,
-        int        TYPE i,
-        float      TYPE f,
-        bool       TYPE abap_bool,
-        obj        TYPE ty_struc,
-        tab        TYPE tty_struc,
+        str   TYPE string,
+        int   TYPE i,
+        float TYPE f,
+        bool  TYPE abap_bool,
+        obj   TYPE ty_struc,
+        tab   TYPE tty_struc,
         tab_plain  TYPE string_table,
         tab_hashed TYPE tty_struc_hashed,
-        oref       TYPE REF TO object,
-        date1      TYPE d,
-        date2      TYPE d,
+        oref  TYPE REF TO object,
+        date1 TYPE d,
+        date2 TYPE d,
         timestamp1 TYPE timestamp,
         timestamp2 TYPE timestamp,
         timestamp3 TYPE timestamp,
+        timestamp4 TYPE timestampl,
       END OF ty_complex.
 
     METHODS to_abap_struc
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_timestamp_initial
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_value
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_array
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_array_of_arrays_simple
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_array_of_arrays
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_w_tab_of_struc
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_w_plain_tab
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_hashed_tab
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_sorted_tab
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_hashed_plain_tab
-              FOR TESTING
+      FOR TESTING
+      RAISING z2ui5_cx_ajson_error.
+    METHODS to_abap_negative
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_corresponding
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_corresponding_negative
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_corresponding_public
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_corresponding_pub_neg
-              FOR TESTING
+      FOR TESTING
       RAISING z2ui5_cx_ajson_error.
     METHODS to_abap_time
-                FOR TESTING
+      FOR TESTING
       RAISING cx_static_check.
-
+    METHODS to_abap_str_to_packed
+      FOR TESTING
+      RAISING cx_static_check.
+    METHODS to_abap_compressed_stdrd
+      FOR TESTING
+      RAISING cx_static_check.
+    METHODS to_abap_compressed_stdrd_key
+      FOR TESTING
+      RAISING cx_static_check.
+    METHODS to_abap_compressed_sort
+      FOR TESTING
+      RAISING cx_static_check.
+    METHODS to_abap_compressed_sort_unique
+      FOR TESTING
+      RAISING cx_static_check.
+    METHODS to_abap_compressed_hash
+      FOR TESTING
+      RAISING cx_static_check.
 ENDCLASS.
 
 CLASS z2ui5_cl_ajson DEFINITION LOCAL FRIENDS ltcl_json_to_abap.
@@ -1487,6 +1510,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     lo_nodes->add( '/      |timestamp1 |str    |2020-07-28T00:00:00       | ' ).
     lo_nodes->add( '/      |timestamp2 |str    |2020-07-28T00:00:00Z      | ' ).
     lo_nodes->add( '/      |timestamp3 |str    |2020-07-28T01:00:00+01:00 | ' ).
+    lo_nodes->add( '/      |timestamp4 |str    |2020-07-28T01:00:00+01:00 | ' ).
 
     CREATE OBJECT lo_cut.
     lo_cut->to_abap(
@@ -1505,6 +1529,7 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     ls_exp-timestamp1 = lv_exp_timestamp.
     ls_exp-timestamp2 = lv_exp_timestamp.
     ls_exp-timestamp3 = lv_exp_timestamp.
+    ls_exp-timestamp4 = lv_exp_timestamp.
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_mock
@@ -1554,21 +1579,43 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
       act = lv_mock
       exp = '111111' ).
 
-*    DATA lv_mock_init TYPE t.
-*
-*    CREATE OBJECT lo_nodes.
-*    lo_nodes->add( '       |           |str    || ' ).
-*
-*    CREATE OBJECT lo_cut.
-*    lo_cut->to_abap(
-*      EXPORTING
-*        it_nodes    = lo_nodes->sorted( )
-*      CHANGING
-*        c_container = lv_mock_init ).
-*
-*    cl_abap_unit_assert=>assert_equals(
-*      act = lv_mock_init
-*      exp = '000000' ).
+    DATA lv_mock_init TYPE t.
+
+    CREATE OBJECT lo_nodes.
+    lo_nodes->add( '       |           |str    || ' ).
+
+    CREATE OBJECT lo_cut.
+    lo_cut->to_abap(
+      EXPORTING
+        it_nodes    = lo_nodes->sorted( )
+      CHANGING
+        c_container = lv_mock_init ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_mock_init
+      exp = '000000' ).
+
+  ENDMETHOD.
+
+  METHOD to_abap_str_to_packed.
+
+    DATA lo_cut TYPE REF TO lcl_json_to_abap.
+    DATA lv_act TYPE p LENGTH 10 DECIMALS 3.
+    DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+
+    CREATE OBJECT lo_nodes.
+    lo_nodes->add( '       |           |str    |1.3333                    | ' ).
+
+    CREATE OBJECT lo_cut.
+    lo_cut->to_abap(
+      EXPORTING
+        it_nodes    = lo_nodes->sorted( )
+      CHANGING
+        c_container = lv_act ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = lv_act
+      exp = '1.333' ).
 
   ENDMETHOD.
 
@@ -1625,8 +1672,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays_simple.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    DATA lt_mock  TYPE STANDARD TABLE OF string_table.
-    DATA lt_exp   TYPE STANDARD TABLE OF string_table.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1659,8 +1706,8 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
   METHOD to_abap_array_of_arrays.
 
     DATA lo_cut   TYPE REF TO lcl_json_to_abap.
-    DATA lt_mock  TYPE STANDARD TABLE OF string_table.
-    DATA lt_exp   TYPE STANDARD TABLE OF string_table.
+    DATA lt_mock  TYPE TABLE OF string_table.
+    DATA lt_exp   TYPE TABLE OF string_table.
     DATA lt_tmp   TYPE string_table.
     DATA lo_nodes TYPE REF TO lcl_nodes_helper.
 
@@ -1859,6 +1906,173 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD to_abap_negative.
+
+    DATA lo_cut TYPE REF TO lcl_json_to_abap.
+    DATA lx TYPE REF TO z2ui5_cx_ajson_error.
+    DATA ls_mock TYPE ty_complex.
+
+    CREATE OBJECT lo_cut.
+
+    DATA lo_nodes TYPE REF TO lcl_nodes_helper.
+
+    TRY.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '     |      |object | ' ).
+        lo_nodes->add( '/    |str   |object | ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = ls_mock ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Expected structure' ).
+    ENDTRY.
+
+    TRY.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '     |      |object | ' ).
+        lo_nodes->add( '/    |str   |array  | ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = ls_mock ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Expected table' ).
+    ENDTRY.
+
+    TRY.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '     |      |object |      ' ).
+        lo_nodes->add( '/    |int   |str    |hello ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = ls_mock ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Source is not a number' ).
+    ENDTRY.
+
+    TRY.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '     |      |object |        ' ).
+        lo_nodes->add( '/    |date1 |str    |baddate ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = ls_mock ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Unexpected date format' ).
+    ENDTRY.
+
+    TRY.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '    |        |object |        ' ).
+        lo_nodes->add( '/   |missing |str    |123     ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = ls_mock ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Path not found' ).
+    ENDTRY.
+
+    TRY.
+        DATA lt_str TYPE string_table.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '      |     |array  |      | ' ).
+        lo_nodes->add( '/     |a    |str    |hello |1' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = lt_str ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Need index to access tables' ).
+    ENDTRY.
+
+    TRY.
+        DATA lr_obj TYPE REF TO object.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '      |     |str  |hello      | ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = lr_obj ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    ENDTRY.
+
+    TRY.
+        DATA lr_data TYPE REF TO data.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '      |     |str  |hello      | ' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = lr_data ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Cannot assign to ref' ).
+    ENDTRY.
+
+    TRY.
+        DATA lt_hashed TYPE HASHED TABLE OF string WITH UNIQUE KEY table_line.
+        CREATE OBJECT lo_nodes.
+        lo_nodes->add( '            |           |array  |                          | ' ).
+        lo_nodes->add( '/           |1          |str    |One                       |1' ).
+        lo_nodes->add( '/           |2          |str    |One                       |2' ).
+
+        lo_cut->to_abap(
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = lt_hashed ).
+        cl_abap_unit_assert=>fail( ).
+      CATCH z2ui5_cx_ajson_error INTO lx.
+        cl_abap_unit_assert=>assert_equals(
+        act = lx->message
+        exp = 'Duplicate insertion' ).
+    ENDTRY.
+
+  ENDMETHOD.
 
   METHOD to_abap_corresponding.
 
@@ -1909,15 +2123,15 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
     TRY.
         CREATE OBJECT lo_cut.
         lo_cut->to_abap(
-          EXPORTING
-            it_nodes    = lo_nodes->sorted( )
-          CHANGING
-            c_container = ls_act ).
+        EXPORTING
+          it_nodes    = lo_nodes->sorted( )
+        CHANGING
+          c_container = ls_act ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path not found' ).
+        act = lx->message
+        exp = 'Path not found' ).
     ENDTRY.
 
   ENDMETHOD.
@@ -1984,9 +2198,174 @@ CLASS ltcl_json_to_abap IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path not found' ).
+        act = lx->message
+        exp = 'Path not found' ).
     ENDTRY.
+
+  ENDMETHOD.
+
+  METHOD to_abap_compressed_stdrd.
+
+    TYPES: BEGIN OF ty_foo_bar,
+             foo TYPE string,
+             bar TYPE string,
+           END OF ty_foo_bar.
+
+    DATA lt_foo_bar TYPE STANDARD TABLE OF ty_foo_bar.
+    DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
+    DATA lo_ajson TYPE REF TO z2ui5_cl_ajson.
+    DATA lv_json TYPE string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = z2ui5_cl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( IMPORTING ev_container = lt_foo_bar ).
+
+    READ TABLE lt_foo_bar WITH KEY foo = 'cde' INTO ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  ENDMETHOD.
+
+  METHOD to_abap_compressed_stdrd_key.
+
+    TYPES: BEGIN OF ty_foo_bar,
+             foo TYPE string,
+             bar TYPE string,
+           END OF ty_foo_bar.
+
+    DATA lt_foo_bar TYPE STANDARD TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
+    DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
+    DATA lo_ajson TYPE REF TO z2ui5_cl_ajson.
+    DATA lv_json TYPE string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = z2ui5_cl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( IMPORTING ev_container = lt_foo_bar ).
+
+    READ TABLE lt_foo_bar WITH KEY foo = 'cde' INTO ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  ENDMETHOD.
+
+  METHOD to_abap_compressed_sort.
+
+    TYPES: BEGIN OF ty_foo_bar,
+             foo TYPE string,
+             bar TYPE string,
+           END OF ty_foo_bar.
+
+    DATA lt_foo_bar TYPE SORTED TABLE OF ty_foo_bar WITH NON-UNIQUE KEY foo.
+    DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
+    DATA lo_ajson TYPE REF TO z2ui5_cl_ajson.
+    DATA lv_json TYPE string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = z2ui5_cl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( IMPORTING ev_container = lt_foo_bar ).
+
+    READ TABLE lt_foo_bar WITH KEY foo = 'cde' INTO ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  ENDMETHOD.
+
+  METHOD to_abap_compressed_sort_unique.
+
+    TYPES: BEGIN OF ty_foo_bar,
+             foo TYPE string,
+             bar TYPE string,
+           END OF ty_foo_bar.
+
+    DATA lt_foo_bar TYPE SORTED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
+    DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
+    DATA lo_ajson TYPE REF TO z2ui5_cl_ajson.
+    DATA lv_json TYPE string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = z2ui5_cl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( IMPORTING ev_container = lt_foo_bar ).
+
+    READ TABLE lt_foo_bar WITH KEY foo = 'cde' INTO ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
+
+  ENDMETHOD.
+
+  METHOD to_abap_compressed_hash.
+
+    TYPES: BEGIN OF ty_foo_bar,
+             foo TYPE string,
+             bar TYPE string,
+           END OF ty_foo_bar.
+
+    DATA lt_foo_bar TYPE HASHED TABLE OF ty_foo_bar WITH UNIQUE KEY foo.
+    DATA ls_foo_bar LIKE LINE OF lt_foo_bar.
+    DATA lo_ajson TYPE REF TO z2ui5_cl_ajson.
+    DATA lv_json TYPE string.
+
+    lv_json =
+    '[' &&
+    '  {' &&
+    '    "foo": "abc",' &&
+    '    "bar": "123"' &&
+    '  },' &&
+    '  {' &&
+    '    "foo": "cde"' &&
+    '  }' &&
+    ']'.
+
+    lo_ajson = z2ui5_cl_ajson=>parse( lv_json ).
+
+    lo_ajson->to_abap( IMPORTING ev_container = lt_foo_bar ).
+
+    READ TABLE lt_foo_bar WITH KEY foo = 'cde' INTO ls_foo_bar.
+
+    cl_abap_unit_assert=>assert_initial( act = ls_foo_bar-bar ).
 
   ENDMETHOD.
 
@@ -2027,6 +2406,7 @@ CLASS ltcl_writer_test DEFINITION FINAL
     METHODS read_only FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS set_array_obj FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS set_with_type FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS new_array_w_keep_order_touch FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS overwrite_w_keep_order_touch FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS overwrite_w_keep_order_set FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS setx FOR TESTING RAISING z2ui5_cx_ajson_error.
@@ -2036,9 +2416,9 @@ CLASS ltcl_writer_test DEFINITION FINAL
 
     METHODS set_with_type_slice
       IMPORTING
-        io_json_in  TYPE REF TO z2ui5_cl_ajson
+        io_json_in TYPE REF TO z2ui5_cl_ajson
         io_json_out TYPE REF TO z2ui5_if_ajson
-        iv_path     TYPE string
+        iv_path TYPE string
       RAISING
         z2ui5_cx_ajson_error.
 
@@ -2430,7 +2810,7 @@ CLASS ltcl_writer_test IMPLEMENTATION.
       END OF ty_include,
       BEGIN OF ty_struct.
         INCLUDE TYPE ty_include.
-        TYPES: dat TYPE xstring,
+    TYPES: dat TYPE xstring,
       END OF ty_struct,
       ty_tab TYPE STANDARD TABLE OF ty_struct WITH KEY str.
 
@@ -2587,67 +2967,67 @@ CLASS ltcl_writer_test IMPLEMENTATION.
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path [/a/1] already used and is not array' ).
+        act = lx->message
+        exp = 'Path [/a/1] already used and is not array' ).
     ENDTRY.
 
     " push to not array
     TRY.
         li_writer->push(
-          iv_path = '/a/1'
-          iv_val  = 123 ).
+        iv_path = '/a/1'
+        iv_val  = 123 ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path [/a/1] is not array' ).
+        act = lx->message
+        exp = 'Path [/a/1] is not array' ).
     ENDTRY.
 
     " push to not array
     TRY.
         li_writer->push(
-          iv_path = '/x'
-          iv_val  = 123 ).
+        iv_path = '/x'
+        iv_val  = 123 ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Path [/x] does not exist' ).
+        act = lx->message
+        exp = 'Path [/x] does not exist' ).
     ENDTRY.
 
     " set array item with non-numeric key
     TRY.
         li_writer->set(
-          iv_path = '/a/abc/x'
-          iv_val  = 123 ).
+        iv_path = '/a/abc/x'
+        iv_val  = 123 ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+        act = lx->message
+        exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
     ENDTRY.
 
     TRY.
         li_writer->set(
-          iv_path = '/a/abc'
-          iv_val  = 123 ).
+        iv_path = '/a/abc'
+        iv_val  = 123 ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
+        act = lx->message
+        exp = 'Cannot add non-numeric key [abc] to array [/a/]' ).
     ENDTRY.
 
     " set array item with zero key
     TRY.
         li_writer->set(
-          iv_path = '/a/0'
-          iv_val  = 123 ).
+        iv_path = '/a/0'
+        iv_val  = 123 ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx.
         cl_abap_unit_assert=>assert_equals(
-          act = lx->message
-          exp = 'Cannot add zero key to array [/a/]' ).
+        act = lx->message
+        exp = 'Cannot add zero key to array [/a/]' ).
     ENDTRY.
 
   ENDMETHOD.
@@ -2936,8 +3316,8 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     TRY.
         li_writer->set(
-          iv_path = '/c'
-          iv_val  = 'abc' ).
+        iv_path = '/c'
+        iv_val  = 'abc' ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error.
     ENDTRY.
@@ -2950,8 +3330,8 @@ CLASS ltcl_writer_test IMPLEMENTATION.
 
     TRY.
         li_writer->push(
-          iv_path = '/b'
-          iv_val  = 'xyz' ).
+        iv_path = '/b'
+        iv_val  = 'xyz' ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error.
     ENDTRY.
@@ -3097,6 +3477,37 @@ CLASS ltcl_writer_test IMPLEMENTATION.
     cl_abap_unit_assert=>assert_equals(
       act = li_cut->stringify( )
       exp = '{"b":0,"a":1}' ). " still ordered after overwrite
+
+  ENDMETHOD.
+
+  METHOD new_array_w_keep_order_touch.
+
+    DATA li_cut TYPE REF TO z2ui5_if_ajson.
+
+    " default order adds new arrays at beginning of node (pos 0)
+    li_cut = z2ui5_cl_ajson=>create_empty(
+    )->set(
+      iv_path = '/b'
+      iv_val  = 1 ).
+
+    li_cut->touch_array( '/a' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"a":[],"b":1}' ).
+
+    " with keep order, new array is created at end of node
+    li_cut = z2ui5_cl_ajson=>create_empty(
+    )->keep_item_order(
+    )->set(
+      iv_path = '/b'
+      iv_val  = 1 ).
+
+    li_cut->touch_array( '/a' ).
+
+    cl_abap_unit_assert=>assert_equals(
+      act = li_cut->stringify( )
+      exp = '{"b":1,"a":[]}' ).
 
   ENDMETHOD.
 
@@ -3313,22 +3724,22 @@ CLASS ltcl_integrated DEFINITION
         col TYPE i,
       END OF ty_loc,
       BEGIN OF ty_issue,
-        message  TYPE string,
-        key      TYPE string,
+        message TYPE string,
+        key TYPE string,
         filename TYPE string,
-        start    TYPE ty_loc,
-        end      TYPE ty_loc,
+        start TYPE ty_loc,
+        end TYPE ty_loc,
       END OF ty_issue,
       tt_issues TYPE STANDARD TABLE OF ty_issue WITH KEY message key,
       BEGIN OF ty_target,
-        string  TYPE string,
-        number  TYPE i,
-        float   TYPE f,
+        string TYPE string,
+        number TYPE i,
+        float TYPE f,
         boolean TYPE abap_bool,
-        false   TYPE abap_bool,
-        null    TYPE string,
-        date    TYPE string, " ??? TODO
-        issues  TYPE tt_issues,
+        false TYPE abap_bool,
+        null TYPE string,
+        date TYPE string, " ??? TODO
+        issues TYPE tt_issues,
       END OF ty_target.
 
     METHODS reader FOR TESTING RAISING z2ui5_cx_ajson_error.
@@ -3374,8 +3785,8 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
   METHOD array_index.
 
-    DATA lt_act TYPE STANDARD TABLE OF ty_loc.
-    DATA lt_exp TYPE STANDARD TABLE OF ty_loc.
+    DATA lt_act TYPE TABLE OF ty_loc.
+    DATA lt_exp TYPE TABLE OF ty_loc.
     DATA ls_exp TYPE ty_loc.
 
     DATA lv_src TYPE string.
@@ -3542,9 +3953,9 @@ CLASS ltcl_integrated IMPLEMENTATION.
 
     DATA:
       BEGIN OF ls_dummy,
-        zulu  TYPE string,
+        zulu TYPE string,
         alpha TYPE string,
-        beta  TYPE string,
+        beta TYPE string,
       END OF ls_dummy.
 
     DATA lv_act TYPE string.
@@ -3687,18 +4098,18 @@ CLASS ltcl_abap_to_json DEFINITION
       tt_struc TYPE STANDARD TABLE OF ty_struc WITH KEY a,
       BEGIN OF ty_struc_complex.
         INCLUDE TYPE ty_struc.
-      TYPES:
-        el    TYPE string,
+    TYPES:
+        el TYPE string,
         struc TYPE ty_struc,
-        tab   TYPE tt_struc,
-        stab  TYPE string_table,
+        tab TYPE tt_struc,
+        stab TYPE string_table,
       END OF ty_struc_complex.
 
     TYPES
       BEGIN OF ty_named_include.
-    INCLUDE TYPE ty_struc AS named_with_suffix RENAMING WITH SUFFIX _suf.
+        INCLUDE TYPE ty_struc AS named_with_suffix RENAMING WITH SUFFIX _suf.
     TYPES:
-      el TYPE string,
+        el TYPE string,
       END OF ty_named_include.
 
     METHODS set_ajson FOR TESTING RAISING z2ui5_cx_ajson_error.
@@ -4027,7 +4438,7 @@ CLASS ltcl_abap_to_json IMPLEMENTATION.
     DATA lo_nodes_exp TYPE REF TO lcl_nodes_helper.
     DATA lt_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
 
-    DATA lt_tab TYPE STANDARD TABLE OF ty_struc.
+    DATA lt_tab TYPE TABLE OF ty_struc.
     FIELD-SYMBOLS <s> LIKE LINE OF lt_tab.
 
     APPEND INITIAL LINE TO lt_tab ASSIGNING <s>.
@@ -4095,7 +4506,7 @@ CLASS ltcl_filter_test DEFINITION FINAL
         type TYPE z2ui5_if_ajson_filter=>ty_visit_type,
       END OF ty_visit_history.
 
-    DATA mt_visit_history TYPE STANDARD TABLE OF ty_visit_history.
+    DATA mt_visit_history TYPE TABLE OF ty_visit_history.
 
     METHODS simple_test FOR TESTING RAISING z2ui5_cx_ajson_error.
     METHODS array_test FOR TESTING RAISING z2ui5_cx_ajson_error.
@@ -4422,13 +4833,13 @@ CLASS ltcl_mapper_test IMPLEMENTATION.
 
     TRY.
         z2ui5_cl_ajson=>create_from(
-          ii_source_json = lo_json
-          ii_mapper      = me ).
+        ii_source_json = lo_json
+        ii_mapper      = me ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx_err.
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx_err->get_text( )
-          exp = 'Renamed node has a duplicate @/AB' ).
+        act = lx_err->get_text( )
+        exp = 'Renamed node has a duplicate @/AB' ).
     ENDTRY.
 
   ENDMETHOD.
@@ -4472,13 +4883,13 @@ CLASS ltcl_mapper_test IMPLEMENTATION.
 
     TRY.
         z2ui5_cl_ajson=>create_from(
-          ii_source_json = lo_json
-          ii_mapper      = me ).
+        ii_source_json = lo_json
+        ii_mapper      = me ).
         cl_abap_unit_assert=>fail( ).
       CATCH z2ui5_cx_ajson_error INTO lx_err.
         cl_abap_unit_assert=>assert_char_cp(
-          act = lx_err->get_text( )
-          exp = 'Renamed node name cannot be empty @/set_this_empty' ).
+        act = lx_err->get_text( )
+        exp = 'Renamed node name cannot be empty @/set_this_empty' ).
     ENDTRY.
 
   ENDMETHOD.

@@ -1,372 +1,372 @@
-class z2ui5_cl_ajson definition
-  public
-  create public .
+CLASS z2ui5_cl_ajson DEFINITION
+  PUBLIC
+  CREATE PUBLIC .
 
-  public section.
+  PUBLIC SECTION.
 
-    interfaces z2ui5_if_ajson .
+    INTERFACES z2ui5_if_ajson .
 
-    aliases:
-      is_empty for z2ui5_if_ajson~is_empty,
-      exists for z2ui5_if_ajson~exists,
-      members for z2ui5_if_ajson~members,
-      get for z2ui5_if_ajson~get,
-      get_boolean for z2ui5_if_ajson~get_boolean,
-      get_integer for z2ui5_if_ajson~get_integer,
-      get_number for z2ui5_if_ajson~get_number,
-      get_date for z2ui5_if_ajson~get_date,
-      get_timestamp for z2ui5_if_ajson~get_timestamp,
-      get_string for z2ui5_if_ajson~get_string,
-      slice for z2ui5_if_ajson~slice,
-      to_abap for z2ui5_if_ajson~to_abap,
-      array_to_string_table for z2ui5_if_ajson~array_to_string_table.
+    ALIASES:
+      is_empty FOR z2ui5_if_ajson~is_empty,
+      exists FOR z2ui5_if_ajson~exists,
+      members FOR z2ui5_if_ajson~members,
+      get FOR z2ui5_if_ajson~get,
+      get_boolean FOR z2ui5_if_ajson~get_boolean,
+      get_integer FOR z2ui5_if_ajson~get_integer,
+      get_number FOR z2ui5_if_ajson~get_number,
+      get_date FOR z2ui5_if_ajson~get_date,
+      get_timestamp FOR z2ui5_if_ajson~get_timestamp,
+      get_string FOR z2ui5_if_ajson~get_string,
+      slice FOR z2ui5_if_ajson~slice,
+      to_abap FOR z2ui5_if_ajson~to_abap,
+      array_to_string_table FOR z2ui5_if_ajson~array_to_string_table.
 
-    aliases:
-      clear for z2ui5_if_ajson~clear,
-      set for z2ui5_if_ajson~set,
-      setx for z2ui5_if_ajson~setx,
-      set_boolean for z2ui5_if_ajson~set_boolean,
-      set_string for z2ui5_if_ajson~set_string,
-      set_integer for z2ui5_if_ajson~set_integer,
-      set_date for z2ui5_if_ajson~set_date,
-      set_timestamp for z2ui5_if_ajson~set_timestamp,
-      set_null for z2ui5_if_ajson~set_null,
-      delete for z2ui5_if_ajson~delete,
-      touch_array for z2ui5_if_ajson~touch_array,
-      push for z2ui5_if_ajson~push,
-      stringify for z2ui5_if_ajson~stringify.
+    ALIASES:
+      clear FOR z2ui5_if_ajson~clear,
+      set FOR z2ui5_if_ajson~set,
+      setx FOR z2ui5_if_ajson~setx,
+      set_boolean FOR z2ui5_if_ajson~set_boolean,
+      set_string FOR z2ui5_if_ajson~set_string,
+      set_integer FOR z2ui5_if_ajson~set_integer,
+      set_date FOR z2ui5_if_ajson~set_date,
+      set_timestamp FOR z2ui5_if_ajson~set_timestamp,
+      set_null FOR z2ui5_if_ajson~set_null,
+      delete FOR z2ui5_if_ajson~delete,
+      touch_array FOR z2ui5_if_ajson~touch_array,
+      push FOR z2ui5_if_ajson~push,
+      stringify FOR z2ui5_if_ajson~stringify.
 
-    aliases:
-      clone for z2ui5_if_ajson~clone,
-      filter for z2ui5_if_ajson~filter,
-      map for z2ui5_if_ajson~map.
+    ALIASES:
+      clone FOR z2ui5_if_ajson~clone,
+      filter FOR z2ui5_if_ajson~filter,
+      map FOR z2ui5_if_ajson~map.
 
-    aliases:
-      mt_json_tree for z2ui5_if_ajson~mt_json_tree,
-      keep_item_order for z2ui5_if_ajson~keep_item_order,
-      format_datetime for z2ui5_if_ajson~format_datetime,
-      to_abap_corresponding_only for z2ui5_if_ajson~to_abap_corresponding_only,
-      freeze for z2ui5_if_ajson~freeze.
+    ALIASES:
+      mt_json_tree FOR z2ui5_if_ajson~mt_json_tree,
+      keep_item_order FOR z2ui5_if_ajson~keep_item_order,
+      format_datetime FOR z2ui5_if_ajson~format_datetime,
+      to_abap_corresponding_only FOR z2ui5_if_ajson~to_abap_corresponding_only,
+      freeze FOR z2ui5_if_ajson~freeze.
 
-    class-methods parse
-      importing
-        !iv_json            type string
-        !iv_freeze          type abap_bool default abap_false
-        !ii_custom_mapping  type ref to z2ui5_if_ajson_mapping optional
-        !iv_keep_item_order type abap_bool default abap_false
-      returning
-        value(ro_instance) type ref to z2ui5_cl_ajson
-      raising
-        z2UI5_cx_ajson_error .
+    CLASS-METHODS parse
+      IMPORTING
+        !iv_json            TYPE string
+        !iv_freeze          TYPE abap_bool DEFAULT abap_false
+        !ii_custom_mapping  TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        !iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ajson
+      RAISING
+        z2ui5_cx_ajson_error .
 
-    class-methods create_empty " Might be deprecated, prefer using new( ) or create object
-      importing
-        !ii_custom_mapping type ref to z2ui5_if_ajson_mapping optional
-        iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_true
-        iv_to_abap_corresponding_only type abap_bool default abap_false
-      returning
-        value(ro_instance) type ref to z2ui5_cl_ajson.
+    CLASS-METHODS create_empty " Might be deprecated, prefer using new( ) or create object
+      IMPORTING
+        !ii_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true
+        iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ajson.
 
     " Experimental ! May change
-    class-methods create_from " TODO, rename to 'from' ?
-      importing
-        !ii_source_json type ref to z2ui5_if_ajson
-        !ii_filter type ref to z2ui5_if_ajson_filter optional " Might be deprecated, use filter() instead
-        !ii_mapper type ref to z2ui5_if_ajson_mapping optional " Might be deprecated, use map() instead
-      returning
-        value(ro_instance) type ref to z2ui5_cl_ajson
-      raising
-        z2UI5_cx_ajson_error .
+    CLASS-METHODS create_from " TODO, rename to 'from' ?
+      IMPORTING
+        !ii_source_json TYPE REF TO z2ui5_if_ajson
+        !ii_filter TYPE REF TO z2ui5_if_ajson_filter OPTIONAL " Might be deprecated, use filter() instead
+        !ii_mapper TYPE REF TO z2ui5_if_ajson_mapping OPTIONAL " Might be deprecated, use map() instead
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ajson
+      RAISING
+        z2ui5_cx_ajson_error .
 
-    methods constructor
-      importing
-        iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_true
-        iv_to_abap_corresponding_only type abap_bool default abap_false.
-    class-methods new
-      importing
-        iv_keep_item_order type abap_bool default abap_false
-        iv_format_datetime type abap_bool default abap_true
-        iv_to_abap_corresponding_only type abap_bool default abap_false
-      returning
-        value(ro_instance) type ref to z2ui5_cl_ajson.
+    METHODS constructor
+      IMPORTING
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true
+        iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false.
+    CLASS-METHODS new
+      IMPORTING
+        iv_keep_item_order TYPE abap_bool DEFAULT abap_false
+        iv_format_datetime TYPE abap_bool DEFAULT abap_true
+        iv_to_abap_corresponding_only TYPE abap_bool DEFAULT abap_false
+      RETURNING
+        VALUE(ro_instance) TYPE REF TO z2ui5_cl_ajson.
 
-  protected section.
+  PROTECTED SECTION.
 
-  private section.
+  PRIVATE SECTION.
 
-    class-data go_float_regex type ref to cl_abap_regex.
+    CLASS-DATA go_float_regex TYPE REF TO cl_abap_regex.
 
-    data ms_opts type z2ui5_if_ajson=>ty_opts.
-    data mi_custom_mapping type ref to z2ui5_if_ajson_mapping. " DEPRECATED, will be removed
+    DATA ms_opts TYPE z2ui5_if_ajson=>ty_opts.
+    DATA mi_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping. " DEPRECATED, will be removed
 
-    methods get_item
-      importing
-        iv_path        type string
-      returning
-        value(rv_item) type ref to z2ui5_if_ajson_types=>ty_node.
-    methods prove_path_exists
-      importing
-        iv_path              type string
-      returning
-        value(rr_end_node) type ref to z2ui5_if_ajson_types=>ty_node
-      raising
-        z2UI5_cx_ajson_error.
-    methods delete_subtree
-      importing
-        iv_path           type string
-        iv_name           type string
-        ir_parent         type ref to z2ui5_if_ajson_types=>ty_node optional
-      returning
-        value(rs_top_node) type z2ui5_if_ajson_types=>ty_node.
-    methods read_only_watchdog
-      raising
-        z2UI5_cx_ajson_error.
+    METHODS get_item
+      IMPORTING
+        iv_path        TYPE string
+      RETURNING
+        VALUE(rv_item) TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    METHODS prove_path_exists
+      IMPORTING
+        iv_path              TYPE string
+      RETURNING
+        VALUE(rr_end_node) TYPE REF TO z2ui5_if_ajson_types=>ty_node
+      RAISING
+        z2ui5_cx_ajson_error.
+    METHODS delete_subtree
+      IMPORTING
+        iv_path           TYPE string
+        iv_name           TYPE string
+        ir_parent         TYPE REF TO z2ui5_if_ajson_types=>ty_node OPTIONAL
+      RETURNING
+        VALUE(rs_top_node) TYPE z2ui5_if_ajson_types=>ty_node.
+    METHODS read_only_watchdog
+      RAISING
+        z2ui5_cx_ajson_error.
 ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
+CLASS z2ui5_cl_ajson IMPLEMENTATION.
 
 
-  method constructor.
+  METHOD constructor.
     ms_opts-keep_item_order = iv_keep_item_order.
     ms_opts-to_abap_corresponding_only = iv_to_abap_corresponding_only.
     format_datetime( iv_format_datetime ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_empty.
-    create object ro_instance
-      exporting
+  METHOD create_empty.
+    CREATE OBJECT ro_instance
+      EXPORTING
         iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
     ro_instance->mi_custom_mapping = ii_custom_mapping.
-  endmethod.
+  ENDMETHOD.
 
 
-  method create_from.
+  METHOD create_from.
 
-    data lo_mutator_queue type ref to lcl_mutator_queue.
+    DATA lo_mutator_queue TYPE REF TO lcl_mutator_queue.
 
-    if ii_source_json is not bound.
-      z2UI5_cx_ajson_error=>raise( 'Source not bound' ).
-    endif.
+    IF ii_source_json IS NOT BOUND.
+      z2ui5_cx_ajson_error=>raise( 'Source not bound' ).
+    ENDIF.
 
-    create object ro_instance
-      exporting
+    CREATE OBJECT ro_instance
+      EXPORTING
         iv_to_abap_corresponding_only = ii_source_json->opts( )-to_abap_corresponding_only
         iv_format_datetime = ii_source_json->opts( )-format_datetime
         iv_keep_item_order = ii_source_json->opts( )-keep_item_order.
 
-    if ii_filter is not bound and ii_mapper is not bound.
+    IF ii_filter IS NOT BOUND AND ii_mapper IS NOT BOUND.
       ro_instance->mt_json_tree = ii_source_json->mt_json_tree.
-    else.
-      create object lo_mutator_queue.
-      if ii_mapper is bound.
+    ELSE.
+      CREATE OBJECT lo_mutator_queue.
+      IF ii_mapper IS BOUND.
         " Mapping goes first. But maybe it should be a freely definable queue of processors ?
         lo_mutator_queue->add( lcl_mapper_runner=>new( ii_mapper ) ).
-      endif.
-      if ii_filter is bound.
+      ENDIF.
+      IF ii_filter IS BOUND.
         lo_mutator_queue->add( lcl_filter_runner=>new( ii_filter ) ).
-      endif.
+      ENDIF.
       lo_mutator_queue->lif_mutator_runner~run(
-        exporting
+        EXPORTING
           it_source_tree = ii_source_json->mt_json_tree
-        importing
+        IMPORTING
           et_dest_tree = ro_instance->mt_json_tree ).
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method delete_subtree.
+  METHOD delete_subtree.
 
-    data lv_parent_path type string.
-    data lr_parent like ir_parent.
+    DATA lv_parent_path TYPE string.
+    DATA lr_parent LIKE ir_parent.
 
-    read table mt_json_tree into rs_top_node
-      with key
+    READ TABLE mt_json_tree INTO rs_top_node
+      WITH KEY
         path = iv_path
         name = iv_name.
-    if sy-subrc <> 0.
-      return. " Not found ? nothing to delete !
-    endif.
+    IF sy-subrc <> 0.
+      RETURN. " Not found ? nothing to delete !
+    ENDIF.
 
-    delete mt_json_tree index sy-tabix. " where path = iv_path and name = iv_name.
+    DELETE mt_json_tree INDEX sy-tabix. " where path = iv_path and name = iv_name.
 
-    if rs_top_node-children > 0. " only for objects and arrays
+    IF rs_top_node-children > 0. " only for objects and arrays
       lv_parent_path = iv_path && iv_name && '/*'.
-      delete mt_json_tree where path cp lv_parent_path.
-    endif.
+      DELETE mt_json_tree WHERE path CP lv_parent_path.
+    ENDIF.
 
     " decrement parent children
-    if ir_parent is supplied.
+    IF ir_parent IS SUPPLIED.
       ir_parent->children = ir_parent->children - 1.
-    else.
+    ELSE.
       lr_parent = get_item( iv_path ).
-      if lr_parent is not initial.
+      IF lr_parent IS NOT INITIAL.
         lr_parent->children = lr_parent->children - 1.
-      endif.
-    endif.
+      ENDIF.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method get_item.
+  METHOD get_item.
 
-    field-symbols <item> like line of mt_json_tree.
-    data ls_path_name type z2ui5_if_ajson_types=>ty_path_name.
+    FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
+    DATA ls_path_name TYPE z2ui5_if_ajson_types=>ty_path_name.
     ls_path_name = lcl_utils=>split_path( iv_path ).
 
-    read table mt_json_tree
-      assigning <item>
-      with key
+    READ TABLE mt_json_tree
+      ASSIGNING <item>
+      WITH KEY
         path = ls_path_name-path
         name = ls_path_name-name.
-    if sy-subrc = 0.
-      get reference of <item> into rv_item.
-    endif.
+    IF sy-subrc = 0.
+      GET REFERENCE OF <item> INTO rv_item.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method new.
-    create object ro_instance
-      exporting
+  METHOD new.
+    CREATE OBJECT ro_instance
+      EXPORTING
         iv_to_abap_corresponding_only = iv_to_abap_corresponding_only
         iv_format_datetime = iv_format_datetime
         iv_keep_item_order = iv_keep_item_order.
-  endmethod.
+  ENDMETHOD.
 
 
-  method parse.
+  METHOD parse.
 
-    data lo_parser type ref to lcl_json_parser.
+    DATA lo_parser TYPE REF TO lcl_json_parser.
 
-    create object ro_instance.
-    create object lo_parser.
+    CREATE OBJECT ro_instance.
+    CREATE OBJECT lo_parser.
     ro_instance->mt_json_tree = lo_parser->parse(
       iv_json            = iv_json
       iv_keep_item_order = iv_keep_item_order ).
     ro_instance->mi_custom_mapping = ii_custom_mapping.
     ro_instance->ms_opts-keep_item_order = iv_keep_item_order.
 
-    if iv_freeze = abap_true.
+    IF iv_freeze = abap_true.
       ro_instance->freeze( ).
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method prove_path_exists.
+  METHOD prove_path_exists.
 
-    data lt_path type string_table.
-    data lr_node_parent like rr_end_node.
-    data lv_cur_path type string.
-    data lv_cur_name type string.
-    data ls_new_node like line of mt_json_tree.
+    DATA lt_path TYPE string_table.
+    DATA lr_node_parent LIKE rr_end_node.
+    DATA lv_cur_path TYPE string.
+    DATA lv_cur_name TYPE string.
+    DATA ls_new_node LIKE LINE OF mt_json_tree.
 
-    split iv_path at '/' into table lt_path.
-    delete lt_path where table_line is initial.
+    SPLIT iv_path AT '/' INTO TABLE lt_path.
+    DELETE lt_path WHERE table_line IS INITIAL.
 
-    do.
+    DO.
       lr_node_parent = rr_end_node.
-      read table mt_json_tree reference into rr_end_node
-        with key
+      READ TABLE mt_json_tree REFERENCE INTO rr_end_node
+        WITH KEY
           path = lv_cur_path
           name = lv_cur_name.
-      if sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
-        clear ls_new_node.
-        if lr_node_parent is not initial. " if has parent
+      IF sy-subrc <> 0. " New node, assume it is always object as it has a named child, use touch_array to init array
+        CLEAR ls_new_node.
+        IF lr_node_parent IS NOT INITIAL. " if has parent
           lr_node_parent->children = lr_node_parent->children + 1.
-          if lr_node_parent->type = z2ui5_if_ajson_types=>node_type-array.
+          IF lr_node_parent->type = z2ui5_if_ajson_types=>node_type-array.
             ls_new_node-index = lcl_utils=>validate_array_index(
               iv_path  = lv_cur_path
               iv_index = lv_cur_name ).
-          endif.
-        endif.
+          ENDIF.
+        ENDIF.
         ls_new_node-path = lv_cur_path.
         ls_new_node-name = lv_cur_name.
         ls_new_node-type = z2ui5_if_ajson_types=>node_type-object.
-        insert ls_new_node into table mt_json_tree reference into rr_end_node.
-      endif.
+        INSERT ls_new_node INTO TABLE mt_json_tree REFERENCE INTO rr_end_node.
+      ENDIF.
       lv_cur_path = lv_cur_path && lv_cur_name && '/'.
-      read table lt_path index sy-index into lv_cur_name.
-      if sy-subrc <> 0.
-        exit. " no more segments
-      endif.
-    enddo.
+      READ TABLE lt_path INDEX sy-index INTO lv_cur_name.
+      IF sy-subrc <> 0.
+        EXIT. " no more segments
+      ENDIF.
+    ENDDO.
 
-  endmethod.
-
-
-  method read_only_watchdog.
-    if ms_opts-read_only = abap_true.
-      z2UI5_cx_ajson_error=>raise( 'This json instance is read only' ).
-    endif.
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~array_to_string_table.
+  METHOD read_only_watchdog.
+    IF ms_opts-read_only = abap_true.
+      z2ui5_cx_ajson_error=>raise( 'This json instance is read only' ).
+    ENDIF.
+  ENDMETHOD.
 
-    data lv_normalized_path type string.
-    data lr_node type ref to z2ui5_if_ajson_types=>ty_node.
-    field-symbols <item> like line of mt_json_tree.
+
+  METHOD z2ui5_if_ajson~array_to_string_table.
+
+    DATA lv_normalized_path TYPE string.
+    DATA lr_node TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lr_node = get_item( iv_path ).
 
-    if lr_node is initial.
-      z2UI5_cx_ajson_error=>raise( |Path not found: { iv_path }| ).
-    endif.
-    if lr_node->type <> z2ui5_if_ajson_types=>node_type-array.
-      z2UI5_cx_ajson_error=>raise( |Array expected at: { iv_path }| ).
-    endif.
+    IF lr_node IS INITIAL.
+      z2ui5_cx_ajson_error=>raise( |Path not found: { iv_path }| ).
+    ENDIF.
+    IF lr_node->type <> z2ui5_if_ajson_types=>node_type-array.
+      z2ui5_cx_ajson_error=>raise( |Array expected at: { iv_path }| ).
+    ENDIF.
 
-    loop at mt_json_tree assigning <item> where path = lv_normalized_path.
-      case <item>-type.
-        when z2ui5_if_ajson_types=>node_type-number or z2ui5_if_ajson_types=>node_type-string.
-          append <item>-value to rt_string_table.
-        when z2ui5_if_ajson_types=>node_type-null.
-          append '' to rt_string_table.
-        when z2ui5_if_ajson_types=>node_type-boolean.
-          data lv_tmp type string.
-          if <item>-value = 'true'.
+    LOOP AT mt_json_tree ASSIGNING <item> WHERE path = lv_normalized_path.
+      CASE <item>-type.
+        WHEN z2ui5_if_ajson_types=>node_type-number OR z2ui5_if_ajson_types=>node_type-string.
+          APPEND <item>-value TO rt_string_table.
+        WHEN z2ui5_if_ajson_types=>node_type-null.
+          APPEND '' TO rt_string_table.
+        WHEN z2ui5_if_ajson_types=>node_type-boolean.
+          DATA lv_tmp TYPE string.
+          IF <item>-value = 'true'.
             lv_tmp = abap_true.
-          else.
-            clear lv_tmp.
-          endif.
-          append lv_tmp to rt_string_table.
-        when others.
-          z2UI5_cx_ajson_error=>raise( |Cannot convert [{ <item>-type
+          ELSE.
+            CLEAR lv_tmp.
+          ENDIF.
+          APPEND lv_tmp TO rt_string_table.
+        WHEN OTHERS.
+          z2ui5_cx_ajson_error=>raise( |Cannot convert [{ <item>-type
             }] to string at [{ <item>-path }{ <item>-name }]| ).
-      endcase.
-    endloop.
+      ENDCASE.
+    ENDLOOP.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~clear.
+  METHOD z2ui5_if_ajson~clear.
 
     read_only_watchdog( ).
-    clear mt_json_tree.
+    CLEAR mt_json_tree.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~clone.
+  METHOD z2ui5_if_ajson~clone.
     ri_json = create_from( me ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~delete.
+  METHOD z2ui5_if_ajson~delete.
 
     read_only_watchdog( ).
 
-    data ls_split_path type z2ui5_if_ajson_types=>ty_path_name.
+    DATA ls_split_path TYPE z2ui5_if_ajson_types=>ty_path_name.
     ls_split_path = lcl_utils=>split_path( iv_path ).
 
     delete_subtree(
@@ -375,200 +375,200 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
 
     ri_json = me.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~exists.
-    rv_exists = boolc( get_item( iv_path ) is not initial ).
-  endmethod.
+  METHOD z2ui5_if_ajson~exists.
+    rv_exists = boolc( get_item( iv_path ) IS NOT INITIAL ).
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~filter.
+  METHOD z2ui5_if_ajson~filter.
     ri_json = create_from(
       ii_source_json = me
       ii_filter      = ii_filter ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~format_datetime.
+  METHOD z2ui5_if_ajson~format_datetime.
     ms_opts-format_datetime = iv_use_iso.
     ri_json = me.
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~freeze.
+  METHOD z2ui5_if_ajson~freeze.
     ms_opts-read_only = abap_true.
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get.
+  METHOD z2ui5_if_ajson~get.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial.
+    IF lr_item IS NOT INITIAL.
       rv_value = lr_item->value.
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_boolean.
+  METHOD z2ui5_if_ajson~get_boolean.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is initial or lr_item->type = z2ui5_if_ajson_types=>node_type-null.
-      return.
-    elseif lr_item->type = z2ui5_if_ajson_types=>node_type-boolean.
+    IF lr_item IS INITIAL OR lr_item->type = z2ui5_if_ajson_types=>node_type-null.
+      RETURN.
+    ELSEIF lr_item->type = z2ui5_if_ajson_types=>node_type-boolean.
       rv_value = boolc( lr_item->value = 'true' ).
-    elseif lr_item->value is not initial.
+    ELSEIF lr_item->value IS NOT INITIAL.
       rv_value = abap_true.
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_date.
+  METHOD z2ui5_if_ajson~get_date.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
-    data lv_y type c length 4.
-    data lv_m type c length 2.
-    data lv_d type c length 2.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    DATA lv_y TYPE c LENGTH 4.
+    DATA lv_m TYPE c LENGTH 2.
+    DATA lv_d TYPE c LENGTH 2.
 
     lr_item = get_item( iv_path ).
 
-    if lr_item is not initial and lr_item->type = z2ui5_if_ajson_types=>node_type-string.
-      find first occurrence of regex '^(\d{4})-(\d{2})-(\d{2})(T|$)' "#EC NOTEXT
-        in lr_item->value
-        submatches lv_y lv_m lv_d.
-      concatenate lv_y lv_m lv_d into rv_value.
-    endif.
+    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ajson_types=>node_type-string.
+      FIND FIRST OCCURRENCE OF REGEX '^(\d{4})-(\d{2})-(\d{2})(T|$)'
+        IN lr_item->value
+        SUBMATCHES lv_y lv_m lv_d.
+      CONCATENATE lv_y lv_m lv_d INTO rv_value.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_integer.
+  METHOD z2ui5_if_ajson~get_integer.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial and lr_item->type = z2ui5_if_ajson_types=>node_type-number.
+    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ajson_types=>node_type-number.
       rv_value = lr_item->value.
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_node_type.
+  METHOD z2ui5_if_ajson~get_node_type.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial.
+    IF lr_item IS NOT INITIAL.
       rv_node_type = lr_item->type.
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_number.
+  METHOD z2ui5_if_ajson~get_number.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial and lr_item->type = z2ui5_if_ajson_types=>node_type-number.
+    IF lr_item IS NOT INITIAL AND lr_item->type = z2ui5_if_ajson_types=>node_type-number.
       rv_value = lr_item->value.
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_string.
+  METHOD z2ui5_if_ajson~get_string.
 
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
     lr_item = get_item( iv_path ).
-    if lr_item is not initial and lr_item->type <> z2ui5_if_ajson_types=>node_type-null.
+    IF lr_item IS NOT INITIAL AND lr_item->type <> z2ui5_if_ajson_types=>node_type-null.
       rv_value = lr_item->value.
-    endif.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~get_timestamp.
+  METHOD z2ui5_if_ajson~get_timestamp.
 
-    data lo_to_abap type ref to lcl_json_to_abap.
-    data lr_item type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
+    DATA lr_item TYPE REF TO z2ui5_if_ajson_types=>ty_node.
 
     lr_item = get_item( iv_path ).
 
-    if lr_item is initial.
-      return.
-    endif.
+    IF lr_item IS INITIAL.
+      RETURN.
+    ENDIF.
 
-    create object lo_to_abap.
+    CREATE OBJECT lo_to_abap.
 
-    try.
-      rv_value = lo_to_abap->to_timestamp( lr_item->value ).
-    catch z2UI5_cx_ajson_error.
-      return.
-    endtry.
+    TRY.
+        rv_value = lo_to_abap->to_timestamp( lr_item->value ).
+      CATCH z2ui5_cx_ajson_error.
+        RETURN.
+    ENDTRY.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~is_empty.
+  METHOD z2ui5_if_ajson~is_empty.
     rv_yes = boolc( lines( mt_json_tree ) = 0 ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~keep_item_order.
+  METHOD z2ui5_if_ajson~keep_item_order.
     ms_opts-keep_item_order = abap_true.
     ri_json = me.
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~map.
+  METHOD z2ui5_if_ajson~map.
     ri_json = create_from(
       ii_source_json = me
       ii_mapper      = ii_mapper ).
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~members.
+  METHOD z2ui5_if_ajson~members.
 
-    data lv_normalized_path type string.
-    field-symbols <item> like line of mt_json_tree.
+    DATA lv_normalized_path TYPE string.
+    FIELD-SYMBOLS <item> LIKE LINE OF mt_json_tree.
 
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
 
-    loop at mt_json_tree assigning <item> where path = lv_normalized_path.
-      append <item>-name to rt_members.
-    endloop.
+    LOOP AT mt_json_tree ASSIGNING <item> WHERE path = lv_normalized_path.
+      APPEND <item>-name TO rt_members.
+    ENDLOOP.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~opts.
+  METHOD z2ui5_if_ajson~opts.
     rs_opts = ms_opts.
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~push.
+  METHOD z2ui5_if_ajson~push.
 
-    data lr_parent type ref to z2ui5_if_ajson_types=>ty_node.
-    data lr_new_node type ref to z2ui5_if_ajson_types=>ty_node.
+    DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    DATA lr_new_node TYPE REF TO z2ui5_if_ajson_types=>ty_node.
 
     read_only_watchdog( ).
 
     lr_parent = get_item( iv_path ).
 
-    if lr_parent is initial.
-      z2UI5_cx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
-    endif.
+    IF lr_parent IS INITIAL.
+      z2ui5_cx_ajson_error=>raise( |Path [{ iv_path }] does not exist| ).
+    ENDIF.
 
-    if lr_parent->type <> z2ui5_if_ajson_types=>node_type-array.
-      z2UI5_cx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
-    endif.
+    IF lr_parent->type <> z2ui5_if_ajson_types=>node_type-array.
+      z2ui5_cx_ajson_error=>raise( |Path [{ iv_path }] is not array| ).
+    ENDIF.
 
-    data lt_new_nodes type z2ui5_if_ajson_types=>ty_nodes_tt.
-    data ls_new_path type z2ui5_if_ajson_types=>ty_path_name.
-    data lv_new_index type i.
+    DATA lt_new_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA ls_new_path TYPE z2ui5_if_ajson_types=>ty_path_name.
+    DATA lv_new_index TYPE i.
 
     lv_new_index     = lr_parent->children + 1.
     ls_new_path-path = lcl_utils=>normalize_path( iv_path ).
@@ -578,62 +578,62 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
       is_opts            = ms_opts
       iv_data   = iv_val
       is_prefix = ls_new_path ).
-    read table lt_new_nodes index 1 reference into lr_new_node. " assume first record is the array item - not ideal !
-    assert sy-subrc = 0.
+    READ TABLE lt_new_nodes INDEX 1 REFERENCE INTO lr_new_node. " assume first record is the array item - not ideal !
+    ASSERT sy-subrc = 0.
     lr_new_node->index = lv_new_index.
 
     " update data
     lr_parent->children = lv_new_index.
-    insert lines of lt_new_nodes into table mt_json_tree.
+    INSERT LINES OF lt_new_nodes INTO TABLE mt_json_tree.
 
     ri_json = me.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set.
+  METHOD z2ui5_if_ajson~set.
 
-    data ls_split_path type z2ui5_if_ajson_types=>ty_path_name.
-    data lr_parent type ref to z2ui5_if_ajson_types=>ty_node.
-    data ls_deleted_node type z2ui5_if_ajson_types=>ty_node.
-    data lv_item_order type z2ui5_if_ajson_types=>ty_node-order.
+    DATA ls_split_path TYPE z2ui5_if_ajson_types=>ty_path_name.
+    DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    DATA ls_deleted_node TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA lv_item_order TYPE z2ui5_if_ajson_types=>ty_node-order.
 
     read_only_watchdog( ).
 
     ri_json = me.
 
-    if iv_val is initial and iv_ignore_empty = abap_true and iv_node_type is initial.
-      return. " nothing to assign
-    endif.
+    IF iv_val IS INITIAL AND iv_ignore_empty = abap_true AND iv_node_type IS INITIAL.
+      RETURN. " nothing to assign
+    ENDIF.
 
-    if iv_node_type is not initial
-      and iv_node_type <> z2ui5_if_ajson_types=>node_type-boolean and iv_node_type <> z2ui5_if_ajson_types=>node_type-null
-      and iv_node_type <> z2ui5_if_ajson_types=>node_type-number and iv_node_type <> z2ui5_if_ajson_types=>node_type-string.
-      z2UI5_cx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
-    endif.
+    IF iv_node_type IS NOT INITIAL
+      AND iv_node_type <> z2ui5_if_ajson_types=>node_type-boolean AND iv_node_type <> z2ui5_if_ajson_types=>node_type-null
+      AND iv_node_type <> z2ui5_if_ajson_types=>node_type-number AND iv_node_type <> z2ui5_if_ajson_types=>node_type-string.
+      z2ui5_cx_ajson_error=>raise( |Unexpected type { iv_node_type }| ).
+    ENDIF.
 
     ls_split_path = lcl_utils=>split_path( iv_path ).
-    if ls_split_path is initial. " Assign root, exceptional processing
-      if iv_node_type is not initial.
+    IF ls_split_path IS INITIAL. " Assign root, exceptional processing
+      IF iv_node_type IS NOT INITIAL.
         mt_json_tree = lcl_abap_to_json=>insert_with_type(
           is_opts            = ms_opts
           iv_data            = iv_val
           iv_type            = iv_node_type
           is_prefix          = ls_split_path
           ii_custom_mapping  = mi_custom_mapping ).
-      else.
+      ELSE.
         mt_json_tree = lcl_abap_to_json=>convert(
           is_opts            = ms_opts
           iv_data            = iv_val
           is_prefix          = ls_split_path
           ii_custom_mapping  = mi_custom_mapping ).
-      endif.
-      return.
-    endif.
+      ENDIF.
+      RETURN.
+    ENDIF.
 
     " Ensure whole path exists
     lr_parent = prove_path_exists( ls_split_path-path ).
-    assert lr_parent is not initial.
+    ASSERT lr_parent IS NOT INITIAL.
 
     " delete if exists with subtree
     ls_deleted_node = delete_subtree(
@@ -643,19 +643,19 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
     lv_item_order = ls_deleted_node-order.
 
     " convert to json
-    data lt_new_nodes type z2ui5_if_ajson_types=>ty_nodes_tt.
-    data lv_array_index type i.
+    DATA lt_new_nodes TYPE z2ui5_if_ajson_types=>ty_nodes_tt.
+    DATA lv_array_index TYPE i.
 
-    if lr_parent->type = z2ui5_if_ajson_types=>node_type-array.
+    IF lr_parent->type = z2ui5_if_ajson_types=>node_type-array.
       lv_array_index = lcl_utils=>validate_array_index(
         iv_path  = ls_split_path-path
         iv_index = ls_split_path-name ).
-    elseif lr_parent->type = z2ui5_if_ajson_types=>node_type-object
-      and lv_item_order = 0 and ms_opts-keep_item_order = abap_true.
+    ELSEIF lr_parent->type = z2ui5_if_ajson_types=>node_type-object
+      AND lv_item_order = 0 AND ms_opts-keep_item_order = abap_true.
       lv_item_order = lr_parent->children + 1.
-    endif.
+    ENDIF.
 
-    if iv_node_type is not initial.
+    IF iv_node_type IS NOT INITIAL.
       lt_new_nodes = lcl_abap_to_json=>insert_with_type(
         is_opts            = ms_opts
         iv_item_order      = lv_item_order
@@ -664,7 +664,7 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
         ii_custom_mapping  = mi_custom_mapping ).
-    else.
+    ELSE.
       lt_new_nodes = lcl_abap_to_json=>convert(
         is_opts            = ms_opts
         iv_item_order      = lv_item_order
@@ -672,108 +672,108 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
         iv_array_index     = lv_array_index
         is_prefix          = ls_split_path
         ii_custom_mapping  = mi_custom_mapping ).
-    endif.
+    ENDIF.
 
     " update nodes
-    if lines( lt_new_nodes ) > 0.
+    IF lines( lt_new_nodes ) > 0.
       lr_parent->children = lr_parent->children + 1.
-      insert lines of lt_new_nodes into table mt_json_tree.
-    endif.
+      INSERT LINES OF lt_new_nodes INTO TABLE mt_json_tree.
+    ENDIF.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~setx.
+  METHOD z2ui5_if_ajson~setx.
 
-    data lv_path type string.
-    data lv_val type string.
-    data lv_int type i.
-    data lv_dec type decfloat34.
-    data lv_last type i.
+    DATA lv_path TYPE string.
+    DATA lv_val TYPE string.
+    DATA lv_int TYPE i.
+    DATA lv_dec TYPE decfloat34.
+    DATA lv_last TYPE i.
 
-    if iv_param is initial.
+    IF iv_param IS INITIAL.
       ri_json = me.
-      return.
-    endif.
+      RETURN.
+    ENDIF.
 
-    split iv_param at ':' into lv_path lv_val.
-    condense lv_path.
-    condense lv_val.
+    SPLIT iv_param AT ':' INTO lv_path lv_val.
+    CONDENSE lv_path.
+    CONDENSE lv_val.
 
-    if lv_val is initial.
+    IF lv_val IS INITIAL.
       ri_json = me.
-      return. " Hmm ? or empty string ? or null ?
-    endif.
+      RETURN. " Hmm ? or empty string ? or null ?
+    ENDIF.
 
-    if go_float_regex is not bound.
-      create object go_float_regex exporting pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
+    IF go_float_regex IS NOT BOUND.
+      CREATE OBJECT go_float_regex EXPORTING pattern = '^([1-9][0-9]*|0)\.[0-9]+$'.
       " expects fractional, because ints are detected separately
-    endif.
+    ENDIF.
 
-    if lv_val = 'null'.
+    IF lv_val = 'null'.
       z2ui5_if_ajson~set_null( lv_path ).
-    elseif lv_val = 'true'.
+    ELSEIF lv_val = 'true'.
       z2ui5_if_ajson~set_boolean(
         iv_path = lv_path
         iv_val  = abap_true ).
-    elseif lv_val = 'false'.
+    ELSEIF lv_val = 'false'.
       z2ui5_if_ajson~set_boolean(
         iv_path = lv_path
         iv_val  = abap_false ).
-    elseif lv_val co '0123456789'.
+    ELSEIF lv_val CO '0123456789'.
       lv_int = lv_val.
       z2ui5_if_ajson~set_integer(
         iv_path = lv_path
         iv_val  = lv_int ).
-    elseif lv_val co '0123456789.' and go_float_regex->create_matcher( text = lv_val )->match( ) = abap_true.
+    ELSEIF lv_val CO '0123456789.' AND go_float_regex->create_matcher( text = lv_val )->match( ) = abap_true.
       lv_dec = lv_val.
       z2ui5_if_ajson~set(
         iv_path = lv_path
         iv_val  = lv_dec ).
-    elseif lv_val+0(1) = '{' or lv_val+0(1) = '['.
+    ELSEIF lv_val+0(1) = '{' OR lv_val+0(1) = '['.
       "Expect object/array, but no further checks, parser will catch errors
       z2ui5_if_ajson~set(
         iv_path = lv_path
         iv_val  = parse(
           iv_json = lv_val
           iv_keep_item_order = ms_opts-keep_item_order ) ).
-    else. " string
+    ELSE. " string
       lv_last = strlen( lv_val ) - 1.
-      if lv_val+0(1) = '"' and lv_val+lv_last(1) = '"'.
+      IF lv_val+0(1) = '"' AND lv_val+lv_last(1) = '"'.
         lv_val = substring(
           val = lv_val
           off = 1
           len = lv_last - 1 ).
-      endif.
+      ENDIF.
       z2ui5_if_ajson~set_string(
         iv_path = lv_path
         iv_val  = lv_val ).
-    endif.
+    ENDIF.
 
     ri_json = me.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set_boolean.
+  METHOD z2ui5_if_ajson~set_boolean.
 
     ri_json = me.
 
-    data lv_bool type abap_bool.
-    lv_bool = boolc( iv_val is not initial ).
+    DATA lv_bool TYPE abap_bool.
+    lv_bool = boolc( iv_val IS NOT INITIAL ).
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_bool ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set_date.
+  METHOD z2ui5_if_ajson~set_date.
 
     ri_json = me.
 
-    data lv_val type string.
+    DATA lv_val TYPE string.
     lv_val = lcl_abap_to_json=>format_date( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -781,10 +781,10 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_val ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set_integer.
+  METHOD z2ui5_if_ajson~set_integer.
 
     ri_json = me.
 
@@ -793,41 +793,41 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = iv_val ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set_null.
+  METHOD z2ui5_if_ajson~set_null.
 
     ri_json = me.
 
-    data lv_null_ref type ref to data.
+    DATA lv_null_ref TYPE REF TO data.
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_null_ref ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set_string.
+  METHOD z2ui5_if_ajson~set_string.
 
     ri_json = me.
 
-    data lv_val type string.
+    DATA lv_val TYPE string.
     lv_val = iv_val.
     z2ui5_if_ajson~set(
       iv_ignore_empty = abap_false
       iv_path = iv_path
       iv_val  = lv_val ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~set_timestamp.
+  METHOD z2ui5_if_ajson~set_timestamp.
 
     ri_json = me.
 
-    data lv_timestamp_iso type string.
+    DATA lv_timestamp_iso TYPE string.
     lv_timestamp_iso = lcl_abap_to_json=>format_timestamp( iv_val ).
 
     z2ui5_if_ajson~set(
@@ -835,87 +835,88 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
       iv_path = iv_path
       iv_val  = lv_timestamp_iso ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~slice.
+  METHOD z2ui5_if_ajson~slice.
 
-    data lo_section         type ref to z2ui5_cl_ajson.
-    data ls_item            like line of mt_json_tree.
-    data lv_normalized_path type string.
-    data ls_path_parts      type z2ui5_if_ajson_types=>ty_path_name.
-    data lv_path_len        type i.
-    data lv_path_pattern    type string.
+    DATA lo_section         TYPE REF TO z2ui5_cl_ajson.
+    DATA ls_item            LIKE LINE OF mt_json_tree.
+    DATA lv_normalized_path TYPE string.
+    DATA ls_path_parts      TYPE z2ui5_if_ajson_types=>ty_path_name.
+    DATA lv_path_len        TYPE i.
+    DATA lv_path_pattern    TYPE string.
 
-    create object lo_section.
+    CREATE OBJECT lo_section.
     lv_normalized_path = lcl_utils=>normalize_path( iv_path ).
     lv_path_len        = strlen( lv_normalized_path ).
     ls_path_parts      = lcl_utils=>split_path( lv_normalized_path ).
 
-    read table mt_json_tree into ls_item
-      with key path = ls_path_parts-path name = ls_path_parts-name.
-    if sy-subrc <> 0.
-      return.
-    endif.
+    READ TABLE mt_json_tree INTO ls_item
+      WITH KEY path = ls_path_parts-path name = ls_path_parts-name.
+    IF sy-subrc <> 0.
+      RETURN.
+    ENDIF.
 
-    clear: ls_item-path, ls_item-name, ls_item-order. " this becomes a new root
-    insert ls_item into table lo_section->mt_json_tree.
+    CLEAR: ls_item-path, ls_item-name, ls_item-order. " this becomes a new root
+    INSERT ls_item INTO TABLE lo_section->mt_json_tree.
 
     lv_path_pattern = lv_normalized_path && `*`.
 
-    loop at mt_json_tree into ls_item where path cp lv_path_pattern.
+    LOOP AT mt_json_tree INTO ls_item WHERE path CP lv_path_pattern.
 
-      ls_item-path = substring( val = ls_item-path off = lv_path_len - 1 ). " less closing '/'
-      insert ls_item into table lo_section->mt_json_tree.
+      ls_item-path = substring( val = ls_item-path
+                                off = lv_path_len - 1 ). " less closing '/'
+      INSERT ls_item INTO TABLE lo_section->mt_json_tree.
 
-    endloop.
+    ENDLOOP.
 
     ri_json = lo_section.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~stringify.
+  METHOD z2ui5_if_ajson~stringify.
 
     rv_json = lcl_json_serializer=>stringify(
       it_json_tree       = mt_json_tree
       iv_keep_item_order = ms_opts-keep_item_order
       iv_indent          = iv_indent ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~touch_array.
+  METHOD z2ui5_if_ajson~touch_array.
 
-    data lr_node type ref to z2ui5_if_ajson_types=>ty_node.
-    data ls_deleted_node type z2ui5_if_ajson_types=>ty_node.
-    data ls_new_node like line of mt_json_tree.
-    data ls_split_path type z2ui5_if_ajson_types=>ty_path_name.
+    DATA lr_node TYPE REF TO z2ui5_if_ajson_types=>ty_node.
+    DATA ls_deleted_node TYPE z2ui5_if_ajson_types=>ty_node.
+    DATA ls_new_node LIKE LINE OF mt_json_tree.
+    DATA ls_split_path TYPE z2ui5_if_ajson_types=>ty_path_name.
 
     read_only_watchdog( ).
 
     ls_split_path = lcl_utils=>split_path( iv_path ).
-    if ls_split_path is initial. " Assign root, exceptional processing
+    IF ls_split_path IS INITIAL. " Assign root, exceptional processing
       ls_new_node-path = ls_split_path-path.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = z2ui5_if_ajson_types=>node_type-array.
-      insert ls_new_node into table mt_json_tree.
-      return.
-    endif.
+      INSERT ls_new_node INTO TABLE mt_json_tree.
+      RETURN.
+    ENDIF.
 
-    if iv_clear = abap_true.
+    IF iv_clear = abap_true.
       ls_deleted_node = delete_subtree(
         iv_path = ls_split_path-path
         iv_name = ls_split_path-name ).
-    else.
+    ELSE.
       lr_node = get_item( iv_path ).
-    endif.
+    ENDIF.
 
-    if lr_node is initial. " Or node was cleared
+    IF lr_node IS INITIAL. " Or node was cleared
 
-      data lr_parent type ref to z2ui5_if_ajson_types=>ty_node.
+      DATA lr_parent TYPE REF TO z2ui5_if_ajson_types=>ty_node.
       lr_parent = prove_path_exists( ls_split_path-path ).
-      assert lr_parent is not initial.
+      ASSERT lr_parent IS NOT INITIAL.
 
       lr_parent->children = lr_parent->children + 1.
 
@@ -923,42 +924,46 @@ CLASS Z2UI5_CL_AJSON IMPLEMENTATION.
       ls_new_node-name = ls_split_path-name.
       ls_new_node-type = z2ui5_if_ajson_types=>node_type-array.
 
-      if ms_opts-keep_item_order = abap_true and ls_deleted_node is not initial.
-        ls_new_node-order = ls_deleted_node-order.
-      endif.
+      IF ms_opts-keep_item_order = abap_true.
+        IF ls_deleted_node IS NOT INITIAL.
+          ls_new_node-order = ls_deleted_node-order.
+        ELSE.
+          ls_new_node-order = lr_parent->children.
+        ENDIF.
+      ENDIF.
 
-      insert ls_new_node into table mt_json_tree.
+      INSERT ls_new_node INTO TABLE mt_json_tree.
 
-    elseif lr_node->type <> z2ui5_if_ajson_types=>node_type-array.
-      z2UI5_cx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
-    endif.
+    ELSEIF lr_node->type <> z2ui5_if_ajson_types=>node_type-array.
+      z2ui5_cx_ajson_error=>raise( |Path [{ iv_path }] already used and is not array| ).
+    ENDIF.
 
     ri_json = me.
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~to_abap.
+  METHOD z2ui5_if_ajson~to_abap.
 
-    data lo_to_abap type ref to lcl_json_to_abap.
+    DATA lo_to_abap TYPE REF TO lcl_json_to_abap.
 
-    clear ev_container.
-    create object lo_to_abap
-      exporting
-        iv_corresponding  = boolc( iv_corresponding = abap_true or ms_opts-to_abap_corresponding_only = abap_true )
+    CLEAR ev_container.
+    CREATE OBJECT lo_to_abap
+      EXPORTING
+        iv_corresponding  = boolc( iv_corresponding = abap_true OR ms_opts-to_abap_corresponding_only = abap_true )
         ii_custom_mapping = mi_custom_mapping.
 
     lo_to_abap->to_abap(
-      exporting
+      EXPORTING
         it_nodes    = z2ui5_if_ajson~mt_json_tree
-      changing
+      CHANGING
         c_container = ev_container ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method z2ui5_if_ajson~to_abap_corresponding_only.
+  METHOD z2ui5_if_ajson~to_abap_corresponding_only.
     ms_opts-to_abap_corresponding_only = iv_enable.
     ri_json = me.
-  endmethod.
+  ENDMETHOD.
 ENDCLASS.

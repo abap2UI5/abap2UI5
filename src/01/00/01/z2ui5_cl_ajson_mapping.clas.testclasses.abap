@@ -1,84 +1,86 @@
-class ltcl_test_mappers definition final for testing
-  duration short
-  risk level harmless.
+CLASS ltcl_test_mappers DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods:
-      from_json_to_json for testing raising z2UI5_cx_ajson_error,
-      to_abap for testing raising z2UI5_cx_ajson_error,
-      to_json for testing raising z2UI5_cx_ajson_error,
-      to_json_nested_struc for testing raising z2UI5_cx_ajson_error,
-      to_json_nested_table for testing raising z2UI5_cx_ajson_error,
-      to_json_first_lower for testing raising z2UI5_cx_ajson_error.
+  PRIVATE SECTION.
+    METHODS:
+      from_json_to_json FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_abap FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_json FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_json_nested_struc FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_json_nested_table FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_json_first_lower FOR TESTING RAISING z2ui5_cx_ajson_error.
 
-    methods:
-      to_snake for testing raising z2UI5_cx_ajson_error,
-      to_camel for testing raising z2UI5_cx_ajson_error,
-      to_camel_1st_upper for testing raising z2UI5_cx_ajson_error,
-      rename_by_attr for testing raising z2UI5_cx_ajson_error,
-      rename_by_path for testing raising z2UI5_cx_ajson_error,
-      rename_by_pattern for testing raising z2UI5_cx_ajson_error,
-      compound_mapper for testing raising z2UI5_cx_ajson_error,
-      test_to_upper for testing raising z2UI5_cx_ajson_error,
-      test_to_lower for testing raising z2UI5_cx_ajson_error.
+    METHODS:
+      to_snake FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_camel FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_camel_1st_upper FOR TESTING RAISING z2ui5_cx_ajson_error,
+      rename_by_attr FOR TESTING RAISING z2ui5_cx_ajson_error,
+      rename_by_path FOR TESTING RAISING z2ui5_cx_ajson_error,
+      rename_by_pattern FOR TESTING RAISING z2ui5_cx_ajson_error,
+      compound_mapper FOR TESTING RAISING z2ui5_cx_ajson_error,
+      test_to_upper FOR TESTING RAISING z2ui5_cx_ajson_error,
+      test_to_lower FOR TESTING RAISING z2ui5_cx_ajson_error.
 
-endclass.
-
-
-class ltcl_test_mappers implementation.
+ENDCLASS.
 
 
-  method from_json_to_json.
+CLASS ltcl_test_mappers IMPLEMENTATION.
 
-    data:
-      lo_ajson type ref to z2ui5_cl_ajson.
+
+  METHOD from_json_to_json.
+
+    DATA:
+      lo_ajson TYPE REF TO z2ui5_cl_ajson.
 
     lo_ajson =
         z2ui5_cl_ajson=>parse(
             iv_json           = `{"fieldData":"field_value"}`
             ii_custom_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ) ).
 
-    lo_ajson->set_string( iv_path = `/fieldData`  iv_val = 'E' ).
+    lo_ajson->set_string( iv_path = `/fieldData`
+                          iv_val = 'E' ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
       exp = '{"fieldData":"E"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_abap.
+  METHOD to_abap.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      begin of ls_result,
-        field_data type string,
-      end of ls_result.
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      BEGIN OF ls_result,
+        field_data TYPE string,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( ).
 
-    lo_ajson = z2ui5_cl_ajson=>parse( iv_json = '{"FieldData":"field_value"}' ii_custom_mapping = li_mapping ).
+    lo_ajson = z2ui5_cl_ajson=>parse( iv_json = '{"FieldData":"field_value"}'
+                                      ii_custom_mapping = li_mapping ).
 
-    lo_ajson->to_abap( importing ev_container = ls_result ).
+    lo_ajson->to_abap( IMPORTING ev_container = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_result-field_data
       exp = 'field_value' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json.
+  METHOD to_json.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      begin of ls_result,
-        field_data type string,
-      end of ls_result.
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      BEGIN OF ls_result,
+        field_data TYPE string,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
 
@@ -86,27 +88,28 @@ class ltcl_test_mappers implementation.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
       exp = '{"fieldData":"field_value"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json_nested_struc.
+  METHOD to_json_nested_struc.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      begin of ls_result,
-        field_data type string,
-        begin of struc_data,
-          field_more type string,
-        end of struc_data,
-      end of ls_result.
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      BEGIN OF ls_result,
+        field_data TYPE string,
+        BEGIN OF struc_data,
+          field_more TYPE string,
+        END OF struc_data,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
 
@@ -115,34 +118,35 @@ class ltcl_test_mappers implementation.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
       exp = '{"fieldData":"field_value","strucData":{"fieldMore":"field_more"}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json_nested_table.
+  METHOD to_json_nested_table.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      lv_value type string,
-      begin of ls_result,
-        field_data type string,
-        begin of struc_data,
-          field_more type string_table,
-        end of struc_data,
-      end of ls_result.
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      lv_value TYPE string,
+      BEGIN OF ls_result,
+        field_data TYPE string,
+        BEGIN OF struc_data,
+          field_more TYPE string_table,
+        END OF struc_data,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( iv_first_json_upper = abap_false ).
 
     ls_result-field_data = 'field_value'.
     lv_value = 'field_more'.
-    insert lv_value into table ls_result-struc_data-field_more.
+    INSERT lv_value INTO TABLE ls_result-struc_data-field_more.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
@@ -153,18 +157,18 @@ class ltcl_test_mappers implementation.
       act = lo_ajson->stringify( )
       exp = '{"fieldData":"field_value","strucData":{"fieldMore":["field_more"]}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json_first_lower.
+  METHOD to_json_first_lower.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      begin of ls_result,
-        field_data type string,
-      end of ls_result.
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      BEGIN OF ls_result,
+        field_data TYPE string,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_camel_case( ).
 
@@ -172,16 +176,17 @@ class ltcl_test_mappers implementation.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
       exp = '{"FieldData":"field_value"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method test_to_upper.
+  METHOD test_to_upper.
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ajson=>create_from(
@@ -195,9 +200,9 @@ class ltcl_test_mappers implementation.
         )->stringify( )
       exp = '{"A":1,"B":{"C":2}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method test_to_lower.
+  METHOD test_to_lower.
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ajson=>create_from(
@@ -211,20 +216,20 @@ class ltcl_test_mappers implementation.
         )->stringify( )
       exp = '{"a":1,"b":{"c":2}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method rename_by_attr.
+  METHOD rename_by_attr.
 
-    data lt_map type z2ui5_if_ajson_mapping=>tty_rename_map.
-    field-symbols <i> like line of lt_map.
+    DATA lt_map TYPE z2ui5_if_ajson_mapping=>tty_rename_map.
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_map.
 
-    append initial line to lt_map assigning <i>.
+    APPEND INITIAL LINE TO lt_map ASSIGNING <i>.
     <i>-from = 'a'.
     <i>-to   = 'x'.
-    append initial line to lt_map assigning <i>.
+    APPEND INITIAL LINE TO lt_map ASSIGNING <i>.
     <i>-from = 'c'.
     <i>-to   = 'y'.
-    append initial line to lt_map assigning <i>.
+    APPEND INITIAL LINE TO lt_map ASSIGNING <i>.
     <i>-from = 'd'.
     <i>-to   = 'z'.
 
@@ -235,14 +240,14 @@ class ltcl_test_mappers implementation.
         ) )->stringify( )
       exp = '{"b":{"y":2},"x":1,"z":{"e":3}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method rename_by_path.
+  METHOD rename_by_path.
 
-    data lt_map type z2ui5_if_ajson_mapping=>tty_rename_map.
-    field-symbols <i> like line of lt_map.
+    DATA lt_map TYPE z2ui5_if_ajson_mapping=>tty_rename_map.
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_map.
 
-    append initial line to lt_map assigning <i>.
+    APPEND INITIAL LINE TO lt_map ASSIGNING <i>.
     <i>-from = '/b/a'.
     <i>-to   = 'x'.
 
@@ -255,14 +260,14 @@ class ltcl_test_mappers implementation.
         ) )->stringify( )
       exp = '{"a":1,"b":{"x":2},"c":{"a":3}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method rename_by_pattern.
+  METHOD rename_by_pattern.
 
-    data lt_map type z2ui5_if_ajson_mapping=>tty_rename_map.
-    field-symbols <i> like line of lt_map.
+    DATA lt_map TYPE z2ui5_if_ajson_mapping=>tty_rename_map.
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_map.
 
-    append initial line to lt_map assigning <i>.
+    APPEND INITIAL LINE TO lt_map ASSIGNING <i>.
     <i>-from = '/*/this*'.
     <i>-to   = 'x'.
 
@@ -275,14 +280,14 @@ class ltcl_test_mappers implementation.
         ) )->stringify( )
       exp = '{"andthisnot":1,"b":{"x":2},"c":{"a":3}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method compound_mapper.
+  METHOD compound_mapper.
 
-    data lt_map type z2ui5_if_ajson_mapping=>tty_rename_map.
-    field-symbols <i> like line of lt_map.
+    DATA lt_map TYPE z2ui5_if_ajson_mapping=>tty_rename_map.
+    FIELD-SYMBOLS <i> LIKE LINE OF lt_map.
 
-    append initial line to lt_map assigning <i>.
+    APPEND INITIAL LINE TO lt_map ASSIGNING <i>.
     <i>-from = '/b/a'.
     <i>-to   = 'x'.
 
@@ -297,9 +302,9 @@ class ltcl_test_mappers implementation.
         )->stringify( )
       exp = '{"A":1,"B":{"X":2},"C":{"A":3}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method to_snake.
+  METHOD to_snake.
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ajson=>create_from(
@@ -308,9 +313,9 @@ class ltcl_test_mappers implementation.
         )->stringify( )
       exp = '{"a_b":1,"bb_c":2,"c_d":{"x_y":3},"zz":4}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method to_camel.
+  METHOD to_camel.
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ajson=>create_from(
@@ -327,9 +332,9 @@ class ltcl_test_mappers implementation.
         )->stringify( )
       exp = '{"a_b":1}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method to_camel_1st_upper.
+  METHOD to_camel_1st_upper.
 
     cl_abap_unit_assert=>assert_equals(
       act = z2ui5_cl_ajson=>create_from(
@@ -338,54 +343,55 @@ class ltcl_test_mappers implementation.
         )->stringify( )
       exp = '{"AjBc":1,"BbC":2,"CD":{"XqYq":3},"Zz":4}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-endclass.
-
-
-
-class ltcl_fields definition final for testing
-  duration short
-  risk level harmless.
-
-  private section.
-    methods:
-      to_json_without_path for testing raising z2UI5_cx_ajson_error,
-      to_json_with_path for testing raising z2UI5_cx_ajson_error,
-      to_abap for testing raising z2UI5_cx_ajson_error,
-      to_json importing iv_path type string returning value(rv_result) type string raising z2UI5_cx_ajson_error.
+ENDCLASS.
 
 
-endclass.
+
+CLASS ltcl_fields DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
+
+  PRIVATE SECTION.
+    METHODS:
+      to_json_without_path FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_json_with_path FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_abap FOR TESTING RAISING z2ui5_cx_ajson_error,
+      to_json IMPORTING iv_path TYPE string RETURNING VALUE(rv_result) TYPE string RAISING z2ui5_cx_ajson_error.
 
 
-class ltcl_fields implementation.
+ENDCLASS.
 
 
-  method to_abap.
+CLASS ltcl_fields IMPLEMENTATION.
 
-    data:
-      lo_ajson          type ref to z2ui5_cl_ajson,
-      li_mapping        type ref to z2ui5_if_ajson_mapping,
-      lt_mapping_fields type z2ui5_if_ajson_mapping=>ty_mapping_fields,
-      ls_mapping_field  like line of lt_mapping_fields.
-    data:
-      begin of ls_result,
-        abap_field type string,
-        field      type string,
-      end of ls_result.
 
-    clear ls_mapping_field.
+  METHOD to_abap.
+
+    DATA:
+      lo_ajson          TYPE REF TO z2ui5_cl_ajson,
+      li_mapping        TYPE REF TO z2ui5_if_ajson_mapping,
+      lt_mapping_fields TYPE z2ui5_if_ajson_mapping=>ty_mapping_fields,
+      ls_mapping_field  LIKE LINE OF lt_mapping_fields.
+    DATA:
+      BEGIN OF ls_result,
+        abap_field TYPE string,
+        field      TYPE string,
+      END OF ls_result.
+
+    CLEAR ls_mapping_field.
     ls_mapping_field-abap  = 'ABAP_FIELD'.
     ls_mapping_field-json = 'json.field'.
-    insert ls_mapping_field into table lt_mapping_fields.
+    INSERT ls_mapping_field INTO TABLE lt_mapping_fields.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
 
     lo_ajson =
-        z2ui5_cl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}' ii_custom_mapping = li_mapping ).
+        z2ui5_cl_ajson=>parse( iv_json = '{"field":"value","json.field":"field_value"}'
+                               ii_custom_mapping = li_mapping ).
 
-    lo_ajson->to_abap( importing ev_container = ls_result ).
+    lo_ajson->to_abap( IMPORTING ev_container = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = ls_result-abap_field
@@ -395,44 +401,44 @@ class ltcl_fields implementation.
       act = ls_result-field
       exp = 'value' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json_without_path.
+  METHOD to_json_without_path.
 
     cl_abap_unit_assert=>assert_equals(
       act = to_json( `/` )
       exp = '{"field":"value","json.field":"field_value"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json_with_path.
+  METHOD to_json_with_path.
 
     cl_abap_unit_assert=>assert_equals(
       act = to_json( '/samplePath' )
       exp = '{"samplePath":{"field":"value","json.field":"field_value"}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-  method to_json.
+  METHOD to_json.
 
-    data:
-      lo_ajson          type ref to z2ui5_cl_ajson,
-      li_mapping        type ref to z2ui5_if_ajson_mapping,
-      lt_mapping_fields type z2ui5_if_ajson_mapping=>ty_mapping_fields,
-      ls_mapping_field  like line of lt_mapping_fields.
-    data:
-      begin of ls_result,
-        abap_field type string,
-        field      type string,
-      end of ls_result.
+    DATA:
+      lo_ajson          TYPE REF TO z2ui5_cl_ajson,
+      li_mapping        TYPE REF TO z2ui5_if_ajson_mapping,
+      lt_mapping_fields TYPE z2ui5_if_ajson_mapping=>ty_mapping_fields,
+      ls_mapping_field  LIKE LINE OF lt_mapping_fields.
+    DATA:
+      BEGIN OF ls_result,
+        abap_field TYPE string,
+        field      TYPE string,
+      END OF ls_result.
 
-    clear ls_mapping_field.
+    CLEAR ls_mapping_field.
     ls_mapping_field-abap  = 'ABAP_FIELD'.
     ls_mapping_field-json = 'json.field'.
-    insert ls_mapping_field into table lt_mapping_fields.
+    INSERT ls_mapping_field INTO TABLE lt_mapping_fields.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_field_mapping( lt_mapping_fields ).
 
@@ -441,39 +447,40 @@ class ltcl_fields implementation.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = iv_path iv_val = ls_result ).
+    lo_ajson->set( iv_path = iv_path
+                   iv_val = ls_result ).
 
     rv_result = lo_ajson->stringify( ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-endclass.
+ENDCLASS.
 
 
 
-class ltcl_to_lower definition final for testing
-  duration short
-  risk level harmless.
+CLASS ltcl_to_lower DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods:
-      to_json for testing raising z2UI5_cx_ajson_error.
-endclass.
-
-
-class ltcl_to_lower implementation.
+  PRIVATE SECTION.
+    METHODS:
+      to_json FOR TESTING RAISING z2ui5_cx_ajson_error.
+ENDCLASS.
 
 
-  method to_json.
+CLASS ltcl_to_lower IMPLEMENTATION.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      begin of ls_result,
-        field_data type string,
-      end of ls_result.
+
+  METHOD to_json.
+
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      BEGIN OF ls_result,
+        field_data TYPE string,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_lower_case( ).
 
@@ -481,41 +488,42 @@ class ltcl_to_lower implementation.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
       exp = '{"field_data":"field_value"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-endclass.
+ENDCLASS.
 
 
 
-class ltcl_to_upper definition final for testing
-  duration short
-  risk level harmless.
+CLASS ltcl_to_upper DEFINITION FINAL FOR TESTING
+  DURATION SHORT
+  RISK LEVEL HARMLESS.
 
-  private section.
-    methods:
-      to_json for testing raising z2UI5_cx_ajson_error.
-endclass.
-
-
-class ltcl_to_upper implementation.
+  PRIVATE SECTION.
+    METHODS:
+      to_json FOR TESTING RAISING z2ui5_cx_ajson_error.
+ENDCLASS.
 
 
-  method to_json.
+CLASS ltcl_to_upper IMPLEMENTATION.
 
-    data:
-      lo_ajson   type ref to z2ui5_cl_ajson,
-      li_mapping type ref to z2ui5_if_ajson_mapping.
-    data:
-      begin of ls_result,
-        field_data type string,
-      end of ls_result.
+
+  METHOD to_json.
+
+    DATA:
+      lo_ajson   TYPE REF TO z2ui5_cl_ajson,
+      li_mapping TYPE REF TO z2ui5_if_ajson_mapping.
+    DATA:
+      BEGIN OF ls_result,
+        field_data TYPE string,
+      END OF ls_result.
 
     li_mapping = z2ui5_cl_ajson_mapping=>create_upper_case( ).
 
@@ -523,13 +531,14 @@ class ltcl_to_upper implementation.
 
     lo_ajson = z2ui5_cl_ajson=>create_empty( ii_custom_mapping = li_mapping ).
 
-    lo_ajson->set( iv_path = '/' iv_val = ls_result ).
+    lo_ajson->set( iv_path = '/'
+                   iv_val = ls_result ).
 
     cl_abap_unit_assert=>assert_equals(
       act = lo_ajson->stringify( )
       exp = '{"FIELD_DATA":"field_value"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
 
-endclass.
+ENDCLASS.

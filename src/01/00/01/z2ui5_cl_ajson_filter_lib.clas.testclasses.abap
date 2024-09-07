@@ -1,24 +1,24 @@
-class ltcl_filters_test definition final
-  for testing
-  risk level harmless
-  duration short.
-  private section.
-    methods empty_filter_simple for testing raising z2UI5_cx_ajson_error.
-    methods empty_filter_deep for testing raising z2UI5_cx_ajson_error.
-    methods path_filter for testing raising z2UI5_cx_ajson_error.
-    methods path_filter_string for testing raising z2UI5_cx_ajson_error.
-    methods path_filter_w_patterns for testing raising z2UI5_cx_ajson_error.
-    methods path_filter_deep for testing raising z2UI5_cx_ajson_error.
-    methods and_filter for testing raising z2UI5_cx_ajson_error.
-endclass.
+CLASS ltcl_filters_test DEFINITION FINAL
+  FOR TESTING
+  RISK LEVEL HARMLESS
+  DURATION SHORT.
+  PRIVATE SECTION.
+    METHODS empty_filter_simple FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS empty_filter_deep FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS path_filter FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS path_filter_string FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS path_filter_w_patterns FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS path_filter_deep FOR TESTING RAISING z2ui5_cx_ajson_error.
+    METHODS and_filter FOR TESTING RAISING z2ui5_cx_ajson_error.
+ENDCLASS.
 
 
-class ltcl_filters_test implementation.
+CLASS ltcl_filters_test IMPLEMENTATION.
 
-  method empty_filter_simple.
+  METHOD empty_filter_simple.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -42,12 +42,12 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1","c":"3"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method empty_filter_deep.
+  METHOD empty_filter_deep.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -71,15 +71,15 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method path_filter.
+  METHOD path_filter.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
-    data lt_paths type string_table.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
+    DATA lt_paths TYPE string_table.
 
-    append '/b/c' to lt_paths.
+    APPEND '/b/c' TO lt_paths.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -100,12 +100,12 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1","b":{},"c":{"d":"3"}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method path_filter_string.
+  METHOD path_filter_string.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -126,12 +126,12 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1","b":{},"c":{}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method path_filter_w_patterns.
+  METHOD path_filter_w_patterns.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -160,15 +160,15 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1","b":{},"c":{"d":"3"}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method path_filter_deep.
+  METHOD path_filter_deep.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
-    data lt_paths type string_table.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
+    DATA lt_paths TYPE string_table.
 
-    append '/b' to lt_paths.
+    APPEND '/b' TO lt_paths.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -192,16 +192,16 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1","c":{"d":"3"}}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-  method and_filter.
+  METHOD and_filter.
 
-    data li_json type ref to z2ui5_if_ajson.
-    data li_json_filtered type ref to z2ui5_if_ajson.
-    data lt_filters type z2ui5_if_ajson_filter=>ty_filter_tab.
+    DATA li_json TYPE REF TO z2ui5_if_ajson.
+    DATA li_json_filtered TYPE REF TO z2ui5_if_ajson.
+    DATA lt_filters TYPE z2ui5_if_ajson_filter=>ty_filter_tab.
 
-    append z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) to lt_filters.
-    append z2ui5_cl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/c' ) to lt_filters.
+    APPEND z2ui5_cl_ajson_filter_lib=>create_empty_filter( ) TO lt_filters.
+    APPEND z2ui5_cl_ajson_filter_lib=>create_path_filter( iv_skip_paths = '/c' ) TO lt_filters.
 
     li_json = z2ui5_cl_ajson=>create_empty( ).
     li_json->set(
@@ -225,6 +225,6 @@ class ltcl_filters_test implementation.
       act = li_json_filtered->stringify( )
       exp = '{"a":"1"}' ).
 
-  endmethod.
+  ENDMETHOD.
 
-endclass.
+ENDCLASS.
