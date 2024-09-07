@@ -96,7 +96,7 @@ CLASS z2ui5_cl_abap_api DEFINITION
         iv_classname  TYPE clike
         iv_methodname TYPE clike
       RETURNING
-        VALUE(result)  TYPE string_table.
+        VALUE(result) TYPE string_table.
 
     CLASS-METHODS uuid_get_c32
       RETURNING
@@ -110,35 +110,35 @@ CLASS z2ui5_cl_abap_api DEFINITION
       IMPORTING
         i_data_element_name TYPE string
       RETURNING
-        VALUE(result)        TYPE ty_s_data_element_text.
+        VALUE(result)       TYPE ty_s_data_element_text.
 
     CLASS-METHODS conv_decode_x_base64
       IMPORTING
-        val          TYPE string
+        val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
     CLASS-METHODS conv_encode_x_base64
       IMPORTING
-        val          TYPE xstring
+        val           TYPE xstring
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS conv_get_string_by_xstring
       IMPORTING
-        val          TYPE xstring
+        val           TYPE xstring
       RETURNING
         VALUE(result) TYPE string.
 
     CLASS-METHODS conv_get_xstring_by_string
       IMPORTING
-        val          TYPE string
+        val           TYPE string
       RETURNING
         VALUE(result) TYPE xstring.
 
     CLASS-METHODS rtti_get_classes_impl_intf
       IMPORTING
-        val          TYPE clike
+        val           TYPE clike
       RETURNING
         VALUE(result) TYPE ty_t_classes.
 
