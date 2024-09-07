@@ -432,7 +432,7 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
     FIELD-SYMBOLS <any> TYPE any.
     DATA lt_implementation_names TYPE string_table.
     TYPES BEGIN OF ty_s_impl.
-    TYPES clsname TYPE c LENGTH 30.
+    TYPES clsname    TYPE c LENGTH 30.
     TYPES refclsname TYPE c LENGTH 30.
     TYPES END OF ty_s_impl.
     DATA lt_impl TYPE STANDARD TABLE OF ty_s_impl WITH DEFAULT KEY.
