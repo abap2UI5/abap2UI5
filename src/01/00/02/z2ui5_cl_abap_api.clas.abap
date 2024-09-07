@@ -517,7 +517,7 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
           ASSERT sy-subrc = 0.
 
           INSERT
-            VALUE #( classname = lr_impl->clsname
+            VALUE #( classname   = lr_impl->clsname
                      description = <description> )
             INTO TABLE result.
         ENDLOOP.
