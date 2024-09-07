@@ -51,7 +51,7 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
     LOOP AT t_attri->* REFERENCE INTO DATA(lr_attri)
       WHERE bind_type = z2ui5_if_core_types=>cs_bind_type-two_way
       AND view  = lv_view.
-      TRY.
+*      TRY.
 
           DATA(lo_val_front) = model->slice( lr_attri->name_client ).
           IF lo_val_front IS NOT BOUND.
@@ -72,9 +72,9 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
             IMPORTING
               ev_container = <val> ).
 
-        CATCH cx_root INTO DATA(x).
-          ASSERT x IS BOUND.
-      ENDTRY.
+*        CATCH cx_root INTO DATA(x).
+*          ASSERT x IS BOUND.
+*      ENDTRY.
     ENDLOOP.
 
 

@@ -987,7 +987,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
           IF is_node_type-type_kind = lif_kind=>date.
             <container> = to_date( is_node-value ).
           ELSEIF is_node_type-type_kind = lif_kind=>time.
-                <container> = to_time( is_node-value ).
+            <container> = to_time( is_node-value ).
           ELSEIF is_node_type-dd->absolute_name = '\TYPE=TIMESTAMP'
             OR is_node_type-dd->absolute_name = '\TYPE=TIMESTAMPL'.
             <container> = to_timestamp( is_node-value ).
@@ -1015,7 +1015,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
       IN iv_value
       SUBMATCHES lv_y lv_m lv_d.
     IF sy-subrc <> 0.
-*      z2ui5_cx_ajson_error=>raise( 'Unexpected date format' ).
+      z2ui5_cx_ajson_error=>raise( 'Unexpected date format' ).
     ENDIF.
     CONCATENATE lv_y lv_m lv_d INTO rv_result.
 
@@ -1113,7 +1113,7 @@ CLASS lcl_json_to_abap IMPLEMENTATION.
       IN iv_value
       SUBMATCHES lv_h lv_m lv_s.
     IF sy-subrc <> 0.
-*      z2ui5_cx_ajson_error=>raise( 'Unexpected time format' ).
+      z2ui5_cx_ajson_error=>raise( 'Unexpected time format' ).
     ENDIF.
     CONCATENATE lv_h lv_m lv_s INTO rv_result.
 
