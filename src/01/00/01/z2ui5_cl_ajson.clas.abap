@@ -98,6 +98,8 @@ CLASS z2ui5_cl_ajson DEFINITION
 
     CLASS-DATA go_float_regex TYPE REF TO cl_abap_regex.
 
+
+
     DATA ms_opts TYPE z2ui5_if_ajson=>ty_opts.
     DATA mi_custom_mapping TYPE REF TO z2ui5_if_ajson_mapping. " DEPRECATED, will be removed
 
