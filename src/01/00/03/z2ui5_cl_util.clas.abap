@@ -12,6 +12,13 @@ CLASS z2ui5_cl_util DEFINITION
 *  license: MIT.
 
     TYPES:
+      BEGIN OF ty_s_name_value,
+        n TYPE string,
+        v TYPE string,
+      END OF ty_s_name_value.
+    TYPES ty_t_name_value TYPE STANDARD TABLE OF ty_s_name_value WITH EMPTY KEY.
+
+    TYPES:
       BEGIN OF ty_s_token,
         key      TYPE string,
         text     TYPE string,
@@ -141,7 +148,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS url_param_create_url
       IMPORTING
-        !t_params     TYPE z2ui5_if_types=>ty_t_name_value
+        !t_params     TYPE ty_t_name_value
       RETURNING
         VALUE(result) TYPE string.
 
@@ -268,7 +275,7 @@ CLASS z2ui5_cl_util DEFINITION
       IMPORTING
         i_val            TYPE clike
       RETURNING
-        VALUE(rt_params) TYPE z2ui5_if_types=>ty_t_name_value.
+        VALUE(rt_params) TYPE ty_t_name_value.
 
     CLASS-METHODS rtti_get_t_attri_by_oref
       IMPORTING
@@ -344,7 +351,7 @@ CLASS z2ui5_cl_util DEFINITION
 
     CLASS-METHODS filter_get_token_range_mapping
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
+        VALUE(result) TYPE ty_t_name_value.
 
     CLASS-METHODS itab_corresponding
       IMPORTING
@@ -888,7 +895,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
           IMPORTING
             ev_container = data ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(x).
+      CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
@@ -900,7 +907,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         DATA(li_ajson) = CAST z2ui5_if_ajson( z2ui5_cl_ajson=>create_empty( ) ).
         result = li_ajson->set( iv_path = `/` iv_val = any )->stringify( ).
 
-      CATCH z2ui5_cx_ajson_error INTO DATA(x).
+      CATCH cx_root INTO DATA(x).
         ASSERT x IS NOT BOUND.
     ENDTRY.
   ENDMETHOD.
