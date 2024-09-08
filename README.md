@@ -1,5 +1,5 @@
 > [!NOTE]  
-> Don't forget to switch the HTTP handler to the new simplified mainn method. Description [here](https://github.com/abap2UI5/abap2UI5?tab=readme-ov-file#standard-abap--), further configurations can be done [this way](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md#1-how-to-change-the-theme).
+> Don't forget to switch the HTTP handler to the new simplified main method. Description [here](https://github.com/abap2UI5/abap2UI5?tab=readme-ov-file#standard-abap--), further configurations can be done [this way](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md#1-how-to-change-the-theme).
 
 <p align="center"><a href="http://www.abap2ui5.org" target="_blank"><img src="https://github.com/abap2UI5/abap2UI5/assets/102328295/52ac0bb6-a219-4e9d-9e4f-62698dab3063" width="200"></a></p>
 
