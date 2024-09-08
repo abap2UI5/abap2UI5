@@ -14,7 +14,7 @@
         {
           "type": "CLAS|INTF|TABL",
           "oldName": "z2ui5_(.*)",
-          "newName": "/YYY/A5123_$1"
+          "newName": "/YYY/2UI52408_$1"
         }
       ]
     },
