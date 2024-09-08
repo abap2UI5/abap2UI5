@@ -1,4 +1,4 @@
-name: test_renaming
+name: test-abaplint-renaming-feature
 
 on:
   pull_request:
