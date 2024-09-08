@@ -146,14 +146,14 @@ CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'POST'.
-        client->message_toast_display( |Your name is { name }.| ).
+        client->message_box_display( |Your name is { name }.| ).
     ENDCASE.
 
     client->view_display( z2ui5_cl_xml_view=>factory(
-      )->page( 'abap2UI5 - Hello World App'
+      )->page( 'abap2UI5 - Hello World'
          )->simple_form( )->content( ns = `form`
             )->title( 'Input here and send it to the server...'
-            )->label( 'What is your name?'
+            )->label( 'Name'
             )->input( client->_bind_edit( name )
             )->button( text = 'post' press = client->_event( 'POST' )
       )->stringify( ) ).
