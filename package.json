@@ -5,11 +5,11 @@
   "description": "Developing UI5 Apps purely in ABAP.",
   "scripts": {
     "syfixes": "find . -type f -name '*.abap' -exec sed -i -e 's/ RAISE EXCEPTION TYPE cx_sy_itab_line_not_found/ ASSERT 1 = 0/g' {} + ",
-    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ./ci/downporting/abaplint-downport.jsonc && npm run syfixes",
+    "downport": "rm -rf downport && cp -r src downport && abaplint --fix ../ci/downporting/abaplint-downport.jsonc && npm run syfixes",
     "unit": "echo RUNNING && node output/index.mjs",
-    "transpile": "rm -rf output && abap_transpile ci/transpiling/abap_transpile.json",
+    "transpile": "rm -rf output && abap_transpile ../ci/transpiling/abap_transpile.json",
     "test": "npm run downport && npm run transpile && npm run unit",
-    "rename": "abaplint ./ci/renaming/abaplint_rename.jsonc --rename",
+    "rename": "abaplint ../ci/renaming/abaplint_rename.jsonc --rename",
     "cleanup": "rm -rf input && rm -rf output"
   },
   "repository": {
