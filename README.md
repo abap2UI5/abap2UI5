@@ -110,7 +110,7 @@ Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/
 ```abap
 METHOD if_http_extension~handle_request.
 
-   server->response->set_cdata( z2ui5_cl_http_handler=>main( server ).
+   z2ui5_cl_http_handler=>main( server ).
 
 ENDMETHOD.
 ```
