@@ -53,7 +53,7 @@
 * JSON handling for frontend-backend communication is implemented using [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Serialization of values of variables created at runtime is managed through [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * Compatibility with lower releases is ensured via automatic syntax downporting with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
-* ABAP for Cloud & Standard ABAP compatibility in a single codeline is made possible with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
+* ABAP Cloud & Standard ABAP compatibility in a single codeline is made possible with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
 * Live demos in the browser are powered by [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) & [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Namespace renaming is supported via the [**mirror repository**](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
 * Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
