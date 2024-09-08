@@ -24,11 +24,11 @@ CLASS z2ui5_cl_core_app_hello_w IMPLEMENTATION.
 
       client->view_display( z2ui5_cl_xml_view=>factory(
         )->shell(
-        )->page( title = 'abap2UI5 - Hello World App'
+        )->page( title = 'abap2UI5 - Hello World'
         )->simple_form( editable = abap_true
             )->content( ns = `form`
                 )->title( 'Make an input here and send it to the server...'
-                )->label( 'Enter your name'
+                )->label( 'Name'
                 )->input( client->_bind_edit( name )
                 )->button( text  = 'post' press = client->_event( 'BUTTON_POST' )
         )->stringify( ) ).
@@ -37,7 +37,7 @@ CLASS z2ui5_cl_core_app_hello_w IMPLEMENTATION.
 
     CASE client->get( )-event.
       WHEN 'BUTTON_POST'.
-        client->message_toast_display( |Your name is { name }| ).
+        client->message_box_display( |Your name is { name }| ).
       WHEN OTHERS.
     ENDCASE.
 
