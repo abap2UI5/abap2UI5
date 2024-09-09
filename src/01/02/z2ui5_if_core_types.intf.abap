@@ -52,6 +52,7 @@ INTERFACE z2ui5_if_core_types
         check_destroy      TYPE abap_bool,
         check_update_model TYPE abap_bool,
         update_path        TYPE string_table,
+        t_config           TYPE z2ui5_if_types=>ty_t_name_value,
       END OF s_view,
       BEGIN OF s_view_nest,
         xml                TYPE string,

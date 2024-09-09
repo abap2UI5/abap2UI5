@@ -1528,7 +1528,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !id              TYPE clike OPTIONAL
                 !visible         TYPE clike OPTIONAL
                 !enabled         TYPE clike OPTIONAL
-                PREFERRED PARAMETER selected_key
+                  PREFERRED PARAMETER selected_key
       RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS checkbox
@@ -5416,10 +5416,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                     v = `sap.ui.core.mvc` ) INTO TABLE result->mt_prop.
     INSERT VALUE #( n = `xmlns:core`
                     v = `sap.ui.core` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:table`
-                    v = `sap.ui.table` ) INTO TABLE result->mt_prop.
-    INSERT VALUE #( n = `xmlns:unified`
-                    v = `sap.ui.unified` ) INTO TABLE result->mt_prop.
 
   ENDMETHOD.
 
@@ -9679,7 +9675,6 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD xml_get.
-    DATA lt_prop TYPE z2ui5_if_types=>ty_t_name_value.
 
     CASE mv_name.
       WHEN `ZZPLAIN`.
@@ -9690,68 +9685,60 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
     IF me = mo_root.
 
+      DATA lt_prop TYPE HASHED TABLE OF z2ui5_if_types=>ty_s_name_value WITH UNIQUE KEY n.
       lt_prop = VALUE #(
-          ( n = `xmlns:z2ui5`        v = `z2ui5` )
-          ( n = `xmlns:layout`       v = `sap.ui.layout` )
-*                       ( n = `core:require` v = `{ MessageToast: 'sap/m/MessageToast' }` )
-*                       ( n = `core:require` v = `{ URLHelper: 'sap/m/library/URLHelper' }` )
-          ( n = `xmlns:networkgraph` v = `sap.suite.ui.commons.networkgraph` )
-          ( n = `xmlns:nglayout`     v = `sap.suite.ui.commons.networkgraph.layout` )
-          ( n = `xmlns:ngcustom`     v = `sap.suite.ui.commons.sample.NetworkGraphCustomRendering` )
-          ( n = `xmlns:table`        v = `sap.ui.table` )
-          ( n = `xmlns:template`     v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
-          ( n = `xmlns:f`            v = `sap.f` )
-          ( n = `xmlns:columnmenu`   v = `sap.m.table.columnmenu` )
-          ( n = `xmlns:card`         v = `sap.f.cards` )
-          ( n = `xmlns:form`         v = `sap.ui.layout.form` )
-          ( n = `xmlns:editor`       v = `sap.ui.codeeditor` )
-          ( n = `xmlns:mchart`       v = `sap.suite.ui.microchart` )
-          ( n = `xmlns:webc`         v = `sap.ui.webc.main` )
-          ( n = `xmlns:uxap`         v = `sap.uxap` )
-          ( n = `xmlns:sap`          v = `sap` )
-          ( n = `xmlns:text`         v = `sap.ui.richtexteditor` )
-          ( n = `xmlns:html`         v = `http://www.w3.org/1999/xhtml` )
-          ( n = `xmlns:fb`           v = `sap.ui.comp.filterbar` )
-          ( n = `xmlns:u`            v = `sap.ui.unified` )
-          ( n = `xmlns:gantt`        v = `sap.gantt.simple` )
-          ( n = `xmlns:axistime`     v = `sap.gantt.axistime` )
-          ( n = `xmlns:config`       v = `sap.gantt.config` )
-          ( n = `xmlns:shapes`       v = `sap.gantt.simple.shapes` )
-          ( n = `xmlns:commons`      v = `sap.suite.ui.commons` )
-          ( n = `xmlns:si`           v = `sap.suite.ui.commons.statusindicator` )
-          ( n = `xmlns:vm`           v = `sap.ui.comp.variants` )
-          ( n = `xmlns:viz`          v = `sap.viz.ui5.controls` )
-          ( n = `xmlns:vk`           v = `sap.ui.vk` )
-          ( n = `xmlns:vbm`          v = `sap.ui.vbm` )
-          ( n = `xmlns:ndc`          v = `sap.ndc` )
-          ( n = `xmlns:svm`          v = `sap.ui.comp.smartvariants` )
-          ( n = `xmlns:flvm`         v = `sap.ui.fl.variants` )
-          ( n = `xmlns:p13n`         v = `sap.m.p13n` )
-          ( n = `xmlns:upload`       v = `sap.m.upload` )
-          ( n = `xmlns:fl`           v = `sap.ui.fl` )
-          ( n = `xmlns:plugins`           v = `sap.m.plugins` )
-          ( n = `xmlns:tnt`          v = `sap.tnt` )
-          ( n = `xmlns:mdc`          v = `sap.ui.mdc` ) ).
+          ( n = `z2ui5`             v = `z2ui5` )
+          ( n = `layout`            v = `sap.ui.layout` )
+          ( n = `networkgraph`      v = `sap.suite.ui.commons.networkgraph` )
+          ( n = `nglayout`          v = `sap.suite.ui.commons.networkgraph.layout` )
+          ( n = `ngcustom`          v = `sap.suite.ui.commons.sample.NetworkGraphCustomRendering` )
+          ( n = `table`             v = `sap.ui.table` )
+          ( n = `template`          v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.template/1` )
+          ( n = `customData`        v = `http://schemas.sap.com/sapui5/extension/sap.ui.core.CustomData/1` )
+          ( n = `xmlns:f`           v = `sap.f` )
+          ( n = `xmlns:columnmenu`  v = `sap.m.table.columnmenu` )
+          ( n = `xmlns:card`        v = `sap.f.cards` )
+          ( n = `form`              v = `sap.ui.layout.form` )
+          ( n = `editor`            v = `sap.ui.codeeditor` )
+          ( n = `mchart`            v = `sap.suite.ui.microchart` )
+          ( n = `webc`              v = `sap.ui.webc.main` )
+          ( n = `uxap`              v = `sap.uxap` )
+          ( n = `sap`               v = `sap` )
+          ( n = `text`              v = `sap.ui.richtexteditor` )
+          ( n = `html`              v = `http://www.w3.org/1999/xhtml` )
+          ( n = `fb`                v = `sap.ui.comp.filterbar` )
+          ( n = `u`                 v = `sap.ui.unified` )
+          ( n = `gantt`             v = `sap.gantt.simple` )
+          ( n = `axistime`          v = `sap.gantt.axistime` )
+          ( n = `config`            v = `sap.gantt.config` )
+          ( n = `shapes`            v = `sap.gantt.simple.shapes` )
+          ( n = `commons`           v = `sap.suite.ui.commons` )
+          ( n = `si`                v = `sap.suite.ui.commons.statusindicator` )
+          ( n = `vm`                v = `sap.ui.comp.variants` )
+          ( n = `viz`               v = `sap.viz.ui5.controls` )
+          ( n = `vk`                v = `sap.ui.vk` )
+          ( n = `vbm`               v = `sap.ui.vbm` )
+          ( n = `ndc`               v = `sap.ndc` )
+          ( n = `svm`               v = `sap.ui.comp.smartvariants` )
+          ( n = `flvm`              v = `sap.ui.fl.variants` )
+          ( n = `p13n`              v = `sap.m.p13n` )
+          ( n = `upload`            v = `sap.m.upload` )
+          ( n = `fl`                v = `sap.ui.fl` )
+          ( n = `plugins`           v = `sap.m.plugins` )
+          ( n = `tnt`               v = `sap.tnt` )
+          ( n = `mdc`               v = `sap.ui.mdc` ) ).
 
-      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns).
-
-        LOOP AT lt_prop REFERENCE INTO DATA(lr_prop).
-
-          DATA(ns) = lr_prop->n+6.
-          IF ns = lr_ns->*.
-            TRY.
-                INSERT lr_prop->* INTO TABLE mt_prop.
-              CATCH cx_root.
-            ENDTRY.
-            DELETE lt_prop.
-            EXIT.
-          ENDIF.
-
-        ENDLOOP.
-
+      LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL
+        and table_line <> `mvc`
+        and table_line <> `core`.
+        TRY.
+            DATA(ls_prop) = lt_prop[ n = lr_ns->* ].
+            INSERT VALUE #( n = `xmlns:` && ls_prop-n v = ls_prop-v ) INTO TABLE mt_prop.
+          CATCH cx_root.
+            z2ui5_cl_util=>x_raise( |XML_VIEW_ERROR_NO_NAMESPACE_FOUND_FOR:  { lr_ns->* }| ).
+        ENDTRY.
       ENDLOOP.
 
-      DELETE ADJACENT DUPLICATES FROM mt_prop COMPARING n.
     ENDIF.
 
     DATA(lv_tmp2) = COND #( WHEN mv_ns <> `` THEN |{ mv_ns }:| ).
@@ -9940,6 +9927,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD fix_flex.
+
     result = _generic( ns     = ns
                        name   = `FixFlex`
                        t_prop = VALUE #( ( n = `class`           v = class )
