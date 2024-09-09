@@ -93,7 +93,6 @@ CLASS lcl_utils IMPLEMENTATION.
     lv_out_ce = 'CL_ABAP_CONV_OUT_CE'.
 
     TRY.
-
         CALL METHOD ('CL_ABAP_CONV_CODEPAGE')=>create_out
         RECEIVING
           instance = lo_conv.
