@@ -9729,8 +9729,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `mdc`               v = `sap.ui.mdc` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL
-        and table_line <> `mvc`
-        and table_line <> `core`.
+        AND table_line <> `mvc`
+        AND table_line <> `core`.
         TRY.
             DATA(ls_prop) = lt_prop[ n = lr_ns->* ].
             INSERT VALUE #( n = `xmlns:` && ls_prop-n v = ls_prop-v ) INTO TABLE mt_prop.
