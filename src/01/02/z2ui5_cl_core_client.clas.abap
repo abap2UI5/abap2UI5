@@ -258,6 +258,7 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_display.
 
     mo_action->ms_next-s_set-s_view-xml = val.
+    mo_action->ms_next-s_set-s_view-t_config = t_config.
 
   ENDMETHOD.
 

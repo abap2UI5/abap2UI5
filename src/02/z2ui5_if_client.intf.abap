@@ -27,7 +27,8 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val TYPE clike.
+      val      TYPE clike
+      t_config TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL.
 
   METHODS view_model_update.
 
