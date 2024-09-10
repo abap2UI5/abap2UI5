@@ -99,7 +99,7 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities and tailor it to your needs
 🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly connect and access your apps from anywhere
 🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
-📺 [**More**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Discover other awesome projects powered by abap2UI5
+📺 [**More**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Discover other awesome projects using abap2UI5
 
 ### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
