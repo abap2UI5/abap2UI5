@@ -93,7 +93,7 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 ### What's next?
 | Check out... |
 |----------------------------------------------|
-🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-samples) – Easily create your first abap2UI5 app
+🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) – Easily create your first abap2UI5 app
 🎓 [**Sample Repository**](https://github.com/abap2UI5/abap2UI5-samples) – Learn how to code with abap2UI5
 💅 **[Addons](https://github.com/abap2UI5-addons)** – Extend abap2UI5’s functionality
 🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Access your apps from anywhere
