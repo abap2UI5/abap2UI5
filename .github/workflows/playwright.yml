@@ -1,4 +1,4 @@
-name: Playwright Browser Tests
+name: playwright-browser-tests
 on:
   pull_request:
 permissions:
