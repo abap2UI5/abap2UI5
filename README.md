@@ -47,7 +47,7 @@
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
   
 #### Credits
-This project owes much to the fantastic [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
+This project owes much to these fantastic [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Code analysis & testing via [abaplint](https://abaplint.org/) & [open-abap](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
