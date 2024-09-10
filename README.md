@@ -62,6 +62,7 @@ This project owes much to the fantastic [contributors](https://github.com/abap2U
 #### What's next? 
 * [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get started with your first abap2UI5 app quickly
 * [**Samples**](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
+* **[Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md)** - Delve deeper and browse through our blog articles
 * [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
 * [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
 * [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
@@ -69,9 +70,9 @@ This project owes much to the fantastic [contributors](https://github.com/abap2U
 
 #### Get Involved
 * Questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
-* Want to contribute? We welcome every PR! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 * Feedback or bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* Want to contribute? We welcome every PR! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 
-_Don't forget to follow us on [**LinkedIn**](https://www.linkedin.com/company/abap2ui5) to stay up to date! Every comment or like is appreciated. This project thrives on your support! 🚀_ 
+_Don't forget to follow us on [**LinkedIn**](https://www.linkedin.com/company/abap2ui5) to stay up-to-date! Your comments and likes are greatly appreciated. This project thrives on your support! 🚀_ 
 
 
