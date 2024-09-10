@@ -55,7 +55,7 @@
 * ABAP Cloud & Standard ABAP compatibility with [**Steampuncification**](https://github.com/heliconialabs/steampunkification) & **[abap-api](https://github.com/oblomov-dev/abap-api)**
 * Syntax downporting via the [**downport repositories**](https://github.com/abap2UI5-downports) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Namespace renaming via the [**mirror repository**](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Browser Testing with Playwright & [**web-abap2UI5**](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
+* Browser Testing with [**Playwright**](https://playwright.dev/) & [**web-abap2UI5**](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
 * Live demos running via [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
