@@ -95,7 +95,7 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 | Check out... |
 |----------------------------------------------|
 🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) – Get up and running with your first abap2UI5 app in no time
-🎓 [**Sample Repository**](https://github.com/abap2UI5/abap2UI5-samples) – Dive into hands-on examples and start building your own apps
+🎓 [**Samples**](https://github.com/abap2UI5/abap2UI5-samples) – Dive into hands-on examples and start building your own apps
 💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities and tailor it to your needs
 🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly connect and access your apps from anywhere
 🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
