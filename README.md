@@ -61,16 +61,6 @@
 
 _A huge thank you to everyone who submits PRs, shares knowledge in issues, comments, via Slack, or through other channels. This project thrives on your support!_ 
 
-
-### What's next?
-| Check out... |
-|----------------------------------------------|
-| 🎓 **[Sample Repository - Learn how to code with abap2UI5](https://github.com/abap2UI5/abap2UI5-samples)**|
-| 💅 **[Addons - Extend abap2UI5’s functionality](https://github.com/abap2UI5-addons)**| test|
-| 🪐 **[Connectors - Access your apps from anywhere](https://github.com/abap2UI5-connectors)**|
-| 🚜 **[Apps - Discover & try out abap2UI5 apps](https://github.com/abap2UI5-apps)**|
-| 📺 **[More - Explore other projects using abap2UI5](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
-
 ### Blogs & Articles
 #### I. Development & Technical Background
 1. Introduction: Developing UI5 Apps Purely in ABAP [(SCN - 22.02.2023)](https://blogs.sap.com/2023/02/22/abap2ui5-development-of-ui5-apps-in-pure-abap-1-3/)<br>
@@ -101,155 +91,17 @@ _A huge thank you to everyone who submits PRs, shares knowledge in issues, comme
 2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
-### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:
-##### Standard ABAP  🏠
-```abap
-METHOD if_http_extension~handle_request.
+### What's next?
+| Check out... |
+|----------------------------------------------|
+🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-samples) – Easily create your first abap2UI5 app
+🎓 [**Sample Repository**](https://github.com/abap2UI5/abap2UI5-samples) – Learn how to code with abap2UI5
+💅 **[Addons](https://github.com/abap2UI5-addons)** – Extend abap2UI5’s functionality
+🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Access your apps from anywhere
+🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover & try out abap2UI5 apps
+📺 **[More](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)** – Explore other projects using abap2UI5
 
-   server->response->set_cdata( z2ui5_cl_http_handler=>main( server->request->get_cdata( ) ) ).
-   server->response->set_header_field( name = `cache-control` value = `no-cache` ).
-   server->response->set_status( code = 200 reason = `success` ).
-
-ENDMETHOD.
-```
-##### ABAP for Cloud  :cloud:
-<details>
-<summary>show code...</summary>
-   
-```abap
-METHOD if_http_service_extension~handle_request.
-
-   response->set_text( z2ui5_cl_http_handler=>main( request->get_text( ) ) ).
-   response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
-   response->set_status( 200 ).
-
-ENDMETHOD.
-```
-
-</details>
-
-#### Usage
-Implement the abap2UI5 interface as shown in the following example:
-```abap
-CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-    DATA name TYPE string.
-
-ENDCLASS.
-
-CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main.
-
-    CASE client->get( )-event.
-      WHEN 'POST'.
-        client->message_box_display( |Your name is { name }.| ).
-    ENDCASE.
-
-    client->view_display( z2ui5_cl_xml_view=>factory(
-      )->page( 'abap2UI5 - Hello World'
-         )->simple_form( )->content( ns = `form`
-            )->title( 'Input here and send it to the server...'
-            )->label( 'Name'
-            )->input( client->_bind_edit( name )
-            )->button( text = 'post' press = client->_event( 'POST' )
-      )->stringify( ) ).
-
-  ENDMETHOD.
-ENDCLASS.
-```
-Or check out this bigger example with tables and events:
-<details>
-<summary>show code...</summary>
-   
-```abap
-CLASS z2ui5_cl_demo_app DEFINITION PUBLIC.
-
-  PUBLIC SECTION.
-
-    INTERFACES Z2UI5_if_app.
-
-    TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        icon     TYPE string,
-        info     TYPE string,
-        selected TYPE abap_bool,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
-
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    DATA check_initialized TYPE abap_bool.
-
-ENDCLASS.
-
-CLASS z2ui5_cl_demo_app IMPLEMENTATION.
-
-  METHOD Z2UI5_if_app~main.
-
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
-
-      t_tab = VALUE #(
-        ( title = 'row_01'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_02'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_03'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_04'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_05'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_06'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-      ).
-
-      DATA(view) = z2ui5_cl_xml_view=>factory( ).
-      DATA(page) = view->shell(
-          )->page(
-              title          = 'abap2UI5 - List'
-              navbuttonpress = client->_event( 'BACK' )
-                shownavbutton = abap_true
-              )->header_content(
-                  )->link(
-                      text = 'Source_Code'  target = '_blank'
-                      href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
-              )->get_parent( ).
-
-      page->list(
-          headertext      = 'List Ouput'
-          items           = client->_bind_edit( t_tab )
-          mode            = `SingleSelectMaster`
-          selectionchange = client->_event( 'SELCHANGE' )
-          )->standard_list_item(
-              title       = '{TITLE}'
-              description = '{DESCR}'
-              icon        = '{ICON}'
-              info        = '{INFO}'
-              press       = client->_event( 'TEST' )
-              selected    = `{SELECTED}`
-         ).
-
-      client->view_display( view->stringify( ) ).
-
-    ENDIF.
-
-    CASE client->get( )-event.
-
-      WHEN 'SELCHANGE'.
-        client->message_box_display( `item pressed with title ` && t_tab[ selected = abap_true ]-title ).
-
-      WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-    ENDCASE.
-
-  ENDMETHOD.
-ENDCLASS.
-```
-
-</details>
-
-#### FAQ
+### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
