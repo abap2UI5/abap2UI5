@@ -73,6 +73,6 @@ This project owes much to the fantastic [contributors](https://github.com/abap2U
 * Feedback or bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
 * Want to contribute? We welcome every PR! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 
-_Don't forget to follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay up-to-date! Your comments and likes are greatly appreciated. This project thrives on your support! 🚀_ 
+_Don't forget to follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated! Your comments and likes are greatly appreciated. This project thrives on your support! 🚀_ 
 
 
