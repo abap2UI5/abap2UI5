@@ -1,4 +1,4 @@
-name: Playwright UI Tests
+name: Playwright Browser Tests
 on:
   push:
     branches: [ main ]
