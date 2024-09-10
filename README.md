@@ -65,14 +65,14 @@ This project owes much to the fantastic [contributors](https://github.com/abap2U
 * [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into these articles for in-depth insights and updates
 * [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
 * [Connectors](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
-* [Apps](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
-* [More](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Explore other exciting projects built using abap2UI5
+* [Apps](https://github.com/abap2UI5-apps) – Discover and try out abap2UI5 apps 
+* [More](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Explore other exciting projects built using abap2UI5
 
 #### Get Involved
 * Questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
-* Feedback or bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
-* Want to contribute? We welcome every PR! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
+* Feedback or Bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* Want to Contribute? We welcome all contributions! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 
-_Don't forget to follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated! Your comments and likes are greatly appreciated. This project thrives on your support! 🚀_ 
+_Don't forget to follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated. Your comments and likes are greatly appreciated - this project thrives on your support! 🚀_ 
 
 
