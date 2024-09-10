@@ -47,7 +47,7 @@
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
   
 #### Credits
-* Contributors continuously drive this project forward [(authors)](https://github.com/abap2UI5/abap2UI5/graphs/contributors)
+This project wouldn’t be where it is without the amazing [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and the tools that help power it:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Code analysis & testing via [abaplint](https://abaplint.org/) & [open-abap](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
@@ -92,16 +92,17 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
 ### What's next? 
-| Check out... |
-|----------------------------------------------|
-🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get up and running with your first abap2UI5 app in no time
-🎓 [**Samples**](https://github.com/abap2UI5/abap2UI5-samples) – Dive into hands-on examples and start building your own apps
-💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities and tailor it to your needs
-🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly connect and access your apps from anywhere
-🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
-📺 [**More**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Discover other awesome projects using abap2UI5
+#### Check out these next steps to dive deeper into abap2UI5:
+* 🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get up and running with your first abap2UI5 app in no time 
+* 🎓 [**Samples**](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
+* 💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
+* 🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
+* 🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
+* 📺 [**More**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Explore other awesome projects built using abap2UI5
 
-### FAQ
+#### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+
+Whether you're an ABAP veteran or just starting, join us in making UI5 development easier, faster, and more ABAP-centric. Start exploring, contributing, and shaping the future of abap2UI5 today! 🎉
