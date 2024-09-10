@@ -48,16 +48,16 @@
   
 #### Credits
 * Contributors continuously drive this project forward [(authors)](https://github.com/abap2UI5/abap2UI5/graphs/contributors)
-* Code versioning & distribution via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
-* Code analysis & testing via [**abaplint**](https://abaplint.org/) & [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
-* JSON handling through [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Runtime serialization using [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* ABAP Cloud & Standard ABAP compatibility with [**Steampuncification**](https://github.com/heliconialabs/steampunkification) ([authors](https://github.com/heliconialabs/steampunkification/graphs/contributors))
-* Syntax downporting via the [**downport repositories**](https://github.com/abap2UI5-downports) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Namespace renaming via the [**mirror repository**](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Browser Testing with [**Playwright**](https://playwright.dev/) & [**web-abap2UI5**](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
-* Live demos running via [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
-* Primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
+* Code versioning & distribution via [abapGit](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
+* Code analysis & testing via [abaplint](https://abaplint.org/) & [open-abap](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
+* JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
+* Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* ABAP Cloud & Standard ABAP compatibility with [Steampuncification](https://github.com/heliconialabs/steampunkification) ([authors](https://github.com/heliconialabs/steampunkification/graphs/contributors))
+* Syntax downporting via the [downport repositories](https://github.com/abap2UI5-downports) automated by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Namespace renaming via the [mirror repository](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Browser Testing with [Playwright](https://playwright.dev/) & [web-abap2UI5](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
+* Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
+* Primarily developed on an [ABAP Cloud Developer Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
 _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via Slack, or through other channels. This project thrives on your support!_ 
 
@@ -94,7 +94,7 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 ### What's next? 
 | Check out... |
 |----------------------------------------------|
-🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) – Get up and running with your first abap2UI5 app in no time
+🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get up and running with your first abap2UI5 app in no time
 🎓 [**Samples**](https://github.com/abap2UI5/abap2UI5-samples) – Dive into hands-on examples and start building your own apps
 💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities and tailor it to your needs
 🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly connect and access your apps from anywhere
