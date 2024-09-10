@@ -104,5 +104,3 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
-
-Whether you're an ABAP veteran or just starting, join us in making UI5 development easier, faster, and more ABAP-centric. Start exploring, contributing, and shaping the future of abap2UI5 today! 🎉
