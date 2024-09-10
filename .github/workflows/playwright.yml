@@ -14,7 +14,7 @@ jobs:
       with:
         node-version: lts/*
     - name: Setup
-      run: git clone https://github.com/abap2UI5/web-abap2UI5-test.git && cd web-abap2UI5-test
+      run: git clone https://github.com/abap2UI5/web-abap2UI5-test.git && cp -r web-abap2UI5-test/* . && npm i
     - name: Install dependencies
       run: npm ci && npm run downport && npm run transpile && node output/index.mjs
     - name: Install Playwright Browsers
