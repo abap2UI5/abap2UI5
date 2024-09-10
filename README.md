@@ -62,7 +62,7 @@ This project owes much to the fantastic [contributors](https://github.com/abap2U
 #### What's next? 
 * [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get started with your first abap2UI5 app
 * [Samples](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
-* [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into blog articles for in-depth insights and updates
+* [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into these articles for in-depth insights and updates
 * [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
 * [Connectors](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
 * [Apps](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
