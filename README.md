@@ -49,7 +49,7 @@
 #### Credits
 * [**Contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive this project forward
 * Code versioning & distribution via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
-* Code analysis & Testing via [**abaplint**](https://abaplint.org/) & [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
+* Code analysis & testing via [**abaplint**](https://abaplint.org/) & [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON handling through [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Runtime serialization using [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
 * ABAP Cloud & Standard ABAP compatibility with [**Steampuncification**](https://github.com/heliconialabs/steampunkification) & **[abap-api](https://github.com/oblomov-dev/abap-api)**
