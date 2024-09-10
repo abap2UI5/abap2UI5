@@ -47,29 +47,19 @@
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
   
 #### Credits
-* These [**contributors**](https://github.com/abap2UI5/abap2UI5/graphs/contributors) continuously drive the evolution of this project forward
-* Code versioning & distribution are managed via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
-* Static code analysis and quality assurance are handled via [**abaplint**](https://abaplint.org/) & [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
-* JSON handling for frontend-backend communication is implemented using [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
-* Serialization of values of variables created at runtime is managed through [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* Compatibility with lower releases is ensured via automatic syntax downporting with [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
-* ABAP Cloud & Standard ABAP compatibility in a single codeline is made possible with [**Steampuncification**](https://github.com/heliconialabs/steampunkification)
-* Live demos in the browser are powered by [**abap2UI5-web**](https://github.com/abap2UI5/abap2UI5-web) & [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
-* Namespace renaming is supported via the [**mirror repository**](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp) 
-* Included Frontend Frameworks: **[Animate.css](https://animate.style/) [bwip-js](https://github.com/metafloor/bwip-js) [Chart.js](https://www.chartjs.org/) [Driver.js](https://driverjs.com/) [Font Awesome](https://fontawesome.com/) [ImageMapster](http://www.outsharked.com/imagemapster/)**
-* The code is primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
+* Contributors continuously drive this project forward [(authors)](https://github.com/abap2UI5/abap2UI5/graphs/contributors)
+* Code versioning & distribution via [**abapGit**](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
+* Code analysis & testing via [**abaplint**](https://abaplint.org/) & [**open-abap**](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
+* JSON handling through [**ajson**](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
+* Runtime serialization using [**S-RTTI**](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
+* ABAP Cloud & Standard ABAP compatibility with [**Steampuncification**](https://github.com/heliconialabs/steampunkification) ([authors](https://github.com/heliconialabs/steampunkification/graphs/contributors))
+* Syntax downporting via the [**downport repositories**](https://github.com/abap2UI5-downports) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Namespace renaming via the [**mirror repository**](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [**abaplint**](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Browser Testing with [**Playwright**](https://playwright.dev/) & [**web-abap2UI5**](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
+* Live demos running via [**web-abap2ui5-samples**](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
+* Primarily developed on an [**ABAP Cloud Developer Trial 2022**](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
-_A huge thank you to everyone who submits PRs, shares knowledge in issues, comments, via Slack, or through other channels. This project thrives on your support!_ 
-
-
-### What's next?
-| Check out... |
-|----------------------------------------------|
-| 🎓 **[Sample Repository - Learn how to code with abap2UI5](https://github.com/abap2UI5/abap2UI5-samples)**|
-| 💅 **[Addons - Extend abap2UI5’s functionality](https://github.com/abap2UI5-addons)**| test|
-| 🪐 **[Connectors - Access your apps from anywhere](https://github.com/abap2UI5-connectors)**|
-| 🚜 **[Apps - Discover & try out abap2UI5 apps](https://github.com/abap2UI5-apps)**|
-| 📺 **[More - Explore other projects using abap2UI5](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)**|
+_Thanks to everyone who submits PRs, shares knowledge in issues, comments, via Slack, or through other channels. This project thrives on your support!_ 
 
 ### Blogs & Articles
 #### I. Development & Technical Background
@@ -101,155 +91,17 @@ _A huge thank you to everyone who submits PRs, shares knowledge in issues, comme
 2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
-### Installation
-Install with [abapGit](https://abapgit.org) ![abapGit](https://docs.abapgit.org/img/favicon.png) and set up a new HTTP service with the following handler:
-##### Standard ABAP  🏠
-```abap
-METHOD if_http_extension~handle_request.
+### What's next? 
+| Check out... |
+|----------------------------------------------|
+🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) – Get up and running with your first abap2UI5 app in no time
+🎓 [**Samples**](https://github.com/abap2UI5/abap2UI5-samples) – Dive into hands-on examples and start building your own apps
+💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities and tailor it to your needs
+🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly connect and access your apps from anywhere
+🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
+📺 [**More**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Discover other awesome projects using abap2UI5
 
-   server->response->set_cdata( z2ui5_cl_http_handler=>main( server->request->get_cdata( ) ) ).
-   server->response->set_header_field( name = `cache-control` value = `no-cache` ).
-   server->response->set_status( code = 200 reason = `success` ).
-
-ENDMETHOD.
-```
-##### ABAP for Cloud  :cloud:
-<details>
-<summary>show code...</summary>
-   
-```abap
-METHOD if_http_service_extension~handle_request.
-
-   response->set_text( z2ui5_cl_http_handler=>main( request->get_text( ) ) ).
-   response->set_header_field( i_name = `cache-control` i_value = `no-cache` ).
-   response->set_status( 200 ).
-
-ENDMETHOD.
-```
-
-</details>
-
-#### Usage
-Implement the abap2UI5 interface as shown in the following example:
-```abap
-CLASS z2ui5_cl_app_hello_world DEFINITION PUBLIC.
-
-  PUBLIC SECTION.
-    INTERFACES z2ui5_if_app.
-    DATA name TYPE string.
-
-ENDCLASS.
-
-CLASS z2ui5_cl_app_hello_world IMPLEMENTATION.
-
-  METHOD z2ui5_if_app~main.
-
-    CASE client->get( )-event.
-      WHEN 'POST'.
-        client->message_box_display( |Your name is { name }.| ).
-    ENDCASE.
-
-    client->view_display( z2ui5_cl_xml_view=>factory(
-      )->page( 'abap2UI5 - Hello World'
-         )->simple_form( )->content( ns = `form`
-            )->title( 'Input here and send it to the server...'
-            )->label( 'Name'
-            )->input( client->_bind_edit( name )
-            )->button( text = 'post' press = client->_event( 'POST' )
-      )->stringify( ) ).
-
-  ENDMETHOD.
-ENDCLASS.
-```
-Or check out this bigger example with tables and events:
-<details>
-<summary>show code...</summary>
-   
-```abap
-CLASS z2ui5_cl_demo_app DEFINITION PUBLIC.
-
-  PUBLIC SECTION.
-
-    INTERFACES Z2UI5_if_app.
-
-    TYPES:
-      BEGIN OF ty_row,
-        title    TYPE string,
-        value    TYPE string,
-        descr    TYPE string,
-        icon     TYPE string,
-        info     TYPE string,
-        selected TYPE abap_bool,
-        checkbox TYPE abap_bool,
-      END OF ty_row.
-
-    DATA t_tab TYPE STANDARD TABLE OF ty_row WITH EMPTY KEY.
-    DATA check_initialized TYPE abap_bool.
-
-ENDCLASS.
-
-CLASS z2ui5_cl_demo_app IMPLEMENTATION.
-
-  METHOD Z2UI5_if_app~main.
-
-    IF check_initialized = abap_false.
-      check_initialized = abap_true.
-
-      t_tab = VALUE #(
-        ( title = 'row_01'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_02'  info = 'incompleted' descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_03'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_04'  info = 'working'     descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_05'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-        ( title = 'row_06'  info = 'completed'   descr = 'this is a description' icon = 'sap-icon://account' )
-      ).
-
-      DATA(view) = z2ui5_cl_xml_view=>factory( ).
-      DATA(page) = view->shell(
-          )->page(
-              title          = 'abap2UI5 - List'
-              navbuttonpress = client->_event( 'BACK' )
-                shownavbutton = abap_true
-              )->header_content(
-                  )->link(
-                      text = 'Source_Code'  target = '_blank'
-                      href = z2ui5_cl_demo_utility=>factory( client )->app_get_url_source_code( )
-              )->get_parent( ).
-
-      page->list(
-          headertext      = 'List Ouput'
-          items           = client->_bind_edit( t_tab )
-          mode            = `SingleSelectMaster`
-          selectionchange = client->_event( 'SELCHANGE' )
-          )->standard_list_item(
-              title       = '{TITLE}'
-              description = '{DESCR}'
-              icon        = '{ICON}'
-              info        = '{INFO}'
-              press       = client->_event( 'TEST' )
-              selected    = `{SELECTED}`
-         ).
-
-      client->view_display( view->stringify( ) ).
-
-    ENDIF.
-
-    CASE client->get( )-event.
-
-      WHEN 'SELCHANGE'.
-        client->message_box_display( `item pressed with title ` && t_tab[ selected = abap_true ]-title ).
-
-      WHEN 'BACK'.
-        client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
-    ENDCASE.
-
-  ENDMETHOD.
-ENDCLASS.
-```
-
-</details>
-
-#### FAQ
+### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Want to help out? Check out the contribution [guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md)
 * As always - your comments, questions, wishes and bug reports are welcome, please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)

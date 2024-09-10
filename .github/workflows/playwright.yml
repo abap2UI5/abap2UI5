@@ -1,0 +1,28 @@
+name: playwright-browser-tests
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: actions/setup-node@v4
+      with:
+        node-version: lts/*
+    - name: Setup
+      run: git clone https://github.com/abap2UI5/web-abap2UI5-test.git && cp -r web-abap2UI5-test/* . && npm i
+    - name: Install dependencies
+      run: npm ci && npm run downport && npm run transpile && node output/index.mjs
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps
+    - name: Run Playwright tests
+      run: npx playwright test
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: playwright-report/
+        retention-days: 30
