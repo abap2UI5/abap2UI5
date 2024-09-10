@@ -14,11 +14,11 @@ jobs:
       with:
         node-version: lts/*
     - name: Setup
-      run: git clone https://github.com/abap2UI5/web-abap2UI5-test.git && cp -r web-abap2UI5-test/tests tests &&  web-abap2UI5-test/tests-examples tests-examples &&  cp -r web-abap2UI5-test/playwright.config.js .
+      run: git clone https://github.com/abap2UI5/web-abap2UI5-test.git && cp -r web-abap2UI5-test/tests tests && cp -r web-abap2UI5-test/test test &&  web-abap2UI5-test/tests-examples tests-examples &&  cp -r web-abap2UI5-test/playwright.config.js .
     - name: clone
       run: rm -rf src && rm -rf abap2UI5 && git clone --depth=1 https://github.com/abap2UI5/abap2UI5 && cp -r abap2UI5/src src && rm -rf abap2UI5-samples && git clone --depth=1 https://github.com/abap2UI5/abap2UI5-samples && cp -r abap2UI5-samples/src src/samples
     - name: Install dependencies
-      run: npm ci && npm run clone && npm run unit
+      run: npm ci && npm run downport && npm run transpile && node output/index.mjs
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests
