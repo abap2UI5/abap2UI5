@@ -91,15 +91,15 @@ _Thanks to everyone who submits PRs, shares knowledge in issues, comments, via S
 2. Setup SAP Build Workzone Websites [(LinkedIn - 16.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-23-setup-ujdqe/?trackingId=bIEcH1OFtZU8kU2PCwcp%2BA%3D%3D)
 3. Setup SAP Mobile Start [(LinkedIn - 17.06.2024)](https://www.linkedin.com/pulse/abap2ui5-integration-sap-business-technology-platform-33-setup-uzure/?trackingId=He2W8FnZZ5UxpbGKHOeLEg%3D%3D)
 
-### What's next?
+### What's next? 
 | Check out... |
 |----------------------------------------------|
-🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) – Easily create your first abap2UI5 app
-🎓 [**Sample Repository**](https://github.com/abap2UI5/abap2UI5-samples) – Learn how to code with abap2UI5
-💅 **[Addons](https://github.com/abap2UI5-addons)** – Extend abap2UI5’s functionality
-🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Access your apps from anywhere
-🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover & try out abap2UI5 apps
-📺 **[More](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md)** – Explore other projects using abap2UI5
+🕹️ [**Quickstart**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) – Get up and running with your first abap2UI5 app in no time
+🎓 [**Sample Repository**](https://github.com/abap2UI5/abap2UI5-samples) – Dive into hands-on examples and start building your own apps
+💅 [**Addons**](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities and tailor it to your needs
+🪐 [**Connectors**](https://github.com/abap2UI5-connectors) – Seamlessly connect and access your apps from anywhere
+🚜 [**Apps**](https://github.com/abap2UI5-apps) – Discover and try out apps built with abap2UI5
+📺 [**More**](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Stay inspired! Discover other awesome projects powered by abap2UI5
 
 ### FAQ
 * Still have open questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
