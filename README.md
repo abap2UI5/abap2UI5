@@ -47,7 +47,7 @@
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
   
 #### Credits
-This project owes much to the fantastic [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
+This project owes much to their fantastic [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Code analysis & testing via [abaplint](https://abaplint.org/) & [open-abap](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
@@ -62,16 +62,16 @@ This project owes much to the fantastic [contributors](https://github.com/abap2U
 #### What's next? 
 * [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get started with your first abap2UI5 app
 * [Samples](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
-* [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into these articles for in-depth insights and updates
+* [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into abap2UI5 blogs for in-depth insights
 * [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
 * [Connectors](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
 * [Apps](https://github.com/abap2UI5-apps) – Discover and try out abap2UI5 apps 
-* [More](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Explore other exciting projects built using abap2UI5
+* [More](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Explore other exciting projects using abap2UI5
 
 #### Get Involved
 * Questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
 * Feedback or Bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
-* Want to Contribute? We welcome all contributions! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
+* Want to belp out? We welcome all contributions! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 
 _Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated. Your comments and likes are always appreciated. This project thrives on your support! 🚀_ 
 
