@@ -19,7 +19,7 @@
 *...offers a pure ABAP approach for developing UI5 apps—entirely without JavaScript, OData, or RAP. Just like in the past, when a few lines of ABAP were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
-* **100% ABAP:** Developing purely in ABAP - no JavaScript, DDL, EML, or Customizing required
+* **100% ABAP:** Developing purely in ABAP — no JavaScript, DDL, EML, or Customizing required
 * **User-Friendly:** Implement a single interface to create a standalone UI5 application
 * **Minimal System Footprint:** Uses a simple HTTP handler — no BSP, OData, CDS, or RAP required
 * **Cloud & On-Premise Ready:** Supports both ABAP for Cloud and Standard ABAP
@@ -47,12 +47,12 @@
 * Featured on SAP Developer News [(youtube - 14.06.2024)](https://youtu.be/7n16u-Rx8IY?t=7)
   
 #### Credits
-This project owes much to their fantastic [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
+This project greatly benefits from its [contributors](https://github.com/abap2UI5/abap2UI5/graphs/contributors) and supporting tools:
 * Code versioning & distribution via [abapGit](https://abapgit.org/) [(authors)](https://abapgit.org/sponsor.html)
 * Code analysis & testing via [abaplint](https://abaplint.org/) & [open-abap](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* ABAP Cloud & Standard ABAP compatibility with [Steampunkification](https://github.com/heliconialabs/steampunkification) [(authors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
+* ABAP Cloud & Standard ABAP compatibility through [Steampunkification](https://github.com/heliconialabs/steampunkification) [(authors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
 * Syntax downporting via the [downport repositories](https://github.com/abap2UI5-downports) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Namespace renaming via the [mirror repository](https://github.com/abap2UI5/abap2UI5-mirror-renamed) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Browser testing with [Playwright](https://playwright.dev/) & [web-abap2UI5](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
