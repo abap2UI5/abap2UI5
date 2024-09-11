@@ -168,6 +168,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
                   PREFERRED PARAMETER items
       RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS analytical_table
+      IMPORTING !ns                    TYPE clike OPTIONAL
+                selectionmode          TYPE clike OPTIONAL
+                rowmode                TYPE clike OPTIONAL
+                toolbar                TYPE clike OPTIONAL
+                columns                TYPE clike OPTIONAL
+      RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS rowmode
+      IMPORTING !ns                    TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+
+    METHODS auto
+      IMPORTING !ns               TYPE clike OPTIONAL
+                rowcontentheight  TYPE clike OPTIONAL
+      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS message_strip
       IMPORTING !text            TYPE clike OPTIONAL
                 !type            TYPE clike OPTIONAL
@@ -647,6 +665,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS columns
+      IMPORTING !ns               TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS analytical_column
+      IMPORTING !ns           TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS column
@@ -4731,7 +4754,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD columns.
-    result = _generic( `columns` ).
+    result = _generic( ns   = ns
+                       name = `columns` ).
   ENDMETHOD.
 
 
@@ -9054,8 +9078,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD toolbar.
-
-    result = _generic( name   = `Toolbar`
+    DATA(lv_name) = COND #( WHEN ns = 'table' THEN 'toolbar' ELSE `Toolbar` ).
+    result = _generic( name   = lv_name
                        ns     = ns
                        t_prop = VALUE #( ( n = `active`  v = z2ui5_cl_util=>boolean_abap_2_json( active ) )
                                          ( n = `ariaHasPopup`  v = ariahaspopup )
@@ -9728,7 +9752,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `fl`                v = `sap.ui.fl` )
           ( n = `plugins`           v = `sap.m.plugins` )
           ( n = `tnt`               v = `sap.tnt` )
-          ( n = `mdc`               v = `sap.ui.mdc` ) ).
+          ( n = `mdc`               v = `sap.ui.mdc` )
+          ( n = `trm`               v = `sap.ui.table.rowmodes` ) ).
 
       LOOP AT mt_ns REFERENCE INTO DATA(lr_ns) WHERE table_line IS NOT INITIAL
         AND table_line <> `mvc`
@@ -10018,5 +10043,37 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
   METHOD tiles.
     result = _generic( `tiles` ).
+  ENDMETHOD.
+
+
+  METHOD analytical_column.
+    result = _generic( ns   = ns
+                       name = `AnalyticalColumn` ).
+  ENDMETHOD.
+
+
+  METHOD analytical_table.
+    result = _generic(
+                 name   = `AnalyticalTable`
+                 ns     = ns
+                 t_prop = VALUE #(
+                     ( n = `selectionMode`              v = selectionmode )
+                     ( n = `rowMode`                    v = rowmode )
+                     ( n = `toolbar`                    v = toolbar )
+                     ( n = `columns`                    v = columns ) ) ).
+     ENDMETHOD.
+
+
+  METHOD auto.
+    result = _generic( ns     = ns
+                       name   = `Auto`
+                       t_prop = VALUE #( ( n = `rowContentHeight`           v = rowcontentheight ) ) ).
+  ENDMETHOD.
+
+
+  METHOD rowmode.
+    result = _generic(
+                name   = `rowMode`
+                ns     = ns ).
   ENDMETHOD.
 ENDCLASS.
