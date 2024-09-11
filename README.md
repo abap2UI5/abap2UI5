@@ -52,9 +52,9 @@ This project owes much to their fantastic [contributors](https://github.com/abap
 * Code analysis & testing via [abaplint](https://abaplint.org/) & [open-abap](https://github.com/open-abap) [(larshp)](https://github.com/larshp) 
 * JSON handling through [ajson](https://github.com/sbcgua/ajson) [(sbcgua)](https://github.com/sbcgua)
 * Runtime serialization using [S-RTTI](https://github.com/sandraros/S-RTTI) [(sandrarossi)](https://github.com/sandraros)
-* ABAP Cloud & Standard ABAP compatibility with [Steampuncification](https://github.com/heliconialabs/steampunkification) ([authors](https://github.com/heliconialabs/steampunkification/graphs/contributors))
-* Syntax downporting via the [downport repositories](https://github.com/abap2UI5-downports) automated by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
-* Namespace renaming via the [mirror repository](https://github.com/abap2UI5/abap2UI5-mirror-renamed) automated by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* ABAP Cloud & Standard ABAP compatibility with [Steampuncification](https://github.com/heliconialabs/steampunkification) [(authors)](https://github.com/heliconialabs/steampunkification/graphs/contributors)
+* Syntax downporting via the [downport repositories](https://github.com/abap2UI5-downports) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
+* Namespace renaming via the [mirror repository](https://github.com/abap2UI5/abap2UI5-mirror-renamed) by [abaplint](https://abaplint.org/) [(larshp)](https://github.com/larshp)
 * Browser Testing with [Playwright](https://playwright.dev/) & [web-abap2UI5](https://github.com/abap2UI5/abap2UI5-web) [(larshp)](https://github.com/larshp)
 * Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Developed on an [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
@@ -73,6 +73,6 @@ This project owes much to their fantastic [contributors](https://github.com/abap
 * Feedback or Bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
 * Want to help out? We welcome all contributions! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 
-_Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated. Your comments and likes are always appreciated. This project thrives on your support! 🚀_ 
+_Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated! Your comments and likes are always appreciated. This project thrives on your support! 🚀_ 
 
 
