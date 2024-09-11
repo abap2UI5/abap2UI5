@@ -66,7 +66,7 @@ This project owes much to their fantastic [contributors](https://github.com/abap
 * [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
 * [Connectors](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
 * [Apps](https://github.com/abap2UI5-apps) – Discover and try out abap2UI5 apps 
-* [Links](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/links.md) – Explore other exciting projects using abap2UI5
+* [Links](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md) – Explore other exciting projects using abap2UI5
 
 #### Get Involved
 * Questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
