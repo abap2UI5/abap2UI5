@@ -146,6 +146,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS table
       IMPORTING !id                 TYPE clike OPTIONAL
                 items               TYPE clike OPTIONAL
+                class               TYPE clike OPTIONAL
                 growing             TYPE clike OPTIONAL
                 growingthreshold    TYPE clike OPTIONAL
                 growingscrolltoload TYPE clike OPTIONAL
@@ -8677,6 +8678,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                        t_prop = VALUE #(
                            ( n = `items`            v = items )
                            ( n = `headerText`       v = headertext )
+                           ( n = `class`            v = class )
                            ( n = `growing`          v = growing )
                            ( n = `growingThreshold` v = growingthreshold )
                            ( n = `growingScrollToLoad` v = growingscrolltoload )
