@@ -18,9 +18,9 @@ INTERFACE z2ui5_if_types
 
   TYPES:
     BEGIN OF ty_s_http_request_get2,
-      t_option  TYPE ty_t_name_value,
-      t_param   TYPE ty_t_name_value,
-      custom_js TYPE string,
+      t_option TYPE ty_t_name_value,
+      t_param  TYPE ty_t_name_value,
+      add_js   TYPE string,
     END OF ty_s_http_request_get2.
 
   TYPES:

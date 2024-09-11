@@ -24,7 +24,6 @@ CLASS z2ui5_cl_cc_focus IMPLEMENTATION.
              `  "sap/ui/core/Control",` && |\n| &&
              `], (Control) => {` && |\n| &&
              `  "use strict";` && |\n| &&
-             |\n| &&
              `  return Control.extend("z2ui5.Focus", {` && |\n| &&
              `      metadata: {` && |\n| &&
              `          properties: {` && |\n| &&
@@ -34,34 +33,25 @@ CLASS z2ui5_cl_cc_focus IMPLEMENTATION.
              `              selectionEnd: { type: "string", defaultValue: "0" },` && |\n| &&
              `          }` && |\n| &&
              `      },` && |\n| &&
-             |\n| &&
              `      init() {` && |\n| &&
              `      },` && |\n| &&
              `       setFocusId(val) {` && |\n| &&
-             `    //  if ( sap.z2ui5.oView ){ ` && |\n| &&
-             `    try{   this.setProperty("focusId", val); ` && |\n| &&
+             `    try{  ` && |\n| &&
+             `           this.setProperty("focusId", val); ` && |\n| &&
              `           var oElement = sap.z2ui5.oView.byId(val);` && |\n| &&
              `              var oFocus = oElement.getFocusInfo();` && |\n| &&
-             `            //  oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));` && |\n| &&
-             `            //  oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));` && |\n| &&
              `              oElement.applyFocusInfo(oFocus); } catch (e) {}` && |\n| &&
              `      },` && |\n| &&
-             |\n| &&
              `      renderer(oRm, oControl) {` && |\n| &&
-             |\n| &&
              `        if (!oControl.getProperty("setUpdate")){ return; }` && |\n| &&
              `            oControl.setProperty("setUpdate", false);` && |\n| &&
-             |\n| &&
              `          setTimeout((oControl) => {` && |\n| &&
-             |\n| &&
              `              var oElement = sap.z2ui5.oView.byId(oControl.getProperty("focusId"));` && |\n| &&
              `              var oFocus = oElement.getFocusInfo();` && |\n| &&
              `              oFocus.selectionStart = parseInt(oControl.getProperty("selectionStart"));` && |\n| &&
              `              oFocus.selectionEnd = parseInt(oControl.getProperty("selectionEnd"));` && |\n| &&
              `              oElement.applyFocusInfo(oFocus);` && |\n| &&
-             |\n| &&
              `          }, 100, oControl);` && |\n| &&
-             |\n| &&
              `      }` && |\n| &&
              `  });` && |\n| &&
              `}); }`.

@@ -55,10 +55,9 @@ CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
   METHOD get_default_t_param.
 
     result = VALUE #(
-        (  n = `TITLE`                     v = `abap2UI5` )
-        (  n = `BODY_CLASS`                v = `sapUiBody sapUiSizeCompact`   )
-        (  n = `CONTENT_SECURITY_POLICY`   v = get_default_security_policy( ) )
-        (  n = `JSON_MODEL_LIMIT`          v = `100` )
+        (  n = `TITLE`                   v = `abap2UI5` )
+        (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
+        (  n = `CONTENT_SECURITY_POLICY` v = get_default_security_policy( ) )
      ).
 
     LOOP AT ms_request-t_param REFERENCE INTO DATA(lr_input).
@@ -148,13 +147,12 @@ CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
         |    <div data-sap-ui-component data-height="100%" data-id="container" ></div> \n| &&
         |<abc/> \n|.
 
-    DATA(lv_add_js) = get_js_cc_startup( ) && ms_request-custom_js.
+    DATA(lv_add_js) = get_js_cc_startup( ) && ms_request-add_js.
 
     mv_response = mv_response  &&
      | <script>  sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
      |         {  get_js( ) }     \n| &&
-     |         { lv_add_js  }     \n| &&
-     |         sap.z2ui5.JSON_MODEL_LIMIT = { lt_param[ n = 'JSON_MODEL_LIMIT' ]-v };|.
+     |         { lv_add_js  }     \n|.
 
     mv_response = mv_response && z2ui5_cl_cc_debug_tool=>get_js( ) && `</script><abc/></body></html>`.
 
