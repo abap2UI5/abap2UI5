@@ -16,22 +16,22 @@
 <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 </p>
 
-*...offers a pure ABAP approach for developing UI5 apps, entirely without JavaScript, OData and RAP — similar to the past, when only a few lines of ABAP sufficed to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+*...offers a pure ABAP approach for developing UI5 apps—entirely without JavaScript, OData, or RAP. Just like in the past, when a few lines of ABAP were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
-* **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
-* **User-Friendly:** Implement just a single interface for a standalone UI5 application
-* **Minimal System Footprint:** Based on a plain HTTP handler (no BSP, OData, CDS or RAP)
-* **Cloud and On-Premise Ready:** Works with both language versions (ABAP for Cloud, Standard ABAP)
-* **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP Cloud)
-* **Easy Installation:** abapGit project, no additional app deployment required
+* **100% ABAP:** Developing purely in ABAP - no JavaScript, DDL, EML, or Customizing required
+* **User-Friendly:** Implement a single interface to create a standalone UI5 application
+* **Minimal System Footprint:** Uses a simple HTTP handler — no BSP, OData, CDS, or RAP required
+* **Cloud & On-Premise Ready:** Supports both ABAP for Cloud and Standard ABAP
+* **Broad System Compatibility:** Runs on all ABAP releases, from NW 7.02 to ABAP Cloud
+* **Easy Installation:** Install via abapGit, no additional app deployment required
 
 #### Compatibility
 * BTP ABAP Environment (ABAP for Cloud)
 * S/4 Public Cloud (ABAP for Cloud)
 * S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
 * R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42 - use the [downported repositories](https://github.com/abap2UI5-downports)
+* R/3 NetWeaver AS ABAP 7.02 to 7.42: Use the [downported repositories](https://github.com/abap2UI5-downports)
 
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
@@ -69,10 +69,10 @@ This project owes much to their fantastic [contributors](https://github.com/abap
 * [Links](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md) – Explore other exciting projects using abap2UI5
 
 #### Get Involved
-* Questions? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or find an answer in the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md)
-* Feedback or Bugs? Please create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
-* Want to help out? We welcome all contributions! Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/CONTRIBUTING.md) to get started
+* Questions, Feedback or Bugs? Check the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/) or the [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md) for answers or create an [issue](https://github.com/abap2UI5/abap2UI5/issues)
+* Want to help out? Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/CONTRIBUTING.md) to get started
+* Stay updated! Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5)
 
-_Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5) to stay updated! Your comments and likes are always appreciated. This project thrives on your support! 🚀_ 
+_We welcome all contributions! Your comments and likes are always appreciated. This project thrives on your support! 🚀_ 
 
 
