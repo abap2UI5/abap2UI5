@@ -65,21 +65,21 @@ CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
    `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas`.
 
     cs_config_default = VALUE #(
-     t_param = VALUE #(
-         (  n = `TITLE`                   v = `abap2UI5` )
-         (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
-         (  n = `CONTENT_SECURITY_POLICY` v = lv_csp )
-       )
-     t_option = VALUE #(
-         (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+        t_param = VALUE #(
+            (  n = `TITLE`                   v = `abap2UI5` )
+            (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
+            (  n = `CONTENT_SECURITY_POLICY` v = lv_csp )
+            )
+        t_option = VALUE #(
+            (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
 *         (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
-         (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-         (  n = `data-sap-ui-async`         v = `true` )
-         (  n = `id`                        v = `sap-ui-bootstrap` )
-         (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-         (  n = `data-sap-ui-frameOptions`  v = `trusted` )
-         (  n = `data-sap-ui-compatVersion` v = `edge` )
-       ) ).
+            (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+            (  n = `data-sap-ui-async`         v = `true` )
+            (  n = `id`                        v = `sap-ui-bootstrap` )
+            (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+            (   n = `data-sap-ui-frameOptions`  v = `trusted` )
+            (  n = `data-sap-ui-compatVersion` v = `edge` )
+        ) ).
 
   ENDMETHOD.
 
