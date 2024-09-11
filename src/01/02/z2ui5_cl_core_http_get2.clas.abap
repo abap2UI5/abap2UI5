@@ -72,6 +72,7 @@ CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
        )
      t_option = VALUE #(
          (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+*         (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
          (  n = `data-sap-ui-theme`         v = `sap_horizon` )
          (  n = `data-sap-ui-async`         v = `true` )
          (  n = `id`                        v = `sap-ui-bootstrap` )
@@ -162,11 +163,11 @@ CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
     DATA(lv_add_js) = get_js_cc_startup( ) && ms_config_in-add_js.
 
     mv_index_html = mv_index_html  &&
-     | <script>  sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
+     | <script> sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
      |         {  get_js( ) }     \n| &&
      |         { lv_add_js  }     \n| &&
      |         { z2ui5_cl_cc_debug_tool=>get_js( )  }     \n| &&
-     |        </script><abc/></body></html> |.
+     |  </script><abc/></body></html> |.
 
   ENDMETHOD.
 
