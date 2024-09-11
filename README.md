@@ -59,7 +59,7 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Live demos running via [web-abap2ui5-samples](https://github.com/abap2UI5/web-abap2ui5-samples) [(larshp)](https://github.com/larshp)
 * Developed on an [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
-#### What's next? 
+#### What's Next? 
 * [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get started with your first abap2UI5 app
 * [Samples](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
 * [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into abap2UI5 blogs for in-depth insights
@@ -73,6 +73,6 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Want to help out? Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/CONTRIBUTING.md) to get started
 * Stay updated! Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5)
 
-_We welcome all contributions! Your comments and likes are always appreciated. This project thrives on your support! 🚀_ 
+_We welcome all contributions! Submit a PR, share your knowledge, write a comment, give us a like, or simply tell others that you love abap2UI5. This project thrives on your support! 🚀_ 
 
 
