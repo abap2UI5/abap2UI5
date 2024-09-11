@@ -4,17 +4,25 @@ CLASS z2ui5_cl_core_http_get2 DEFINITION
   CREATE PUBLIC .
 
   PUBLIC SECTION.
-
-    DATA ms_request  TYPE z2ui5_if_types=>ty_s_http_request_get2.
-    DATA mv_response TYPE string.
+    CLASS-METHODS class_constructor.
 
     METHODS constructor
       IMPORTING
-        val TYPE z2ui5_if_types=>ty_s_http_request_get2 OPTIONAL.
+        val TYPE z2ui5_if_types=>ty_s_config_index_html OPTIONAL.
 
     METHODS main
       RETURNING
         VALUE(result) TYPE string.
+
+
+  PROTECTED SECTION.
+
+    CLASS-DATA cs_config_default TYPE z2ui5_if_types=>ty_s_config_index_html.
+
+    DATA ms_config_in      TYPE z2ui5_if_types=>ty_s_config_index_html.
+    DATA mv_index_html       TYPE string.
+
+    CLASS-METHODS set_default_config.
 
     METHODS get_js
       RETURNING
@@ -24,19 +32,13 @@ CLASS z2ui5_cl_core_http_get2 DEFINITION
       RETURNING
         VALUE(result) TYPE string.
 
-  PROTECTED SECTION.
-
-    METHODS get_default_t_param
+    METHODS main_set_config
       RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
+        VALUE(result) TYPE z2ui5_if_types=>ty_s_config_index_html.
 
-    METHODS get_default_t_option
-      RETURNING
-        VALUE(result) TYPE z2ui5_if_types=>ty_t_name_value.
-
-    METHODS get_default_security_policy
-      RETURNING
-        VALUE(result) TYPE string.
+    METHODS main_set_index_html
+      IMPORTING
+        cs_config TYPE z2ui5_if_types=>ty_s_config_index_html.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -45,58 +47,60 @@ ENDCLASS.
 
 CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
 
-
   METHOD constructor.
 
-    ms_request = val.
+    me->ms_config_in = val.
 
   ENDMETHOD.
 
-  METHOD get_default_t_param.
-
-    result = VALUE #(
-        (  n = `TITLE`                   v = `abap2UI5` )
-        (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
-        (  n = `CONTENT_SECURITY_POLICY` v = get_default_security_policy( ) )
-     ).
-
-    LOOP AT ms_request-t_param REFERENCE INTO DATA(lr_input).
-      TRY.
-          result[ n = lr_input->n ]-v = lr_input->v.
-        CATCH cx_root.
-          INSERT lr_input->* INTO TABLE result.
-      ENDTRY.
-    ENDLOOP.
-
-  ENDMETHOD.
-
-  METHOD get_default_t_option.
-
-    result = VALUE #(
-        (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
-        (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-        (  n = `data-sap-ui-async`         v = `true` )
-        (  n = `id`                        v = `sap-ui-bootstrap` )
-        (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-        (  n = `data-sap-ui-frameOptions`  v = `trusted` )
-        (  n = `data-sap-ui-compatVersion` v = `edge` ) ).
-
-    LOOP AT ms_request-t_option REFERENCE INTO DATA(lr_input).
-      TRY.
-          result[ n = lr_input->n ]-v = lr_input->v.
-        CATCH cx_root.
-          INSERT lr_input->* INTO TABLE result.
-      ENDTRY.
-    ENDLOOP.
-
+  METHOD class_constructor.
+    set_default_config( ).
   ENDMETHOD.
 
 
-  METHOD get_default_security_policy.
+  METHOD set_default_config.
 
-    result  = `default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+    DATA(lv_csp)  = `default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
    `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
    `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas`.
+
+    cs_config_default = VALUE #(
+     t_param = VALUE #(
+         (  n = `TITLE`                   v = `abap2UI5` )
+         (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
+         (  n = `CONTENT_SECURITY_POLICY` v = lv_csp )
+       )
+     t_option = VALUE #(
+         (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+         (  n = `data-sap-ui-theme`         v = `sap_horizon` )
+         (  n = `data-sap-ui-async`         v = `true` )
+         (  n = `id`                        v = `sap-ui-bootstrap` )
+         (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+         (  n = `data-sap-ui-frameOptions`  v = `trusted` )
+         (  n = `data-sap-ui-compatVersion` v = `edge` )
+       ) ).
+
+  ENDMETHOD.
+
+  METHOD main_set_config.
+
+    result = cs_config_default.
+
+    LOOP AT ms_config_in-t_param REFERENCE INTO DATA(lr_param).
+      TRY.
+          result-t_param[ n = lr_param->n ]-v = lr_param->v.
+        CATCH cx_root.
+          INSERT lr_param->* INTO TABLE result-t_param.
+      ENDTRY.
+    ENDLOOP.
+
+    LOOP AT ms_config_in-t_option REFERENCE INTO DATA(lr_option).
+      TRY.
+          result-t_option[ n = lr_option->n ]-v = lr_option->v.
+        CATCH cx_root.
+          INSERT lr_option->* INTO TABLE result-t_option.
+      ENDTRY.
+    ENDLOOP.
 
   ENDMETHOD.
 
@@ -125,41 +129,47 @@ CLASS z2ui5_cl_core_http_get2 IMPLEMENTATION.
 
   METHOD main.
 
-    DATA(lt_config) = get_default_t_option( ).
-    DATA(lt_param)  = get_default_t_param( ).
+    DATA(ls_config) = main_set_config( ).
+    main_set_index_html( ls_config ).
+    result = mv_index_html.
 
-    mv_response = `<!DOCTYPE html>` && |\n| &&
+    NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
+
+  ENDMETHOD.
+
+
+  METHOD main_set_index_html.
+
+    mv_index_html = `<!DOCTYPE html>` && |\n| &&
                `<head>` && |\n| &&
-             |   <meta http-equiv="Content-Security-Policy" content="{ lt_param[ n = `CONTENT_SECURITY_POLICY` ]-v }"/>\n| &&
+             |   <meta http-equiv="Content-Security-Policy" content="{ cs_config-t_param[ n = `CONTENT_SECURITY_POLICY` ]-v }"/>\n| &&
                `    <meta charset="UTF-8">` && |\n| &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
-            | <title>{ lt_param[ n = `TITLE` ]-v }</title> \n| &&
+            | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
                `    <script `.
 
-    LOOP AT lt_config REFERENCE INTO DATA(lr_config).
-      mv_response = mv_response && | { lr_config->n }='{ lr_config->v }'|.
+    LOOP AT cs_config-t_option REFERENCE INTO DATA(lr_config).
+      mv_index_html = mv_index_html && | { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
-    mv_response = mv_response &&
+    mv_index_html = mv_index_html &&
         |  ></script></head> \n| &&
-        | <body class="{ lt_param[ n = 'BODY_CLASS' ]-v }" id="content" > \n| &&
+        | <body class="{ cs_config-t_param[ n = 'BODY_CLASS' ]-v }" id="content" > \n| &&
         |<body class="sapUiBody" id="content" >  \n| &&
         |    <div data-sap-ui-component data-height="100%" data-id="container" ></div> \n| &&
         |<abc/> \n|.
 
-    DATA(lv_add_js) = get_js_cc_startup( ) && ms_request-add_js.
+    DATA(lv_add_js) = get_js_cc_startup( ) && ms_config_in-add_js.
 
-    mv_response = mv_response  &&
+    mv_index_html = mv_index_html  &&
      | <script>  sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
      |         {  get_js( ) }     \n| &&
-     |         { lv_add_js  }     \n|.
-
-    mv_response = mv_response && z2ui5_cl_cc_debug_tool=>get_js( ) && `</script><abc/></body></html>`.
-
-    NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
-    result = mv_response.
+     |         { lv_add_js  }     \n| &&
+     |         { z2ui5_cl_cc_debug_tool=>get_js( )  }     \n| &&
+     |        </script><abc/></body></html> |.
 
   ENDMETHOD.
+
 
   METHOD get_js.
 
