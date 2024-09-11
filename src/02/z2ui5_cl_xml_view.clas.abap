@@ -169,12 +169,12 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS analytical_table
-      IMPORTING !ns                    TYPE clike OPTIONAL
-                selectionmode          TYPE clike OPTIONAL
-                rowmode                TYPE clike OPTIONAL
-                toolbar                TYPE clike OPTIONAL
-                columns                TYPE clike OPTIONAL
-      RETURNING VALUE(result)          TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !ns           TYPE clike OPTIONAL
+                selectionmode TYPE clike OPTIONAL
+                rowmode       TYPE clike OPTIONAL
+                toolbar       TYPE clike OPTIONAL
+                columns       TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS rowmode
       IMPORTING !ns                    TYPE clike OPTIONAL
