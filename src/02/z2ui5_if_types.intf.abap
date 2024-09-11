@@ -17,11 +17,11 @@ INTERFACE z2ui5_if_types
     END OF ty_s_http_request_get.
 
   TYPES:
-    BEGIN OF ty_s_http_request_get2,
+    BEGIN OF ty_s_config_index_html,
       t_option TYPE ty_t_name_value,
       t_param  TYPE ty_t_name_value,
       add_js   TYPE string,
-    END OF ty_s_http_request_get2.
+    END OF ty_s_config_index_html.
 
   TYPES:
     BEGIN OF ty_s_draft,
