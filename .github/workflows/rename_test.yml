@@ -16,5 +16,5 @@ jobs:
       with:
         node-version: '16'
     - run: git clone https://github.com/abap2UI5/abap2UI5-renamed.git
-    - run: mkdir abap2UI5-renamed/input && mkdir abap2UI5-renamed/input/abap2UI5 && cp -r src abap2UI5-renamed/input/abap2UI5/src && cd abap2UI5-renamed && rm -rf src/* && npm i
+    - run: mkdir abap2UI5-renamed/input && mkdir abap2UI5-renamed/input/abap2UI5 && cp -r src abap2UI5-renamed/input/abap2UI5/src && cp -r abap2UI5-renamed/package.json . && npm i && cd abap2UI5-renamed && rm -rf src/*
     - run: npm run main
