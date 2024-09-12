@@ -1,4 +1,4 @@
-name: test-unit-tests
+name: unit-tests
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ permissions:
   contents: read
 
 jobs:
-  test:
+  run:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
