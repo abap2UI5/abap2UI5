@@ -10061,7 +10061,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                      ( n = `rowMode`                    v = rowmode )
                      ( n = `toolbar`                    v = toolbar )
                      ( n = `columns`                    v = columns ) ) ).
-     ENDMETHOD.
+  ENDMETHOD.
 
 
   METHOD auto.
