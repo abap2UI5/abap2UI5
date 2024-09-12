@@ -177,14 +177,14 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS rowmode
-      IMPORTING !ns                    TYPE clike OPTIONAL
+      IMPORTING !ns           TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
 
     METHODS auto
-      IMPORTING !ns               TYPE clike OPTIONAL
-                rowcontentheight  TYPE clike OPTIONAL
-      RETURNING VALUE(result)     TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !ns              TYPE clike OPTIONAL
+                rowcontentheight TYPE clike OPTIONAL
+      RETURNING VALUE(result)    TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS message_strip
       IMPORTING !text            TYPE clike OPTIONAL
