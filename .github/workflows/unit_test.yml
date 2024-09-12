@@ -15,7 +15,6 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: '16'
-    - run: git clone https://github.com/abap2UI5/abap2UI5-transpiled.git && cp -r abap2UI5-transpiled/* .
+    - run: git clone https://github.com/abap2UI5/abap2UI5-transpiled.git && cp -r src abap2UI5-transpiled && cd abap2UI5-transpiled
     - run: npm run build
     - run: npm run unit
-
