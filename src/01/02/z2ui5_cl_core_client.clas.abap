@@ -1,6 +1,5 @@
 CLASS z2ui5_cl_core_client DEFINITION
   PUBLIC
-  FINAL
   CREATE PUBLIC .
 
   PUBLIC SECTION.
