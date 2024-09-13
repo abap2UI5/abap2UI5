@@ -64,7 +64,6 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
         t_param = VALUE #(
             (  n = `TITLE`                   v = `abap2UI5` )
             (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
-            (  n = `CONTENT_SECURITY_POLICY` v = lv_csp )
             )
         t_config = VALUE #(
             (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
@@ -136,7 +135,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
     result = `<!DOCTYPE html>` && |\n| &&
                `<head>` && |\n| &&
-             |  { cs_config-t_param[ n = `CONTENT_SECURITY_POLICY` ]-v } \n| &&
+             |  { cs_config-content_security_policy } \n| &&
                `    <meta charset="UTF-8">` && |\n| &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
             | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
@@ -204,19 +203,19 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            if (!sap.z2ui5.checkNestAfter) {` && |\n| &&
                `                if (S_VIEW_NEST?.XML) {` && |\n| &&
                `                    sap.z2ui5.oController.NestViewDestroy();` && |\n| &&
-               `                    await this.displayNestedView(S_VIEW_NEST.XML, 'oViewNest', 'S_VIEW_NEST');` && |\n| &&
+               `                    await this.displayNestedView(S_VIEW_NEST, 'oViewNest', 'S_VIEW_NEST');` && |\n| &&
                `                    sap.z2ui5.checkNestAfter = true;` && |\n| &&
                `                }` && |\n| &&
                `            }` && |\n| &&
                `            if (!sap.z2ui5.checkNestAfter2) {` && |\n| &&
                `                if (S_VIEW_NEST2?.XML) {` && |\n| &&
                `                    sap.z2ui5.oController.NestViewDestroy2();` && |\n| &&
-               `                    await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2');` && |\n| &&
+               `                    await this.displayNestedView2(S_VIEW_NEST2, 'oViewNest2', 'S_VIEW_NEST2');` && |\n| &&
                `                    sap.z2ui5.checkNestAfter2 = true;` && |\n| &&
                `                }` && |\n| &&
                `            }` && |\n| &&
                `            if (S_POPOVER?.XML) {` && |\n| &&
-               `                await this.displayPopover(S_POPOVER.XML, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
+               `                await this.displayPopover(S_POPOVER, 'oViewPopover', S_POPOVER.OPEN_BY_ID);` && |\n| &&
                `            }` && |\n| &&
                `            BusyIndicator.hide();` && |\n| &&
                `            sap.z2ui5.isBusy = false;` && |\n| &&
@@ -230,26 +229,27 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 `he App" }).open();  } } ) }` && |\n| &&
                `        },` && |\n| &&
                |\n| &&
-               `        async displayFragment(xml, viewProp) {` && |\n| &&
+               `        async displayFragment(S_VIEW, viewProp) {` && |\n| &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
-               `                definition: xml,` && |\n| &&
+               `                definition: S_VIEW.XML,` && |\n| &&
                `                controller: sap.z2ui5.oControllerPopup,` && |\n| &&
                `                id: "popupId"` && |\n| &&
                `            });` && |\n| &&
-               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
+
+                         `       if (S_VIEW?.S_CONFIG?.SET_SIZE_LIMIT) { oview_model.setSizeLimit(parseInt(S_VIEW.S_CONFIG.SET_SIZE_LIMIT)); }` && |\n| &&
                `            oFragment.setModel(oview_model);` && |\n| &&
                `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
                `            sap.z2ui5[viewProp].Fragment = Fragment;` && |\n| &&
                `                oFragment.open();` && |\n| &&
                `        },` && |\n| &&
-               `        async displayPopover(xml, viewProp, openById) {` && |\n| &&
+               `        async displayPopover(S_VIEW, viewProp, openById) {` && |\n| &&
                `          // let sapUiCore = sap.ui.require('sap/ui/core/Core');` && |\n| &&
                `           sap.ui.require(["sap/ui/core/Element"], async function(Element) { ` &&
     `   ` &&
         ` ` && |\n| &&
                `            const oFragment = await Fragment.load({` && |\n| &&
-               `                definition: xml,` && |\n| &&
+               `                definition: S_VIEW.XML,` && |\n| &&
                `                controller: sap.z2ui5.oControllerPopover,` && |\n| &&
                `                 id: "popoverId"` && |\n| &&
                `            });` && |\n| &&
@@ -277,14 +277,14 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n| &&
                `             oFragment.openBy(oControl);` && |\n| &&
                `       }); },` && |\n| &&
-               `        async displayNestedView(xml, viewProp, viewNestId) {` && |\n| &&
+               `        async displayNestedView(S_VIEW, viewProp, viewNestId) {` && |\n| &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            const oView = await XMLView.create({` && |\n| &&
-               `                definition: xml,` && |\n| &&
+               `                definition: S_VIEW.XML,` && |\n| &&
                `                controller: sap.z2ui5.oControllerNest,` && |\n| &&
                `                preprocessors: { xml: { models: { template: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
-               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
+                             `          if (S_VIEW?.S_CONFIG?.SET_SIZE_LIMIT) { oview_model.setSizeLimit(parseInt(S_VIEW.S_CONFIG.SET_SIZE_LIMIT)); }` && |\n| &&
                `            oView.setModel(oview_model);` && |\n| &&
                `            let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n| &&
                `            if (oParent) {` && |\n| &&
@@ -295,14 +295,14 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n| &&
                `            sap.z2ui5[viewProp] = oView;` && |\n| &&
                `        },` && |\n| &&
-               `        async displayNestedView2(xml, viewProp, viewNestId) {` && |\n| &&
+               `        async displayNestedView2(S_VIEW, viewProp, viewNestId) {` && |\n| &&
                `            let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
                `            const oView = await XMLView.create({` && |\n| &&
-               `                definition: xml,` && |\n| &&
+               `                definition: S_VIEW.XML,` && |\n| &&
                `                controller: sap.z2ui5.oControllerNest2,` && |\n| &&
                `                preprocessors: { xml: { models: { template: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
-               `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
+                           `          if (S_VIEW?.S_CONFIG?.SET_SIZE_LIMIT) { oview_model.setSizeLimit(parseInt(S_VIEW.S_CONFIG.SET_SIZE_LIMIT)); }` && |\n| &&
                `            oView.setModel(oview_model);` && |\n| &&
                `            let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n| &&
                `            if (oParent) {` && |\n| &&
@@ -489,7 +489,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            if (sap.z2ui5.oResponse.PARAMS == undefined) { return; }` && |\n| &&
                `            if (sap.z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n| &&
                `                let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n| &&
-               `                model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
+               `          ` && |\n| &&
+*               `                if (oView) {  if( oView.vSizeLimit ) { model.setSizeLimit(parseInt(oView.vSizeLimit) ); } oView.setModel(model); }` && |\n| &&
                `                if (oView) { oView.setModel(model); }` && |\n| &&
                `            }` && |\n| &&
                `        },` && |\n| &&
@@ -515,7 +516,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            sap.z2ui5.oController.showMessage('S_MSG_BOX', sap.z2ui5.oResponse.PARAMS);` && |\n| &&
                `            if (sap.z2ui5.oResponse.PARAMS?.S_VIEW?.XML) { if ( sap.z2ui5.oResponse.PARAMS?.S_VIEW?.XML !== '') {` && |\n| &&
                `                sap.z2ui5.oController.ViewDestroy();` && |\n| &&
-               `               await sap.z2ui5.oController.displayView(sap.z2ui5.oResponse.PARAMS.S_VIEW.XML, sap.z2ui5.oResponse.OVIEWMODEL, sap.z2ui5.oResponse.PARAMS.S_VIEW.T_CONFIG );` && |\n| &&
+               `               await sap.z2ui5.oController.displayView(sap.z2ui5.oResponse.PARAMS.S_VIEW , sap.z2ui5.oResponse.OVIEWMODEL );` && |\n| &&
                `            return;  } } ` && |\n| &&
                `                this.updateModelIfRequired('S_VIEW', sap.z2ui5.oView);` && |\n| &&
                `                this.updateModelIfRequired('S_VIEW_NEST', sap.z2ui5.oViewNest);` && |\n| &&
@@ -574,17 +575,19 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n| &&
               `            }` && |\n| &&
                `        },` && |\n| &&
-               `        async displayView(xml, viewModel , aConfig ) {` && |\n| &&
+               `        async displayView(S_VIEW, viewModel ) {` && |\n| &&
                `            let oview_model = new JSONModel(viewModel);` && |\n| &&
-               `            const found = aConfig?.find((element) => element.N == 'setSizeLimit' );` && |\n| &&
-               `            if (found) { oview_model.setSizeLimit(found.V); }` && |\n| &&
+                              `          if (S_VIEW?.S_CONFIG?.SET_SIZE_LIMIT) { oview_model.setSizeLimit(parseInt(S_VIEW.S_CONFIG.SET_SIZE_LIMIT));  }` && |\n| &&
                `          sap.z2ui5.oView = await XMLView.create({` && |\n| &&
-               `                definition: xml,` && |\n| &&
+               `                definition: S_VIEW.XML,` && |\n| &&
                `                models: oview_model,` && |\n| &&
                `                controller: sap.z2ui5.oController,` && |\n| &&
                `                id: 'mainView',` && |\n| &&
                `                preprocessors: { xml: { models: { template: oview_model } } }` && |\n| &&
                `            });` && |\n| &&
+*               `          if (S_VIEW?.S_CONFIG?.SET_SIZE_LIMIT) {  sap.z2ui5.oView.vSizeLimit = S_VIEW.S_CONFIG.SET_SIZE_LIMIT; }` && |\n| &&
+               `            sap.z2ui5.oView.setModel(oview_model);` && |\n| &&
+               `           ` && |\n| &&
                `            sap.z2ui5.oView.setModel(sap.z2ui5.oDeviceModel, "device");` && |\n| &&
                `            if (sap.z2ui5.oParent) {` && |\n| &&
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&

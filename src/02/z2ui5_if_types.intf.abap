@@ -33,6 +33,11 @@ INTERFACE z2ui5_if_types
     END OF ty_s_config.
 
   TYPES:
+    BEGIN OF ty_S_view_config,
+      set_size_limit TYPE string,
+    END OF ty_S_view_config.
+
+  TYPES:
     BEGIN OF ty_s_get,
       event                  TYPE string,
       t_event_arg            TYPE string_table,
