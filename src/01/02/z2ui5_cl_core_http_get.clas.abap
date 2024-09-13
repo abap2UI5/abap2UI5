@@ -59,9 +59,17 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
    `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
    `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
 
+    data(lv_style) =  `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
+               `            height: 100%;` && |\n| &&
+               `        }` && |\n| &&
+               `        .dbg-ltr {` && |\n| &&
+               `            direction: ltr !important;` && |\n| &&
+               `        }`.
+
     result = VALUE #(
         t_param = VALUE #(
             (  n = `TITLE`                   v = `abap2UI5` )
+            (  n = `STYLE`                   v =  lv_style )
             (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact`   )
             )
         t_config = VALUE #(
@@ -133,26 +141,27 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
   METHOD main_get_index_html.
 
     result = `<!DOCTYPE html>` && |\n| &&
+               `<html lang="en">` && |\n| &&
                `<head>` && |\n| &&
-             |  { cs_config-content_security_policy } \n| &&
+                  cs_config-content_security_policy && |\n| &&
                `    <meta charset="UTF-8">` && |\n| &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
-            | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
-               `    <script `.
+               `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
+                | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
+                | <style>{ cs_config-t_param[ n = `STYLE` ]-v }</style> \n| &&
+               `    <script id="sap-ui-bootstrap"`.
 
     LOOP AT cs_config-t_config REFERENCE INTO DATA(lr_config).
       result = result && | { lr_config->n }='{ lr_config->v }'|.
     ENDLOOP.
 
     result = result &&
-        |  ></script></head> \n| &&
-        | <body class="{ cs_config-t_param[ n = 'BODY_CLASS' ]-v }" id="content" > \n| &&
-        |<body class="sapUiBody" id="content" >  \n| &&
-        |    <div data-sap-ui-component data-height="100%" data-id="container" ></div> \n| &&
-        |<abc/> \n|.
+        ` ></script></head>` && |\n| &&
+        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
+        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
+        `<abc/>` && |\n|.
 
     DATA(lv_add_js) = get_js_cc_startup( ) && cs_config-custom_js.
-
     result = result  &&
      | <script> sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
      |         {  get_js( ) }     \n| &&
