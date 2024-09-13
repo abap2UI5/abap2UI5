@@ -22,7 +22,7 @@
     "strict_sql" : true,
     "easy_to_find_messages" : true,
     "fully_type_itabs" : true,
-    "align_parameters": true,
+    "align_parameters": false,
     "smim_consistency": true,
     "allowed_object_naming": true,
     "allowed_object_types": {

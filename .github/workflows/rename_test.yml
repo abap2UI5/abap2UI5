@@ -1,0 +1,20 @@
+name: test-renaming
+
+on:
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: '16'
+    - run: git clone https://github.com/abap2UI5/abap2UI5-renamed.git
+    - run: mkdir abap2UI5-renamed/input && mkdir abap2UI5-renamed/input/abap2UI5 && cp -r src abap2UI5-renamed/input/abap2UI5/src && cp -r abap2UI5-renamed/* . && npm i && rm -rf src/*
+    - run: npm run main

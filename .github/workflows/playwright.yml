@@ -1,4 +1,4 @@
-name: playwright-browser-tests
+name: playwright-browser-test
 on:
   pull_request:
 permissions:
@@ -13,9 +13,9 @@ jobs:
       with:
         node-version: lts/*
     - name: Setup
-      run: git clone https://github.com/abap2UI5/web-abap2UI5-test.git && cp -r web-abap2UI5-test/* . && npm i
+      run: git clone https://github.com/abap2UI5/abap2UI5-setup.git && cp -r abap2UI5-setup/* . && npm i
     - name: Install dependencies
-      run: npm ci && npm run downport && npm run transpile && node output/index.mjs
+      run: npm run build
     - name: Install Playwright Browsers
       run: npx playwright install --with-deps
     - name: Run Playwright tests

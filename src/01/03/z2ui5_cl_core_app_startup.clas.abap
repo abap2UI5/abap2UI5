@@ -185,7 +185,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
     simple_form2->toolbar( )->title( `Social Media` ).
 
     simple_form2->label( ).
-    simple_form2->link( text   = `Follow abap2UI5 on Linkedin`
+    simple_form2->link( text   = `Follow us on LinkedIn`
                         target = `_blank`
                         href   = `https://www.linkedin.com/company/abap2ui5` ).
 

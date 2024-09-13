@@ -16,13 +16,13 @@
 <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 </p>
 
-*...offers a pure ABAP approach for developing UI5 apps — entirely without JavaScript, OData or RAP. Just like in the past, when a few lines of ABAP were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+*...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in the past, when a few lines of ABAP were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
 * **User-Friendly:** Implement a single interface to create a standalone UI5 application
 * **Minimal System Footprint:** Uses a simple HTTP handler (no BSP, OData, CDS or RAP)
-* **Cloud & On-Premise Ready:** Supports both ABAP for Cloud and Standard ABAP
+* **Cloud & On-Premise Ready:** Supports both ABAP Cloud and Standard ABAP
 * **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP Cloud)
 * **Easy Installation:** Install via abapGit, no additional app deployment required
 
@@ -73,6 +73,6 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Want to help out? Review our [contribution guidelines](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/CONTRIBUTING.md) to get started
 * Stay updated! Follow us on [LinkedIn](https://www.linkedin.com/company/abap2ui5)
 
-_We welcome all contributions! Share your knowledge, submit a PR, write a comment, give us a like, or simply tell others that you love abap2UI5. This project thrives on your support! 🚀_ 
+_We welcome all contributions! Share your knowledge, hunt for or fix bugs, submit a PR, write a comment, give us a like, or simply tell your friends how much you love abap2UI5. This project thrives on your support! 🚀_ 
 
 
