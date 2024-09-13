@@ -191,8 +191,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
         INSERT VALUE #( name = 'TAB_LINE' type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
     ENDTRY.
-    DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
-    INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+
+    IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
+      DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
+      INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+    ENDIF.
 
     DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
     DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
