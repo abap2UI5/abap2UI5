@@ -9,6 +9,7 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
     TYPES:
       BEGIN OF ty_s_result,
         row             TYPE REF TO data,
+        table           TYPE REF TO data,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result .
 
@@ -26,6 +27,7 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
         !i_contentwidth     TYPE clike OPTIONAL
         !i_contentheight    TYPE clike OPTIONAL
         !i_growingthreshold TYPE clike OPTIONAL
+        !i_multiselect      TYPE abap_bool OPTIONAL
       RETURNING
         VALUE(r_result)     TYPE REF TO z2ui5_cl_pop_to_select .
     METHODS result
@@ -43,6 +45,7 @@ CLASS z2ui5_cl_pop_to_select DEFINITION
     DATA content_height TYPE string .
     DATA growing_threshold TYPE string .
     DATA descending TYPE abap_bool .
+    DATA multiselect TYPE abap_bool.
 
     METHODS on_event .
     METHODS display .
@@ -66,9 +69,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     r_result->content_height = i_contentheight.
     r_result->content_width = i_contentwidth.
     r_result->growing_threshold = i_growingthreshold.
+    r_result->multiselect = i_multiselect.
 
     r_result->mr_tab = z2ui5_cl_util=>conv_copy_ref_data( i_tab ).
     CREATE DATA r_result->ms_result-row LIKE LINE OF i_tab.
+    CREATE DATA r_result->ms_result-table LIKE i_tab.
 
   ENDMETHOD.
 
@@ -92,7 +97,8 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
               contentwidth     = content_width
               contentheight    = content_height
               growingthreshold = growing_threshold
-              title            = title ).
+              title            = title
+              multiselect      = multiselect ).
 
     DATA(lt_comp) = z2ui5_cl_util=>rtti_get_t_attri_by_any( <tab_out> ).
     DELETE lt_comp WHERE name = 'ZZSELKZ'.
@@ -120,6 +126,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
   ENDMETHOD.
 
+
   METHOD z2ui5_if_app~main.
 
     me->client = client.
@@ -134,6 +141,7 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     on_event( ).
 
   ENDMETHOD.
+
 
   METHOD on_event.
 
@@ -183,8 +191,11 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
         DATA(lo_elem) = CAST cl_abap_elemdescr( lo_table->get_table_line_type( ) ).
         INSERT VALUE #( name = 'TAB_LINE' type = CAST #( lo_elem ) ) INTO TABLE lt_comp.
     ENDTRY.
-    DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
-    INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+
+    IF NOT line_exists( lt_comp[ name = `ZZSELKZ` ] ).
+      DATA(lo_type_bool) = cl_abap_structdescr=>describe_by_name( 'ABAP_BOOL' ).
+      INSERT VALUE #( name = `ZZSELKZ` type = CAST #( lo_type_bool ) ) INTO TABLE lt_comp.
+    ENDIF.
 
     DATA(lo_line_type) = cl_abap_structdescr=>create( lt_comp ).
     DATA(lo_tab_type) = cl_abap_tabledescr=>create( lo_line_type ).
@@ -213,15 +224,16 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
   ENDMETHOD.
 
-
   METHOD on_event_confirm.
 
     FIELD-SYMBOLS <tab> TYPE STANDARD TABLE.
     FIELD-SYMBOLS <row_selected> TYPE any.
     FIELD-SYMBOLS <selkz> TYPE any.
     FIELD-SYMBOLS <row_result> TYPE any.
+    FIELD-SYMBOLS <table_result> TYPE ANY TABLE.
     FIELD-SYMBOLS <table_line_selected> TYPE any.
     ASSIGN mr_tab_popup->* TO <tab>.
+    ASSIGN ms_result-table->* TO <table_result>.
 
     LOOP AT <tab> ASSIGNING <row_selected>.
 
@@ -233,14 +245,20 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
 
       ASSIGN ms_result-row->* TO <row_result>.
       IF check_table_line = abap_true.
-
         ASSIGN ('<ROW_SELECTED>-TAB_LINE') TO <table_line_selected>.
         ASSERT sy-subrc = 0.
         <row_result> = <table_line_selected>.
       ELSE.
         <row_result> = CORRESPONDING #( <row_selected> ).
       ENDIF.
-      EXIT.
+
+      IF multiselect = abap_false.
+        EXIT.
+      ELSE.
+        INSERT <row_result> INTO TABLE <table_result>.
+        CLEAR <row_result>.
+      ENDIF.
+
     ENDLOOP.
 
     client->popup_destroy( ).
@@ -285,4 +303,5 @@ CLASS z2ui5_cl_pop_to_select IMPLEMENTATION.
     client->popup_model_update( ).
 
   ENDMETHOD.
+
 ENDCLASS.
