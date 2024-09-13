@@ -85,7 +85,7 @@ INTERFACE z2ui5_if_core_types
         open_by_id         TYPE string,
         check_destroy      TYPE abap_bool,
         check_update_model TYPE abap_bool,
-        s_config           TYPE z2ui5_if_types=>ty_S_view_config,
+        s_config           TYPE z2ui5_if_types=>ty_s_view_config,
       END OF s_popover,
       BEGIN OF s_msg_box,
         type              TYPE string,

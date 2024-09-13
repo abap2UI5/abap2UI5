@@ -6,7 +6,6 @@ CLASS z2ui5_cl_core_http_get DEFINITION
   PUBLIC SECTION.
 
     DATA ms_request TYPE z2ui5_if_types=>ty_s_http_request_get.
-    DATA mv_response TYPE string.
 
     METHODS constructor
       IMPORTING
