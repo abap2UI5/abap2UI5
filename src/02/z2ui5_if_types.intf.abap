@@ -33,9 +33,9 @@ INTERFACE z2ui5_if_types
     END OF ty_s_config.
 
   TYPES:
-    BEGIN OF ty_S_view_config,
+    BEGIN OF ty_s_view_config,
       set_size_limit TYPE string,
-    END OF ty_S_view_config.
+    END OF ty_s_view_config.
 
   TYPES:
     BEGIN OF ty_s_get,

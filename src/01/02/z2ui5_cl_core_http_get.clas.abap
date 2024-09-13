@@ -236,7 +236,6 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                controller: sap.z2ui5.oControllerPopup,` && |\n| &&
                `                id: "popupId"` && |\n| &&
                `            });` && |\n| &&
-
                          `       if (S_VIEW?.S_CONFIG?.SET_SIZE_LIMIT) { oview_model.setSizeLimit(parseInt(S_VIEW.S_CONFIG.SET_SIZE_LIMIT)); }` && |\n| &&
                `            oFragment.setModel(oview_model);` && |\n| &&
                `            sap.z2ui5[viewProp] = oFragment;` && |\n| &&
