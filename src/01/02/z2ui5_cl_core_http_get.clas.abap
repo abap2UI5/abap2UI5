@@ -59,7 +59,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
    `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
    `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
 
-    data(lv_style) =  `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
+    DATA(lv_style) =  `        html, body, body > div, #container, #container-uiarea {` && |\n| &&
                `            height: 100%;` && |\n| &&
                `        }` && |\n| &&
                `        .dbg-ltr {` && |\n| &&
