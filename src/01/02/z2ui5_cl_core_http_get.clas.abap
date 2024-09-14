@@ -189,7 +189,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
   METHOD get_js.
 
-  DATA(lv_two_way_model) = z2ui5_if_core_types=>cs_ui5-two_way_model.
+    DATA(lv_two_way_model) = z2ui5_if_core_types=>cs_ui5-two_way_model.
 
     result = ` if (!z2ui5.Controller) { ` &&
     `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
