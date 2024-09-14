@@ -28,7 +28,7 @@ INTERFACE z2ui5_if_client
   METHODS view_display
     IMPORTING
       val      TYPE clike
-      t_config TYPE z2ui5_if_types=>ty_t_name_value OPTIONAL.
+      s_config TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
 
   METHODS view_model_update.
 
@@ -37,7 +37,8 @@ INTERFACE z2ui5_if_client
       val            TYPE clike
       id             TYPE clike
       method_insert  TYPE clike
-      method_destroy TYPE clike OPTIONAL.
+      method_destroy TYPE clike OPTIONAL
+      s_config       TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
 
   METHODS nest_view_destroy.
   METHODS nest_view_model_update.
@@ -47,14 +48,16 @@ INTERFACE z2ui5_if_client
       val            TYPE clike
       id             TYPE clike
       method_insert  TYPE clike
-      method_destroy TYPE clike OPTIONAL.
+      method_destroy TYPE clike OPTIONAL
+      s_config       TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
 
   METHODS nest2_view_destroy.
   METHODS nest2_view_model_update.
 
   METHODS popup_display
     IMPORTING
-      val TYPE clike.
+      val      TYPE clike
+      s_config TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
 
   METHODS popup_model_update.
 
@@ -64,8 +67,9 @@ INTERFACE z2ui5_if_client
 
   METHODS popover_display
     IMPORTING
-      xml   TYPE clike
-      by_id TYPE clike.
+      xml      TYPE clike
+      by_id    TYPE clike
+      s_config TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
 
   METHODS popover_destroy.
 

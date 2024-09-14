@@ -13,15 +13,8 @@ INTERFACE z2ui5_if_types
       t_config                TYPE ty_t_name_value,
       content_security_policy TYPE string,
       custom_js               TYPE string,
-      json_model_limit        TYPE string,
+      t_param                 TYPE ty_t_name_value,
     END OF ty_s_http_request_get.
-
-  TYPES:
-    BEGIN OF ty_s_config_index_html,
-      t_option TYPE ty_t_name_value,
-      t_param  TYPE ty_t_name_value,
-      add_js   TYPE string,
-    END OF ty_s_config_index_html.
 
   TYPES:
     BEGIN OF ty_s_draft,
@@ -38,6 +31,11 @@ INTERFACE z2ui5_if_types
       search           TYPE string,
       t_startup_params TYPE ty_t_name_value,
     END OF ty_s_config.
+
+  TYPES:
+    BEGIN OF ty_s_view_config,
+      set_size_limit TYPE string,
+    END OF ty_s_view_config.
 
   TYPES:
     BEGIN OF ty_s_get,
