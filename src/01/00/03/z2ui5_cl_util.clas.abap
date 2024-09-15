@@ -365,6 +365,12 @@ CLASS z2ui5_cl_util DEFINITION
       CHANGING
         tab TYPE STANDARD TABLE.
 
+    CLASS-METHODS itab_filter_by_t_range
+      IMPORTING
+        val TYPE ty_t_filter_multi
+      CHANGING
+        tab TYPE STANDARD TABLE.
+
     CLASS-METHODS time_get_time_by_stampl
       IMPORTING
         val           TYPE timestampl
@@ -766,7 +772,7 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
     itab_corresponding(
       EXPORTING
-        val = lt_tab
+        val = val
       CHANGING
         tab = lt_tab
     ).
@@ -1440,4 +1446,10 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     ENDLOOP.
 
   ENDMETHOD.
+
+
+  METHOD itab_filter_by_t_range.
+
+  ENDMETHOD.
+
 ENDCLASS.
