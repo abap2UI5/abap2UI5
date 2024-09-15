@@ -220,6 +220,7 @@ CLASS ltcl_unit_test DEFINITION FINAL FOR TESTING
     METHODS rtti_check_ref_data FOR TESTING RAISING cx_static_check.
     METHODS test_check_bound_a_not_inital FOR TESTING RAISING cx_static_check.
     METHODS test_sql_get_by_string FOR TESTING RAISING cx_static_check.
+    METHODS test_get_token_t_by_r_t FOR TESTING RAISING cx_static_check.
 
 ENDCLASS.
 
@@ -860,6 +861,25 @@ CLASS ltcl_unit_test IMPLEMENTATION.
       cl_abap_unit_assert=>fail( ).
 
     ENDIF.
+
+  ENDMETHOD.
+
+  METHOD test_get_token_t_by_r_t.
+
+    DATA(lt_range) = VALUE z2ui5_cl_util=>ty_t_range(
+        ( sign = 'I' option = 'EQ' low = `table` high = `` )
+     ).
+
+    DATA(lt_result) = z2ui5_cl_util=>filter_get_token_t_by_range_t( lt_range ).
+
+    DATA(lt_exp) = VALUE z2ui5_cl_util=>ty_t_token(
+        ( key = `=table` text = `=table` visible = 'X' selkz = '' editable = 'X' )
+    ).
+
+    cl_abap_unit_assert=>assert_equals(
+        act                  = lt_result
+        exp                  = lt_exp
+    ).
 
   ENDMETHOD.
 
