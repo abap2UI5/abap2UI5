@@ -13,7 +13,7 @@ CLASS z2ui5_cl_pop_get_range_m DEFINITION
 
     TYPES:
       BEGIN OF ty_s_result,
-        t_sql           TYPE z2ui5_cl_util=>ty_t_filter_multi,
+        t_filter           TYPE z2ui5_cl_util=>ty_t_filter_multi,
         check_confirmed TYPE abap_bool,
       END OF ty_s_result.
 
@@ -41,7 +41,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->ms_result-t_sql = val.
+    r_result->ms_result-t_filter = val.
 
   ENDMETHOD.
 
@@ -65,7 +65,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
                                  justifycontent = 'SpaceBetween' ).
 
     DATA(item) = vbox->list( nodata          = `no conditions defined`
-                             items           = client->_bind( ms_result-t_sql )
+                             items           = client->_bind( ms_result-t_filter )
                              selectionchange = client->_event( 'SELCHANGE' )
                 )->custom_list_item( ).
 
@@ -120,7 +120,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
 
       DATA(lo_popup) = CAST z2ui5_cl_pop_get_range( client->get_app( client->get( )-s_draft-id_prev_app ) ).
       IF lo_popup->result( )-check_confirmed = abap_true.
-        ASSIGN ms_result-t_sql[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
+        ASSIGN ms_result-t_filter[ name = mv_popup_name ] TO FIELD-SYMBOL(<tab>).
         <tab>-t_range = lo_popup->result( )-t_range.
         <tab>-t_token = z2ui5_cl_util=>filter_get_token_t_by_range_t( <tab>-t_range ).
       ENDIF.
@@ -132,7 +132,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
 
       WHEN 'LIST_DELETE'.
         DATA(lt_event) = client->get( )-t_event_arg.
-        ASSIGN ms_result-t_sql[ name = lt_event[ 1 ] ] TO <tab>.
+        ASSIGN ms_result-t_filter[ name = lt_event[ 1 ] ] TO <tab>.
         CLEAR <tab>-t_token.
         CLEAR <tab>-t_range.
         client->popup_model_update( ).
@@ -140,7 +140,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
       WHEN 'LIST_OPEN'.
         lt_event = client->get( )-t_event_arg.
         mv_popup_name = lt_event[ 1 ].
-        DATA(ls_sql) = ms_result-t_sql[ name = mv_popup_name ].
+        DATA(ls_sql) = ms_result-t_filter[ name = mv_popup_name ].
         client->nav_app_call( z2ui5_cl_pop_get_range=>factory( ls_sql-t_range ) ).
 
       WHEN `BUTTON_CONFIRM`.
@@ -153,7 +153,7 @@ CLASS Z2UI5_CL_POP_GET_RANGE_M IMPLEMENTATION.
         client->nav_app_leave( client->get_app( client->get( )-s_draft-id_prev_app_stack ) ).
 
       WHEN `POPUP_DELETE_ALL`.
-        LOOP AT ms_result-t_sql REFERENCE INTO DATA(lr_sql).
+        LOOP AT ms_result-t_filter REFERENCE INTO DATA(lr_sql).
           CLEAR lr_sql->t_range.
           CLEAR lr_sql->t_token.
         ENDLOOP.
