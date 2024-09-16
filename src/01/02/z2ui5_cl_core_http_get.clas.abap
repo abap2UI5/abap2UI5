@@ -87,7 +87,9 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
             (  n = `id`                        v = `sap-ui-bootstrap` )
             (  n = `data-sap-ui-bindingSyntax` v = `complex` )
             (   n = `data-sap-ui-frameOptions`  v = `trusted` )
-            (  n = `data-sap-ui-compatVersion` v = `edge` ) )
+            (  n = `data-sap-ui-compatVersion` v = `edge` )
+            (  n = `data-sap-ui-resourceroots` v = `{"z2ui5": "./"}` )
+            (  n = `data-sap-ui-oninit` v = `onInitComponent` ) )
         content_security_policy = lv_csp ).
 
   ENDMETHOD.
@@ -607,7 +609,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
                `            } else {` && |\n| &&
-               `                sap.z2ui5.oView.placeAt("content_container");` && |\n| &&
+               `                sap.z2ui5.oView.placeAt("container-uiarea");` && |\n| &&
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
