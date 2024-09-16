@@ -341,4 +341,14 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD z2ui5_if_client~set_session_stateful.
+
+    IF stateful = abap_true.
+      mo_action->ms_next-s_set-handler_attrs-stateful-active = 1.
+    ELSE.
+      mo_action->ms_next-s_set-handler_attrs-stateful-active = 0.
+    ENDIF.
+    mo_action->ms_next-s_set-handler_attrs-stateful-switched = abap_true.
+
+  ENDMETHOD.
 ENDCLASS.

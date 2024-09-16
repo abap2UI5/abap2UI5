@@ -40,6 +40,9 @@ CLASS z2ui5_cl_core_http_get DEFINITION
                 cs_config     TYPE z2ui5_if_types=>ty_s_http_request_get
       RETURNING VALUE(result) TYPE string.
 
+    METHODS main_get_component_script
+      RETURNING
+        VALUE(result) TYPE string.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -84,7 +87,9 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
             (  n = `id`                        v = `sap-ui-bootstrap` )
             (  n = `data-sap-ui-bindingSyntax` v = `complex` )
             (   n = `data-sap-ui-frameOptions`  v = `trusted` )
-            (  n = `data-sap-ui-compatVersion` v = `edge` ) )
+            (  n = `data-sap-ui-compatVersion` v = `edge` )
+            (  n = `data-sap-ui-resourceroots` v = `{"z2ui5": "./"}` )
+            (  n = `data-sap-ui-oninit` v = `onInitComponent` ) )
         content_security_policy = lv_csp ).
 
   ENDMETHOD.
@@ -153,6 +158,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
                 | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
                 | <style>{ cs_config-t_param[ n = `STYLE` ]-v }</style> \n| &&
+               main_get_component_script( ) && |\n| &&
                `    <script id="sap-ui-bootstrap"`.
 
     LOOP AT cs_config-t_config REFERENCE INTO DATA(lr_config).
@@ -161,8 +167,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
     result = result &&
         ` ></script></head>` && |\n| &&
-        `<body class="sapUiBody sapUiSizeCompact" >` && |\n| &&
-        `    <div id="content"  data-handle-validation="true" ></div>` && |\n| &&
+        `<body class="sapUiBody sapUiSizeCompact" id="content">` && |\n| &&
+        `    <div data-sap-ui-component data-name="z2ui5" id="content_container" data-id="container" data-handle-validation="true" data-settings=''{"id" : "z2ui5"}''></div>` && |\n| &&
         `<abc/>` && |\n|.
 
     DATA(lv_add_js) = get_js_cc_startup( ) && cs_config-custom_js.
@@ -603,7 +609,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
                `            } else {` && |\n| &&
-               `                sap.z2ui5.oView.placeAt("content");` && |\n| &&
+               `                sap.z2ui5.oView.placeAt("container-uiarea");` && |\n| &&
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
@@ -680,5 +686,40 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
   ENDMETHOD.
 
-
+  METHOD main_get_component_script.
+    result = `<script>` && |\n| &&
+             `  function onInitComponent(){` && |\n| &&
+             `    sap.ui.require.preload({` && |\n| &&
+             `      "z2ui5/manifest.json": '{}', //todo define json` && |\n| &&
+             `      "z2ui5/Component.js": function(){` && |\n| &&
+             `          sap.ui.define(["sap/ui/core/UIComponent"], function(UIComponent){` && |\n|  &&
+             `              return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
+             `                  metadata: { manifest: "json" },` && |\n|  &&
+             `                  init: function(){` && |\n|  &&
+             `                      UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
+             `                  },` && |\n|  &&
+             `                  destroy: function(){` && |\n|  &&
+             `                      const sContextId = document.cookie.match(new RegExp("(^| )sap-contextid=([^;]+)"))?.at(2);` && |\n| &&
+             `                      if(sContextId){` && |\n| &&
+             `                          fetch(sap.z2ui5.pathname, {` && |\n| &&
+             `                              method: 'HEAD',` && |\n| &&
+             `                              headers: {` && |\n| &&
+             `                                  'sap-terminate': 'session',` && |\n| &&
+             `                                  'sap-contextid': sContextId,` && |\n| &&
+             `                                  'sap-contextid-accept': 'header'` && |\n| &&
+             `                              }` && |\n| &&
+             `                          });` && |\n| &&
+             `                      }` && |\n| &&
+             `                      UIComponent.prototype.destroy.apply(this, arguments);` && |\n|  &&
+             `                  },` && |\n|  &&
+             `              });` && |\n|  &&
+             `          });` && |\n| &&
+             `      }` && |\n| &&
+             `    });` && |\n| &&
+             `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
+             `      ComponentSupport.run();` && |\n| &&
+             `    });` && |\n| &&
+             `  }` && |\n| &&
+             `</script>`.
+  ENDMETHOD.
 ENDCLASS.
