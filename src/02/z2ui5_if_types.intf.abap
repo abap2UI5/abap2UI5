@@ -17,6 +17,14 @@ INTERFACE z2ui5_if_types
     END OF ty_s_http_request_get.
 
   TYPES:
+    BEGIN OF ty_s_http_handler_attributes,
+      BEGIN OF stateful,
+        active   TYPE i,
+        switched TYPE abap_bool,
+      END OF stateful,
+    END OF ty_s_http_handler_attributes.
+
+  TYPES:
     BEGIN OF ty_s_draft,
       id                TYPE string,
       id_prev           TYPE string,

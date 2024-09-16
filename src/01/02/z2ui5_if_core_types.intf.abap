@@ -120,6 +120,7 @@ INTERFACE z2ui5_if_core_types
       BEGIN OF s_follow_up_action,
         custom_js TYPE string,
       END OF s_follow_up_action,
+      handler_attrs TYPE z2ui5_if_types=>ty_s_http_handler_attributes,
     END OF ty_s_next_frontend.
 
   TYPES:

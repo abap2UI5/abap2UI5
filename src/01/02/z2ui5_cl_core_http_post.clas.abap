@@ -16,6 +16,8 @@ CLASS z2ui5_cl_core_http_post DEFINITION
         val TYPE string.
 
     METHODS main
+      EXPORTING
+        attributes    TYPE z2ui5_if_types=>ty_s_http_handler_attributes
       RETURNING
         VALUE(result) TYPE string.
 
@@ -46,6 +48,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
 
 
   METHOD main.
+    CLEAR attributes.
 
     main_begin( ).
     DO.
@@ -54,6 +57,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
       ENDIF.
     ENDDO.
     result = mv_response.
+    attributes = ms_response-s_front-params-handler_attrs.
 
   ENDMETHOD.
 
