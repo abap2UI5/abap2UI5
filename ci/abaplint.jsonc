@@ -186,7 +186,7 @@
   "severity": "Error"
 },
     "method_parameter_names": false,
-    "mix_returning": true,
+    "mix_returning": false,
     "modify_only_own_db_tables": {
       "reportDynamic": true,
       "ownTables": "^[yz]"
