@@ -9732,6 +9732,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
           ( n = `sap`               v = `sap` )
           ( n = `text`              v = `sap.ui.richtexteditor` )
           ( n = `html`              v = `http://www.w3.org/1999/xhtml` )
+*          ( n = `unified`           v = `sap.ui.unified` )
           ( n = `fb`                v = `sap.ui.comp.filterbar` )
           ( n = `u`                 v = `sap.ui.unified` )
           ( n = `gantt`             v = `sap.gantt.simple` )
@@ -10031,7 +10032,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD color_picker.
 
     result = me.
-    _generic( ns             = `unified`
+    _generic( ns             = `u`
                       name   = `ColorPicker`
                       t_prop = VALUE #( ( n = `colorString`       v = colorstring )
                                         ( n = `displayMode`        v = displaymode )
