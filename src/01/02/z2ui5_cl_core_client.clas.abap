@@ -352,6 +352,5 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     ENDIF.
     mo_action->ms_next-s_set-handler_attrs-stateful-switched = abap_true.
 
-
   ENDMETHOD.
 ENDCLASS.
