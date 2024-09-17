@@ -345,10 +345,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     IF stateful = abap_true.
       mo_action->ms_next-s_set-handler_attrs-stateful-active = 1.
+       cast z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_true.
     ELSE.
       mo_action->ms_next-s_set-handler_attrs-stateful-active = 0.
+       cast z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
     ENDIF.
     mo_action->ms_next-s_set-handler_attrs-stateful-switched = abap_true.
+
 
   ENDMETHOD.
 ENDCLASS.

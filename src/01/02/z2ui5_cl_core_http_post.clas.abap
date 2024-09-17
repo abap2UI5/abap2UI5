@@ -117,7 +117,10 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
     mv_response = lo_json_mapper->response_abap_to_json( ms_response ).
 
     CLEAR mo_action->ms_next.
-    mo_action->mo_app->db_save( ).
+
+    IF CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_false.
+      mo_action->mo_app->db_save( ).
+    ENDIF.
 
   ENDMETHOD.
 
@@ -134,9 +137,13 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         ENDTRY.
         DATA(li_app)    = CAST z2ui5_if_app( mo_action->mo_app->mo_app ).
 
-        ROLLBACK WORK.
+        IF li_app->check_sticky = abap_false.
+          ROLLBACK WORK.
+        ENDIF.
         li_app->main( li_client ).
-        ROLLBACK WORK.
+        IF li_app->check_sticky = abap_false.
+          ROLLBACK WORK.
+        ENDIF.
 
         IF mo_action->ms_next-o_app_leave IS NOT INITIAL.
           mo_action = mo_action->factory_stack_leave( ).
