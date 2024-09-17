@@ -768,12 +768,9 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CLEAR lr_filter->t_token_removed.
     CLEAR lr_filter->t_token_added.
 
-    itab_corresponding(
-      EXPORTING
-        val = z2ui5_cl_util=>filter_get_range_t_by_token_t( result[ name = name ]-t_token )
-      CHANGING
-        tab = result[ name = name ]-t_range
-    ).
+    data(lt_token) = result[ name = name ]-t_token.
+    data(lt_range) = z2ui5_cl_util=>filter_get_range_t_by_token_t( result[ name = name ]-t_token ).
+    lr_filter->t_range = lt_range.
 
   ENDMETHOD.
 
