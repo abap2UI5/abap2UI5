@@ -69,12 +69,12 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       DATA(lo_get) = NEW z2ui5_cl_core_http_get( config ).
       result = lo_get->main( ).
     ELSE.
-       IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_core_http_post( body ).
-    ELSE.
-      lo_post = so_sticky_handler.
-      lo_post->mv_request_json = body.
-    ENDIF.
+      IF so_sticky_handler IS NOT BOUND.
+        DATA(lo_post) = NEW z2ui5_cl_core_http_post( body ).
+      ELSE.
+        lo_post = so_sticky_handler.
+        lo_post->mv_request_json = body.
+      ENDIF.
 *      DATA(lo_post) = NEW z2ui5_cl_core_http_post( body ).
       result = lo_post->main(
         IMPORTING
