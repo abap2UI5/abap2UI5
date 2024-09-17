@@ -8,6 +8,7 @@ INTERFACE z2ui5_if_app PUBLIC.
 
   DATA id_draft TYPE string.
   DATA id_app   TYPE string.
+  DATA check_sticky TYPE abap_bool.
 
   METHODS main
     IMPORTING

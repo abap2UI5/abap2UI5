@@ -68,7 +68,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
   METHOD factory_by_frontend.
 
     result = NEW #( mo_http_post ).
-    result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_front-id ).
+
+    IF mo_http_post->mo_action->mo_app->mo_app IS BOUND.
+      result->mo_app = mo_http_post->mo_action->mo_app.
+    ELSE.
+      result->mo_app = z2ui5_cl_core_app=>db_load( mo_http_post->ms_request-s_front-id ).
+    ENDIF.
+
 
     result->mo_app->ms_draft-id      = z2ui5_cl_util=>uuid_get_c32( ).
     result->mo_app->ms_draft-id_prev = mo_http_post->ms_request-s_front-id.

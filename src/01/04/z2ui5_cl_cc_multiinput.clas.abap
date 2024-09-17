@@ -41,7 +41,7 @@ CLASS z2ui5_cl_cc_multiinput IMPLEMENTATION.
          `      },` && |\n| &&
          |\n| &&
          `      init() {` && |\n| &&
-         `  sap.z2ui5.onAfterRendering.push( this.setControl.bind(this) ); ` && |\n| &&
+        `  sap.z2ui5.onAfterRendering.push( this.setControl.bind(this) ); ` && |\n| &&
          `      },` && |\n| &&
          |\n| &&
          `      onTokenUpdate(oEvent) { ` && |\n| &&
@@ -63,7 +63,13 @@ CLASS z2ui5_cl_cc_multiinput IMPLEMENTATION.
          `          }` && |\n| &&
          `      this.fireChange();` && |\n| &&
          `      },` && |\n| &&
-         `      setControl(){ let table = sap.z2ui5.oView.byId( this.getProperty("MultiInputId"));` && |\n| &&
+         `      renderer(oRm, oControl) {   ` &&
+         `         sap.z2ui5.onAfterRendering.push( this.setControl.bind(oControl) ); ` && |\n| &&
+         `  },` && |\n| &&
+         `      setControl(){  ` && |\n| &&
+         `         let table = sap.z2ui5.oView.byId( this.getProperty("MultiInputId") );` && |\n| &&
+         `         if (!table) { table = sap.ui.getCore().byId( this.getProperty("MultiInputId") ); }   ` && |\n| &&
+         `         if ( !table ){ return; }   ` && |\n| &&
          `         if ( this.getProperty("checkInit") == true ){ return; }   ` && |\n| &&
          `         this.setProperty( "checkInit" , true );` && |\n| &&
          `          table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n| &&
@@ -73,6 +79,7 @@ CLASS z2ui5_cl_cc_multiinput IMPLEMENTATION.
          `          };` && |\n| &&
          `          table.addValidator(fnValidator); }, ` && |\n| &&
          `      renderer(oRM, oControl) {` && |\n| &&
+*            `  sap.z2ui5.onAfterRendering.push( oControl.setControl.bind(oControl) ); ` && |\n| &&
          `      }` && |\n| &&
          `  });` && |\n| &&
          `}); }`.
