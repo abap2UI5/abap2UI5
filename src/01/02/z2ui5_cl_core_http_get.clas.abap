@@ -736,10 +736,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
              `              });` && |\n| &&
              `          });` && |\n| &&
              `      }` && |\n| &&
-
-
-
-             `    });` && |\n| &&
+`    });` && |\n| &&
              `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
              `      ComponentSupport.run();` && |\n| &&
              `    });` && |\n| &&
