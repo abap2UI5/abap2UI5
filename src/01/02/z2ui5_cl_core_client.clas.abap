@@ -343,6 +343,13 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_session_stateful.
 
+    data(lv_check_sticky) =  CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
+    if lv_check_sticky = abap_true and stateful = abap_true.
+      raise exception type  z2ui5_cx_util_error
+      exporting
+        val = `STATEFUL_ALREADY_ACTIVATED_ERROR`
+        .
+    endif.
     IF stateful = abap_true.
       mo_action->ms_next-s_set-handler_attrs-stateful-active = 1.
       CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_true.
