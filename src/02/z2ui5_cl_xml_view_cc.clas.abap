@@ -8,6 +8,7 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
     METHODS multiinput_ext
       IMPORTING
         !multiinputid  TYPE clike OPTIONAL
+        !multiinputname  TYPE clike OPTIONAL
         !change        TYPE clike OPTIONAL
         !addedtokens   TYPE clike OPTIONAL
         !removedtokens TYPE clike OPTIONAL
@@ -480,7 +481,9 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
     result = mo_view.
     mo_view->_generic( name   = `MultiInputExt`
                        ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `MultiInputId` v = multiinputid )
+                       t_prop = VALUE #(
+                       ( n = `MultiInputId` v = multiinputid )
+                       ( n = `MultiInputName` v = multiinputname )
                                          ( n = `change` v = change )
                                          ( n = `addedTokens` v = addedtokens )
                                          ( n = `removedTokens` v = removedtokens ) ) ).

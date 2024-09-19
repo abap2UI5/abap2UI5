@@ -538,6 +538,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
     METHODS multi_input
       IMPORTING showclearicon    TYPE clike OPTIONAL
                 showvaluehelp    TYPE clike OPTIONAL
+                name             TYPE clike OPTIONAL
                 suggestionitems  TYPE clike OPTIONAL
                 tokenupdate      TYPE clike OPTIONAL
                 !width           TYPE clike OPTIONAL
@@ -6957,6 +6958,7 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic( name   = `MultiInput`
                        t_prop = VALUE #( ( n = `tokens` v = tokens )
                                          ( n = `showClearIcon` v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
+                                         ( n = `name` v = name )
                                          ( n = `showValueHelp` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluehelp ) )
                                          ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
                                          ( n = `suggestionItems` v = suggestionitems )
