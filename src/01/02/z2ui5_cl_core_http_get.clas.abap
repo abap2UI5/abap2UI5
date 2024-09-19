@@ -40,7 +40,7 @@ CLASS z2ui5_cl_core_http_get DEFINITION
                 cs_config     TYPE z2ui5_if_types=>ty_s_http_request_get
       RETURNING VALUE(result) TYPE string.
 
-    METHODS main_get_component_script
+    METHODS main_get_preload_script
       RETURNING
         VALUE(result) TYPE string.
 
@@ -158,7 +158,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
                 | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
                 | <style>{ cs_config-t_param[ n = `STYLE` ]-v }</style> \n| &&
-               main_get_component_script( ) && |\n| &&
+               main_get_preload_script( ) && |\n| &&
                `    <script id="sap-ui-bootstrap"`.
 
     LOOP AT cs_config-t_config REFERENCE INTO DATA(lr_config).
@@ -176,7 +176,6 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
      | <script> sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
      |         {  get_js(  ) }     \n| &&
      |         { lv_add_js  }     \n| &&
-     |         { z2ui5_cl_cc_debug_tool=>get_js( )  }     \n| &&
      |           sap.z2ui5.JSON_MODEL_LIMIT = { cs_config-t_param[ n = `SET_SIZE_LIMIT` ]-v };| &&
 *     |           sap.z2ui5.NAME_TWO_WAY_MODEL = "{ z2ui5_if_core_types=>cs_ui5-two_way_model }" ;| &&
      |         { z2ui5_cl_cc_debug_tool=>get_js( )  }     \n| &&
@@ -197,7 +196,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
     DATA(lv_two_way_model) = z2ui5_if_core_types=>cs_ui5-two_way_model.
 
-    result = ` if (!z2ui5.Controller) { ` &&
+    result = ` if (!z2ui5.Controller) { ` && |\n| &&
     `sap.ui.define("z2ui5/Controller", ["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog` &&
 `",   "sap/ui/VersionInfo" ], function(Control` &&
   `ler, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo ) {` && |\n| &&
@@ -594,6 +593,9 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n| &&
               `            }` && |\n| &&
                `        },` && |\n| &&
+               `        setRootView(oRootView){` && |\n| &&
+               `            this._oRootView = oRootView;` && |\n| &&
+               `        },` && |\n| &&
                `        async createView(xml, viewModel) {` && |\n| &&
                `            let oview_model = new JSONModel(viewModel);` && |\n| &&
                `            oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n| &&
@@ -609,17 +611,20 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
                `            } else {` && |\n| &&
-               `                sap.z2ui5.oView.placeAt("container-uiarea");` && |\n| &&
+               `                this._oRootView.byId("viewContainer").addItem(sap.z2ui5.oView);` && |\n| &&
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
                `            const response = await fetch(sap.z2ui5.pathname, {` && |\n| &&
                `                method: 'POST',` && |\n| &&
                `                headers: {` && |\n| &&
-               `                    'Content-Type': 'application/json'` && |\n| &&
+               `                    'Content-Type': 'application/json',` && |\n| &&
+               `                    'sap-contextid-accept': 'header',` && |\n| &&
+               `                    'sap-contextid': sap.z2ui5.contextId` && |\n| &&
                `                },` && |\n| &&
                `                body: JSON.stringify(sap.z2ui5.oBody)` && |\n| &&
                `            });` && |\n| &&
+               `            sap.z2ui5.contextId = response.headers.get("sap-contextid");` && |\n| &&
                `            if (!response.ok) {` && |\n| &&
                `                const responseText = await response.text();` && |\n| &&
                `                sap.z2ui5.oController.responseError(responseText);` && |\n| &&
@@ -663,63 +668,80 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `           sap.z2ui5.oController.readHttp();` && |\n| &&
                `        },` && |\n| &&
                `    })` && |\n| &&
-               `}); } ` && |\n| &&
-               `sap.ui.require(["z2ui5/Controller", "sap/ui/core/BusyIndicator", "sap/ui/model/json/JSONModel", "sap/ui/core/mvc/XMLView", "sap/ui/core/Fragment", "sap/m/MessageToast", "sap/m/MessageBox"], (Controller,BusyIndicator, JSONModel)=>{` &&
-                |\n| &&
-               `    BusyIndicator.show();` && |\n| &&
-               `    sap.z2ui5.oController = new Controller();` && |\n| &&
-               `    sap.z2ui5.oControllerNest = new Controller();` && |\n| &&
-               `    sap.z2ui5.oControllerNest2 = new Controller();` && |\n| &&
-               `    sap.z2ui5.oControllerPopup = new Controller();` && |\n| &&
-               `    sap.z2ui5.oControllerPopover = new Controller();` && |\n| &&
-               `    sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n| &&
-               `    sap.z2ui5.checkNestAfter = false;` && |\n| &&
-               `    sap.z2ui5.oBody = { };` && |\n| &&
-               `    sap.z2ui5.oController.Roundtrip();` && |\n| &&
-               `    sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
-               `    sap.z2ui5.onAfterRendering = [];` && |\n| &&
-               `    sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
-               `    sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
-               `        ` && |\n| &&
-               `    }` && |\n| &&
-               `);`.
+               `}); } `.
 
   ENDMETHOD.
 
-  METHOD main_get_component_script.
+  METHOD main_get_preload_script.
+
     result = `<script>` && |\n| &&
              `  function onInitComponent(){` && |\n| &&
              `    sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/manifest.json": '{}', //todo define json` && |\n| &&
+             `      "z2ui5/manifest.json": '{` &&
+                        `"sap.app": { "id": "z2ui5", "type": "application" }, ` &&
+                        `"sap.ui": { "technology": "ui5", "deviceTypes": { "desktop": true, "tablet": true, "phone": true } }, ` &&
+                        `"sap.ui5": { "flexEnabled": true, "contentDensities": { "compact": true, "cozy": true }, ` &&
+                          `"rootView": { "id": "rootView", "viewName": "z2ui5.view.RootView", "type": "XML", "async": true } } ` &&
+                     `}',` && |\n| &&
              `      "z2ui5/Component.js": function(){` && |\n| &&
              `          sap.ui.define(["sap/ui/core/UIComponent"], function(UIComponent){` && |\n|  &&
              `              return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
              `                  metadata: { manifest: "json" },` && |\n|  &&
              `                  init: function(){` && |\n|  &&
+             `                      window.addEventListener("pagehide", this.__pagehide.bind(this));` && |\n|  &&
              `                      UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
              `                  },` && |\n|  &&
-             `                  destroy: function(){` && |\n|  &&
-             `                      const sContextId = document.cookie.match(new RegExp("(^| )sap-contextid=([^;]+)"))?.at(2);` && |\n| &&
-             `                      if(sContextId){` && |\n| &&
+             `                  __pagehide: function(){` && |\n|  &&
+             `                      this.destroy(); //manually call destroy as it is only fired in FLP` && |\n|  &&
+             `                  },` && |\n|  &&
+             `                  exit: function(){` && |\n|  &&
+             `                      window.removeEventListener("pagehide", this.__pagehide.bind(this));` && |\n| &&
+             `                      if(sap.z2ui5.contextId){` && |\n| &&
              `                          fetch(sap.z2ui5.pathname, {` && |\n| &&
              `                              method: 'HEAD',` && |\n| &&
+             `                              keepalive: true,` && |\n| &&
              `                              headers: {` && |\n| &&
              `                                  'sap-terminate': 'session',` && |\n| &&
-             `                                  'sap-contextid': sContextId,` && |\n| &&
+             `                                  'sap-contextid': sap.z2ui5.contextId,` && |\n| &&
              `                                  'sap-contextid-accept': 'header'` && |\n| &&
              `                              }` && |\n| &&
              `                          });` && |\n| &&
              `                      }` && |\n| &&
-             `                      UIComponent.prototype.destroy.apply(this, arguments);` && |\n|  &&
+             `                      if(UIComponent.prototype.exit) UIComponent.prototype.exit.apply(this, arguments);` && |\n|  &&
              `                  },` && |\n|  &&
              `              });` && |\n|  &&
              `          });` && |\n| &&
+             `      },` && |\n| &&
+             `      "z2ui5/view/RootView.view.xml": '<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="z2ui5.controller.RootController"><FlexBox id="viewContainer" fitContainer="true" renderType="Bare"/></mvc:View>',` && |\n| &&
+             `      "z2ui5/controller/RootController.controller.js": function(){` && |\n| &&
+             `          sap.ui.define(["sap/ui/core/mvc/Controller", "z2ui5/Controller", "sap/ui/core/BusyIndicator"], function(BaseController, Controller, BusyIndicator){` && |\n| &&
+             `              return BaseController.extend("z2ui5.controller.RootController", {` && |\n| &&
+             `                  onInit: function(){` && |\n| &&
+             `                      BusyIndicator.show();` && |\n| &&
+             `                      sap.z2ui5.oController = new Controller();` && |\n| &&
+             `                      sap.z2ui5.oControllerNest = new Controller();` && |\n| &&
+             `                      sap.z2ui5.oControllerNest2 = new Controller();` && |\n| &&
+             `                      sap.z2ui5.oControllerPopup = new Controller();` && |\n| &&
+             `                      sap.z2ui5.oControllerPopover = new Controller();` && |\n| &&
+             `                      sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n| &&
+             `                      sap.z2ui5.checkNestAfter = false;` && |\n| &&
+             `                      sap.z2ui5.oBody = { };` && |\n| &&
+             `                      sap.z2ui5.oController.setRootView(this.getView());` && |\n| &&
+             `                      sap.z2ui5.oController.Roundtrip();` && |\n| &&
+             `                      sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
+             `                      sap.z2ui5.onAfterRendering = [];` && |\n| &&
+             `                      sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
+             `                      sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
+             `                  }` && |\n| &&
+             `              });` && |\n| &&
+             `          });` && |\n| &&
              `      }` && |\n| &&
-             `    });` && |\n| &&
+`    });` && |\n| &&
              `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
              `      ComponentSupport.run();` && |\n| &&
              `    });` && |\n| &&
              `  }` && |\n| &&
              `</script>`.
+
   ENDMETHOD.
 ENDCLASS.
