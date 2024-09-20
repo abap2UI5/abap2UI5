@@ -1,5 +1,5 @@
 CLASS lcl_range_to_sql DEFINITION
-  final create public.
+  FINAL CREATE PUBLIC.
 
   PUBLIC SECTION.
 
@@ -23,7 +23,7 @@ CLASS lcl_range_to_sql DEFINITION
 
     METHODS constructor
       IMPORTING
-        iv_fieldname TYPE fieldname
+        iv_fieldname TYPE clike
         ir_range     TYPE REF TO data.
 
     METHODS get_sql
@@ -31,12 +31,12 @@ CLASS lcl_range_to_sql DEFINITION
         VALUE(result) TYPE string.
 
   PROTECTED SECTION.
-    DATA mv_fieldname TYPE fieldname.
+    DATA mv_fieldname TYPE string.
     DATA mr_range     TYPE REF TO data.
 
     CLASS-METHODS quote
       IMPORTING
-        val        TYPE csequence
+        val        TYPE clike
       RETURNING
         VALUE(out) TYPE string.
 
