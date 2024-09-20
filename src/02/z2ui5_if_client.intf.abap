@@ -81,6 +81,12 @@ INTERFACE z2ui5_if_client
     RETURNING
       VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
 
+  METHODS get_event_args
+    IMPORTING
+      v             TYPE i DEFAULT 1
+    RETURNING
+      VALUE(result) TYPE string.
+
   METHODS get_app
     IMPORTING
       id            TYPE clike OPTIONAL

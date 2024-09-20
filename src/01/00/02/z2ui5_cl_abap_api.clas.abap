@@ -207,7 +207,7 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
     TYPES fixvalues TYPE STANDARD TABLE OF fixvalue WITH EMPTY KEY.
     DATA lt_values TYPE fixvalues.
 
-    DATA(lv_langu) = ``.
+    DATA(lv_langu) = ' '.
     lv_langu = langu.
 
     CALL METHOD elemdescr->('GET_DDIC_FIXED_VALUES')
