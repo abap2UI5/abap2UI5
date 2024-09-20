@@ -16,8 +16,6 @@ CLASS z2ui5_cl_core_http_get DEFINITION
         VALUE(result) TYPE string.
 
     METHODS get_js
-*      IMPORTING
-*        cs_config     TYPE z2ui5_if_types=>ty_s_http_request_get
       RETURNING
         VALUE(result) TYPE string.
 
@@ -593,8 +591,8 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `            }` && |\n| &&
               `            }` && |\n| &&
                `        },` && |\n| &&
-               `        setRootView(oRootView){` && |\n| &&
-               `            this._oRootView = oRootView;` && |\n| &&
+               `        setApp(oApp){` && |\n| &&
+               `            this._oApp = oApp;` && |\n| &&
                `        },` && |\n| &&
                `        async createView(xml, viewModel) {` && |\n| &&
                `            let oview_model = new JSONModel(viewModel);` && |\n| &&
@@ -611,7 +609,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `                sap.z2ui5.oParent.removeAllPages();` && |\n| &&
                `                sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n| &&
                `            } else {` && |\n| &&
-               `                this._oRootView.byId("viewContainer").addItem(sap.z2ui5.oView);` && |\n| &&
+               `                this._oApp.byId("viewContainer").addItem(sap.z2ui5.oView);` && |\n| &&
                `            }` && |\n| &&
                `        },` && |\n| &&
                `        async readHttp() {` && |\n| &&
@@ -681,7 +679,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                         `"sap.app": { "id": "z2ui5", "type": "application" }, ` &&
                         `"sap.ui": { "technology": "ui5", "deviceTypes": { "desktop": true, "tablet": true, "phone": true } }, ` &&
                         `"sap.ui5": { "flexEnabled": true, "contentDensities": { "compact": true, "cozy": true }, ` &&
-                          `"rootView": { "id": "rootView", "viewName": "z2ui5.view.RootView", "type": "XML", "async": true } } ` &&
+                          `"rootView": { "id": "App", "viewName": "z2ui5.view.App", "type": "XML", "async": true } } ` &&
                      `}',` && |\n| &&
              `      "z2ui5/Component.js": function(){` && |\n| &&
              `          sap.ui.define(["sap/ui/core/UIComponent"], function(UIComponent){` && |\n|  &&
@@ -712,7 +710,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
              `              });` && |\n|  &&
              `          });` && |\n| &&
              `      },` && |\n| &&
-             `      "z2ui5/view/RootView.view.xml": '<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="z2ui5.controller.RootController"><FlexBox id="viewContainer" fitContainer="true" renderType="Bare"/></mvc:View>',` && |\n| &&
+             `      "z2ui5/view/App.view.xml": '<mvc:View xmlns:mvc="sap.ui.core.mvc" xmlns="sap.m" controllerName="z2ui5.controller.RootController"><FlexBox id="viewContainer" fitContainer="true" renderType="Bare"/></mvc:View>',` && |\n| &&
              `      "z2ui5/controller/RootController.controller.js": function(){` && |\n| &&
              `          sap.ui.define(["sap/ui/core/mvc/Controller", "z2ui5/Controller", "sap/ui/core/BusyIndicator"], function(BaseController, Controller, BusyIndicator){` && |\n| &&
              `              return BaseController.extend("z2ui5.controller.RootController", {` && |\n| &&
@@ -726,7 +724,7 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
              `                      sap.z2ui5.pathname = sap.z2ui5.pathname ||  window.location.pathname;` && |\n| &&
              `                      sap.z2ui5.checkNestAfter = false;` && |\n| &&
              `                      sap.z2ui5.oBody = { };` && |\n| &&
-             `                      sap.z2ui5.oController.setRootView(this.getView());` && |\n| &&
+             `                      sap.z2ui5.oController.setApp(this.getView());` && |\n| &&
              `                      sap.z2ui5.oController.Roundtrip();` && |\n| &&
              `                      sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
              `                      sap.z2ui5.onAfterRendering = [];` && |\n| &&
