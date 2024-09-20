@@ -686,14 +686,24 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
              `              return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
              `                  metadata: { manifest: "json" },` && |\n|  &&
              `                  init: function(){` && |\n|  &&
-             `                      window.addEventListener("pagehide", this.__pagehide.bind(this));` && |\n|  &&
+                                    "only pagehide for ios devices, for all others use beforeunload
+             `                      if (/iPad|iPhone/.test(navigator.platform)){` && |\n|  &&
+             `                        window.addEventListener("pagehide", this.__pagehide.bind(this));` && |\n|  &&
+             `                      }` && |\n|  &&
+             `                      else{` && |\n|  &&
+             `                        window.addEventListener("beforeunload", this.__beforeunload.bind(this));` && |\n|  &&
+             `                      }` && |\n|  &&
              `                      UIComponent.prototype.init.apply(this, arguments);` && |\n|  &&
              `                  },` && |\n|  &&
+             `                  __beforeunload: function(){` && |\n|  &&
+             `                      window.removeEventListener("__beforeunload", this.__beforeunload.bind(this));` && |\n| &&
+             `                      this.destroy(); //manually call destroy as it is only fired in FLP` && |\n|  &&
+             `                  },` && |\n|  &&
              `                  __pagehide: function(){` && |\n|  &&
+             `                      window.removeEventListener("pagehide", this.__pagehide.bind(this));` && |\n| &&
              `                      this.destroy(); //manually call destroy as it is only fired in FLP` && |\n|  &&
              `                  },` && |\n|  &&
              `                  exit: function(){` && |\n|  &&
-             `                      window.removeEventListener("pagehide", this.__pagehide.bind(this));` && |\n| &&
              `                      if(sap.z2ui5.contextId){` && |\n| &&
              `                          fetch(sap.z2ui5.pathname, {` && |\n| &&
              `                              method: 'HEAD',` && |\n| &&
