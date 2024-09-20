@@ -141,6 +141,13 @@ CLASS z2ui5_cl_util DEFINITION
       RETURNING
         VALUE(result) TYPE ty_t_filter_multi.
 
+    CLASS-METHODS filter_get_sql_where
+      IMPORTING
+        val           TYPE  z2ui5_cl_util=>ty_t_filter_multi
+      RETURNING
+        VALUE(result) TYPE string.
+
+
     CLASS-METHODS filter_get_sql_by_sql_string
       IMPORTING
         val           TYPE clike
@@ -768,8 +775,8 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     CLEAR lr_filter->t_token_removed.
     CLEAR lr_filter->t_token_added.
 
-    data(lt_token) = result[ name = name ]-t_token.
-    data(lt_range) = z2ui5_cl_util=>filter_get_range_t_by_token_t( result[ name = name ]-t_token ).
+    DATA(lt_token) = result[ name = name ]-t_token.
+    DATA(lt_range) = z2ui5_cl_util=>filter_get_range_t_by_token_t( result[ name = name ]-t_token ).
     lr_filter->t_range = lt_range.
 
   ENDMETHOD.
@@ -1436,6 +1443,11 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
   METHOD rtti_get_t_attri_by_table_name.
 
+    IF table_name IS INITIAL.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = 'TABLE_NAME_INITIAL_ERROR'.
+    ENDIF.
     TRY.
         DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
       CATCH cx_root.
@@ -1493,5 +1505,18 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
 
 
   ENDMETHOD.
+
+  METHOD filter_get_sql_where.
+
+    LOOP AT val INTO DATA(ls_filter).
+
+      NEW lcl_range_to_sql(
+        iv_fieldname = CONV #( ls_filter-name )
+        ir_range     = ref #( ls_filter-t_range )
+      ).
+
+      ENDLOOP.
+
+    ENDMETHOD.
 
 ENDCLASS.

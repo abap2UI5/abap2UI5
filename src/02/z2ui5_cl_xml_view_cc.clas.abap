@@ -7,33 +7,13 @@ CLASS z2ui5_cl_xml_view_cc DEFINITION
 
     METHODS multiinput_ext
       IMPORTING
-        !multiinputid  TYPE clike OPTIONAL
-        !multiinputname  TYPE clike OPTIONAL
-        !change        TYPE clike OPTIONAL
-        !addedtokens   TYPE clike OPTIONAL
-        !removedtokens TYPE clike OPTIONAL
+        !multiinputid   TYPE clike OPTIONAL
+        !multiinputname TYPE clike OPTIONAL
+        !change         TYPE clike OPTIONAL
+        !addedtokens    TYPE clike OPTIONAL
+        !removedtokens  TYPE clike OPTIONAL
       RETURNING
-        VALUE(result)  TYPE REF TO z2ui5_cl_xml_view .
-
-    METHODS multiinput
-      IMPORTING
-        !showclearicon    TYPE clike OPTIONAL
-        !showvaluehelp    TYPE clike OPTIONAL
-        !suggestionitems  TYPE clike OPTIONAL
-        !tokenupdate      TYPE clike OPTIONAL
-        !width            TYPE clike OPTIONAL
-        !id               TYPE clike OPTIONAL
-        !value            TYPE clike OPTIONAL
-        !tokens           TYPE clike OPTIONAL
-        !submit           TYPE clike OPTIONAL
-        !valuehelprequest TYPE clike OPTIONAL
-        !enabled          TYPE clike OPTIONAL
-        !class            TYPE clike OPTIONAL
-        !change           TYPE clike OPTIONAL
-        !addedtokens      TYPE clike OPTIONAL
-        !removedtokens    TYPE clike OPTIONAL
-      RETURNING
-        VALUE(result)     TYPE REF TO z2ui5_cl_xml_view .
+        VALUE(result)   TYPE REF TO z2ui5_cl_xml_view .
 
     METHODS uitableext
       IMPORTING
@@ -450,29 +430,6 @@ CLASS z2ui5_cl_xml_view_cc IMPLEMENTATION.
               t_prop        = VALUE #( ( n = `items`  v = items )
               ) ).
 
-  ENDMETHOD.
-
-
-  METHOD multiinput.
-
-    result = mo_view.
-    mo_view->_generic( name   = `MultiInput`
-                       ns     = `z2ui5`
-                       t_prop = VALUE #( ( n = `tokens` v = tokens )
-                                         ( n = `showClearIcon` v = z2ui5_cl_util=>boolean_abap_2_json( showclearicon ) )
-                                         ( n = `showValueHelp` v = z2ui5_cl_util=>boolean_abap_2_json( showvaluehelp ) )
-                                         ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                         ( n = `suggestionItems` v = suggestionitems )
-                                         ( n = `tokenUpdate` v = tokenupdate )
-                                         ( n = `submit` v = submit )
-                                         ( n = `width` v = width )
-                                         ( n = `value` v = value )
-                                         ( n = `id` v = id )
-                                         ( n = `change` v = change )
-                                         ( n = `valueHelpRequest` v = valuehelprequest )
-                                         ( n = `addedTokens` v = addedtokens )
-                                         ( n = `removedTokens` v = removedtokens )
-                                         ( n = `class` v = class ) ) ).
   ENDMETHOD.
 
 

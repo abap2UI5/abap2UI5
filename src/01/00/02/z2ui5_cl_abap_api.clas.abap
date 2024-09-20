@@ -759,6 +759,12 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
           RETURN.
         ENDIF.
 
+        IF tabname IS INITIAL.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = `RTTI_BY_NAME_TAB_INITIAL`.
+        ENDIF.
+
         structdescr ?= cl_abap_structdescr=>describe_by_name( tabname ).
         <dfies> = structdescr->get_ddic_field_list( ).
 
