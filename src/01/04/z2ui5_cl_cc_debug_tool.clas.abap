@@ -264,7 +264,7 @@ CLASS z2ui5_cl_cc_debug_tool IMPLEMENTATION.
              `            }, ` && |\n| &&
              `        });` && |\n| &&
              `    });  ` &&
-             `  sap.ui.require(["z2ui5/DebuggingTools","z2ui5/Controller"], (DebuggingTools) => { z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
+             `  sap.ui.require(["z2ui5/DebuggingTools"], (DebuggingTools) => { z2ui5.DebuggingTools = new DebuggingTools(); ` && |\n| &&
              ` }); }`.
 
   ENDMETHOD.
