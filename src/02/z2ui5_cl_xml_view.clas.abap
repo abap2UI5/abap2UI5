@@ -1526,16 +1526,24 @@ CLASS z2ui5_cl_xml_view DEFINITION
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS step_input
-      IMPORTING !id           TYPE clike OPTIONAL
-                !value        TYPE clike OPTIONAL
-                !min          TYPE clike OPTIONAL
-                !max          TYPE clike OPTIONAL
-                !step         TYPE clike OPTIONAL
-                !width        TYPE clike OPTIONAL
-                valuestate    TYPE clike OPTIONAL
-                !enabled      TYPE clike OPTIONAL
-                !description  TYPE clike OPTIONAL
-      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+      IMPORTING !id                   TYPE clike OPTIONAL
+                !value                TYPE clike OPTIONAL
+                !min                  TYPE clike OPTIONAL
+                !max                  TYPE clike OPTIONAL
+                !step                 TYPE clike OPTIONAL
+                !width                TYPE clike OPTIONAL
+                valuestate            TYPE clike OPTIONAL
+                !enabled              TYPE clike OPTIONAL
+                !description          TYPE clike OPTIONAL
+                displayvalueprecision TYPE clike OPTIONAL
+                largerstep            TYPE clike OPTIONAL
+                stepmode              TYPE clike OPTIONAL
+                editable              TYPE clike OPTIONAL
+                fieldwidth            TYPE clike OPTIONAL
+                textalign             TYPE clike OPTIONAL
+                validationmode        TYPE clike OPTIONAL
+                !change               TYPE clike OPTIONAL
+      RETURNING VALUE(result)         TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS progress_indicator
       IMPORTING !class        TYPE clike OPTIONAL
@@ -8611,15 +8619,23 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
   METHOD step_input.
     result = me.
     _generic( name   = `StepInput`
-              t_prop = VALUE #( ( n = `id`   v = id )
-                                ( n = `max`  v = max )
-                                ( n = `min`  v = min )
-                                ( n = `step` v = step )
-                                ( n = `width` v = width )
-                                ( n = `value` v = value )
-                                ( n = `valueState` v = valuestate )
-                                ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
-                                ( n = `description` v = description ) ) ).
+              t_prop = VALUE #( ( n = `id`                    v = id )
+                                ( n = `max`                   v = max )
+                                ( n = `min`                   v = min )
+                                ( n = `step`                  v = step )
+                                ( n = `width`                 v = width )
+                                ( n = `value`                 v = value )
+                                ( n = `valueState`            v = valuestate )
+                                ( n = `enabled`               v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                ( n = `description`           v = description )
+                                ( n = `displayValuePrecision` v = displayvalueprecision )
+                                ( n = `largerStep`            v = largerstep )
+                                ( n = `stepMode`              v = stepmode )
+                                ( n = `editable`              v = z2ui5_cl_util=>boolean_abap_2_json( editable ) )
+                                ( n = `fieldWidth`            v = fieldwidth )
+                                ( n = `textalign`             v = textalign )
+                                ( n = `validationMode`        v = validationmode )
+                                ( n = `change`                v = change ) ) ).
   ENDMETHOD.
 
 
