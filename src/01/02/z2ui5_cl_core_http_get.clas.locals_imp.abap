@@ -630,25 +630,25 @@ CLASS lcl_ui5_app IMPLEMENTATION.
              `    "_version": "1.50.0",` &&
              `    "sap.app": {` &&
              `        "id": "z2ui5",` &&
-             `        "type": "application"` &&
-*             `        "i18n": "i18n/i18n.properties",` &&
-*             `        "applicationVersion": {` &&
-*             `            "version": "0.0.2"` &&
-*             `        },` &&
+             `        "type": "application",` &&
+             `        "i18n": "i18n/i18n.properties",` &&
+             `        "applicationVersion": {` &&
+             `            "version": "0.0.2"` &&
+             `        },` &&
 *             `        "title": "{{appTitle}}",` &&
 *             `        "description": "{{appDescription}}",` &&
 *             `        "resources": "resources.json",` &&
-*             `        "sourceTemplate": {` &&
-*             `            "id": "@sap/generator-fiori:basic",` &&
-*             `            "version": "1.10.4",` &&
-*             `            "toolsId": "45f51711-e1b8-4fc4-bc1b-9e341941c532"` &&
-*             `        },` &&
-*             `        "dataSources": {` &&
-*             `            "mainService": {` &&
-*             `                "uri": "/sap/bc/z2ui5/",` &&
-*             `                "type": "http"` &&
-*             `            }` &&
-*             `        }` &&
+             `        "sourceTemplate": {` &&
+             `            "id": "@sap/generator-fiori:basic",` &&
+             `            "version": "1.10.4",` &&
+             `            "toolsId": "45f51711-e1b8-4fc4-bc1b-9e341941c532"` &&
+             `        },` &&
+             `        "dataSources": {` &&
+             `            "mainService": {` &&
+             `                "uri": "/sap/bc/z2ui5",` &&
+             `                "type": "http"` &&
+             `            }` &&
+             `        }` &&
              `    },` &&
              `    "sap.ui": {` &&
              `        "technology": "UI5",` &&
@@ -691,14 +691,14 @@ CLASS lcl_ui5_app IMPLEMENTATION.
              `                "factoryName": "sap.ushell.ui5service.ShellUIService"` &&
              `            }` &&
              `        },` &&
-*             `        "models": {` &&
-*             `            "i18n": {` &&
-*             `                "type": "sap.ui.model.resource.ResourceModel",` &&
-*             `                "settings": {` &&
-*             `                    "bundleName": "z2ui5.i18n.i18n"` &&
-*             `                }` &&
-*             `            }` &&
-*             `        },` &&
+             `        "models": {` &&
+             `            "i18n": {` &&
+             `                "type": "sap.ui.model.resource.ResourceModel",` &&
+             `                "settings": {` &&
+             `                    "bundleName": "z2ui5.i18n.i18n"` &&
+             `                }` &&
+             `            }` &&
+             `        },` &&
              `        "resources": {` &&
              `            "css": [` &&
              `                {` &&
