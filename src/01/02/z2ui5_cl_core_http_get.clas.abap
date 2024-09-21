@@ -35,12 +35,10 @@ CLASS z2ui5_cl_core_http_get DEFINITION
 
     METHODS main_get_index_html
       IMPORTING
-                cs_config     TYPE z2ui5_if_types=>ty_s_http_request_get
-      RETURNING VALUE(result) TYPE string.
-
-    METHODS main_get_preload_script
+        cs_config     TYPE z2ui5_if_types=>ty_s_http_request_get
       RETURNING
         VALUE(result) TYPE string.
+
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -78,16 +76,17 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
             (  n = `BODY_CLASS`              v = `sapUiBody sapUiSizeCompact` )
             )
         t_config = VALUE #(
+            (  n = `id`                        v = `sap-ui-bootstrap` )
             (  n = `src`                       v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
 *         (  n = `src`                       v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
             (  n = `data-sap-ui-theme`         v = `sap_horizon` )
-            (  n = `data-sap-ui-async`         v = `true` )
-            (  n = `id`                        v = `sap-ui-bootstrap` )
-            (  n = `data-sap-ui-bindingSyntax` v = `complex` )
-            (   n = `data-sap-ui-frameOptions`  v = `trusted` )
-            (  n = `data-sap-ui-compatVersion` v = `edge` )
             (  n = `data-sap-ui-resourceroots` v = `{"z2ui5": "./"}` )
-            (  n = `data-sap-ui-oninit` v = `onInitComponent` ) )
+            (  n = `data-sap-ui-oninit`        v = `onInitComponent` )
+            (  n = `data-sap-ui-compatVersion` v = `edge` )
+            (  n = `data-sap-ui-async`         v = `true` )
+            (   n = `data-sap-ui-frameOptions`  v = `trusted` )
+            (  n = `data-sap-ui-bindingSyntax` v = `complex` )
+            )
         content_security_policy = lv_csp ).
 
   ENDMETHOD.
@@ -154,9 +153,26 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                `    <meta charset="UTF-8">` && |\n| &&
                `    <meta name="viewport" content="width=device-width, initial-scale=1.0">` && |\n| &&
                `    <meta http-equiv="X-UA-Compatible" content="IE=edge">` && |\n| &&
-                | <title>{ cs_config-t_param[ n = `TITLE` ]-v }</title> \n| &&
-                | <style>{ cs_config-t_param[ n = `STYLE` ]-v }</style> \n| &&
-               main_get_preload_script( ) && |\n| &&
+                | <title> { cs_config-t_param[ n = 'TITLE' ]-v }</title> \n| &&
+                | <style>        html, body, body > div, #container, #container-uiarea \{\n| &
+                |            height: 100%;\n| &
+                |        \}</style> \n| &&
+                `<script>` && |\n| &&
+             `  function onInitComponent(){` && |\n| &&
+             `    sap.ui.require.preload({` && |\n| &&
+             `      "z2ui5/manifest.json": '` && NEW lcl_ui5_app( )->manifest_json( ) && ` ',` && |\n| &&
+             `      "z2ui5/Component.js": function(){` && NEW lcl_ui5_app( )->component_js( ) && `     },` && |\n| &&
+             `      "z2ui5/css/style.css": function(){` && NEW lcl_ui5_app( )->css_style_css( ) && `     },` && |\n| &&
+             `      "z2ui5/model/models.js": function(){` && NEW lcl_ui5_app( )->model_models_js( ) && `     },` && |\n| &&
+             `      "z2ui5/view/App.view.xml": '` && NEW lcl_ui5_app( )->view_app_xml( )  && `' ,` && |\n| &&
+             `      "z2ui5/i18n/i18n.properties": '` && NEW lcl_ui5_app( )->i18n_i18n_properties( )  && `' ,` && |\n| &&
+             `      "z2ui5/controller/App.controller.js": function(){` && NEW lcl_ui5_app( )->controller_app_js( ) &&  `}` && |\n| &&
+             `    });` && |\n| &&
+             `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
+             `      ComponentSupport.run();` && |\n| &&
+             `    });` && |\n| &&
+             `  }` && |\n| &&
+             `</script>` && |\n| &&
                `    <script id="sap-ui-bootstrap"`.
 
     LOOP AT cs_config-t_config REFERENCE INTO DATA(lr_config).
@@ -166,18 +182,17 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
     result = result &&
         ` ></script></head>` && |\n| &&
         `<body class="sapUiBody sapUiSizeCompact" id="content">` && |\n| &&
-        `    <div data-sap-ui-component data-name="z2ui5" id="content_container" data-id="container" data-handle-validation="true" data-settings=''{"id" : "z2ui5"}''></div>` && |\n| &&
+        `    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='{"id" : "z2ui5"}' data-handle-validation="true"></div>` && |\n| &&
         `<abc/>` && |\n|.
 
     DATA(lv_add_js) = get_js_cc_startup( ) && cs_config-custom_js.
     result = result  &&
      | <script> | &&
     |  sap.z2ui5 = sap.z2ui5 \|\| \{\} ; if ( typeof z2ui5 == "undefined" ) \{ var z2ui5 = \{\}; \}; \n| &&
-    |   sap.z2ui5.pathname = window.location.pathname; | &&
+    |  sap.z2ui5.pathname = window.location.pathname; | &&
+    |  sap.z2ui5.JSON_MODEL_LIMIT = { cs_config-t_param[ n = `SET_SIZE_LIMIT` ]-v };| &&
      |         {  get_js(  ) }     \n| &&
-     |         { lv_add_js  }     \n| &&
-     |           sap.z2ui5.JSON_MODEL_LIMIT = { cs_config-t_param[ n = `SET_SIZE_LIMIT` ]-v };| &&
-*     |           sap.z2ui5.NAME_TWO_WAY_MODEL = "{ z2ui5_if_core_types=>cs_ui5-two_way_model }" ;| &&
+     |         { lv_add_js   }     \n| &&
      |         { z2ui5_cl_cc_debug_tool=>get_js( )  }     \n| &&
      |  </script><abc/></body></html> |.
 
@@ -672,21 +687,4 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
 
   ENDMETHOD.
 
-  METHOD main_get_preload_script.
-
-    result = `<script>` && |\n| &&
-             `  function onInitComponent(){` && |\n| &&
-             `    sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/manifest.json": '` && new lcl_ui5_app( )->manifest_json( ) && ` ',` && |\n| &&
-             `      "z2ui5/Component.js": function(){` && new lcl_ui5_app( )->component_js( ) && `     },` && |\n| &&
-             `      "z2ui5/view/App.view.xml": '` && new lcl_ui5_app( )->view_app_xml( )  && `' ,` && |\n| &&
-             `      "z2ui5/controller/App.controller.js": function(){` && new lcl_ui5_app( )->controller_app_js( ) &&  `}` && |\n| &&
-             `    });` && |\n| &&
-             `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
-             `      ComponentSupport.run();` && |\n| &&
-             `    });` && |\n| &&
-             `  }` && |\n| &&
-             `</script>`.
-
-  ENDMETHOD.
 ENDCLASS.
