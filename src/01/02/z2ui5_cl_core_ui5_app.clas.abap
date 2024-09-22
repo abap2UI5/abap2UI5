@@ -1,4 +1,7 @@
-CLASS lcl_ui5_app DEFINITION.
+CLASS z2ui5_cl_core_ui5_app DEFINITION
+  PUBLIC
+  FINAL
+  CREATE PUBLIC .
 
   PUBLIC SECTION.
 
@@ -40,7 +43,7 @@ CLASS lcl_ui5_app DEFINITION.
 
 ENDCLASS.
 
-CLASS lcl_ui5_app IMPLEMENTATION.
+CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
 
   METHOD component_js.
 

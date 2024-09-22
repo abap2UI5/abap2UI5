@@ -145,15 +145,15 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
                 `<script>` && |\n| &&
              `  function onInitComponent(){` && |\n| &&
              `    sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/manifest.json": '` && NEW lcl_ui5_app( )->manifest_json( ) && ` ',` && |\n| &&
-             `      "z2ui5/Component.js": function(){` && NEW lcl_ui5_app( )->component_js( ) && lv_add_js && | sap.z2ui5.JSON_MODEL_LIMIT = { cs_config-t_param[ n = 'SET_SIZE_LIMIT' ]-v };| && ` },` && |\n| &&
-             `      "z2ui5/css/style.css": function(){` && NEW lcl_ui5_app( )->css_style_css( ) && `},` && |\n| &&
-             `      "z2ui5/model/models.js": function(){` && NEW lcl_ui5_app( )->model_models_js( ) && `},` && |\n| &&
-             `      "z2ui5/i18n/i18n.properties": '` && NEW lcl_ui5_app( )->i18n_i18n_properties( ) && `' ,` && |\n| &&
-             `      "z2ui5/view/App.view.xml": '` && NEW lcl_ui5_app( )->view_app_xml( )  && `' ,` && |\n| &&
-             `      "z2ui5/controller/App.controller.js": function(){` && NEW lcl_ui5_app( )->controller_app_js( ) && `},` && |\n| &&
-             `      "z2ui5/view/View1.view.xml": '` && NEW lcl_ui5_app( )->view_view1_xml( )  && `' ,` && |\n| &&
-             `      "z2ui5/controller/View1.controller.js": function(){` && NEW lcl_ui5_app( )->controller_view1_js( ) && `},` && |\n| &&
+             `      "z2ui5/manifest.json": '` && NEW z2ui5_cl_core_ui5_app( )->manifest_json( ) && ` ',` && |\n| &&
+             `      "z2ui5/Component.js": function(){` && NEW z2ui5_cl_core_ui5_app( )->component_js( ) && lv_add_js && | sap.z2ui5.JSON_MODEL_LIMIT = { cs_config-t_param[ n = 'SET_SIZE_LIMIT' ]-v };| && ` },` && |\n| &&
+             `      "z2ui5/css/style.css": function(){` && NEW z2ui5_cl_core_ui5_app( )->css_style_css( ) && `},` && |\n| &&
+             `      "z2ui5/model/models.js": function(){` && NEW z2ui5_cl_core_ui5_app( )->model_models_js( ) && `},` && |\n| &&
+             `      "z2ui5/i18n/i18n.properties": '` && NEW z2ui5_cl_core_ui5_app( )->i18n_i18n_properties( ) && `' ,` && |\n| &&
+             `      "z2ui5/view/App.view.xml": '` && NEW z2ui5_cl_core_ui5_app( )->view_app_xml( )  && `' ,` && |\n| &&
+             `      "z2ui5/controller/App.controller.js": function(){` && NEW z2ui5_cl_core_ui5_app( )->controller_app_js( ) && `},` && |\n| &&
+             `      "z2ui5/view/View1.view.xml": '` && NEW z2ui5_cl_core_ui5_app( )->view_view1_xml( )  && `' ,` && |\n| &&
+             `      "z2ui5/controller/View1.controller.js": function(){` && NEW z2ui5_cl_core_ui5_app( )->controller_view1_js( ) && `},` && |\n| &&
              `    });` && |\n| &&
              `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
              `      ComponentSupport.run();` && |\n| &&
