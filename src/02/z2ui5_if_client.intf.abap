@@ -22,6 +22,8 @@ INTERFACE z2ui5_if_client
       main    TYPE string VALUE `MAIN`,
       nested  TYPE string VALUE `NEST`,
       nested2 TYPE string VALUE `NEST2`,
+      popup   TYPE string VALUE `POPUP`,
+      popover TYPE string VALUE `POPOVER`,
     END OF cs_view.
 
   METHODS view_destroy.

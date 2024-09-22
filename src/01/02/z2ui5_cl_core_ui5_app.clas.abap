@@ -328,6 +328,10 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                    case 'SET_SIZE_LIMIT':` && |\n|  &&
              `                       switch (args[2]) { ` && |\n|  &&
              `                        case 'MAIN': sap.z2ui5.oView.getModel().setSizeLimit( parseInt( args[1] ) ); sap.z2ui5.oView.getModel().refresh(true); break; ` && |\n|  &&
+             `                        case 'NEST': sap.z2ui5.oViewNest.getModel().setSizeLimit( parseInt( args[1] ) ); sap.z2ui5.oViewNest.getModel().refresh(true); break; ` && |\n|  &&
+             `                        case 'NEST2': sap.z2ui5.oViewNest2.getModel().setSizeLimit( parseInt( args[1] ) ); sap.z2ui5.oViewNest2.getModel().refresh(true); break; ` && |\n|  &&
+             `                        case 'POPUP': sap.z2ui5.oPopup.getModel().setSizeLimit( parseInt( args[1] ) ); sap.z2ui5.oPopup.getModel().refresh(true); break; ` && |\n|  &&
+             `                        case 'POPOVER': sap.z2ui5.oPopover.getModel().setSizeLimit( parseInt( args[1] ) ); sap.z2ui5.oPopover.getModel().refresh(true); break; ` && |\n|  &&
              `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
