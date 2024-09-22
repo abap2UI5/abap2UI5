@@ -131,7 +131,6 @@ CLASS lcl_ui5_app IMPLEMENTATION.
   METHOD controller_view1_js.
 
     result = `` && |\n|  &&
-
 `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel", "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "sap/m/BusyDialog", "sap/ui/VersionInfo"],` && |\n|  &&
              `    function (Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBusyDialog, VersionInfo) {` && |\n|  &&
              `        "use strict";` && |\n|  &&
