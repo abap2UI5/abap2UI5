@@ -107,7 +107,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
 
   METHOD controller_app_js.
 
-    result =  `          sap.ui.define(["sap/ui/core/mvc/Controller",  "z2ui5/controller/View1.controller", "sap/ui/core/BusyIndicator"], function(BaseController, Controller, BusyIndicator){` && |\n| &&
+    result =  `          sap.ui.define(["sap/ui/core/mvc/Controller",  "z2ui5/controller/View1.controller", "sap/ui/core/BusyIndicator" , "z2ui5/cc/DebugTool" ], function(BaseController, Controller, BusyIndicator, DebugTool){` && |\n| &&
                  `              return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
                  `                  onInit: function(){` && |\n| &&
                  `                      BusyIndicator.show();` && |\n| &&
@@ -120,11 +120,12 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
                  `                      sap.z2ui5.checkNestAfter = false;` && |\n| &&
                  `                      sap.z2ui5.oBody = { };` && |\n| &&
                  `                      sap.z2ui5.oController.setApp(this.getView());` && |\n| &&
-                 `                      sap.z2ui5.oController.Roundtrip();` && |\n| &&
                  `                      sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
                  `                      sap.z2ui5.onAfterRendering = [];` && |\n| &&
                  `                      sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
                  `                      sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
+                 `                      sap.z2ui5.DebugTool = new DebugTool()` && |\n| &&
+                 `                      sap.z2ui5.oController.Roundtrip();` && |\n| &&
                  `                  }` && |\n| &&
                  `              });` && |\n| &&
                  `          });`.
@@ -200,7 +201,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                    controller: sap.z2ui5.oControllerPopup,` && |\n|  &&
              `                    id: "popupId"` && |\n|  &&
              `                });` && |\n|  &&
-             `                oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+             `            //   oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
              `                oFragment.setModel(oview_model);` && |\n|  &&
              `                sap.z2ui5[viewProp] = oFragment;` && |\n|  &&
              `                sap.z2ui5[viewProp].Fragment = Fragment;` && |\n|  &&
@@ -215,7 +216,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                        id: "popoverId"` && |\n|  &&
              `                    });` && |\n|  &&
              `                    let oview_model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                    oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+             `           //         oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
              `                    oFragment.setModel(oview_model);` && |\n|  &&
              `                    sap.z2ui5[viewProp] = oFragment;` && |\n|  &&
              `                    sap.z2ui5[viewProp].Fragment = Fragment;` && |\n|  &&
@@ -246,7 +247,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                    controller: sap.z2ui5.oControllerNest,` && |\n|  &&
              `                    preprocessors: { xml: { models: { template: oview_model } } }` && |\n|  &&
              `                });` && |\n|  &&
-             `                oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+             `       //         oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
              `                oView.setModel(oview_model);` && |\n|  &&
              `                let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n|  &&
              `                if (oParent) {` && |\n|  &&
@@ -264,7 +265,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                    controller: sap.z2ui5.oControllerNest2,` && |\n|  &&
              `                    preprocessors: { xml: { models: { template: oview_model } } }` && |\n|  &&
              `                });` && |\n|  &&
-             `                oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+             `      //          oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
              `                oView.setModel(oview_model);` && |\n|  &&
              `                let oParent = sap.z2ui5.oView.byId(sap.z2ui5.oResponse.PARAMS[viewNestId].ID);` && |\n|  &&
              `                if (oParent) {` && |\n|  &&
@@ -325,7 +326,9 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                let oCrossAppNavigator;` && |\n|  &&
              `                switch (args[0]) {` && |\n|  &&
              `                    case 'SET_SIZE_LIMIT':` && |\n|  &&
-             `                        sap.z2ui5.JSON_MODEL_LIMIT = args[1];` && |\n|  &&
+             `                       switch (args[2]) { ` && |\n|  &&
+             `                        case 'MAIN': sap.z2ui5.oView.getModel().setSizeLimit( parseInt( args[1] ) ); sap.z2ui5.oView.getModel().refresh(true); break; ` && |\n|  &&
+             `                        }` && |\n|  &&
              `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
@@ -455,7 +458,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                if (sap.z2ui5.oResponse.PARAMS == undefined) { return; }` && |\n|  &&
              `                if (sap.z2ui5.oResponse.PARAMS[paramKey]?.CHECK_UPDATE_MODEL) {` && |\n|  &&
              `                    let model = new JSONModel(sap.z2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                    model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+             `      //              model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
              `                    if (oView) { oView.setModel(model); }` && |\n|  &&
              `                }` && |\n|  &&
              `            },` && |\n|  &&
@@ -553,7 +556,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `            },` && |\n|  &&
              `            async createView(xml, viewModel) {` && |\n|  &&
              `                let oview_model = new JSONModel(viewModel);` && |\n|  &&
-             `                oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
+             `             //   oview_model.setSizeLimit(sap.z2ui5.JSON_MODEL_LIMIT);` && |\n|  &&
              `                sap.z2ui5.oView = await XMLView.create({` && |\n|  &&
              `                    definition: xml,` && |\n|  &&
              `                    models: oview_model,` && |\n|  &&
@@ -562,13 +565,13 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
              `                    preprocessors: { xml: { models: { template: oview_model } } }` && |\n|  &&
              `                });` && |\n|  &&
              `                sap.z2ui5.oView.setModel(sap.z2ui5.oDeviceModel, "device");` && |\n|  &&
-             `                if (sap.z2ui5.oParent) {` && |\n|  &&
-             `                    sap.z2ui5.oParent.removeAllPages();` && |\n|  &&
-             `                    sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n|  &&
-             `                } else {` && |\n|  &&
+             `        //        if (sap.z2ui5.oParent) {` && |\n|  &&
+             `        //            sap.z2ui5.oParent.removeAllPages();` && |\n|  &&
+             `        //            sap.z2ui5.oParent.insertPage(sap.z2ui5.oView);` && |\n|  &&
+             `        //        } else {` && |\n|  &&
              `                    this._oApp.byId("viewContainer").insertPage(sap.z2ui5.oView);` && |\n|  &&
              `                    //  this._oApp.byId("viewContainer").addItem(sap.z2ui5.oView);` && |\n|  &&
-             `                }` && |\n|  &&
+             `        //        }` && |\n|  &&
              `            },` && |\n|  &&
              `            async readHttp() {` && |\n|  &&
              |\n|  &&
