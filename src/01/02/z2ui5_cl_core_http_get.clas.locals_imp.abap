@@ -741,7 +741,7 @@ CLASS lcl_ui5_app IMPLEMENTATION.
              `            "id": "rootView"` &&
              `        }` &&
              `    }` &&
-             `}` .
+             `}`.
 
   ENDMETHOD.
 
