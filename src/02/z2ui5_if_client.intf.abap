@@ -28,7 +28,7 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val      TYPE clike.
+      val TYPE clike.
 
   METHODS view_model_update.
 
@@ -58,7 +58,7 @@ INTERFACE z2ui5_if_client
 
   METHODS popup_display
     IMPORTING
-      val      TYPE clike.
+      val TYPE clike.
 
   METHODS popup_model_update.
 
@@ -68,8 +68,8 @@ INTERFACE z2ui5_if_client
 
   METHODS popover_display
     IMPORTING
-      xml      TYPE clike
-      by_id    TYPE clike.
+      xml   TYPE clike
+      by_id TYPE clike.
 
   METHODS popover_destroy.
 
