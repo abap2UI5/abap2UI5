@@ -95,7 +95,7 @@ CLASS z2ui5_cl_core_app IMPLEMENTATION.
 
             result = z2ui5_cl_util=>xml_stringify( me ).
 
-          CATCH cx_root into DATA(cx).
+          CATCH cx_root INTO DATA(cx).
 
             RAISE EXCEPTION TYPE z2ui5_cx_util_error
               EXPORTING
