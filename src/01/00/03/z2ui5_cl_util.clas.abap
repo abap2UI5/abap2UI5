@@ -1511,12 +1511,12 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
     LOOP AT val INTO DATA(ls_filter).
 
       NEW lcl_range_to_sql(
-        iv_fieldname = CONV #( ls_filter-name )
-        ir_range     = ref #( ls_filter-t_range )
+        iv_fieldname = ls_filter-name
+        ir_range     = REF #( ls_filter-t_range )
       ).
 
-      ENDLOOP.
+    ENDLOOP.
 
-    ENDMETHOD.
+  ENDMETHOD.
 
 ENDCLASS.

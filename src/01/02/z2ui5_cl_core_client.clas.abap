@@ -172,7 +172,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_view_nest2-id = id.
     mo_action->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
     mo_action->ms_next-s_set-s_view_nest2-method_insert = method_insert.
-    mo_action->ms_next-s_set-s_view_nest2-s_config = s_config.
 
   ENDMETHOD.
 
@@ -197,7 +196,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_view_nest-id = id.
     mo_action->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
     mo_action->ms_next-s_set-s_view_nest-method_insert = method_insert.
-    mo_action->ms_next-s_set-s_view_nest-s_config = s_config.
 
   ENDMETHOD.
 
@@ -221,7 +219,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_popover-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_popover-xml = xml.
     mo_action->ms_next-s_set-s_popover-open_by_id = by_id.
-    mo_action->ms_next-s_set-s_popover-s_config = s_config.
 
   ENDMETHOD.
 
@@ -244,7 +241,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     mo_action->ms_next-s_set-s_popup-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_popup-xml = val.
-    mo_action->ms_next-s_set-s_popup-s_config = s_config.
 
   ENDMETHOD.
 
@@ -266,7 +262,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_display.
 
     mo_action->ms_next-s_set-s_view-xml = val.
-    mo_action->ms_next-s_set-s_view-s_config = s_config.
 
   ENDMETHOD.
 

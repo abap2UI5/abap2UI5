@@ -321,6 +321,9 @@ CLASS lcl_ui5_app IMPLEMENTATION.
              `                )` && |\n|  &&
              `                let oCrossAppNavigator;` && |\n|  &&
              `                switch (args[0]) {` && |\n|  &&
+             `                    case 'SET_SIZE_LIMIT':` && |\n|  &&
+             `                        sap.z2ui5.JSON_MODEL_LIMIT = args[1];` && |\n|  &&
+             `                        break;` && |\n|  &&
              `                    case 'DOWNLOAD_B64_FILE':` && |\n|  &&
              `                        var a = document.createElement("a");` && |\n|  &&
              `                        a.href = args[1];` && |\n|  &&
@@ -671,14 +674,10 @@ CLASS lcl_ui5_app IMPLEMENTATION.
              `        "dependencies": {` &&
              `            "minUI5Version": "1.116.0",` &&
              `            "libs": {` &&
-*             `                "sap.m": {},` &&
-*             `                "sap.ui.core": {},` &&
-*             `                "sap.f": {},` &&
-*             `                "sap.suite.ui.generic.template": {},` &&
-*             `                "sap.ui.comp": {},` &&
-*             `                "sap.ui.generic.app": {},` &&
-*             `                "sap.ui.table": {},` &&
-*             `                "sap.ushell": {}` &&
+             `                "sap.m": {},` &&
+             `                "sap.ui.core": {},` &&
+             `                "sap.f": {},` &&
+             `                "sap.ui.table": {}` &&
              `            }` &&
              `        },` &&
              `        "contentDensities": {` &&

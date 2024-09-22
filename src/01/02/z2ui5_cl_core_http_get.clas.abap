@@ -63,7 +63,9 @@ CLASS z2ui5_cl_core_http_get IMPLEMENTATION.
             (  n = `SET_SIZE_LIMIT`    v =  `100` )
             )
         t_config = VALUE #(
+*            (  n = `src`               v = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js` )
             (  n = `src`               v = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js` )
+*            (  n = `src`               v = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js` )
             (  n = `data-sap-ui-theme` v = `sap_horizon` )
             )
         content_security_policy = lv_csp ).
