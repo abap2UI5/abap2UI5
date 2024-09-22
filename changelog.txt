@@ -8,6 +8,18 @@ Legend
 + : added
 - : removed
 
+
+2024-09-22 v1.134.0
+-------------------
+
++ Tile Controls
++ Color Control
++ Multiselect Feature for Popup to Select
++ Data Loss Feature
+* Separated Custom Controls & Layouts from abap2UI5 Core
+* Multiple Bugfixes and new Properties added
+
+
 2024-08-24 v1.133.0
 -------------------
 

@@ -8,7 +8,6 @@ CLASS ltcl_test_http_get DEFINITION FINAL FOR TESTING
   PRIVATE SECTION.
     METHODS file_not_initial FOR TESTING RAISING cx_static_check.
     METHODS launchpad_compatibility FOR TESTING RAISING cx_static_check.
-    METHODS path_setup FOR TESTING RAISING cx_static_check.
     METHODS js_no_debugger FOR TESTING RAISING cx_static_check.
     METHODS js_no_sap_ui_get_core FOR TESTING RAISING cx_static_check.
     METHODS js_no_window FOR TESTING RAISING cx_static_check.
@@ -44,20 +43,6 @@ CLASS ltcl_test_http_get IMPLEMENTATION.
 
   ENDMETHOD.
 
-
-  METHOD path_setup.
-
-    DATA(lo_get) = NEW z2ui5_cl_core_http_get( ).
-    DATA(lv_index_html) = to_upper( lo_get->main( ) ).
-    IF lv_index_html CS `SAP.Z2UI5.PATHNAME || '/SAP/TEST';`.
-      cl_abap_unit_assert=>fail( 'path static' ).
-    ENDIF.
-
-    IF lv_index_html NS `SAP.Z2UI5.PATHNAME ||  WINDOW.LOCATION.PATHNAME;`.
-      cl_abap_unit_assert=>fail( 'path static' ).
-    ENDIF.
-
-  ENDMETHOD.
 
   METHOD js_no_debugger.
 

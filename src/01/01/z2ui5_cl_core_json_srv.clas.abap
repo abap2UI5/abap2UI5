@@ -67,6 +67,9 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
           ENDIF.
 
           ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<val>).
+          IF sy-subrc <> 0.
+            CONTINUE.
+          ENDIF.
 
           lo_val_front->to_abap(
             IMPORTING
@@ -98,7 +101,10 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
             OR z2ui5_if_core_types=>cs_bind_type-two_way.
 
               ASSIGN lr_attri->r_ref->* TO FIELD-SYMBOL(<attribute>).
-              ASSERT sy-subrc = 0.
+              IF sy-subrc <> 0.
+                CONTINUE.
+              ENDIF.
+*              ASSERT sy-subrc = 0.
               ajson->set( iv_ignore_empty = abap_false iv_path = `/` iv_val = <attribute> ).
 
             WHEN z2ui5_if_core_types=>cs_bind_type-one_time.

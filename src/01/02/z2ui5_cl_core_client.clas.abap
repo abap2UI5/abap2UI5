@@ -64,6 +64,11 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   ENDMETHOD.
 
+  METHOD z2ui5_if_client~get_event_args.
+
+    result = mo_action->ms_actual-t_event_arg[ v ].
+
+  ENDMETHOD.
 
   METHOD z2ui5_if_client~get_app.
 
@@ -167,7 +172,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_view_nest2-id = id.
     mo_action->ms_next-s_set-s_view_nest2-method_destroy = method_destroy.
     mo_action->ms_next-s_set-s_view_nest2-method_insert = method_insert.
-    mo_action->ms_next-s_set-s_view_nest2-s_config = s_config.
 
   ENDMETHOD.
 
@@ -192,7 +196,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_view_nest-id = id.
     mo_action->ms_next-s_set-s_view_nest-method_destroy = method_destroy.
     mo_action->ms_next-s_set-s_view_nest-method_insert = method_insert.
-    mo_action->ms_next-s_set-s_view_nest-s_config = s_config.
 
   ENDMETHOD.
 
@@ -216,7 +219,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_popover-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_popover-xml = xml.
     mo_action->ms_next-s_set-s_popover-open_by_id = by_id.
-    mo_action->ms_next-s_set-s_popover-s_config = s_config.
 
   ENDMETHOD.
 
@@ -239,7 +241,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
     mo_action->ms_next-s_set-s_popup-check_destroy = abap_false.
     mo_action->ms_next-s_set-s_popup-xml = val.
-    mo_action->ms_next-s_set-s_popup-s_config = s_config.
 
   ENDMETHOD.
 
@@ -261,7 +262,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
   METHOD z2ui5_if_client~view_display.
 
     mo_action->ms_next-s_set-s_view-xml = val.
-    mo_action->ms_next-s_set-s_view-s_config = s_config.
 
   ENDMETHOD.
 
@@ -343,6 +343,12 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
 
   METHOD z2ui5_if_client~set_session_stateful.
 
+    DATA(lv_check_sticky) =  CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky.
+    IF lv_check_sticky = abap_true AND stateful = abap_true.
+      RAISE EXCEPTION TYPE z2ui5_cx_util_error
+        EXPORTING
+          val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
+    ENDIF.
     IF stateful = abap_true.
       mo_action->ms_next-s_set-handler_attrs-stateful-active = 1.
       CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_true.

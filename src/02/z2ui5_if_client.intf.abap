@@ -14,6 +14,7 @@ INTERFACE z2ui5_if_client
       cross_app_nav_to_prev_app TYPE string VALUE `CROSS_APP_NAV_TO_PREV_APP`,
       popup_nav_container_to    TYPE string VALUE `POPUP_NAV_CONTAINER_TO`,
       download_b64_file         TYPE string VALUE `DOWNLOAD_B64_FILE`,
+      set_size_limit            TYPE string VALUE `SET_SIZE_LIMIT`,
     END OF cs_event.
 
   CONSTANTS:
@@ -27,8 +28,7 @@ INTERFACE z2ui5_if_client
 
   METHODS view_display
     IMPORTING
-      val      TYPE clike
-      s_config TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
+      val TYPE clike.
 
   METHODS view_model_update.
 
@@ -41,8 +41,7 @@ INTERFACE z2ui5_if_client
       val            TYPE clike
       id             TYPE clike
       method_insert  TYPE clike
-      method_destroy TYPE clike OPTIONAL
-      s_config       TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
+      method_destroy TYPE clike OPTIONAL.
 
   METHODS nest_view_destroy.
   METHODS nest_view_model_update.
@@ -52,16 +51,14 @@ INTERFACE z2ui5_if_client
       val            TYPE clike
       id             TYPE clike
       method_insert  TYPE clike
-      method_destroy TYPE clike OPTIONAL
-      s_config       TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
+      method_destroy TYPE clike OPTIONAL.
 
   METHODS nest2_view_destroy.
   METHODS nest2_view_model_update.
 
   METHODS popup_display
     IMPORTING
-      val      TYPE clike
-      s_config TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
+      val TYPE clike.
 
   METHODS popup_model_update.
 
@@ -71,15 +68,20 @@ INTERFACE z2ui5_if_client
 
   METHODS popover_display
     IMPORTING
-      xml      TYPE clike
-      by_id    TYPE clike
-      s_config TYPE z2ui5_if_types=>ty_s_view_config OPTIONAL.
+      xml   TYPE clike
+      by_id TYPE clike.
 
   METHODS popover_destroy.
 
   METHODS get
     RETURNING
       VALUE(result) TYPE z2ui5_if_types=>ty_s_get.
+
+  METHODS get_event_args
+    IMPORTING
+      v             TYPE i DEFAULT 1
+    RETURNING
+      VALUE(result) TYPE string.
 
   METHODS get_app
     IMPORTING

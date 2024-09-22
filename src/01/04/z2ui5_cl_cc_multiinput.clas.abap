@@ -28,6 +28,7 @@ CLASS z2ui5_cl_cc_multiinput IMPLEMENTATION.
          `      metadata: {` && |\n| &&
          `          properties: {` && |\n| &&
          `              MultiInputId: { type: "String" },` && |\n| &&
+         `              MultiInputName: { type: "String" },` && |\n| &&
          `              addedTokens: { type: "Array" },` && |\n| &&
          `              checkInit: { type: "Boolean", defaultValue : false },` && |\n| &&
          `              removedTokens: { type: "Array" }` && |\n| &&
@@ -68,7 +69,11 @@ CLASS z2ui5_cl_cc_multiinput IMPLEMENTATION.
          `  },` && |\n| &&
          `      setControl(){  ` && |\n| &&
          `         let table = sap.z2ui5.oView.byId( this.getProperty("MultiInputId") );` && |\n| &&
-         `         if (!table) { table = sap.ui.getCore().byId( this.getProperty("MultiInputId") ); }   ` && |\n| &&
+        ` if (!table) {` && |\n|  &&
+        `  try{  table = sap.ui.getCore( ).byId( ` && |\n|  &&
+        `        document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', '')` && |\n|  &&
+        `    );` && |\n|  &&
+        `}catch (e){ return; } }   ` && |\n| &&
          `         if ( !table ){ return; }   ` && |\n| &&
          `         if ( this.getProperty("checkInit") == true ){ return; }   ` && |\n| &&
          `         this.setProperty( "checkInit" , true );` && |\n| &&
