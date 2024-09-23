@@ -5,6 +5,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
+
     CLASS-METHODS factory_cloud
       IMPORTING
         req           TYPE REF TO object
@@ -24,31 +26,21 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PROTECTED SECTION.
 
-    DATA mo_v1 TYPE REF TO object.
-    DATA mo_v2 TYPE REF TO object.
+    DATA mo_server TYPE REF TO z2ui5_cl_abap_api_http.
 
     TYPES:
       BEGIN OF ty_s_http_req,
-        body TYPE string,
+        method TYPE string,
+        body   TYPE string,
       END OF ty_s_http_req.
 
     TYPES:
       BEGIN OF ty_s_http_res,
-        body TYPE string,
+        body          TYPE string,
+        status_code   TYPE i,
+        status_reason TYPE string,
+        t_header      TYPE z2ui5_if_types=>ty_t_name_value,
       END OF ty_s_http_res.
-
-    CLASS-METHODS set_abap_res
-      IMPORTING
-        v1    TYPE REF TO object
-        v2    TYPE REF TO object
-        s_res TYPE ty_s_http_res.
-
-    CLASS-METHODS get_abap_req
-      IMPORTING
-        v               TYPE REF TO object
-        v2              TYPE REF TO object OPTIONAL
-      RETURNING
-        VALUE(r_result) TYPE ty_s_http_req.
 
     DATA ms_req TYPE ty_s_http_req.
     DATA ms_res TYPE ty_s_http_res.
@@ -61,16 +53,19 @@ CLASS z2ui5_cl_http_handler DEFINITION
     METHODS set_config
       IMPORTING
         is_custom_config TYPE z2ui5_if_types=>ty_s_http_config.
-    METHODS set_response.
-    METHODS set_request.
 
-    METHODS set_abap_req
+    METHODS http_get
       IMPORTING
-        v     TYPE REF TO object
-        v2    TYPE REF TO object
-        s_res TYPE z2ui5_cl_http_handler=>ty_s_http_req.
+        is_custom_config TYPE z2ui5_if_types=>ty_s_http_config.
+
+    METHODS http_post.
+
+    METHODS session_handling
+      IMPORTING
+        attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
 
   PRIVATE SECTION.
+
 ENDCLASS.
 
 
@@ -102,6 +97,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
      `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
     ENDIF.
 
+    ms_config-custom_js = ms_config-custom_js && get_js_cc_startup( ).
+
   ENDMETHOD.
 
 
@@ -129,74 +126,104 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD main.
 
+    ms_req-body = mo_server->get_cdata( ).
+    ms_req-method = mo_server->get_method( ).
 
-*    z2ui5_cl_http_handler=>factory( server )->main( value #(
-*        content_security_policy = ``
-*        title = ``
-*        ).
-*    z2ui5_cl_http_handler=>factory_cloud( )->main( ).
+    CASE ms_req-method.
+      WHEN `GET`.
+        http_get( s_config ).
+      WHEN `POST`.
+        http_post( ).
+      WHEN `HEAD`.
+        mo_server->set_session_stateful( 0 ).
+        RETURN.
+    ENDCASE.
 
-
-    set_request(  ).
-
-
-
-*    DATA(ls_config) = main_get_config( ).
-*    result = main_get_index_html( ls_config ).
-*    NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
-
-
-    set_response( ).
-
-  ENDMETHOD.
-
-
-  METHOD get_abap_req.
-
-    IF z2ui5_cl_util=>context_check_abap_cloud( ).
-
-    ELSE.
-
-    ENDIF.
-
-  ENDMETHOD.
-
-
-  METHOD set_abap_res.
+    mo_server->set_cdata( ms_res-body ).
+    mo_server->set_header_field( n = `cache-control` v =  `no-cache` ).
+    mo_server->set_status( code = 200 reason = `success`).
 
   ENDMETHOD.
 
   METHOD factory.
 
-    result = NEW z2ui5_cl_http_handler( ).
-    result->mo_v1 = server.
+    result = NEW #( ).
+    result->mo_server = z2ui5_cl_abap_api_http=>factory(
+        server = server ).
 
   ENDMETHOD.
 
   METHOD factory_cloud.
 
-    result = NEW z2ui5_cl_http_handler( ).
-    result->mo_v1 = req.
-    result->mo_v2 = res.
+    result = NEW #( ).
+    result->mo_server = z2ui5_cl_abap_api_http=>factory_cloud(
+        req = req
+        res = res ).
+
+  ENDMETHOD.
+
+  METHOD http_get.
+
+    set_config( is_custom_config ).
+
+    DATA(lo_app) = NEW z2ui5_cl_core_ui5_app( ).
+    ms_res-body = lo_app->index_html( ms_config ).
+
+    NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 
   ENDMETHOD.
 
 
-  METHOD set_response.
+  METHOD http_post.
 
-    set_abap_res( v1 = mo_v1 v2 = mo_v2 s_res = ms_res ).
+    IF so_sticky_handler IS NOT BOUND.
+      DATA(lo_post) = NEW z2ui5_cl_core_http_post( ms_req-body  ).
+    ELSE.
+      lo_post = so_sticky_handler.
+      lo_post->mv_request_json = ms_req-body.
+    ENDIF.
+
+    DATA  attributes    TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
+    ms_res-body = lo_post->main(
+      IMPORTING
+        attributes = attributes ).
+
+    TRY.
+        IF lo_post IS BOUND.
+          DATA(li_app) = CAST z2ui5_if_app( lo_post->mo_action->mo_app->mo_app ).
+          IF li_app->check_sticky = abap_true.
+            so_sticky_handler = lo_post.
+          ELSE.
+            CLEAR so_sticky_handler.
+          ENDIF.
+        ENDIF.
+      CATCH cx_root.
+    ENDTRY.
+
+    session_handling( attributes ).
 
   ENDMETHOD.
 
 
-  METHOD set_abap_req.
+  METHOD session_handling.
 
-  ENDMETHOD.
+    IF attributes-stateful-switched = abap_true.
 
+      mo_server->set_session_stateful( attributes-stateful-active  ).
 
-  METHOD set_request.
-
-    set_abap_req( v = mo_v1 v2 = mo_v2 s_res = ms_req ).
+      IF mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
+        DATA(lv_contextid) = mo_server->get_cookie( 'sap-contextid' ).
+        IF lv_contextid IS NOT INITIAL.
+          mo_server->delete_cookie( 'sap-contextid' ).
+          mo_server->set_header_field( n = 'sap-contextid' v = lv_contextid ).
+        ENDIF.
+      ENDIF.
+    ELSE.
+      lv_contextid = mo_server->get_header_field( 'sap-contextid' ).
+      IF lv_contextid IS NOT INITIAL.
+        mo_server->set_header_field( n = 'sap-contextid' v = lv_contextid ).
+      ENDIF.
+    ENDIF.
 
   ENDMETHOD.
 
