@@ -56,7 +56,9 @@ CLASS z2ui5_cl_http_handler DEFINITION
       IMPORTING
         is_custom_config TYPE z2ui5_if_types=>ty_s_http_config.
 
-    METHODS http_post.
+    METHODS http_post
+       EXPORTING
+        attributes    TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
 
     METHODS session_handling
       IMPORTING
@@ -131,7 +133,10 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       WHEN `GET`.
         http_get( s_config ).
       WHEN `POST`.
-        http_post( ).
+        http_post(
+            IMPORTING
+            attributes = data(attributes)
+        ).
       WHEN `HEAD`.
         mo_server->set_session_stateful( 0 ).
         RETURN.
@@ -140,6 +145,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     mo_server->set_cdata( ms_res-body ).
     mo_server->set_header_field( n = `cache-control` v = `no-cache` ).
     mo_server->set_status( code = 200 reason = `success`).
+
+    session_handling( attributes ).
 
   ENDMETHOD.
 
@@ -180,7 +187,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lo_post->mv_request_json = ms_req-body.
     ENDIF.
 
-    DATA  attributes    TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
+*    DATA attributes    TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
     ms_res-body = lo_post->main(
       IMPORTING
         attributes = attributes ).
@@ -196,8 +203,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         ENDIF.
       CATCH cx_root.
     ENDTRY.
-
-    session_handling( attributes ).
 
   ENDMETHOD.
 
