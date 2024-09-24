@@ -187,7 +187,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lo_post->mv_request_json = ms_req-body.
     ENDIF.
 
-*    DATA attributes    TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
     ms_res-body = lo_post->main(
       IMPORTING
         attributes = attributes ).
