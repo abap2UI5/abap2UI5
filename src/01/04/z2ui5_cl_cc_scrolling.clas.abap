@@ -77,7 +77,7 @@ CLASS z2ui5_cl_cc_scrolling IMPLEMENTATION.
              `              }      ` && |\n| &&
              `              );` && |\n| &&
              |\n| &&
-             `            } , 50 , oControl );` && |\n| &&
+             `            } , 100 , oControl );` && |\n| &&
              `      }` && |\n| &&
              `  });` && |\n| &&
              `}); }`.
