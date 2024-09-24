@@ -25,6 +25,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
     DATA mo_server TYPE REF TO z2ui5_cl_abap_api_http.
+    DATA ms_session_attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
 
     TYPES:
       BEGIN OF ty_s_http_req,
@@ -63,7 +64,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
         attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
 
   PRIVATE SECTION.
-    DATA: ms_session_attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
+
 
 ENDCLASS.
 
@@ -140,7 +141,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     mo_server->set_cdata( ms_res-body ).
     mo_server->set_header_field( n = `cache-control` v = `no-cache` ).
-    mo_server->set_status( code = 200 reason = `success`).
+    mo_server->set_status( code = 200 reason = `success` ).
 
     session_handling( ms_session_attributes ).
 

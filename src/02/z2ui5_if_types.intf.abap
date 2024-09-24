@@ -15,7 +15,6 @@ INTERFACE z2ui5_if_types
       content_security_policy TYPE string,
       styles_css              TYPE string,
       title                   TYPE string,
-
       t_add_config            TYPE ty_t_name_value,
       custom_js               TYPE string,
     END OF ty_s_http_config.
