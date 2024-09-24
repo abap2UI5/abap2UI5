@@ -220,6 +220,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
           mo_server->set_header_field( n = 'sap-contextid' v = lv_contextid ).
         ENDIF.
       ENDIF.
+
     ELSE.
       lv_contextid = mo_server->get_header_field( 'sap-contextid' ).
       IF lv_contextid IS NOT INITIAL.
