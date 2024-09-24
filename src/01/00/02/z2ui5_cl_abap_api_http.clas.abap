@@ -42,13 +42,13 @@ CLASS z2ui5_cl_abap_api_http DEFINITION PUBLIC.
       IMPORTING
         val TYPE i.
 
-    METHODS get_cookie
+    METHODS get_response_cookie
       IMPORTING
         val           TYPE clike
       RETURNING
         VALUE(result) TYPE string.
 
-    METHODS delete_cookie
+    METHODS delete_response_cookie
       IMPORTING
         val TYPE clike.
 
@@ -57,8 +57,10 @@ CLASS z2ui5_cl_abap_api_http DEFINITION PUBLIC.
         n TYPE clike
         v TYPE clike.
 
-  PROTECTED SECTION.
     DATA mo_server_onprem TYPE REF TO object.
+
+  PROTECTED SECTION.
+
     DATA mo_request_cloud TYPE REF TO object.
     DATA mo_response_cloud TYPE REF TO object.
 
@@ -67,7 +69,7 @@ ENDCLASS.
 
 CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
-  METHOD delete_cookie.
+  METHOD delete_response_cookie.
 
     DATA(lv_val) = CONV string( val ).
 
@@ -85,15 +87,15 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     ELSE.
 
-      CALL METHOD mo_response_cloud->('DELETE_COOKIE_AT_CLIENT')
-        EXPORTING
-          name = lv_val.
+*      CALL METHOD mo_response_cloud->('DELETE_COOKIE_AT_CLIENT')
+*        EXPORTING
+*          name = lv_val.
 
     ENDIF.
 
   ENDMETHOD.
 
-  METHOD get_cookie.
+  METHOD get_response_cookie.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
@@ -101,7 +103,7 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     IF mo_server_onprem IS BOUND.
 
-      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
       object = <any>.
 
       CALL METHOD object->('GET_COOKIE')
@@ -112,11 +114,11 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     ELSE.
 
-      CALL METHOD mo_request_cloud->('GET_COOKIE')
-        EXPORTING
-          i_name  = lv_val
-        RECEIVING
-          r_value = result.
+*      CALL METHOD mo_request_cloud->('GET_COOKIE')
+*        EXPORTING
+*          i_name  = lv_val
+*        RECEIVING
+*          r_value = result.
 
     ENDIF.
 
