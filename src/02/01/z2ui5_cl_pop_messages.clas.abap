@@ -35,6 +35,7 @@ CLASS z2ui5_cl_pop_messages DEFINITION
 
     METHODS view_display.
   PRIVATE SECTION.
+
 ENDCLASS.
 
 

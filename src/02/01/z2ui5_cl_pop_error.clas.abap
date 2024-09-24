@@ -23,7 +23,6 @@ CLASS z2ui5_cl_pop_error DEFINITION
 ENDCLASS.
 
 
-
 CLASS z2ui5_cl_pop_error IMPLEMENTATION.
 
   METHOD factory.
