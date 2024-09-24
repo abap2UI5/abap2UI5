@@ -1,11 +1,8 @@
 CLASS z2ui5_cl_http_handler DEFINITION
   PUBLIC
-  FINAL
-  CREATE PUBLIC .
+  CREATE PROTECTED.
 
   PUBLIC SECTION.
-
-    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
 
     CLASS-METHODS factory_cloud
       IMPORTING
@@ -26,6 +23,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PROTECTED SECTION.
 
+    CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
     DATA mo_server TYPE REF TO z2ui5_cl_abap_api_http.
 
     TYPES:
@@ -140,7 +138,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
     ENDCASE.
 
     mo_server->set_cdata( ms_res-body ).
-    mo_server->set_header_field( n = `cache-control` v =  `no-cache` ).
+    mo_server->set_header_field( n = `cache-control` v = `no-cache` ).
     mo_server->set_status( code = 200 reason = `success`).
 
   ENDMETHOD.
@@ -148,8 +146,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_abap_api_http=>factory(
-        server = server ).
+    result->mo_server = z2ui5_cl_abap_api_http=>factory( server ).
 
   ENDMETHOD.
 

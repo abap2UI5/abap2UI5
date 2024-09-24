@@ -58,8 +58,9 @@ CLASS z2ui5_cl_abap_api_http DEFINITION PUBLIC.
         v TYPE clike.
 
   PROTECTED SECTION.
-    DATA mo_v1 TYPE REF TO object.
-    DATA mo_v2 TYPE REF TO object.
+    DATA mo_server_onprem TYPE REF TO object.
+    DATA mo_request_cloud TYPE REF TO object.
+    DATA mo_response_cloud TYPE REF TO object.
 
   PRIVATE SECTION.
 ENDCLASS.
@@ -68,16 +69,27 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
   METHOD delete_cookie.
 
-    DATA object TYPE REF TO object.
-    FIELD-SYMBOLS <any> TYPE any.
+    DATA(lv_val) = CONV string( val ).
 
-    ASSIGN mo_v1->('RESPONSE') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('DELETE_COOKIE')
-      EXPORTING
-        name = val.
+      DATA object TYPE REF TO object.
+      FIELD-SYMBOLS <any> TYPE any.
 
+      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('DELETE_COOKIE')
+        EXPORTING
+          name = lv_val.
+
+    ELSE.
+
+      CALL METHOD mo_response_cloud->('DELETE_COOKIE_AT_CLIENT')
+        EXPORTING
+          name = lv_val.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -85,15 +97,28 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
+    DATA(lv_val) = CONV string( val ).
 
-    ASSIGN mo_v1->('REQUEST') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('GET_COOKIE')
-      EXPORTING
-        name  = val
-      RECEIVING
-        value = result.
+      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('GET_COOKIE')
+        EXPORTING
+          name  = lv_val
+        IMPORTING
+          value = result.
+
+    ELSE.
+
+      CALL METHOD mo_request_cloud->('GET_COOKIE')
+        EXPORTING
+          i_name  = lv_val
+        RECEIVING
+          r_value = result.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -101,15 +126,28 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
+    DATA(lv_val) = CONV string( val ).
 
-    ASSIGN mo_v1->('REQUEST') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('GET_HEADER_FIELD')
-      EXPORTING
-        name  = val
-      RECEIVING
-        value = result.
+      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('GET_HEADER_FIELD')
+        EXPORTING
+          name  = lv_val
+        RECEIVING
+          value = result.
+
+    ELSE.
+
+      CALL METHOD mo_request_cloud->('GET_HEADER_FIELD')
+        EXPORTING
+          i_name  = lv_val
+        RECEIVING
+          r_value = result.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -118,28 +156,41 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    ASSIGN mo_v1->('RESPONSE') TO <any>.
-    object = <any>.
+    DATA(lv_n) = CONV string( n ).
+    DATA(lv_v) = CONV string( v ).
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('SET_HEADER_FIELD')
-      EXPORTING
-        name  = n
-        value = v.
+      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('SET_HEADER_FIELD')
+        EXPORTING
+          name  = lv_n
+          value = lv_v.
+
+    ELSE.
+
+      CALL METHOD mo_request_cloud->('SET_HEADER_FIELD')
+        EXPORTING
+          i_name  = lv_n
+          i_value = lv_v.
+
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD factory.
 
     result = NEW #( ).
-    result->mo_v1 = server.
+    result->mo_server_onprem = server.
 
   ENDMETHOD.
 
   METHOD factory_cloud.
 
     result = NEW #( ).
-    result->mo_v1 = req.
-    result->mo_v2 = res.
+    result->mo_request_cloud  = req.
+    result->mo_response_cloud = res.
 
   ENDMETHOD.
 
@@ -148,12 +199,22 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    ASSIGN mo_v1->('REQUEST') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('GET_CDATA')
-      RECEIVING
-        data = result.
+      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('GET_CDATA')
+        RECEIVING
+          data = result.
+
+    ELSE.
+
+      CALL METHOD mo_request_cloud->('GET_TEXT')
+        RECEIVING
+          r_value = result.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -162,12 +223,22 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    ASSIGN mo_v1->('REQUEST') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('IF_HTTP_REQUEST~GET_METHOD')
-      RECEIVING
-        method = result.
+      ASSIGN mo_server_onprem->('REQUEST') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('IF_HTTP_REQUEST~GET_METHOD')
+        RECEIVING
+          method = result.
+
+    ELSE.
+
+      CALL METHOD mo_request_cloud->('GET_METHOD')
+        RECEIVING
+          r_value = result.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -176,12 +247,22 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
 
-    ASSIGN mo_v1->('RESPONSE') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('SET_CDATA')
-      EXPORTING
-        data = val.
+      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('SET_CDATA')
+        EXPORTING
+          data = val.
+
+    ELSE.
+
+      CALL METHOD mo_request_cloud->('SET_TEXT')
+        EXPORTING
+          r_value = val.
+
+    ENDIF.
 
   ENDMETHOD.
 
@@ -189,22 +270,42 @@ CLASS z2ui5_cl_abap_api_http IMPLEMENTATION.
 
     DATA object TYPE REF TO object.
     FIELD-SYMBOLS <any> TYPE any.
+    DATA(lv_reason) = CONV string( reason ).
 
-    ASSIGN mo_v1->('RESPONSE') TO <any>.
-    object = <any>.
+    IF mo_server_onprem IS BOUND.
 
-    CALL METHOD object->('IF_HTTP_RESPONSE~SET_STATUS')
-      EXPORTING
-        code   = code
-        reason = reason.
+      ASSIGN mo_server_onprem->('RESPONSE') TO <any>.
+      object = <any>.
+
+      CALL METHOD object->('IF_HTTP_RESPONSE~SET_STATUS')
+        EXPORTING
+          code   = code
+          reason = lv_reason.
+
+    ELSE.
+
+      CALL METHOD mo_response_cloud->('SET_STATUS')
+        EXPORTING
+          i_code   = code
+          i_reason = lv_reason.
+
+    ENDIF.
 
   ENDMETHOD.
 
   METHOD set_session_stateful.
 
-    CALL METHOD mo_v1->('SET_SESSION_STATEFUL')
-      EXPORTING
-        stateful = val.
+    IF mo_server_onprem IS BOUND.
+
+      CALL METHOD mo_server_onprem->('SET_SESSION_STATEFUL')
+        EXPORTING
+          stateful = val.
+
+    ELSE.
+
+      ASSERT 1 = 'NO_STATEFUL_FEATURE_IN_CLOUD_ERROR'.
+
+    ENDIF.
 
   ENDMETHOD.
 
