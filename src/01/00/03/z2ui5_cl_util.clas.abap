@@ -38,22 +38,23 @@ CLASS z2ui5_cl_util DEFINITION
     TYPES ty_t_range TYPE STANDARD TABLE OF ty_s_range WITH EMPTY KEY.
 
     TYPES:
-      BEGIN OF ty_s_sql,
-        tabname TYPE string,
-        where   TYPE string,
-      END OF ty_s_sql.
-
-    TYPES:
       BEGIN OF ty_s_filter_multi,
         name            TYPE string,
         t_range         TYPE ty_t_range,
         t_token         TYPE ty_t_token,
         t_token_added   TYPE ty_t_token,
         t_token_removed TYPE ty_t_token,
-        s_sql           TYPE ty_S_sql,
-        sql_text        TYPE string,
       END OF ty_s_filter_multi.
     TYPES ty_t_filter_multi TYPE STANDARD TABLE OF ty_s_filter_multi WITH EMPTY KEY.
+
+    TYPES:
+      BEGIN OF ty_S_sql,
+        tabname    TYPE string,
+        up_to_rows TYPE i,
+        t_ref      TYPE REF TO data,
+        where      TYPE string,
+        t_filter   TYPE ty_t_filter_multi,
+      END OF ty_s_sql.
 
     CLASS-METHODS rtti_get_t_attri_by_include
       IMPORTING

@@ -168,33 +168,39 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
 
   METHOD controller_app_js.
 
-    result =  `          sap.ui.define(["sap/ui/core/mvc/Controller",  "z2ui5/controller/View1.controller", "sap/ui/core/BusyIndicator" , "z2ui5/cc/DebugTool" ], function(BaseController, Controller, BusyIndicator, DebugTool){` && |\n| &&
-                 `              return BaseController.extend("z2ui5.controller.App", {` && |\n| &&
-                 `                  onInit: async function(){` && |\n| &&
-                 `                      BusyIndicator.show();` && |\n| &&
-                 `                     try {` && |\n| &&
-                 `                       sap.z2ui5.oLaunchpadService = await this.getOwnerComponent().getService("ShellUIService");   ` && |\n|  &&
-                 `                    } catch (e) {}     ` && |\n|  &&
-                 `                    try {                                  ` && |\n|  &&
-                 `                       sap.z2ui5.startupParameters = this.getOwnerComponent().getComponentData().startupParameters;   ` && |\n|  &&
-                 `                    } catch (e) {}              ` && |\n| &&
-                 `                      sap.z2ui5.oController = new Controller();` && |\n| &&
-                 `                      sap.z2ui5.oControllerNest = new Controller();` && |\n| &&
-                 `                      sap.z2ui5.oControllerNest2 = new Controller();` && |\n| &&
-                 `                      sap.z2ui5.oControllerPopup = new Controller();` && |\n| &&
-                 `                      sap.z2ui5.oControllerPopover = new Controller();` && |\n| &&
-                 `                      sap.z2ui5.checkNestAfter = false;` && |\n| &&
-                 `                      sap.z2ui5.oBody = { };` && |\n| &&
-                 `                      sap.z2ui5.oController.setApp(this.getView());` && |\n| &&
-                 `                      sap.z2ui5.onBeforeRoundtrip = [];` && |\n| &&
-                 `                      sap.z2ui5.onAfterRendering = [];` && |\n| &&
-                 `                      sap.z2ui5.onBeforeEventFrontend = [];` && |\n| &&
-                 `                      sap.z2ui5.onAfterRoundtrip = []; ` && |\n| &&
-                 `                      sap.z2ui5.DebugTool = new DebugTool()` && |\n| &&
-                 `                      sap.z2ui5.oController.Roundtrip();` && |\n| &&
-                 `                  }` && |\n| &&
-                 `              });` && |\n| &&
-                 `          });`.
+    result =  `sap.ui.define([` && |\n|  &&
+              `    "sap/ui/core/mvc/Controller",` && |\n|  &&
+              `    "sap/ui/core/BusyIndicator",` && |\n|  &&
+              `    "z2ui5/controller/View1.controller"` && |\n|  &&
+              `], function(BaseController, BusyIndicator, Controller) {` && |\n|  &&
+              `    return BaseController.extend("z2ui5.controller.App", {` && |\n|  &&
+              `        onInit: async function() {` && |\n|  &&
+              |\n|  &&
+              `            BusyIndicator.show();` && |\n|  &&
+              `            try {` && |\n|  &&
+              `                sap.z2ui5.oLaunchpadService = await this.getOwnerComponent().getService("ShellUIService");` && |\n|  &&
+              `            } catch (e) {}` && |\n|  &&
+              `            try {` && |\n|  &&
+              `                sap.z2ui5.ComponentData = this.getOwnerComponent().getComponentData();` && |\n|  &&
+              `                sap.z2ui5.startupParameters = this.getOwnerComponent().getComponentData().startupParameters;` && |\n|  &&
+              `            } catch (e) {}` && |\n|  &&
+              `            sap.z2ui5.oController = new Controller();` && |\n|  &&
+              `            sap.z2ui5.oControllerNest = new Controller();` && |\n|  &&
+              `            sap.z2ui5.oControllerNest2 = new Controller();` && |\n|  &&
+              `            sap.z2ui5.oControllerPopup = new Controller();` && |\n|  &&
+              `            sap.z2ui5.oControllerPopover = new Controller();` && |\n|  &&
+              `            sap.z2ui5.checkNestAfter = false;` && |\n|  &&
+              `            sap.z2ui5.oBody = {};` && |\n|  &&
+              `            sap.z2ui5.oController.setApp(this.getView());` && |\n|  &&
+              `            sap.z2ui5.oController.Roundtrip();` && |\n|  &&
+              `            sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
+              `            sap.z2ui5.onAfterRendering = [];` && |\n|  &&
+              `            sap.z2ui5.onBeforeEventFrontend = [];` && |\n|  &&
+              `            sap.z2ui5.onAfterRoundtrip = [];` && |\n|  &&
+              |\n|  &&
+              `        }` && |\n|  &&
+              `    });` && |\n|  &&
+              `});`.
 
   ENDMETHOD.
 
