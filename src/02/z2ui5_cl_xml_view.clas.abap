@@ -180,6 +180,15 @@ CLASS z2ui5_cl_xml_view DEFINITION
       IMPORTING !ns           TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS breadcrumbs
+      IMPORTING !ns           TYPE clike OPTIONAL
+                link          TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
+    METHODS current_location
+      IMPORTING !ns           TYPE clike OPTIONAL
+                link          TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS auto
       IMPORTING !ns              TYPE clike OPTIONAL
@@ -10098,5 +10107,21 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
     result = _generic(
                 name   = `rowMode`
                 ns     = ns ).
+  ENDMETHOD.
+
+
+  METHOD breadcrumbs.
+    result = _generic(
+                ns     = ns
+                name   = `Breadcrumbs`
+                t_prop = VALUE #( ( n = `link`           v = link ) ) ).
+  ENDMETHOD.
+
+
+  METHOD current_location.
+    result = _generic(
+                ns     = ns
+                name   = `currentLocation`
+                t_prop = VALUE #( ( n = `link`           v = link ) ) ).
   ENDMETHOD.
 ENDCLASS.
