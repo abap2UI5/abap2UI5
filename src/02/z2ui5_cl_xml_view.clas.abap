@@ -196,7 +196,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 !showclosebutton    TYPE clike OPTIONAL
                 enableformattedtext TYPE clike OPTIONAL
                   PREFERRED PARAMETER text
-      RETURNING VALUE(result)        TYPE REF TO z2ui5_cl_xml_view.
+      RETURNING VALUE(result)       TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS footer
       IMPORTING !ns           TYPE string OPTIONAL
