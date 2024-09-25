@@ -156,6 +156,7 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
                  `                        'sap-contextid-accept': 'header'` && |\n| &&
                  `                    }` && |\n| &&
                  `                });` && |\n| &&
+                 `                delete sap.z2ui5.contextId;` && |\n| &&
                  `            }` && |\n| &&
                  `            if (UIComponent.prototype.exit)` && |\n| &&
                  `                UIComponent.prototype.exit.apply(this, arguments);` && |\n| &&
