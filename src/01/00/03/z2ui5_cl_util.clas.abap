@@ -49,11 +49,13 @@ CLASS z2ui5_cl_util DEFINITION
 
     TYPES:
       BEGIN OF ty_S_sql,
-        tabname    TYPE string,
-        up_to_rows TYPE i,
-        t_ref      TYPE REF TO data,
-        where      TYPE string,
-        t_filter   TYPE ty_t_filter_multi,
+        tabname        TYPE string,
+        check_autoload TYPE abap_bool,
+        layout_id      TYPE string,
+        count          TYPE i,
+        t_ref          TYPE REF TO data,
+        where          TYPE string,
+        t_filter       TYPE ty_t_filter_multi,
       END OF ty_s_sql.
 
     CLASS-METHODS rtti_get_t_attri_by_include
