@@ -1298,6 +1298,8 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 ariahaspopup       TYPE clike OPTIONAL
                 accessiblerole     TYPE clike OPTIONAL
                 !class             TYPE clike OPTIONAL
+                endicon            TYPE clike OPTIONAL
+                icon               TYPE clike OPTIONAL
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS list
@@ -6685,7 +6687,9 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                                 ( n = `width`      v = width )
                                 ( n = `wrapping`      v = z2ui5_cl_util=>boolean_abap_2_json( wrapping ) )
                                 ( n = `emphasized`      v = z2ui5_cl_util=>boolean_abap_2_json( emphasized ) )
-                                ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) ) ) ).
+                                ( n = `enabled` v = z2ui5_cl_util=>boolean_abap_2_json( enabled ) )
+                                ( n = `endIcon` v = endicon )
+                                ( n = `icon`    v = icon ) ) ).
   ENDMETHOD.
 
 
