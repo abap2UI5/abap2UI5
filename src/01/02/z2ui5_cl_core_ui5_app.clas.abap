@@ -194,7 +194,6 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
               `            sap.z2ui5.checkNestAfter = false;` && |\n|  &&
               `            sap.z2ui5.oBody = {};` && |\n|  &&
               `            sap.z2ui5.oController.setApp(this.getView());` && |\n|  &&
-
               `            sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
               `            sap.z2ui5.onAfterRendering = [];` && |\n|  &&
               `            sap.z2ui5.onBeforeEventFrontend = [];` && |\n|  &&
