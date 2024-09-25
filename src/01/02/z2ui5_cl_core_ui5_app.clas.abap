@@ -172,8 +172,9 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
     result =  `sap.ui.define([` && |\n|  &&
               `    "sap/ui/core/mvc/Controller",` && |\n|  &&
               `    "sap/ui/core/BusyIndicator",` && |\n|  &&
-              `    "z2ui5/controller/View1.controller"` && |\n|  &&
-              `], function(BaseController, BusyIndicator, Controller) {` && |\n|  &&
+              `    "z2ui5/controller/View1.controller",` && |\n|  &&
+              `    "z2ui5/cc/DebugTool",` && |\n|  &&
+              `], function(BaseController, BusyIndicator, Controller, DebugTool ) {` && |\n|  &&
               `    return BaseController.extend("z2ui5.controller.App", {` && |\n|  &&
               `        onInit: async function() {` && |\n|  &&
               |\n|  &&
@@ -193,11 +194,12 @@ CLASS z2ui5_cl_core_ui5_app IMPLEMENTATION.
               `            sap.z2ui5.checkNestAfter = false;` && |\n|  &&
               `            sap.z2ui5.oBody = {};` && |\n|  &&
               `            sap.z2ui5.oController.setApp(this.getView());` && |\n|  &&
-              `            sap.z2ui5.oController.Roundtrip();` && |\n|  &&
               `            sap.z2ui5.onBeforeRoundtrip = [];` && |\n|  &&
               `            sap.z2ui5.onAfterRendering = [];` && |\n|  &&
               `            sap.z2ui5.onBeforeEventFrontend = [];` && |\n|  &&
               `            sap.z2ui5.onAfterRoundtrip = [];` && |\n|  &&
+              `            sap.z2ui5.DebugTool = new DebugTool();` && |\n| &&
+              `            sap.z2ui5.oController.Roundtrip();` && |\n|  &&
               |\n|  &&
               `        }` && |\n|  &&
               `    });` && |\n|  &&
