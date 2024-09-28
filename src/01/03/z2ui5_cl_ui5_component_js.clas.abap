@@ -37,14 +37,6 @@ CLASS z2ui5_cl_ui5_component_js IMPLEMENTATION.
              `            this._oLogger = Log.getLogger("abap2UI5");` && |\n|  &&
              |\n|  &&
              `            z2ui5.oConfig = {};` && |\n|  &&
-             |\n|  &&
-             `            let oVersionInfo = await VersionInfo.load();` && |\n|  &&
-             `            z2ui5.oConfig.UI5VersionInfo = {` && |\n|  &&
-             `                version : oVersionInfo.version,` && |\n|  &&
-             `                buildTimestamp : oVersionInfo.buildTimestamp,` && |\n|  &&
-             `                gav : oVersionInfo.gav,` && |\n|  &&
-             `            }` && |\n|  &&
-             `            ` && |\n|  &&
              `            z2ui5.oConfig.pathname = this.getManifestEntry("/sap.app/dataSources/mainService/uri");` && |\n|  &&
              `            if (z2ui5.oConfig.pathname == '_LOCAL_') { ` && |\n|  &&
              `                z2ui5.oConfig.pathname = window.location.href; ` && |\n|  &&
@@ -53,9 +45,13 @@ CLASS z2ui5_cl_ui5_component_js IMPLEMENTATION.
              `            this._oLogger.info("Pathname: " + z2ui5.oConfig.pathname );` && |\n|  &&
              |\n|  &&
              `            z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n|  &&
-             `            this._oLogger.info( 'test' );` && |\n|  &&
-             |\n|  &&
-             |\n|  &&
+             `            let oVersionInfo = await VersionInfo.load();` && |\n|  &&
+             `            z2ui5.oConfig.UI5VersionInfo = {` && |\n|  &&
+             `                version : oVersionInfo.version,` && |\n|  &&
+             `                buildTimestamp : oVersionInfo.buildTimestamp,` && |\n|  &&
+             `                gav : oVersionInfo.gav,` && |\n|  &&
+             `            }` && |\n|  &&
+             `            ` && |\n|  &&
              `            if (/iPad|iPhone/.test(navigator.platform)) {` && |\n|  &&
              `                window.addEventListener("__pagehide", this.__pagehide.bind(this));` && |\n|  &&
              `            } else {` && |\n|  &&
