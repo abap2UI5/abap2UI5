@@ -167,8 +167,9 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     set_config( is_custom_config ).
 
-    DATA(lo_app) = NEW z2ui5_cl_core_ui5_app( ).
-    ms_res-body = lo_app->index_html( ms_config ).
+*    DATA(lo_app) = NEW z2ui5_cl_core_ui5_app( ).
+*    ms_res-body = lo_app->index_html( ms_config ).
+    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 
