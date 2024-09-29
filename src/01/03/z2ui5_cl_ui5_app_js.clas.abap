@@ -26,6 +26,10 @@ CLASS z2ui5_cl_ui5_app_js IMPLEMENTATION.
              |\n|  &&
              `    onInit: async function () {` && |\n|  &&
              |\n|  &&
+             `      z2ui5.oConfig.pathname = this.getView().getModel().sServiceUrl;` && |\n|  &&
+             `      if (z2ui5.oConfig.pathname == '_LOCAL_') { ` && |\n|  &&
+             `          z2ui5.oConfig.pathname = window.location.href; ` && |\n|  &&
+             `      }; ` && |\n|  &&
              `      z2ui5.oController = new Controller();` && |\n|  &&
              `      z2ui5.oController.setApp(this.getView().byId("app"));` && |\n|  &&
              |\n|  &&

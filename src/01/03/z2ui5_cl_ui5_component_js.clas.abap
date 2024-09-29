@@ -37,14 +37,12 @@ CLASS z2ui5_cl_ui5_component_js IMPLEMENTATION.
              `            this._oLogger = Log.getLogger("abap2UI5");` && |\n|  &&
              |\n|  &&
              `            z2ui5.oConfig = {};` && |\n|  &&
-             `            z2ui5.oConfig.pathname = this.getManifestEntry("/sap.app/dataSources/mainService/uri");` && |\n|  &&
-             `            if (z2ui5.oConfig.pathname == '_LOCAL_') { ` && |\n|  &&
-             `                z2ui5.oConfig.pathname = window.location.href; ` && |\n|  &&
-             `                this._oLogger.info("Start Embedded: " + z2ui5.oConfig.pathname );` && |\n|  &&
-             `            };` && |\n|  &&
-             `            this._oLogger.info("Pathname: " + z2ui5.oConfig.pathname );` && |\n|  &&
-             |\n|  &&
              `            z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n|  &&
+             `            ` && |\n|  &&
+             `      try {                   ` && |\n|  &&
+             `                z2ui5.oLaunchpadService = await this.getService("ShellUIService");    ` &&     |\n| &&
+             `             } catch (e) {}        ` && |\n|  &&
+             `           ` && |\n|  &&
              `            let oVersionInfo = await VersionInfo.load();` && |\n|  &&
              `            z2ui5.oConfig.UI5VersionInfo = {` && |\n|  &&
              `                version : oVersionInfo.version,` && |\n|  &&

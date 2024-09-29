@@ -38,7 +38,25 @@ CLASS z2ui5_cl_ui5_manifest_json IMPLEMENTATION.
              |    "dataSources": \{| &
              |      "mainService": \{| &
              |        "uri": "_LOCAL_",| &
-             |        "type": "http"| &
+             |        "type": "OData",| &
+             |        "settings": \{| &
+             |          "annotations": [],| &
+             |          "localUri": "localService/metadata.xml",| &
+             |          "odataVersion": "2.0"| &
+             |        \}| &
+             |      \}| &
+             |    \},| &
+             |    "crossNavigation": \{| &
+             |      "inbounds": \{| &
+             |        "z2ui5-display": \{| &
+             |          "semanticObject": "z2ui5",| &
+             |          "action": "display",| &
+             |          "title": "\{\{flpTitle\}\}",| &
+             |          "signature": \{| &
+             |            "parameters": \{\},| &
+             |            "additionalParameters": "allowed"| &
+             |          \}| &
+             |        \}| &
              |      \}| &
              |    \}| &
              |  \},| &
@@ -72,6 +90,11 @@ CLASS z2ui5_cl_ui5_manifest_json IMPLEMENTATION.
              |      "cozy": true| &
              |    \},| &
              |    "models": \{| &
+             |      "": \{| &
+             |        "dataSource": "mainService",| &
+             |        "preload": true,| &
+             |        "settings": \{\}| &
+             |      \}| &
              |    \},| &
              |    "resources": \{| &
              |      "css": [| &
@@ -129,6 +152,10 @@ CLASS z2ui5_cl_ui5_manifest_json IMPLEMENTATION.
              |      "async": true,| &
              |      "id": "App"| &
              |    \}| &
+             |  \},| &
+             |  "sap.cloud": \{| &
+             |    "public": true,| &
+             |    "service": "z2ui5"| &
              |  \}| &
              |\}|.
 
