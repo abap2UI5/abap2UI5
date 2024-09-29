@@ -19,7 +19,51 @@ CLASS z2ui5_cl_ui5_cc_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {` && |\n|  &&
+    result = `if (!z2ui5.Timer) {sap.ui.define("z2ui5/Timer" , [` && |\n| &&
+      `   "sap/ui/core/Control"` && |\n| &&
+      `], (Control) => {` && |\n| &&
+      `   "use strict";` && |\n| &&
+      |\n| &&
+      `   return Control.extend("z2ui5.Timer", {` && |\n| &&
+      `       metadata : {` && |\n| &&
+      `           properties: {` && |\n| &&
+      `                delayMS: {` && |\n| &&
+      `                    type: "string",` && |\n| &&
+      `                    defaultValue: ""` && |\n| &&
+      `                },` && |\n| &&
+      `                checkActive: {` && |\n| &&
+      `                    type: "boolean",` && |\n| &&
+      `                    defaultValue: true` && |\n| &&
+      `                },` && |\n| &&
+      `                checkRepeat: {` && |\n| &&
+      `                    type: "boolean",` && |\n| &&
+      `                    defaultValue: false` && |\n| &&
+      `                },` && |\n| &&
+      `            },` && |\n| &&
+      `            events: {` && |\n| &&
+      `                 "finished": { ` && |\n| &&
+      `                        allowPreventDefault: true,` && |\n| &&
+      `                        parameters: {},` && |\n| &&
+      `                 }` && |\n| &&
+      `            }` && |\n| &&
+      `       },` && |\n| &&
+      `       onAfterRendering() {` && |\n| &&
+      `       },` && |\n| &&
+      `       delayedCall( oControl){` && |\n| &&
+      `           ` && |\n| &&
+      `          if ( oControl.getProperty("checkActive") == false ){ return; }` && |\n| &&
+      `            setTimeout((oControl) => {` && |\n| &&
+      `               oControl.setProperty( "checkActive", false )` && |\n| &&
+      `                oControl.fireFinished();` && |\n| &&
+      `              if ( oControl.getProperty( "checkRepeat" ) ) { oControl.delayedCall( oControl ); }  ` && |\n| &&
+      `              }, parseInt( oControl.getProperty("delayMS") ), oControl );` && |\n| &&
+      `       },` && |\n| &&
+      `       renderer(oRm, oControl) {` && |\n| &&
+      `        oControl.delayedCall( oControl );` && |\n| &&
+      `        }` && |\n| &&
+      `   });` && |\n| &&
+      `}); }`  && |\n| &&
+             `sap.ui.define("z2ui5/Focus", ["sap/ui/core/Control",], (Control) => {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `  return Control.extend("z2ui5.Focus", {` && |\n|  &&
              `    metadata: {` && |\n|  &&
@@ -148,12 +192,12 @@ CLASS z2ui5_cl_ui5_cc_js IMPLEMENTATION.
              `      if (items) {` && |\n|  &&
              `        items.forEach(item => {` && |\n|  &&
              `          try {` && |\n|  &&
-             `            const scrollDelegate = z2ui5.oView.byId(item.ID).getScrollDelegate();` && |\n|  &&
-             `            item.SCROLLTO = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n|  &&
+             `            const scrollDelegate = z2ui5.oView.byId(item.N).getScrollDelegate();` && |\n|  &&
+             `            item.V = scrollDelegate ? scrollDelegate.getScrollTop() : 0;` && |\n|  &&
              `          } catch {` && |\n|  &&
              `            try {` && |\n|  &&
-             `              const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n|  &&
-             `              item.SCROLLTO = element ? element.scrollTop : 0;` && |\n|  &&
+             `              const element = document.getElementById(``${z2ui5.oView.byId(item.N).getId()}-inner``);` && |\n|  &&
+             `              item.V = element ? element.scrollTop : 0;` && |\n|  &&
              `            } catch {}` && |\n|  &&
              `          }` && |\n|  &&
              `        });` && |\n|  &&
@@ -174,14 +218,14 @@ CLASS z2ui5_cl_ui5_cc_js IMPLEMENTATION.
              `      setTimeout(() => {` && |\n|  &&
              `        items.forEach(item => {` && |\n|  &&
              `          try {` && |\n|  &&
-             `            z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);` && |\n|  &&
+             `            z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n|  &&
              `          } catch {` && |\n|  &&
              `            try {` && |\n|  &&
-             `              const element = document.getElementById(``${z2ui5.oView.byId(item.ID).getId()}-inner``);` && |\n|  &&
-             `              if (element) element.scrollTop = item.SCROLLTO;` && |\n|  &&
+             `              const element = document.getElementById(``${z2ui5.oView.byId(item.N).getId()}-inner``);` && |\n|  &&
+             `              if (element) element.scrollTop = item.V;` && |\n|  &&
              `            } catch {` && |\n|  &&
              `              setTimeout(() => {` && |\n|  &&
-             `                z2ui5.oView.byId(item.ID).scrollTo(item.SCROLLTO);` && |\n|  &&
+             `                z2ui5.oView.byId(item.N).scrollTo(item.V);` && |\n|  &&
              `              }, 1);` && |\n|  &&
              `            }` && |\n|  &&
              `          }` && |\n|  &&
@@ -582,7 +626,8 @@ CLASS z2ui5_cl_ui5_cc_js IMPLEMENTATION.
              `      if (!table) {` && |\n|  &&
              `        try {` && |\n|  &&
              `          //  table = sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
-             `          table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
+             `       //   table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
+             `          table = Core.byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
              |\n|  &&
              `        } catch (e) {` && |\n|  &&
              `          return;` && |\n|  &&
