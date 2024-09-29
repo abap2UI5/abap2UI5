@@ -760,7 +760,8 @@ CLASS z2ui5_cl_abap_api IMPLEMENTATION.
         ENDIF.
 
         IF tabname IS INITIAL.
-          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+
+          RAISE EXCEPTION TYPE z2ui5_cx_abap_api
             EXPORTING
               val = `RTTI_BY_NAME_TAB_INITIAL`.
         ENDIF.

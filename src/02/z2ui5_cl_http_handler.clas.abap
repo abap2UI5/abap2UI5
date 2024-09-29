@@ -45,10 +45,6 @@ CLASS z2ui5_cl_http_handler DEFINITION
     DATA ms_res TYPE ty_s_http_res.
     DATA ms_config TYPE z2ui5_if_types=>ty_s_http_config.
 
-    METHODS get_js_cc_startup
-      RETURNING
-        VALUE(result) TYPE string.
-
     METHODS set_config
       IMPORTING
         is_custom_config TYPE z2ui5_if_types=>ty_s_http_config.
@@ -97,30 +93,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
      `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
     ENDIF.
 
-    ms_config-custom_js = ms_config-custom_js && get_js_cc_startup( ).
-
-  ENDMETHOD.
-
-
-  METHOD get_js_cc_startup.
-
-    result = ` ` &&
-        z2ui5_cl_cc_timer=>get_js( ) &&
-        z2ui5_cl_cc_focus=>get_js( ) &&
-        z2ui5_cl_cc_title=>get_js( ) &&
-        z2ui5_cl_cc_lp_title=>get_js( ) &&
-        z2ui5_cl_cc_history=>get_js( ) &&
-        z2ui5_cl_cc_scrolling=>get_js( ) &&
-        z2ui5_cl_cc_info=>get_js( ) &&
-        z2ui5_cl_cc_geoloc=>get_js( ) &&
-        z2ui5_cl_cc_file_upl=>get_js( ) &&
-        z2ui5_cl_cc_multiinput=>get_js( ) &&
-        z2ui5_cl_cc_uitable=>get_js( ) &&
-        z2ui5_cl_cc_util=>get_js( ) &&
-        z2ui5_cl_cc_favicon=>get_js( ) &&
-        z2ui5_cl_cc_dirty=>get_js( ) &&
-       `  `.
-
   ENDMETHOD.
 
 
@@ -167,8 +139,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     set_config( is_custom_config ).
 
-    DATA(lo_app) = NEW z2ui5_cl_core_ui5_app( ).
-    ms_res-body = lo_app->index_html( ms_config ).
+    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 

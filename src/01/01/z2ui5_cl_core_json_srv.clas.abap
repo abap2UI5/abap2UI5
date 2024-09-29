@@ -149,9 +149,12 @@ CLASS z2ui5_cl_core_json_srv IMPLEMENTATION.
             IMPORTING
                 ev_container    = result-s_front ).
 
-        result-s_front-o_comp_data = lo_ajson->slice( `/COMPDATA` ).
+        result-s_front-o_comp_data = lo_ajson->slice( `/CONFIG/ComponentData` ).
 
-        result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD` OR result-s_front-pathname CS `/ui2/flp`).
+        result-s_control-check_launchpad = xsdbool( result-s_front-search CS `scenario=LAUNCHPAD`
+             OR result-s_front-pathname CS `/ui2/flp`
+             OR result-s_front-pathname CS `test/flpSandbox`
+             ).
         IF result-s_front-id IS NOT INITIAL.
           RETURN.
         ENDIF.
