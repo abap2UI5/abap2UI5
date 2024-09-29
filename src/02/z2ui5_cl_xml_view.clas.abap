@@ -190,6 +190,11 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 link          TYPE clike OPTIONAL
       RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
 
+    METHODS color_palette
+      IMPORTING !ns           TYPE clike OPTIONAL
+                colorselect   TYPE clike OPTIONAL
+      RETURNING VALUE(result) TYPE REF TO z2ui5_cl_xml_view.
+
     METHODS auto
       IMPORTING !ns              TYPE clike OPTIONAL
                 rowcontentheight TYPE clike OPTIONAL
@@ -9113,7 +9118,10 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
 
 
   METHOD toolbar.
-    DATA(lv_name) = COND #( WHEN ns = 'table' THEN 'toolbar' ELSE `Toolbar` ).
+    DATA(lv_name) = COND #(
+        WHEN ns = 'table' THEN 'toolbar'
+        WHEN ns = 'form'  THEN 'toolbar'
+        ELSE `Toolbar` ).
     result = _generic( name   = lv_name
                        ns     = ns
                        t_prop = VALUE #( ( n = `active`  v = z2ui5_cl_util=>boolean_abap_2_json( active ) )
@@ -10127,5 +10135,13 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                 ns     = ns
                 name   = `currentLocation`
                 t_prop = VALUE #( ( n = `link`           v = link ) ) ).
+  ENDMETHOD.
+
+
+  METHOD color_palette.
+    result = _generic(
+                ns     = ns
+                name   = `ColorPalette`
+                t_prop = VALUE #( ( n = `colorSelect`           v = colorselect ) ) ).
   ENDMETHOD.
 ENDCLASS.
