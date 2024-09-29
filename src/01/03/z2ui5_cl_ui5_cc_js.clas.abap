@@ -557,188 +557,188 @@ CLASS z2ui5_cl_ui5_cc_js IMPLEMENTATION.
              `});` && |\n|  &&
              |\n|.
 
-            result = result && `sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control, Token, Core, Element) => {` && |\n|  &&
-             `  "use strict";` && |\n|  &&
-             |\n|  &&
-             `  return Control.extend("z2ui5.MultiInputExt", {` && |\n|  &&
-             `    metadata: {` && |\n|  &&
-             `      properties: {` && |\n|  &&
-             `        MultiInputId: {` && |\n|  &&
-             `          type: "String"` && |\n|  &&
-             `        },` && |\n|  &&
-             `        MultiInputName: {` && |\n|  &&
-             `          type: "String"` && |\n|  &&
-             `        },` && |\n|  &&
-             `        addedTokens: {` && |\n|  &&
-             `          type: "Array"` && |\n|  &&
-             `        },` && |\n|  &&
-             `        checkInit: {` && |\n|  &&
-             `          type: "Boolean",` && |\n|  &&
-             `          defaultValue: false` && |\n|  &&
-             `        },` && |\n|  &&
-             `        removedTokens: {` && |\n|  &&
-             `          type: "Array"` && |\n|  &&
-             `        }` && |\n|  &&
-             `      },` && |\n|  &&
-             `      events: {` && |\n|  &&
-             `        "change": {` && |\n|  &&
-             `          allowPreventDefault: true,` && |\n|  &&
-             `          parameters: {}` && |\n|  &&
-             `        }` && |\n|  &&
-             `      },` && |\n|  &&
-             `    },` && |\n|  &&
-             |\n|  &&
-             `    init() {` && |\n|  &&
-             `      z2ui5.onAfterRendering.push(this.setControl.bind(this));` && |\n|  &&
-             `    },` && |\n|  &&
-             |\n|  &&
-             `    onTokenUpdate(oEvent) {` && |\n|  &&
-             `      this.setProperty("addedTokens", []);` && |\n|  &&
-             `      this.setProperty("removedTokens", []);` && |\n|  &&
-             |\n|  &&
-             `      if (oEvent.mParameters.type == "removed") {` && |\n|  &&
-             `        let removedTokens = [];` && |\n|  &&
-             `        oEvent.mParameters.removedTokens.forEach((item) => {` && |\n|  &&
-             `          removedTokens.push({` && |\n|  &&
-             `            KEY: item.getKey(),` && |\n|  &&
-             `            TEXT: item.getText()` && |\n|  &&
-             `          });` && |\n|  &&
-             `        }` && |\n|  &&
-             `        );` && |\n|  &&
-             `        this.setProperty("removedTokens", removedTokens);` && |\n|  &&
-             `      } else {` && |\n|  &&
-             `        let addedTokens = [];` && |\n|  &&
-             `        oEvent.mParameters.addedTokens.forEach((item) => {` && |\n|  &&
-             `          addedTokens.push({` && |\n|  &&
-             `            KEY: item.getKey(),` && |\n|  &&
-             `            TEXT: item.getText()` && |\n|  &&
-             `          });` && |\n|  &&
-             `        }` && |\n|  &&
-             `        );` && |\n|  &&
-             `        this.setProperty("addedTokens", addedTokens);` && |\n|  &&
-             `      }` && |\n|  &&
-             `      this.fireChange();` && |\n|  &&
-             `    },` && |\n|  &&
-             `    renderer(oRm, oControl) {` && |\n|  &&
-             `      z2ui5.onAfterRendering.push(this.setControl.bind(oControl));` && |\n|  &&
-             `    },` && |\n|  &&
-             `    setControl() {` && |\n|  &&
-             `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n|  &&
-             `      if (!table) {` && |\n|  &&
-             `        try {` && |\n|  &&
-             `          //  table = sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
-             `       //   table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
-             `          table = Core.byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
-             |\n|  &&
-             `        } catch (e) {` && |\n|  &&
-             `          return;` && |\n|  &&
-             `        }` && |\n|  &&
-             `      }` && |\n|  &&
-             `      if (!table) {` && |\n|  &&
-             `        return;` && |\n|  &&
-             `      }` && |\n|  &&
-             `      if (this.getProperty("checkInit") == true) {` && |\n|  &&
-             `        return;` && |\n|  &&
-             `      }` && |\n|  &&
-             `      this.setProperty("checkInit", true);` && |\n|  &&
-             `      table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n|  &&
-             `      var fnValidator = function (args) {` && |\n|  &&
-             `        var text = args.text;` && |\n|  &&
-             `        return new Token({` && |\n|  &&
-             `          key: text,` && |\n|  &&
-             `          text: text` && |\n|  &&
-             `        });` && |\n|  &&
-             `      };` && |\n|  &&
-             `      table.addValidator(fnValidator);` && |\n|  &&
-             `    },` && |\n|  &&
-             `    renderer(oRM, oControl) { }` && |\n|  &&
-             `  });` && |\n|  &&
-             `}` && |\n|  &&
-             `);` && |\n|  &&
-             |\n|  &&
-             `sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {` && |\n|  &&
-             `  "use strict";` && |\n|  &&
-             |\n|  &&
-             `  return Control.extend("z2ui5.UITableExt", {` && |\n|  &&
-             `    metadata: {` && |\n|  &&
-             `      properties: {` && |\n|  &&
-             `        tableId: {` && |\n|  &&
-             `          type: "String"` && |\n|  &&
-             `        }` && |\n|  &&
-             `      }` && |\n|  &&
-             `    },` && |\n|  &&
-             |\n|  &&
-             `    init() {` && |\n|  &&
-             `      z2ui5.onBeforeRoundtrip.push(this.readFilter.bind(this));` && |\n|  &&
-             `      z2ui5.onAfterRoundtrip.push(this.setFilter.bind(this));` && |\n|  &&
-             `    },` && |\n|  &&
-             |\n|  &&
-             `    readFilter() {` && |\n|  &&
-             `      try {` && |\n|  &&
-             `        let id = this.getProperty("tableId");` && |\n|  &&
-             `        let oTable = z2ui5.oView.byId(id);` && |\n|  &&
-             `        this.aFilters = oTable.getBinding().aFilters;` && |\n|  &&
-             `      } catch (e) { }` && |\n|  &&
-             `      ;` && |\n|  &&
-             `    },` && |\n|  &&
-             |\n|  &&
-             `    setFilter() {` && |\n|  &&
-             `      try {` && |\n|  &&
-             `        setTimeout((aFilters) => {` && |\n|  &&
-             `          let id = this.getProperty("tableId");` && |\n|  &&
-             `          let oTable = z2ui5.oView.byId(id);` && |\n|  &&
-             `          oTable.getBinding().filter(aFilters);` && |\n|  &&
-             `        }` && |\n|  &&
-             `          , 100, this.aFilters);` && |\n|  &&
-             `      } catch (e) { }` && |\n|  &&
-             `      ;` && |\n|  &&
-             `    },` && |\n|  &&
-             |\n|  &&
-             `    renderer(oRM, oControl) { }` && |\n|  &&
-             `  });` && |\n|  &&
-             `}` && |\n|  &&
-             `);` && |\n|  &&
-             |\n|  &&
-             `sap.ui.define("z2ui5/Util", [], () => {` && |\n|  &&
-             `  "use strict";` && |\n|  &&
-             `  return {` && |\n|  &&
-             `    DateCreateObject: (s) => new Date(s),` && |\n|  &&
-             `    DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),` && |\n|  &&
-             `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n|  &&
-             `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
-             `  };` && |\n|  &&
-             `}` && |\n|  &&
-             `);` && |\n|  &&
-             `sap.ui.require(["z2ui5/Util"], (Util) => {` && |\n|  &&
-             `  z2ui5.Util = Util;` && |\n|  &&
-             `}` && |\n|  &&
-             `);` && |\n|  &&
-             |\n|  &&
-             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) => {` && |\n|  &&
-             `  "use strict";` && |\n|  &&
-             `  return Control.extend("z2ui5.Dirty", {` && |\n|  &&
-             `    metadata: {` && |\n|  &&
-             `      properties: {` && |\n|  &&
-             `        isDirty: {` && |\n|  &&
-             `          type: "string"` && |\n|  &&
-             `        },` && |\n|  &&
-             `      }` && |\n|  &&
-             `    },` && |\n|  &&
-             `    setIsDirty(val) {` && |\n|  &&
-             `      if (Container) {` && |\n|  &&
-             `        Container.setDirtyFlag(val);` && |\n|  &&
-             `      } else {` && |\n|  &&
-             `        window.onbeforeunload = function (e) {` && |\n|  &&
-             `          if (val) {` && |\n|  &&
-             `            e.preventDefault();` && |\n|  &&
-             `          }` && |\n|  &&
-             `        }` && |\n|  &&
-             `      }` && |\n|  &&
-             `    },` && |\n|  &&
-             `    renderer(oRm, oControl) { }` && |\n|  &&
-             `  });` && |\n|  &&
-             `}` && |\n|  &&
-             `);`.
+    result = result && `sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap/ui/core/Element"], (Control, Token, Core, Element) => {` && |\n|  &&
+     `  "use strict";` && |\n|  &&
+     |\n|  &&
+     `  return Control.extend("z2ui5.MultiInputExt", {` && |\n|  &&
+     `    metadata: {` && |\n|  &&
+     `      properties: {` && |\n|  &&
+     `        MultiInputId: {` && |\n|  &&
+     `          type: "String"` && |\n|  &&
+     `        },` && |\n|  &&
+     `        MultiInputName: {` && |\n|  &&
+     `          type: "String"` && |\n|  &&
+     `        },` && |\n|  &&
+     `        addedTokens: {` && |\n|  &&
+     `          type: "Array"` && |\n|  &&
+     `        },` && |\n|  &&
+     `        checkInit: {` && |\n|  &&
+     `          type: "Boolean",` && |\n|  &&
+     `          defaultValue: false` && |\n|  &&
+     `        },` && |\n|  &&
+     `        removedTokens: {` && |\n|  &&
+     `          type: "Array"` && |\n|  &&
+     `        }` && |\n|  &&
+     `      },` && |\n|  &&
+     `      events: {` && |\n|  &&
+     `        "change": {` && |\n|  &&
+     `          allowPreventDefault: true,` && |\n|  &&
+     `          parameters: {}` && |\n|  &&
+     `        }` && |\n|  &&
+     `      },` && |\n|  &&
+     `    },` && |\n|  &&
+     |\n|  &&
+     `    init() {` && |\n|  &&
+     `      z2ui5.onAfterRendering.push(this.setControl.bind(this));` && |\n|  &&
+     `    },` && |\n|  &&
+     |\n|  &&
+     `    onTokenUpdate(oEvent) {` && |\n|  &&
+     `      this.setProperty("addedTokens", []);` && |\n|  &&
+     `      this.setProperty("removedTokens", []);` && |\n|  &&
+     |\n|  &&
+     `      if (oEvent.mParameters.type == "removed") {` && |\n|  &&
+     `        let removedTokens = [];` && |\n|  &&
+     `        oEvent.mParameters.removedTokens.forEach((item) => {` && |\n|  &&
+     `          removedTokens.push({` && |\n|  &&
+     `            KEY: item.getKey(),` && |\n|  &&
+     `            TEXT: item.getText()` && |\n|  &&
+     `          });` && |\n|  &&
+     `        }` && |\n|  &&
+     `        );` && |\n|  &&
+     `        this.setProperty("removedTokens", removedTokens);` && |\n|  &&
+     `      } else {` && |\n|  &&
+     `        let addedTokens = [];` && |\n|  &&
+     `        oEvent.mParameters.addedTokens.forEach((item) => {` && |\n|  &&
+     `          addedTokens.push({` && |\n|  &&
+     `            KEY: item.getKey(),` && |\n|  &&
+     `            TEXT: item.getText()` && |\n|  &&
+     `          });` && |\n|  &&
+     `        }` && |\n|  &&
+     `        );` && |\n|  &&
+     `        this.setProperty("addedTokens", addedTokens);` && |\n|  &&
+     `      }` && |\n|  &&
+     `      this.fireChange();` && |\n|  &&
+     `    },` && |\n|  &&
+     `    renderer(oRm, oControl) {` && |\n|  &&
+     `      z2ui5.onAfterRendering.push(this.setControl.bind(oControl));` && |\n|  &&
+     `    },` && |\n|  &&
+     `    setControl() {` && |\n|  &&
+     `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n|  &&
+     `      if (!table) {` && |\n|  &&
+     `        try {` && |\n|  &&
+     `          //  table = sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
+     `       //   table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
+     `          table = Core.byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));` && |\n|  &&
+     |\n|  &&
+     `        } catch (e) {` && |\n|  &&
+     `          return;` && |\n|  &&
+     `        }` && |\n|  &&
+     `      }` && |\n|  &&
+     `      if (!table) {` && |\n|  &&
+     `        return;` && |\n|  &&
+     `      }` && |\n|  &&
+     `      if (this.getProperty("checkInit") == true) {` && |\n|  &&
+     `        return;` && |\n|  &&
+     `      }` && |\n|  &&
+     `      this.setProperty("checkInit", true);` && |\n|  &&
+     `      table.attachTokenUpdate(this.onTokenUpdate.bind(this));` && |\n|  &&
+     `      var fnValidator = function (args) {` && |\n|  &&
+     `        var text = args.text;` && |\n|  &&
+     `        return new Token({` && |\n|  &&
+     `          key: text,` && |\n|  &&
+     `          text: text` && |\n|  &&
+     `        });` && |\n|  &&
+     `      };` && |\n|  &&
+     `      table.addValidator(fnValidator);` && |\n|  &&
+     `    },` && |\n|  &&
+     `    renderer(oRM, oControl) { }` && |\n|  &&
+     `  });` && |\n|  &&
+     `}` && |\n|  &&
+     `);` && |\n|  &&
+     |\n|  &&
+     `sap.ui.define("z2ui5/UITableExt", ["sap/ui/core/Control"], (Control) => {` && |\n|  &&
+     `  "use strict";` && |\n|  &&
+     |\n|  &&
+     `  return Control.extend("z2ui5.UITableExt", {` && |\n|  &&
+     `    metadata: {` && |\n|  &&
+     `      properties: {` && |\n|  &&
+     `        tableId: {` && |\n|  &&
+     `          type: "String"` && |\n|  &&
+     `        }` && |\n|  &&
+     `      }` && |\n|  &&
+     `    },` && |\n|  &&
+     |\n|  &&
+     `    init() {` && |\n|  &&
+     `      z2ui5.onBeforeRoundtrip.push(this.readFilter.bind(this));` && |\n|  &&
+     `      z2ui5.onAfterRoundtrip.push(this.setFilter.bind(this));` && |\n|  &&
+     `    },` && |\n|  &&
+     |\n|  &&
+     `    readFilter() {` && |\n|  &&
+     `      try {` && |\n|  &&
+     `        let id = this.getProperty("tableId");` && |\n|  &&
+     `        let oTable = z2ui5.oView.byId(id);` && |\n|  &&
+     `        this.aFilters = oTable.getBinding().aFilters;` && |\n|  &&
+     `      } catch (e) { }` && |\n|  &&
+     `      ;` && |\n|  &&
+     `    },` && |\n|  &&
+     |\n|  &&
+     `    setFilter() {` && |\n|  &&
+     `      try {` && |\n|  &&
+     `        setTimeout((aFilters) => {` && |\n|  &&
+     `          let id = this.getProperty("tableId");` && |\n|  &&
+     `          let oTable = z2ui5.oView.byId(id);` && |\n|  &&
+     `          oTable.getBinding().filter(aFilters);` && |\n|  &&
+     `        }` && |\n|  &&
+     `          , 100, this.aFilters);` && |\n|  &&
+     `      } catch (e) { }` && |\n|  &&
+     `      ;` && |\n|  &&
+     `    },` && |\n|  &&
+     |\n|  &&
+     `    renderer(oRM, oControl) { }` && |\n|  &&
+     `  });` && |\n|  &&
+     `}` && |\n|  &&
+     `);` && |\n|  &&
+     |\n|  &&
+     `sap.ui.define("z2ui5/Util", [], () => {` && |\n|  &&
+     `  "use strict";` && |\n|  &&
+     `  return {` && |\n|  &&
+     `    DateCreateObject: (s) => new Date(s),` && |\n|  &&
+     `    DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),` && |\n|  &&
+     `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8)),` && |\n|  &&
+     `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
+     `  };` && |\n|  &&
+     `}` && |\n|  &&
+     `);` && |\n|  &&
+     `sap.ui.require(["z2ui5/Util"], (Util) => {` && |\n|  &&
+     `  z2ui5.Util = Util;` && |\n|  &&
+     `}` && |\n|  &&
+     `);` && |\n|  &&
+     |\n|  &&
+     `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) => {` && |\n|  &&
+     `  "use strict";` && |\n|  &&
+     `  return Control.extend("z2ui5.Dirty", {` && |\n|  &&
+     `    metadata: {` && |\n|  &&
+     `      properties: {` && |\n|  &&
+     `        isDirty: {` && |\n|  &&
+     `          type: "string"` && |\n|  &&
+     `        },` && |\n|  &&
+     `      }` && |\n|  &&
+     `    },` && |\n|  &&
+     `    setIsDirty(val) {` && |\n|  &&
+     `      if (Container) {` && |\n|  &&
+     `        Container.setDirtyFlag(val);` && |\n|  &&
+     `      } else {` && |\n|  &&
+     `        window.onbeforeunload = function (e) {` && |\n|  &&
+     `          if (val) {` && |\n|  &&
+     `            e.preventDefault();` && |\n|  &&
+     `          }` && |\n|  &&
+     `        }` && |\n|  &&
+     `      }` && |\n|  &&
+     `    },` && |\n|  &&
+     `    renderer(oRm, oControl) { }` && |\n|  &&
+     `  });` && |\n|  &&
+     `}` && |\n|  &&
+     `);`.
 
   ENDMETHOD.
 
