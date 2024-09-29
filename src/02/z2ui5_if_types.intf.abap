@@ -40,7 +40,7 @@ INTERFACE z2ui5_if_types
       origin           TYPE string,
       pathname         TYPE string,
       search           TYPE string,
-      hash             type string,
+      hash             TYPE string,
       t_startup_params TYPE ty_t_name_value,
     END OF ty_s_config.
 
