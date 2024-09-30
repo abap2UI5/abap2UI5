@@ -58,9 +58,10 @@ CLASS z2ui5_cl_http_handler DEFINITION
     METHODS session_handling
       IMPORTING
         attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
+
     METHODS get_index_html
       RETURNING
-        value(result) TYPE string.
+        VALUE(result) TYPE string.
 
   PRIVATE SECTION.
 
