@@ -61,7 +61,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     METHODS get_index_html
       RETURNING
-        VALUE(result) TYPE string.
+        VALUE(result) TYPE string
+        ##NEEDED.
 
   PRIVATE SECTION.
 
