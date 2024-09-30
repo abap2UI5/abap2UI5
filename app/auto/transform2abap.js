@@ -30,18 +30,10 @@ function createFileInTargetDir(targetFilePath, content) {
 }
 
 // Function to format the content into an ABAP class method
-function formatAsAbapClass(content, className) {
+function formatAsAbapClass(content, className, isSpecialFile) {
     const formattedContent = content.split('\n').map(line => {
         line = line.replace(/\s+$/, ''); // Remove trailing spaces
-        let formattedLine = '';
-        while (line.length > 100) {
-            const lastSpaceIndex = line.substring(0, 100).lastIndexOf(' ');
-            const splitIndex = lastSpaceIndex > -1 ? lastSpaceIndex : 100;
-            formattedLine += `             \`${line.substring(0, splitIndex).replace(/`/g, '``')}\` && |\\n|  &&\n`;
-            line = line.substring(splitIndex).trim();
-        }
-        formattedLine += `             \`${line.replace(/`/g, '``')}\` && |\\n|  &&`;
-        return formattedLine;
+        return `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
     }).join('\n');
     return abapClassTemplate(className, formattedContent);
 }
@@ -112,7 +104,8 @@ async function main() {
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = generateClassName(file);
-            const abapClassContent = formatAsAbapClass(sourceContent, className);
+            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html');
+            const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
             await createFileInTargetDir(targetFilePath, abapClassContent);

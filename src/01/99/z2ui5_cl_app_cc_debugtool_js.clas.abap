@@ -18,8 +18,7 @@ CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
 
   METHOD get.
 
-    result =              `sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json/JSONModel"],` && |\n|  &&
-             `(Control, Fragment, JSONModel) => {` && |\n|  &&
+    result =              `sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json/JSONModel"], (Control, Fragment, JSONModel) => {` && |\n|  &&
              `    "use strict";` && |\n|  &&
              `` && |\n|  &&
              `    return Control.extend("z2ui5.cc.DebugTool", {` && |\n|  &&
@@ -46,14 +45,11 @@ CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
              `                    displayEditor(oEvent, JSON.stringify(z2ui5.oConfig, null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'MODEL':` && |\n|  &&
-             `                    displayEditor(oEvent, JSON.stringify(oView?.getModel()?.getData(), null, 3),` && |\n|  &&
-             `'json');` && |\n|  &&
+             `                    displayEditor(oEvent, JSON.stringify(oView?.getModel()?.getData(), null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'VIEW':` && |\n|  &&
-             `                    const viewContent = oView?.mProperties?.viewContent ||` && |\n|  &&
-             `z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML;` && |\n|  &&
-             `                    displayEditor(oEvent, this.prettifyXml(viewContent), 'xml',` && |\n|  &&
-             `this.prettifyXml(oView?._xContent.outerHTML));` && |\n|  &&
+             `                    const viewContent = oView?.mProperties?.viewContent || z2ui5.responseData.S_FRONT.PARAMS.S_VIEW.XML;` && |\n|  &&
+             `                    displayEditor(oEvent, this.prettifyXml(viewContent), 'xml', this.prettifyXml(oView?._xContent.outerHTML));` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'PLAIN':` && |\n|  &&
              `                    displayEditor(oEvent, JSON.stringify(z2ui5.responseData, null, 3), 'json');` && |\n|  &&
@@ -65,42 +61,31 @@ CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
              `                    displayEditor(oEvent, this.prettifyXml(oResponse?.PARAMS?.S_POPUP?.XML), 'xml');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'POPUP_MODEL':` && |\n|  &&
-             `                    displayEditor(oEvent, JSON.stringify(z2ui5.oViewPopup.getModel().getData(),` && |\n|  &&
-             `null, 3), 'json');` && |\n|  &&
+             `                    displayEditor(oEvent, JSON.stringify(z2ui5.oViewPopup.getModel().getData(), null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'POPOVER':` && |\n|  &&
              `                    displayEditor(oEvent, oResponse?.PARAMS?.S_POPOVER?.XML, 'xml');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'POPOVER_MODEL':` && |\n|  &&
-             `                    displayEditor(oEvent,` && |\n|  &&
-             `JSON.stringify(z2ui5?.oViewPopover?.getModel()?.getData(), null, 3), 'json');` && |\n|  &&
+             `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewPopover?.getModel()?.getData(), null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'NEST1':` && |\n|  &&
-             `                    displayEditor(oEvent,` && |\n|  &&
-             `this.prettifyXml(z2ui5?.oViewNest?.mProperties?.viewContent), 'xml',` && |\n|  &&
-             `this.prettifyXml(z2ui5?.oViewNest?._xContent.outerHTML));` && |\n|  &&
+             `                    displayEditor(oEvent, this.prettifyXml(z2ui5?.oViewNest?.mProperties?.viewContent), 'xml', this.prettifyXml(z2ui5?.oViewNest?._xContent.outerHTML));` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'NEST1_MODEL':` && |\n|  &&
-             `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewNest?.getModel()?.getData(),` && |\n|  &&
-             `null, 3), 'json');` && |\n|  &&
+             `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewNest?.getModel()?.getData(), null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'NEST2':` && |\n|  &&
-             `                    displayEditor(oEvent,` && |\n|  &&
-             `this.prettifyXml(z2ui5?.oViewNest2?.mProperties?.viewContent), 'xml',` && |\n|  &&
-             `this.prettifyXml(z2ui5?.oViewNest2?._xContent.outerHTML));` && |\n|  &&
+             `                    displayEditor(oEvent, this.prettifyXml(z2ui5?.oViewNest2?.mProperties?.viewContent), 'xml', this.prettifyXml(z2ui5?.oViewNest2?._xContent.outerHTML));` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'NEST2_MODEL':` && |\n|  &&
-             `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewNest2?.getModel()?.getData(),` && |\n|  &&
-             `null, 3), 'json');` && |\n|  &&
+             `                    displayEditor(oEvent, JSON.stringify(z2ui5?.oViewNest2?.getModel()?.getData(), null, 3), 'json');` && |\n|  &&
              `                    break;` && |\n|  &&
              `                case 'SOURCE':` && |\n|  &&
              `                    const parent = oEvent.getSource().getParent();` && |\n|  &&
              `                    const contentControl = parent.getContent()[2].getItems()[0];` && |\n|  &&
-             `                    const url =` && |\n|  &&
-             ```${window.location.origin}/sap/bc/adt/oo/classes/${z2ui5.responseData.S_FRONT.APP}/source/main``;` && |\n|  &&
-             `                    const content =` && |\n|  &&
-             `atob('PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=')` && |\n|  &&
-             `.replace("' + url + '", url);` && |\n|  &&
+             `                    const url = ``${window.location.origin}/sap/bc/adt/oo/classes/${z2ui5.responseData.S_FRONT.APP}/source/main``;` && |\n|  &&
+             `                    const content = atob('PGlmcmFtZSBpZD0idGVzdCIgc3JjPSInICsgdXJsICsgJyIgaGVpZ2h0PSI4MDBweCIgd2lkdGg9IjEyMDBweCIgLz4=').replace("' + url + '", url);` && |\n|  &&
              `                    contentControl.setProperty("content", content);` && |\n|  &&
              `                    const modelData = oEvent.getSource().getModel().oData;` && |\n|  &&
              `                    modelData.editor_visible = false;` && |\n|  &&
@@ -124,8 +109,7 @@ CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
              `` && |\n|  &&
              `        onTemplatingPress: function (oEvent) {` && |\n|  &&
              `            const modelData = oEvent.getSource().getModel().oData;` && |\n|  &&
-             `            modelData.value = oEvent.getSource().getPressed() ? modelData.xContent :` && |\n|  &&
-             `modelData.previousValue;` && |\n|  &&
+             `            modelData.value = oEvent.getSource().getPressed() ? modelData.xContent : modelData.previousValue;` && |\n|  &&
              `            oEvent.getSource().getModel().refresh();` && |\n|  &&
              `        },` && |\n|  &&
              `` && |\n|  &&
