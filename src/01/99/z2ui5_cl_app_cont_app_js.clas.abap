@@ -518,6 +518,8 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `` && |\n|  &&
              `            this.setProperty("path", this.oFileUploader.getProperty("value"));` && |\n|  &&
              `` && |\n|  &&
+             |\n|.
+    result = result &&
              `            var file = z2ui5.oUpload.oFileUpload.files[0];` && |\n|  &&
              `            var reader = new FileReader();` && |\n|  &&
              `` && |\n|  &&

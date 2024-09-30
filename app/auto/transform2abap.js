@@ -31,11 +31,16 @@ function createFileInTargetDir(targetFilePath, content) {
 
 // Function to format the content into an ABAP class method
 function formatAsAbapClass(content, className, isSpecialFile) {
-    const formattedContent = content.split('\n').map(line => {
+    const lines = content.split('\n');
+    const formattedLines = lines.map((line, index) => {
         line = line.replace(/\s+$/, ''); // Remove trailing spaces
-        return `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
-    }).join('\n');
-    return abapClassTemplate(className, formattedContent);
+        const formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
+        if ((index + 1) % 500 === 0) {
+            return `${formattedLine}\n             |\\n|.\n    result = result &&`;
+        }
+        return formattedLine;
+    });
+    return abapClassTemplate(className, formattedLines.join('\n'));
 }
 
 // Function to generate a class name from a file path
