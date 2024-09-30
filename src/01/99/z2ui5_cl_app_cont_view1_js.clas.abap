@@ -18,14 +18,14 @@ CLASS z2ui5_cl_app_cont_View1_js IMPLEMENTATION.
 
   METHOD get.
 
-    result =              `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView", "sap/ui/model/json/JSONModel` && |\n|  &&
-             `",` && |\n|  &&
-             `    "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment", "` && |\n|  &&
-             `sap/m/BusyDialog",` && |\n|  &&
+    result =              `sap.ui.define(["sap/ui/core/mvc/Controller", "sap/ui/core/mvc/XMLView",` && |\n|  &&
+             `"sap/ui/model/json/JSONModel",` && |\n|  &&
+             `    "sap/ui/core/BusyIndicator", "sap/m/MessageBox", "sap/m/MessageToast", "sap/ui/core/Fragment",` && |\n|  &&
+             `"sap/m/BusyDialog",` && |\n|  &&
              `     "sap/ui/VersionInfo", "z2ui5/cc/Server",` && |\n|  &&
              `    ],` && |\n|  &&
-             `    function(Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment, mBus` && |\n|  &&
-             `yDialog, VersionInfo,` && |\n|  &&
+             `    function(Controller, XMLView, JSONModel, BusyIndicator, MessageBox, MessageToast, Fragment,` && |\n|  &&
+             `mBusyDialog, VersionInfo,` && |\n|  &&
              `        Server ) {` && |\n|  &&
              `    "use strict";` && |\n|  &&
              `    return Controller.extend("z2ui5.controller.View1", {` && |\n|  &&
@@ -71,8 +71,8 @@ CLASS z2ui5_cl_app_cont_View1_js IMPLEMENTATION.
              `                if (!z2ui5.checkNestAfter2) {` && |\n|  &&
              `                    if (S_VIEW_NEST2?.XML) {` && |\n|  &&
              `                        z2ui5.oController.NestViewDestroy2();` && |\n|  &&
-             `                        await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2', 'S_VIEW_NEST2'` && |\n|  &&
-             `);` && |\n|  &&
+             `                        await this.displayNestedView2(S_VIEW_NEST2.XML, 'oViewNest2',` && |\n|  &&
+             `'S_VIEW_NEST2');` && |\n|  &&
              `                        z2ui5.checkNestAfter2 = true;` && |\n|  &&
              `                    }` && |\n|  &&
              `                }` && |\n|  &&
@@ -337,8 +337,8 @@ CLASS z2ui5_cl_app_cont_View1_js IMPLEMENTATION.
              `           // return;` && |\n|  &&
              `` && |\n|  &&
              `            if (!window.navigator.onLine) {` && |\n|  &&
-             `                MessageBox.alert('No internet connection! Please reconnect to the server and try aga` && |\n|  &&
-             `in.');` && |\n|  &&
+             `                MessageBox.alert('No internet connection! Please reconnect to the server and try` && |\n|  &&
+             `again.');` && |\n|  &&
              `                return;` && |\n|  &&
              `            }` && |\n|  &&
              `            if (z2ui5.isBusy == true) {` && |\n|  &&
@@ -417,8 +417,8 @@ CLASS z2ui5_cl_app_cont_View1_js IMPLEMENTATION.
              `            var ui5_sdk = oCurrentVersionInfo.gav.includes('com.sap.ui5') ? true : false;` && |\n|  &&
              `            if (!ui5_sdk) {` && |\n|  &&
              `                if (err) {` && |\n|  &&
-             `                    MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not ava` && |\n|  &&
-             `ilabe in openui5");` && |\n|  &&
+             `                    MessageBox.error("openui5 SDK is loaded, module: " + err._modules + " is not` && |\n|  &&
+             `availabe in openui5");` && |\n|  &&
              `                    return;` && |\n|  &&
              `                }` && |\n|  &&
              `                ;` && |\n|  &&
@@ -432,16 +432,16 @@ CLASS z2ui5_cl_app_cont_View1_js IMPLEMENTATION.
              `            if (params[msgType]?.TEXT !== undefined) {` && |\n|  &&
              `                if (msgType === 'S_MSG_TOAST') {` && |\n|  &&
              `                    MessageToast.show(params[msgType].TEXT, {` && |\n|  &&
-             `                        duration: params[msgType].DURATION ? parseInt(params[msgType].DURATION) : 30` && |\n|  &&
-             `00,` && |\n|  &&
+             `                        duration: params[msgType].DURATION ? parseInt(params[msgType].DURATION) :` && |\n|  &&
+             `3000,` && |\n|  &&
              `                        width: params[msgType].WIDTH ? params[msgType].WIDTH : '15em',` && |\n|  &&
              `                        onClose: params[msgType].ONCLOSE ? params[msgType].ONCLOSE : null,` && |\n|  &&
              `                        autoClose: params[msgType].AUTOCLOSE ? true : false,` && |\n|  &&
-             `                        animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION ? params[ms` && |\n|  &&
-             `gType].ANIMATIONTIMINGFUNCTION : 'ease',` && |\n|  &&
-             `                        animationDuration: params[msgType].ANIMATIONDURATION ? parseInt(params[msgTy` && |\n|  &&
-             `pe].ANIMATIONDURATION) : 1000,` && |\n|  &&
-             `                        closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true : ` && |\n|  &&
+             `                        animationTimingFunction: params[msgType].ANIMATIONTIMINGFUNCTION ?` && |\n|  &&
+             `params[msgType].ANIMATIONTIMINGFUNCTION : 'ease',` && |\n|  &&
+             `                        animationDuration: params[msgType].ANIMATIONDURATION ?` && |\n|  &&
+             `parseInt(params[msgType].ANIMATIONDURATION) : 1000,` && |\n|  &&
+             `                        closeonBrowserNavigation: params[msgType].CLOSEONBROWSERNAVIGATION ? true :` && |\n|  &&
              `false` && |\n|  &&
              `                    });` && |\n|  &&
              `                    if (params[msgType].CLASS) {` && |\n|  &&
@@ -457,18 +457,18 @@ CLASS z2ui5_cl_app_cont_View1_js IMPLEMENTATION.
              `                        MessageBox[params[msgType].TYPE](params[msgType].TEXT);` && |\n|  &&
              `                    } else {` && |\n|  &&
              `                        MessageBox.show(params[msgType].TEXT, {` && |\n|  &&
-             `                            styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS : ''` && |\n|  &&
-             `,` && |\n|  &&
+             `                            styleClass: params[msgType].STYLECLASS ? params[msgType].STYLECLASS :` && |\n|  &&
+             `'',` && |\n|  &&
              `                            title: params[msgType].TITLE ? params[msgType].TITLE : '',` && |\n|  &&
-             `                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " + param` && |\n|  &&
-             `s[msgType].ONCLOSE) : null,` && |\n|  &&
+             `                            onClose: params[msgType].ONCLOSE ? Function("sAction", "return " +` && |\n|  &&
+             `params[msgType].ONCLOSE) : null,` && |\n|  &&
              `                            actions: params[msgType].ACTIONS ? params[msgType].ACTIONS : 'OK',` && |\n|  &&
-             `                            emphasizedAction: params[msgType].EMPHASIZEDACTION ? params[msgType].EMP` && |\n|  &&
-             `HASIZEDACTION : 'OK',` && |\n|  &&
-             `                            initialFocus: params[msgType].INITIALFOCUS ? params[msgType].INITIALFOCU` && |\n|  &&
-             `S : null,` && |\n|  &&
-             `                            textDirection: params[msgType].TEXTDIRECTION ? params[msgType].TEXTDIREC` && |\n|  &&
-             `TION : 'Inherit',` && |\n|  &&
+             `                            emphasizedAction: params[msgType].EMPHASIZEDACTION ?` && |\n|  &&
+             `params[msgType].EMPHASIZEDACTION : 'OK',` && |\n|  &&
+             `                            initialFocus: params[msgType].INITIALFOCUS ?` && |\n|  &&
+             `params[msgType].INITIALFOCUS : null,` && |\n|  &&
+             `                            textDirection: params[msgType].TEXTDIRECTION ?` && |\n|  &&
+             `params[msgType].TEXTDIRECTION : 'Inherit',` && |\n|  &&
              `                            icon: params[msgType].ICON ? params[msgType].ICON : 'NONE',` && |\n|  &&
              `                            details: params[msgType].DETAILS ? params[msgType].DETAILS : '',` && |\n|  &&
              `                            closeOnNavigation: params[msgType].CLOSEONNAVIGATION ? true : false` && |\n|  &&

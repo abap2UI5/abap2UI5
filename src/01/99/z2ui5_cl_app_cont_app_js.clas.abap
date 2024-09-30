@@ -272,8 +272,8 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `` && |\n|  &&
              `` && |\n|  &&
              `` && |\n|  &&
-             `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"], (Control` && |\n|  &&
-             `, VersionInfo, Device) => {` && |\n|  &&
+             `sap.ui.define("z2ui5/Info", ["sap/ui/core/Control", "sap/ui/VersionInfo", "sap/ui/Device"],` && |\n|  &&
+             `(Control, VersionInfo, Device) => {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `` && |\n|  &&
              `  return Control.extend("z2ui5.Info", {` && |\n|  &&
@@ -430,8 +430,8 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `}` && |\n|  &&
              `);` && |\n|  &&
              `` && |\n|  &&
-             `sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button", "sap/ui/unified/FileUplo` && |\n|  &&
-             `ader", "sap/m/HBox"], function (Control, Button, FileUploader, HBox) {` && |\n|  &&
+             `sap.ui.define("z2ui5/FileUploader", ["sap/ui/core/Control", "sap/m/Button",` && |\n|  &&
+             `"sap/ui/unified/FileUploader", "sap/m/HBox"], function (Control, Button, FileUploader, HBox) {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `` && |\n|  &&
              `  return Control.extend("z2ui5.FileUploader", {` && |\n|  &&
@@ -596,8 +596,8 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `  });` && |\n|  &&
              `});` && |\n|  &&
              `` && |\n|  &&
-             `sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core", "sap` && |\n|  &&
-             `/ui/core/Element"], (Control, Token, Core, Element) => {` && |\n|  &&
+             `sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap/ui/core/Core",` && |\n|  &&
+             `"sap/ui/core/Element"], (Control, Token, Core, Element) => {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `` && |\n|  &&
              `  return Control.extend("z2ui5.MultiInputExt", {` && |\n|  &&
@@ -666,10 +666,12 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n|  &&
              `      if (!table) {` && |\n|  &&
              `        try {` && |\n|  &&
-             `          //  table = sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputN` && |\n|  &&
-             `ame"))[0].id.replace('-inner', ''));` && |\n|  &&
-             `          table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.repl` && |\n|  &&
-             `ace('-inner', ''));` && |\n|  &&
+             `          //  table =` && |\n|  &&
+             `sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('` && |\n|  &&
+             `-inner', ''));` && |\n|  &&
+             `          table =` && |\n|  &&
+             `Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner',` && |\n|  &&
+             `''));` && |\n|  &&
              `` && |\n|  &&
              `        } catch (e) {` && |\n|  &&
              `          return;` && |\n|  &&
@@ -744,12 +746,12 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `  "use strict";` && |\n|  &&
              `  return {` && |\n|  &&
              `    DateCreateObject: (s) => new Date(s),` && |\n|  &&
-             `    DateAbapTimestampToDate: (sTimestamp) => new sap.gantt.misc.Format.abapTimestampToDate(sTimestam` && |\n|  &&
-             `p),` && |\n|  &&
-             `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1, d.slice(6,` && |\n|  &&
-             ` 8)),` && |\n|  &&
-             `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4, 6` && |\n|  &&
-             `)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
+             `    DateAbapTimestampToDate: (sTimestamp) => new` && |\n|  &&
+             `sap.gantt.misc.Format.abapTimestampToDate(sTimestamp),` && |\n|  &&
+             `    DateAbapDateToDateObject: (d) => new Date(d.slice(0, 4), parseInt(d.slice(4, 6)) - 1,` && |\n|  &&
+             `d.slice(6, 8)),` && |\n|  &&
+             `    DateAbapDateTimeToDateObject: (d, t = '000000') => new Date(d.slice(0, 4), parseInt(d.slice(4,` && |\n|  &&
+             `6)) - 1, d.slice(6, 8), t.slice(0, 2), t.slice(2, 4), t.slice(4, 6)),` && |\n|  &&
              `  };` && |\n|  &&
              `}` && |\n|  &&
              `);` && |\n|  &&
@@ -781,8 +783,8 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `}` && |\n|  &&
              `);` && |\n|  &&
              `` && |\n|  &&
-             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container) =` && |\n|  &&
-             `> {` && |\n|  &&
+             `sap.ui.define("z2ui5/Dirty", ["sap/ui/core/Control", "sap/ushell/Container"], (Control, Container)` && |\n|  &&
+             `=> {` && |\n|  &&
              `  "use strict";` && |\n|  &&
              `  return Control.extend("z2ui5.Dirty", {` && |\n|  &&
              `    metadata: {` && |\n|  &&
