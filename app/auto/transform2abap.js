@@ -20,7 +20,7 @@ const initialXMLContent = `<?xml version="1.0" encoding="utf-8"?>
 </abapGit>`;
 
 // Function to read the file content from the source directory
-function readFileContent(filePath) {
+function readFile(filePath) {
     return fs.promises.readFile(filePath, 'utf-8');
 }
 
@@ -30,14 +30,19 @@ function createFileInTargetDir(targetFilePath, content) {
 }
 
 // Function to format the content into an ABAP class method
-function formatAsAbapClass(content, className) {
+function formatAsAbapClass(content, className, isSpecialFile) {
+    if (isSpecialFile) {
+        const formattedContent = content.split('\n').map(line => `\`${line.replace(/`/g, '``')}\` &&`).join('\n');
+        return abapClassTemplate(className, formattedContent);
+    }
+
     const formattedContent = content.split('\n').map(line => {
         let formattedLine = '';
         while (line.length > 100) {
-            formattedLine += `             \`${line.substring(0, 100).replace(/`/g, '``')}\` &&\n`;
+            formattedLine += `             \`${line.substring(0, 100).replace(/`/g, '``')}\` && |\\n|  &&\n`;
             line = line.substring(100);
         }
-        formattedLine += `             \`${line.replace(/`/g, '``')}\` &&`;
+        formattedLine += `             \`${line.replace(/`/g, '``')}\` && |\\n|  &&`;
         return formattedLine;
     }).join('\n');
     return abapClassTemplate(className, formattedContent);
@@ -105,11 +110,12 @@ async function main() {
         const files = getAllFiles(sourceDir);
 
         for (const file of files) {
-            const sourceContent = await readFileContent(file);
+            const sourceContent = await readFile(file);
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = generateClassName(file);
-            const abapClassContent = formatAsAbapClass(sourceContent, className);
+            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('index.html');
+            const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
             await createFileInTargetDir(targetFilePath, abapClassContent);
