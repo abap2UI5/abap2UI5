@@ -173,4 +173,4 @@ CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS.
+ENDCLASS. 

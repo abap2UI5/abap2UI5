@@ -24,5 +24,5 @@ CLASS ${className} IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS.`;
+ENDCLASS. `;
 };

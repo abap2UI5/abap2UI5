@@ -57,4 +57,4 @@ CLASS z2ui5_cl_app__index_html IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS.
+ENDCLASS. 
