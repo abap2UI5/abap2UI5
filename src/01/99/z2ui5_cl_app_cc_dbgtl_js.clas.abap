@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_cc_DebugTool_js DEFINITION
+CLASS z2ui5_cl_app_cc_dbgtl_js DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_cc_DebugTool_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
+CLASS z2ui5_cl_app_cc_dbgtl_js IMPLEMENTATION.
 
   METHOD get.
 
