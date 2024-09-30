@@ -51,7 +51,7 @@ function generateClassName(filePath) {
     if (fileName.length > 2) {
         fileName.splice(1, 1); // Remove the middle part
     }
-    const folderPath = parts.join('_').toLowerCase();
+    const folderPath = parts.map(part => part.substring(0, 4)).join('_').toLowerCase();
     return `z2ui5_cl_app_${folderPath}_${fileName.join('_')}`;
 }
 
