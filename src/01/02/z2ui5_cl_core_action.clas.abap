@@ -15,12 +15,6 @@ CLASS z2ui5_cl_core_action DEFINITION
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
 
-    METHODS factory_system_error
-      IMPORTING
-        ix            TYPE REF TO cx_root
-      RETURNING
-        VALUE(result) TYPE REF TO z2ui5_cl_core_action.
-
     METHODS factory_first_start
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_core_action.
@@ -142,20 +136,6 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
     ENDIF.
 
   ENDMETHOD.
-
-
-  METHOD factory_system_error.
-
-    result = NEW #( mo_http_post ).
-
-    result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
-    result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-o_app_call           = z2ui5_cl_core_app_error=>factory( ix ).
-
-    result = result->factory_stack_call( ).
-
-  ENDMETHOD.
-
 
   METHOD factory_system_startup.
 
