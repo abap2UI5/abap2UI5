@@ -36,7 +36,7 @@ CLASS z2ui5_cl_app__manifest_json IMPLEMENTATION.
              `    },` && 
              `    "dataSources": {` && 
              `      "mainService": {` && 
-             `        "uri": "/sap/bc/z2UI5",` && 
+             `        "uri": "_LOCAL_",` && 
              `        "type": "OData",` && 
              `        "settings": {` && 
              `          "annotations": [],` && 
