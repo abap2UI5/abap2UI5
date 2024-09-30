@@ -643,9 +643,7 @@ sap.ui.define("z2ui5/MultiInputExt", ["sap/ui/core/Control", "sap/m/Token", "sap
       let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));
       if (!table) {
         try {
-          //  table = sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));
           table = Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner', ''));
-
         } catch (e) {
           return;
         }

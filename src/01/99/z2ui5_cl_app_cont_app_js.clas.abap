@@ -666,13 +666,9 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `      let table = z2ui5.oView.byId(this.getProperty("MultiInputId"));` && |\n|  &&
              `      if (!table) {` && |\n|  &&
              `        try {` && |\n|  &&
-             `          //  table =` && |\n|  &&
-             `sap.ui.getCore().byId(document.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('` && |\n|  &&
-             `-inner', ''));` && |\n|  &&
              `          table =` && |\n|  &&
              `Core.byId(Element.getElementsByName(this.getProperty("MultiInputName"))[0].id.replace('-inner',` && |\n|  &&
              `''));` && |\n|  &&
-             `` && |\n|  &&
              `        } catch (e) {` && |\n|  &&
              `          return;` && |\n|  &&
              `        }` && |\n|  &&
