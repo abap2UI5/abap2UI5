@@ -26,14 +26,6 @@ CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
              `` && |\n|  &&
              `        prettifyXml: function (sourceXml) {` && |\n|  &&
              `            const xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n|  &&
-             `            const sParse =` && |\n|  &&
-             `unescape('%3Cxsl%3Astylesheet%20xmlns%3Axsl%3D%22http%3A//www.w3.org/1999/XSL/Transform%22%3E%0A%20%` && |\n|  &&
-             `20%3Cxsl%3Astrip-space%20elements%3D%22*%22/%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22para%5Bconten` && |\n|  &&
-             `t-style%5D%5Bnot%28text%28%29%29%5D%22%3E%0A%20%20%20%20%3Cxsl%3Avalue-of%20select%3D%22normalize-sp` && |\n|  &&
-             `ace%28.%29%22/%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22node%28%29%7C` && |\n|  &&
-             `@*%22%3E%0A%20%20%20%20%3Cxsl%3Acopy%3E%3Cxsl%3Aapply-templates%20select%3D%22node%28%29%7C@*%22/%3E` && |\n|  &&
-             `%3C/xsl%3Acopy%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Aoutput%20indent%3D%22yes%22/%3E%0A%` && |\n|  &&
-             `3C/xsl%3Astylesheet%3E');` && |\n|  &&
              `            const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');` && |\n|  &&
              `` && |\n|  &&
              `            const xsltProcessor = new XSLTProcessor();` && |\n|  &&

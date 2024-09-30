@@ -5,7 +5,6 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
 
         prettifyXml: function (sourceXml) {
             const xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
-            const sParse = unescape('%3Cxsl%3Astylesheet%20xmlns%3Axsl%3D%22http%3A//www.w3.org/1999/XSL/Transform%22%3E%0A%20%20%3Cxsl%3Astrip-space%20elements%3D%22*%22/%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22para%5Bcontent-style%5D%5Bnot%28text%28%29%29%5D%22%3E%0A%20%20%20%20%3Cxsl%3Avalue-of%20select%3D%22normalize-space%28.%29%22/%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Atemplate%20match%3D%22node%28%29%7C@*%22%3E%0A%20%20%20%20%3Cxsl%3Acopy%3E%3Cxsl%3Aapply-templates%20select%3D%22node%28%29%7C@*%22/%3E%3C/xsl%3Acopy%3E%0A%20%20%3C/xsl%3Atemplate%3E%0A%20%20%3Cxsl%3Aoutput%20indent%3D%22yes%22/%3E%0A%3C/xsl%3Astylesheet%3E');
             const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');
 
             const xsltProcessor = new XSLTProcessor();
