@@ -79,7 +79,8 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        mo_action = mo_action->factory_system_error( x ).
+        ASSERT 1 = x->get_text( ).
+*        mo_action = mo_action->factory_system_error( x ).
     ENDTRY.
   ENDMETHOD.
 
@@ -157,7 +158,8 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
         ENDIF.
 
       CATCH cx_root INTO DATA(x).
-        mo_action = mo_action->factory_system_error( x ).
+        ASSERT 1 = x->get_text( ).
+*        mo_action = mo_action->factory_system_error( x ).
     ENDTRY.
   ENDMETHOD.
 ENDCLASS.

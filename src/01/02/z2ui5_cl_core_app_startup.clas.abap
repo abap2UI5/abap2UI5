@@ -19,6 +19,8 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
         class_editable         TYPE abap_bool VALUE abap_true,
       END OF ms_home.
 
+    DATA mv_ui5_version TYPE string .
+
     DATA client TYPE REF TO z2ui5_if_client.
     DATA mv_check_initialized TYPE abap_bool.
 
@@ -30,7 +32,7 @@ CLASS z2ui5_cl_core_app_startup DEFINITION
     METHODS z2ui5_on_event.
     METHODS view_display_start.
     METHODS on_event_check.
-
+    METHODS view_display_popup.
   PROTECTED SECTION.
     DATA mt_classes TYPE z2ui5_cl_util=>ty_t_classes.
 
@@ -39,7 +41,7 @@ ENDCLASS.
 
 
 
-CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
+CLASS z2ui5_cl_core_app_startup IMPLEMENTATION.
 
 
   METHOD factory.
@@ -119,7 +121,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
       )->label(
       )->link( text = `(Example)`
              target = `_blank`
-             href   = `https://github.com/abap2UI5/abap2UI5/blob/main/src/01/03/z2ui5_cl_core_app_hello_w.clas.abap`
+             href   = `https://github.com/abap2UI5/abap2UI5/blob/main/src/02/z2ui5_cl_hello_world.clas.abap`
       )->label( `Step 4` ).
 
     IF ms_home-class_editable = abap_true.
@@ -230,16 +232,76 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
   ENDMETHOD.
 
 
+  METHOD view_display_popup.
+
+    DATA(page2) = z2ui5_cl_xml_view=>factory_popup(
+         )->dialog(
+            title      = `abap2UI5 - System Information`
+            afterclose = client->_event( `CLOSE` ) ).
+
+    DATA(content) = page2->content( ).
+    content->_z2ui5( )->info_frontend( ui5_version = client->_bind( mv_ui5_version ) ).
+
+    DATA(simple_form2) = content->simple_form(
+        editable                = abap_true
+        layout                  = `ResponsiveGridLayout`
+        labelspanxl             = `4`
+        labelspanl              = `3`
+        labelspanm              = `4`
+        labelspans              = `12`
+        adjustlabelspan         = abap_false
+        emptyspanxl             = `0`
+        emptyspanl              = `4`
+        emptyspanm              = `0`
+        emptyspans              = `0`
+        columnsxl               = `1`
+        columnsl                = `1`
+        columnsm                = `1`
+        singlecontainerfullsize = abap_false
+      )->content( `form` ).
+
+    simple_form2->toolbar( )->title( `Frontend` ).
+
+    simple_form2->label( `UI5 Version` ).
+    simple_form2->text( client->_bind( mv_ui5_version ) ).
+    simple_form2->label( `Launchpad active` ).
+    simple_form2->checkbox( enabled = abap_false selected = client->get( )-check_launchpad_active ).
+
+    simple_form2->toolbar( )->title( `Backend` ).
+
+    simple_form2->label( `ABAP for Cloud` ).
+    simple_form2->checkbox( enabled = abap_false selected = z2ui5_cl_util=>context_check_abap_cloud( ) ).
+
+    DATA(lv_count) = CONV string( NEW z2ui5_cl_core_draft_srv( )->count_entries( ) ).
+    simple_form2->toolbar( )->title( `abap2UI5` ).
+    simple_form2->label( `Version ` ).
+    simple_form2->text( z2ui5_if_app=>version ).
+    simple_form2->label( `Draft Entries ` ).
+    simple_form2->text( lv_count ).
+
+    page2->end_button( )->button(
+                      text  = 'close'
+                      press = client->_event( 'CLOSE' )
+                      type  = 'Emphasized' ).
+
+    client->popup_display( page2->stringify( ) ).
+
+  ENDMETHOD.
+
   METHOD z2ui5_on_event.
 
     DATA li_app TYPE REF TO z2ui5_if_app.
 
     CASE client->get( )-event.
 
+      WHEN `CLOSE`.
+        client->popup_destroy( ).
+
       WHEN `OPEN_DEBUG`.
         client->message_box_display( `Press CTRL+F12 to open the debugging tools` ).
       WHEN `OPEN_INFO`.
-        client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
+        view_display_popup( ).
+*        client->nav_app_call( z2ui5_cl_core_app_info=>factory( ) ).
         RETURN.
 
       WHEN `BUTTON_CHECK`.
@@ -273,7 +335,7 @@ CLASS Z2UI5_CL_CORE_APP_STARTUP IMPLEMENTATION.
     ms_home-btn_event_id   = `BUTTON_CHECK`.
     ms_home-class_editable = abap_true.
     ms_home-btn_icon       = `sap-icon://validate`.
-    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_core_app_hello_w( ) ).
+    ms_home-classname      = z2ui5_cl_util=>rtti_get_classname_by_ref( NEW z2ui5_cl_hello_world( ) ).
 
   ENDMETHOD.
 ENDCLASS.

@@ -142,8 +142,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     set_config( is_custom_config ).
 
-*    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
-    ms_res-body = get_index_html(  ).
+    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
+*    ms_res-body = get_index_html(  ).
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 

@@ -146,13 +146,13 @@ CLASS z2ui5_cl_core_action IMPLEMENTATION.
 
   METHOD factory_system_error.
 
-    result = NEW #( mo_http_post ).
-
-    result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
-    result->ms_actual-check_on_navigated = abap_true.
-    result->ms_next-o_app_call           = z2ui5_cl_core_app_error=>factory( ix ).
-
-    result = result->factory_stack_call( ).
+*    result = NEW #( mo_http_post ).
+*
+*    result->mo_app->ms_draft-id          = z2ui5_cl_util=>uuid_get_c32( ).
+*    result->ms_actual-check_on_navigated = abap_true.
+*    result->ms_next-o_app_call           = z2ui5_cl_core_app_error=>factory( ix ).
+*
+*    result = result->factory_stack_call( ).
 
   ENDMETHOD.
 
