@@ -14,5 +14,6 @@ module.exports = function(className, description) {
    </VSEOCLASS>
   </asx:values>
  </asx:abap>
-</abapGit> `;
+</abapGit>
+`;
 };

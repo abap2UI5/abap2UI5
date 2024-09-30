@@ -27,4 +27,4 @@ CLASS z2ui5_cl_app_view_View1_xml IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS. 
+ENDCLASS.

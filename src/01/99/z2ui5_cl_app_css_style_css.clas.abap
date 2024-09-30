@@ -23,4 +23,4 @@ CLASS z2ui5_cl_app_css_style_css IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS. 
+ENDCLASS.

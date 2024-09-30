@@ -41,4 +41,4 @@ CLASS z2ui5_cl_app_mode_models_js IMPLEMENTATION.
 
   ENDMETHOD.
 
-ENDCLASS. 
+ENDCLASS.
