@@ -236,7 +236,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
              `      "z2ui5/Component.js": function(){` &&  z2ui5_cl_app__component_js=>get( ) && ms_config-custom_js && ` },` && |\n| &&
              `      "z2ui5/css/style.css": '` && lv_style_css && `',` && |\n| &&
              `      "z2ui5/model/models.js": function(){` &&  z2ui5_cl_app_mode_models_js=>get( ) && `},` && |\n| &&
-             `      "z2ui5/view/App.view.xml": '` && z2ui5_cl_app_view_view1_xml=>get( ) && `' ,` && |\n| &&
+             `      "z2ui5/view/App.view.xml": '` && z2ui5_cl_app_view_app_xml=>get( ) && `' ,` && |\n| &&
              `      "z2ui5/controller/App.controller.js": function(){` && z2ui5_cl_app_cont_app_js=>get( ) && `},` && |\n| &&
              `      "z2ui5/view/View1.view.xml": '` && z2ui5_cl_app_view_view1_xml=>get( )  && `' ,` && |\n| &&
              `      "z2ui5/controller/View1.controller.js": function(){` && z2ui5_cl_app_cont_view1_js=>get( ) && `},` && |\n| &&
