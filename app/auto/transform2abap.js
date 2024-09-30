@@ -34,10 +34,10 @@ function formatAsAbapClass(content, className) {
     const formattedContent = content.split('\n').map(line => {
         let formattedLine = '';
         while (line.length > 100) {
-            formattedLine += `             \`${line.substring(0, 100).replace(/`/g, '``')}\` && |\\n|  &&\n`;
+            formattedLine += `             \`${line.substring(0, 100).replace(/`/g, '``')}\` &&\n`;
             line = line.substring(100);
         }
-        formattedLine += `             \`${line.replace(/`/g, '``')}\` && |\\n|  &&`;
+        formattedLine += `             \`${line.replace(/`/g, '``')}\` &&`;
         return formattedLine;
     }).join('\n');
     return abapClassTemplate(className, formattedContent);

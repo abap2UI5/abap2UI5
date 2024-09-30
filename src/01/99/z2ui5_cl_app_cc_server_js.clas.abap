@@ -18,155 +18,155 @@ CLASS z2ui5_cl_app_cc_Server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result =              `sap.ui.define(["sap/ui/core/BusyIndicator","sap/m/MessageBox"` && |\n|  &&
-             `],` && |\n|  &&
-             `    function (BusyIndicator, MessageBox) {` && |\n|  &&
-             `        "use strict";` && |\n|  &&
-             `` && |\n|  &&
-             `        return {` && |\n|  &&
-             `` && |\n|  &&
-             `            endSession: function () {` && |\n|  &&
-             `` && |\n|  &&
-             `                if (z2ui5.contextId) {` && |\n|  &&
-             `                    fetch(z2ui5.oConfig.pathname, {` && |\n|  &&
-             `                        method: 'HEAD',` && |\n|  &&
-             `                        keepalive: true,` && |\n|  &&
-             `                        headers: {` && |\n|  &&
-             `                            'sap-terminate': 'session',` && |\n|  &&
-             `                            'sap-contextid': z2ui5.contextId,` && |\n|  &&
-             `                            'sap-contextid-accept': 'header'` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                    });` && |\n|  &&
-             `                    delete z2ui5.contextId;` && |\n|  &&
-             `                }` && |\n|  &&
-             `` && |\n|  &&
-             `            },` && |\n|  &&
-             `            Roundtrip() {` && |\n|  &&
-             `                z2ui5.checkTimerActive = false;` && |\n|  &&
-             `                z2ui5.checkNestAfter = false;` && |\n|  &&
-             `                z2ui5.checkNestAfter2 = false;` && |\n|  &&
-             `                let event = (args) => {` && |\n|  &&
-             `                    if (args != undefined) {` && |\n|  &&
-             `                        return args[0][0];` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                };` && |\n|  &&
-             `` && |\n|  &&
-             `                z2ui5.oBody ??= {};` && |\n|  &&
-             `                z2ui5.oBody.S_FRONT = {` && |\n|  &&
-             `                    ID: z2ui5?.oBody?.ID,` && |\n|  &&
-             `                    CONFIG: z2ui5.oConfig,` && |\n|  &&
-             `                    XX: z2ui5?.oBody?.XX,` && |\n|  &&
-             `                    ORIGIN: window.location.origin,` && |\n|  &&
-             `                    PATHNAME: window.location.pathname,` && |\n|  &&
-             `                    SEARCH: (z2ui5.search) ? z2ui5.search : window.location.search,` && |\n|  &&
-             `                    VIEW: z2ui5.oBody?.VIEWNAME,` && |\n|  &&
-             `                    EVENT: event(z2ui5.oBody?.ARGUMENTS),` && |\n|  &&
-             `                    HASH: window.location.hash,` && |\n|  &&
-             `                };` && |\n|  &&
-             `                if (z2ui5.oBody?.ARGUMENTS != undefined) {` && |\n|  &&
-             `                    if (z2ui5.oBody?.ARGUMENTS.length > 0) {` && |\n|  &&
-             `                        z2ui5.oBody?.ARGUMENTS.shift();` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                }` && |\n|  &&
-             `                z2ui5.oBody.S_FRONT.T_EVENT_ARG = z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
-             `                delete z2ui5.oBody.ID;` && |\n|  &&
-             `                delete z2ui5.oBody?.VIEWNAME;` && |\n|  &&
-             `                delete z2ui5.oBody?.S_FRONT.XX;` && |\n|  &&
-             `                delete z2ui5.oBody?.ARGUMENTS;` && |\n|  &&
-             `                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG) {` && |\n|  &&
-             `                    delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` && |\n|  &&
-             `                }` && |\n|  &&
-             `                if (z2ui5.oBody.S_FRONT.T_EVENT_ARG) {` && |\n|  &&
-             `                    if (z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0) {` && |\n|  &&
-             `                        delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                }` && |\n|  &&
-             `                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) {` && |\n|  &&
-             `                    delete z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS;` && |\n|  &&
-             `                }` && |\n|  &&
-             `                if (z2ui5.oBody.S_FRONT.SEARCH == '') {` && |\n|  &&
-             `                    delete z2ui5.oBody.S_FRONT.SEARCH;` && |\n|  &&
-             `                }` && |\n|  &&
-             `                if (!z2ui5.oBody.XX) {` && |\n|  &&
-             `                    delete z2ui5.oBody.XX;` && |\n|  &&
-             `                }` && |\n|  &&
-             `                this.readHttp();` && |\n|  &&
-             `            },` && |\n|  &&
-             `` && |\n|  &&
-             `            async readHttp() {` && |\n|  &&
-             `                const response = await fetch(z2ui5.oConfig.pathname, {` && |\n|  &&
-             `                    method: 'POST',` && |\n|  &&
-             `                    headers: {` && |\n|  &&
-             `                        'Content-Type': 'application/json',` && |\n|  &&
-             `                        'sap-contextid-accept': 'header',` && |\n|  &&
-             `                        'sap-contextid': z2ui5.contextId` && |\n|  &&
-             `                    },` && |\n|  &&
-             `                    body: JSON.stringify(z2ui5.oBody)` && |\n|  &&
-             `                });` && |\n|  &&
-             `                z2ui5.contextId = response.headers.get("sap-contextid");` && |\n|  &&
-             `                if (!response.ok) {` && |\n|  &&
-             `                    const responseText = await response.text();` && |\n|  &&
-             `                    this.responseError(responseText);` && |\n|  &&
-             `                } else {` && |\n|  &&
-             `                    const responseData = await response.json();` && |\n|  &&
-             `                    z2ui5.responseData = responseData;` && |\n|  &&
-             `                    this.responseSuccess({` && |\n|  &&
-             `                        ID: responseData.S_FRONT.ID,` && |\n|  &&
-             `                        PARAMS: responseData.S_FRONT.PARAMS,` && |\n|  &&
-             `                        OVIEWMODEL: responseData.MODEL,` && |\n|  &&
-             `                    });` && |\n|  &&
-             `                }` && |\n|  &&
-             `            },` && |\n|  &&
-             `            async responseSuccess(response) {` && |\n|  &&
-             `                try {` && |\n|  &&
-             `                    z2ui5.oResponse = response;` && |\n|  &&
-             `                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` && |\n|  &&
-             `                        z2ui5.oController.ViewDestroy();` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                    ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` && |\n|  &&
-             `                        setTimeout(() => {` && |\n|  &&
-             `                            let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split` && |\n|  &&
-             `("'");` && |\n|  &&
-             `                            let mParamsEF = mParams.filter((val, index) => index % 2)` && |\n|  &&
-             `                            if (mParamsEF.length) {` && |\n|  &&
-             `                                z2ui5.oController.eF.apply(undefined, mParamsEF);` && |\n|  &&
-             `                            } else {` && |\n|  &&
-             `                                Function("return " + mParams[0])();` && |\n|  &&
-             `                            }` && |\n|  &&
-             `                        }, 100);` && |\n|  &&
-             `                    };` && |\n|  &&
-             `                    z2ui5.oController.showMessage('S_MSG_TOAST', z2ui5.oResponse.PARAMS);` && |\n|  &&
-             `                    z2ui5.oController.showMessage('S_MSG_BOX', z2ui5.oResponse.PARAMS);` && |\n|  &&
-             `                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.XML) {` && |\n|  &&
-             `                        if (z2ui5.oResponse.PARAMS?.S_VIEW?.XML !== '') {` && |\n|  &&
-             `                            z2ui5.oController.ViewDestroy();` && |\n|  &&
-             `                            await z2ui5.oController.displayView(z2ui5.oResponse.PARAMS.S_VIEW.XML, z` && |\n|  &&
-             `2ui5.oResponse.OVIEWMODEL);` && |\n|  &&
-             `                            return;` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                    z2ui5.oController.updateModelIfRequired('S_VIEW', z2ui5.oView);` && |\n|  &&
-             `                    z2ui5.oController.updateModelIfRequired('S_VIEW_NEST', z2ui5.oViewNest);` && |\n|  &&
-             `                    z2ui5.oController.updateModelIfRequired('S_VIEW_NEST2', z2ui5.oViewNest2);` && |\n|  &&
-             `                    z2ui5.oController.updateModelIfRequired('S_POPUP', z2ui5.oViewPopup);` && |\n|  &&
-             `                    z2ui5.oController.updateModelIfRequired('S_POPOVER', z2ui5.oViewPopover);` && |\n|  &&
-             `                    z2ui5.oController.onAfterRendering();` && |\n|  &&
-             `                } catch (e) {` && |\n|  &&
-             `                    BusyIndicator.hide();` && |\n|  &&
-             `                    if (e.message.includes("openui5")) {` && |\n|  &&
-             `                        if (e.message.includes("script load error")) {` && |\n|  &&
-             `                            z2ui5.oController.checkSDKcompatibility(e)` && |\n|  &&
-             `                        }` && |\n|  &&
-             `                    } else {` && |\n|  &&
-             `                        MessageBox.error(e.toLocaleString());` && |\n|  &&
-             `                    }` && |\n|  &&
-             `                }` && |\n|  &&
-             `            },` && |\n|  &&
-             `            responseError(response) {` && |\n|  &&
-             `                document.write(response);` && |\n|  &&
-             `            },` && |\n|  &&
-             `        };` && |\n|  &&
-             `    });` && |\n|  &&
+    result =              `sap.ui.define(["sap/ui/core/BusyIndicator","sap/m/MessageBox"` &&
+             `],` &&
+             `    function (BusyIndicator, MessageBox) {` &&
+             `        "use strict";` &&
+             `` &&
+             `        return {` &&
+             `` &&
+             `            endSession: function () {` &&
+             `` &&
+             `                if (z2ui5.contextId) {` &&
+             `                    fetch(z2ui5.oConfig.pathname, {` &&
+             `                        method: 'HEAD',` &&
+             `                        keepalive: true,` &&
+             `                        headers: {` &&
+             `                            'sap-terminate': 'session',` &&
+             `                            'sap-contextid': z2ui5.contextId,` &&
+             `                            'sap-contextid-accept': 'header'` &&
+             `                        }` &&
+             `                    });` &&
+             `                    delete z2ui5.contextId;` &&
+             `                }` &&
+             `` &&
+             `            },` &&
+             `            Roundtrip() {` &&
+             `                z2ui5.checkTimerActive = false;` &&
+             `                z2ui5.checkNestAfter = false;` &&
+             `                z2ui5.checkNestAfter2 = false;` &&
+             `                let event = (args) => {` &&
+             `                    if (args != undefined) {` &&
+             `                        return args[0][0];` &&
+             `                    }` &&
+             `                };` &&
+             `` &&
+             `                z2ui5.oBody ??= {};` &&
+             `                z2ui5.oBody.S_FRONT = {` &&
+             `                    ID: z2ui5?.oBody?.ID,` &&
+             `                    CONFIG: z2ui5.oConfig,` &&
+             `                    XX: z2ui5?.oBody?.XX,` &&
+             `                    ORIGIN: window.location.origin,` &&
+             `                    PATHNAME: window.location.pathname,` &&
+             `                    SEARCH: (z2ui5.search) ? z2ui5.search : window.location.search,` &&
+             `                    VIEW: z2ui5.oBody?.VIEWNAME,` &&
+             `                    EVENT: event(z2ui5.oBody?.ARGUMENTS),` &&
+             `                    HASH: window.location.hash,` &&
+             `                };` &&
+             `                if (z2ui5.oBody?.ARGUMENTS != undefined) {` &&
+             `                    if (z2ui5.oBody?.ARGUMENTS.length > 0) {` &&
+             `                        z2ui5.oBody?.ARGUMENTS.shift();` &&
+             `                    }` &&
+             `                }` &&
+             `                z2ui5.oBody.S_FRONT.T_EVENT_ARG = z2ui5.oBody?.ARGUMENTS;` &&
+             `                delete z2ui5.oBody.ID;` &&
+             `                delete z2ui5.oBody?.VIEWNAME;` &&
+             `                delete z2ui5.oBody?.S_FRONT.XX;` &&
+             `                delete z2ui5.oBody?.ARGUMENTS;` &&
+             `                if (!z2ui5.oBody.S_FRONT.T_EVENT_ARG) {` &&
+             `                    delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` &&
+             `                }` &&
+             `                if (z2ui5.oBody.S_FRONT.T_EVENT_ARG) {` &&
+             `                    if (z2ui5.oBody.S_FRONT.T_EVENT_ARG.length == 0) {` &&
+             `                        delete z2ui5.oBody.S_FRONT.T_EVENT_ARG;` &&
+             `                    }` &&
+             `                }` &&
+             `                if (z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS == undefined) {` &&
+             `                    delete z2ui5.oBody.S_FRONT.T_STARTUP_PARAMETERS;` &&
+             `                }` &&
+             `                if (z2ui5.oBody.S_FRONT.SEARCH == '') {` &&
+             `                    delete z2ui5.oBody.S_FRONT.SEARCH;` &&
+             `                }` &&
+             `                if (!z2ui5.oBody.XX) {` &&
+             `                    delete z2ui5.oBody.XX;` &&
+             `                }` &&
+             `                this.readHttp();` &&
+             `            },` &&
+             `` &&
+             `            async readHttp() {` &&
+             `                const response = await fetch(z2ui5.oConfig.pathname, {` &&
+             `                    method: 'POST',` &&
+             `                    headers: {` &&
+             `                        'Content-Type': 'application/json',` &&
+             `                        'sap-contextid-accept': 'header',` &&
+             `                        'sap-contextid': z2ui5.contextId` &&
+             `                    },` &&
+             `                    body: JSON.stringify(z2ui5.oBody)` &&
+             `                });` &&
+             `                z2ui5.contextId = response.headers.get("sap-contextid");` &&
+             `                if (!response.ok) {` &&
+             `                    const responseText = await response.text();` &&
+             `                    this.responseError(responseText);` &&
+             `                } else {` &&
+             `                    const responseData = await response.json();` &&
+             `                    z2ui5.responseData = responseData;` &&
+             `                    this.responseSuccess({` &&
+             `                        ID: responseData.S_FRONT.ID,` &&
+             `                        PARAMS: responseData.S_FRONT.PARAMS,` &&
+             `                        OVIEWMODEL: responseData.MODEL,` &&
+             `                    });` &&
+             `                }` &&
+             `            },` &&
+             `            async responseSuccess(response) {` &&
+             `                try {` &&
+             `                    z2ui5.oResponse = response;` &&
+             `                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.CHECK_DESTROY) {` &&
+             `                        z2ui5.oController.ViewDestroy();` &&
+             `                    }` &&
+             `                    ; if (z2ui5.oResponse.PARAMS?.S_FOLLOW_UP_ACTION?.CUSTOM_JS) {` &&
+             `                        setTimeout(() => {` &&
+             `                            let mParams = z2ui5.oResponse?.PARAMS.S_FOLLOW_UP_ACTION.CUSTOM_JS.split` &&
+             `("'");` &&
+             `                            let mParamsEF = mParams.filter((val, index) => index % 2)` &&
+             `                            if (mParamsEF.length) {` &&
+             `                                z2ui5.oController.eF.apply(undefined, mParamsEF);` &&
+             `                            } else {` &&
+             `                                Function("return " + mParams[0])();` &&
+             `                            }` &&
+             `                        }, 100);` &&
+             `                    };` &&
+             `                    z2ui5.oController.showMessage('S_MSG_TOAST', z2ui5.oResponse.PARAMS);` &&
+             `                    z2ui5.oController.showMessage('S_MSG_BOX', z2ui5.oResponse.PARAMS);` &&
+             `                    if (z2ui5.oResponse.PARAMS?.S_VIEW?.XML) {` &&
+             `                        if (z2ui5.oResponse.PARAMS?.S_VIEW?.XML !== '') {` &&
+             `                            z2ui5.oController.ViewDestroy();` &&
+             `                            await z2ui5.oController.displayView(z2ui5.oResponse.PARAMS.S_VIEW.XML, z` &&
+             `2ui5.oResponse.OVIEWMODEL);` &&
+             `                            return;` &&
+             `                        }` &&
+             `                    }` &&
+             `                    z2ui5.oController.updateModelIfRequired('S_VIEW', z2ui5.oView);` &&
+             `                    z2ui5.oController.updateModelIfRequired('S_VIEW_NEST', z2ui5.oViewNest);` &&
+             `                    z2ui5.oController.updateModelIfRequired('S_VIEW_NEST2', z2ui5.oViewNest2);` &&
+             `                    z2ui5.oController.updateModelIfRequired('S_POPUP', z2ui5.oViewPopup);` &&
+             `                    z2ui5.oController.updateModelIfRequired('S_POPOVER', z2ui5.oViewPopover);` &&
+             `                    z2ui5.oController.onAfterRendering();` &&
+             `                } catch (e) {` &&
+             `                    BusyIndicator.hide();` &&
+             `                    if (e.message.includes("openui5")) {` &&
+             `                        if (e.message.includes("script load error")) {` &&
+             `                            z2ui5.oController.checkSDKcompatibility(e)` &&
+             `                        }` &&
+             `                    } else {` &&
+             `                        MessageBox.error(e.toLocaleString());` &&
+             `                    }` &&
+             `                }` &&
+             `            },` &&
+             `            responseError(response) {` &&
+             `                document.write(response);` &&
+             `            },` &&
+             `        };` &&
+             `    });` &&
               ``.
 
   ENDMETHOD.
