@@ -105,7 +105,7 @@ async function main() {
         const files = getAllFiles(sourceDir);
 
         for (const file of files) {
-            const sourceContent = await readFile(file);
+            let sourceContent = await readFile(file);
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = generateClassName(file);
@@ -118,7 +118,7 @@ async function main() {
 
             const xmlContent = xmlTemplate(className, `abap2UI5 - ${path.basename(file)}`);
             const xmlFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.xml`);
-            await createFileInTargetDir(xmlFilePath, xmlContent);
+            await createFileInTargetDir(xmlFilePath, `\uFEFF${xmlContent}`);
             console.log(`XML file created successfully at: ${xmlFilePath}`);
         }
     } catch (error) {
