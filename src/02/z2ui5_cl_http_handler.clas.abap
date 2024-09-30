@@ -234,7 +234,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                 `<script>` && |\n| &&
              `  function onInitComponent(){` && |\n| &&
              `    sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/manifest.json": '` && z2ui5_cl_app__manifest_json=>get( ) && ` ',` && |\n| &&
+             `      "z2ui5/manifest.json": '` && z2ui5_cl_app__manifest=>get( ) && ` ',` && |\n| &&
              `      "z2ui5/Component.js": function(){` &&  z2ui5_cl_app__component_js=>get( ) && ms_config-custom_js && ` },` && |\n| &&
              `      "z2ui5/css/style.css": '` && lv_style_css && `',` && |\n| &&
              `      "z2ui5/model/models.js": function(){` &&  z2ui5_cl_app_mode_models_js=>get( ) && `},` && |\n| &&
