@@ -21,7 +21,7 @@ CLASS z2ui5_cl_app_mode_models_js IMPLEMENTATION.
     result =              `sap.ui.define([` && |\n|  &&
              `    "sap/ui/model/json/JSONModel",` && |\n|  &&
              `    "sap/ui/Device"` && |\n|  &&
-             `], ` && |\n|  &&
+             `],` && |\n|  &&
              `function (JSONModel, Device) {` && |\n|  &&
              `    "use strict";` && |\n|  &&
              `` && |\n|  &&

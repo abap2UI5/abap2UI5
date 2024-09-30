@@ -20,7 +20,7 @@ CLASS z2ui5_cl_app__Component_js IMPLEMENTATION.
 
     result =              `sap.ui.define(["sap/ui/core/UIComponent", "z2ui5/model/models",` && |\n|  &&
              `      "z2ui5/cc/DebugTool","z2ui5/cc/Server", "sap/base/Log","sap/ui/VersionInfo"` && |\n|  &&
-             `  ` && |\n|  &&
+             `` && |\n|  &&
              `    ], function (UIComponent, models, DebugTool, Server, Log, VersionInfo) {` && |\n|  &&
              `    return UIComponent.extend("z2ui5.Component", {` && |\n|  &&
              `        metadata: {` && |\n|  &&
@@ -38,16 +38,10 @@ CLASS z2ui5_cl_app__Component_js IMPLEMENTATION.
              `            z2ui5.oConfig = {};` && |\n|  &&
              `            z2ui5.oConfig.ComponentData = this.getComponentData();` && |\n|  &&
              `` && |\n|  &&
-             `            try {                                                                                   ` && |\n|  &&
-             `                                                                                                    ` && |\n|  &&
-             `                                                    ` && |\n|  &&
-             `                z2ui5.oLaunchpadService = await this.getService("ShellUIService");                  ` && |\n|  &&
-             `                                                                                                    ` && |\n|  &&
-             `                                                                                                    ` && |\n|  &&
-             `                                                                                                    ` && |\n|  &&
-             `                                                         ` && |\n|  &&
-             `             } catch (e) {}  ` && |\n|  &&
-             `             ` && |\n|  &&
+             `            try {` && |\n|  &&
+             `                z2ui5.oLaunchpadService = await this.getService("ShellUIService");` && |\n|  &&
+             `             } catch (e) {}` && |\n|  &&
+             `` && |\n|  &&
              `            let oVersionInfo = await VersionInfo.load();` && |\n|  &&
              `            z2ui5.oConfig.UI5VersionInfo = {` && |\n|  &&
              `                version : oVersionInfo.version,` && |\n|  &&

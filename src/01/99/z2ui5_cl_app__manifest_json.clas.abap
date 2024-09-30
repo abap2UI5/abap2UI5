@@ -88,11 +88,11 @@ CLASS z2ui5_cl_app__manifest_json IMPLEMENTATION.
 `      "compact": true,` &&
 `      "cozy": true` &&
 `    },` &&
-`    "services": {                                                                                                                                                                                                                                              ` &&
-`      "ShellUIService": {                                                                                                                                                                                                                                      ` &&
-`        "factoryName": "sap.ushell.ui5service.ShellUIService"                                                                                                                                                                                                  ` &&
-`      }                                                                                                                                                                                                                                                        ` &&
-`    },          ` &&
+`    "services": {` &&
+`      "ShellUIService": {` &&
+`        "factoryName": "sap.ushell.ui5service.ShellUIService"` &&
+`      }` &&
+`    },` &&
 `    "models": {` &&
 `      "": {` &&
 `        "dataSource": "mainService",` &&
