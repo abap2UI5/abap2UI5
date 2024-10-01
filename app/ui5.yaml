@@ -16,7 +16,6 @@ server:
         backend:
           - path: /sap
             url: <<system>>
-            destination: BACKEND_ABAP2UI5
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:
