@@ -6,7 +6,7 @@ module.exports = function(className, description) {
    <VSEOCLASS>
     <CLSNAME>${className.toUpperCase()}</CLSNAME>
     <LANGU>E</LANGU>
-    <DESCRIPT>${className.toUpperCase()}</DESCRIPT>
+    <DESCRIPT>${className.toUpperCase()} (generated)</DESCRIPT>
     <STATE>1</STATE>
     <CLSCCINCL>X</CLSCCINCL>
     <FIXPT>X</FIXPT>
