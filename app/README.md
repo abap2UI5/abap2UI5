@@ -6,13 +6,15 @@ Frontend stored in folder App
 cd app
 ```
 
-Develop & Test
+#### Develop & Test
+Set the correct backend system in the yamls <br>
+Replace "/sap/bc/z2ui5" with your endpoint in the manifest
 ```
 npm i
 npm run start
 ```
 
-Before PR
+#### Before PR
 Transform UI5 App to stringified ABAP
 ```
 node trans/trans2abap.js 
