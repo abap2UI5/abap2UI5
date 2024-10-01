@@ -7,8 +7,8 @@ const xmlTemplate = require('./abapXMLTemplate');
 const sourceDir = path.join(__dirname, '../webapp');
 const targetDir = path.join(__dirname, '../../src/01/99');
 
-// Initial XML content
-const initialXMLContent = `<?xml version="1.0" encoding="utf-8"?>
+// Initial XML content with BOM
+const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_DEVC" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
@@ -99,7 +99,7 @@ async function main() {
         // Recreate the target directory
         fs.mkdirSync(targetDir, { recursive: true });
 
-        // Create the initial XML file
+        // Create the initial XML file with BOM
         const initialXMLFilePath = path.join(targetDir, 'package.devc.xml');
         await createFileInTargetDir(initialXMLFilePath, initialXMLContent);
         console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);
