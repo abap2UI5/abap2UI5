@@ -17,7 +17,8 @@ const initialXMLContent = `<?xml version="1.0" encoding="utf-8"?>
    </DEVC>
   </asx:values>
  </asx:abap>
-</abapGit>`;
+</abapGit>
+`;
 
 // Function to read the file content from the source directory
 function readFile(filePath) {
