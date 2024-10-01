@@ -17,7 +17,7 @@ server:
           url: https://ui5.sap.com
         backend:
           - path: /sap
-            url: _SYSTEM_
+            url: http://test.oblomov-dev-outlook-com.nuve.run:50000
             destination: BACKEND_ABAP2UI5
     - name: fiori-tools-appreload
       afterMiddleware: compression
