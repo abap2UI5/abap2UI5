@@ -1,7 +1,0 @@
-{
-  "xsappname": "z2ui5",
-  "tenant-mode": "dedicated",
-  "description": "Security profile of called application",
-  "scopes": [],
-  "role-templates": []
-}

@@ -17,7 +17,7 @@ server:
           url: https://ui5.sap.com
         backend:
           - path: /sap
-            url: <<<system>>>
+            url: _SYSTEM_
             destination: BACKEND_ABAP2UI5
     - name: fiori-tools-appreload
       afterMiddleware: compression
@@ -30,7 +30,7 @@ server:
       configuration:
         mountPath: /
         services:
-          - urlPath: /sap/bc/z2ui5
+          - urlPath: _LOCAL_
             metadataPath: ./webapp/localService/metadata.xml
             mockdataPath: ./webapp/localService/data
             generateMockData: true
