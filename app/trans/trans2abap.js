@@ -7,8 +7,8 @@ const xmlTemplate = require('./abapXMLTemplate');
 const sourceDir = path.join(__dirname, '../webapp');
 const targetDir = path.join(__dirname, '../../src/01/99');
 
-// Initial XML content
-const initialXMLContent = `<?xml version="1.0" encoding="utf-8"?>
+// Initial XML content with BOM
+const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
 <abapGit version="v1.0.0" serializer="LCL_OBJECT_DEVC" serializer_version="v1.0.0">
  <asx:abap xmlns:asx="http://www.sap.com/abapxml" version="1.0">
   <asx:values>
@@ -17,7 +17,8 @@ const initialXMLContent = `<?xml version="1.0" encoding="utf-8"?>
    </DEVC>
   </asx:values>
  </asx:abap>
-</abapGit>`;
+</abapGit>
+`;
 
 // Function to read the file content from the source directory
 function readFile(filePath) {
@@ -34,7 +35,8 @@ function formatAsAbapClass(content, className, isSpecialFile) {
     const lines = content.split('\n');
     const formattedLines = lines.map((line, index) => {
         line = line.replace(/\s+$/, ''); // Remove trailing spaces
-        const formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
+        let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
+        formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
         if ((index + 1) % 500 === 0) {
             return `${formattedLine}\n             |\\n|.\n    result = result &&`;
         }
@@ -52,7 +54,7 @@ function generateClassName(filePath) {
         fileName.splice(1, 1); // Remove the middle part
     }
     const folderPath = parts.map(part => part.substring(0, 4)).join('_').toLowerCase();
-    return `z2ui5_cl_app_${folderPath}_${fileName.join('_')}`;
+    return `z2ui5_cl_app_${fileName.join('_')}`;
 }
 
 // Function to recursively get all files in a directory
@@ -97,7 +99,7 @@ async function main() {
         // Recreate the target directory
         fs.mkdirSync(targetDir, { recursive: true });
 
-        // Create the initial XML file
+        // Create the initial XML file with BOM
         const initialXMLFilePath = path.join(targetDir, 'package.devc.xml');
         await createFileInTargetDir(initialXMLFilePath, initialXMLContent);
         console.log(`Initial XML file created successfully at: ${initialXMLFilePath}`);

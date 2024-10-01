@@ -144,8 +144,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     set_config( is_custom_config ).
 
-    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
-*    ms_res-body = get_index_html(  ).
+*    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
+    ms_res-body = get_index_html(  ).
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 
@@ -234,20 +234,20 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
                 `<script>` && |\n| &&
              `  function onInitComponent(){` && |\n| &&
              `    sap.ui.require.preload({` && |\n| &&
-             `      "z2ui5/manifest.json": '` && z2ui5_cl_app__manifest=>get( ) && ` ',` && |\n| &&
-             `      "z2ui5/Component.js": function(){` &&  z2ui5_cl_app__component_js=>get( ) && ms_config-custom_js && ` },` && |\n| &&
+             `      "z2ui5/manifest.json": '` && z2ui5_cl_app_manifest_json=>get( ) && ` ',` && |\n| &&
+             `      "z2ui5/Component.js": function(){` &&  z2ui5_cl_app_component_js=>get( ) && ms_config-custom_js && ` },` && |\n| &&
              `      "z2ui5/css/style.css": '` && lv_style_css && `',` && |\n| &&
-             `      "z2ui5/model/models.js": function(){` &&  z2ui5_cl_app_mode_mdls_js=>get( ) && `},` && |\n| &&
-             `      "z2ui5/view/App.view.xml": '` && z2ui5_cl_app_view_app_xml=>get( ) && `' ,` && |\n| &&
-             `      "z2ui5/controller/App.controller.js": function(){` && z2ui5_cl_app_cont_app_js=>get( ) && `},` && |\n| &&
+             `      "z2ui5/model/models.js": function(){` &&  z2ui5_cl_app_models_js=>get( ) && `},` && |\n| &&
+             `      "z2ui5/view/App.view.xml": '` && z2ui5_cl_app_app_xml=>get( ) && `' ,` && |\n| &&
+             `      "z2ui5/controller/App.controller.js": function(){` && z2ui5_cl_app_app_js=>get( ) && `},` && |\n| &&
              `      "z2ui5/view/View1.view.xml": '` && z2ui5_cl_app_view1_xml=>get( )  && `' ,` && |\n| &&
-             `      "z2ui5/controller/View1.controller.js": function(){` && z2ui5_cl_app_cont_view1_js=>get( ) && `},` && |\n| &&
-             `      "z2ui5/cc/Server.js": function(){` && z2ui5_cl_app_cc_server_js=>get( )    && `} ,` && |\n| &&
-             `      "z2ui5/cc/DebugTool.fragment.xml": '` && z2ui5_cl_app_cc_dbgtl_xml=>get( )   && `' ,` && |\n| &&
-             `      "z2ui5/cc/DebugTool.js": function(){` && z2ui5_cl_app_cc_dbgtl_js=>get( )  && `},` && |\n| &&
+             `      "z2ui5/controller/View1.controller.js": function(){` && z2ui5_cl_app_view1_js=>get( ) && `},` && |\n| &&
+             `      "z2ui5/cc/Server.js": function(){` && z2ui5_cl_app_server_js=>get( )    && `} ,` && |\n| &&
+             `      "z2ui5/cc/DebugTool.fragment.xml": '` && z2ui5_cl_app_debugtool_xml=>get( )   && `' ,` && |\n| &&
+             `      "z2ui5/cc/DebugTool.js": function(){` && z2ui5_cl_app_debugtool_js=>get( )  && `},` && |\n| &&
              `    });` && |\n| &&
              `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
-             `     window.z2ui5 = {}; ComponentSupport.run();` && |\n| &&
+             `     window.z2ui5 = { checkLocal : true }; ComponentSupport.run();` && |\n| &&
              `    });` && |\n| &&
              `  }` && |\n| &&
              `</script>` && |\n| &&

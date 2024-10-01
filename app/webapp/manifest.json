@@ -16,7 +16,7 @@
     },
     "dataSources": {
       "mainService": {
-        "uri": "_LOCAL_",
+        "uri": "/sap/bc/z2ui5",
         "type": "OData",
         "settings": {
           "annotations": [],

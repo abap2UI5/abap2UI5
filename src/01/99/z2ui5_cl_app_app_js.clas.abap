@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_cont_App_js DEFINITION
+CLASS z2ui5_cl_app_App_js DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_cont_App_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
+CLASS z2ui5_cl_app_App_js IMPLEMENTATION.
 
   METHOD get.
 
@@ -26,7 +26,7 @@ CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
              `    onInit: async function () {` && |\n|  &&
              `` && |\n|  &&
              `      z2ui5.oConfig.pathname = this.getView().getModel().sServiceUrl;` && |\n|  &&
-             `      if (z2ui5.oConfig.pathname == '_LOCAL_') {` && |\n|  &&
+             `      if (z2ui5?.checkLocal == true ) {` && |\n|  &&
              `          z2ui5.oConfig.pathname = window.location.href;` && |\n|  &&
              `      };` && |\n|  &&
              `` && |\n|  &&

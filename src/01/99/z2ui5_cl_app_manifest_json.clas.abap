@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app__manifest DEFINITION
+CLASS z2ui5_cl_app_manifest_json DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app__manifest DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app__manifest IMPLEMENTATION.
+CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
 
   METHOD get.
 
@@ -36,7 +36,7 @@ CLASS z2ui5_cl_app__manifest IMPLEMENTATION.
              `    },` &&
              `    "dataSources": {` &&
              `      "mainService": {` &&
-             `        "uri": "_LOCAL_",` &&
+             `        "uri": "/sap/bc/z2ui5",` &&
              `        "type": "OData",` &&
              `        "settings": {` &&
              `          "annotations": [],` &&

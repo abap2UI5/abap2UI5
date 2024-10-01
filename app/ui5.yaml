@@ -15,8 +15,7 @@ server:
           url: https://ui5.sap.com
         backend:
           - path: /sap
-            url: _SYSTEM_
-            destination: BACKEND_ABAP2UI5
+            url: <<system>>
     - name: fiori-tools-appreload
       afterMiddleware: compression
       configuration:

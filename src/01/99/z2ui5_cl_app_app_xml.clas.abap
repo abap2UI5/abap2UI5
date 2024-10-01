@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_view_App_xml DEFINITION
+CLASS z2ui5_cl_app_App_xml DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_view_App_xml DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_view_App_xml IMPLEMENTATION.
+CLASS z2ui5_cl_app_App_xml IMPLEMENTATION.
 
   METHOD get.
 
