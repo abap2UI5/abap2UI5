@@ -52,7 +52,7 @@ function generateClassName(filePath) {
         fileName.splice(1, 1); // Remove the middle part
     }
     const folderPath = parts.map(part => part.substring(0, 4)).join('_').toLowerCase();
-    return `z2ui5_cl_app_${folderPath}_${fileName.join('_')}`;
+    return `z2ui5_cl_app_${fileName.join('_')}`;
 }
 
 // Function to recursively get all files in a directory

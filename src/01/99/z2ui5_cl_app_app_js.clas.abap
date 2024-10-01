@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_cont_App_js DEFINITION
+CLASS z2ui5_cl_app_App_js DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_cont_App_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_cont_App_js IMPLEMENTATION.
+CLASS z2ui5_cl_app_App_js IMPLEMENTATION.
 
   METHOD get.
 

@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app__index_html DEFINITION
+CLASS z2ui5_cl_app_index_html DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app__index_html DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app__index_html IMPLEMENTATION.
+CLASS z2ui5_cl_app_index_html IMPLEMENTATION.
 
   METHOD get.
 

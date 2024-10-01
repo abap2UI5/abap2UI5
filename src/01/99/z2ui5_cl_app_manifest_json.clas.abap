@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app__manifest_json DEFINITION
+CLASS z2ui5_cl_app_manifest_json DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app__manifest_json DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app__manifest_json IMPLEMENTATION.
+CLASS z2ui5_cl_app_manifest_json IMPLEMENTATION.
 
   METHOD get.
 
