@@ -144,8 +144,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
     set_config( is_custom_config ).
 
-    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
-*    ms_res-body = get_index_html(  ).
+*    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
+    ms_res-body = get_index_html(  ).
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 
@@ -247,7 +247,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
              `      "z2ui5/cc/DebugTool.js": function(){` && z2ui5_cl_app_debugtool_js=>get( )  && `},` && |\n| &&
              `    });` && |\n| &&
              `    sap.ui.require(["sap/ui/core/ComponentSupport"], function(ComponentSupport){` && |\n| &&
-             `     window.z2ui5 = {}; ComponentSupport.run();` && |\n| &&
+             `     window.z2ui5 = { checkLocal : true }; ComponentSupport.run();` && |\n| &&
              `    });` && |\n| &&
              `  }` && |\n| &&
              `</script>` && |\n| &&
