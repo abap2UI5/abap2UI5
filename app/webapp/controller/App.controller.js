@@ -6,7 +6,7 @@ sap.ui.define(["sap/ui/core/mvc/Controller",
     onInit: async function () {
 
       z2ui5.oConfig.pathname = this.getView().getModel().sServiceUrl;
-      if (z2ui5.oConfig.pathname == '_LOCAL_') { 
+      if (z2ui5?.checkLocal == true ) { 
           z2ui5.oConfig.pathname = window.location.href; 
       };
       
