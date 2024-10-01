@@ -35,7 +35,8 @@ function formatAsAbapClass(content, className, isSpecialFile) {
     const lines = content.split('\n');
     const formattedLines = lines.map((line, index) => {
         line = line.replace(/\s+$/, ''); // Remove trailing spaces
-        const formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
+        let formattedLine = `             \`${line.replace(/`/g, '``')}\` && ${isSpecialFile ? '' : '|\\n|  &&'}`;
+        formattedLine = formattedLine.replace(/&&\s+$/, '&&'); // Remove trailing spaces after &&
         if ((index + 1) % 500 === 0) {
             return `${formattedLine}\n             |\\n|.\n    result = result &&`;
         }
