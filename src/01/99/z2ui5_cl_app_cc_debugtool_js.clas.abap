@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_app_cc_dbgtl_js DEFINITION
+CLASS z2ui5_cl_app_cc_DebugTool_js DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,7 +14,7 @@ CLASS z2ui5_cl_app_cc_dbgtl_js DEFINITION
 ENDCLASS.
 
 
-CLASS z2ui5_cl_app_cc_dbgtl_js IMPLEMENTATION.
+CLASS z2ui5_cl_app_cc_DebugTool_js IMPLEMENTATION.
 
   METHOD get.
 
@@ -23,18 +23,29 @@ CLASS z2ui5_cl_app_cc_dbgtl_js IMPLEMENTATION.
              `` && |\n|  &&
              `    return Control.extend("z2ui5.cc.DebugTool", {` && |\n|  &&
              `` && |\n|  &&
-             `        prettifyXml: function (sourceXml) {` && |\n|  &&
+             `prettifyXml: function(sourceXml) {` && |\n|  &&
              `            const xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n|  &&
+             `            var sParse = ``&lt;xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"&gt;` && |\n|  &&
+             `                &lt;xsl:strip-space elements="*" /&gt;` && |\n|  &&
+             `                &lt;xsl:template match="para[content-style][not(text())]"&gt;` && |\n|  &&
+             `                    &lt;xsl:value-of select="normalize-space(.)" /&gt;` && |\n|  &&
+             `                &lt;/xsl:template&gt;` && |\n|  &&
+             `                &lt;xsl:template match="node()|@*"&gt;` && |\n|  &&
+             `                    &lt;xsl:copy&gt;` && |\n|  &&
+             `                        &lt;xsl:apply-templates select="node()|@*" /&gt;` && |\n|  &&
+             `                    &lt;/xsl:copy&gt;` && |\n|  &&
+             `                &lt;/xsl:template&gt;` && |\n|  &&
+             `                &lt;xsl:output indent="yes" /&gt;` && |\n|  &&
+             `            &lt;/xsl:stylesheet&gt;``;` && |\n|  &&
+             `             sParse = sParse.replace(/&gt;/g, unescape("%3E")).replace(/&lt;/g, unescape("%3C"));` && |\n|  &&
              `            const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');` && |\n|  &&
              `` && |\n|  &&
              `            const xsltProcessor = new XSLTProcessor();` && |\n|  &&
              `            xsltProcessor.importStylesheet(xsltDoc);` && |\n|  &&
              `            const resultDoc = xsltProcessor.transformToDocument(xmlDoc);` && |\n|  &&
              `            const resultXml = new XMLSerializer().serializeToString(resultDoc);` && |\n|  &&
-             `            return resultXml.replace(/&gt;/g, ">");` && |\n|  &&
-             `        },` && |\n|  &&
-             `` && |\n|  &&
-             `        onItemSelect: function (oEvent) {` && |\n|  &&
+             `            return resultXml.replace(/&gt;/g, ">").replace(/&lt;/g, "<");` && |\n|  &&
+             `        },        onItemSelect: function (oEvent) {` && |\n|  &&
              `            const selItem = oEvent.getSource().getSelectedKey();` && |\n|  &&
              `            const oView = z2ui5?.oView;` && |\n|  &&
              `            const oResponse = z2ui5?.oResponse;` && |\n|  &&
