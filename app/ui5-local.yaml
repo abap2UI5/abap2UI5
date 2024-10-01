@@ -31,7 +31,7 @@ server:
         ignoreCertError: false # If set to true, certificate errors will be ignored. E.g. self-signed certificates will be accepted
         backend:
           - path: /sap
-            url: http://test.oblomov-dev-outlook-com.nuve.run:50000
+            url: <<system>>
             destination: BACKEND_ABAP2UI5
     - name: sap-fe-mockserver
       beforeMiddleware: csp
