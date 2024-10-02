@@ -111,7 +111,7 @@ async function main() {
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = generateClassName(file);
-            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html');
+            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html')|| file.endsWith('.css');
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);

@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_server_js IMPLEMENTATION.
 
   METHOD get.
 
-    result = `sap.ui.define(["sap/ui/core/BusyIndicator","sap/m/MessageBox"` && |\n| &&
+    result = `sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"` && |\n| &&
              `],` && |\n| &&
              `    function (BusyIndicator, MessageBox) {` && |\n| &&
              `        "use strict";` && |\n| &&
