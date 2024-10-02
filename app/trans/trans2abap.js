@@ -5,7 +5,7 @@ const xmlTemplate = require('./abapXMLTemplate');
 
 // Define source and target directories
 const sourceDir = path.join(__dirname, '../webapp');
-const targetDir = path.join(__dirname, '../../src/01/99');
+const targetDir = path.join(__dirname, '../../src/01/03');
 
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
