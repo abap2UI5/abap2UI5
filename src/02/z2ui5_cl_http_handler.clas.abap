@@ -143,9 +143,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD http_get.
 
     set_config( is_custom_config ).
-
-*    ms_res-body = z2ui5_cl_ui5_index_html=>get( ms_config ).
-    ms_res-body = get_index_html(  ).
+    ms_res-body = get_index_html( ).
 
     NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
 
@@ -155,7 +153,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD http_post.
 
     IF so_sticky_handler IS NOT BOUND.
-      DATA(lo_post) = NEW z2ui5_cl_core_http_post( ms_req-body  ).
+      DATA(lo_post) = NEW z2ui5_cl_core_http_post( ms_req-body ).
     ELSE.
       lo_post = so_sticky_handler.
       lo_post->mv_request_json = ms_req-body.
