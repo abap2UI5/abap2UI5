@@ -1,4 +1,4 @@
-sap.ui.define(["sap/ui/core/BusyIndicator","sap/m/MessageBox"
+sap.ui.define(["sap/ui/core/BusyIndicator", "sap/m/MessageBox"
 ],
     function (BusyIndicator, MessageBox) {
         "use strict";

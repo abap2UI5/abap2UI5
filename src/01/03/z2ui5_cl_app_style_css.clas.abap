@@ -1,4 +1,4 @@
-CLASS z2ui5_cl_ui5_style_css DEFINITION
+CLASS z2ui5_cl_app_style_css DEFINITION
   PUBLIC
   FINAL
   CREATE PUBLIC .
@@ -14,12 +14,12 @@ CLASS z2ui5_cl_ui5_style_css DEFINITION
 ENDCLASS.
 
 
-
-CLASS z2ui5_cl_ui5_style_css IMPLEMENTATION.
+CLASS z2ui5_cl_app_style_css IMPLEMENTATION.
 
   METHOD get.
 
-    result = |/* Enter your custom styles here */|.
+    result = `/* Enter your custom styles here */` &&
+              ``.
 
   ENDMETHOD.
 

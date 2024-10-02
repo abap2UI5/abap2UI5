@@ -3,7 +3,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
 
     return Control.extend("z2ui5.cc.DebugTool", {
 
-prettifyXml: function(sourceXml) {
+        prettifyXml: function (sourceXml) {
             const xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
             var sParse = `&lt;xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"&gt;
                 &lt;xsl:strip-space elements="*" /&gt;
@@ -17,7 +17,7 @@ prettifyXml: function(sourceXml) {
                 &lt;/xsl:template&gt;
                 &lt;xsl:output indent="yes" /&gt;
             &lt;/xsl:stylesheet&gt;`;
-             sParse = sParse.replace(/&gt;/g, unescape("%3E")).replace(/&lt;/g, unescape("%3C"));
+            sParse = sParse.replace(/&gt;/g, unescape("%3E")).replace(/&lt;/g, unescape("%3C"));
             const xsltDoc = new DOMParser().parseFromString(sParse, 'application/xml');
 
             const xsltProcessor = new XSLTProcessor();
@@ -25,7 +25,7 @@ prettifyXml: function(sourceXml) {
             const resultDoc = xsltProcessor.transformToDocument(xmlDoc);
             const resultXml = new XMLSerializer().serializeToString(resultDoc);
             return resultXml.replace(/&gt;/g, ">").replace(/&lt;/g, "<");
-        },        onItemSelect: function (oEvent) {
+        }, onItemSelect: function (oEvent) {
             const selItem = oEvent.getSource().getSelectedKey();
             const oView = z2ui5?.oView;
             const oResponse = z2ui5?.oResponse;

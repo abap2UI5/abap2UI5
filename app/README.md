@@ -17,5 +17,5 @@ npm run start
 #### Before PR
 Transform UI5 App to stringified ABAP
 ```
-node trans/trans2abap.js 
+npm run transform
 ```

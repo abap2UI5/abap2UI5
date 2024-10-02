@@ -5,7 +5,7 @@ const xmlTemplate = require('./abapXMLTemplate');
 
 // Define source and target directories
 const sourceDir = path.join(__dirname, '../webapp');
-const targetDir = path.join(__dirname, '../../src/01/99');
+const targetDir = path.join(__dirname, '../../src/01/03');
 
 // Initial XML content with BOM
 const initialXMLContent = `\uFEFF<?xml version="1.0" encoding="utf-8"?>
@@ -111,7 +111,7 @@ async function main() {
             console.log(`Source file content fetched successfully for ${file}.`);
 
             const className = generateClassName(file);
-            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html');
+            const isSpecialFile = file.endsWith('.xml') || file.endsWith('.json') || file.endsWith('.html')|| file.endsWith('.css');
             const abapClassContent = formatAsAbapClass(sourceContent, className, isSpecialFile);
 
             const targetFilePath = path.join(targetDir, `${className.toLowerCase()}.clas.abap`);
