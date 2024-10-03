@@ -4,7 +4,7 @@ const abapClassTemplate = require('./abapClassTemplate');
 const xmlTemplate = require('./abapXMLTemplate');
 
 // Define source and target directories
-const sourceDir = path.join(__dirname, '../webapp');
+const sourceDir = path.join(__dirname, '../../app/webapp');
 const targetDir = path.join(__dirname, '../../src/01/03');
 
 // Initial XML content with BOM

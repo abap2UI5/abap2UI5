@@ -31,7 +31,7 @@
     "undeploy": "cf undeploy z2ui5 --delete-services --delete-service-keys --delete-service-brokers",
     "deploy-test": "npm run build && fiori deploy --config ui5-deploy.yaml --testMode true",
     "build:cf": "ui5 build preload --clean-dest --config ui5-deploy.yaml --include-task=generateCachebusterInfo",
-    "transform": "node trans/trans2abap.js && abaplint --fix ./trans/abaplint.jsonc",
+    "transform": "node ../ci/app2string/trans2abap.js && abaplint --fix ../ci/app2string/abaplint.jsonc",
     "build:mta": "rimraf resources mta_archives && mbt build"
   },
   "sapuxLayer": "CUSTOMER_BASE"
