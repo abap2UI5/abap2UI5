@@ -1,4 +1,4 @@
-name: build_bsp
+name: build_webapp
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  build_bsp:
+  build_webapp:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -22,10 +22,10 @@ jobs:
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v3
       with:
-        external_repository: abap2UI5-connectors/fiori-launchpad-connector-onpremise
+        external_repository: abap2UI5-connectors/btp-connector
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main
-        publish_dir: ./output
-        deploy_key: ${{ secrets.ACTIONS_BSP_KEY }}
-        destination_dir: src/02
+        publish_dir: ./app/webapp
+        deploy_key: ${{ secrets.ACTIONS_WEBAPP_KEY }}
+        destination_dir: webapp
