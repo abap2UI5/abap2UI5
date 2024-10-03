@@ -16,9 +16,6 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 20
-    - run: cd ci/app2bsp
-    - run: node run.js
-    - run: npm run build_bsp
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v3
       with:
