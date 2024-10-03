@@ -1451,12 +1451,44 @@ CLASS z2ui5_cl_util IMPLEMENTATION.
         EXPORTING
           val = 'TABLE_NAME_INITIAL_ERROR'.
     ENDIF.
+
     TRY.
-        DATA(lo_struct) = CAST cl_abap_structdescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
+        cl_abap_structdescr=>describe_by_name(
+          EXPORTING
+            p_name         = table_name
+          RECEIVING
+            p_descr_ref    =   DATA(lo_obj)
+          EXCEPTIONS
+            type_not_found = 1
+            OTHERS         = 2
+            ).
+
+        IF sy-subrc <> 0.
+          RAISE EXCEPTION TYPE z2ui5_cx_util_error
+            EXPORTING
+              val = 'TABLE_NOT_FOUD_NAME___' && table_name.
+        ENDIF.
+        DATA(lo_struct) = CAST cl_abap_structdescr( lo_obj ).
+
       CATCH cx_root.
 
         TRY.
-            DATA(lo_tab) = CAST cl_abap_tabledescr( cl_abap_structdescr=>describe_by_name( table_name ) ).
+            cl_abap_structdescr=>describe_by_name(
+              EXPORTING
+                p_name         = table_name
+             RECEIVING
+                p_descr_ref    = lo_obj
+              EXCEPTIONS
+                type_not_found = 1
+                OTHERS         = 2
+            ).
+            IF sy-subrc <> 0.
+              RAISE EXCEPTION TYPE z2ui5_cx_util_error
+                EXPORTING
+                  val = 'TABLE_NOT_FOUD_NAME___' && table_name.
+            ENDIF.
+
+            DATA(lo_tab) = CAST cl_abap_tabledescr( lo_obj ).
             lo_struct = CAST cl_abap_structdescr( lo_tab->get_table_line_type( ) ).
           CATCH cx_root.
             RETURN.
