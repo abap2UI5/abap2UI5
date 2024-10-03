@@ -1,9 +1,9 @@
 const fs = require('fs');
 const path = require('path');
 
-const sourceDir = './app/webapp';
+const sourceDir = '../../app/webapp';
 const staticDir = './static';
-const targetDir = './src/02';
+const targetDir = './output';
 const prefix = 'z2ui5.wapa.';
 
 function generateTargetFileName(sourcePath, baseDir) {
