@@ -24,6 +24,6 @@ jobs:
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main
-        publish_dir: ci/app2bsp/output
+        publish_dir: output
         deploy_key: ${{ secrets.ACTION_BSP_KEY }}
         destination_dir: src/02
