@@ -16,7 +16,7 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 20
-    - run: node ci/app/run.js
+    - run: node ci/app2bsp/run.js
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v3
       with:
