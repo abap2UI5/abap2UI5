@@ -72,6 +72,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
           mo_action = mo_action->factory_by_frontend( ).
 
         ELSEIF ms_request-s_control-app_start IS NOT INITIAL.
+          NEW z2ui5_cl_core_draft_srv( )->cleanup( ).
           mo_action = mo_action->factory_first_start( ).
 
         ELSE.
@@ -80,7 +81,6 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         ASSERT x->get_text( ) = 1.
-*        mo_action = mo_action->factory_system_error( x ).
     ENDTRY.
   ENDMETHOD.
 
@@ -159,7 +159,6 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
 
       CATCH cx_root INTO DATA(x).
         ASSERT x->get_text( ) = 1.
-*        mo_action = mo_action->factory_system_error( x ).
     ENDTRY.
   ENDMETHOD.
 ENDCLASS.
