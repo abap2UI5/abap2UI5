@@ -1,0 +1,12 @@
+{
+    "name": "fiori-launchpad-connector-onpremise",
+    "version": "1.0.0",
+    "description": "Ein Projekt zum Kopieren von Dateien von source nach target21",
+    "main": "run.js",
+    "scripts": {
+      "start": "node run.js"
+    },
+    "author": "Ihr Name",
+    "license": "MIT",
+    "dependencies": {}
+  }
