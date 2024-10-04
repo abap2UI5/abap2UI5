@@ -1,0 +1,25 @@
+name: build_ui5_stringified
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  build_ui5_stringified:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-node@v3
+      with:
+        node-version: 20
+    - run: | 
+        node ci/app2string/trans2abap.js 
+        git status
+    - name: Open PR
+      uses: peter-evans/create-pull-request@v4
+      with:
+        title: Automatic Update

@@ -18,7 +18,7 @@ CLASS z2ui5_cl_app_index_html IMPLEMENTATION.
 
   METHOD get.
 
-    result = `<!DOCTYPE html>` &&
+    result =              `<!DOCTYPE html>` &&
              `<html lang="en">` &&
              `<head>` &&
              `    <meta charset="UTF-8">` &&
