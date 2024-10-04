@@ -3,6 +3,7 @@ sap.ui.define(["sap/ui/core/Control", "sap/ui/core/Fragment", "sap/ui/model/json
 
     return Control.extend("z2ui5.cc.DebugTool", {
 
+        //printer XML
         prettifyXml: function (sourceXml) {
             const xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');
             var sParse = `&lt;xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"&gt;
