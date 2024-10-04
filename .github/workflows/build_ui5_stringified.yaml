@@ -6,6 +6,7 @@ on:
 
 permissions:
   contents: write
+  pull-requests: write  # Berechtigung für Pull-Requests hinzufügen
 
 jobs:
   build_ui5_stringified:
@@ -16,12 +17,20 @@ jobs:
     - uses: actions/setup-node@v3
       with:
         node-version: 20
+        cache: 'npm'  # Caching von Node.js-Abhängigkeiten
+    - run: npm install @abaplint/cli -g
     - run: | 
         node ci/app2string/trans2abap.js 
-        npm install @abaplint/cli -g
         abaplint --fix ci/app2string/abaplint.jsonc
         git status
+    - name: Commit changes
+      run: |
+        git config --global user.name 'github-actions[bot]'
+        git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .
+        git commit -m 'Automatic update by GitHub Actions' || echo "No changes to commit"
     - name: Open PR
       uses: peter-evans/create-pull-request@v4
       with:
         title: Automatic Update
+        branch: update-branch  # Optional: Branchname für den PR
