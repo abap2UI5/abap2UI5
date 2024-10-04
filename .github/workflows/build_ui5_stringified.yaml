@@ -18,6 +18,8 @@ jobs:
         node-version: 20
     - run: | 
         node ci/app2string/trans2abap.js 
+        npm install @abaplint/cli -g
+        abaplint --fix ci/app2string/abaplint.jsonc
         git status
     - name: Open PR
       uses: peter-evans/create-pull-request@v4
