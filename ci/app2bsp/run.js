@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const sourceDir = './app/webapp';
-const staticDir = './ci/app2bsp/static';
+const staticDir = './ci/app2bsp/static_files';
 const targetDir = './output';
 const prefix = 'z2ui5.wapa.';
 
