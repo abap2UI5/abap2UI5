@@ -26,7 +26,7 @@ CLASS z2ui5_cl_app_debugtool_xml IMPLEMENTATION.
              `    xmlns:ce="sap.ui.codeeditor"` &&
              `>` &&
              `    <Dialog` &&
-             `        title="abap2UI5 - Debug Tool"` &&
+             `        title="abap2UI5 - DebugTool"` &&
              `        stretch="true"` &&
              `    >` &&
              `        <IconTabHeader` &&
