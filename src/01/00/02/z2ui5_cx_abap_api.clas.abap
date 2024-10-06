@@ -9,7 +9,7 @@ CLASS z2ui5_cx_abap_api DEFINITION
     DATA:
       BEGIN OF ms_error,
         x_root TYPE REF TO cx_root,
-        uuid   TYPE string,
+*        uuid   TYPE string,
         text   TYPE string,
       END OF ms_error .
 
@@ -41,7 +41,7 @@ CLASS z2ui5_cx_abap_api IMPLEMENTATION.
       CATCH cx_root.
         ms_error-text = val.
     ENDTRY.
-    ms_error-uuid = z2ui5_cl_util=>uuid_get_c32( ).
+*    ms_error-uuid = z2ui5_cl_util=>uuid_get_c32( ).
 
   ENDMETHOD.
 
