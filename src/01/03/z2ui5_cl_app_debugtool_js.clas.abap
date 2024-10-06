@@ -23,7 +23,7 @@ CLASS z2ui5_cl_app_debugtool_js IMPLEMENTATION.
              `` && |\n| &&
              `    return Control.extend("z2ui5.cc.DebugTool", {` && |\n| &&
              `` && |\n| &&
-             `        //printerXML` && |\n| &&
+             `        //printer XML` && |\n| &&
              `        prettifyXml: function (sourceXml) {` && |\n| &&
              `            const xmlDoc = new DOMParser().parseFromString(sourceXml, 'application/xml');` && |\n| &&
              `            var sParse = ``&lt;xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform"&gt;` && |\n| &&
