@@ -60,7 +60,7 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 * Developed on an [ABAP Cloud Dev Trial 2022](https://hub.docker.com/r/sapse/abap-cloud-developer-trial) [(hosted by Nuve Platform)](https://www.nuveplatform.com/)
 
 #### What's Next? 
-* [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/quickstart.md) –  Install and get started with your first abap2UI5 app
+* [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/get_started/quickstart.md) –  Install and get started with your first abap2UI5 app
 * [Samples](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
 * [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into abap2UI5 blogs for in-depth insights
 * [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
