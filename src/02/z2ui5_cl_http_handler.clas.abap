@@ -13,7 +13,10 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        server        TYPE REF TO object
+        server        TYPE REF TO object OPTIONAL
+        req           TYPE REF TO object OPTIONAL
+        res           TYPE REF TO object OPTIONAL
+          PREFERRED PARAMETER server
       RETURNING
         VALUE(result) TYPE REF TO z2ui5_cl_http_handler.
 
@@ -62,7 +65,7 @@ CLASS z2ui5_cl_http_handler DEFINITION
     METHODS get_index_html
       RETURNING
         VALUE(result) TYPE string
-        ##CALLED.
+          ##CALLED.
 
   PRIVATE SECTION.
 
@@ -127,7 +130,14 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD factory.
 
     result = NEW #( ).
-    result->mo_server = z2ui5_cl_abap_api_http=>factory( server ).
+
+    IF server IS BOUND.
+      result->mo_server = z2ui5_cl_abap_api_http=>factory( server ).
+    ELSEIF req IS BOUND AND res IS BOUND.
+      result = factory_cloud( req = req res = res ).
+    ELSE.
+      ASSERT 1 = `EMPTY_HTTP_HANDLER_CALL_ERROR`.
+    ENDIF.
 
   ENDMETHOD.
 
