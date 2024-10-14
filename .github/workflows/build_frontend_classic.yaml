@@ -1,4 +1,4 @@
-name: build_bsp
+name: build_frontend_classic
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  build_bsp:
+  build_frontend_classic:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -25,5 +25,5 @@ jobs:
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: classic
         publish_dir: output
-        deploy_key: ${{ secrets.ACTION_BSP_KEY }}
+        deploy_key: ${{ secrets.ACTION_KEY_FRONTEND }}
         destination_dir: src/02
