@@ -22,7 +22,7 @@ jobs:
     - name: send to downport repository
       uses: peaceiris/actions-gh-pages@v3
       with:
-        external_repository: abap2UI5-downports/abap2UI5
+        external_repository: abap2UI5-downported/abap2UI5
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: main

@@ -19,10 +19,10 @@ jobs:
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v3
       with:
-        external_repository: abap2UI5-connectors/btp-connector
+        external_repository: abap2UI5/frontend
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        publish_branch: main
+        publish_branch: cloud
         publish_dir: ./app/webapp
         deploy_key: ${{ secrets.ACTION_WEBAPP_KEY }}
         destination_dir: webapp

@@ -20,10 +20,10 @@ jobs:
     - name: send to bsp repository
       uses: peaceiris/actions-gh-pages@v3
       with:
-        external_repository: abap2UI5-connectors/fiori-launchpad-connector-onpremise
+        external_repository: abap2UI5/frontend
         user_name: 'github-actions[bot]'
         user_email: 'github-actions[bot]@users.noreply.github.com'
-        publish_branch: main
+        publish_branch: classic
         publish_dir: output
         deploy_key: ${{ secrets.ACTION_BSP_KEY }}
         destination_dir: src/02
