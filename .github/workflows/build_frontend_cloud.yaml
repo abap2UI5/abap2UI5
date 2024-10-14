@@ -1,4 +1,4 @@
-name: build_webapp
+name: build_frontend_cloud
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  build_webapp:
+  build_frontend_cloud:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
