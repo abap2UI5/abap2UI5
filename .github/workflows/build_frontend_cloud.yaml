@@ -25,4 +25,4 @@ jobs:
         publish_branch: cloud
         publish_dir: ./app/webapp
         deploy_key: ${{ secrets.ACTION_KEY_FRONTEND }}
-        destination_dir: webapp
+        destination_dir: ./app/webapp
