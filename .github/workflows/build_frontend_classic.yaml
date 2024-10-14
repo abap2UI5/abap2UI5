@@ -1,4 +1,4 @@
-name: build_bsp
+name: build_frontend_classic
 
 on:
   push:
@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 jobs:
-  build_bsp:
+  build_frontend_classic:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
