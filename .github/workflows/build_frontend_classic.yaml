@@ -25,5 +25,5 @@ jobs:
         user_email: 'github-actions[bot]@users.noreply.github.com'
         publish_branch: classic
         publish_dir: output
-        deploy_key: ${{ secrets.ACTION_BSP_KEY }}
+        deploy_key: ${{ secrets.ACTION_KEY_FRONTEND }}
         destination_dir: src/02
