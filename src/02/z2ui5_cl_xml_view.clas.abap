@@ -3445,6 +3445,7 @@ CLASS z2ui5_cl_xml_view DEFINITION
                 textdirection      TYPE clike OPTIONAL
                 !visible           TYPE clike OPTIONAL
                 wrappingtype       TYPE clike OPTIONAL
+                class              TYPE clike OPTIONAL
       RETURNING VALUE(result)      TYPE REF TO z2ui5_cl_xml_view.
 
     METHODS select
@@ -5340,7 +5341,8 @@ CLASS z2ui5_cl_xml_view IMPLEMENTATION.
                      ( n = `textAlign`         v = textalign )
                      ( n = `textDirection`       v = textdirection )
                      ( n = `wrappingType` v = wrappingtype )
-                     ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) ) ) ).
+                     ( n = `visible`           v = z2ui5_cl_util=>boolean_abap_2_json( visible ) )
+                     ( n = `class`  v = class ) ) ).
   ENDMETHOD.
 
 
