@@ -15,7 +15,7 @@
 <a href="https://www.linkedin.com/company/abap2ui5"><img src="https://img.shields.io/badge/LinkedIn-0077B5?style=for-the-badge&logo=linkedin&logoColor=white"></a>
 </p>
 
-*...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in the past, when a few lines of ABAP were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
+*...offers a pure ABAP approach for developing UI5 apps - entirely without JavaScript, OData or RAP. Just like in classic ABAP, when a few lines of code were enough to display input forms and tables using Selection Screens & ALVs. Designed with a minimal system footprint, it works in both on-premise and cloud environments.*
 
 #### Key Features
 * **100% ABAP:** Developing purely in ABAP (no JavaScript, DDL, EML or Customizing)
@@ -24,13 +24,6 @@
 * **Cloud & On-Premise Ready:** Supports both ABAP Cloud and Standard ABAP
 * **Broad System Compatibility:** Runs on all ABAP releases (from NW 7.02 to ABAP Cloud)
 * **Easy Installation:** Install via abapGit, no additional app deployment required
-
-#### Compatibility
-* BTP ABAP Environment (ABAP for Cloud)
-* S/4 Public Cloud (ABAP for Cloud)
-* S/4 Private Cloud or On-Premise (ABAP for Cloud, Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.50 or higher (Standard ABAP)
-* R/3 NetWeaver AS ABAP 7.02 to 7.42: Use the [downported repositories](https://github.com/abap2UI5-downports)
 
 #### References
 * Find abap2UI5 on ABAP Open Source Projects [(dotabap.org)](https://dotabap.org/)
@@ -61,11 +54,8 @@ This project greatly benefits from its [contributors](https://github.com/abap2UI
 #### What's Next? 
 * [Quickstart](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/get_started/quickstart.md) –  Install and get started with your first abap2UI5 app
 * [Samples](https://github.com/abap2UI5/abap2UI5-samples) – Learn through hands-on examples and start building your own apps
-* [Blogs](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/blogs.md) - Dive into abap2UI5 blogs for in-depth insights
 * [Addons](https://github.com/abap2UI5-addons) – Expand abap2UI5’s capabilities to fit your needs
-* [Connectors](https://github.com/abap2UI5-connectors) – Seamlessly access your apps from anywhere
 * [Apps](https://github.com/abap2UI5-apps) – Discover and try out abap2UI5 apps 
-* [Links](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/links.md) – Explore other projects using abap2UI5
 
 #### Get Involved
 * Questions, feedback or bugs? Check out the [documentation](https://github.com/abap2UI5/abap2UI5-documentation/), [FAQ](https://github.com/abap2UI5/abap2UI5-documentation/blob/main/docs/faq.md) or create an [issue.](https://github.com/abap2UI5/abap2UI5/issues)
