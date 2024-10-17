@@ -244,7 +244,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD run.
 
-    DATA(lo_handler) = z2ui5_cl_http_handler=>factory(
+    DATA(lo_handler) = factory(
          server = server
          req    = req
          res    = res
