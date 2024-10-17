@@ -16,6 +16,32 @@ INTERFACE z2ui5_if_core_types
     END OF cs_bind_type.
 
   TYPES:
+    BEGIN OF ty_s_http_req,
+      method TYPE string,
+      body   TYPE string,
+    END OF ty_s_http_req.
+
+  TYPES:
+    BEGIN OF ty_s_http_res,
+      body          TYPE string,
+      status_code   TYPE i,
+      status_reason TYPE string,
+      t_header      TYPE z2ui5_if_types=>ty_t_name_value,
+      BEGIN OF s_stateful,
+        active   TYPE i,
+        switched TYPE abap_bool,
+      END OF s_stateful,
+    END OF ty_s_http_res.
+
+*  TYPES:
+*    BEGIN OF ty_s_http_handler_attributes,
+*      BEGIN OF stateful,
+*        active   TYPE i,
+*        switched TYPE abap_bool,
+*      END OF stateful,
+*    END OF ty_s_http_handler_attributes.
+
+  TYPES:
     BEGIN OF ty_s_bind_config,
       path_only          TYPE abap_bool,
       view               TYPE string,
@@ -114,7 +140,8 @@ INTERFACE z2ui5_if_core_types
       BEGIN OF s_follow_up_action,
         custom_js TYPE string,
       END OF s_follow_up_action,
-      handler_attrs TYPE z2ui5_if_types=>ty_s_http_handler_attributes,
+*      handler_attrs TYPE ty_s_http_handler_attributes,
+      s_stateful TYPE ty_s_http_res-s_stateful,
     END OF ty_s_next_frontend.
 
   TYPES:

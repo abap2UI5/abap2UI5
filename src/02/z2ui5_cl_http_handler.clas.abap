@@ -4,6 +4,14 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
   PUBLIC SECTION.
 
+    CLASS-METHODS run
+      IMPORTING
+        server TYPE REF TO object OPTIONAL
+        req    TYPE REF TO object OPTIONAL
+        res    TYPE REF TO object OPTIONAL
+        config TYPE z2ui5_if_types=>ty_s_http_config OPTIONAL
+          PREFERRED PARAMETER server.
+
     CLASS-METHODS factory_cloud
       IMPORTING
         req           TYPE REF TO object
@@ -28,44 +36,28 @@ CLASS z2ui5_cl_http_handler DEFINITION
 
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
     DATA mo_server TYPE REF TO z2ui5_cl_abap_api_http.
-    DATA ms_session_attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
+*    DATA ms_session_attributes TYPE z2ui5_if_core_types=>ty_s_http_handler_attributes.
 
-    TYPES:
-      BEGIN OF ty_s_http_req,
-        method TYPE string,
-        body   TYPE string,
-      END OF ty_s_http_req.
-
-    TYPES:
-      BEGIN OF ty_s_http_res,
-        body          TYPE string,
-        status_code   TYPE i,
-        status_reason TYPE string,
-        t_header      TYPE z2ui5_if_types=>ty_t_name_value,
-      END OF ty_s_http_res.
-
-    DATA ms_req TYPE ty_s_http_req.
-    DATA ms_res TYPE ty_s_http_res.
+    DATA ms_req TYPE z2ui5_if_core_types=>ty_s_http_req.
+    DATA ms_res TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA ms_config TYPE z2ui5_if_types=>ty_s_http_config.
 
-    METHODS set_config
-      IMPORTING
-        is_custom_config TYPE z2ui5_if_types=>ty_s_http_config.
-
-    METHODS http_get
-      IMPORTING
-        is_custom_config TYPE z2ui5_if_types=>ty_s_http_config.
+    METHODS http_get.
 
     METHODS http_post.
 
-    METHODS session_handling
-      IMPORTING
-        attributes TYPE z2ui5_if_types=>ty_s_http_handler_attributes.
+    METHODS session_handling.
+*      IMPORTING
+*        attributes TYPE z2ui5_if_core_types=>ty_s_http_handler_attributes.
 
     METHODS get_index_html
       RETURNING
         VALUE(result) TYPE string
           ##CALLED.
+
+    METHODS set_request.
+
+    METHODS set_response.
 
   PRIVATE SECTION.
 
@@ -77,41 +69,14 @@ ENDCLASS.
 CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
-  METHOD set_config.
-
-    ms_config = is_custom_config.
-
-    IF ms_config-title IS INITIAL.
-      ms_config-title = `abap2UI5`.
-    ENDIF.
-
-    IF ms_config-theme IS INITIAL.
-      ms_config-theme = `sap_horizon`.
-    ENDIF.
-
-    IF ms_config-src IS INITIAL.
-      ms_config-src     = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
-*      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
-*      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
-    ENDIF.
-
-    IF ms_config-content_security_policy IS INITIAL.
-      ms_config-content_security_policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
-     `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
-     `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
-    ENDIF.
-
-  ENDMETHOD.
-
-
   METHOD main.
 
-    ms_req-body = mo_server->get_cdata( ).
-    ms_req-method = mo_server->get_method( ).
+    ms_config = s_config.
+    set_request( ).
 
     CASE ms_req-method.
       WHEN `GET`.
-        http_get( s_config ).
+        http_get( ).
       WHEN `POST`.
         http_post( ).
       WHEN `HEAD`.
@@ -119,11 +84,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         RETURN.
     ENDCASE.
 
-    mo_server->set_cdata( ms_res-body ).
-    mo_server->set_header_field( n = `cache-control` v = `no-cache` ).
-    mo_server->set_status( code = 200 reason = `success` ).
-
-    session_handling( ms_session_attributes ).
+    set_response( ).
+    session_handling( ).
 
   ENDMETHOD.
 
@@ -152,7 +114,6 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
   METHOD http_get.
 
-    set_config( is_custom_config ).
     ms_res-body = get_index_html( ).
 
   ENDMETHOD.
@@ -167,9 +128,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       lo_post->mv_request_json = ms_req-body.
     ENDIF.
 
-    ms_res-body = lo_post->main(
-      IMPORTING
-        attributes = ms_session_attributes ).
+    ms_res = lo_post->main( ).
 
     TRY.
         IF lo_post IS BOUND.
@@ -189,8 +148,8 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD session_handling.
 
     "transform cookie to header based contextid handling
-    IF attributes-stateful-switched = abap_true.
-      mo_server->set_session_stateful( attributes-stateful-active  ).
+    IF ms_res-s_stateful-switched = abap_true.
+      mo_server->set_session_stateful( ms_res-s_stateful-active  ).
       IF mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
         DATA(lv_contextid) = mo_server->get_response_cookie( 'sap-contextid' ).
         IF lv_contextid IS NOT INITIAL.
@@ -209,6 +168,26 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
 
 
   METHOD get_index_html.
+
+    IF ms_config-title IS INITIAL.
+      ms_config-title = `abap2UI5`.
+    ENDIF.
+
+    IF ms_config-theme IS INITIAL.
+      ms_config-theme = `sap_horizon`.
+    ENDIF.
+
+    IF ms_config-src IS INITIAL.
+      ms_config-src     = `https://sdk.openui5.org/resources/sap-ui-cachebuster/sap-ui-core.js`.
+*      ms_req_config-src     = `https://sdk.openui5.org/1.71.67/resources/sap-ui-core.js`.
+*      ms_req_config-src     = `https://sdk.openui5.org/nightly/2/resources/sap-ui-core.js`.
+    ENDIF.
+
+    IF ms_config-content_security_policy IS INITIAL.
+      ms_config-content_security_policy = `<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' data: ` &&
+     `ui5.sap.com *.ui5.sap.com sapui5.hana.ondemand.com *.sapui5.hana.ondemand.com openui5.hana.ondemand.com *.openui5.hana.ondemand.com ` &&
+     `sdk.openui5.org *.sdk.openui5.org cdn.jsdelivr.net *.cdn.jsdelivr.net cdnjs.cloudflare.com *.cdnjs.cloudflare.com schemas *.schemas"/>`.
+    ENDIF.
 
     IF ms_config-styles_css IS INITIAL.
       DATA(lv_style_css) = z2ui5_cl_app_style_css=>get( ).
@@ -260,6 +239,35 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
         `<body class="sapUiBody sapUiSizeCompact" id="content">` && |\n| &&
         `    <div data-sap-ui-component data-name="z2ui5" data-id="container" data-settings='{"id" : "z2ui5"}' data-handle-validation="true"></div>` && |\n| &&
         ` </body></html>`.
+
+  ENDMETHOD.
+
+  METHOD run.
+
+    DATA(lo_handler) = z2ui5_cl_http_handler=>factory(
+         server = server
+         req    = req
+         res    = res
+         ).
+
+    lo_handler->main( config ).
+
+  ENDMETHOD.
+
+
+  METHOD set_request.
+
+    ms_req-body = mo_server->get_cdata( ).
+    ms_req-method = mo_server->get_method( ).
+
+  ENDMETHOD.
+
+
+  METHOD set_response.
+
+    mo_server->set_cdata( ms_res-body ).
+    mo_server->set_header_field( n = `cache-control` v = `no-cache` ).
+    mo_server->set_status( code = 200 reason = `success` ).
 
   ENDMETHOD.
 
