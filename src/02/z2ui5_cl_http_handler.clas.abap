@@ -51,6 +51,22 @@ CLASS z2ui5_cl_http_handler DEFINITION
       RETURNING
         VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_res.
 
+    CLASS-METHODS get_request
+      IMPORTING
+        server        TYPE REF TO object OPTIONAL
+        req           TYPE REF TO object OPTIONAL
+        res           TYPE REF TO object OPTIONAL
+          PREFERRED PARAMETER server
+      RETURNING
+        VALUE(result) TYPE z2ui5_if_core_types=>ty_s_http_req.
+
+    CLASS-METHODS get_response
+      IMPORTING
+        server TYPE REF TO object OPTIONAL
+        req    TYPE REF TO object OPTIONAL
+        res    TYPE REF TO object OPTIONAL
+        is_res TYPE z2ui5_if_core_types=>ty_s_http_res.
+
   PROTECTED SECTION.
 
     CLASS-DATA so_sticky_handler TYPE REF TO z2ui5_cl_core_http_post.
@@ -59,6 +75,8 @@ CLASS z2ui5_cl_http_handler DEFINITION
     DATA ms_req TYPE z2ui5_if_core_types=>ty_s_http_req.
     DATA ms_res TYPE z2ui5_if_core_types=>ty_s_http_res.
     DATA ms_config TYPE z2ui5_if_types=>ty_s_http_config.
+
+
 
     METHODS set_request.
     METHODS set_response.
@@ -76,6 +94,7 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
   METHOD main.
 
     ms_config = s_config.
+
     set_request( ).
 
     CASE ms_req-method.
@@ -270,6 +289,51 @@ CLASS z2ui5_cl_http_handler IMPLEMENTATION.
       WHEN `POST`.
         result = _http_post( is_req ).
     ENDCASE.
+
+  ENDMETHOD.
+
+  METHOD get_request.
+
+    DATA(lo_handler) = factory(
+     server = server
+     req    = req
+     res    = res
+     ).
+
+    result-body = lo_handler->mo_server->get_cdata( ).
+    result-method = lo_handler->mo_server->get_method( ).
+
+
+  ENDMETHOD.
+
+  METHOD get_response.
+
+    DATA(lo_handler) = factory(
+     server = server
+     req    = req
+     res    = res
+     ).
+
+    lo_handler->mo_server->set_cdata( is_res-body ).
+    lo_handler->mo_server->set_header_field( n = `cache-control` v = `no-cache` ).
+    lo_handler->mo_server->set_status( code = 200 reason = `success` ).
+
+    "transform cookie to header based contextid handling
+    IF is_res-s_stateful-switched = abap_true.
+      lo_handler->mo_server->set_session_stateful( is_res-s_stateful-active  ).
+      IF lo_handler->mo_server->get_header_field( 'sap-contextid-accept' ) = 'header'.
+        DATA(lv_contextid) = lo_handler->mo_server->get_response_cookie( 'sap-contextid' ).
+        IF lv_contextid IS NOT INITIAL.
+          lo_handler->mo_server->delete_response_cookie( 'sap-contextid' ).
+          lo_handler->mo_server->set_header_field( n = 'sap-contextid' v = lv_contextid ).
+        ENDIF.
+      ENDIF.
+    ELSE.
+      lv_contextid = lo_handler->mo_server->get_header_field( 'sap-contextid' ).
+      IF lv_contextid IS NOT INITIAL.
+        lo_handler->mo_server->set_header_field( n = 'sap-contextid' v = lv_contextid ).
+      ENDIF.
+    ENDIF.
 
   ENDMETHOD.
 
