@@ -33,14 +33,6 @@ INTERFACE z2ui5_if_core_types
       END OF s_stateful,
     END OF ty_s_http_res.
 
-*  TYPES:
-*    BEGIN OF ty_s_http_handler_attributes,
-*      BEGIN OF stateful,
-*        active   TYPE i,
-*        switched TYPE abap_bool,
-*      END OF stateful,
-*    END OF ty_s_http_handler_attributes.
-
   TYPES:
     BEGIN OF ty_s_bind_config,
       path_only          TYPE abap_bool,

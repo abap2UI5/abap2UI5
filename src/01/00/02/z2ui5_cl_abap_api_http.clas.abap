@@ -58,12 +58,10 @@ CLASS z2ui5_cl_abap_api_http DEFINITION PUBLIC.
         v TYPE clike.
 
     DATA mo_server_onprem TYPE REF TO object.
-
-  PROTECTED SECTION.
-
     DATA mo_request_cloud TYPE REF TO object.
     DATA mo_response_cloud TYPE REF TO object.
 
+  PROTECTED SECTION.
   PRIVATE SECTION.
 ENDCLASS.
 
