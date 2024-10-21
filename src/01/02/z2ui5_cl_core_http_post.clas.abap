@@ -46,7 +46,6 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
 
 
   METHOD main.
-*    CLEAR attributes.
 
     main_begin( ).
     DO.
@@ -58,7 +57,7 @@ CLASS z2ui5_cl_core_http_post IMPLEMENTATION.
     result = VALUE #(
         body = mv_response
         s_stateful = ms_response-s_front-params-s_stateful
-        ).
+    ).
 
   ENDMETHOD.
 
