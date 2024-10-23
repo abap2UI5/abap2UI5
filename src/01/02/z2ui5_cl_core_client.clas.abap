@@ -353,7 +353,6 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
           val = `STATEFUL_ALREADY_ACTIVATED_ERROR`.
     ENDIF.
     IF stateful = abap_true.
-*       mo_action->ms_next-s_set-handler_attrs-
       mo_action->ms_next-s_set-s_stateful-active = 1.
       CAST z2ui5_if_app( mo_action->mo_app->mo_app )->check_sticky = abap_true.
     ELSE.
@@ -363,4 +362,32 @@ CLASS z2ui5_cl_core_client IMPLEMENTATION.
     mo_action->ms_next-s_set-s_stateful-switched = abap_true.
 
   ENDMETHOD.
+
+  METHOD z2ui5_if_client~check_app_prev_stack.
+
+    DATA(ls_get) = z2ui5_if_client~get( ).
+    result = xsdbool( ls_get-s_draft-id_prev_app_stack IS NOT INITIAL ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~check_on_init.
+
+    result = xsdbool( CAST z2ui5_if_app(  mo_action->mo_app->mo_app )->check_initialized = abap_false ).
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~check_on_navigated.
+
+    DATA(ls_get) = z2ui5_if_client~get( ).
+    result = ls_get-check_on_navigated.
+
+  ENDMETHOD.
+
+  METHOD z2ui5_if_client~get_app_prev.
+
+    DATA(ls_get) = z2ui5_if_client~get( ).
+    result = z2ui5_if_client~get_app( ls_get-s_draft-id_prev_app ).
+
+  ENDMETHOD.
+
 ENDCLASS.

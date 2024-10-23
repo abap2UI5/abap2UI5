@@ -189,4 +189,20 @@ INTERFACE z2ui5_if_client
     IMPORTING
       val TYPE string.
 
+  METHODS check_on_init
+    RETURNING
+      value(result) TYPE abap_bool.
+
+  METHODS check_app_prev_stack
+    RETURNING
+      value(result) TYPE abap_bool.
+
+  METHODS check_on_navigated
+    RETURNING
+      value(result) TYPE abap_bool.
+
+  METHODS get_app_prev
+    RETURNING
+      value(result) TYPE REF TO z2ui5_if_app.
+
 ENDINTERFACE.

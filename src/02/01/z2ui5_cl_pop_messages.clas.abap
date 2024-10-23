@@ -23,7 +23,7 @@ CLASS z2ui5_cl_pop_messages DEFINITION
 
     CLASS-METHODS factory
       IMPORTING
-        i_messages      TYPE ty_t_msg
+        i_messages      TYPE STANDARD TABLE
         i_title         TYPE string DEFAULT `abap2UI5 - Message Popup`
       RETURNING
         VALUE(r_result) TYPE REF TO z2ui5_cl_pop_messages.
@@ -45,7 +45,14 @@ CLASS z2ui5_cl_pop_messages IMPLEMENTATION.
   METHOD factory.
 
     r_result = NEW #( ).
-    r_result->mt_msg = i_messages.
+
+    z2ui5_cl_util=>itab_corresponding(
+      EXPORTING
+        val = i_messages
+      CHANGING
+        tab = r_result->mt_msg
+    ).
+
     r_result->title = i_title.
 
   ENDMETHOD.
